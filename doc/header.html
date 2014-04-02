@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <meta name="keywords" content="Ingition: Math">
+    <title>Ignition: $title</title>
+    <link href="tabs.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="dynsections.js"></script>
+    <link href="search/search.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="search/search.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() { searchBox.OnSelectItem(0); });
+    </script>
+
+    <link href="doxygen.css" rel="stylesheet" type="text/css">
+    <!--<link href="style.css" rel="stylesheet" type="text/css">-->
+  </head>
+
+<body>
+  <div class="leftbar"> 
+    <h2 style="text-align:center;">
+      <a href="index.html"><img src="ignition_logo.png"/></a>
+    </h2>
+
+    <div class="menu">
+      <dl>
+        <dt>Class</dt>
+        <dd><a href="classes.html">List</a></dd>
+        <dd><a href="hierarchy.html">Hierarchy</a></dd>
+      </dl>
+    </div>
+    <div class="menu">
+      <dl>
+        <dt>Links</dt>
+        <dd><a href="http://igntionrobotics.org">Ignition Website</a></dd>
+        <dd><a href="http://wiki.igntionrobotics.org">Wiki</a></dd>
+        <dd><a href="http://igntionrobotics.org/downloads.html">Download</a></dd>
+        <dd><a href="https://bitbucket.org/osrf/ignition_math/issues/new">Report Documentation Issues</a></dd>
+      </dl>
+    </div>
+    <div>
+    <div id="MSearchBox" class="MSearchBoxInactive">
+      <span>
+        <img id="MSearchSelect" src="search/mag_sel.png"
+        onmouseover="return searchBox.OnSearchSelectShow()"
+        onmouseout="return searchBox.OnSearchSelectHide()"
+        alt=""/>
+        <input type="text" id="MSearchField" value="Search" accesskey="S"
+        onfocus="searchBox.OnSearchFieldFocus(true)" 
+        onblur="searchBox.OnSearchFieldFocus(false)" 
+        onkeyup="searchBox.OnSearchFieldChange(event)"/>
+      </span>
+    </div> <!-- End MSearchBox -->
+
+      <div id="MSearchResultsWindow" style="position: static; display: block; border: none; background-color: #ffffff; width: 18em;">
+        <iframe src="javascript:void(0)" frameborder="0" 
+                name="MSearchResults" style="height: 500px; width: 18em; display: block; text-wrap: unrestricted">
+        </iframe>
+      </div>
+    </div>
+  </div>
+  <div id="top">
