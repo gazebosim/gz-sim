@@ -15,357 +15,373 @@
  *
 */
 
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector3.hh"
-
-using namespace ignition;
-using namespace math;
-
-const Vector3 Vector3::Zero = math::Vector3(0, 0, 0);
-const Vector3 Vector3::One = math::Vector3(1, 1, 1);
-const Vector3 Vector3::UnitX = math::Vector3(1, 0, 0);
-const Vector3 Vector3::UnitY = math::Vector3(0, 1, 0);
-const Vector3 Vector3::UnitZ = math::Vector3(0, 0, 1);
+const IGN_VECTOR3 IGN_VECTOR3::Zero = math::IGN_VECTOR3(0, 0, 0);
+const IGN_VECTOR3 IGN_VECTOR3::One = math::IGN_VECTOR3(1, 1, 1);
+const IGN_VECTOR3 IGN_VECTOR3::UnitX = math::IGN_VECTOR3(1, 0, 0);
+const IGN_VECTOR3 IGN_VECTOR3::UnitY = math::IGN_VECTOR3(0, 1, 0);
+const IGN_VECTOR3 IGN_VECTOR3::UnitZ = math::IGN_VECTOR3(0, 0, 1);
 
 //////////////////////////////////////////////////
-Vector3::Vector3()
-    : x(0.0), y(0.0), z(0.0)
+IGN_VECTOR3::IGN_VECTOR3()
+{
+  this->data[0] = 0;
+  this->data[1] = 0;
+  this->data[2] = 0;
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR3::IGN_VECTOR3(const IGN_NUMERIC &_x, const IGN_NUMERIC &_y,
+                         const IGN_NUMERIC &_z)
+{
+  this->data[0] = _x;
+  this->data[1] = _y;
+  this->data[2] = _z;
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR3::IGN_VECTOR3(const IGN_VECTOR3 &_pt)
+{
+  this->data[0] = _pt[0];
+  this->data[1] = _pt[1];
+  this->data[2] = _pt[2];
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR3::~IGN_VECTOR3()
 {
 }
 
 //////////////////////////////////////////////////
-Vector3::Vector3(const double &_x, const double &_y, const double &_z)
-    : x(_x), y(_y), z(_z)
+IGN_NUMERIC IGN_VECTOR3::Distance(const IGN_VECTOR3 &_pt) const
 {
+  return sqrt((this->data[0]-_pt[0])*(this->data[0]-_pt[0]) +
+              (this->data[1]-_pt[1])*(this->data[1]-_pt[1]) +
+              (this->data[2]-_pt[2])*(this->data[2]-_pt[2]));
 }
 
 //////////////////////////////////////////////////
-Vector3::Vector3(const Vector3 &_pt)
-    : x(_pt.x), y(_pt.y), z(_pt.z)
+IGN_NUMERIC IGN_VECTOR3::Distance(IGN_NUMERIC _x, IGN_NUMERIC _y,
+                                  IGN_NUMERIC _z) const
 {
+  return this->Distance(IGN_VECTOR3(_x, _y, _z));
 }
 
 //////////////////////////////////////////////////
-Vector3::~Vector3()
+IGN_NUMERIC IGN_VECTOR3::GetSum() const
 {
+  return this->data[0] + this->data[1] + this->data[2];
 }
 
 //////////////////////////////////////////////////
-double Vector3::Distance(const Vector3 &_pt) const
+IGN_NUMERIC IGN_VECTOR3::GetLength() const
 {
-  return sqrt((this->x-_pt.x)*(this->x-_pt.x) +
-              (this->y-_pt.y)*(this->y-_pt.y) +
-              (this->z-_pt.z)*(this->z-_pt.z));
+  return sqrt(this->data[0] * this->data[0] +
+              this->data[1] * this->data[1] +
+              this->data[2] * this->data[2]);
 }
 
 //////////////////////////////////////////////////
-double Vector3::Distance(double _x, double _y, double _z) const
+IGN_NUMERIC IGN_VECTOR3::GetSquaredLength() const
 {
-  return this->Distance(Vector3(_x, _y, _z));
+  return this->data[0] * this->data[0] +
+         this->data[1] * this->data[1] +
+         this->data[2] * this->data[2];
 }
 
 //////////////////////////////////////////////////
-double Vector3::GetSum() const
+IGN_VECTOR3 IGN_VECTOR3::Normalize()
 {
-  return this->x + this->y + this->z;
-}
+  IGN_NUMERIC d = sqrt(this->data[0] * this->data[0] +
+                       this->data[1] * this->data[1] +
+                       this->data[2] * this->data[2]);
 
-//////////////////////////////////////////////////
-double Vector3::GetLength() const
-{
-  return sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
-}
-
-//////////////////////////////////////////////////
-double Vector3::GetSquaredLength() const
-{
-  return this->x * this->x + this->y * this->y + this->z * this->z;
-}
-
-//////////////////////////////////////////////////
-Vector3 Vector3::Normalize()
-{
-  double d = sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
-
-  if (!math::equal(d, 0.0))
+  if (!math::equal(d, static_cast<IGN_NUMERIC>(0.0)))
   {
-    this->x /= d;
-    this->y /= d;
-    this->z /= d;
+    this->data[0] /= d;
+    this->data[1] /= d;
+    this->data[2] /= d;
   }
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::Round()
+IGN_VECTOR3 IGN_VECTOR3::Round()
 {
-  this->x = nearbyint(this->x);
-  this->y = nearbyint(this->y);
-  this->z = nearbyint(this->z);
+  this->data[0] = nearbyint(this->data[0]);
+  this->data[1] = nearbyint(this->data[1]);
+  this->data[2] = nearbyint(this->data[2]);
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::GetRounded() const
+IGN_VECTOR3 IGN_VECTOR3::GetRounded() const
 {
-  Vector3 result = *this;
+  IGN_VECTOR3 result = *this;
   result.Round();
   return result;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::Cross(const Vector3 &_pt) const
+IGN_VECTOR3 IGN_VECTOR3::Cross(const IGN_VECTOR3 &_pt) const
 {
-  Vector3 c(0, 0, 0);
-
-  c.x = this->y * _pt.z - this->z * _pt.y;
-  c.y = this->z * _pt.x - this->x * _pt.z;
-  c.z = this->x * _pt.y - this->y * _pt.x;
-
-  return c;
+  return IGN_VECTOR3(this->data[1] * _pt[2] - this->data[2] * _pt[1],
+                     this->data[2] * _pt[0] - this->data[0] * _pt[2],
+                     this->data[0] * _pt[1] - this->data[1] * _pt[0]);
 }
 
 //////////////////////////////////////////////////
-double Vector3::Dot(const Vector3 &_pt) const
+IGN_NUMERIC IGN_VECTOR3::Dot(const IGN_VECTOR3 &_pt) const
 {
-  return this->x * _pt.x + this->y * _pt.y + this->z * _pt.z;
+  return this->data[0] * _pt[0] +
+         this->data[1] * _pt[1] +
+         this->data[2] * _pt[2];
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::GetAbs() const
+IGN_VECTOR3 IGN_VECTOR3::GetAbs() const
 {
-  return Vector3(fabs(this->x), fabs(this->y), fabs(this->z));
+  return IGN_VECTOR3(fabs(this->data[0]),
+                     fabs(this->data[1]),
+                     fabs(this->data[2]));
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::GetPerpendicular() const
+IGN_VECTOR3 IGN_VECTOR3::GetPerpendicular() const
 {
-  static const double sqrZero = 1e-06 * 1e-06;
+  static const IGN_NUMERIC sqrZero = 1e-06 * 1e-06;
 
-  Vector3 perp = this->Cross(Vector3(1, 0, 0));
+  IGN_VECTOR3 perp = this->Cross(IGN_VECTOR3(1, 0, 0));
 
   // Check the length of the vector
   if (perp.GetSquaredLength() < sqrZero)
   {
-    perp = this->Cross(Vector3(0, 1, 0));
+    perp = this->Cross(IGN_VECTOR3(0, 1, 0));
   }
 
   return perp;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::GetNormal(const Vector3 &_v1, const Vector3 &_v2,
-                           const Vector3 &_v3)
+IGN_VECTOR3 IGN_VECTOR3::GetNormal(const IGN_VECTOR3 &_v1,
+    const IGN_VECTOR3 &_v2, const IGN_VECTOR3 &_v3)
 {
-  Vector3 a = _v2 - _v1;
-  Vector3 b = _v3 - _v1;
-  Vector3 n = a.Cross(b);
+  IGN_VECTOR3 a = _v2 - _v1;
+  IGN_VECTOR3 b = _v3 - _v1;
+  IGN_VECTOR3 n = a.Cross(b);
   return n;
 }
 
 //////////////////////////////////////////////////
-double Vector3::GetDistToLine(const Vector3 &_pt1, const Vector3 &_pt2)
+IGN_NUMERIC IGN_VECTOR3::GetDistToLine(const IGN_VECTOR3 &_pt1,
+    const IGN_VECTOR3 &_pt2)
 {
-  double d = ((*this) - _pt1).Cross((*this) - _pt2).GetLength();
+  IGN_NUMERIC d = ((*this) - _pt1).Cross((*this) - _pt2).GetLength();
   d = d / (_pt2 - _pt1).GetLength();
   return d;
 }
 
 //////////////////////////////////////////////////
-void Vector3::SetToMax(const Vector3 & _v)
+void IGN_VECTOR3::SetToMax(const IGN_VECTOR3 & _v)
 {
-  if (_v.x > this->x)
-    this->x = _v.x;
-  if (_v.y > this->y)
-    this->y = _v.y;
-  if (_v.z > this->z)
-    this->z = _v.z;
+  if (_v[0] > this->data[0])
+    this->data[0] = _v[0];
+  if (_v[1] > this->data[1])
+    this->data[1] = _v[1];
+  if (_v[2] > this->data[2])
+    this->data[2] = _v[2];
 }
 
 //////////////////////////////////////////////////
-void Vector3::SetToMin(const Vector3 & _v)
+void IGN_VECTOR3::SetToMin(const IGN_VECTOR3 & _v)
 {
-  if (_v.x < this->x)
-    this->x = _v.x;
-  if (_v.y < this->y)
-    this->y = _v.y;
-  if (_v.z < this->z)
-    this->z = _v.z;
+  if (_v[0] < this->data[0])
+    this->data[0] = _v[0];
+  if (_v[1] < this->data[1])
+    this->data[1] = _v[1];
+  if (_v[2] < this->data[2])
+    this->data[2] = _v[2];
 }
 
 //////////////////////////////////////////////////
-double Vector3::GetMax() const
+IGN_NUMERIC IGN_VECTOR3::GetMax() const
 {
-  return std::max(std::max(this->x, this->y), this->z);
+  return std::max(std::max(this->data[0], this->data[1]), this->data[2]);
 }
 
 //////////////////////////////////////////////////
-double Vector3::GetMin() const
+IGN_NUMERIC IGN_VECTOR3::GetMin() const
 {
-  return std::min(std::min(this->x, this->y), this->z);
+  return std::min(std::min(this->data[0], this->data[1]), this->data[2]);
 }
 
 //////////////////////////////////////////////////
-Vector3 &Vector3::operator =(const Vector3 &_pt)
+IGN_VECTOR3 &IGN_VECTOR3::operator =(const IGN_VECTOR3 &_pt)
 {
-  this->x = _pt.x;
-  this->y = _pt.y;
-  this->z = _pt.z;
+  this->data[0] = _pt[0];
+  this->data[1] = _pt[1];
+  this->data[2] = _pt[2];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 &Vector3::operator =(double value)
+IGN_VECTOR3 &IGN_VECTOR3::operator =(IGN_NUMERIC value)
 {
-  this->x = value;
-  this->y = value;
-  this->z = value;
+  this->data[0] = value;
+  this->data[1] = value;
+  this->data[2] = value;
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::operator+(const Vector3 &pt) const
+IGN_VECTOR3 IGN_VECTOR3::operator+(const IGN_VECTOR3 &pt) const
 {
-  return Vector3(this->x + pt.x, this->y + pt.y, this->z + pt.z);
+  return IGN_VECTOR3(this->data[0] + pt[0],
+                     this->data[1] + pt[1],
+                     this->data[2] + pt[2]);
 }
 
 //////////////////////////////////////////////////
-const Vector3 &Vector3::operator+=(const Vector3 &pt)
+const IGN_VECTOR3 &IGN_VECTOR3::operator+=(const IGN_VECTOR3 &pt)
 {
-  this->x += pt.x;
-  this->y += pt.y;
-  this->z += pt.z;
+  this->data[0] += pt[0];
+  this->data[1] += pt[1];
+  this->data[2] += pt[2];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-const Vector3 &Vector3::operator-=(const Vector3 &pt)
+const IGN_VECTOR3 &IGN_VECTOR3::operator-=(const IGN_VECTOR3 &pt)
 {
-  this->x -= pt.x;
-  this->y -= pt.y;
-  this->z -= pt.z;
+  this->data[0] -= pt[0];
+  this->data[1] -= pt[1];
+  this->data[2] -= pt[2];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-const Vector3 Vector3::operator/(const Vector3 &pt) const
+const IGN_VECTOR3 IGN_VECTOR3::operator/(const IGN_VECTOR3 &pt) const
 {
-  return Vector3(this->x / pt.x, this->y / pt.y, this->z / pt.z);
+  return IGN_VECTOR3(this->data[0] / pt[0],
+                     this->data[1] / pt[1],
+                     this->data[2] / pt[2]);
 }
 
 //////////////////////////////////////////////////
-const Vector3 &Vector3::operator/=(const Vector3 &pt)
+const IGN_VECTOR3 &IGN_VECTOR3::operator/=(const IGN_VECTOR3 &pt)
 {
-  this->x /= pt.x;
-  this->y /= pt.y;
-  this->z /= pt.z;
+  this->data[0] /= pt[0];
+  this->data[1] /= pt[1];
+  this->data[2] /= pt[2];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-const Vector3 Vector3::operator/(double v) const
+const IGN_VECTOR3 IGN_VECTOR3::operator/(IGN_NUMERIC v) const
 {
-  return Vector3(this->x / v, this->y / v, this->z / v);
+  return IGN_VECTOR3(this->data[0] / v, this->data[1] / v, this->data[2] / v);
 }
 
 //////////////////////////////////////////////////
-const Vector3 &Vector3::operator/=(double v)
+const IGN_VECTOR3 &IGN_VECTOR3::operator/=(IGN_NUMERIC v)
 {
-  this->x /= v;
-  this->y /= v;
-  this->z /= v;
+  this->data[0] /= v;
+  this->data[1] /= v;
+  this->data[2] /= v;
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::operator*(const Vector3 &pt) const
+IGN_VECTOR3 IGN_VECTOR3::operator*(const IGN_VECTOR3 &pt) const
 {
-  return Vector3(this->x * pt.x, this->y * pt.y, this->z * pt.z);
+  return IGN_VECTOR3(this->data[0] * pt[0],
+                     this->data[1] * pt[1],
+                     this->data[2] * pt[2]);
 }
 
 //////////////////////////////////////////////////
-const Vector3 &Vector3::operator*=(const Vector3 &pt)
+const IGN_VECTOR3 &IGN_VECTOR3::operator*=(const IGN_VECTOR3 &pt)
 {
-  this->x *= pt.x;
-  this->y *= pt.y;
-  this->z *= pt.z;
+  this->data[0] *= pt[0];
+  this->data[1] *= pt[1];
+  this->data[2] *= pt[2];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector3 Vector3::operator*(double v) const
+const IGN_VECTOR3 &IGN_VECTOR3::operator*=(IGN_NUMERIC v)
 {
-  return Vector3(this->x * v, this->y * v, this->z * v);
-}
-
-//////////////////////////////////////////////////
-const Vector3 &Vector3::operator*=(double v)
-{
-  this->x *= v;
-  this->y *= v;
-  this->z *= v;
+  this->data[0] *= v;
+  this->data[1] *= v;
+  this->data[2] *= v;
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-bool Vector3::operator ==(const Vector3 &_pt) const
+bool IGN_VECTOR3::operator ==(const IGN_VECTOR3 &_pt) const
 {
-  return equal(this->x, _pt.x, 0.001) &&
-         equal(this->y, _pt.y, 0.001) &&
-         equal(this->z, _pt.z, 0.001);
+  return equal(this->data[0], _pt[0], static_cast<IGN_NUMERIC>(0.001)) &&
+         equal(this->data[1], _pt[1], static_cast<IGN_NUMERIC>(0.001)) &&
+         equal(this->data[2], _pt[2], static_cast<IGN_NUMERIC>(0.001));
 }
 
 //////////////////////////////////////////////////
-bool Vector3::operator!=(const Vector3 &_pt) const
+bool IGN_VECTOR3::operator!=(const IGN_VECTOR3 &_pt) const
 {
   return !(*this == _pt);
 }
 
 //////////////////////////////////////////////////
-bool Vector3::IsFinite() const
+bool IGN_VECTOR3::IsFinite() const
 {
-  return finite(this->x) && finite(this->y) && finite(this->z);
-}
-
-//////////////////////////////////////////////////
-double Vector3::operator[](unsigned int index) const
-{
-  switch (index)
-  {
-    case 0:
-      return this->x;
-    case 1:
-      return this->y;
-    case 2:
-      return this->z;
-    default:
-      return 0;
-  }
+  return finite(this->data[0]) &&
+         finite(this->data[1]) &&
+         finite(this->data[2]);
 }
 
 //////////////////////////////////////////////////
 /// Round all values to _decimalPlaces
-void Vector3::Round(int _precision)
+void IGN_VECTOR3::Round(int _precision)
 {
-  this->x = precision(this->x, _precision);
-  this->y = precision(this->y, _precision);
-  this->z = precision(this->z, _precision);
+  this->data[0] = precision(this->data[0], _precision);
+  this->data[1] = precision(this->data[1], _precision);
+  this->data[2] = precision(this->data[2], _precision);
 }
 
 //////////////////////////////////////////////////
 /// Returns true if the two vectors are exacatly equal
-bool Vector3::Equal(const Vector3 &_v) const
+bool IGN_VECTOR3::Equal(const IGN_VECTOR3 &_v) const
 {
-  return math::equal(this->x, _v.x) &&
-         math::equal(this->y, _v.y) &&
-         math::equal(this->z, _v.z);
+  return math::equal(this->data[0], _v[0]) &&
+         math::equal(this->data[1], _v[1]) &&
+         math::equal(this->data[2], _v[2]);
+}
+
+//////////////////////////////////////////////////
+std::ostream &ignition::math::operator<<(std::ostream &_out,
+    const ignition::math::IGN_VECTOR3 &_pt)
+{
+  _out << precision(_pt[0], 6) << " " << precision(_pt[1], 6) << " "
+    << precision(_pt[2], 6);
+  return _out;
+}
+
+//////////////////////////////////////////////////
+std::istream &ignition::math::operator>>(std::istream &_in,
+    ignition::math::IGN_VECTOR3 &_pt)
+{
+  // Skip white spaces
+  _in.setf(std::ios_base::skipws);
+  IGN_NUMERIC x, y, z;
+  _in >> x >> y >> z;
+  _pt.Set(x, y, z);
+  return _in;
 }

@@ -18,7 +18,7 @@
 #define _IGNITION_BOX_HH_
 
 #include <iostream>
-#include "ignition/math/Vector3.hh"
+#include <ignition/math/Vector3d.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _min Minimum corner of the box
       /// \param[in] _max Maximum corner of the box
-      public: Box(const Vector3 &_min, const Vector3 &_max);
+      public: Box(const Vector3d &_min, const Vector3d &_max);
 
       /// \brief Constructor
       /// \param[in] _minX Minimum X corner of the box
@@ -67,11 +67,11 @@ namespace ignition
 
       /// \brief Get the size of the box
       /// \return Size of the box
-      public: math::Vector3 GetSize() const;
+      public: math::Vector3d GetSize() const;
 
       /// \brief Get the box center
       /// \return The center position of the box
-      public: math::Vector3 GetCenter() const;
+      public: math::Vector3d GetCenter() const;
 
       /// \brief Merge a box with this box
       /// \param[in]  _box Box to add to this box
@@ -100,7 +100,7 @@ namespace ignition
       /// \brief Subtract a vector from the min and max values
       /// \param _v The vector to use during subtraction
       /// \return The new box
-      public: Box operator-(const Vector3 &_v);
+      public: Box operator-(const Vector3d &_v);
 
       /// \brief Output operator
       /// \param[in] _out Output stream
@@ -115,10 +115,10 @@ namespace ignition
       }
 
       /// \brief Minimum corner of the box
-      public: Vector3 min;
+      public: Vector3d min;
 
       /// \brief Maximum corner of the box
-      public: Vector3 max;
+      public: Vector3d max;
 
       /// \brief Enumeration of extents
       private: enum Extent {EXTENT_NULL, EXTENT_FINITE};

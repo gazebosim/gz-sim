@@ -20,7 +20,7 @@
 #include <assert.h>
 #include <iostream>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Matrix3.hh"
 
 namespace ignition
@@ -92,7 +92,7 @@ namespace ignition
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
-      public: void SetTranslate(const Vector3 &_t);
+      public: void SetTranslate(const Vector3d &_t);
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _x X translation value.
@@ -102,11 +102,11 @@ namespace ignition
 
       /// \brief Get the translational values as a Vector3
       /// \return x,y,z translation values
-      public: Vector3 GetTranslation() const;
+      public: Vector3d GetTranslation() const;
 
-      /// \brief Get the scale values as a Vector3
+      /// \brief Get the scale values as a Vector3d
       /// \return x,y,z scale values
-      public: Vector3 GetScale() const;
+      public: Vector3d GetScale() const;
 
       /// \brief Get the rotation as a quaternion
       /// \return the rotation
@@ -116,7 +116,7 @@ namespace ignition
       /// \param[in] _firstSolution True to get the first Euler solution,
       /// false to get the second. 
       /// \return the rotation
-      public: Vector3 GetEulerRotation(bool _firstSolution) const;
+      public: Vector3d GetEulerRotation(bool _firstSolution) const;
 
       /// \brief Get the transformation as math::Pose
       /// \return the pose
@@ -124,7 +124,7 @@ namespace ignition
 
       /// \brief Set the scale
       /// \param[in] _s scale
-      public: void SetScale(const Vector3 &_s);
+      public: void SetScale(const Vector3d &_s);
 
       /// \brief Set the scale
       /// \param[in] _x X scale value.
@@ -139,7 +139,7 @@ namespace ignition
       /// \brief Perform an affine transformation
       /// \param _v Vector3 value for the transformation
       /// \return The result of the transformation
-      public: Vector3 TransformAffine(const Vector3 &_v) const;
+      public: Vector3d TransformAffine(const Vector3d &_v) const;
 
       /// \brief Return the inverse matrix.
       /// This is a non-destructive operation.
@@ -170,7 +170,7 @@ namespace ignition
       /// \brief Multiplication operator
       /// \param _vec Vector3
       /// \return Resulting vector from multiplication
-      public: Vector3 operator*(const Vector3 &_vec) const;
+      public: Vector3d operator*(const Vector3d &_vec) const;
 
       /// \brief Array subscript operator
       /// \param[in] _row the row index

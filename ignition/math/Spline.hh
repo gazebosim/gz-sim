@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Matrix4.hh"
 
 namespace ignition
@@ -49,13 +49,13 @@ namespace ignition
 
       /// \brief  Adds a control point to the end of the spline.
       /// \param[in] _pt point to add
-      public: void AddPoint(const Vector3 &_pt);
+      public: void AddPoint(const Vector3d &_pt);
 
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the control point index
       /// \return the control point, or [0,0,0] and a message on the error
       /// stream
-      public: Vector3 GetPoint(unsigned int _index) const;
+      public: Vector3d GetPoint(unsigned int _index) const;
 
       /// \brief  Gets the number of control points in the spline.
       /// \return the count
@@ -63,7 +63,7 @@ namespace ignition
 
       /// \brief Get the tangent value for a point
       /// \param[in] _index the control point index
-      public: Vector3 GetTangent(unsigned int _index) const;
+      public: Vector3d GetTangent(unsigned int _index) const;
 
       /// \brief  Clears all the points in the spline.
       public: void Clear();
@@ -73,19 +73,19 @@ namespace ignition
       /// out of bounds
       /// \param[in] _index the control point index
       /// \param[in] _value the new position
-      public: void UpdatePoint(unsigned int _index, const Vector3 &_value);
+      public: void UpdatePoint(unsigned int _index, const Vector3d &_value);
 
       /// \brief Returns an interpolated point based on a parametric value
       ///        over the whole series.
       /// \param[in] _t parameter (range 0 to 1)
-      public: Vector3 Interpolate(double _t) const;
+      public: Vector3d Interpolate(double _t) const;
 
       /// \brief Interpolates a single segment of the spline given a
       ///        parametric value.
       /// \param[in] _fromIndex The point index to treat as t = 0.
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t Parametric value
-      public: Vector3 Interpolate(unsigned int _fromIndex, double _t) const;
+      public: Vector3d Interpolate(unsigned int _fromIndex, double _t) const;
 
 
       /// \brief Tells the spline whether it should automatically
@@ -115,10 +115,10 @@ namespace ignition
       protected: bool autoCalc;
 
       /// \brief control points
-      protected: std::vector<Vector3> points;
+      protected: std::vector<Vector3d> points;
 
       /// \brief tangents
-      protected: std::vector<Vector3> tangents;
+      protected: std::vector<Vector3d> tangents;
 
       /// Matrix of coefficients
       protected: Matrix4 coeffs;

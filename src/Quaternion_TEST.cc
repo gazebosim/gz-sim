@@ -58,12 +58,12 @@ TEST(QuaternionTest, ConstructZero)
 TEST(QuaternionTest, ConstructEuler)
 {
   math::Quaternion q(0, 1, 2);
-  EXPECT_TRUE(q == math::Quaternion(math::Vector3(0, 1, 2)));
+  EXPECT_TRUE(q == math::Quaternion(math::Vector3d(0, 1, 2)));
 }
 
 TEST(QuaternionTest, ConstructAxisAngle)
 {
-  math::Quaternion q1(math::Vector3(0, 0, 1), M_PI);
+  math::Quaternion q1(math::Vector3d(0, 0, 1), M_PI);
   EXPECT_TRUE(math::equal(q1.x, 0.0));
   EXPECT_TRUE(math::equal(q1.y, 0.0));
   EXPECT_TRUE(math::equal(q1.z, 1.0));
@@ -112,7 +112,7 @@ TEST(QuaternionTest, Math)
   q.SetFromAxis(0, 1, 0, M_PI);
   EXPECT_TRUE(q == math::Quaternion(6.12303e-17, 0, 1, 0));
 
-  q.SetFromAxis(math::Vector3(1, 0, 0), M_PI);
+  q.SetFromAxis(math::Vector3d(1, 0, 0), M_PI);
   EXPECT_TRUE(q == math::Quaternion(0, 1, 0, 0));
 
   q.Set(1, 2, 3, 4);
@@ -129,10 +129,10 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(q.GetPitch(), -0.339837, 1e-3));
   EXPECT_TRUE(math::equal(q.GetYaw(), 2.35619, 1e-3));
 
-  math::Vector3 axis;
+  math::Vector3d axis;
   double angle;
   q.GetAsAxis(axis, angle);
-  EXPECT_TRUE(axis == math::Vector3(0.371391, 0.557086, 0.742781));
+  EXPECT_TRUE(axis == math::Vector3d(0.371391, 0.557086, 0.742781));
   EXPECT_TRUE(math::equal(angle, 2.77438, 1e-3));
 
   q.Scale(0.1);
@@ -157,10 +157,10 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(q == math::Quaternion(7.67918, -1.184, 2.7592, 4.0149));
 
   std::cerr << "[" << q.w << ", " << q.x << ", " << q.y << ", " << q.z << "]\n";
-  std::cerr << q.RotateVectorReverse(math::Vector3(1, 2, 3)) << "\n";
+  std::cerr << q.RotateVectorReverse(math::Vector3d(1, 2, 3)) << "\n";
 
-  EXPECT_TRUE(q.RotateVectorReverse(math::Vector3(1, 2, 3)) ==
-      math::Vector3(-0.104115, 0.4975, 3.70697));
+  EXPECT_TRUE(q.RotateVectorReverse(math::Vector3d(1, 2, 3)) ==
+      math::Vector3d(-0.104115, 0.4975, 3.70697));
 
   EXPECT_TRUE(math::equal(q.Dot(math::Quaternion(.4, .2, .1)), 7.67183, 1e-3));
 
@@ -169,7 +169,7 @@ TEST(QuaternionTest, Math)
         math::Quaternion(0, 0, 2), true) ==
       math::Quaternion(0.346807, -0.0511734, -0.0494723, 0.935232));
 
-  EXPECT_TRUE(math::Quaternion::EulerToQuaternion(math::Vector3(.1, .2, .3)) ==
+  EXPECT_TRUE(math::Quaternion::EulerToQuaternion(math::Vector3d(.1, .2, .3)) ==
       math::Quaternion(0.983347, 0.0342708, 0.106021, 0.143572));
 
   q.Round(2);
@@ -190,29 +190,29 @@ TEST(QuaternionTest, Math)
 
   q.x = q.y = q.z = q.w = 0.0;
   q.GetAsAxis(axis, angle);
-  EXPECT_TRUE(axis == math::Vector3(1, 0, 0));
+  EXPECT_TRUE(axis == math::Vector3d(1, 0, 0));
   EXPECT_TRUE(math::equal(angle, 0.0, 1e-3));
   {
     // simple 180 rotation about yaw, should result in x and y flipping signs
     q = math::Quaternion(0, 0, M_PI);
-    math::Vector3 v = math::Vector3(1, 2, 3);
-    math::Vector3 r1 = q.RotateVector(v);
-    math::Vector3 r2 = q.RotateVectorReverse(v);
+    math::Vector3d v = math::Vector3d(1, 2, 3);
+    math::Vector3d r1 = q.RotateVector(v);
+    math::Vector3d r2 = q.RotateVectorReverse(v);
     std::cout << "[" << q.w << ", " << q.x << ", "
       << q.y << ", " << q.z << "]\n";
     std::cout << " forward turns [" << v << "] to [" << r1 << "]\n";
     std::cout << " reverse turns [" << v << "] to [" << r2 << "]\n";
-    EXPECT_TRUE(r1 == math::Vector3(-1, -2, 3));
-    EXPECT_TRUE(r2 == math::Vector3(-1, -2, 3));
+    EXPECT_TRUE(r1 == math::Vector3d(-1, -2, 3));
+    EXPECT_TRUE(r2 == math::Vector3d(-1, -2, 3));
   }
 
   {
     // simple  90 rotation about yaw, should map x to y, y to -x
     // simple -90 rotation about yaw, should map x to -y, y to x
     q = math::Quaternion(0, 0, 0.5*M_PI);
-    math::Vector3 v = math::Vector3(1, 2, 3);
-    math::Vector3 r1 = q.RotateVector(v);
-    math::Vector3 r2 = q.RotateVectorReverse(v);
+    math::Vector3d v = math::Vector3d(1, 2, 3);
+    math::Vector3d r1 = q.RotateVector(v);
+    math::Vector3d r2 = q.RotateVectorReverse(v);
     std::cout << "[" << q.w << ", " << q.x << ", "
       << q.y << ", " << q.z << "]\n";
     std::cout << " forward turns [" << v << "] to [" << r1 << "]\n";
@@ -220,52 +220,52 @@ TEST(QuaternionTest, Math)
     std::cout << " x axis [" << q.GetXAxis() << "]\n";
     std::cout << " y axis [" << q.GetYAxis() << "]\n";
     std::cout << " z axis [" << q.GetZAxis() << "]\n";
-    EXPECT_TRUE(r1 == math::Vector3(-2, 1, 3));
-    EXPECT_TRUE(r2 == math::Vector3(2, -1, 3));
-    EXPECT_TRUE(q.GetInverse().GetXAxis() == math::Vector3(0, -1, 0));
-    EXPECT_TRUE(q.GetInverse().GetYAxis() == math::Vector3(1, 0, 0));
-    EXPECT_TRUE(q.GetInverse().GetZAxis() == math::Vector3(0, 0, 1));
+    EXPECT_TRUE(r1 == math::Vector3d(-2, 1, 3));
+    EXPECT_TRUE(r2 == math::Vector3d(2, -1, 3));
+    EXPECT_TRUE(q.GetInverse().GetXAxis() == math::Vector3d(0, -1, 0));
+    EXPECT_TRUE(q.GetInverse().GetYAxis() == math::Vector3d(1, 0, 0));
+    EXPECT_TRUE(q.GetInverse().GetZAxis() == math::Vector3d(0, 0, 1));
   }
 
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
-    q.SetFromAxis(math::Vector3(1, 2, 3), 0.3*M_PI);
+    q.SetFromAxis(math::Vector3d(1, 2, 3), 0.3*M_PI);
     std::cout << "[" << q.w << ", " << q.x << ", "
       << q.y << ", " << q.z << "]\n";
     std::cout << " x [" << q.GetInverse().GetXAxis() << "]\n";
     std::cout << " y [" << q.GetInverse().GetYAxis() << "]\n";
     std::cout << " z [" << q.GetInverse().GetZAxis() << "]\n";
     EXPECT_TRUE(q.GetInverse().GetXAxis() ==
-                math::Vector3(0.617229, -0.589769, 0.520770));
+                math::Vector3d(0.617229, -0.589769, 0.520770));
     EXPECT_TRUE(q.GetInverse().GetYAxis() ==
-                math::Vector3(0.707544, 0.705561, -0.039555));
+                math::Vector3d(0.707544, 0.705561, -0.039555));
     EXPECT_TRUE(q.GetInverse().GetZAxis() ==
-                math::Vector3(-0.344106, 0.392882, 0.852780));
+                math::Vector3d(-0.344106, 0.392882, 0.852780));
 
     // rotate about the axis of rotation should not change axis
-    math::Vector3 v = math::Vector3(1, 2, 3);
-    math::Vector3 r1 = q.RotateVector(v);
-    math::Vector3 r2 = q.RotateVectorReverse(v);
-    EXPECT_TRUE(r1 == math::Vector3(1, 2, 3));
-    EXPECT_TRUE(r2 == math::Vector3(1, 2, 3));
+    math::Vector3d v = math::Vector3d(1, 2, 3);
+    math::Vector3d r1 = q.RotateVector(v);
+    math::Vector3d r2 = q.RotateVectorReverse(v);
+    EXPECT_TRUE(r1 == math::Vector3d(1, 2, 3));
+    EXPECT_TRUE(r2 == math::Vector3d(1, 2, 3));
 
     // rotate unit vectors
-    v = math::Vector3(0, 0, 1);
+    v = math::Vector3d(0, 0, 1);
     r1 = q.RotateVector(v);
     r2 = q.RotateVectorReverse(v);
-    EXPECT_TRUE(r1 == math::Vector3(0.520770, -0.039555, 0.852780));
-    EXPECT_TRUE(r2 == math::Vector3(-0.34411, 0.39288, 0.85278));
-    v = math::Vector3(0, 1, 0);
+    EXPECT_TRUE(r1 == math::Vector3d(0.520770, -0.039555, 0.852780));
+    EXPECT_TRUE(r2 == math::Vector3d(-0.34411, 0.39288, 0.85278));
+    v = math::Vector3d(0, 1, 0);
     r1 = q.RotateVector(v);
     r2 = q.RotateVectorReverse(v);
-    EXPECT_TRUE(r1 == math::Vector3(-0.58977, 0.70556, 0.39288));
-    EXPECT_TRUE(r2 == math::Vector3(0.707544, 0.705561, -0.039555));
-    v = math::Vector3(1, 0, 0);
+    EXPECT_TRUE(r1 == math::Vector3d(-0.58977, 0.70556, 0.39288));
+    EXPECT_TRUE(r2 == math::Vector3d(0.707544, 0.705561, -0.039555));
+    v = math::Vector3d(1, 0, 0);
     r1 = q.RotateVector(v);
     r2 = q.RotateVectorReverse(v);
-    EXPECT_TRUE(r1 == math::Vector3(0.61723, 0.70754, -0.34411));
-    EXPECT_TRUE(r2 == math::Vector3(0.61723, -0.58977, 0.52077));
+    EXPECT_TRUE(r1 == math::Vector3d(0.61723, 0.70754, -0.34411));
+    EXPECT_TRUE(r2 == math::Vector3d(0.61723, -0.58977, 0.52077));
 
     EXPECT_TRUE(-q == math::Quaternion(-0.891007, -0.121334,
                                        -0.242668, -0.364002));

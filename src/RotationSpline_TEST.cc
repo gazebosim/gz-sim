@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
 
@@ -42,7 +42,7 @@ TEST(RotationSplineTest, RotationSpline)
   // ::UpdatePoint
   s.UpdatePoint(1, math::Quaternion(.2, .2, .2));
   s.SetAutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3(-.1, -.1, -.1));
+  s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
   s.SetAutoCalculate(true);
 
   // ::Interpolate

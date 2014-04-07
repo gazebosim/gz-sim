@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Quaternion.hh"
 
 namespace ignition
@@ -39,7 +39,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _pos A position
       /// \param[in] _rot A rotation
-      public: Pose(const Vector3 &_pos, const Quaternion &_rot);
+      public: Pose(const Vector3d &_pos, const Quaternion &_rot);
 
       /// \brief Constructor
       /// \param[in] _x x position in meters.
@@ -72,12 +72,12 @@ namespace ignition
       /// \brief Set the pose from a Vector3 and a Quaternion
       /// \param[in] _pos The position.
       /// \param[in] _rot The rotation.
-      public: void Set(const Vector3 &_pos, const Quaternion &_rot);
+      public: void Set(const Vector3d &_pos, const Quaternion &_rot);
 
       /// \brief Set the pose from  pos and rpy vectors
       /// \param[in] _pos The position.
       /// \param[in] _rpy The rotation expressed as Euler angles.
-      public: void Set(const Vector3 &_pos, const Vector3 &_rpy);
+      public: void Set(const Vector3d &_pos, const Vector3d &_rpy);
 
       /// \brief Set the pose from a six tuple.
       /// \param[in] _x x position in meters.
@@ -164,25 +164,25 @@ namespace ignition
       /// \brief Add one point to a vector: result = this + pos
       /// \param[in] _pos Position to add to this pose
       /// \return the resulting position
-      public: Vector3 CoordPositionAdd(const Vector3 &_pos) const;
+      public: Vector3d CoordPositionAdd(const Vector3d &_pos) const;
 
       /// \brief Add one point to another: result = this + pose
       /// \param[in] _pose The Pose to add
       /// \return The resulting position
-      public: Vector3 CoordPositionAdd(const Pose &_pose) const;
+      public: Vector3d CoordPositionAdd(const Pose &_pose) const;
 
       /// \brief Subtract one position from another: result = this - pose
       /// \param[in] _pose Pose to subtract
       /// \return The resulting position
-      public: inline Vector3 CoordPositionSub(const Pose &_pose) const
+      public: inline Vector3d CoordPositionSub(const Pose &_pose) const
               {
                 Quaternion tmp(0.0,
-                    this->pos.x - _pose.pos.x,
-                    this->pos.y - _pose.pos.y,
-                    this->pos.z - _pose.pos.z);
+                    this->pos.x() - _pose.pos.x(),
+                    this->pos.y() - _pose.pos.y(),
+                    this->pos.z() - _pose.pos.z());
 
                 tmp = _pose.rot.GetInverse() * (tmp * _pose.rot);
-                return Vector3(tmp.x, tmp.y, tmp.z);
+                return Vector3d(tmp.x, tmp.y, tmp.z);
               }
 
       /// \brief Add one rotation to another: result =  this->rot + rot
@@ -242,7 +242,7 @@ namespace ignition
             }
 
       /// \brief The position
-      public: Vector3 pos;
+      public: Vector3d pos;
 
       /// \brief The rotation
       public: Quaternion rot;

@@ -18,7 +18,7 @@
 // spline and catmull-rom spline
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector4.hh"
+#include "ignition/math/Vector4d.hh"
 #include "ignition/math/Spline.hh"
 
 using namespace ignition;
@@ -72,7 +72,7 @@ double Spline::GetTension() const
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::AddPoint(const Vector3 &_p)
+void Spline::AddPoint(const Vector3d &_p)
 {
   this->points.push_back(_p);
   if (this->autoCalc)
@@ -80,7 +80,7 @@ void Spline::AddPoint(const Vector3 &_p)
 }
 
 ///////////////////////////////////////////////////////////
-Vector3 Spline::Interpolate(double _t) const
+Vector3d Spline::Interpolate(double _t) const
 {
   // Currently assumes points are evenly spaced, will cause velocity
   // change where this is not the case
@@ -96,14 +96,14 @@ Vector3 Spline::Interpolate(double _t) const
 }
 
 ///////////////////////////////////////////////////////////
-Vector3 Spline::Interpolate(unsigned int _fromIndex, double _t) const
+Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
 {
   // Bounds check
   if (_fromIndex >= this->points.size())
   {
     std::cerr << "Invalid spline interpolation. _fromIndex["
           << _fromIndex << "] >= points size[" << this->points.size() << "]\n";
-    return Vector3(0, 0, 0);
+    return Vector3d(0, 0, 0);
   }
 
   if ((_fromIndex + 1) == this->points.size())
@@ -124,37 +124,37 @@ Vector3 Spline::Interpolate(unsigned int _fromIndex, double _t) const
   double t2, t3;
   t2 = _t * _t;
   t3 = t2 * _t;
-  Vector4 powers(t3, t2, _t, 1);
+  Vector4d powers(t3, t2, _t, 1);
 
 
   // Algorithm is ret = powers * this->coeffs * Matrix4(point1,
   // point2, tangent1, tangent2)
-  const Vector3 &point1 = this->points[_fromIndex];
-  const Vector3 &point2 = this->points[_fromIndex+1];
-  const Vector3 &tan1 = this->tangents[_fromIndex];
-  const Vector3 &tan2 = this->tangents[_fromIndex+1];
+  const Vector3d &point1 = this->points[_fromIndex];
+  const Vector3d &point2 = this->points[_fromIndex+1];
+  const Vector3d &tan1 = this->tangents[_fromIndex];
+  const Vector3d &tan2 = this->tangents[_fromIndex+1];
   Matrix4 pt;
 
-  pt[0][0] = point1.x;
-  pt[0][1] = point1.y;
-  pt[0][2] = point1.z;
+  pt[0][0] = point1.x();
+  pt[0][1] = point1.y();
+  pt[0][2] = point1.z();
   pt[0][3] = 1.0f;
-  pt[1][0] = point2.x;
-  pt[1][1] = point2.y;
-  pt[1][2] = point2.z;
+  pt[1][0] = point2.x();
+  pt[1][1] = point2.y();
+  pt[1][2] = point2.z();
   pt[1][3] = 1.0f;
-  pt[2][0] = tan1.x;
-  pt[2][1] = tan1.y;
-  pt[2][2] = tan1.z;
+  pt[2][0] = tan1.x();
+  pt[2][1] = tan1.y();
+  pt[2][2] = tan1.z();
   pt[2][3] = 1.0f;
-  pt[3][0] = tan2.x;
-  pt[3][1] = tan2.y;
-  pt[3][2] = tan2.z;
+  pt[3][0] = tan2.x();
+  pt[3][1] = tan2.y();
+  pt[3][2] = tan2.z();
   pt[3][3] = 1.0f;
 
-  Vector4 ret = powers * this->coeffs * pt;
+  Vector4d ret = powers * this->coeffs * pt;
 
-  return Vector3(ret.x, ret.y, ret.z);
+  return Vector3d(ret.x(), ret.y(), ret.z());
 }
 
 ///////////////////////////////////////////////////////////
@@ -226,26 +226,26 @@ void Spline::RecalcTangents()
 }
 
 ///////////////////////////////////////////////////////////
-Vector3 Spline::GetPoint(unsigned int _index) const
+Vector3d Spline::GetPoint(unsigned int _index) const
 {
   if (_index >= this->points.size())
   {
     std::cerr << "Index[" << _index << "] is out of bounds[0.."
           << this->points.size()-1 << "]\n";
-    return Vector3(0, 0, 0);
+    return Vector3d(0, 0, 0);
   }
 
   return this->points[_index];
 }
 
 ///////////////////////////////////////////////////////////
-Vector3 Spline::GetTangent(unsigned int _index) const
+Vector3d Spline::GetTangent(unsigned int _index) const
 {
   if (_index >= this->points.size())
   {
     std::cerr << "Index[" << _index << "] is out of bounds[0.."
           << this->points.size()-1 << "]\n";
-    return Vector3(0, 0, 0);
+    return Vector3d(0, 0, 0);
   }
 
   return this->tangents[_index];
@@ -265,7 +265,7 @@ void Spline::Clear()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::UpdatePoint(unsigned int _index, const Vector3 &_value)
+void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 {
   if (_index >= this->points.size())
   {

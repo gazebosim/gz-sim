@@ -58,8 +58,8 @@ Matrix3::~Matrix3()
 }
 
 //////////////////////////////////////////////////
-void Matrix3::SetFromAxes(const Vector3 &xAxis, const Vector3 &yAxis,
-                          const Vector3 &zAxis)
+void Matrix3::SetFromAxes(const Vector3d &xAxis, const Vector3d &yAxis,
+                          const Vector3d &zAxis)
 {
   this->SetCol(0, xAxis);
   this->SetCol(1, yAxis);
@@ -67,34 +67,34 @@ void Matrix3::SetFromAxes(const Vector3 &xAxis, const Vector3 &yAxis,
 }
 
 //////////////////////////////////////////////////
-void Matrix3::SetFromAxis(const Vector3 &_axis, double _angle)
+void Matrix3::SetFromAxis(const Vector3d &_axis, double _angle)
 {
   double c = cos(_angle);
   double s = sin(_angle);
   double C = 1-c;
 
-  this->m[0][0] = _axis.x*_axis.x*C + c;
-  this->m[0][1] = _axis.x*_axis.y*C - _axis.z*s;
-  this->m[0][2] = _axis.x*_axis.z*C + _axis.y*s;
+  this->m[0][0] = _axis.x()*_axis.x()*C + c;
+  this->m[0][1] = _axis.x()*_axis.y()*C - _axis.z()*s;
+  this->m[0][2] = _axis.x()*_axis.z()*C + _axis.y()*s;
 
-  this->m[1][0] = _axis.y*_axis.x*C + _axis.z*s;
-  this->m[1][1] = _axis.y*_axis.y*C + c;
-  this->m[1][2] = _axis.y*_axis.z*C - _axis.x*s;
+  this->m[1][0] = _axis.y()*_axis.x()*C + _axis.z()*s;
+  this->m[1][1] = _axis.y()*_axis.y()*C + c;
+  this->m[1][2] = _axis.y()*_axis.z()*C - _axis.x()*s;
 
-  this->m[2][0] = _axis.z*_axis.x*C - _axis.y*s;
-  this->m[2][1] = _axis.z*_axis.y*C + _axis.x*s;
-  this->m[2][2] = _axis.z*_axis.z*C + c;
+  this->m[2][0] = _axis.z()*_axis.x()*C - _axis.y()*s;
+  this->m[2][1] = _axis.z()*_axis.y()*C + _axis.x()*s;
+  this->m[2][2] = _axis.z()*_axis.z()*C + c;
 }
 
 //////////////////////////////////////////////////
-void Matrix3::SetCol(unsigned int _i, const Vector3 &_v)
+void Matrix3::SetCol(unsigned int _i, const Vector3d &_v)
 {
   if (_i >= 3)
     throw(std::string("Invalid column number"));
 
-  m[0][_i] = _v.x;
-  m[1][_i] = _v.y;
-  m[2][_i] = _v.z;
+  m[0][_i] = _v.x();
+  m[1][_i] = _v.y();
+  m[2][_i] = _v.z();
 }
 
 //////////////////////////////////////////////////

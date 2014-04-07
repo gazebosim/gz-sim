@@ -17,50 +17,51 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
+#include "ignition/math/Helpers.hh"
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Vector3)
+TEST(Vector3Test, Vector3d)
 {
-  math::Vector3 v;
+  math::Vector3d v;
 
   // ::Distance, ::GetLEngth()
   v.Set(1, 2, 3);
-  EXPECT_FLOAT_EQ(v.GetLength(), v.Distance(math::Vector3(0, 0, 0)));
+  EXPECT_FLOAT_EQ(v.GetLength(), v.Distance(math::Vector3d(0, 0, 0)));
 
   // ::GetRound
   v.Set(1.23, 2.34, 3.55);
-  EXPECT_TRUE(v.GetRounded() == math::Vector3(1, 2, 4));
+  EXPECT_TRUE(v.GetRounded() == math::Vector3d(1, 2, 4));
 
   // ::Round
   v.Round();
-  EXPECT_TRUE(v.Round() == math::Vector3(1, 2, 4));
+  EXPECT_TRUE(v.Round() == math::Vector3d(1, 2, 4));
 
   // ::GetDotProd
-  EXPECT_TRUE(math::equal(17.0, v.Dot(math::Vector3(1, 2, 3)), 1e-2));
+  EXPECT_TRUE(math::equal(17.0, v.Dot(math::Vector3d(1, 2, 3)), 1e-2));
 
   // ::GetDistToLine
   v.Set(0, 0, 0);
-  EXPECT_DOUBLE_EQ(1.0, v.GetDistToLine(math::Vector3(1, -1, 0),
-        math::Vector3(1, 1, 0)));
+  EXPECT_DOUBLE_EQ(1.0, v.GetDistToLine(math::Vector3d(1, -1, 0),
+        math::Vector3d(1, 1, 0)));
 
   // ::operator= double
   v = 4.0;
-  EXPECT_TRUE(v == math::Vector3(4, 4, 4));
+  EXPECT_TRUE(v == math::Vector3d(4, 4, 4));
 
   // ::operator/ vector3
-  v = v / math::Vector3(1, 2, 4);
-  EXPECT_TRUE(v == math::Vector3(4, 2, 1));
+  v = v / math::Vector3d(1, 2, 4);
+  EXPECT_TRUE(v == math::Vector3d(4, 2, 1));
 
   // ::operator / double
   v = v / 2;
-  EXPECT_TRUE(v == math::Vector3(2, 1, .5));
+  EXPECT_TRUE(v == math::Vector3d(2, 1, .5));
 
   // ::operator * vector3
-  v = v * math::Vector3(2, 3, 4);
-  EXPECT_TRUE(v == math::Vector3(4, 3, 2));
+  v = v * math::Vector3d(2, 3, 4);
+  EXPECT_TRUE(v == math::Vector3d(4, 3, 2));
 
   // ::operator[]
   EXPECT_DOUBLE_EQ(v[0], 4);
@@ -69,35 +70,35 @@ TEST(Vector3Test, Vector3)
 
   v.Set(1.23, 2.35, 3.654321);
   v.Round(1);
-  EXPECT_TRUE(v == math::Vector3(1.2, 2.4, 3.7));
+  EXPECT_TRUE(v == math::Vector3d(1.2, 2.4, 3.7));
 
   // operator GetAbs
   v.Set(-1, -2, -3);
-  EXPECT_TRUE(v.GetAbs() == math::Vector3(1, 2, 3));
+  EXPECT_TRUE(v.GetAbs() == math::Vector3d(1, 2, 3));
 
   // operator /=
   v.Set(1, 2, 4);
-  v /= math::Vector3(1, 4, 4);
-  EXPECT_TRUE(v == math::Vector3(1, .5, 1));
+  v /= math::Vector3d(1, 4, 4);
+  EXPECT_TRUE(v == math::Vector3d(1, .5, 1));
 
   // operator *=
   v.Set(1, 2, 4);
-  v *= math::Vector3(2, .5, .1);
-  EXPECT_TRUE(v.Equal(math::Vector3(2, 1, .4)));
+  v *= math::Vector3d(2, .5, .1);
+  EXPECT_TRUE(v.Equal(math::Vector3d(2, 1, .4)));
 
   // Test the static defines.
-  EXPECT_TRUE(math::Vector3::Zero == math::Vector3(0, 0, 0));
-  EXPECT_TRUE(math::Vector3::One == math::Vector3(1, 1, 1));
-  EXPECT_TRUE(math::Vector3::UnitX == math::Vector3(1, 0, 0));
-  EXPECT_TRUE(math::Vector3::UnitY == math::Vector3(0, 1, 0));
-  EXPECT_TRUE(math::Vector3::UnitZ == math::Vector3(0, 0, 1));
+  EXPECT_TRUE(math::Vector3d::Zero == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(math::Vector3d::One == math::Vector3d(1, 1, 1));
+  EXPECT_TRUE(math::Vector3d::UnitX == math::Vector3d(1, 0, 0));
+  EXPECT_TRUE(math::Vector3d::UnitY == math::Vector3d(0, 1, 0));
+  EXPECT_TRUE(math::Vector3d::UnitZ == math::Vector3d(0, 0, 1));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Distance)
+TEST(Vector3dTest, Distance)
 {
-  math::Vector3 vec1(0, 0, 0);
-  math::Vector3 vec2(1, 2, 3);
+  math::Vector3d vec1(0, 0, 0);
+  math::Vector3d vec2(1, 2, 3);
 
   double dist = vec1.Distance(vec2);
   EXPECT_NEAR(dist, 3.74165738677, 1e-6);
@@ -107,10 +108,10 @@ TEST(Vector3Test, Distance)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Sum)
+TEST(Vector3dTest, Sum)
 {
-  math::Vector3 vec1(0, 0, 0);
-  math::Vector3 vec2(1, 2, 3);
+  math::Vector3d vec1(0, 0, 0);
+  math::Vector3d vec2(1, 2, 3);
 
   double sum1 = vec1.GetSum();
   double sum2 = vec2.GetSum();
@@ -120,10 +121,10 @@ TEST(Vector3Test, Sum)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, SquaredLength)
+TEST(Vector3dTest, SquaredLength)
 {
-  math::Vector3 vec1(0, 0, 0);
-  math::Vector3 vec2(1, 2, 3);
+  math::Vector3d vec1(0, 0, 0);
+  math::Vector3d vec2(1, 2, 3);
 
   double sum1 = vec1.GetSquaredLength();
   double sum2 = vec2.GetSquaredLength();
@@ -133,142 +134,142 @@ TEST(Vector3Test, SquaredLength)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Normalize)
+TEST(Vector3dTest, Normalize)
 {
-  math::Vector3 vec1(0, 0, 0);
-  math::Vector3 vec2(1, 2, 3);
+  math::Vector3d vec1(0, 0, 0);
+  math::Vector3d vec2(1, 2, 3);
 
-  math::Vector3 vec3 = vec1.Normalize();
+  math::Vector3d vec3 = vec1.Normalize();
   EXPECT_EQ(vec3, vec1);
-  EXPECT_EQ(vec1, math::Vector3(0, 0, 0));
+  EXPECT_EQ(vec1, math::Vector3d(0, 0, 0));
 
   vec3 = vec2.Normalize();
   EXPECT_EQ(vec3, vec2);
-  EXPECT_EQ(vec2, math::Vector3(0.267261, 0.534522, 0.801784));
+  EXPECT_EQ(vec2, math::Vector3d(0.267261, 0.534522, 0.801784));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, GetNormal)
+TEST(Vector3dTest, GetNormal)
 {
-  math::Vector3 vec1(0, 0, 0);
-  math::Vector3 vec2(0, 1, 0);
-  math::Vector3 vec3(1, 1, 0);
+  math::Vector3d vec1(0, 0, 0);
+  math::Vector3d vec2(0, 1, 0);
+  math::Vector3d vec3(1, 1, 0);
 
-  math::Vector3 norm = math::Vector3::GetNormal(vec1, vec2, vec3);
-  EXPECT_EQ(norm, math::Vector3(0, 0, -1));
+  math::Vector3d norm = math::Vector3d::GetNormal(vec1, vec2, vec3);
+  EXPECT_EQ(norm, math::Vector3d(0, 0, -1));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Perpendicular)
+TEST(Vector3dTest, Perpendicular)
 {
-  math::Vector3 vec1(1, 1, 0);
-  math::Vector3 vec2(0, 1, 1);
-  math::Vector3 vec3(1e-7, 1e-7, 1e-7);
-  math::Vector3 vec4(1, 0, 0);
+  math::Vector3d vec1(1, 1, 0);
+  math::Vector3d vec2(0, 1, 1);
+  math::Vector3d vec3(1e-7, 1e-7, 1e-7);
+  math::Vector3d vec4(1, 0, 0);
 
-  EXPECT_EQ(vec1.GetPerpendicular(), math::Vector3(0, 0, -1));
-  EXPECT_EQ(vec2.GetPerpendicular(), math::Vector3(0, 1, -1));
-  EXPECT_EQ(vec3.GetPerpendicular(), math::Vector3(0, 0, 0));
-  EXPECT_EQ(vec4.GetPerpendicular(), math::Vector3(0, 0, 1));
+  EXPECT_EQ(vec1.GetPerpendicular(), math::Vector3d(0, 0, -1));
+  EXPECT_EQ(vec2.GetPerpendicular(), math::Vector3d(0, 1, -1));
+  EXPECT_EQ(vec3.GetPerpendicular(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(vec4.GetPerpendicular(), math::Vector3d(0, 0, 1));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Max)
+TEST(Vector3dTest, Max)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.3);
-  math::Vector3 vec2(0.2, 0.3, 0.4);
-  math::Vector3 vec3(0.1, 0.2, 0.3);
+  math::Vector3d vec1(0.1, 0.2, 0.3);
+  math::Vector3d vec2(0.2, 0.3, 0.4);
+  math::Vector3d vec3(0.1, 0.2, 0.3);
 
   EXPECT_DOUBLE_EQ(vec1.GetMax(), 0.3);
 
   vec1.SetToMax(vec2);
-  EXPECT_EQ(vec1, math::Vector3(0.2, 0.3, 0.4));
+  EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 
   vec1.SetToMax(vec3);
-  EXPECT_EQ(vec1, math::Vector3(0.2, 0.3, 0.4));
+  EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Min)
+TEST(Vector3dTest, Min)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.3);
-  math::Vector3 vec2(0.2, 0.3, 0.4);
-  math::Vector3 vec3(0.05, 0.1, 0.2);
+  math::Vector3d vec1(0.1, 0.2, 0.3);
+  math::Vector3d vec2(0.2, 0.3, 0.4);
+  math::Vector3d vec3(0.05, 0.1, 0.2);
 
   EXPECT_DOUBLE_EQ(vec1.GetMin(), 0.1);
 
   vec1.SetToMin(vec2);
-  EXPECT_EQ(vec1, math::Vector3(0.1, 0.2, 0.3));
+  EXPECT_EQ(vec1, math::Vector3d(0.1, 0.2, 0.3));
 
   vec1.SetToMin(vec3);
-  EXPECT_EQ(vec1, math::Vector3(0.05, 0.1, 0.2));
+  EXPECT_EQ(vec1, math::Vector3d(0.05, 0.1, 0.2));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Add)
+TEST(Vector3dTest, Add)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.4);
-  math::Vector3 vec2(1.1, 2.2, 3.4);
+  math::Vector3d vec1(0.1, 0.2, 0.4);
+  math::Vector3d vec2(1.1, 2.2, 3.4);
 
-  math::Vector3 vec3 = vec1;
+  math::Vector3d vec3 = vec1;
   vec3 += vec2;
 
-  EXPECT_EQ(vec1 + vec2, math::Vector3(1.2, 2.4, 3.8));
-  EXPECT_EQ(vec3, math::Vector3(1.2, 2.4, 3.8));
+  EXPECT_EQ(vec1 + vec2, math::Vector3d(1.2, 2.4, 3.8));
+  EXPECT_EQ(vec3, math::Vector3d(1.2, 2.4, 3.8));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Sub)
+TEST(Vector3dTest, Sub)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.4);
-  math::Vector3 vec2(1.1, 2.2, 3.4);
+  math::Vector3d vec1(0.1, 0.2, 0.4);
+  math::Vector3d vec2(1.1, 2.2, 3.4);
 
-  math::Vector3 vec3 = vec2;
+  math::Vector3d vec3 = vec2;
   vec3 -= vec1;
 
-  EXPECT_EQ(vec2 - vec1, math::Vector3(1.0, 2.0, 3.0));
-  EXPECT_EQ(vec3, math::Vector3(1.0, 2.0, 3.0));
+  EXPECT_EQ(vec2 - vec1, math::Vector3d(1.0, 2.0, 3.0));
+  EXPECT_EQ(vec3, math::Vector3d(1.0, 2.0, 3.0));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Divide)
+TEST(Vector3dTest, Divide)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.4);
+  math::Vector3d vec1(0.1, 0.2, 0.4);
 
-  math::Vector3 vec3 = vec1 / 2.0;
-  EXPECT_EQ(vec3, math::Vector3(0.05, 0.1, 0.2));
+  math::Vector3d vec3 = vec1 / 2.0;
+  EXPECT_EQ(vec3, math::Vector3d(0.05, 0.1, 0.2));
 
   vec3 /= 4.0;
-  EXPECT_EQ(vec3, math::Vector3(0.0125, 0.025, 0.05));
+  EXPECT_EQ(vec3, math::Vector3d(0.0125, 0.025, 0.05));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Multiply)
+TEST(Vector3dTest, Multiply)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.3);
+  math::Vector3d vec1(0.1, 0.2, 0.3);
 
-  math::Vector3 vec3 = vec1 * 2.0;
-  EXPECT_EQ(vec3, math::Vector3(0.2, 0.4, 0.6));
+  math::Vector3d vec3 = vec1 * 2.0;
+  EXPECT_EQ(vec3, math::Vector3d(0.2, 0.4, 0.6));
 
   vec3 *= 4.0;
-  EXPECT_EQ(vec3, math::Vector3(0.8, 1.6, 2.4));
+  EXPECT_EQ(vec3, math::Vector3d(0.8, 1.6, 2.4));
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, NotEqual)
+TEST(Vector3dTest, NotEqual)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.3);
-  math::Vector3 vec2(0.2, 0.2, 0.3);
-  math::Vector3 vec3(0.1, 0.2, 0.3);
+  math::Vector3d vec1(0.1, 0.2, 0.3);
+  math::Vector3d vec2(0.2, 0.2, 0.3);
+  math::Vector3d vec3(0.1, 0.2, 0.3);
 
   EXPECT_TRUE(vec1 != vec2);
   EXPECT_FALSE(vec1 != vec3);
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3Test, Finite)
+TEST(Vector3dTest, Finite)
 {
-  math::Vector3 vec1(0.1, 0.2, 0.3);
+  math::Vector3d vec1(0.1, 0.2, 0.3);
 
   EXPECT_TRUE(vec1.IsFinite());
 }

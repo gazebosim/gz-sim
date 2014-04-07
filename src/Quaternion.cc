@@ -44,17 +44,17 @@ Quaternion::Quaternion(const double &_w, const double &_x,
 Quaternion::Quaternion(const double &_roll, const double &_pitch,
                        const double &_yaw)
 {
-  this->SetFromEuler(Vector3(_roll, _pitch, _yaw));
+  this->SetFromEuler(Vector3d(_roll, _pitch, _yaw));
 }
 
 //////////////////////////////////////////////////
-Quaternion::Quaternion(const Vector3 &_rpy)
+Quaternion::Quaternion(const Vector3d &_rpy)
 {
   this->SetFromEuler(_rpy);
 }
 
 //////////////////////////////////////////////////
-Quaternion::Quaternion(const Vector3 &_axis, const double &_angle)
+Quaternion::Quaternion(const Vector3d &_axis, const double &_angle)
 {
   this->SetFromAxis(_axis, _angle);
 }
@@ -216,9 +216,9 @@ void Quaternion::SetFromAxis(double _ax, double _ay, double _az, double _aa)
 }
 
 //////////////////////////////////////////////////
-void Quaternion::SetFromAxis(const Vector3 &_axis, double _a)
+void Quaternion::SetFromAxis(const Vector3d &_axis, double _a)
 {
-  this->SetFromAxis(_axis.x, _axis.y, _axis.z, _a);
+  this->SetFromAxis(_axis.x(), _axis.y(), _axis.z(), _a);
 }
 
 //////////////////////////////////////////////////
@@ -231,9 +231,9 @@ void Quaternion::Set(double _w, double _x, double _y, double _z)
 }
 
 //////////////////////////////////////////////////
-void Quaternion::SetFromEuler(const Vector3 &_vec)
+void Quaternion::SetFromEuler(const Vector3d &_vec)
 {
-  this->SetFromEuler(_vec.x, _vec.y, _vec.z);
+  this->SetFromEuler(_vec.x(), _vec.y(), _vec.z());
 }
 
 //////////////////////////////////////////////////
@@ -254,9 +254,9 @@ void Quaternion::SetFromEuler(double _roll, double _pitch, double _yaw)
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::GetAsEuler() const
+Vector3d Quaternion::GetAsEuler() const
 {
-  Vector3 vec;
+  Vector3d vec;
 
   Quaternion copy = *this;
   double squ;
@@ -272,20 +272,20 @@ Vector3 Quaternion::GetAsEuler() const
   sqz = copy.z * copy.z;
 
   // Roll
-  vec.x = atan2(2 * (copy.y*copy.z + copy.w*copy.x), squ - sqx - sqy + sqz);
+  vec.x(atan2(2 * (copy.y*copy.z + copy.w*copy.x), squ - sqx - sqy + sqz));
 
   // Pitch
   double sarg = -2 * (copy.x*copy.z - copy.w * copy.y);
-  vec.y = sarg <= -1.0 ? -0.5*M_PI : (sarg >= 1.0 ? 0.5*M_PI : asin(sarg));
+  vec.y(sarg <= -1.0 ? -0.5*M_PI : (sarg >= 1.0 ? 0.5*M_PI : asin(sarg)));
 
   // Yaw
-  vec.z = atan2(2 * (copy.x*copy.y + copy.w*copy.z), squ + sqx - sqy - sqz);
+  vec.z(atan2(2 * (copy.x*copy.y + copy.w*copy.z), squ + sqx - sqy - sqz));
 
   return vec;
 }
 
 //////////////////////////////////////////////////
-Quaternion Quaternion::EulerToQuaternion(const Vector3 &_vec)
+Quaternion Quaternion::EulerToQuaternion(const Vector3d &_vec)
 {
   Quaternion result;
   result.SetFromEuler(_vec);
@@ -295,29 +295,29 @@ Quaternion Quaternion::EulerToQuaternion(const Vector3 &_vec)
 //////////////////////////////////////////////////
 Quaternion Quaternion::EulerToQuaternion(double _x, double _y, double _z)
 {
-  return EulerToQuaternion(Vector3(_x, _y, _z));
+  return EulerToQuaternion(Vector3d(_x, _y, _z));
 }
 
 //////////////////////////////////////////////////
 double Quaternion::GetRoll()
 {
-  return this->GetAsEuler().x;
+  return this->GetAsEuler().x();
 }
 
 //////////////////////////////////////////////////
 double Quaternion::GetPitch()
 {
-  return this->GetAsEuler().y;
+  return this->GetAsEuler().y();
 }
 
 //////////////////////////////////////////////////
 double Quaternion::GetYaw()
 {
-  return this->GetAsEuler().z;
+  return this->GetAsEuler().z();
 }
 
 //////////////////////////////////////////////////
-void Quaternion::GetAsAxis(Vector3 &_axis, double &_angle) const
+void Quaternion::GetAsAxis(Vector3d &_axis, double &_angle) const
 {
   double len = this->x*this->x + this->y*this->y + this->z*this->z;
   if (math::equal(len, 0.0))
@@ -337,21 +337,21 @@ void Quaternion::GetAsAxis(Vector3 &_axis, double &_angle) const
 void Quaternion::Scale(double _scale)
 {
   Quaternion b;
-  Vector3 axis;
+  Vector3d axis;
   double angle;
 
   // Convert to axis-and-angle
   this->GetAsAxis(axis, angle);
   angle *= _scale;
 
-  this->SetFromAxis(axis.x, axis.y, axis.z, angle);
+  this->SetFromAxis(axis.x(), axis.y(), axis.z(), angle);
 }
 
 //////////////////////////////////////////////////
 Quaternion Quaternion::operator+(const Quaternion &qt) const
 {
   Quaternion result(this->w + qt.w, this->x + qt.x,
-                 this->y + qt.y, this->z + qt.z);
+                    this->y + qt.y, this->z + qt.z);
   return result;
 }
 
@@ -386,10 +386,10 @@ Quaternion Quaternion::operator*=(const Quaternion &qt)
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::operator*(const Vector3 &v) const
+Vector3d Quaternion::operator*(const Vector3d &v) const
 {
-  Vector3 uv, uuv;
-  Vector3 qvec(this->x, this->y, this->z);
+  Vector3d uv, uuv;
+  Vector3d qvec(this->x, this->y, this->z);
   uv = qvec.Cross(v);
   uuv = qvec.Cross(uv);
   uv *= (2.0f * this->w);
@@ -405,23 +405,13 @@ Quaternion Quaternion::operator*(const double &_f) const
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::RotateVectorReverse(Vector3 _vec) const
+Vector3d Quaternion::RotateVectorReverse(Vector3d _vec) const
 {
-  Quaternion tmp;
-  Vector3 result;
-
-  tmp.w = 0.0;
-  tmp.x = _vec.x;
-  tmp.y = _vec.y;
-  tmp.z = _vec.z;
+  Quaternion tmp(0.0, _vec.x(), _vec.y(), _vec.z());
 
   tmp =  this->GetInverse() * (tmp * (*this));
 
-  result.x = tmp.x;
-  result.y = tmp.y;
-  result.z = tmp.z;
-
-  return result;
+  return Vector3d(tmp.x, tmp.y, tmp.z);
 }
 
 
@@ -433,7 +423,7 @@ bool Quaternion::IsFinite() const
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::GetXAxis() const
+Vector3d Quaternion::GetXAxis() const
 {
   double fTy  = 2.0f*this->y;
   double fTz  = 2.0f*this->z;
@@ -445,11 +435,11 @@ Vector3 Quaternion::GetXAxis() const
   double fTyy = fTy*this->y;
   double fTzz = fTz*this->z;
 
-  return Vector3(1.0f-(fTyy+fTzz), fTxy+fTwz, fTxz-fTwy);
+  return Vector3d(1.0f-(fTyy+fTzz), fTxy+fTwz, fTxz-fTwy);
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::GetYAxis() const
+Vector3d Quaternion::GetYAxis() const
 {
   double fTx  = 2.0f*this->x;
   double fTy  = 2.0f*this->y;
@@ -461,11 +451,11 @@ Vector3 Quaternion::GetYAxis() const
   double fTyz = fTz*this->y;
   double fTzz = fTz*this->z;
 
-  return Vector3(fTxy-fTwz, 1.0f-(fTxx+fTzz), fTyz+fTwx);
+  return Vector3d(fTxy-fTwz, 1.0f-(fTxx+fTzz), fTyz+fTwx);
 }
 
 //////////////////////////////////////////////////
-Vector3 Quaternion::GetZAxis() const
+Vector3d Quaternion::GetZAxis() const
 {
   double fTx  = 2.0f*this->x;
   double fTy  = 2.0f*this->y;
@@ -477,7 +467,7 @@ Vector3 Quaternion::GetZAxis() const
   double fTyy = fTy*this->y;
   double fTyz = fTz*this->y;
 
-  return Vector3(fTxz+fTwy, fTyz-fTwx, 1.0f-(fTxx+fTyy));
+  return Vector3d(fTxz+fTwy, fTyz-fTwx, 1.0f-(fTxx+fTyy));
 }
 
 //////////////////////////////////////////////////

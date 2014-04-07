@@ -19,28 +19,32 @@
 using namespace ignition;
 using namespace math;
 
-
+/////////////////////////////////////////////////
 Plane::Plane()
 {
   this->d = 0.0;
 }
 
-Plane::Plane(const Vector3 &_normal, double _offset)
+/////////////////////////////////////////////////
+Plane::Plane(const Vector3d &_normal, double _offset)
 {
   this->normal = _normal;
   this->d = _offset;
 }
 
-Plane::Plane(const Vector3 &_normal, const Vector2d &_size, double _offset)
+/////////////////////////////////////////////////
+Plane::Plane(const Vector3d &_normal, const Vector2d &_size, double _offset)
 {
   this->Set(_normal, _size, _offset);
 }
 
+/////////////////////////////////////////////////
 Plane::~Plane()
 {
 }
 
-void Plane::Set(const Vector3 &_n, const Vector2d &_s, double _offset)
+/////////////////////////////////////////////////
+void Plane::Set(const Vector3d &_n, const Vector2d &_s, double _offset)
 {
   this->normal = _n;
   this->size = _s;
@@ -58,7 +62,7 @@ Plane &Plane::operator =(const Plane & _p)
 }
 
 //////////////////////////////////////////////////
-double Plane::Distance(const Vector3 &_origin, const Vector3 &_dir) const
+double Plane::Distance(const Vector3d &_origin, const Vector3d &_dir) const
 {
   double denom = this->normal.Dot(_dir);
 

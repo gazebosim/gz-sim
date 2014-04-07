@@ -15,7 +15,7 @@
  *
 */
 #include <math.h>
-#include "ignition/math/Box.hh"
+#include <ignition/math/Box.hh>
 
 using namespace ignition;
 using namespace math;
@@ -36,7 +36,7 @@ Box::Box(double _minX, double _minY, double _minZ,
 }
 
 //////////////////////////////////////////////////
-Box::Box(const Vector3 &_min, const Vector3 &_max)
+Box::Box(const Vector3d &_min, const Vector3d &_max)
   : min(_min), max(_max), extent(EXTENT_FINITE)
 {
 }
@@ -55,33 +55,33 @@ Box::~Box()
 //////////////////////////////////////////////////
 double Box::GetXLength() const
 {
-  return fabs(max.x - min.x);
+  return fabs(max.x() - min.x());
 }
 
 //////////////////////////////////////////////////
 double Box::GetYLength() const
 {
-  return fabs(max.y - min.y);
+  return fabs(max.y() - min.y());
 }
 
 //////////////////////////////////////////////////
 double Box::GetZLength() const
 {
-  return fabs(max.z - min.z);
+  return fabs(max.z() - min.z());
 }
 
 //////////////////////////////////////////////////
-math::Vector3 Box::GetSize() const
+math::Vector3d Box::GetSize() const
 {
-  return math::Vector3(this->GetXLength(),
+  return math::Vector3d(this->GetXLength(),
                        this->GetYLength(),
                        this->GetZLength());
 }
 
 //////////////////////////////////////////////////
-math::Vector3 Box::GetCenter() const
+math::Vector3d Box::GetCenter() const
 {
-  Vector3 size = this->GetSize();
+  Vector3d size = this->GetSize();
   size /= 2.0;
   return this->min + size;
 }
@@ -116,7 +116,7 @@ Box &Box::operator =(const Box &_b)
 //////////////////////////////////////////////////
 Box Box::operator+(const Box &_b) const
 {
-  Vector3 mn, mx;
+  Vector3d mn, mx;
 
   if (this->extent != EXTENT_NULL)
   {
@@ -159,7 +159,7 @@ bool Box::operator==(const Box &_b)
 }
 
 //////////////////////////////////////////////////
-Box Box::operator-(const Vector3 &_v)
+Box Box::operator-(const Vector3d &_v)
 {
   return Box(this->min - _v, this->max - _v);
 }

@@ -22,18 +22,18 @@
 
 using namespace ignition;
 
-TEST(Vector2dTest, Vector2d)
+TEST(Vector2Test, Vector2)
 {
   {
     math::Vector2d v;
-    EXPECT_DOUBLE_EQ(0, v.x);
-    EXPECT_DOUBLE_EQ(0, v.y);
+    EXPECT_DOUBLE_EQ(0, v.x());
+    EXPECT_DOUBLE_EQ(0, v.y());
   }
 
   // Constructor
   math::Vector2d v(1, 2);
-  EXPECT_DOUBLE_EQ(1, v.x);
-  EXPECT_DOUBLE_EQ(2, v.y);
+  EXPECT_DOUBLE_EQ(1, v.x());
+  EXPECT_DOUBLE_EQ(2, v.y());
 
   // ::Distance
   EXPECT_TRUE(math::equal(2.236, v.Distance(math::Vector2d(0, 0)), 1e-2));

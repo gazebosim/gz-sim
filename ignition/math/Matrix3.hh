@@ -19,7 +19,7 @@
 
 #include <assert.h>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 
 namespace ignition
 {
@@ -57,20 +57,20 @@ namespace ignition
       /// \param[in] _xAxis The x axis
       /// \param[in] _yAxis The y axis
       /// \param[in] _zAxis The z axis
-      public: void SetFromAxes(const Vector3 &_xAxis,
-                               const Vector3 &_yAxis,
-                               const Vector3 &_zAxis);
+      public: void SetFromAxes(const Vector3d &_xAxis,
+                               const Vector3d &_yAxis,
+                               const Vector3d &_zAxis);
 
 
       /// \brief Set the matrix from an axis and angle
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
-      public: void SetFromAxis(const Vector3 &_axis, double _angle);
+      public: void SetFromAxis(const Vector3d &_axis, double _angle);
 
       /// \brief Set a column
       /// \param[in] _c The colum index (0, 1, 2)
       /// \param[in] _v The value to set in each row of the column
-      public: void SetCol(unsigned int _c, const Vector3 &_v);
+      public: void SetCol(unsigned int _c, const Vector3d &_v);
 
       /// \brief returns the element wise difference of two matrices
       public: Matrix3 operator-(const Matrix3 &_m) const

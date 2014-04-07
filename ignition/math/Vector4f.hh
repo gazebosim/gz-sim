@@ -9,18 +9,29 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUint WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
 */
-#include "ignition/math/Vector2d.hh"
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/IndexException.hh"
+#ifndef _IGNITION_VECTOR4F_HH_
+#define _IGNITION_VECTOR4F_HH_
 
-using namespace ignition;
-using namespace math;
+#include <math.h>
+#include <iostream>
+#include <fstream>
 
-#include <ignition/math/DoubleDefs.hh>
-#include "Vector2.cc"
-#include <ignition/math/Undefs.hh>
+#include <ignition/math/IndexException.hh>
+#include <ignition/math/Matrix4.hh>
+
+namespace ignition
+{
+  namespace math
+  {
+#include "ignition/math/FloatDefs.hh"
+#include "ignition/math/Vector4.hh"
+#include "ignition/math/Undefs.hh"
+  }
+}
+
+#endif

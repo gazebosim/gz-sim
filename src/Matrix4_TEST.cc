@@ -78,7 +78,7 @@ TEST(Matrix4Test, Construct)
 TEST(Matrix4Test, Scale)
 {
   math::Matrix4 mat, mat2;
-  mat.SetScale(math::Vector3(1, 2, 3));
+  mat.SetScale(math::Vector3d(1, 2, 3));
   mat2.SetScale(1, 2, 3);
 
   EXPECT_EQ(mat, mat2);
@@ -94,7 +94,7 @@ TEST(Matrix4Test, Scale)
   EXPECT_DOUBLE_EQ(mat2[3][3], 1.0);
 
   EXPECT_EQ(mat.GetScale(), mat2.GetScale());
-  EXPECT_EQ(mat.GetScale(), math::Vector3(1, 2, 3));
+  EXPECT_EQ(mat.GetScale(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -118,7 +118,7 @@ TEST(Matrix4Test, Scale)
 TEST(Matrix4Test, MultiplyV)
 {
   math::Matrix4 mat;
-  math::Vector3 vec(-1.2, 2.3, 10.5);
+  math::Vector3d vec(-1.2, 2.3, 10.5);
 
   for (int i = 0; i < 4; ++i)
   {
@@ -128,7 +128,7 @@ TEST(Matrix4Test, MultiplyV)
     }
   }
 
-  EXPECT_EQ(mat * vec, math::Vector3(-26.3, -13.7, -1.1));
+  EXPECT_EQ(mat * vec, math::Vector3d(-26.3, -13.7, -1.1));
 }
 
 /////////////////////////////////////////////////
@@ -212,7 +212,7 @@ TEST(Matrix4Test, GetAsPose)
 TEST(Matrix4Test, Translate)
 {
   math::Matrix4 mat, mat2;
-  mat.SetTranslate(math::Vector3(1, 2, 3));
+  mat.SetTranslate(math::Vector3d(1, 2, 3));
   mat2.SetTranslate(1, 2, 3);
 
   EXPECT_EQ(mat, mat2);
@@ -226,7 +226,7 @@ TEST(Matrix4Test, Translate)
   EXPECT_DOUBLE_EQ(mat2[2][3], 3.0);
 
   EXPECT_EQ(mat.GetTranslation(), mat2.GetTranslation());
-  EXPECT_EQ(mat.GetTranslation(), math::Vector3(1, 2, 3));
+  EXPECT_EQ(mat.GetTranslation(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -270,11 +270,11 @@ TEST(Matrix4Test, RotationDiagZero)
   EXPECT_NEAR(quat.z, 0.6, 1e-6);
   EXPECT_NEAR(quat.w, 0.15, 1e-6);
 
-  math::Vector3 euler = mat.GetEulerRotation(true);
-  EXPECT_EQ(euler, math::Vector3(1.5708, -1.11977, 1.5708));
+  math::Vector3d euler = mat.GetEulerRotation(true);
+  EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.5708));
 
   euler = mat.GetEulerRotation(false);
-  EXPECT_EQ(euler, math::Vector3(-1.5708, 4.26136, -1.5708));
+  EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.5708));
 }
 
 /////////////////////////////////////////////////
@@ -307,9 +307,9 @@ TEST(Matrix4Test, Rotation)
   EXPECT_NEAR(quat.z, 0.0896421, 1e-6);
   EXPECT_NEAR(quat.w, 0.83666, 1e-6);
 
-  math::Vector3 euler = mat.GetEulerRotation(true);
-  EXPECT_EQ(euler, math::Vector3(0.737815, -1.11977, 1.3734));
+  math::Vector3d euler = mat.GetEulerRotation(true);
+  EXPECT_EQ(euler, math::Vector3d(0.737815, -1.11977, 1.3734));
 
   euler = mat.GetEulerRotation(false);
-  EXPECT_EQ(euler, math::Vector3(-2.40378, 4.26136, -1.76819));
+  EXPECT_EQ(euler, math::Vector3d(-2.40378, 4.26136, -1.76819));
 }

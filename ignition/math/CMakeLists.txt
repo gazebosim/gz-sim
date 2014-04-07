@@ -14,9 +14,14 @@ set (headers
   RotationSpline.hh
   Spline.hh
   Vector2d.hh
+  Vector2f.hh
   Vector2i.hh
-  Vector3.hh
-  Vector4.hh
+  Vector3d.hh
+  Vector3f.hh
+  Vector3i.hh
+  Vector4d.hh
+  Vector4f.hh
+  Vector4i.hh
 )
 
 set (ign_headers "" CACHE INTERNAL "Ignition math headers" FORCE)

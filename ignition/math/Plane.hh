@@ -17,8 +17,8 @@
 #ifndef _IGNITION_PLANE_HH_
 #define _IGNITION_PLANE_HH_
 
-#include "ignition/math/Vector3.hh"
-#include "ignition/math/Vector2d.hh"
+#include <ignition/math/Vector3d.hh>
+#include <ignition/math/Vector2d.hh>
 
 namespace ignition
 {
@@ -34,13 +34,13 @@ namespace ignition
       /// \brief Constructor from a normal and a distanec
       /// \param[in] _normal The plane normal
       /// \param[in] _offset Offset along the normal
-      public: Plane(const Vector3 &_normal, double _offset = 0.0);
+      public: Plane(const Vector3d &_normal, double _offset = 0.0);
 
       /// \brief Constructor
       /// \param[in] _normal The plane normal
       /// \param[in] _size Size of the plane
       /// \param[in] _offset Offset along the normal
-      public: Plane(const Vector3 &_normal, const Vector2d &_size,
+      public: Plane(const Vector3d &_normal, const Vector2d &_size,
                     double _offset);
 
       /// \brief Destructor
@@ -50,15 +50,15 @@ namespace ignition
       /// \param[in] _normal The plane normal
       /// \param[in] _size Size of the plane
       /// \param[in] _offset Offset along the normal
-      public: void Set(const Vector3 &_normal, const Vector2d &_size,
+      public: void Set(const Vector3d &_normal, const Vector2d &_size,
                        double offset);
 
       /// \brief Get distance to the plane give an origin and direction
       /// \param[in] _origin the origin
       /// \param[in] _dir a direction
       /// \return the shortest distance
-      public: double Distance(const Vector3 &_origin,
-                              const Vector3 &_dir) const;
+      public: double Distance(const Vector3d &_origin,
+                              const Vector3d &_dir) const;
 
       /// \brief Equal operator
       /// \param _p another plane
@@ -66,7 +66,7 @@ namespace ignition
       public: Plane &operator =(const Plane &_p);
 
       /// \brief Plane normal
-      public: Vector3 normal;
+      public: Vector3d normal;
 
       /// \brief Plane size
       public: Vector2d size;

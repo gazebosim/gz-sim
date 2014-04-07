@@ -13,9 +13,14 @@ set (sources
   RotationSpline.cc
   Spline.cc
   Vector2d.cc
+  Vector2f.cc
   Vector2i.cc
-  Vector3.cc
-  Vector4.cc
+  Vector3d.cc
+  Vector3f.cc
+  Vector3i.cc
+  Vector4d.cc
+  Vector4f.cc
+  Vector4i.cc
 )
 
 set (gtest_sources
@@ -30,8 +35,7 @@ set (gtest_sources
   Rand_TEST.cc
   RotationSpline_TEST.cc
   Spline_TEST.cc
-  Vector2d_TEST.cc
-  Vector2i_TEST.cc
+  Vector2_TEST.cc
   Vector3_TEST.cc
   Vector4_TEST.cc
 )

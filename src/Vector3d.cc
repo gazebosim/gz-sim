@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/math/Vector2d.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/IndexException.hh"
 
@@ -22,5 +22,5 @@ using namespace ignition;
 using namespace math;
 
 #include <ignition/math/DoubleDefs.hh>
-#include "Vector2.cc"
+#include "Vector3.cc"
 #include <ignition/math/Undefs.hh>

@@ -37,15 +37,15 @@ TEST(Matrix3Test, Matrix3)
   }
 
   math::Matrix3 matrix;
-  matrix.SetFromAxes(math::Vector3(1, 1, 1), math::Vector3(2, 2, 2),
-                     math::Vector3(3, 3, 3));
+  matrix.SetFromAxes(math::Vector3d(1, 1, 1), math::Vector3d(2, 2, 2),
+                     math::Vector3d(3, 3, 3));
   EXPECT_TRUE(matrix == math::Matrix3(1, 2, 3, 1, 2, 3, 1, 2, 3));
 
-  matrix.SetFromAxis(math::Vector3(1, 1, 1), M_PI);
+  matrix.SetFromAxis(math::Vector3d(1, 1, 1), M_PI);
   EXPECT_TRUE(matrix == math::Matrix3(1, 2, 2, 2, 1, 2, 2, 2, 1));
 
-  matrix.SetCol(0, math::Vector3(3, 4, 5));
+  matrix.SetCol(0, math::Vector3d(3, 4, 5));
   EXPECT_TRUE(matrix == math::Matrix3(3, 2, 2, 4, 1, 2, 5, 2, 1));
 
-  EXPECT_THROW(matrix.SetCol(3, math::Vector3(1, 1, 1)), std::string);
+  EXPECT_THROW(matrix.SetCol(3, math::Vector3d(1, 1, 1)), std::string);
 }

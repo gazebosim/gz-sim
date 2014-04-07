@@ -23,7 +23,7 @@
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Matrix3.hh"
 #include "ignition/math/Matrix4.hh"
 
@@ -56,11 +56,11 @@ namespace ignition
       /// \brief Constructor from axis angle
       /// \param[in] _axis the rotation axis
       /// \param[in] _angle the rotation angle in radians
-      public: Quaternion(const Vector3 &_axis, const double &_angle);
+      public: Quaternion(const Vector3d &_axis, const double &_angle);
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      public: Quaternion(const Vector3 &_rpy);
+      public: Quaternion(const Vector3d &_rpy);
 
       /// \brief Copy constructor
       /// \param qt Quaternion to copy
@@ -129,7 +129,7 @@ namespace ignition
       /// \brief Set the quaternion from an axis and angle
       /// \param[in] _axis Axis
       /// \param[in] _a Angle in radians
-      public: void SetFromAxis(const Vector3 &_axis, double _a);
+      public: void SetFromAxis(const Vector3d &_axis, double _a);
 
       /// \brief Set this quaternion from 4 floating numbers
       /// \param[in] _u u
@@ -141,7 +141,7 @@ namespace ignition
       /// \brief Set the quaternion from Euler angles. The order of operations
       /// are roll, pitch, yaw.
       /// \param[in] vec  Euler angle
-      public: void SetFromEuler(const Vector3 &_vec);
+      public: void SetFromEuler(const Vector3d &_vec);
 
       /// \brief Set the quaternion from Euler angles.
       /// \param[in] _roll Roll angle (radians).
@@ -151,11 +151,11 @@ namespace ignition
 
       /// \brief Return the rotation in Euler angles
       /// \return This quaternion as an Euler vector
-      public: Vector3 GetAsEuler() const;
+      public: Vector3d GetAsEuler() const;
 
       /// \brief Convert euler angles to quatern.
       /// \param[in]
-      public: static Quaternion EulerToQuaternion(const Vector3 &_vec);
+      public: static Quaternion EulerToQuaternion(const Vector3d &_vec);
 
       /// \brief Convert euler angles to quatern.
       /// \param[in] _x rotation along x
@@ -180,7 +180,7 @@ namespace ignition
       /// \brief Return rotation as axis and angle
       /// \param[in] _axis rotation axis
       /// \param[in] _angle ccw angle in radians
-      public: void GetAsAxis(Vector3 &_axis, double &_angle) const;
+      public: void GetAsAxis(Vector3d &_axis, double &_angle) const;
 
       /// \brief Scale a Quaternionion
       /// \param[in] _scale Amount to scale this rotation
@@ -230,7 +230,7 @@ namespace ignition
 
       /// \brief Vector3 multiplication operator
       /// \param[in] _v vector to multiply
-      public: Vector3 operator*(const Vector3 &_v) const;
+      public: Vector3d operator*(const Vector3d &_v) const;
 
       /// \brief Equal to operator
       /// \param[in] _qt Quaternion for comparison
@@ -249,17 +249,17 @@ namespace ignition
       /// \brief Rotate a vector using the quaternion
       /// \param[in] _vec vector to rotate
       /// \return the rotated vector
-      public: inline Vector3 RotateVector(const Vector3 &_vec) const
+      public: inline Vector3d RotateVector(const Vector3d &_vec) const
               {
-                Quaternion tmp(0.0, _vec.x, _vec.y, _vec.z);
+                Quaternion tmp(0.0, _vec.x(), _vec.y(), _vec.z());
                 tmp = (*this) * (tmp * this->GetInverse());
-                return Vector3(tmp.x, tmp.y, tmp.z);
+                return Vector3d(tmp.x, tmp.y, tmp.z);
               }
 
       /// \brief Do the reverse rotation of a vector by this quaternion
       /// \param[in] _vec the vector
       /// \return the
-      public: Vector3 RotateVectorReverse(Vector3 _vec) const;
+      public: Vector3d RotateVectorReverse(Vector3d _vec) const;
 
       /// \brief See if a quatern is finite (e.g., not nan)
       /// \return True if quatern is finite
@@ -295,15 +295,15 @@ namespace ignition
 
       /// \brief Return the X axis
       /// \return the vector
-      public: Vector3 GetXAxis() const;
+      public: Vector3d GetXAxis() const;
 
       /// \brief Return the Y axis
       /// \return the vector
-      public: Vector3 GetYAxis() const;
+      public: Vector3d GetYAxis() const;
 
       /// \brief Return the Z axis
       /// \return the vector
-      public: Vector3 GetZAxis() const;
+      public: Vector3d GetZAxis() const;
 
       /// \brief Round all values to _precision decimal places
       /// \param[in] _precision the precision
@@ -357,9 +357,9 @@ namespace ignition
       public: friend  std::ostream &operator<<(std::ostream &_out,
                   const ignition::math::Quaternion &_q)
       {
-        Vector3 v(_q.GetAsEuler());
-        _out << precision(v.x, 6) << " " << precision(v.y, 6) << " "
-             << precision(v.z, 6);
+        Vector3d v(_q.GetAsEuler());
+        _out << precision(v.x(), 6) << " " << precision(v.y(), 6) << " "
+             << precision(v.z(), 6);
         return _out;
       }
 
@@ -376,7 +376,7 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         _in >> roll >> pitch >> yaw;
 
-        _q.SetFromEuler(Vector3(*roll, *pitch, *yaw));
+        _q.SetFromEuler(Vector3d(*roll, *pitch, *yaw));
 
         return _in;
       }

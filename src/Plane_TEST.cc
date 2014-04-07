@@ -27,27 +27,27 @@ TEST(PlaneTest, Plane)
   {
     math::Plane plane;
     EXPECT_TRUE(math::equal(plane.d, 0.0));
-    EXPECT_TRUE(plane.normal == math::Vector3());
+    EXPECT_TRUE(plane.normal == math::Vector3d());
     EXPECT_TRUE(plane.size == math::Vector2d(0, 0));
   }
 
   {
-    math::Plane plane(math::Vector3(0, 0, 1), math::Vector2d(2, 3), 2.0);
+    math::Plane plane(math::Vector3d(0, 0, 1), math::Vector2d(2, 3), 2.0);
     EXPECT_TRUE(math::equal(plane.d, 2.0));
-    EXPECT_TRUE(plane.normal == math::Vector3(0, 0, 1));
+    EXPECT_TRUE(plane.normal == math::Vector3d(0, 0, 1));
     EXPECT_TRUE(plane.size == math::Vector2d(2, 3));
 
-    EXPECT_DOUBLE_EQ(-1, plane.Distance(math::Vector3(0, 0, 1),
-          math::Vector3(0, 0, -1)));
+    EXPECT_DOUBLE_EQ(-1, plane.Distance(math::Vector3d(0, 0, 1),
+          math::Vector3d(0, 0, -1)));
 
-    plane.Set(math::Vector3(1, 0, 0), math::Vector2d(1, 1), 1.0);
+    plane.Set(math::Vector3d(1, 0, 0), math::Vector2d(1, 1), 1.0);
     EXPECT_TRUE(math::equal(plane.d, 1.0));
-    EXPECT_TRUE(plane.normal == math::Vector3(1, 0, 0));
+    EXPECT_TRUE(plane.normal == math::Vector3d(1, 0, 0));
     EXPECT_TRUE(plane.size == math::Vector2d(1, 1));
 
-    plane = math::Plane(math::Vector3(0, 1, 0), math::Vector2d(4, 4), 5.0);
+    plane = math::Plane(math::Vector3d(0, 1, 0), math::Vector2d(4, 4), 5.0);
     EXPECT_TRUE(math::equal(plane.d, 5.0));
-    EXPECT_TRUE(plane.normal == math::Vector3(0, 1, 0));
+    EXPECT_TRUE(plane.normal == math::Vector3d(0, 1, 0));
     EXPECT_TRUE(plane.size == math::Vector2d(4, 4));
   }
 }

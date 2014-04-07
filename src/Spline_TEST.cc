@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Vector3.hh"
+#include "ignition/math/Vector3d.hh"
 #include "ignition/math/Spline.hh"
 
 using namespace ignition;
@@ -26,27 +26,27 @@ TEST(SplineTest, Spline)
 {
   math::Spline s;
 
-  s.AddPoint(math::Vector3(0, 0, 0));
+  s.AddPoint(math::Vector3d(0, 0, 0));
   EXPECT_EQ(static_cast<unsigned int>(1), s.GetPointCount());
 
   s.Clear();
   EXPECT_EQ(static_cast<unsigned int>(0), s.GetPointCount());
 
-  s.AddPoint(math::Vector3(0, 0, 0));
-  EXPECT_TRUE(s.GetPoint(0) == math::Vector3(0, 0, 0));
-  s.AddPoint(math::Vector3(1, 1, 1));
-  EXPECT_TRUE(s.GetPoint(1) == math::Vector3(1, 1, 1));
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(s.GetPoint(0) == math::Vector3d(0, 0, 0));
+  s.AddPoint(math::Vector3d(1, 1, 1));
+  EXPECT_TRUE(s.GetPoint(1) == math::Vector3d(1, 1, 1));
 
   // ::UpdatePoint
-  s.UpdatePoint(1, math::Vector3(2, 2, 2));
+  s.UpdatePoint(1, math::Vector3d(2, 2, 2));
   s.SetAutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3(-1, -1, -1));
+  s.UpdatePoint(0, math::Vector3d(-1, -1, -1));
   s.SetAutoCalculate(true);
 
   // ::Interpolate
-  EXPECT_TRUE(s.Interpolate(0.5) == math::Vector3(0.5, 0.5, 0.5));
+  EXPECT_TRUE(s.Interpolate(0.5) == math::Vector3d(0.5, 0.5, 0.5));
 
   // ::Interpolate
-  s.AddPoint(math::Vector3(4, 4, 4));
-  EXPECT_TRUE(s.Interpolate(1, 0.2) == math::Vector3(2.496, 2.496, 2.496));
+  s.AddPoint(math::Vector3d(4, 4, 4));
+  EXPECT_TRUE(s.Interpolate(1, 0.2) == math::Vector3d(2.496, 2.496, 2.496));
 }

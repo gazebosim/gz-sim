@@ -14,256 +14,265 @@
  * limitations under the License.
  *
 */
-/* Desc: Vector 4
- * Author: Andrew Howard and Nate Koenig
- * Date: 4 Apr 2007
- */
-
-#include <math.h>
-
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector4.hh"
-
-using namespace ignition;
-using namespace math;
-
 
 //////////////////////////////////////////////////
-Vector4::Vector4()
-    : x(0), y(0), z(0), w(0)
+IGN_VECTOR4::IGN_VECTOR4()
+{
+  this->data[0] = this->data[1] = this->data[2] = this->data[3] = 0;
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR4::IGN_VECTOR4(const IGN_NUMERIC &_x, const IGN_NUMERIC &_y, const IGN_NUMERIC &_z,
+                 const IGN_NUMERIC &_w)
+{
+  this->data[0] = _x;
+  this->data[1] = _y;
+  this->data[2] = _z;
+  this->data[3] = _w;
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR4::IGN_VECTOR4(const IGN_VECTOR4 &_pt)
+{
+  this->data[0] = _pt[0];
+  this->data[1] = _pt[1];
+  this->data[2] = _pt[2];
+  this->data[3] = _pt[3];
+}
+
+//////////////////////////////////////////////////
+IGN_VECTOR4::~IGN_VECTOR4()
 {
 }
 
 //////////////////////////////////////////////////
-Vector4::Vector4(const double &_x, const double &_y, const double &_z,
-                 const double &_w)
-    : x(_x), y(_y), z(_z), w(_w)
+IGN_NUMERIC IGN_VECTOR4::Distance(const IGN_VECTOR4 &_pt) const
 {
+  return sqrt((this->data[0]-_pt[0])*(this->data[0]-_pt[0]) +
+              (this->data[1]-_pt[1])*(this->data[1]-_pt[1]) +
+              (this->data[2]-_pt[2])*(this->data[2]-_pt[2]) +
+              (this->data[3]-_pt[3])*(this->data[3]-_pt[3]));
 }
 
 //////////////////////////////////////////////////
-Vector4::Vector4(const Vector4 &_pt)
-    : x(_pt.x), y(_pt.y), z(_pt.z), w(_pt.w)
+IGN_NUMERIC IGN_VECTOR4::GetLength() const
 {
+  return sqrt(this->data[0] * this->data[0] + this->data[1] * this->data[1] +
+              this->data[2] * this->data[2] + this->data[3] * this->data[3]);
 }
 
 //////////////////////////////////////////////////
-Vector4::~Vector4()
+IGN_NUMERIC IGN_VECTOR4::GetSquaredLength() const
 {
+  return this->data[0] * this->data[0] + this->data[1] * this->data[1] + this->data[2] * this->data[2] +
+         this->data[3] * this->data[3];
 }
 
 //////////////////////////////////////////////////
-double Vector4::Distance(const Vector4 &_pt) const
+void IGN_VECTOR4::Normalize()
 {
-  return sqrt((this->x-_pt.x)*(this->x-_pt.x) +
-              (this->y-_pt.y)*(this->y-_pt.y) +
-              (this->z-_pt.z)*(this->z-_pt.z) +
-              (this->w-_pt.w)*(this->w-_pt.w));
+  IGN_NUMERIC d = this->GetLength();
+
+  this->data[0] /= d;
+  this->data[1] /= d;
+  this->data[2] /= d;
+  this->data[3] /= d;
 }
 
 //////////////////////////////////////////////////
-double Vector4::GetLength() const
+void IGN_VECTOR4::Set(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z, IGN_NUMERIC _w)
 {
-  return sqrt(this->x * this->x + this->y * this->y +
-              this->z * this->z + this->w * this->w);
-}
-
-//////////////////////////////////////////////////
-double Vector4::GetSquaredLength() const
-{
-  return this->x * this->x + this->y * this->y + this->z * this->z +
-         this->w * this->w;
-}
-
-//////////////////////////////////////////////////
-void Vector4::Normalize()
-{
-  double d = this->GetLength();
-
-  this->x /= d;
-  this->y /= d;
-  this->z /= d;
-  this->w /= d;
-}
-
-//////////////////////////////////////////////////
-void Vector4::Set(double _x, double _y, double _z, double _w)
-{
-  this->x = _x;
-  this->y = _y;
-  this->z = _z;
-  this->w = _w;
+  this->data[0] = _x;
+  this->data[1] = _y;
+  this->data[2] = _z;
+  this->data[3] = _w;
 }
 
 
 //////////////////////////////////////////////////
-Vector4 &Vector4::operator =(const Vector4 &pt)
+IGN_VECTOR4 &IGN_VECTOR4::operator =(const IGN_VECTOR4 &pt)
 {
-  this->x = pt.x;
-  this->y = pt.y;
-  this->z = pt.z;
-  this->w = pt.w;
+  this->data[0] = pt[0];
+  this->data[1] = pt[1];
+  this->data[2] = pt[2];
+  this->data[3] = pt[3];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector4 &Vector4::operator =(double value)
+IGN_VECTOR4 &IGN_VECTOR4::operator =(IGN_NUMERIC value)
 {
-  this->x = value;
-  this->y = value;
-  this->z = value;
-  this->w = value;
-
-  return *this;
-}
-
-
-
-//////////////////////////////////////////////////
-Vector4 Vector4::operator+(const Vector4 &pt) const
-{
-  return Vector4(this->x + pt.x, this->y + pt.y, this->z + pt.z, this->w+pt.w);
-}
-
-const Vector4 &Vector4::operator+=(const Vector4 &pt)
-{
-  this->x += pt.x;
-  this->y += pt.y;
-  this->z += pt.z;
-  this->w += pt.w;
+  this->data[0] = value;
+  this->data[1] = value;
+  this->data[2] = value;
+  this->data[3] = value;
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-Vector4 Vector4::operator-(const Vector4 &pt) const
+IGN_VECTOR4 IGN_VECTOR4::operator+(const IGN_VECTOR4 &pt) const
 {
-  return Vector4(this->x - pt.x, this->y - pt.y, this->z - pt.z, this->w-pt.w);
+  return IGN_VECTOR4(this->data[0] + pt[0],
+      this->data[1] + pt[1],
+      this->data[2] + pt[2],
+      this->data[3] + pt[3]);
 }
-
-const Vector4 &Vector4::operator-=(const Vector4 &pt)
-{
-  this->x -= pt.x;
-  this->y -= pt.y;
-  this->z -= pt.z;
-  this->w -= pt.w;
-
-  return *this;
-}
-
 
 //////////////////////////////////////////////////
-
-const Vector4 Vector4::operator/(const Vector4 &pt) const
+const IGN_VECTOR4 &IGN_VECTOR4::operator+=(const IGN_VECTOR4 &pt)
 {
-  return Vector4(this->x / pt.x, this->y / pt.y, this->z / pt.z, this->w/pt.w);
-}
-
-const Vector4 &Vector4::operator/=(const Vector4 &pt)
-{
-  this->x /= pt.x;
-  this->y /= pt.y;
-  this->z /= pt.z;
-  this->w /= pt.w;
-
-  return *this;
-}
-
-const Vector4 Vector4::operator/(double v) const
-{
-  return Vector4(this->x / v, this->y / v, this->z / v, this->w / v);
-}
-
-const Vector4 &Vector4::operator/=(double v)
-{
-  this->x /= v;
-  this->y /= v;
-  this->z /= v;
-  this->w /= v;
-
-  return *this;
-}
-
-
-
-//////////////////////////////////////////////////
-const Vector4 Vector4::operator*(const Vector4 &pt) const
-{
-  return Vector4(this->x * pt.x, this->y * pt.y, this->z * pt.z, this->w*pt.w);
-}
-
-const Vector4 Vector4::operator*(const Matrix4 &_m) const
-{
-  return Vector4(
-      this->x*_m[0][0] + this->y*_m[1][0] + this->z*_m[2][0] + this->w*_m[3][0],
-      this->x*_m[0][1] + this->y*_m[1][1] + this->z*_m[2][1] + this->w*_m[3][1],
-      this->x*_m[0][2] + this->y*_m[1][2] + this->z*_m[2][2] + this->w*_m[3][2],
-      this->x*_m[0][3] + this->y*_m[1][3] + this->z*_m[2][3] + this->w*_m[3][3]
-);
-}
-
-const Vector4 &Vector4::operator*=(const Vector4 &pt)
-{
-  this->x *= pt.x;
-  this->y *= pt.y;
-  this->z *= pt.z;
-  this->w *= pt.w;
-
-  return *this;
-}
-
-const Vector4 Vector4::operator*(double v) const
-{
-  return Vector4(this->x * v, this->y * v, this->z * v, this->w*v);
-}
-
-const Vector4 &Vector4::operator*=(double v)
-{
-  this->x *= v;
-  this->y *= v;
-  this->z *= v;
-  this->w *= v;
+  this->data[0] += pt[0];
+  this->data[1] += pt[1];
+  this->data[2] += pt[2];
+  this->data[3] += pt[3];
 
   return *this;
 }
 
 //////////////////////////////////////////////////
-bool Vector4::operator ==(const Vector4 &pt) const
+IGN_VECTOR4 IGN_VECTOR4::operator-(const IGN_VECTOR4 &pt) const
 {
-  return equal(this->x, pt.x) && equal(this->y, pt.y) &&
-         equal(this->z, pt.z) && equal(this->w, pt.w);
+  return IGN_VECTOR4(this->data[0] - pt[0],
+      this->data[1] - pt[1],
+      this->data[2] - pt[2],
+      this->data[3] - pt[3]);
 }
 
 //////////////////////////////////////////////////
-bool Vector4::operator!=(const Vector4 &pt) const
+const IGN_VECTOR4 &IGN_VECTOR4::operator-=(const IGN_VECTOR4 &pt)
+{
+  this->data[0] -= pt[0];
+  this->data[1] -= pt[1];
+  this->data[2] -= pt[2];
+  this->data[3] -= pt[3];
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 IGN_VECTOR4::operator/(const IGN_VECTOR4 &pt) const
+{
+  return IGN_VECTOR4(this->data[0] / pt[0],
+      this->data[1] / pt[1],
+      this->data[2] / pt[2],
+      this->data[3]/pt[3]);
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 &IGN_VECTOR4::operator/=(const IGN_VECTOR4 &pt)
+{
+  this->data[0] /= pt[0];
+  this->data[1] /= pt[1];
+  this->data[2] /= pt[2];
+  this->data[3] /= pt[3];
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 IGN_VECTOR4::operator/(IGN_NUMERIC v) const
+{
+  return IGN_VECTOR4(this->data[0] / v, this->data[1] / v, this->data[2] / v, this->data[3] / v);
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 &IGN_VECTOR4::operator/=(IGN_NUMERIC v)
+{
+  this->data[0] /= v;
+  this->data[1] /= v;
+  this->data[2] /= v;
+  this->data[3] /= v;
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 IGN_VECTOR4::operator*(const IGN_VECTOR4 &pt) const
+{
+  return IGN_VECTOR4(this->data[0] * pt[0],
+      this->data[1] * pt[1],
+      this->data[2] * pt[2],
+      this->data[3] * pt[3]);
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 IGN_VECTOR4::operator*(const Matrix4 &_m) const
+{
+  return IGN_VECTOR4(
+      this->data[0]*_m[0][0] + this->data[1]*_m[1][0] + this->data[2]*_m[2][0] + this->data[3]*_m[3][0],
+      this->data[0]*_m[0][1] + this->data[1]*_m[1][1] + this->data[2]*_m[2][1] + this->data[3]*_m[3][1],
+      this->data[0]*_m[0][2] + this->data[1]*_m[1][2] + this->data[2]*_m[2][2] + this->data[3]*_m[3][2],
+      this->data[0]*_m[0][3] + this->data[1]*_m[1][3] + this->data[2]*_m[2][3] + this->data[3]*_m[3][3]
+      );
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 &IGN_VECTOR4::operator*=(const IGN_VECTOR4 &pt)
+{
+  this->data[0] *= pt[0];
+  this->data[1] *= pt[1];
+  this->data[2] *= pt[2];
+  this->data[3] *= pt[3];
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 IGN_VECTOR4::operator*(IGN_NUMERIC v) const
+{
+  return IGN_VECTOR4(this->data[0] * v, this->data[1] * v, this->data[2] * v, this->data[3]*v);
+}
+
+//////////////////////////////////////////////////
+const IGN_VECTOR4 &IGN_VECTOR4::operator*=(IGN_NUMERIC v)
+{
+  this->data[0] *= v;
+  this->data[1] *= v;
+  this->data[2] *= v;
+  this->data[3] *= v;
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
+bool IGN_VECTOR4::operator ==(const IGN_VECTOR4 &pt) const
+{
+  return equal(this->data[0], pt[0]) && equal(this->data[1], pt[1]) &&
+         equal(this->data[2], pt[2]) && equal(this->data[3], pt[3]);
+}
+
+//////////////////////////////////////////////////
+bool IGN_VECTOR4::operator!=(const IGN_VECTOR4 &pt) const
 {
   return !(*this == pt);
 }
 
 //////////////////////////////////////////////////
-bool Vector4::IsFinite() const
+bool IGN_VECTOR4::IsFinite() const
 {
-  return finite(this->x) && finite(this->y) && finite(this->z) &&
-         finite(this->w);
+  return finite(this->data[0]) && finite(this->data[1]) && finite(this->data[2]) &&
+         finite(this->data[3]);
 }
 
 //////////////////////////////////////////////////
-double Vector4::operator[](unsigned int index) const
+std::ostream &ignition::math::operator<<(std::ostream &_out,
+    const ignition::math::IGN_VECTOR4 &_pt)
 {
-  switch (index)
-  {
-    case 0:
-      return this->x;
-    case 1:
-      return this->y;
-    case 2:
-      return this->z;
-    case 3:
-      return this->w;
-    default:
-      return 0;
-  }
+  _out << _pt[0] << " " << _pt[1] << " " << _pt[2] << " " << _pt[3];
+  return _out;
 }
 
+//////////////////////////////////////////////////
+std::istream &ignition::math::operator>>(std::istream &_in,
+    ignition::math::IGN_VECTOR4 &_pt)
+{
+  IGN_NUMERIC x, y, z, w;
 
+  // Skip white spaces
+  _in.setf(std::ios_base::skipws);
+  _in >> x >> y >> z >> w;
+  _pt.Set(x, y, z, w);
+  return _in;
+}

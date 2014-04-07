@@ -9,18 +9,12 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUdouble WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
 */
-#include "ignition/math/Vector2d.hh"
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/IndexException.hh"
-
-using namespace ignition;
-using namespace math;
-
-#include <ignition/math/DoubleDefs.hh>
-#include "Vector2.cc"
-#include <ignition/math/Undefs.hh>
+#undef IGN_NUMERIC 
+#undef IGN_VECTOR2
+#undef IGN_VECTOR3
+#undef IGN_VECTOR4

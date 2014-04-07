@@ -95,11 +95,11 @@ void Matrix4::Set(double _v00, double _v01, double _v02, double _v03,
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetTranslate(const Vector3 &_t)
+void Matrix4::SetTranslate(const Vector3d &_t)
 {
-  this->m[0][3] = _t.x;
-  this->m[1][3] = _t.y;
-  this->m[2][3] = _t.z;
+  this->m[0][3] = _t.x();
+  this->m[1][3] = _t.y();
+  this->m[2][3] = _t.z();
 }
 
 //////////////////////////////////////////////////
@@ -111,15 +111,15 @@ void Matrix4::SetTranslate(double _x, double _y, double _z)
 }
 
 //////////////////////////////////////////////////
-Vector3 Matrix4::GetTranslation() const
+Vector3d Matrix4::GetTranslation() const
 {
-  return Vector3(this->m[0][3], this->m[1][3], this->m[2][3]);
+  return Vector3d(this->m[0][3], this->m[1][3], this->m[2][3]);
 }
 
 //////////////////////////////////////////////////
-Vector3 Matrix4::GetScale() const
+Vector3d Matrix4::GetScale() const
 {
-  return Vector3(this->m[0][0], this->m[1][1], this->m[2][2]);
+  return Vector3d(this->m[0][0], this->m[1][1], this->m[2][2]);
 }
 
 //////////////////////////////////////////////////
@@ -163,10 +163,10 @@ Quaternion Matrix4::GetRotation() const
 }
 
 //////////////////////////////////////////////////
-Vector3 Matrix4::GetEulerRotation(bool _firstSolution) const
+Vector3d Matrix4::GetEulerRotation(bool _firstSolution) const
 {
-  Vector3 euler;
-  Vector3 euler2;
+  Vector3d euler;
+  Vector3d euler2;
 
   double m31 = this->m[2][0];
   double m11 = this->m[0][0];
@@ -178,34 +178,34 @@ Vector3 Matrix4::GetEulerRotation(bool _firstSolution) const
 
   if (fabs(m31) >= 1.0)
   {
-    euler.z = 0.0;
-    euler2.z = 0.0;
+    euler.z(0.0);
+    euler2.z(0.0);
 
     if (m31 < 0.0)
     {
-      euler.y = M_PI / 2.0;
-      euler2.y = M_PI / 2.0;
-      euler.x = atan2(m12, m13);
-      euler2.x = atan2(m12, m13);
+      euler.y(M_PI / 2.0);
+      euler2.y(M_PI / 2.0);
+      euler.x(atan2(m12, m13));
+      euler2.x(atan2(m12, m13));
     }
     else
     {
-      euler.y = -M_PI / 2.0;
-      euler2.y = -M_PI / 2.0;
-      euler.x = atan2(-m12, -m13);
-      euler2.x = atan2(-m12, -m13);
+      euler.y(-M_PI / 2.0);
+      euler2.y(-M_PI / 2.0);
+      euler.x(atan2(-m12, -m13));
+      euler2.x(atan2(-m12, -m13));
     }
   }
   else
   {
-    euler.y = -asin(m31);
-    euler2.y = M_PI - euler.y;
+    euler.y(-asin(m31));
+    euler2.y(M_PI - euler.y());
 
-    euler.x = atan2(m32 / cos(euler.y), m33 / cos(euler.y));
-    euler2.x = atan2(m32 / cos(euler2.y), m33 / cos(euler2.y));
+    euler.x(atan2(m32 / cos(euler.y()), m33 / cos(euler.y())));
+    euler2.x(atan2(m32 / cos(euler2.y()), m33 / cos(euler2.y())));
 
-    euler.z = atan2(m21 / cos(euler.y), m11 / cos(euler.y));
-    euler2.z = atan2(m21 / cos(euler2.y), m11 / cos(euler2.y));
+    euler.z(atan2(m21 / cos(euler.y()), m11 / cos(euler.y())));
+    euler2.z(atan2(m21 / cos(euler2.y()), m11 / cos(euler2.y())));
   }
 
   if (_firstSolution)
@@ -215,11 +215,11 @@ Vector3 Matrix4::GetEulerRotation(bool _firstSolution) const
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetScale(const Vector3 &_s)
+void Matrix4::SetScale(const Vector3d &_s)
 {
-  this->m[0][0] = _s.x;
-  this->m[1][1] = _s.y;
-  this->m[2][2] = _s.z;
+  this->m[0][0] = _s.x();
+  this->m[1][1] = _s.y();
+  this->m[2][2] = _s.z();
   this->m[3][3] = 1.0;
 }
 
@@ -368,16 +368,14 @@ Matrix4 Matrix4::operator*(const Matrix4 &m2) const
 }
 
 //////////////////////////////////////////////////
-Vector3 Matrix4::operator*(const Vector3 &_vec) const
+Vector3d Matrix4::operator*(const Vector3d &_vec) const
 {
-  Vector3 result;
-  result.x = this->m[0][0]*_vec.x + this->m[0][1]*_vec.y +
-             this->m[0][2]*_vec.z + this->m[0][3];
-  result.y = this->m[1][0]*_vec.x + this->m[1][1]*_vec.y +
-             this->m[1][2]*_vec.z + this->m[1][3];
-  result.z = this->m[2][0]*_vec.x + this->m[2][1]*_vec.y +
-             this->m[2][2]*_vec.z + this->m[2][3];
-  return result;
+  return Vector3d(this->m[0][0]*_vec.x() + this->m[0][1]*_vec.y() +
+                  this->m[0][2]*_vec.z() + this->m[0][3],
+                  this->m[1][0]*_vec.x() + this->m[1][1]*_vec.y() +
+                  this->m[1][2]*_vec.z() + this->m[1][3],
+                  this->m[2][0]*_vec.x() + this->m[2][1]*_vec.y() +
+                  this->m[2][2]*_vec.z() + this->m[2][3]);
 }
 
 //////////////////////////////////////////////////
@@ -388,19 +386,19 @@ bool Matrix4::IsAffine() const
 }
 
 //////////////////////////////////////////////////
-Vector3 Matrix4::TransformAffine(const Vector3 &_v) const
+Vector3d Matrix4::TransformAffine(const Vector3d &_v) const
 {
   if (!this->IsAffine())
   {
     throw(std::string("Not and affine matrix"));
   }
 
-  return Vector3(this->m[0][0]*_v.x + this->m[0][1]*_v.y +
-                 this->m[0][2]*_v.z + this->m[0][3],
-                 this->m[1][0]*_v.x + this->m[1][1]*_v.y +
-                 this->m[1][2]*_v.z + this->m[1][3],
-                 this->m[2][0]*_v.x + this->m[2][1]*_v.y +
-                 this->m[2][2]*_v.z + this->m[2][3]);
+  return Vector3d(this->m[0][0]*_v.x() + this->m[0][1]*_v.y() +
+                  this->m[0][2]*_v.z() + this->m[0][3],
+                  this->m[1][0]*_v.x() + this->m[1][1]*_v.y() +
+                  this->m[1][2]*_v.z() + this->m[1][3],
+                  this->m[2][0]*_v.x() + this->m[2][1]*_v.y() +
+                  this->m[2][2]*_v.z() + this->m[2][3]);
 }
 
 //////////////////////////////////////////////////
