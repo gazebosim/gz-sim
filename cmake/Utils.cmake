@@ -87,6 +87,10 @@ macro (ign_install_executable _name)
 endmacro ()
 
 #################################################
+macro (ign_setup_apple)
+endmacro()
+
+#################################################
 macro (ign_setup_unix)
 endmacro()
 
