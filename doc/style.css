@@ -1,0 +1,86 @@
+body {
+  font-family: arial, verdana, sans, sans-serif;
+  background-color: #FFF;
+  color:#000;
+}
+
+#content { 
+  position: absolute; 
+  left:12em; 
+  top:0em; 
+  padding-left:3em; 
+  padding-right:3em; 
+  padding-bottom:2em; 
+  margin-top:1em; 
+  margin-right:2em; 
+}
+
+.floatright 
+{ 
+  float: right; 
+  margin: 0 0 1em 1em; 
+}
+
+.timestamp { 
+  text-align:right; 
+  background-color: #DDD; 
+  font-size:75%;
+}
+
+
+div.leftbar{
+  position:absolute;
+  text-align:left;
+  float: left;
+  width: 12em;
+  margin: 5 5 5 5;
+  padding: 4 4 4 4;
+  background-color: #DDD;
+  height: 100%;
+}
+
+div.menu {
+  #display:block;
+  background:#EEE;
+  font-size: 90%;
+  border-top: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  margin: 0 0 10px 0;
+}
+
+div.menu dl {
+  margin-top: 0px;
+  margin-bottom: 5px;
+}
+
+div.menu dt {
+  font-weight:bold;
+  padding:0 4px 4px 4px;
+  font-size: 110%;
+  text-align: left;
+  text-decoration:none;
+}
+
+div.menu dd {
+  font-weight: bold;
+  margin-left: 0px;
+  padding-left: 20px;
+  padding-bottom: 2px;
+  font-size: 100%;
+}
+
+
+div.leftbar img {
+  border:0;
+}
+
+div.submenu dd {
+  font-size: 70%;
+  margin-left: 8px;
+  padding-left: 10px;
+  padding-bottom: 3px;
+}
+
+div.submenu dd .secondline {
+  margin-left: 12px;
+}
