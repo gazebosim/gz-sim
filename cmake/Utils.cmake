@@ -95,7 +95,7 @@ macro (ign_setup_windows)
 endmacro()
 
 #################################################
-macro (ignition_math_setup_apple)
+macro (ign_setup_apple)
   # NOTE MacOSX provides different system versions than CMake is parsing.
   #      The following table lists the most recent OSX versions
   #     9.x.x = Mac OSX Leopard (10.5)
@@ -110,6 +110,8 @@ macro (ignition_math_setup_apple)
     add_definitions(-DMAC_OS_X_VERSION=1070)
   elseif (${CMAKE_SYSTEM_VERSION} GREATER 12 OR ${CMAKE_SYSTEM_VERSION} EQUAL 12)
     add_definitions(-DMAC_OS_X_VERSION=1080)
+    # Use libc++ on Mountain Lion (10.8)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
   else ()
     add_definitions(-DMAC_OS_X_VERSION=0)
   endif ()

@@ -47,9 +47,9 @@ TEST(HelpersTest, Helpers)
   EXPECT_TRUE(math::equal(1.2345, math::parseFloat("1.2345e-"), 1e-2));
   EXPECT_DOUBLE_EQ(1.2345, math::parseFloat("1.2345e+0"));
 
-  EXPECT_TRUE(isnan(math::parseFloat("")));
-  EXPECT_TRUE(isnan(math::parseFloat("?")));
-  EXPECT_TRUE(isnan(math::parseFloat("23ab67")));
+  EXPECT_TRUE(math::isnan(math::parseFloat("")));
+  EXPECT_TRUE(math::isnan(math::parseFloat("?")));
+  EXPECT_TRUE(math::isnan(math::parseFloat("23ab67")));
 
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(0));
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(1));
