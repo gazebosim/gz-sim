@@ -17,7 +17,6 @@
 #ifndef _IGNITION_MATH_FUNCTIONS_HH_
 #define _IGNITION_MATH_FUNCTIONS_HH_
 
-#include <boost/math/special_functions/round.hpp>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -175,7 +174,7 @@ namespace ignition
     template<typename T>
     inline T precision(const T &_a, const unsigned int &_precision)
     {
-      return boost::math::round(_a * pow(10, _precision)) / pow(10, _precision);
+      return std::round(_a * pow(10, _precision)) / pow(10, _precision);
     }
 
     /// \brief Is this a power of 2?

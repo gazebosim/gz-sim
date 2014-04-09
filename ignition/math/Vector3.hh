@@ -15,8 +15,8 @@
  *
 */
 #ifndef IGN_VECTOR3
-#error This class should not be used directly. Use IGN_VECTOR3d.hh,\
-IGN_VECTOR3f.hh, or IGN_VECTOR3i.hh.
+#error This class should not be used directly. Use Vector3d.hh,\
+Vector3f.hh, or Vector3i.hh.
 #endif
 
 /// \brief The Vector3 class represents the generic vector containing 3
@@ -273,7 +273,7 @@ class IGN_VECTOR3
   /// \return The value. Throws an IndexException if _index is out of
   /// bounds.
   /// \throws IndexException if _index is >= 3.
-  public: IGN_NUMERIC operator[](unsigned int _index) const
+  public: IGN_NUMERIC operator[](size_t _index) const
           {
             if (_index > 2)
               throw IndexException();

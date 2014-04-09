@@ -18,10 +18,12 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
+#include "ignition/math/Matrix4d.hh"
 #include "ignition/math/Vector4d.hh"
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
 TEST(Vector4dTest, Vector4d)
 {
   {
@@ -101,7 +103,7 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(v == math::Vector4d(30, 55, 80, 105));
 
   // ::operator * matrix4
-  v = v * math::Matrix4(1, 2, 3, 4,
+  v = v * math::Matrix4d(1, 2, 3, 4,
                         5, 6, 7, 8,
                         9, 10, 11, 12,
                         13, 14, 15, 16);
@@ -136,4 +138,16 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_DOUBLE_EQ(v[1], 2);
   EXPECT_DOUBLE_EQ(v[2], 3);
   EXPECT_DOUBLE_EQ(v[3], 4);
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, IndexException)
+{
+  math::Vector4d v(1, 2, 3, 4);
+  EXPECT_NO_THROW(math::equal(v[0], 1.0));
+  EXPECT_NO_THROW(math::equal(v[1], 2.0));
+  EXPECT_NO_THROW(math::equal(v[2], 3.0));
+  EXPECT_NO_THROW(math::equal(v[3], 4.0));
+
+  EXPECT_THROW(math::equal(v[4], 5.0), math::IndexException);
 }

@@ -90,7 +90,11 @@ namespace ignition
 
       /// \brief Dereference operator
       /// \return Double containing the angle's radian value
-      public: inline double operator*() const { return value; }
+      public: inline double operator*() const
+              {
+                return value;
+              }
+
       /// \brief Substraction, result = this - _angle
       /// \param[in] _angle Angle for substraction
       /// \return the new angle
@@ -172,7 +176,7 @@ namespace ignition
         return _out;
       }
 
-      /// \brief Stream extraction operator. Assumes input is in degrees
+      /// \brief Stream extraction operator. Assumes input is in radians
       /// \param in input stream
       /// \param pt angle to read value into
       /// \return The input stream

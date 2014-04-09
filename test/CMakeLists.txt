@@ -1,12 +1,7 @@
 include_directories (
-  ${Boost_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/test/gtest/include
   ${PROJECT_SOURCE_DIR}/test/gtest
   ${PROJECT_SOURCE_DIR}/test
-)
-
-link_directories(
-  ${Boost_LIBRARY_DIRS}
 )
 
 configure_file (test_config.h.in ${PROJECT_BINARY_DIR}/test_config.h)

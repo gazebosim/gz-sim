@@ -15,9 +15,11 @@
  *
 */
 #ifndef IGN_VECTOR4
-#error This class should not be used directly. Use IGN_VECTOR4d.hh,\
+#error This class should not be used directly. Use Vector4d.hh,\
 IGN_VECTOR4f.hh, or IGN_VECTOR4i.hh.
 #endif
+
+class IGN_MATRIX4;
 
 /// \class Vector4 Vector4.hh ignitino/math.hh
 /// \brief IGN_NUMERIC Generic x, y, z, w vector
@@ -130,7 +132,7 @@ class IGN_VECTOR4
   /// \brief Matrix multiplication operator.
   /// \param[in] _m matrix
   /// \return the vector multiplied by _m
-  public: const IGN_VECTOR4 operator*(const Matrix4 &_m) const;
+  public: const IGN_VECTOR4 operator*(const IGN_MATRIX4 &_m) const;
 
   /// \brief Multiplication assignment operator
   /// \remarks Performs element wise multiplication,
@@ -170,7 +172,7 @@ class IGN_VECTOR4
   /// \return The value. Throws an IndexException if _index is out of
   /// bounds.
   /// \throws IndexException if _index is >= 4.
-  public: inline IGN_NUMERIC operator[](unsigned int _index) const
+  public: inline IGN_NUMERIC operator[](size_t _index) const
           {
             if (_index > 3)
               throw IndexException();

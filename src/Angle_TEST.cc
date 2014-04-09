@@ -22,6 +22,7 @@
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
 TEST(AngleTest, Angle)
 {
   math::Angle angle1;
@@ -92,4 +93,16 @@ TEST(AngleTest, Angle)
 
   EXPECT_TRUE(math::Angle(1.2) >= math::Angle(1.2000000001));
   EXPECT_TRUE(math::Angle(1.2000000001) >= math::Angle(1.2));
+}
+
+/////////////////////////////////////////////////
+TEST(AngleTest, StreamExtraction)
+{
+  math::Angle angle;
+  std::istringstream stream("1.25");
+
+  EXPECT_NEAR(*angle, 0, 1e-2);
+
+  stream >> angle;
+  EXPECT_NEAR(*angle, 1.25, 1e-2);
 }

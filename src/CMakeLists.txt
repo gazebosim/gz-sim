@@ -4,11 +4,19 @@ set (sources
   Angle.cc
   Box.cc
   Helpers.cc
-  Matrix3.cc
-  Matrix4.cc
+  Matrix3d.cc
+  Matrix3f.cc
+  Matrix3i.cc
+  Matrix4d.cc
+  Matrix4f.cc
+  Matrix4i.cc
   Plane.cc
-  Pose.cc
-  Quaternion.cc
+  Pose3d.cc
+  Pose3f.cc
+  Pose3i.cc
+  Quaterniond.cc
+  Quaternionf.cc
+  Quaternioni.cc
   Rand.cc
   RotationSpline.cc
   Spline.cc
@@ -41,8 +49,5 @@ set (gtest_sources
 )
 
 ign_build_tests(${gtest_sources})
-
 ign_add_library(ignition_math ${sources})
-target_link_libraries(ignition_math ${Boost_LIBRARIES})
-
 ign_install_library(ignition_math)
