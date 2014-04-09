@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
+#include "ignition/math/Matrix4d.hh"
 #include "ignition/math/Vector4d.hh"
 
 using namespace ignition;
@@ -101,7 +102,7 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(v == math::Vector4d(30, 55, 80, 105));
 
   // ::operator * matrix4
-  v = v * math::Matrix4(1, 2, 3, 4,
+  v = v * math::Matrix4d(1, 2, 3, 4,
                         5, 6, 7, 8,
                         9, 10, 11, 12,
                         13, 14, 15, 16);

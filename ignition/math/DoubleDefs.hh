@@ -18,3 +18,8 @@
 #define IGN_VECTOR2 Vector2d
 #define IGN_VECTOR3 Vector3d
 #define IGN_VECTOR4 Vector4d
+#define IGN_MATRIX3 Matrix3d
+#define IGN_MATRIX4 Matrix4d
+#define IGN_POSE3 Pose3d
+#define IGN_POSE2 Pose2d
+#define IGN_QUATERNION Quaterniond

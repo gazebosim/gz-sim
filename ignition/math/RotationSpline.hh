@@ -18,7 +18,7 @@
 #define _IGNITION_ROTATIONSPLINE_HH_
 
 #include <vector>
-#include "ignition/math/Quaternion.hh"
+#include "ignition/math/Quaterniond.hh"
 
 namespace ignition
 {
@@ -36,13 +36,13 @@ namespace ignition
 
       /// \brief Adds a control point to the end of the spline.
       /// \param[in] _p control point
-      public: void AddPoint(const Quaternion &_p);
+      public: void AddPoint(const Quaterniond &_p);
 
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the index of the control point.
       /// \remarks This point must already exist in the spline.
       /// \return a quaternion (out of bound index result in assertion)
-      public: const Quaternion &GetPoint(unsigned int _index) const;
+      public: const Quaterniond &GetPoint(unsigned int _index) const;
 
       /// \brief Gets the number of control points in the spline.
       /// \return the count
@@ -55,7 +55,7 @@ namespace ignition
       /// \remarks This point must already exist in the spline.
       /// \param[in] _index index
       /// \param[in] _value the new control point value
-      public: void UpdatePoint(unsigned int _index, const Quaternion &_value);
+      public: void UpdatePoint(unsigned int _index, const Quaterniond &_value);
 
       /// \brief Returns an interpolated point based on a parametric
       ///        value over the whole series.
@@ -66,7 +66,7 @@ namespace ignition
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///        shortest possible path
       /// \return the rotation
-      public: Quaternion Interpolate(double _t, bool _useShortestPath = true);
+      public: Quaterniond Interpolate(double _t, bool _useShortestPath = true);
 
       /// \brief Interpolates a single segment of the spline
       ///        given a parametric value.
@@ -76,7 +76,7 @@ namespace ignition
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///         shortest possible path
       /// \return the rotation
-      public: Quaternion Interpolate(unsigned int _fromIndex, double _t,
+      public: Quaterniond Interpolate(unsigned int _fromIndex, double _t,
           bool _useShortestPath = true);
 
       /// \brief Tells the spline whether it should automatically calculate
@@ -106,10 +106,10 @@ namespace ignition
       protected: bool autoCalc;
 
       /// \brief the control points
-      protected: std::vector<Quaternion> points;
+      protected: std::vector<Quaterniond> points;
 
       /// \brief the tangents
-      protected: std::vector<Quaternion> tangents;
+      protected: std::vector<Quaterniond> tangents;
     };
   }
 }

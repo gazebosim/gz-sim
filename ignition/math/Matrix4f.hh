@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR4I_HH_
-#define _IGNITION_VECTOR4I_HH_
+#ifndef _IGNITION_MATRIX4F_HH_
+#define _IGNITION_MATRIX4F_HH_
 
 #include <math.h>
 #include <iostream>
@@ -27,8 +27,8 @@ namespace ignition
 {
   namespace math
   {
-#include "ignition/math/IntegerDefs.hh"
-#include "ignition/math/Vector4.hh"
+#include "ignition/math/FloatDefs.hh"
+#include "ignition/math/Matrix4.hh"
 #include "ignition/math/Undefs.hh"
   }
 }

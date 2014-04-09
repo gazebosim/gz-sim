@@ -133,7 +133,7 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
   const Vector3d &point2 = this->points[_fromIndex+1];
   const Vector3d &tan1 = this->tangents[_fromIndex];
   const Vector3d &tan2 = this->tangents[_fromIndex+1];
-  Matrix4 pt;
+  Matrix4d pt;
 
   pt[0][0] = point1.x();
   pt[0][1] = point1.y();

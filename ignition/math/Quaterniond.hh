@@ -14,21 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR4I_HH_
-#define _IGNITION_VECTOR4I_HH_
+#ifndef _IGNITION_QUATERNIOND_HH_
+#define _IGNITION_QUATERNIOND_HH_
 
 #include <math.h>
 #include <iostream>
 #include <fstream>
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>
+#include <ignition/math/Vector3d.hh>
+#include <ignition/math/Matrix3d.hh>
+#include <ignition/math/Matrix4d.hh>
 
 namespace ignition
 {
   namespace math
   {
-#include "ignition/math/IntegerDefs.hh"
-#include "ignition/math/Vector4.hh"
+#include "ignition/math/DoubleDefs.hh"
+#include "ignition/math/Quaternion.hh"
 #include "ignition/math/Undefs.hh"
   }
 }

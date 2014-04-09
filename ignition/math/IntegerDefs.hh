@@ -18,3 +18,8 @@
 #define IGN_VECTOR2 Vector2i
 #define IGN_VECTOR3 Vector3i
 #define IGN_VECTOR4 Vector4i
+#define IGN_MATRIX3 Matrix3i
+#define IGN_MATRIX4 Matrix4i
+#define IGN_POSE3 Pose3i
+#define IGN_POSE2 Pose2i
+#define IGN_QUATERNION Quaternioni

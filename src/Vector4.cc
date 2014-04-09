@@ -198,13 +198,17 @@ const IGN_VECTOR4 IGN_VECTOR4::operator*(const IGN_VECTOR4 &pt) const
 }
 
 //////////////////////////////////////////////////
-const IGN_VECTOR4 IGN_VECTOR4::operator*(const Matrix4 &_m) const
+const IGN_VECTOR4 IGN_VECTOR4::operator*(const IGN_MATRIX4 &_m) const
 {
   return IGN_VECTOR4(
-      this->data[0]*_m[0][0] + this->data[1]*_m[1][0] + this->data[2]*_m[2][0] + this->data[3]*_m[3][0],
-      this->data[0]*_m[0][1] + this->data[1]*_m[1][1] + this->data[2]*_m[2][1] + this->data[3]*_m[3][1],
-      this->data[0]*_m[0][2] + this->data[1]*_m[1][2] + this->data[2]*_m[2][2] + this->data[3]*_m[3][2],
-      this->data[0]*_m[0][3] + this->data[1]*_m[1][3] + this->data[2]*_m[2][3] + this->data[3]*_m[3][3]
+      this->data[0]*_m[0][0] + this->data[1]*_m[1][0] +
+      this->data[2]*_m[2][0] + this->data[3]*_m[3][0],
+      this->data[0]*_m[0][1] + this->data[1]*_m[1][1] +
+      this->data[2]*_m[2][1] + this->data[3]*_m[3][1],
+      this->data[0]*_m[0][2] + this->data[1]*_m[1][2] +
+      this->data[2]*_m[2][2] + this->data[3]*_m[3][2],
+      this->data[0]*_m[0][3] + this->data[1]*_m[1][3] +
+      this->data[2]*_m[2][3] + this->data[3]*_m[3][3]
       );
 }
 
@@ -222,7 +226,8 @@ const IGN_VECTOR4 &IGN_VECTOR4::operator*=(const IGN_VECTOR4 &pt)
 //////////////////////////////////////////////////
 const IGN_VECTOR4 IGN_VECTOR4::operator*(IGN_NUMERIC v) const
 {
-  return IGN_VECTOR4(this->data[0] * v, this->data[1] * v, this->data[2] * v, this->data[3]*v);
+  return IGN_VECTOR4(this->data[0] * v, this->data[1] * v,
+      this->data[2] * v, this->data[3]*v);
 }
 
 //////////////////////////////////////////////////

@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "ignition/math/Vector3d.hh"
-#include "ignition/math/Matrix4.hh"
+#include "ignition/math/Matrix4d.hh"
 
 namespace ignition
 {
@@ -121,7 +121,7 @@ namespace ignition
       protected: std::vector<Vector3d> tangents;
 
       /// Matrix of coefficients
-      protected: Matrix4 coeffs;
+      protected: Matrix4d coeffs;
 
       /// Tension of 0 = Catmull-Rom spline, otherwise a Cardinal spline
       protected: double tension;

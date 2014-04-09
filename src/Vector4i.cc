@@ -17,6 +17,7 @@
 #include "ignition/math/Vector4i.hh"
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/IndexException.hh"
+#include "ignition/math/Matrix4i.hh"
 
 using namespace ignition;
 using namespace math;

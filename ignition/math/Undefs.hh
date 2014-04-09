@@ -18,3 +18,8 @@
 #undef IGN_VECTOR2
 #undef IGN_VECTOR3
 #undef IGN_VECTOR4
+#undef IGN_MATRIX3
+#undef IGN_MATRIX4
+#undef IGN_POSE3
+#undef IGN_POSE2
+#undef IGN_QUATERNION

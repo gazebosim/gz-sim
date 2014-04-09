@@ -17,16 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Pose.hh"
-#include "ignition/math/Quaternion.hh"
-#include "ignition/math/Matrix4.hh"
+#include "ignition/math/Pose3d.hh"
+#include "ignition/math/Quaterniond.hh"
+#include "ignition/math/Matrix4d.hh"
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Construct)
+TEST(Matrix4dTest, Construct)
 {
-  math::Matrix4 mat;
+  math::Matrix4d mat;
   for (int i = 0; i < 4; ++i)
   {
     for (int j = 0; j < 4; ++j)
@@ -35,7 +35,7 @@ TEST(Matrix4Test, Construct)
     }
   }
 
-  math::Matrix4 mat2(mat);
+  math::Matrix4d mat2(mat);
   for (int i = 0; i < 4; ++i)
   {
     for (int j = 0; j < 4; ++j)
@@ -47,12 +47,12 @@ TEST(Matrix4Test, Construct)
 
 
   // Set individual values.
-  math::Matrix4 mat3(0.0, 1.0, 2.0, 3.0,
+  math::Matrix4d mat3(0.0, 1.0, 2.0, 3.0,
                      4.0, 5.0, 6.0, 7.0,
                      8.0, 9.0, 10.0, 11.0,
                      12.0, 13.0, 14.0, 15.0);
 
-  math::Matrix4 mat4;
+  math::Matrix4d mat4;
   mat4 = mat3;
   EXPECT_EQ(mat4, mat3);
 
@@ -75,9 +75,9 @@ TEST(Matrix4Test, Construct)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Scale)
+TEST(Matrix4dTest, Scale)
 {
-  math::Matrix4 mat, mat2;
+  math::Matrix4d mat, mat2;
   mat.SetScale(math::Vector3d(1, 2, 3));
   mat2.SetScale(1, 2, 3);
 
@@ -115,9 +115,9 @@ TEST(Matrix4Test, Scale)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, MultiplyV)
+TEST(Matrix4dTest, MultiplyV)
 {
-  math::Matrix4 mat;
+  math::Matrix4d mat;
   math::Vector3d vec(-1.2, 2.3, 10.5);
 
   for (int i = 0; i < 4; ++i)
@@ -132,10 +132,10 @@ TEST(Matrix4Test, MultiplyV)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Multiply3)
+TEST(Matrix4dTest, Multiply3)
 {
-  math::Matrix4 mat;
-  math::Matrix3 mat1;
+  math::Matrix4d mat;
+  math::Matrix3d mat1;
 
   for (int i = 0; i < 4; ++i)
   {
@@ -147,20 +147,20 @@ TEST(Matrix4Test, Multiply3)
     }
   }
 
-  math::Matrix4 mat3(
+  math::Matrix4d mat3(
       -5, -8, -11, -3,
       -2, -2, -2, -2,
       1, 4, 7, -1,
       3, 2, 1, 0);
 
-  math::Matrix4 mat2 = mat * mat1;
+  math::Matrix4d mat2 = mat * mat1;
   EXPECT_EQ(mat2, mat3);
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Multiply4)
+TEST(Matrix4dTest, Multiply4)
 {
-  math::Matrix4 mat, mat1;
+  math::Matrix4d mat, mat1;
 
   for (int i = 0; i < 4; ++i)
   {
@@ -171,47 +171,47 @@ TEST(Matrix4Test, Multiply4)
     }
   }
 
-  math::Matrix4 mat3(
+  math::Matrix4d mat3(
       -14, -20, -26, -32,
       -8, -10, -12, -14,
       -2, 0, 2, 4,
       4, 10, 16, 22);
 
-  math::Matrix4 mat2 = mat * mat1;
+  math::Matrix4d mat2 = mat * mat1;
   EXPECT_EQ(mat2, mat3);
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Inverse)
+TEST(Matrix4dTest, Inverse)
 {
-  math::Matrix4 mat(2, 3, 1, 5,
+  math::Matrix4d mat(2, 3, 1, 5,
                     1, 0, 3, 1,
                     0, 2, -3, 2,
                     0, 2, 3, 1);
 
-  math::Matrix4 mat1 = mat.Inverse();
-  EXPECT_EQ(mat1, math::Matrix4(18, -35, -28, 1,
+  math::Matrix4d mat1 = mat.Inverse();
+  EXPECT_EQ(mat1, math::Matrix4d(18, -35, -28, 1,
                                9, -18, -14, 1,
                                -2, 4, 3, 0,
                                -12, 24, 19, -1));
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, GetAsPose)
+TEST(Matrix4dTest, GetAsPose3d)
 {
-  math::Matrix4 mat(2, 3, 1, 5,
+  math::Matrix4d mat(2, 3, 1, 5,
                     1, 0, 3, 1,
                     0, 2, -3, 2,
                     0, 2, 3, 1);
-  math::Pose pose = mat.GetAsPose();
+  math::Pose3d pose = mat.GetAsPose();
 
-  EXPECT_EQ(pose, math::Pose(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
+  EXPECT_EQ(pose, math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Translate)
+TEST(Matrix4dTest, Translate)
 {
-  math::Matrix4 mat, mat2;
+  math::Matrix4d mat, mat2;
   mat.SetTranslate(math::Vector3d(1, 2, 3));
   mat2.SetTranslate(1, 2, 3);
 
@@ -241,9 +241,9 @@ TEST(Matrix4Test, Translate)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, RotationDiagZero)
+TEST(Matrix4dTest, RotationDiagZero)
 {
-  math::Matrix4 mat;
+  math::Matrix4d mat;
   mat[0][0] = 0;
   mat[0][1] = 0.2;
   mat[0][2] = 0.3;
@@ -264,11 +264,11 @@ TEST(Matrix4Test, RotationDiagZero)
   mat[3][2] = 1.5;
   mat[3][3] = 1.0;
 
-  math::Quaternion quat = mat.GetRotation();
-  EXPECT_NEAR(quat.x, 0.5, 1e-6);
-  EXPECT_NEAR(quat.y, 0.35, 1e-6);
-  EXPECT_NEAR(quat.z, 0.6, 1e-6);
-  EXPECT_NEAR(quat.w, 0.15, 1e-6);
+  math::Quaterniond quat = mat.GetRotation();
+  EXPECT_NEAR(quat.x(), 0.5, 1e-6);
+  EXPECT_NEAR(quat.y(), 0.35, 1e-6);
+  EXPECT_NEAR(quat.z(), 0.6, 1e-6);
+  EXPECT_NEAR(quat.w(), 0.15, 1e-6);
 
   math::Vector3d euler = mat.GetEulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.5708));
@@ -278,9 +278,9 @@ TEST(Matrix4Test, RotationDiagZero)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4Test, Rotation)
+TEST(Matrix4dTest, Rotation)
 {
-  math::Matrix4 mat;
+  math::Matrix4d mat;
   mat[0][0] = 0.1;
   mat[0][1] = 0.2;
   mat[0][2] = 0.3;
@@ -301,11 +301,11 @@ TEST(Matrix4Test, Rotation)
   mat[3][2] = 1.5;
   mat[3][3] = 1.6;
 
-  math::Quaternion quat = mat.GetRotation();
-  EXPECT_NEAR(quat.x, 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.y, -0.179284, 1e-6);
-  EXPECT_NEAR(quat.z, 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.w, 0.83666, 1e-6);
+  math::Quaterniond quat = mat.GetRotation();
+  EXPECT_NEAR(quat.x(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.y(), -0.179284, 1e-6);
+  EXPECT_NEAR(quat.z(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.w(), 0.83666, 1e-6);
 
   math::Vector3d euler = mat.GetEulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(0.737815, -1.11977, 1.3734));

@@ -22,7 +22,6 @@
 #include <fstream>
 
 #include <ignition/math/IndexException.hh>
-#include <ignition/math/Matrix4.hh>
 
 namespace ignition
 {

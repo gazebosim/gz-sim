@@ -19,23 +19,27 @@
 using namespace ignition;
 using namespace math;
 
+/////////////////////////////////////////////////
 RotationSpline::RotationSpline()
 : autoCalc(true)
 {
 }
 
+/////////////////////////////////////////////////
 RotationSpline::~RotationSpline()
 {
 }
 
-void RotationSpline::AddPoint(const Quaternion &_p)
+/////////////////////////////////////////////////
+void RotationSpline::AddPoint(const Quaterniond &_p)
 {
   this->points.push_back(_p);
   if (this->autoCalc)
     this->RecalcTangents();
 }
 
-Quaternion RotationSpline::Interpolate(double _t, bool _useShortestPath)
+/////////////////////////////////////////////////
+Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
 {
   // Work out which segment this is in
   double fSeg = _t * (this->points.size() - 1);
@@ -47,7 +51,8 @@ Quaternion RotationSpline::Interpolate(double _t, bool _useShortestPath)
   return this->Interpolate(segIdx, _t, _useShortestPath);
 }
 
-Quaternion RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
+/////////////////////////////////////////////////
+Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
                                        bool _useShortestPath)
 {
   // Bounds check
@@ -68,15 +73,16 @@ Quaternion RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
 
   // double interpolation
   // Use squad using tangents we've already set up
-  Quaternion &p = this->points[_fromIndex];
-  Quaternion &q = this->points[_fromIndex+1];
-  Quaternion &a = this->tangents[_fromIndex];
-  Quaternion &b = this->tangents[_fromIndex+1];
+  Quaterniond &p = this->points[_fromIndex];
+  Quaterniond &q = this->points[_fromIndex+1];
+  Quaterniond &a = this->tangents[_fromIndex];
+  Quaterniond &b = this->tangents[_fromIndex+1];
 
   // NB interpolate to nearest rotation
-  return Quaternion::Squad(_t, p, a, b, q, _useShortestPath);
+  return Quaterniond::Squad(_t, p, a, b, q, _useShortestPath);
 }
 
+/////////////////////////////////////////////////
 void RotationSpline::RecalcTangents()
 {
   // ShoeMake (1987) approach
@@ -107,10 +113,10 @@ void RotationSpline::RecalcTangents()
   else
     isClosed = false;
 
-  Quaternion invp, part1, part2, preExp;
+  Quaterniond invp, part1, part2, preExp;
   for (i = 0; i < numPoints; ++i)
   {
-    Quaternion &p = this->points[i];
+    Quaterniond &p = this->points[i];
     invp = p.GetInverse();
 
     if (i == 0)
@@ -152,26 +158,30 @@ void RotationSpline::RecalcTangents()
   }
 }
 
-const Quaternion& RotationSpline::GetPoint(unsigned int _index) const
+/////////////////////////////////////////////////
+const Quaterniond &RotationSpline::GetPoint(unsigned int _index) const
 {
   assert (_index < this->points.size() && "Point index is out of bounds!!");
 
   return this->points[_index];
 }
 
+/////////////////////////////////////////////////
 unsigned int RotationSpline::GetNumPoints() const
 {
   return this->points.size();
 }
 
+/////////////////////////////////////////////////
 void RotationSpline::Clear()
 {
   this->points.clear();
   this->tangents.clear();
 }
 
+/////////////////////////////////////////////////
 void RotationSpline::UpdatePoint(unsigned int _index,
-                                 const Quaternion &_value)
+                                 const Quaterniond &_value)
 {
   assert (_index < this->points.size() && "Point index is out of bounds!!");
 
@@ -180,9 +190,8 @@ void RotationSpline::UpdatePoint(unsigned int _index,
     this->RecalcTangents();
 }
 
+/////////////////////////////////////////////////
 void RotationSpline::SetAutoCalculate(bool _autoCalc)
 {
   this->autoCalc = _autoCalc;
 }
-
-

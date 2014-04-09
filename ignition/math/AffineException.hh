@@ -9,28 +9,26 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUint WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR4I_HH_
-#define _IGNITION_VECTOR4I_HH_
+#ifndef _IGNTION_AFFINE_EXCEPTION_HH_
+#define _IGNTION_AFFINE_EXCEPTION_HH_
 
-#include <math.h>
-#include <iostream>
-#include <fstream>
-
-#include <ignition/math/IndexException.hh>
+#include <stdexcept>
 
 namespace ignition
 {
   namespace math
   {
-#include "ignition/math/IntegerDefs.hh"
-#include "ignition/math/Vector4.hh"
-#include "ignition/math/Undefs.hh"
+    /// \brief Exception that is thrown when a matrix is not affine.
+    class AffineException : public std::runtime_error
+    {
+      public: AffineException() : std::runtime_error("Not and affine matrix")
+              {}
+    };
   }
 }
-
 #endif

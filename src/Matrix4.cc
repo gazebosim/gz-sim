@@ -14,47 +14,37 @@
  * limitations under the License.
  *
 */
-#include <string.h>
-
-#include "ignition/math/Helpers.hh"
-#include "ignition/math/Matrix4.hh"
-#include "ignition/math/Quaternion.hh"
-#include "ignition/math/Pose.hh"
-
-using namespace ignition;
-using namespace math;
-
-const Matrix4 Matrix4::IDENTITY(
-       1.0, 0.0, 0.0, 0.0,
-       0.0, 1.0, 0.0, 0.0,
-       0.0, 0.0, 1.0, 0.0,
-       0.0, 0.0, 0.0, 1.0);
+const IGN_MATRIX4 IGN_MATRIX4::Identity(
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1);
 
 
-const Matrix4 Matrix4::ZERO(
-       0.0, 0.0, 0.0, 0.0,
-       0.0, 0.0, 0.0, 0.0,
-       0.0, 0.0, 0.0, 0.0,
-       0.0, 0.0, 0.0, 0.0);
-
+const IGN_MATRIX4 IGN_MATRIX4::Zero(
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0);
 
 //////////////////////////////////////////////////
-Matrix4::Matrix4()
+IGN_MATRIX4::IGN_MATRIX4()
 {
-  memset(this->m, 0, sizeof(this->m[0][0])*16);
+  memset(this->data, 0, sizeof(this->data[0][0])*16);
 }
 
 //////////////////////////////////////////////////
-Matrix4::Matrix4(const Matrix4 &_m)
+IGN_MATRIX4::IGN_MATRIX4(const IGN_MATRIX4 &_m)
 {
-  memcpy(this->m, _m.m, sizeof(this->m[0][0])*16);
+  memcpy(this->data, _m.data, sizeof(this->data[0][0])*16);
 }
 
 //////////////////////////////////////////////////
-Matrix4::Matrix4(double _v00, double _v01, double _v02, double _v03,
-                 double _v10, double _v11, double _v12, double _v13,
-                 double _v20, double _v21, double _v22, double _v23,
-                 double _v30, double _v31, double _v32, double _v33)
+IGN_MATRIX4::IGN_MATRIX4(
+  IGN_NUMERIC _v00, IGN_NUMERIC _v01, IGN_NUMERIC _v02, IGN_NUMERIC _v03,
+  IGN_NUMERIC _v10, IGN_NUMERIC _v11, IGN_NUMERIC _v12, IGN_NUMERIC _v13,
+  IGN_NUMERIC _v20, IGN_NUMERIC _v21, IGN_NUMERIC _v22, IGN_NUMERIC _v23,
+  IGN_NUMERIC _v30, IGN_NUMERIC _v31, IGN_NUMERIC _v32, IGN_NUMERIC _v33)
 {
   this->Set(_v00, _v01, _v02, _v03,
             _v10, _v11, _v12, _v13,
@@ -63,118 +53,143 @@ Matrix4::Matrix4(double _v00, double _v01, double _v02, double _v03,
 }
 
 //////////////////////////////////////////////////
-Matrix4::~Matrix4()
+IGN_MATRIX4::~IGN_MATRIX4()
 {
 }
 
 //////////////////////////////////////////////////
-void Matrix4::Set(double _v00, double _v01, double _v02, double _v03,
-                  double _v10, double _v11, double _v12, double _v13,
-                  double _v20, double _v21, double _v22, double _v23,
-                  double _v30, double _v31, double _v32, double _v33)
+void IGN_MATRIX4::Set(
+  IGN_NUMERIC _v00, IGN_NUMERIC _v01, IGN_NUMERIC _v02, IGN_NUMERIC _v03,
+  IGN_NUMERIC _v10, IGN_NUMERIC _v11, IGN_NUMERIC _v12, IGN_NUMERIC _v13,
+  IGN_NUMERIC _v20, IGN_NUMERIC _v21, IGN_NUMERIC _v22, IGN_NUMERIC _v23,
+  IGN_NUMERIC _v30, IGN_NUMERIC _v31, IGN_NUMERIC _v32, IGN_NUMERIC _v33)
 {
-  this->m[0][0] = _v00;
-  this->m[0][1] = _v01;
-  this->m[0][2] = _v02;
-  this->m[0][3] = _v03;
+  this->data[0][0] = _v00;
+  this->data[0][1] = _v01;
+  this->data[0][2] = _v02;
+  this->data[0][3] = _v03;
 
-  this->m[1][0] = _v10;
-  this->m[1][1] = _v11;
-  this->m[1][2] = _v12;
-  this->m[1][3] = _v13;
+  this->data[1][0] = _v10;
+  this->data[1][1] = _v11;
+  this->data[1][2] = _v12;
+  this->data[1][3] = _v13;
 
-  this->m[2][0] = _v20;
-  this->m[2][1] = _v21;
-  this->m[2][2] = _v22;
-  this->m[2][3] = _v23;
+  this->data[2][0] = _v20;
+  this->data[2][1] = _v21;
+  this->data[2][2] = _v22;
+  this->data[2][3] = _v23;
 
-  this->m[3][0] = _v30;
-  this->m[3][1] = _v31;
-  this->m[3][2] = _v32;
-  this->m[3][3] = _v33;
+  this->data[3][0] = _v30;
+  this->data[3][1] = _v31;
+  this->data[3][2] = _v32;
+  this->data[3][3] = _v33;
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetTranslate(const Vector3d &_t)
+void IGN_MATRIX4::SetTranslate(const IGN_VECTOR3 &_t)
 {
-  this->m[0][3] = _t.x();
-  this->m[1][3] = _t.y();
-  this->m[2][3] = _t.z();
+  this->data[0][3] = _t.x();
+  this->data[1][3] = _t.y();
+  this->data[2][3] = _t.z();
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetTranslate(double _x, double _y, double _z)
+void IGN_MATRIX4::SetTranslate(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z)
 {
-  this->m[0][3] = _x;
-  this->m[1][3] = _y;
-  this->m[2][3] = _z;
+  this->data[0][3] = _x;
+  this->data[1][3] = _y;
+  this->data[2][3] = _z;
 }
 
 //////////////////////////////////////////////////
-Vector3d Matrix4::GetTranslation() const
+IGN_VECTOR3 IGN_MATRIX4::GetTranslation() const
 {
-  return Vector3d(this->m[0][3], this->m[1][3], this->m[2][3]);
+  return IGN_VECTOR3(this->data[0][3], this->data[1][3], this->data[2][3]);
 }
 
 //////////////////////////////////////////////////
-Vector3d Matrix4::GetScale() const
+IGN_VECTOR3 IGN_MATRIX4::GetScale() const
 {
-  return Vector3d(this->m[0][0], this->m[1][1], this->m[2][2]);
+  return IGN_VECTOR3(this->data[0][0], this->data[1][1], this->data[2][2]);
 }
 
 //////////////////////////////////////////////////
-Quaternion Matrix4::GetRotation() const
+IGN_QUATERNION IGN_MATRIX4::GetRotation() const
 {
-  Quaternion q;
-  /// algorithm from Ogre::Quaternion source, which in turn is based on
-  /// Ken Shoemake's article "Quaternion Calculus and Fast Animation".
-  double trace = this->m[0][0] + this->m[1][1] + this->m[2][2];
-  double root;
+  IGN_QUATERNION q;
+  /// algorithm from Ogre::IGN_QUATERNION source, which in turn is based on
+  /// Ken Shoemake's article "IGN_QUATERNION Calculus and Fast Animation".
+  IGN_NUMERIC trace = this->data[0][0] + this->data[1][1] + this->data[2][2];
+  IGN_NUMERIC root;
   if (trace > 0)
   {
     root = sqrt(trace + 1.0);
-    q.w = root / 2.0;
+    q.w(root / 2.0);
     root = 1.0 / (2.0 * root);
-    q.x = (this->m[2][1] - this->m[1][2]) * root;
-    q.y = (this->m[0][2] - this->m[2][0]) * root;
-    q.z = (this->m[1][0] - this->m[0][1]) * root;
+    q.x((this->data[2][1] - this->data[1][2]) * root);
+    q.y((this->data[0][2] - this->data[2][0]) * root);
+    q.z((this->data[1][0] - this->data[0][1]) * root);
   }
   else
   {
     static unsigned int s_iNext[3] = {1, 2, 0};
     unsigned int i = 0;
-    if (this->m[1][1] > this->m[0][0])
+    if (this->data[1][1] > this->data[0][0])
       i = 1;
-    if (this->m[2][2] > this->m[i][i])
+    if (this->data[2][2] > this->data[i][i])
       i = 2;
     unsigned int j = s_iNext[i];
     unsigned int k = s_iNext[j];
 
-    root = sqrt(this->m[i][i] - this->m[j][j] - this->m[k][k] + 1.0);
-    double* xyzQ[3] = { &q.x, &q.y, &q.z};
-    *xyzQ[i] = root / 2.0;
+    root = sqrt(this->data[i][i] - this->data[j][j] - this->data[k][k] + 1.0);
+
+    IGN_NUMERIC a, b, c; 
+    a = root / 2.0;
     root = 1.0 / (2.0 * root);
-    q.w = (this->m[k][j] - this->m[j][k]) * root;
-    *xyzQ[j] = (this->m[j][i] + this->m[i][j]) * root;
-    *xyzQ[k] = (this->m[k][i] + this->m[i][k]) * root;
+    b = (this->data[j][i] + this->data[i][j]) * root;
+    c = (this->data[k][i] + this->data[i][k]) * root;
+
+    switch (i)
+    {
+      case 0: q.x(a); break;
+      case 1: q.y(a); break;
+      case 2: q.z(a); break;
+      default: break;
+    };
+    switch (j)
+    {
+      case 0: q.x(b); break;
+      case 1: q.y(b); break;
+      case 2: q.z(b); break;
+      default: break;
+    };
+    switch (k)
+    {
+      case 0: q.x(c); break;
+      case 1: q.y(c); break;
+      case 2: q.z(c); break;
+      default: break;
+    };
+
+    q.w((this->data[k][j] - this->data[j][k]) * root);
   }
 
   return q;
 }
 
 //////////////////////////////////////////////////
-Vector3d Matrix4::GetEulerRotation(bool _firstSolution) const
+IGN_VECTOR3 IGN_MATRIX4::GetEulerRotation(bool _firstSolution) const
 {
-  Vector3d euler;
-  Vector3d euler2;
+  IGN_VECTOR3 euler;
+  IGN_VECTOR3 euler2;
 
-  double m31 = this->m[2][0];
-  double m11 = this->m[0][0];
-  double m12 = this->m[0][1];
-  double m13 = this->m[0][2];
-  double m32 = this->m[2][1];
-  double m33 = this->m[2][2];
-  double m21 = this->m[1][0];
+  IGN_NUMERIC m31 = this->data[2][0];
+  IGN_NUMERIC m11 = this->data[0][0];
+  IGN_NUMERIC m12 = this->data[0][1];
+  IGN_NUMERIC m13 = this->data[0][2];
+  IGN_NUMERIC m32 = this->data[2][1];
+  IGN_NUMERIC m33 = this->data[2][2];
+  IGN_NUMERIC m21 = this->data[1][0];
 
   if (fabs(m31) >= 1.0)
   {
@@ -215,288 +230,315 @@ Vector3d Matrix4::GetEulerRotation(bool _firstSolution) const
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetScale(const Vector3d &_s)
+void IGN_MATRIX4::SetScale(const IGN_VECTOR3 &_s)
 {
-  this->m[0][0] = _s.x();
-  this->m[1][1] = _s.y();
-  this->m[2][2] = _s.z();
-  this->m[3][3] = 1.0;
+  this->data[0][0] = _s.x();
+  this->data[1][1] = _s.y();
+  this->data[2][2] = _s.z();
+  this->data[3][3] = 1.0;
 }
 
 //////////////////////////////////////////////////
-void Matrix4::SetScale(double _x, double _y, double _z)
+void IGN_MATRIX4::SetScale(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z)
 {
-  this->m[0][0] = _x;
-  this->m[1][1] = _y;
-  this->m[2][2] = _z;
-  this->m[3][3] = 1.0;
+  this->data[0][0] = _x;
+  this->data[1][1] = _y;
+  this->data[2][2] = _z;
+  this->data[3][3] = 1.0;
 }
 
 //////////////////////////////////////////////////
-Matrix4 &Matrix4::operator =(const Matrix4 &_mat)
+IGN_MATRIX4 &IGN_MATRIX4::operator =(const IGN_MATRIX4 &_mat)
 {
-  memcpy(this->m, _mat.m, sizeof(this->m[0][0])*16);
+  memcpy(this->data, _mat.data, sizeof(this->data[0][0])*16);
   return *this;
 }
 
 //////////////////////////////////////////////////
-const Matrix4 &Matrix4::operator =(const Matrix3 &mat)
+const IGN_MATRIX4 &IGN_MATRIX4::operator=(const IGN_MATRIX3 &_mat)
 {
-  this->m[0][0] = mat.m[0][0];
-  this->m[0][1] = mat.m[0][1];
-  this->m[0][2] = mat.m[0][2];
+  this->data[0][0] = _mat[0][0];
+  this->data[0][1] = _mat[0][1];
+  this->data[0][2] = _mat[0][2];
 
-  this->m[1][0] = mat.m[1][0];
-  this->m[1][1] = mat.m[1][1];
-  this->m[1][2] = mat.m[1][2];
+  this->data[1][0] = _mat[1][0];
+  this->data[1][1] = _mat[1][1];
+  this->data[1][2] = _mat[1][2];
 
-  this->m[2][0] = mat.m[2][0];
-  this->m[2][1] = mat.m[2][1];
-  this->m[2][2] = mat.m[2][2];
+  this->data[2][0] = _mat[2][0];
+  this->data[2][1] = _mat[2][1];
+  this->data[2][2] = _mat[2][2];
 
   return *this;
 }
 
 
 //////////////////////////////////////////////////
-Matrix4 Matrix4::operator*(const Matrix3 &m2) const
+IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX3 &_m2) const
 {
-  Matrix4 r;
-  r = *this;
+  return IGN_MATRIX4(
+      this->data[0][0] * _m2[0][0] + this->data[0][1] * _m2[1][0] +
+      this->data[0][2] * _m2[2][0],
+      this->data[0][0] * _m2[0][1] + this->data[0][1] * _m2[1][1] +
+      this->data[0][2] * _m2[2][1],
+      this->data[0][0] * _m2[0][2] + this->data[0][1] * _m2[1][2] +
+      this->data[0][2] * _m2[2][2],
+      this->data[0][3],
 
-  r.m[0][0] = m[0][0]*m2.m[0][0] + m[0][1]*m2.m[1][0] + m[0][2] * m2.m[2][0];
-  r.m[0][1] = m[0][0]*m2.m[0][1] + m[0][1]*m2.m[1][1] + m[0][2] * m2.m[2][1];
-  r.m[0][2] = m[0][0]*m2.m[0][2] + m[0][1]*m2.m[1][2] + m[0][2] * m2.m[2][2];
+      this->data[1][0] * _m2[0][0] + this->data[1][1] * _m2[1][0] +
+      this->data[1][2] * _m2[2][0],
+      this->data[1][0] * _m2[0][1] + this->data[1][1] * _m2[1][1] +
+      this->data[1][2] * _m2[2][1],
+      this->data[1][0] * _m2[0][2] + this->data[1][1] * _m2[1][2] +
+      this->data[1][2] * _m2[2][2],
+      this->data[1][3],
 
-  r.m[1][0] = m[1][0]*m2.m[0][0] + m[1][1]*m2.m[1][0] + m[1][2] * m2.m[2][0];
-  r.m[1][1] = m[1][0]*m2.m[0][1] + m[1][1]*m2.m[1][1] + m[1][2] * m2.m[2][1];
-  r.m[1][2] = m[1][0]*m2.m[0][2] + m[1][1]*m2.m[1][2] + m[1][2] * m2.m[2][2];
+      this->data[2][0] * _m2[0][0] + this->data[2][1] * _m2[1][0] +
+      this->data[2][2] * _m2[2][0],
+      this->data[2][0] * _m2[0][1] + this->data[2][1] * _m2[1][1] +
+      this->data[2][2] * _m2[2][1],
+      this->data[2][0] * _m2[0][2] + this->data[2][1] * _m2[1][2] +
+      this->data[2][2] * _m2[2][2],
+      this->data[2][3],
 
-  r.m[2][0] = m[2][0]*m2.m[0][0] + m[2][1]*m2.m[1][0] + m[2][2] * m2.m[2][0];
-  r.m[2][1] = m[2][0]*m2.m[0][1] + m[2][1]*m2.m[1][1] + m[2][2] * m2.m[2][1];
-  r.m[2][2] = m[2][0]*m2.m[0][2] + m[2][1]*m2.m[1][2] + m[2][2] * m2.m[2][2];
-
-  return r;
+      this->data[3][0],
+      this->data[3][1],
+      this->data[3][2],
+      this->data[3][3]);
 }
 
 //////////////////////////////////////////////////
-Matrix4 Matrix4::operator*(const Matrix4 &m2) const
+IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX4 &_m2) const
 {
-  Matrix4 r;
-
-  r.m[0][0] = this->m[0][0] * m2.m[0][0] +
-              this->m[0][1] * m2.m[1][0] +
-              this->m[0][2] * m2.m[2][0] +
-              this->m[0][3] * m2.m[3][0];
-
-  r.m[0][1] = this->m[0][0] * m2.m[0][1] +
-              this->m[0][1] * m2.m[1][1] +
-              this->m[0][2] * m2.m[2][1] +
-              this->m[0][3] * m2.m[3][1];
-
-  r.m[0][2] = this->m[0][0] * m2.m[0][2] +
-              this->m[0][1] * m2.m[1][2] +
-              this->m[0][2] * m2.m[2][2] +
-              this->m[0][3] * m2.m[3][2];
-
-  r.m[0][3] = this->m[0][0] * m2.m[0][3] +
-              this->m[0][1] * m2.m[1][3] +
-              this->m[0][2] * m2.m[2][3] +
-              this->m[0][3] * m2.m[3][3];
-
-  r.m[1][0] = this->m[1][0] * m2.m[0][0] +
-              this->m[1][1] * m2.m[1][0] +
-              this->m[1][2] * m2.m[2][0] +
-              this->m[1][3] * m2.m[3][0];
-
-  r.m[1][1] = this->m[1][0] * m2.m[0][1] +
-              this->m[1][1] * m2.m[1][1] +
-              this->m[1][2] * m2.m[2][1] +
-              this->m[1][3] * m2.m[3][1];
-
-  r.m[1][2] = this->m[1][0] * m2.m[0][2] +
-              this->m[1][1] * m2.m[1][2] +
-              this->m[1][2] * m2.m[2][2] +
-              this->m[1][3] * m2.m[3][2];
-
-  r.m[1][3] = this->m[1][0] * m2.m[0][3] +
-              this->m[1][1] * m2.m[1][3] +
-              this->m[1][2] * m2.m[2][3] +
-              this->m[1][3] * m2.m[3][3];
-
-  r.m[2][0] = this->m[2][0] * m2.m[0][0] +
-              this->m[2][1] * m2.m[1][0] +
-              this->m[2][2] * m2.m[2][0] +
-              this->m[2][3] * m2.m[3][0];
-
-  r.m[2][1] = this->m[2][0] * m2.m[0][1] +
-              this->m[2][1] * m2.m[1][1] +
-              this->m[2][2] * m2.m[2][1] +
-              this->m[2][3] * m2.m[3][1];
-
-  r.m[2][2] = this->m[2][0] * m2.m[0][2] +
-              this->m[2][1] * m2.m[1][2] +
-              this->m[2][2] * m2.m[2][2] +
-              this->m[2][3] * m2.m[3][2];
-
-  r.m[2][3] = this->m[2][0] * m2.m[0][3] +
-              this->m[2][1] * m2.m[1][3] +
-              this->m[2][2] * m2.m[2][3] +
-              this->m[2][3] * m2.m[3][3];
-
-  r.m[3][0] = this->m[3][0] * m2.m[0][0] +
-              this->m[3][1] * m2.m[1][0] +
-              this->m[3][2] * m2.m[2][0] +
-              this->m[3][3] * m2.m[3][0];
-
-  r.m[3][1] = this->m[3][0] * m2.m[0][1] +
-              this->m[3][1] * m2.m[1][1] +
-              this->m[3][2] * m2.m[2][1] +
-              this->m[3][3] * m2.m[3][1];
-
-  r.m[3][2] = this->m[3][0] * m2.m[0][2] +
-              this->m[3][1] * m2.m[1][2] +
-              this->m[3][2] * m2.m[2][2] +
-              this->m[3][3] * m2.m[3][2];
-
-  r.m[3][3] = this->m[3][0] * m2.m[0][3] +
-              this->m[3][1] * m2.m[1][3] +
-              this->m[3][2] * m2.m[2][3] +
-              this->m[3][3] * m2.m[3][3];
-
-  return r;
+  return IGN_MATRIX4(
+    this->data[0][0] * _m2[0][0] +
+    this->data[0][1] * _m2[1][0] +
+    this->data[0][2] * _m2[2][0] +
+    this->data[0][3] * _m2[3][0],
+  
+    this->data[0][0] * _m2[0][1] +
+    this->data[0][1] * _m2[1][1] +
+    this->data[0][2] * _m2[2][1] +
+    this->data[0][3] * _m2[3][1],
+  
+    this->data[0][0] * _m2[0][2] +
+    this->data[0][1] * _m2[1][2] +
+    this->data[0][2] * _m2[2][2] +
+    this->data[0][3] * _m2[3][2],
+  
+    this->data[0][0] * _m2[0][3] +
+    this->data[0][1] * _m2[1][3] +
+    this->data[0][2] * _m2[2][3] +
+    this->data[0][3] * _m2[3][3],
+  
+    this->data[1][0] * _m2[0][0] +
+    this->data[1][1] * _m2[1][0] +
+    this->data[1][2] * _m2[2][0] +
+    this->data[1][3] * _m2[3][0],
+  
+    this->data[1][0] * _m2[0][1] +
+    this->data[1][1] * _m2[1][1] +
+    this->data[1][2] * _m2[2][1] +
+    this->data[1][3] * _m2[3][1],
+  
+    this->data[1][0] * _m2[0][2] +
+    this->data[1][1] * _m2[1][2] +
+    this->data[1][2] * _m2[2][2] +
+    this->data[1][3] * _m2[3][2],
+  
+    this->data[1][0] * _m2[0][3] +
+    this->data[1][1] * _m2[1][3] +
+    this->data[1][2] * _m2[2][3] +
+    this->data[1][3] * _m2[3][3],
+  
+    this->data[2][0] * _m2[0][0] +
+    this->data[2][1] * _m2[1][0] +
+    this->data[2][2] * _m2[2][0] +
+    this->data[2][3] * _m2[3][0],
+  
+    this->data[2][0] * _m2[0][1] +
+    this->data[2][1] * _m2[1][1] +
+    this->data[2][2] * _m2[2][1] +
+    this->data[2][3] * _m2[3][1],
+  
+    this->data[2][0] * _m2[0][2] +
+    this->data[2][1] * _m2[1][2] +
+    this->data[2][2] * _m2[2][2] +
+    this->data[2][3] * _m2[3][2],
+  
+    this->data[2][0] * _m2[0][3] +
+    this->data[2][1] * _m2[1][3] +
+    this->data[2][2] * _m2[2][3] +
+    this->data[2][3] * _m2[3][3],
+  
+    this->data[3][0] * _m2[0][0] +
+    this->data[3][1] * _m2[1][0] +
+    this->data[3][2] * _m2[2][0] +
+    this->data[3][3] * _m2[3][0],
+  
+    this->data[3][0] * _m2[0][1] +
+    this->data[3][1] * _m2[1][1] +
+    this->data[3][2] * _m2[2][1] +
+    this->data[3][3] * _m2[3][1],
+  
+    this->data[3][0] * _m2[0][2] +
+    this->data[3][1] * _m2[1][2] +
+    this->data[3][2] * _m2[2][2] +
+    this->data[3][3] * _m2[3][2],
+  
+    this->data[3][0] * _m2[0][3] +
+    this->data[3][1] * _m2[1][3] +
+    this->data[3][2] * _m2[2][3] +
+    this->data[3][3] * _m2[3][3]);
 }
 
 //////////////////////////////////////////////////
-Vector3d Matrix4::operator*(const Vector3d &_vec) const
+IGN_VECTOR3 IGN_MATRIX4::operator*(const IGN_VECTOR3 &_vec) const
 {
-  return Vector3d(this->m[0][0]*_vec.x() + this->m[0][1]*_vec.y() +
-                  this->m[0][2]*_vec.z() + this->m[0][3],
-                  this->m[1][0]*_vec.x() + this->m[1][1]*_vec.y() +
-                  this->m[1][2]*_vec.z() + this->m[1][3],
-                  this->m[2][0]*_vec.x() + this->m[2][1]*_vec.y() +
-                  this->m[2][2]*_vec.z() + this->m[2][3]);
+  return IGN_VECTOR3(this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
+                     this->data[0][2]*_vec.z() + this->data[0][3],
+                     this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
+                     this->data[1][2]*_vec.z() + this->data[1][3],
+                     this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
+                     this->data[2][2]*_vec.z() + this->data[2][3]);
 }
 
 //////////////////////////////////////////////////
-bool Matrix4::IsAffine() const
+bool IGN_MATRIX4::IsAffine() const
 {
-  return equal(this->m[3][0], 0.0) && equal(this->m[3][1], 0.0) &&
-         equal(this->m[3][2], 0.0) && equal(this->m[3][3], 1.0);
+  return equal(this->data[3][0], static_cast<IGN_NUMERIC>(0)) &&
+    equal(this->data[3][1], static_cast<IGN_NUMERIC>(0)) &&
+    equal(this->data[3][2], static_cast<IGN_NUMERIC>(0)) &&
+    equal(this->data[3][3], static_cast<IGN_NUMERIC>(1));
 }
 
 //////////////////////////////////////////////////
-Vector3d Matrix4::TransformAffine(const Vector3d &_v) const
+IGN_VECTOR3 IGN_MATRIX4::TransformAffine(const IGN_VECTOR3 &_v) const
 {
   if (!this->IsAffine())
+    throw AffineException();
+
+  return IGN_VECTOR3(this->data[0][0]*_v.x() + this->data[0][1]*_v.y() +
+                     this->data[0][2]*_v.z() + this->data[0][3],
+                     this->data[1][0]*_v.x() + this->data[1][1]*_v.y() +
+                     this->data[1][2]*_v.z() + this->data[1][3],
+                     this->data[2][0]*_v.x() + this->data[2][1]*_v.y() +
+                     this->data[2][2]*_v.z() + this->data[2][3]);
+}
+
+//////////////////////////////////////////////////
+bool IGN_MATRIX4::operator==(const IGN_MATRIX4 &_m) const
+{
+  return math::equal(this->data[0][0], _m[0][0]) &&
+         math::equal(this->data[0][1], _m[0][1]) &&
+         math::equal(this->data[0][2], _m[0][2]) &&
+         math::equal(this->data[0][3], _m[0][3]) &&
+
+         math::equal(this->data[1][0], _m[1][0]) &&
+         math::equal(this->data[1][1], _m[1][1]) &&
+         math::equal(this->data[1][2], _m[1][2]) &&
+         math::equal(this->data[1][3], _m[1][3]) &&
+
+         math::equal(this->data[2][0], _m[2][0]) &&
+         math::equal(this->data[2][1], _m[2][1]) &&
+         math::equal(this->data[2][2], _m[2][2]) &&
+         math::equal(this->data[2][3], _m[2][3]) &&
+
+         math::equal(this->data[3][0], _m[3][0]) &&
+         math::equal(this->data[3][1], _m[3][1]) &&
+         math::equal(this->data[3][2], _m[3][2]) &&
+         math::equal(this->data[3][3], _m[3][3]);
+}
+
+//////////////////////////////////////////////////
+IGN_MATRIX4 IGN_MATRIX4::Inverse() const
+{
+  IGN_NUMERIC v0, v1, v2, v3, v4, v5, t00, t10, t20, t30;
+  IGN_MATRIX4 r;
+
+  v0 = this->data[2][0]*this->data[3][1] - this->data[2][1]*this->data[3][0];
+  v1 = this->data[2][0]*this->data[3][2] - this->data[2][2]*this->data[3][0];
+  v2 = this->data[2][0]*this->data[3][3] - this->data[2][3]*this->data[3][0];
+  v3 = this->data[2][1]*this->data[3][2] - this->data[2][2]*this->data[3][1];
+  v4 = this->data[2][1]*this->data[3][3] - this->data[2][3]*this->data[3][1];
+  v5 = this->data[2][2]*this->data[3][3] - this->data[2][3]*this->data[3][2];
+
+  t00 = +(v5*this->data[1][1] - v4*this->data[1][2] + v3*this->data[1][3]);
+  t10 = -(v5*this->data[1][0] - v2*this->data[1][2] + v1*this->data[1][3]);
+  t20 = +(v4*this->data[1][0] - v2*this->data[1][1] + v0*this->data[1][3]);
+  t30 = -(v3*this->data[1][0] - v1*this->data[1][1] + v0*this->data[1][2]);
+
+  IGN_NUMERIC invDet = 1 / (t00 * this->data[0][0] + t10 * this->data[0][1] +
+      t20 * this->data[0][2] + t30 * this->data[0][3]);
+
+  r[0][0] = t00 * invDet;
+  r[1][0] = t10 * invDet;
+  r[2][0] = t20 * invDet;
+  r[3][0] = t30 * invDet;
+
+  r[0][1] = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+    * invDet;
+  r[1][1] = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+    * invDet;
+  r[2][1] = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+    * invDet;
+  r[3][1] = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+    * invDet;
+
+  v0 = this->data[1][0]*this->data[3][1] - this->data[1][1]*this->data[3][0];
+  v1 = this->data[1][0]*this->data[3][2] - this->data[1][2]*this->data[3][0];
+  v2 = this->data[1][0]*this->data[3][3] - this->data[1][3]*this->data[3][0];
+  v3 = this->data[1][1]*this->data[3][2] - this->data[1][2]*this->data[3][1];
+  v4 = this->data[1][1]*this->data[3][3] - this->data[1][3]*this->data[3][1];
+  v5 = this->data[1][2]*this->data[3][3] - this->data[1][3]*this->data[3][2];
+
+  r[0][2] = +(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+    * invDet;
+  r[1][2] = -(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+    * invDet;
+  r[2][2] = +(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+    * invDet;
+  r[3][2] = -(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+    * invDet;
+
+  v0 = this->data[2][1]*this->data[1][0] - this->data[2][0]*this->data[1][1];
+  v1 = this->data[2][2]*this->data[1][0] - this->data[2][0]*this->data[1][2];
+  v2 = this->data[2][3]*this->data[1][0] - this->data[2][0]*this->data[1][3];
+  v3 = this->data[2][2]*this->data[1][1] - this->data[2][1]*this->data[1][2];
+  v4 = this->data[2][3]*this->data[1][1] - this->data[2][1]*this->data[1][3];
+  v5 = this->data[2][3]*this->data[1][2] - this->data[2][2]*this->data[1][3];
+
+  r[0][3] = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+    * invDet;
+  r[1][3] = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+    * invDet;
+  r[2][3] = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+    * invDet;
+  r[3][3] = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+    * invDet;
+
+  return r;
+}
+
+//////////////////////////////////////////////////
+IGN_POSE3 IGN_MATRIX4::GetAsPose() const
+{
+  return IGN_POSE3(this->GetTranslation(), this->GetRotation());
+}
+
+//////////////////////////////////////////////////
+std::ostream &ignition::math::operator<<(std::ostream &_out,
+    const ignition::math::IGN_MATRIX4 &_m)
+{
+  for (int i = 0; i < 4; i++)
   {
-    throw(std::string("Not and affine matrix"));
+    for (int j = 0; j < 4; j++)
+    {
+      _out << (fabs(_m[i][j]) < 1e-6 ? 0 : _m[i][j]) << " ";
+    }
+    _out << "\n";
   }
 
-  return Vector3d(this->m[0][0]*_v.x() + this->m[0][1]*_v.y() +
-                  this->m[0][2]*_v.z() + this->m[0][3],
-                  this->m[1][0]*_v.x() + this->m[1][1]*_v.y() +
-                  this->m[1][2]*_v.z() + this->m[1][3],
-                  this->m[2][0]*_v.x() + this->m[2][1]*_v.y() +
-                  this->m[2][2]*_v.z() + this->m[2][3]);
+  return _out;
 }
 
-//////////////////////////////////////////////////
-bool Matrix4::operator==(const Matrix4 &_m) const
-{
-  return math::equal(this->m[0][0], _m[0][0]) &&
-         math::equal(this->m[0][1], _m[0][1]) &&
-         math::equal(this->m[0][2], _m[0][2]) &&
-         math::equal(this->m[0][3], _m[0][3]) &&
-
-         math::equal(this->m[1][0], _m[1][0]) &&
-         math::equal(this->m[1][1], _m[1][1]) &&
-         math::equal(this->m[1][2], _m[1][2]) &&
-         math::equal(this->m[1][3], _m[1][3]) &&
-
-         math::equal(this->m[2][0], _m[2][0]) &&
-         math::equal(this->m[2][1], _m[2][1]) &&
-         math::equal(this->m[2][2], _m[2][2]) &&
-         math::equal(this->m[2][3], _m[2][3]) &&
-
-         math::equal(this->m[3][0], _m[3][0]) &&
-         math::equal(this->m[3][1], _m[3][1]) &&
-         math::equal(this->m[3][2], _m[3][2]) &&
-         math::equal(this->m[3][3], _m[3][3]);
-}
-
-//////////////////////////////////////////////////
-Matrix4 Matrix4::Inverse() const
-{
-  double v0 = this->m[2][0] * this->m[3][1] - this->m[2][1] * this->m[3][0];
-  double v1 = this->m[2][0] * this->m[3][2] - this->m[2][2] * this->m[3][0];
-  double v2 = this->m[2][0] * this->m[3][3] - this->m[2][3] * this->m[3][0];
-  double v3 = this->m[2][1] * this->m[3][2] - this->m[2][2] * this->m[3][1];
-  double v4 = this->m[2][1] * this->m[3][3] - this->m[2][3] * this->m[3][1];
-  double v5 = this->m[2][2] * this->m[3][3] - this->m[2][3] * this->m[3][2];
-
-  double t00 = + (v5 * this->m[1][1] - v4 * this->m[1][2] + v3 * this->m[1][3]);
-  double t10 = - (v5 * this->m[1][0] - v2 * this->m[1][2] + v1 * this->m[1][3]);
-  double t20 = + (v4 * this->m[1][0] - v2 * this->m[1][1] + v0 * this->m[1][3]);
-  double t30 = - (v3 * this->m[1][0] - v1 * this->m[1][1] + v0 * this->m[1][2]);
-
-  double invDet = 1 / (t00 * this->m[0][0] + t10 * this->m[0][1] +
-                       t20 * this->m[0][2] + t30 * this->m[0][3]);
-
-  double d00 = t00 * invDet;
-  double d10 = t10 * invDet;
-  double d20 = t20 * invDet;
-  double d30 = t30 * invDet;
-
-  double d01 = - (v5 * this->m[0][1] - v4 * this->m[0][2] + v3 * this->m[0][3])
-               * invDet;
-  double d11 = + (v5 * this->m[0][0] - v2 * this->m[0][2] + v1 * this->m[0][3])
-               * invDet;
-  double d21 = - (v4 * this->m[0][0] - v2 * this->m[0][1] + v0 * this->m[0][3])
-               * invDet;
-  double d31 = + (v3 * this->m[0][0] - v1 * this->m[0][1] + v0 * this->m[0][2])
-               * invDet;
-
-  v0 = this->m[1][0] * this->m[3][1] - this->m[1][1] * this->m[3][0];
-  v1 = this->m[1][0] * this->m[3][2] - this->m[1][2] * this->m[3][0];
-  v2 = this->m[1][0] * this->m[3][3] - this->m[1][3] * this->m[3][0];
-  v3 = this->m[1][1] * this->m[3][2] - this->m[1][2] * this->m[3][1];
-  v4 = this->m[1][1] * this->m[3][3] - this->m[1][3] * this->m[3][1];
-  v5 = this->m[1][2] * this->m[3][3] - this->m[1][3] * this->m[3][2];
-
-  double d02 = + (v5 * this->m[0][1] - v4 * this->m[0][2] + v3 * this->m[0][3])
-               * invDet;
-  double d12 = - (v5 * this->m[0][0] - v2 * this->m[0][2] + v1 * this->m[0][3])
-               * invDet;
-  double d22 = + (v4 * this->m[0][0] - v2 * this->m[0][1] + v0 * this->m[0][3])
-               * invDet;
-  double d32 = - (v3 * this->m[0][0] - v1 * this->m[0][1] + v0 * this->m[0][2])
-               * invDet;
-
-  v0 = this->m[2][1] * this->m[1][0] - this->m[2][0] * this->m[1][1];
-  v1 = this->m[2][2] * this->m[1][0] - this->m[2][0] * this->m[1][2];
-  v2 = this->m[2][3] * this->m[1][0] - this->m[2][0] * this->m[1][3];
-  v3 = this->m[2][2] * this->m[1][1] - this->m[2][1] * this->m[1][2];
-  v4 = this->m[2][3] * this->m[1][1] - this->m[2][1] * this->m[1][3];
-  v5 = this->m[2][3] * this->m[1][2] - this->m[2][2] * this->m[1][3];
-
-  double d03 = - (v5 * this->m[0][1] - v4 * this->m[0][2] + v3 * this->m[0][3])
-               * invDet;
-  double d13 = + (v5 * this->m[0][0] - v2 * this->m[0][2] + v1 * this->m[0][3])
-               * invDet;
-  double d23 = - (v4 * this->m[0][0] - v2 * this->m[0][1] + v0 * this->m[0][3])
-               * invDet;
-  double d33 = + (v3 * this->m[0][0] - v1 * this->m[0][1] + v0 * this->m[0][2])
-               * invDet;
-
-  return Matrix4(d00, d01, d02, d03,
-                 d10, d11, d12, d13,
-                 d20, d21, d22, d23,
-                 d30, d31, d32, d33);
-}
-
-//////////////////////////////////////////////////
-math::Pose Matrix4::GetAsPose() const
-{
-  return math::Pose(this->GetTranslation(), this->GetRotation());
-}

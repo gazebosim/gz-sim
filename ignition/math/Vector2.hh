@@ -146,7 +146,7 @@ class IGN_VECTOR2
   /// \return the value. Throws an IndexException if _index is out of
   /// bounds.
   /// \throws IndexException if _index is >= 2.
-  public: inline IGN_NUMERIC operator[](unsigned int _index) const
+  public: inline IGN_NUMERIC operator[](size_t _index) const
           {
             if (_index > 1)
               throw IndexException();

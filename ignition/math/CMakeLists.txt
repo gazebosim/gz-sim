@@ -5,11 +5,19 @@ set (headers
   Box.hh
   Helpers.hh
   MathTypes.hh
-  Matrix3.hh
-  Matrix4.hh
+  Matrix3d.hh
+  Matrix3f.hh
+  Matrix3i.hh
+  Matrix4d.hh
+  Matrix4f.hh
+  Matrix4i.hh
   Plane.hh
-  Pose.hh
-  Quaternion.hh
+  Pose3d.hh
+  Pose3f.hh
+  Pose3i.hh
+  Quaterniond.hh
+  Quaternionf.hh
+  Quaternioni.hh
   Rand.hh
   RotationSpline.hh
   Spline.hh
