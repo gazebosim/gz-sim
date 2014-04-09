@@ -49,8 +49,5 @@ set (gtest_sources
 )
 
 ign_build_tests(${gtest_sources})
-
 ign_add_library(ignition_math ${sources})
-target_link_libraries(ignition_math ${Boost_LIBRARIES})
-
 ign_install_library(ignition_math)

@@ -18,13 +18,13 @@
 //////////////////////////////////////////////////
 IGN_MATRIX3::IGN_MATRIX3()
 {
-  memset(this->data, 0, sizeof(this->data[0][0])*9);
+  std::memset(this->data, 0, sizeof(this->data[0][0])*9);
 }
 
 //////////////////////////////////////////////////
 IGN_MATRIX3::IGN_MATRIX3(const IGN_MATRIX3 &_m)
 {
-  memcpy(this->data, _m.data, sizeof(this->data[0][0])*9);
+  std::memcpy(this->data, _m.data, sizeof(this->data[0][0])*9);
 }
 
 //////////////////////////////////////////////////

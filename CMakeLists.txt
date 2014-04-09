@@ -186,7 +186,7 @@ filter_valid_compiler_warnings(-Wall -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
   -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} -std=c++11")
 
 #################################################
 # OS Specific initialization
@@ -274,7 +274,7 @@ else (build_errors)
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ignition_math)
   
-  set(PKG_DEPENDS Boost Protobuf SDFormat)
+  set(PKG_DEPENDS)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition_math-config.cmake.in"

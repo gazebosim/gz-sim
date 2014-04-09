@@ -18,8 +18,8 @@ list (APPEND CPACK_SOURCE_IGNORE_FILES "TODO;/.hg/;.swp$;/build/;.hgtags")
 include (InstallRequiredSystemLibraries)
 
 #execute_process(COMMAND dpkg --print-architecture _NPROCE)
-set (DEBIAN_PACKAGE_DEPENDS "libprotobuf-dev, libprotoc-dev, libboost-all-dev")
+set (DEBIAN_PACKAGE_DEPENDS "")
 
-set (RPM_PACKAGE_DEPENDS "libprotobuf-dev, libprotoc-dev, libboost-all-dev")
+set (RPM_PACKAGE_DEPENDS "")
 
 set (IGNITION_MATH_CPACK_CFG_FILE "${PROJECT_BINARY_DIR}/cpack_options.cmake")

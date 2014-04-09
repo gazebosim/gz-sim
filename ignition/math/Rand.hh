@@ -17,34 +17,25 @@
 #ifndef _IGNITION_RAND_HH_
 #define _IGNITION_RAND_HH_
 
-#include <boost/random.hpp>
+#include <random>
+#include <cmath>
 
 namespace ignition
 {
   namespace math
   {
     /// \def GeneratorType
-    /// \brief boost::mt19937
-    typedef boost::mt19937 GeneratorType;
+    /// \brief std::mt19937
+    typedef std::mt19937 GeneratorType;
     /// \def UniformRealDist
-    /// \brief boost::uniform_real<double>
-    typedef boost::uniform_real<double> UniformRealDist;
+    /// \brief std::uniform_real_distribution<double>
+    typedef std::uniform_real_distribution<double> UniformRealDist;
     /// \def NormalRealDist
-    /// \brief boost::normal_distribution<double>
-    typedef boost::normal_distribution<double> NormalRealDist;
+    /// \brief std::normal_distribution<double>
+    typedef std::normal_distribution<double> NormalRealDist;
     /// \def UniformIntDist
-    /// \brief boost::uniform_int<int>
-    typedef boost::uniform_int<int> UniformIntDist;
-
-    /// \def URealGen
-    /// \brief boost::variate_generator with GeneratorType and UniformRealDist
-    typedef boost::variate_generator<GeneratorType&, UniformRealDist > URealGen;
-    /// \def NRealGen
-    /// \brief boost::variate_generator with GeneratorType and NormalRealDist
-    typedef boost::variate_generator<GeneratorType&, NormalRealDist > NRealGen;
-    /// \def UIntGen
-    /// \brief boost::variate_generator with GeneratorType and UniformIntDist
-    typedef boost::variate_generator<GeneratorType&, UniformIntDist > UIntGen;
+    /// \brief std::uniform_int<int>
+    typedef std::uniform_int_distribution<int32_t> UniformIntDist;
 
     /// \class Rand Rand.hh ignition/math.hh
     /// \brief Random number generator class
@@ -73,12 +64,12 @@ namespace ignition
       /// \brief Get a integer from a uniform distribution
       /// \param[in] _min Minimum bound for the random number
       /// \param[in] _max Maximum bound for the random number
-      public: static int GetIntUniform(int _min, int _max);
+      public: static int32_t GetIntUniform(int _min, int _max);
 
       /// \brief Get a double from a normal distribution
       /// \param[in] _mean Mean value for the distribution
       /// \param[in] _sigma Sigma value for the distribution
-      public: static int GetIntNormal(int _mean, int _sigma);
+      public: static int32_t GetIntNormal(int _mean, int _sigma);
 
       /// \brief The random number generator.
       private: static GeneratorType *randGenerator;

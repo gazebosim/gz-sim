@@ -20,6 +20,7 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 #include <ignition/math/IndexException.hh>
 #include <ignition/math/Vector3f.hh>
