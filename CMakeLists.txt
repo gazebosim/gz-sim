@@ -229,13 +229,13 @@ else (build_errors)
   ########################################
   # Write the config.h file
   configure_file (${project_cmake_dir}/config.hh.in
-    ${PROJECT_BINARY_DIR}/ignition/${IGN_PROJECT_NAME}/config.hh)
+    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
   ign_install_includes(${IGN_PROJECT_NAME}
-    ${PROJECT_BINARY_DIR}/ignition/${IGN_PROJECT_NAME}/config.hh)
+    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
   include_directories(
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
   )
   link_directories(${PROJECT_BINARY_DIR}/src)
 
@@ -251,7 +251,7 @@ else (build_errors)
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
-    add_subdirectory(ignition)
+    add_subdirectory(include)
     add_subdirectory(test)
   endif (BUILD_IGNITION)
 
