@@ -45,10 +45,7 @@ then
   CPPLINT_FILES="$CHECK_FILES"
   QUICK_TMP=`mktemp -t asdfXXXXXXXXXX`
 else
-  CHECK_DIRS="./plugins ./gazebo ./tools ./examples ./test/integration"\
-" ./test/regression ./interfaces ./test/performance"\
-" ./test/examples ./test/plugins"\
-" ./test/cmake ./test/pkgconfig ./test/ServerFixture.*"
+  CHECK_DIRS="./src ./test/integration ./test/regression ./test/performance"
   if [ $CPPCHECK_LT_157 -eq 1 ]; then
     # cppcheck is older than 1.57, so don't check header files (issue #907)
     CPPCHECK_FILES=`find $CHECK_DIRS -name "*.cc"`
@@ -59,14 +56,7 @@ else
     find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h"`
 fi
 
-SUPPRESS=/tmp/gazebo_cpp_check.suppress
-echo "*:gazebo/common/STLLoader.cc:94" > $SUPPRESS
-echo "*:gazebo/common/STLLoader.cc:105" >> $SUPPRESS
-echo "*:gazebo/common/STLLoader.cc:126" >> $SUPPRESS
-echo "*:gazebo/common/STLLoader.cc:149" >> $SUPPRESS
-echo "*:examples/plugins/custom_messages/custom_messages.cc:22" >> $SUPPRESS
-# Not defined FREEIMAGE_COLORORDER
-echo "*:gazebo/common/Image.cc:1" >> $SUPPRESS
+SUPPRESS=/tmp/cpp_check.suppress
 
 # The follow suppression is useful when checking for missing includes.
 # It's disable for now because checking for missing includes is very
@@ -74,20 +64,16 @@ echo "*:gazebo/common/Image.cc:1" >> $SUPPRESS
 echo "missingIncludeSystem" >> $SUPPRESS
 
 #cppcheck
-CPPCHECK_BASE="cppcheck -DGAZEBO_VISIBLE=1 -q --suppressions-list=$SUPPRESS"
+CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
 if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
-CPPCHECK_INCLUDES="-I gazebo/rendering/skyx/include -I . -I $builddir"\
-" -I $builddir/gazebo/msgs -I deps -I deps/opende/include -I test"
-CPPCHECK_RULES="--rule-file=./tools/cppcheck_rules/issue_581.rule"\
-" --rule-file=./tools/cppcheck_rules/issue_906.rule"
+CPPCHECK_INCLUDES="-I . -I $builddir -I test"
+CPPCHECK_RULES=""
 CPPCHECK_CMD1A="-j 4 --enable=style,performance,portability,information"
 CPPCHECK_CMD1B="$CPPCHECK_RULES $CPPCHECK_FILES"
 CPPCHECK_CMD1="$CPPCHECK_CMD1A $CPPCHECK_CMD1B"
-# This command used to be part of the script but was removed since our API
-# provides many functions that Gazebo does not use internally
 CPPCHECK_CMD2="--enable=unusedFunction $CPPCHECK_FILES"
 
 # Checking for missing includes is very time consuming. This is disabled
@@ -152,11 +138,4 @@ if [ $xmlout -eq 1 ]; then
     | python tools/cpplint_to_cppcheckxml.py 2> $xmldir/cpplint.xml
 elif [ $QUICK_CHECK -eq 0 ]; then
   echo $CPPLINT_FILES | xargs python tools/cpplint.py 2>&1
-fi
-
-# msg_check.py
-if [ $xmlout -eq 1 ]; then
-  ./tools/msg_check.py xml 2> $xmldir/msg_check.xml
-else
-  ./tools/msg_check.py 2>&1
 fi

@@ -44,7 +44,7 @@ TEST(BoxTest, Inherit)
 {
   myBox *box = NULL;
 
-  { 
+  {
     box = new myBox();
     EXPECT_TRUE(box != NULL);
   }
@@ -63,7 +63,7 @@ TEST(BoxTest, EmptyConstructorNew)
 {
   math::Box *box = NULL;
 
-  { 
+  {
     box = new math::Box;
     EXPECT_TRUE(box != NULL);
   }

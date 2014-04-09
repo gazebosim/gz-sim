@@ -22,8 +22,8 @@ IGN_VECTOR4::IGN_VECTOR4()
 }
 
 //////////////////////////////////////////////////
-IGN_VECTOR4::IGN_VECTOR4(const IGN_NUMERIC &_x, const IGN_NUMERIC &_y, const IGN_NUMERIC &_z,
-                 const IGN_NUMERIC &_w)
+IGN_VECTOR4::IGN_VECTOR4(const IGN_NUMERIC &_x, const IGN_NUMERIC &_y,
+    const IGN_NUMERIC &_z, const IGN_NUMERIC &_w)
 {
   this->data[0] = _x;
   this->data[1] = _y;
@@ -64,8 +64,8 @@ IGN_NUMERIC IGN_VECTOR4::GetLength() const
 //////////////////////////////////////////////////
 IGN_NUMERIC IGN_VECTOR4::GetSquaredLength() const
 {
-  return this->data[0] * this->data[0] + this->data[1] * this->data[1] + this->data[2] * this->data[2] +
-         this->data[3] * this->data[3];
+  return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
+    this->data[2] * this->data[2] + this->data[3] * this->data[3];
 }
 
 //////////////////////////////////////////////////
@@ -80,7 +80,8 @@ void IGN_VECTOR4::Normalize()
 }
 
 //////////////////////////////////////////////////
-void IGN_VECTOR4::Set(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z, IGN_NUMERIC _w)
+void IGN_VECTOR4::Set(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z,
+    IGN_NUMERIC _w)
 {
   this->data[0] = _x;
   this->data[1] = _y;
@@ -174,7 +175,8 @@ const IGN_VECTOR4 &IGN_VECTOR4::operator/=(const IGN_VECTOR4 &pt)
 //////////////////////////////////////////////////
 const IGN_VECTOR4 IGN_VECTOR4::operator/(IGN_NUMERIC v) const
 {
-  return IGN_VECTOR4(this->data[0] / v, this->data[1] / v, this->data[2] / v, this->data[3] / v);
+  return IGN_VECTOR4(this->data[0] / v, this->data[1] / v,
+      this->data[2] / v, this->data[3] / v);
 }
 
 //////////////////////////////////////////////////
@@ -208,8 +210,7 @@ const IGN_VECTOR4 IGN_VECTOR4::operator*(const IGN_MATRIX4 &_m) const
       this->data[0]*_m(0, 2) + this->data[1]*_m(1, 2) +
       this->data[2]*_m(2, 2) + this->data[3]*_m(3, 2),
       this->data[0]*_m(0, 3) + this->data[1]*_m(1, 3) +
-      this->data[2]*_m(2, 3) + this->data[3]*_m(3, 3)
-      );
+      this->data[2]*_m(2, 3) + this->data[3]*_m(3, 3));
 }
 
 //////////////////////////////////////////////////
@@ -257,8 +258,8 @@ bool IGN_VECTOR4::operator!=(const IGN_VECTOR4 &pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR4::IsFinite() const
 {
-  return finite(this->data[0]) && finite(this->data[1]) && finite(this->data[2]) &&
-         finite(this->data[3]);
+  return finite(this->data[0]) && finite(this->data[1]) &&
+    finite(this->data[2]) && finite(this->data[3]);
 }
 
 //////////////////////////////////////////////////
