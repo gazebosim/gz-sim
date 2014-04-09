@@ -257,17 +257,17 @@ IGN_MATRIX4 &IGN_MATRIX4::operator =(const IGN_MATRIX4 &_mat)
 //////////////////////////////////////////////////
 const IGN_MATRIX4 &IGN_MATRIX4::operator=(const IGN_MATRIX3 &_mat)
 {
-  this->data[0][0] = _mat[0][0];
-  this->data[0][1] = _mat[0][1];
-  this->data[0][2] = _mat[0][2];
+  this->data[0][0] = _mat(0, 0);
+  this->data[0][1] = _mat(0, 1);
+  this->data[0][2] = _mat(0, 2);
 
-  this->data[1][0] = _mat[1][0];
-  this->data[1][1] = _mat[1][1];
-  this->data[1][2] = _mat[1][2];
+  this->data[1][0] = _mat(1, 0);
+  this->data[1][1] = _mat(1, 1);
+  this->data[1][2] = _mat(1, 2);
 
-  this->data[2][0] = _mat[2][0];
-  this->data[2][1] = _mat[2][1];
-  this->data[2][2] = _mat[2][2];
+  this->data[2][0] = _mat(2, 0);
+  this->data[2][1] = _mat(2, 1);
+  this->data[2][2] = _mat(2, 2);
 
   return *this;
 }
@@ -277,28 +277,28 @@ const IGN_MATRIX4 &IGN_MATRIX4::operator=(const IGN_MATRIX3 &_mat)
 IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX3 &_m2) const
 {
   return IGN_MATRIX4(
-      this->data[0][0] * _m2[0][0] + this->data[0][1] * _m2[1][0] +
-      this->data[0][2] * _m2[2][0],
-      this->data[0][0] * _m2[0][1] + this->data[0][1] * _m2[1][1] +
-      this->data[0][2] * _m2[2][1],
-      this->data[0][0] * _m2[0][2] + this->data[0][1] * _m2[1][2] +
-      this->data[0][2] * _m2[2][2],
+      this->data[0][0] * _m2(0, 0) + this->data[0][1] * _m2(1, 0) +
+      this->data[0][2] * _m2(2, 0),
+      this->data[0][0] * _m2(0, 1) + this->data[0][1] * _m2(1, 1) +
+      this->data[0][2] * _m2(2, 1),
+      this->data[0][0] * _m2(0, 2) + this->data[0][1] * _m2(1, 2) +
+      this->data[0][2] * _m2(2, 2),
       this->data[0][3],
 
-      this->data[1][0] * _m2[0][0] + this->data[1][1] * _m2[1][0] +
-      this->data[1][2] * _m2[2][0],
-      this->data[1][0] * _m2[0][1] + this->data[1][1] * _m2[1][1] +
-      this->data[1][2] * _m2[2][1],
-      this->data[1][0] * _m2[0][2] + this->data[1][1] * _m2[1][2] +
-      this->data[1][2] * _m2[2][2],
+      this->data[1][0] * _m2(0, 0) + this->data[1][1] * _m2(1, 0) +
+      this->data[1][2] * _m2(2, 0),
+      this->data[1][0] * _m2(0, 1) + this->data[1][1] * _m2(1, 1) +
+      this->data[1][2] * _m2(2, 1),
+      this->data[1][0] * _m2(0, 2) + this->data[1][1] * _m2(1, 2) +
+      this->data[1][2] * _m2(2, 2),
       this->data[1][3],
 
-      this->data[2][0] * _m2[0][0] + this->data[2][1] * _m2[1][0] +
-      this->data[2][2] * _m2[2][0],
-      this->data[2][0] * _m2[0][1] + this->data[2][1] * _m2[1][1] +
-      this->data[2][2] * _m2[2][1],
-      this->data[2][0] * _m2[0][2] + this->data[2][1] * _m2[1][2] +
-      this->data[2][2] * _m2[2][2],
+      this->data[2][0] * _m2(0, 0) + this->data[2][1] * _m2(1, 0) +
+      this->data[2][2] * _m2(2, 0),
+      this->data[2][0] * _m2(0, 1) + this->data[2][1] * _m2(1, 1) +
+      this->data[2][2] * _m2(2, 1),
+      this->data[2][0] * _m2(0, 2) + this->data[2][1] * _m2(1, 2) +
+      this->data[2][2] * _m2(2, 2),
       this->data[2][3],
 
       this->data[3][0],
@@ -311,85 +311,85 @@ IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX3 &_m2) const
 IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX4 &_m2) const
 {
   return IGN_MATRIX4(
-    this->data[0][0] * _m2[0][0] +
-    this->data[0][1] * _m2[1][0] +
-    this->data[0][2] * _m2[2][0] +
-    this->data[0][3] * _m2[3][0],
+    this->data[0][0] * _m2(0, 0) +
+    this->data[0][1] * _m2(1, 0) +
+    this->data[0][2] * _m2(2, 0) +
+    this->data[0][3] * _m2(3, 0),
   
-    this->data[0][0] * _m2[0][1] +
-    this->data[0][1] * _m2[1][1] +
-    this->data[0][2] * _m2[2][1] +
-    this->data[0][3] * _m2[3][1],
+    this->data[0][0] * _m2(0, 1) +
+    this->data[0][1] * _m2(1, 1) +
+    this->data[0][2] * _m2(2, 1) +
+    this->data[0][3] * _m2(3, 1),
   
-    this->data[0][0] * _m2[0][2] +
-    this->data[0][1] * _m2[1][2] +
-    this->data[0][2] * _m2[2][2] +
-    this->data[0][3] * _m2[3][2],
+    this->data[0][0] * _m2(0, 2) +
+    this->data[0][1] * _m2(1, 2) +
+    this->data[0][2] * _m2(2, 2) +
+    this->data[0][3] * _m2(3, 2),
   
-    this->data[0][0] * _m2[0][3] +
-    this->data[0][1] * _m2[1][3] +
-    this->data[0][2] * _m2[2][3] +
-    this->data[0][3] * _m2[3][3],
+    this->data[0][0] * _m2(0, 3) +
+    this->data[0][1] * _m2(1, 3) +
+    this->data[0][2] * _m2(2, 3) +
+    this->data[0][3] * _m2(3, 3),
   
-    this->data[1][0] * _m2[0][0] +
-    this->data[1][1] * _m2[1][0] +
-    this->data[1][2] * _m2[2][0] +
-    this->data[1][3] * _m2[3][0],
+    this->data[1][0] * _m2(0, 0) +
+    this->data[1][1] * _m2(1, 0) +
+    this->data[1][2] * _m2(2, 0) +
+    this->data[1][3] * _m2(3, 0),
   
-    this->data[1][0] * _m2[0][1] +
-    this->data[1][1] * _m2[1][1] +
-    this->data[1][2] * _m2[2][1] +
-    this->data[1][3] * _m2[3][1],
+    this->data[1][0] * _m2(0, 1) +
+    this->data[1][1] * _m2(1, 1) +
+    this->data[1][2] * _m2(2, 1) +
+    this->data[1][3] * _m2(3, 1),
   
-    this->data[1][0] * _m2[0][2] +
-    this->data[1][1] * _m2[1][2] +
-    this->data[1][2] * _m2[2][2] +
-    this->data[1][3] * _m2[3][2],
+    this->data[1][0] * _m2(0, 2) +
+    this->data[1][1] * _m2(1, 2) +
+    this->data[1][2] * _m2(2, 2) +
+    this->data[1][3] * _m2(3, 2),
   
-    this->data[1][0] * _m2[0][3] +
-    this->data[1][1] * _m2[1][3] +
-    this->data[1][2] * _m2[2][3] +
-    this->data[1][3] * _m2[3][3],
+    this->data[1][0] * _m2(0, 3) +
+    this->data[1][1] * _m2(1, 3) +
+    this->data[1][2] * _m2(2, 3) +
+    this->data[1][3] * _m2(3, 3),
   
-    this->data[2][0] * _m2[0][0] +
-    this->data[2][1] * _m2[1][0] +
-    this->data[2][2] * _m2[2][0] +
-    this->data[2][3] * _m2[3][0],
+    this->data[2][0] * _m2(0, 0) +
+    this->data[2][1] * _m2(1, 0) +
+    this->data[2][2] * _m2(2, 0) +
+    this->data[2][3] * _m2(3, 0),
   
-    this->data[2][0] * _m2[0][1] +
-    this->data[2][1] * _m2[1][1] +
-    this->data[2][2] * _m2[2][1] +
-    this->data[2][3] * _m2[3][1],
+    this->data[2][0] * _m2(0, 1) +
+    this->data[2][1] * _m2(1, 1) +
+    this->data[2][2] * _m2(2, 1) +
+    this->data[2][3] * _m2(3, 1),
   
-    this->data[2][0] * _m2[0][2] +
-    this->data[2][1] * _m2[1][2] +
-    this->data[2][2] * _m2[2][2] +
-    this->data[2][3] * _m2[3][2],
+    this->data[2][0] * _m2(0, 2) +
+    this->data[2][1] * _m2(1, 2) +
+    this->data[2][2] * _m2(2, 2) +
+    this->data[2][3] * _m2(3, 2),
   
-    this->data[2][0] * _m2[0][3] +
-    this->data[2][1] * _m2[1][3] +
-    this->data[2][2] * _m2[2][3] +
-    this->data[2][3] * _m2[3][3],
+    this->data[2][0] * _m2(0, 3) +
+    this->data[2][1] * _m2(1, 3) +
+    this->data[2][2] * _m2(2, 3) +
+    this->data[2][3] * _m2(3, 3),
   
-    this->data[3][0] * _m2[0][0] +
-    this->data[3][1] * _m2[1][0] +
-    this->data[3][2] * _m2[2][0] +
-    this->data[3][3] * _m2[3][0],
+    this->data[3][0] * _m2(0, 0) +
+    this->data[3][1] * _m2(1, 0) +
+    this->data[3][2] * _m2(2, 0) +
+    this->data[3][3] * _m2(3, 0),
   
-    this->data[3][0] * _m2[0][1] +
-    this->data[3][1] * _m2[1][1] +
-    this->data[3][2] * _m2[2][1] +
-    this->data[3][3] * _m2[3][1],
+    this->data[3][0] * _m2(0, 1) +
+    this->data[3][1] * _m2(1, 1) +
+    this->data[3][2] * _m2(2, 1) +
+    this->data[3][3] * _m2(3, 1),
   
-    this->data[3][0] * _m2[0][2] +
-    this->data[3][1] * _m2[1][2] +
-    this->data[3][2] * _m2[2][2] +
-    this->data[3][3] * _m2[3][2],
+    this->data[3][0] * _m2(0, 2) +
+    this->data[3][1] * _m2(1, 2) +
+    this->data[3][2] * _m2(2, 2) +
+    this->data[3][3] * _m2(3, 2),
   
-    this->data[3][0] * _m2[0][3] +
-    this->data[3][1] * _m2[1][3] +
-    this->data[3][2] * _m2[2][3] +
-    this->data[3][3] * _m2[3][3]);
+    this->data[3][0] * _m2(0, 3) +
+    this->data[3][1] * _m2(1, 3) +
+    this->data[3][2] * _m2(2, 3) +
+    this->data[3][3] * _m2(3, 3));
 }
 
 //////////////////////////////////////////////////
@@ -429,25 +429,25 @@ IGN_VECTOR3 IGN_MATRIX4::TransformAffine(const IGN_VECTOR3 &_v) const
 //////////////////////////////////////////////////
 bool IGN_MATRIX4::operator==(const IGN_MATRIX4 &_m) const
 {
-  return math::equal(this->data[0][0], _m[0][0]) &&
-         math::equal(this->data[0][1], _m[0][1]) &&
-         math::equal(this->data[0][2], _m[0][2]) &&
-         math::equal(this->data[0][3], _m[0][3]) &&
+  return math::equal(this->data[0][0], _m(0, 0)) &&
+         math::equal(this->data[0][1], _m(0, 1)) &&
+         math::equal(this->data[0][2], _m(0, 2)) &&
+         math::equal(this->data[0][3], _m(0, 3)) &&
 
-         math::equal(this->data[1][0], _m[1][0]) &&
-         math::equal(this->data[1][1], _m[1][1]) &&
-         math::equal(this->data[1][2], _m[1][2]) &&
-         math::equal(this->data[1][3], _m[1][3]) &&
+         math::equal(this->data[1][0], _m(1, 0)) &&
+         math::equal(this->data[1][1], _m(1, 1)) &&
+         math::equal(this->data[1][2], _m(1, 2)) &&
+         math::equal(this->data[1][3], _m(1, 3)) &&
 
-         math::equal(this->data[2][0], _m[2][0]) &&
-         math::equal(this->data[2][1], _m[2][1]) &&
-         math::equal(this->data[2][2], _m[2][2]) &&
-         math::equal(this->data[2][3], _m[2][3]) &&
+         math::equal(this->data[2][0], _m(2, 0)) &&
+         math::equal(this->data[2][1], _m(2, 1)) &&
+         math::equal(this->data[2][2], _m(2, 2)) &&
+         math::equal(this->data[2][3], _m(2, 3)) &&
 
-         math::equal(this->data[3][0], _m[3][0]) &&
-         math::equal(this->data[3][1], _m[3][1]) &&
-         math::equal(this->data[3][2], _m[3][2]) &&
-         math::equal(this->data[3][3], _m[3][3]);
+         math::equal(this->data[3][0], _m(3, 0)) &&
+         math::equal(this->data[3][1], _m(3, 1)) &&
+         math::equal(this->data[3][2], _m(3, 2)) &&
+         math::equal(this->data[3][3], _m(3, 3));
 }
 
 //////////////////////////////////////////////////
@@ -471,18 +471,18 @@ IGN_MATRIX4 IGN_MATRIX4::Inverse() const
   IGN_NUMERIC invDet = 1 / (t00 * this->data[0][0] + t10 * this->data[0][1] +
       t20 * this->data[0][2] + t30 * this->data[0][3]);
 
-  r[0][0] = t00 * invDet;
-  r[1][0] = t10 * invDet;
-  r[2][0] = t20 * invDet;
-  r[3][0] = t30 * invDet;
+  r(0, 0) = t00 * invDet;
+  r(1, 0) = t10 * invDet;
+  r(2, 0) = t20 * invDet;
+  r(3, 0) = t30 * invDet;
 
-  r[0][1] = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+  r(0, 1) = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
     * invDet;
-  r[1][1] = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+  r(1, 1) = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
     * invDet;
-  r[2][1] = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+  r(2, 1) = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
     * invDet;
-  r[3][1] = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+  r(3, 1) = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
     * invDet;
 
   v0 = this->data[1][0]*this->data[3][1] - this->data[1][1]*this->data[3][0];
@@ -492,13 +492,13 @@ IGN_MATRIX4 IGN_MATRIX4::Inverse() const
   v4 = this->data[1][1]*this->data[3][3] - this->data[1][3]*this->data[3][1];
   v5 = this->data[1][2]*this->data[3][3] - this->data[1][3]*this->data[3][2];
 
-  r[0][2] = +(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+  r(0, 2) = +(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
     * invDet;
-  r[1][2] = -(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+  r(1, 2) = -(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
     * invDet;
-  r[2][2] = +(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+  r(2, 2) = +(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
     * invDet;
-  r[3][2] = -(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+  r(3, 2) = -(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
     * invDet;
 
   v0 = this->data[2][1]*this->data[1][0] - this->data[2][0]*this->data[1][1];
@@ -508,13 +508,13 @@ IGN_MATRIX4 IGN_MATRIX4::Inverse() const
   v4 = this->data[2][3]*this->data[1][1] - this->data[2][1]*this->data[1][3];
   v5 = this->data[2][3]*this->data[1][2] - this->data[2][2]*this->data[1][3];
 
-  r[0][3] = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
+  r(0, 3) = -(v5*this->data[0][1] - v4*this->data[0][2] + v3*this->data[0][3])
     * invDet;
-  r[1][3] = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
+  r(1, 3) = +(v5*this->data[0][0] - v2*this->data[0][2] + v1*this->data[0][3])
     * invDet;
-  r[2][3] = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
+  r(2, 3) = -(v4*this->data[0][0] - v2*this->data[0][1] + v0*this->data[0][3])
     * invDet;
-  r[3][3] = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
+  r(3, 3) = +(v3*this->data[0][0] - v1*this->data[0][1] + v0*this->data[0][2])
     * invDet;
 
   return r;
@@ -534,7 +534,7 @@ std::ostream &ignition::math::operator<<(std::ostream &_out,
   {
     for (int j = 0; j < 4; j++)
     {
-      _out << (fabs(_m[i][j]) < 1e-6 ? 0 : _m[i][j]) << " ";
+      _out << (fabs(_m(i, j)) < 1e-6 ? 0 : _m(i, j)) << " ";
     }
     _out << "\n";
   }

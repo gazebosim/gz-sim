@@ -14,6 +14,15 @@
  * limitations under the License.
  *
 */
+const IGN_MATRIX3 IGN_MATRIX3::Identity(
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1);
+
+const IGN_MATRIX3 IGN_MATRIX3::Zero(
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0);
 
 //////////////////////////////////////////////////
 IGN_MATRIX3::IGN_MATRIX3()
@@ -92,47 +101,47 @@ void IGN_MATRIX3::SetCol(unsigned int _i, const IGN_VECTOR3 &_v)
 //////////////////////////////////////////////////
 bool IGN_MATRIX3::operator==(const IGN_MATRIX3 &_m) const
 {
-  return math::equal(this->data[0][0], _m[0][0]) &&
-         math::equal(this->data[0][1], _m[0][1]) &&
-         math::equal(this->data[0][2], _m[0][2]) &&
+  return math::equal(this->data[0][0], _m(0, 0)) &&
+         math::equal(this->data[0][1], _m(0, 1)) &&
+         math::equal(this->data[0][2], _m(0, 2)) &&
 
-         math::equal(this->data[1][0], _m[1][0]) &&
-         math::equal(this->data[1][1], _m[1][1]) &&
-         math::equal(this->data[1][2], _m[1][2]) &&
+         math::equal(this->data[1][0], _m(1, 0)) &&
+         math::equal(this->data[1][1], _m(1, 1)) &&
+         math::equal(this->data[1][2], _m(1, 2)) &&
 
-         math::equal(this->data[2][0], _m[2][0]) &&
-         math::equal(this->data[2][1], _m[2][1]) &&
-         math::equal(this->data[2][2], _m[2][2]);
+         math::equal(this->data[2][0], _m(2, 0)) &&
+         math::equal(this->data[2][1], _m(2, 1)) &&
+         math::equal(this->data[2][2], _m(2, 2));
 }
 
 //////////////////////////////////////////////////
 IGN_MATRIX3 IGN_MATRIX3::operator-(const IGN_MATRIX3 &_m) const
 {
   return IGN_MATRIX3(
-      this->data[0][0] - _m[0][0],
-      this->data[0][1] - _m[0][1],
-      this->data[0][2] - _m[0][2],
-      this->data[1][0] - _m[1][0],
-      this->data[1][1] - _m[1][1],
-      this->data[1][2] - _m[1][2],
-      this->data[2][0] - _m[2][0],
-      this->data[2][1] - _m[2][1],
-      this->data[2][2] - _m[2][2]);
+      this->data[0][0] - _m(0, 0),
+      this->data[0][1] - _m(0, 1),
+      this->data[0][2] - _m(0, 2),
+      this->data[1][0] - _m(1, 0),
+      this->data[1][1] - _m(1, 1),
+      this->data[1][2] - _m(1, 2),
+      this->data[2][0] - _m(2, 0),
+      this->data[2][1] - _m(2, 1),
+      this->data[2][2] - _m(2, 2));
 }
 
 //////////////////////////////////////////////////
 IGN_MATRIX3 IGN_MATRIX3::operator+(const IGN_MATRIX3 &_m) const
 {
   return IGN_MATRIX3(
-      this->data[0][0]+_m[0][0],
-      this->data[0][1]+_m[0][1],
-      this->data[0][2]+_m[0][2],
-      this->data[1][0]+_m[1][0],
-      this->data[1][1]+_m[1][1],
-      this->data[1][2]+_m[1][2],
-      this->data[2][0]+_m[2][0],
-      this->data[2][1]+_m[2][1],
-      this->data[2][2]+_m[2][2]);
+      this->data[0][0]+_m(0, 0),
+      this->data[0][1]+_m(0, 1),
+      this->data[0][2]+_m(0, 2),
+      this->data[1][0]+_m(1, 0),
+      this->data[1][1]+_m(1, 1),
+      this->data[1][2]+_m(1, 2),
+      this->data[2][0]+_m(2, 0),
+      this->data[2][1]+_m(2, 1),
+      this->data[2][2]+_m(2, 2));
 }
 
 //////////////////////////////////////////////////
@@ -149,43 +158,43 @@ IGN_MATRIX3 IGN_MATRIX3::operator*(const IGN_MATRIX3 &_m) const
 {
   return IGN_MATRIX3(
       // first row
-      this->data[0][0]*_m[0][0]+
-      this->data[0][1]*_m[1][0]+
-      this->data[0][2]*_m[2][0],
+      this->data[0][0]*_m(0, 0)+
+      this->data[0][1]*_m(1, 0)+
+      this->data[0][2]*_m(2, 0),
 
-      this->data[0][0]*_m[0][1]+
-      this->data[0][1]*_m[1][1]+
-      this->data[0][2]*_m[2][1],
+      this->data[0][0]*_m(0, 1)+
+      this->data[0][1]*_m(1, 1)+
+      this->data[0][2]*_m(2, 1),
 
-      this->data[0][0]*_m[0][2]+
-      this->data[0][1]*_m[1][2]+
-      this->data[0][2]*_m[2][2],
+      this->data[0][0]*_m(0, 2)+
+      this->data[0][1]*_m(1, 2)+
+      this->data[0][2]*_m(2, 2),
 
       // second row
-      this->data[1][0]*_m[0][0]+
-      this->data[1][1]*_m[1][0]+
-      this->data[1][2]*_m[2][0],
+      this->data[1][0]*_m(0, 0)+
+      this->data[1][1]*_m(1, 0)+
+      this->data[1][2]*_m(2, 0),
 
-      this->data[1][0]*_m[0][1]+
-      this->data[1][1]*_m[1][1]+
-      this->data[1][2]*_m[2][1],
+      this->data[1][0]*_m(0, 1)+
+      this->data[1][1]*_m(1, 1)+
+      this->data[1][2]*_m(2, 1),
 
-      this->data[1][0]*_m[0][2]+
-      this->data[1][1]*_m[1][2]+
-      this->data[1][2]*_m[2][2],
+      this->data[1][0]*_m(0, 2)+
+      this->data[1][1]*_m(1, 2)+
+      this->data[1][2]*_m(2, 2),
 
       // third row
-      this->data[2][0]*_m[0][0]+
-      this->data[2][1]*_m[1][0]+
-      this->data[2][2]*_m[2][0],
+      this->data[2][0]*_m(0, 0)+
+      this->data[2][1]*_m(1, 0)+
+      this->data[2][2]*_m(2, 0),
 
-      this->data[2][0]*_m[0][1]+
-      this->data[2][1]*_m[1][1]+
-      this->data[2][2]*_m[2][1],
+      this->data[2][0]*_m(0, 1)+
+      this->data[2][1]*_m(1, 1)+
+      this->data[2][2]*_m(2, 1),
 
-      this->data[2][0]*_m[0][2]+
-      this->data[2][1]*_m[1][2]+
-      this->data[2][2]*_m[2][2]);
+      this->data[2][0]*_m(0, 2)+
+      this->data[2][1]*_m(1, 2)+
+      this->data[2][2]*_m(2, 2));
 }
 
 //////////////////////////////////////////////////
@@ -196,7 +205,7 @@ std::ostream &ignition::math::operator<<(std::ostream &_out,
   {
     for (int j = 0; j < 3; j++)
     {
-      _out << _m[i][j] << " ";
+      _out << _m(i, j) << " ";
     }
     _out << "\n";
   }

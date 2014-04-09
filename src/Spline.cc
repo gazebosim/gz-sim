@@ -29,25 +29,25 @@ Spline::Spline()
 {
   // Set up matrix
   // Hermite polynomial
-  this->coeffs[0][0] = 2;
-  this->coeffs[0][1] = -2;
-  this->coeffs[0][2] = 1;
-  this->coeffs[0][3] = 1;
+  this->coeffs(0, 0) = 2;
+  this->coeffs(0, 1) = -2;
+  this->coeffs(0, 2) = 1;
+  this->coeffs(0, 3) = 1;
 
-  this->coeffs[1][0] = -3;
-  this->coeffs[1][1] = 3;
-  this->coeffs[1][2] = -2;
-  this->coeffs[1][3] = -1;
+  this->coeffs(1, 0) = -3;
+  this->coeffs(1, 1) = 3;
+  this->coeffs(1, 2) = -2;
+  this->coeffs(1, 3) = -1;
 
-  this->coeffs[2][0] = 0;
-  this->coeffs[2][1] = 0;
-  this->coeffs[2][2] = 1;
-  this->coeffs[2][3] = 0;
+  this->coeffs(2, 0) = 0;
+  this->coeffs(2, 1) = 0;
+  this->coeffs(2, 2) = 1;
+  this->coeffs(2, 3) = 0;
 
-  this->coeffs[3][0] = 1;
-  this->coeffs[3][1] = 0;
-  this->coeffs[3][2] = 0;
-  this->coeffs[3][3] = 0;
+  this->coeffs(3, 0) = 1;
+  this->coeffs(3, 1) = 0;
+  this->coeffs(3, 2) = 0;
+  this->coeffs(3, 3) = 0;
 
   this->autoCalc = true;
   this->tension = 0.0;
@@ -135,22 +135,22 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
   const Vector3d &tan2 = this->tangents[_fromIndex+1];
   Matrix4d pt;
 
-  pt[0][0] = point1.x();
-  pt[0][1] = point1.y();
-  pt[0][2] = point1.z();
-  pt[0][3] = 1.0f;
-  pt[1][0] = point2.x();
-  pt[1][1] = point2.y();
-  pt[1][2] = point2.z();
-  pt[1][3] = 1.0f;
-  pt[2][0] = tan1.x();
-  pt[2][1] = tan1.y();
-  pt[2][2] = tan1.z();
-  pt[2][3] = 1.0f;
-  pt[3][0] = tan2.x();
-  pt[3][1] = tan2.y();
-  pt[3][2] = tan2.z();
-  pt[3][3] = 1.0f;
+  pt(0, 0) = point1.x();
+  pt(0, 1) = point1.y();
+  pt(0, 2) = point1.z();
+  pt(0, 3) = 1.0f;
+  pt(1, 0) = point2.x();
+  pt(1, 1) = point2.y();
+  pt(1, 2) = point2.z();
+  pt(1, 3) = 1.0f;
+  pt(2, 0) = tan1.x();
+  pt(2, 1) = tan1.y();
+  pt(2, 2) = tan1.z();
+  pt(2, 3) = 1.0f;
+  pt(3, 0) = tan2.x();
+  pt(3, 1) = tan2.y();
+  pt(3, 2) = tan2.z();
+  pt(3, 3) = 1.0f;
 
   Vector4d ret = powers * this->coeffs * pt;
 

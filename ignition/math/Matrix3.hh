@@ -23,6 +23,12 @@ Matrix3f.hh, or Matrix3i.hh.
 /// \brief A 3x3 matrix class
 class IGN_MATRIX3
 {
+  /// \brief Identity matrix
+  public: static const IGN_MATRIX3 Identity;
+
+  /// \brief Zero matrix
+  public: static const IGN_MATRIX3 Zero;
+
   /// \brief Constructor
   public: IGN_MATRIX3();
 
@@ -87,21 +93,21 @@ class IGN_MATRIX3
   /// \brief Array subscript operator
   /// \param[in] _row row index
   /// \return a pointer to the row
-  public: inline const IGN_NUMERIC *operator[](size_t _row) const
+  public: inline const IGN_NUMERIC &operator()(size_t _row, size_t _col) const
           {
-            if (_row >= 3)
+            if (_row >= 3 || _col >= 3)
               throw IndexException();
-            return this->data[_row];
+            return this->data[_row][_col];
           }
 
   /// \brief Array subscript operator
   /// \param[in] _row row index
   /// \return a pointer to the row
-  public: inline IGN_NUMERIC *operator[](size_t _row)
+  public: inline IGN_NUMERIC &operator()(size_t _row, size_t _col)
           {
-            if (_row >= 3)
+            if (_row >= 3 || _col >=3)
               throw IndexException();
-            return this->data[_row];
+            return this->data[_row][_col];
           }
 
   /// \brief the 3x3 matrix

@@ -22,6 +22,7 @@
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
 TEST(PoseTest, Pose)
 {
   {
@@ -130,3 +131,8 @@ TEST(PoseTest, Pose)
   EXPECT_TRUE(pose.rot() == math::Quaterniond(0, 0, 0));
 }
 
+/////////////////////////////////////////////////
+TEST(PoseTest, ConstPose)
+{
+  const math::Pose pose(0, 1, 2, 3, 4, 5, 1);
+}

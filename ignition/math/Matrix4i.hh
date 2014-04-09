@@ -22,6 +22,7 @@
 #include <fstream>
 
 #include <ignition/math/IndexException.hh>
+#include <ignition/math/AffineException.hh>
 
 namespace ignition
 {

@@ -173,23 +173,26 @@ class IGN_MATRIX4
   /// \return Resulting vector from multiplication
   public: IGN_VECTOR3 operator*(const IGN_VECTOR3 &_vec) const;
 
-  /// \brief Array subscript operator
+  /// \brief Get the value at the specified row, column index
+  /// \param[in] _col The column index
   /// \param[in] _row the row index
-  /// \return the row
-  public: inline IGN_NUMERIC *operator[](size_t _row)
+  /// \return The value at the specified index
+  public: inline const IGN_NUMERIC &operator()(size_t _row, size_t _col) const
           {
-            if (_row >= 4)
+            if (_row >= 4 || _col >= 4)
               throw IndexException();
-            return this->data[_row];
+            return this->data[_row][_col];
           }
 
-  /// \param[in] _row the row index
-  /// \return the row
-  public: inline const IGN_NUMERIC *operator[](size_t _row) const
+  /// \brief Get a mutable version the value at the specified row, column index
+  /// \param[in] _col The column index
+  /// \param[in] _row The row index
+  /// \return The value at the specified index
+  public: inline IGN_NUMERIC &operator()(size_t _row, size_t _col)
           {
-            if (_row >= 4)
+            if (_row >= 4 || _col >= 4)
               throw IndexException();
-            return this->data[_row];
+            return this->data[_row][_col];
           }
 
   /// \brief Equality operator

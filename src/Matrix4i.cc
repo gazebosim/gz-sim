@@ -16,8 +16,6 @@
 */
 #include "ignition/math/Matrix4i.hh"
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/IndexException.hh"
-#include "ignition/math/AffineException.hh"
 #include "ignition/math/Vector3i.hh"
 #include "ignition/math/Matrix3i.hh"
 #include "ignition/math/Quaternioni.hh"

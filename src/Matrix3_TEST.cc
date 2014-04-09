@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/math/Helpers.hh"
 #include "ignition/math/Matrix3d.hh"
 
 using namespace ignition;
@@ -50,4 +51,27 @@ TEST(Matrix3dTest, Matrix3d)
 
   EXPECT_THROW(matrix.SetCol(3, math::Vector3d(1, 1, 1)),
       ignition::math::IndexException);
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, IndexException)
+{
+  math::Matrix3d mat = math::Matrix3d::Zero;
+  for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+      EXPECT_NO_THROW(mat(i, j));
+
+  EXPECT_THROW(math::equal(mat(3, 0), 0.0), math::IndexException);
+  EXPECT_THROW(math::equal(mat(0, 3), 0.0), math::IndexException);
+  EXPECT_THROW(math::equal(mat(3, 3), 0.0), math::IndexException);
+
+  EXPECT_THROW(mat(3, 0) = 0, math::IndexException);
+  EXPECT_THROW(mat(0, 3) = 0, math::IndexException);
+  EXPECT_THROW(mat(3, 3) = 0, math::IndexException);
+
+  const math::Matrix3d constMat(math::Matrix3d::Zero);
+
+  EXPECT_THROW(math::equal(constMat(3, 0), 0.0), math::IndexException);
+  EXPECT_THROW(math::equal(constMat(0, 3), 0.0), math::IndexException);
+  EXPECT_THROW(math::equal(constMat(3, 3), 0.0), math::IndexException);
 }
