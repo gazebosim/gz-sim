@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_VECTOR4
-#error This class should not be used directly. Use Vector4d.hh,\
+#error This class should not be used directly. Use Vector4d.hh, \
 IGN_VECTOR4f.hh, or IGN_VECTOR4i.hh.
 #endif
 

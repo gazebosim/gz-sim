@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_VECTOR3
-#error This class should not be used directly. Use Vector3d.hh,\
+#error This class should not be used directly. Use Vector3d.hh, \
 Vector3f.hh, or Vector3i.hh.
 #endif
 

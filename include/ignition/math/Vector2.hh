@@ -15,7 +15,8 @@
  *
 */
 #ifndef IGN_VECTOR2
-#error This class should not be used directly. Use Vector2d.hh, Vector2f.hh, or Vector2i.hh.
+#error This class should not be used directly. Use Vector2d.hh, \
+Vector2f.hh, or Vector2i.hh.
 #endif
 
 /// \brief Two dimensional (x, y) vector.
