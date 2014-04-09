@@ -134,5 +134,8 @@ TEST(PoseTest, Pose)
 /////////////////////////////////////////////////
 TEST(PoseTest, ConstPose)
 {
-  const math::Pose pose(0, 1, 2, 3, 4, 5, 1);
+  const math::Pose3d pose(0, 1, 2, 0, 0, 0);
+
+  EXPECT_TRUE(pose.pos() == math::Vector3d(0, 1, 2));
+  EXPECT_TRUE(pose.rot() == math::Quaterniond(0, 0, 0));
 }

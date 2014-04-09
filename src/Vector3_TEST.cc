@@ -273,3 +273,14 @@ TEST(Vector3dTest, Finite)
 
   EXPECT_TRUE(vec1.IsFinite());
 }
+
+/////////////////////////////////////////////////
+TEST(Vector3dTest, IndexException)
+{
+  math::Vector3d v(1, 2, 3);
+  EXPECT_NO_THROW(math::equal(v[0], 1.0));
+  EXPECT_NO_THROW(math::equal(v[1], 2.0));
+  EXPECT_NO_THROW(math::equal(v[2], 3.0));
+
+  EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
+}
