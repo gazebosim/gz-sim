@@ -22,4 +22,4 @@ set (DEBIAN_PACKAGE_DEPENDS "")
 
 set (RPM_PACKAGE_DEPENDS "")
 
-set (IGNITION_MATH_CPACK_CFG_FILE "${PROJECT_BINARY_DIR}/cpack_options.cmake")
+set (PROJECT_CPACK_CFG_FILE "${PROJECT_BINARY_DIR}/cpack_options.cmake")

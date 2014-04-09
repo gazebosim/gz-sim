@@ -1,24 +1,20 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-project (ignition_math)
+set (IGN_PROJECT_NAME "math")
+
+project (ignition_${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
-set (IGNITION_MATH_MAJOR_VERSION 0)
-set (IGNITION_MATH_MINOR_VERSION 1)
-set (IGNITION_MATH_PATCH_VERSION 0)
+set (PROJECT_MAJOR_VERSION 0)
+set (PROJECT_MINOR_VERSION 1)
+set (PROJECT_PATCH_VERSION 0)
 
-set (IGNITION_MATH_VERSION ${IGNITION_MATH_MAJOR_VERSION}.${IGNITION_MATH_MINOR_VERSION})
-set (IGNITION_MATH_VERSION_FULL
-  ${IGNITION_MATH_MAJOR_VERSION}.${IGNITION_MATH_MINOR_VERSION}.${IGNITION_MATH_PATCH_VERSION})
+set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
+set (PROJECT_VERSION_FULL
+  ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
 
-set (PROJECT_MAJOR_VERSION ${IGNITION_MATH_MAJOR_VERSION})
-set (PROJECT_MINOR_VERSION ${IGNITION_MATH_MINOR_VERSION})
-set (PROJECT_PATCH_VERSION ${IGNITION_MATH_PATCH_VERSION})
-set (PROJECT_VERSION ${IGNITION_MATH_VERSION})
-set (PROJECT_VERSION_FULL ${IGNITION_MATH_VERSION_FULL})
-
-message (STATUS "${PROJECT_NAME} version ${IGNITION_MATH_VERSION_FULL}")
+message (STATUS "${PROJECT_NAME} version ${PROJECT_VERSION_FULL}")
 
 set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
   CACHE PATH "Location of CMake scripts")
@@ -28,18 +24,18 @@ include (${project_cmake_dir}/Utils.cmake)
 ########################################
 # Package Creation: 
 include (${project_cmake_dir}/cpack.cmake)
-set (CPACK_PACKAGE_VERSION "${IGNITION_MATH_VERSION_FULL}")
-set (CPACK_PACKAGE_VERSION_MAJOR "${IGNITION_MATH_MAJOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_MINOR "${IGNITION_MATH_MINOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_PATCH "${IGNITION_MATH_PATCH_VERSION}")
+set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
+set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
+set (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_MINOR_VERSION}")
+set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_PATCH_VERSION}")
 
 if (CPACK_GENERATOR)
   message(STATUS "Found CPack generators: ${CPACK_GENERATOR}")
 
   configure_file("${project_cmake_dir}/cpack_options.cmake.in"
-    ${IGNITION_MATH_CPACK_CFG_FILE} @ONLY)
+    ${PROJECT_CPACK_CFG_FILE} @ONLY)
 
-  set(CPACK_PROJECT_CONFIG_FILE ${IGNITION_MATH_CPACK_CFG_FILE})
+  set(CPACK_PROJECT_CONFIG_FILE ${PROJECT_CPACK_CFG_FILE})
   include (CPack)
 endif()
 
@@ -92,7 +88,7 @@ if(LD_LIBRARY_PATH)
 endif()
 
 
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition") 
+set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/include/ignition") 
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
@@ -120,7 +116,7 @@ if (USE_FULL_RPATH)
   endif("${isSystemDir}" STREQUAL "-1")
 endif()
 
-set (BUILD_IGNITION_MATH ON CACHE INTERNAL "Build Ignition Math" FORCE)
+set (BUILD_IGNITION ON CACHE INTERNAL "Build Ignition Math" FORCE)
 set (build_errors "" CACHE INTERNAL "build errors" FORCE)
 set (build_warnings "" CACHE INTERNAL "build warnings" FORCE)
 
@@ -131,7 +127,7 @@ include (${project_cmake_dir}/SearchForStuff.cmake)
 message (STATUS "----------------------------------------\n")
 
 #####################################
-MESSAGE(STATUS "Checking ignition_math build type")
+MESSAGE(STATUS "Checking ignition build type")
 # Set the default build type
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING 
@@ -175,7 +171,7 @@ if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
 endif()
 
 # USE_UPSTREAM_CFLAGS (default TRUE)
-# Will use predefined ignition_math developers cflags
+# Will use predefined ignition developers cflags
 if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
   message(STATUS "Enable upstream CFlags")
   include(${project_cmake_dir}/DefaultCFlags.cmake)
@@ -186,7 +182,7 @@ filter_valid_compiler_warnings(-Wall -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
   -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} -std=c++11")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
 
 #################################################
 # OS Specific initialization
@@ -232,12 +228,13 @@ else (build_errors)
   ########################################
   # Write the config.h file
   configure_file (${project_cmake_dir}/config.hh.in
-    ${PROJECT_BINARY_DIR}/ignition/math/config.hh)
-  ign_install_includes("math" ${PROJECT_BINARY_DIR}/ignition/math/config.hh)
+    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
+  ign_install_includes(${IGN_PROJECT_NAME}
+    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
   include_directories(
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
   )
   link_directories(${PROJECT_BINARY_DIR}/src)
 
@@ -250,16 +247,16 @@ else (build_errors)
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
  
 
-  if (BUILD_IGNITION_MATH)
+  if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
-    add_subdirectory(ignition)
+    add_subdirectory(include)
     add_subdirectory(test)
-  endif (BUILD_IGNITION_MATH)
+  endif (BUILD_IGNITION)
 
   ########################################
   # Make the package config files
-  set (pkgconfig_files ignition_math)
+  set (pkgconfig_files ${PROJECT_NAME_LOWER})
 
   foreach (pkgconfig ${pkgconfig_files})
     configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
@@ -272,20 +269,20 @@ else (build_errors)
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ignition_math)
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
   
   set(PKG_DEPENDS)
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition_math-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/IgnitionMathConfig.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IgnitionMathConfig.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignitionmath/
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition/
     COMPONENT cmake)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
-  # for example, by the Ubuntu overlay (in the ignition_math-release repo), to
+  # for example, by the Ubuntu overlay, to
   # arrange for installation of Ubuntu-specific application-launching
   # configuration.
   if (EXISTS ${PROJECT_SOURCE_DIR}/cmake/packager-hooks/CMakeLists.txt)
@@ -293,5 +290,5 @@ else (build_errors)
     add_subdirectory(cmake/packager-hooks)
   endif()
 
-  message(STATUS "Configuration successful. Type make to compile ignition_math")
+  message(STATUS "Configuration successful. Type make to compile ${PROJECT_NAME_LOWER}")
 endif(build_errors)

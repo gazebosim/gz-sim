@@ -8,6 +8,11 @@ classes and functions for ignition.
   
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
 
+## Continuous integration
+
+Please refer to the [drone.io
+job](https://drone.io/bitbucket.org/ignitionrobotics/ign_math).
+
 ## Installation
 
 Standard installation can be performed in UNIX systems using the following 
