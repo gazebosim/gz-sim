@@ -272,7 +272,7 @@ else (build_errors)
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
   
-  set(PKG_DEPENDS Boost Protobuf SDFormat)
+  set(PKG_DEPENDS)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
