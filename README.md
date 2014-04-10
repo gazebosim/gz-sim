@@ -13,6 +13,8 @@ classes and functions for ignition.
 Please refer to the [drone.io
 job](https://drone.io/bitbucket.org/ignitionrobotics/ign_math).
 
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign_math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign_math/latest)
+
 ## Installation
 
 Standard installation can be performed in UNIX systems using the following 
