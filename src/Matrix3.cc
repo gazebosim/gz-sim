@@ -58,6 +58,22 @@ IGN_MATRIX3::~IGN_MATRIX3()
 }
 
 //////////////////////////////////////////////////
+void IGN_MATRIX3::Set(IGN_NUMERIC _v00, IGN_NUMERIC _v01, IGN_NUMERIC _v02,
+                 IGN_NUMERIC _v10, IGN_NUMERIC _v11, IGN_NUMERIC _v12,
+                 IGN_NUMERIC _v20, IGN_NUMERIC _v21, IGN_NUMERIC _v22)
+{
+  this->data[0][0] = _v00;
+  this->data[0][1] = _v01;
+  this->data[0][2] = _v02;
+  this->data[1][0] = _v10;
+  this->data[1][1] = _v11;
+  this->data[1][2] = _v12;
+  this->data[2][0] = _v20;
+  this->data[2][1] = _v21;
+  this->data[2][2] = _v22;
+}
+
+//////////////////////////////////////////////////
 void IGN_MATRIX3::SetFromAxes(const IGN_VECTOR3 &_xAxis,
     const IGN_VECTOR3 &_yAxis,
     const IGN_VECTOR3 &_zAxis)
@@ -201,14 +217,32 @@ IGN_MATRIX3 IGN_MATRIX3::operator*(const IGN_MATRIX3 &_m) const
 std::ostream &ignition::math::operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX3 &_m)
 {
-  for (int i = 0; i < 3; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      _out << _m(i, j) << " ";
-    }
-    _out << "\n";
-  }
+  _out << precision(_m(0, 0), 6) << " "
+       << precision(_m(0, 1), 6) << " "
+       << precision(_m(0, 2), 6) << " "
+       << precision(_m(1, 0), 6) << " "
+       << precision(_m(1, 1), 6) << " "
+       << precision(_m(1, 2), 6) << " "
+       << precision(_m(2, 0), 6) << " "
+       << precision(_m(2, 1), 6) << " "
+       << precision(_m(2, 2), 6);
 
   return _out;
+}
+
+//////////////////////////////////////////////////
+std::istream &ignition::math::operator>>(std::istream &_in,
+    ignition::math::IGN_MATRIX3 &_m)
+{
+  // Skip white spaces
+  _in.setf(std::ios_base::skipws);
+  IGN_NUMERIC d[9];
+  _in >> d[0] >> d[1] >> d[2]
+      >> d[3] >> d[4] >> d[5]
+      >> d[6] >> d[7] >> d[8];
+
+  _m.Set(d[0], d[1], d[2],
+         d[3], d[4], d[5],
+         d[6], d[7], d[8]);
+  return _in;
 }

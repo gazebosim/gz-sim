@@ -211,3 +211,9 @@ class IGN_MATRIX4
 /// \return the stream
 std::ostream &operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX4 &_m);
+
+/// \brief Stream extraction operator
+/// \param _in input stream
+/// \param _pt Matrix4 to read values into
+/// \return the stream
+std::istream &operator>>(std::istream &_in, ignition::math::IGN_MATRIX4 &_pt);

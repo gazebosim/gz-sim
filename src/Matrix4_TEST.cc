@@ -350,3 +350,30 @@ TEST(Matrix4dTest, IndexException)
   EXPECT_THROW(math::equal(constMat(0, 4), 0.0), math::IndexException);
   EXPECT_THROW(math::equal(constMat(4, 4), 0.0), math::IndexException);
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, OperatorStreamOut)
+{
+  math::Matrix4d matA(1, 2, 3, 4,
+                      5, 6, 7, 8,
+                      9, 10, 11, 12,
+                      13, 14, 15, 16);
+
+  std::ostringstream stream;
+  stream << matA;
+  EXPECT_EQ(stream.str(), "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16");
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, OperatorStreamIn)
+{
+  math::Matrix4d mat;
+  EXPECT_EQ(mat, math::Matrix4d::Zero);
+
+  std::istringstream stream("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16");
+  stream >> mat;
+  EXPECT_EQ(mat, math::Matrix4d(1, 2, 3, 4,
+                                5, 6, 7, 8,
+                                9, 10, 11, 12,
+                                13, 14, 15, 16));
+}

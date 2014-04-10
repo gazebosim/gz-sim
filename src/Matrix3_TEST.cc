@@ -75,3 +75,101 @@ TEST(Matrix3dTest, IndexException)
   EXPECT_THROW(math::equal(constMat(0, 3), 0.0), math::IndexException);
   EXPECT_THROW(math::equal(constMat(3, 3), 0.0), math::IndexException);
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, OperatorSubtract)
+{
+  math::Matrix3d matZero = math::Matrix3d::Zero;
+  math::Matrix3d matIdent = math::Matrix3d::Identity;
+
+  math::Matrix3d mat = matIdent - matZero;
+  EXPECT_EQ(mat, matIdent);
+
+  math::Matrix3d matA(1, 2, 3,
+                      4, 5, 6,
+                      7, 8, 9);
+
+  math::Matrix3d matB(10, 20, 30,
+                      40, 50, 60,
+                      70, 80, 90);
+
+  mat = matB - matA;
+  EXPECT_EQ(mat, math::Matrix3d(9, 18, 27, 36, 45, 54, 63, 72, 81));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, OperatorAdd)
+{
+  math::Matrix3d matZero = math::Matrix3d::Zero;
+  math::Matrix3d matIdent = math::Matrix3d::Identity;
+
+  math::Matrix3d mat = matIdent + matZero;
+  EXPECT_EQ(mat, matIdent);
+
+  math::Matrix3d matA(1, 2, 3,
+                      4, 5, 6,
+                      7, 8, 9);
+
+  math::Matrix3d matB(10, 20, 30,
+                      40, 50, 60,
+                      70, 80, 90);
+
+  mat = matB + matA;
+  EXPECT_EQ(mat, math::Matrix3d(11, 22, 33, 44, 55, 66, 77, 88, 99));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, OperatorMul)
+{
+  math::Matrix3d matZero = math::Matrix3d::Zero;
+  math::Matrix3d matIdent = math::Matrix3d::Identity;
+
+  math::Matrix3d mat = matIdent * matZero;
+  EXPECT_EQ(mat, matZero);
+
+  math::Matrix3d matA(1, 2, 3,
+                      4, 5, 6,
+                      7, 8, 9);
+
+  math::Matrix3d matB(10, 20, 30,
+                      40, 50, 60,
+                      70, 80, 90);
+
+  mat = matA * matB;
+  EXPECT_EQ(mat, math::Matrix3d(300, 360, 420,
+                                660, 810, 960,
+                                1020, 1260, 1500));
+
+  mat = matB * matA;
+  EXPECT_EQ(mat, math::Matrix3d(300, 360, 420,
+                                660, 810, 960,
+                                1020, 1260, 1500));
+
+  mat = mat * 2.0;
+  EXPECT_EQ(mat, math::Matrix3d(600, 720, 840,
+                                1320, 1620, 1920,
+                                2040, 2520, 3000));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, OperatorStreamOut)
+{
+  math::Matrix3d matA(1, 2, 3,
+                      4, 5, 6,
+                      7, 8, 9);
+
+  std::ostringstream stream;
+  stream << matA;
+  EXPECT_EQ(stream.str(), "1 2 3 4 5 6 7 8 9");
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, OperatorStreamIn)
+{
+  math::Matrix3d mat;
+  EXPECT_EQ(mat, math::Matrix3d::Zero);
+
+  std::istringstream stream("1 2 3 4 5 6 7 8 9");
+  stream >> mat;
+  EXPECT_EQ(mat, math::Matrix3d(1, 2, 3, 4, 5, 6, 7, 8, 9));
+}

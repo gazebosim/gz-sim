@@ -530,15 +530,41 @@ IGN_POSE3 IGN_MATRIX4::GetAsPose() const
 std::ostream &ignition::math::operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX4 &_m)
 {
-  for (int i = 0; i < 4; i++)
-  {
-    for (int j = 0; j < 4; j++)
-    {
-      _out << (fabs(_m(i, j)) < 1e-6 ? 0 : _m(i, j)) << " ";
-    }
-    _out << "\n";
-  }
+  _out << precision(_m(0, 0), 6) << " "
+       << precision(_m(0, 1), 6) << " "
+       << precision(_m(0, 2), 6) << " "
+       << precision(_m(0, 3), 6) << " "
+       << precision(_m(1, 0), 6) << " "
+       << precision(_m(1, 1), 6) << " "
+       << precision(_m(1, 2), 6) << " "
+       << precision(_m(1, 3), 6) << " "
+       << precision(_m(2, 0), 6) << " "
+       << precision(_m(2, 1), 6) << " "
+       << precision(_m(2, 2), 6) << " "
+       << precision(_m(2, 3), 6) << " "
+       << precision(_m(3, 0), 6) << " "
+       << precision(_m(3, 1), 6) << " "
+       << precision(_m(3, 2), 6) << " "
+       << precision(_m(3, 3), 6);
 
   return _out;
 }
 
+//////////////////////////////////////////////////
+std::istream &ignition::math::operator>>(std::istream &_in,
+    ignition::math::IGN_MATRIX4 &_m)
+{
+  // Skip white spaces
+  _in.setf(std::ios_base::skipws);
+  IGN_NUMERIC d[16];
+  _in >> d[0] >> d[1] >> d[2] >> d[3]
+      >> d[4] >> d[5] >> d[6] >> d[7]
+      >> d[8] >> d[9] >> d[10] >> d[11]
+      >> d[12] >> d[13] >> d[14] >> d[15];
+
+  _m.Set(d[0], d[1], d[2], d[3],
+         d[4], d[5], d[6], d[7],
+         d[8], d[9], d[10], d[11],
+         d[12], d[13], d[14], d[15]);
+  return _in;
+}
