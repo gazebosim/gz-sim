@@ -21,6 +21,6 @@
 using namespace ignition;
 using namespace math;
 
-#include <ignition/math/FloatDefs.hh>
+#include "ignition/math/FloatDefs.hh"
 #include "Vector2.cc"
-#include <ignition/math/Undefs.hh>
+#include "ignition/math/Undefs.hh"

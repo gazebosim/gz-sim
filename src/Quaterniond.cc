@@ -22,6 +22,6 @@
 using namespace ignition;
 using namespace math;
 
-#include <ignition/math/DoubleDefs.hh>
+#include "ignition/math/DoubleDefs.hh"
 #include "Quaternion.cc"
-#include <ignition/math/Undefs.hh>
+#include "ignition/math/Undefs.hh"

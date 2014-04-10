@@ -51,7 +51,8 @@ double IGN_VECTOR2::Distance(const IGN_VECTOR2 &_pt) const
 //////////////////////////////////////////////////
 void IGN_VECTOR2::Normalize()
 {
-  double d = sqrt(this->data[0] * this->data[0] + this->data[1] * this->data[1]);
+  double d = sqrt(this->data[0] * this->data[0] +
+                  this->data[1] * this->data[1]);
 
   this->data[0] /= d;
   this->data[1] /= d;

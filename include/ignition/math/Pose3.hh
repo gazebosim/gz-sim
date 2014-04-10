@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_POSE3
-#error This class should not be used directly. Use Pose3d.hh,\
+#error This class should not be used directly. Use Pose3d.hh, \
 Pose3f.hh, or Pose3i.hh.
 #endif
 

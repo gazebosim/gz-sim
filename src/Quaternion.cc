@@ -44,7 +44,8 @@ IGN_QUATERNION::IGN_QUATERNION(const IGN_VECTOR3 &_rpy)
 }
 
 //////////////////////////////////////////////////
-IGN_QUATERNION::IGN_QUATERNION(const IGN_VECTOR3 &_axis, const IGN_NUMERIC &_angle)
+IGN_QUATERNION::IGN_QUATERNION(const IGN_VECTOR3 &_axis,
+    const IGN_NUMERIC &_angle)
 {
   this->SetFromAxis(_axis, _angle);
 }
@@ -180,7 +181,8 @@ void IGN_QUATERNION::Normalize()
 }
 
 //////////////////////////////////////////////////
-void IGN_QUATERNION::SetFromAxis(IGN_NUMERIC _ax, IGN_NUMERIC _ay, IGN_NUMERIC _az, IGN_NUMERIC _aa)
+void IGN_QUATERNION::SetFromAxis(IGN_NUMERIC _ax, IGN_NUMERIC _ay,
+    IGN_NUMERIC _az, IGN_NUMERIC _aa)
 {
   IGN_NUMERIC l;
 
@@ -213,7 +215,8 @@ void IGN_QUATERNION::SetFromAxis(const IGN_VECTOR3 &_axis, IGN_NUMERIC _a)
 }
 
 //////////////////////////////////////////////////
-void IGN_QUATERNION::Set(IGN_NUMERIC _w, IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z)
+void IGN_QUATERNION::Set(IGN_NUMERIC _w, IGN_NUMERIC _x, IGN_NUMERIC _y,
+    IGN_NUMERIC _z)
 {
   this->qw = _w;
   this->qx = _x;
@@ -228,7 +231,8 @@ void IGN_QUATERNION::SetFromEuler(const IGN_VECTOR3 &_vec)
 }
 
 //////////////////////////////////////////////////
-void IGN_QUATERNION::SetFromEuler(IGN_NUMERIC _roll, IGN_NUMERIC _pitch, IGN_NUMERIC _yaw)
+void IGN_QUATERNION::SetFromEuler(IGN_NUMERIC _roll, IGN_NUMERIC _pitch,
+    IGN_NUMERIC _yaw)
 {
   IGN_NUMERIC phi, the, psi;
 
@@ -284,7 +288,8 @@ IGN_QUATERNION IGN_QUATERNION::EulerToQuaternion(const IGN_VECTOR3 &_vec)
 }
 
 //////////////////////////////////////////////////
-IGN_QUATERNION IGN_QUATERNION::EulerToQuaternion(IGN_NUMERIC _x, IGN_NUMERIC _y, IGN_NUMERIC _z)
+IGN_QUATERNION IGN_QUATERNION::EulerToQuaternion(IGN_NUMERIC _x,
+    IGN_NUMERIC _y, IGN_NUMERIC _z)
 {
   return EulerToQuaternion(IGN_VECTOR3(_x, _y, _z));
 }
@@ -526,9 +531,9 @@ IGN_NUMERIC IGN_QUATERNION::Dot(const IGN_QUATERNION &_q) const
 
 
 //////////////////////////////////////////////////
-IGN_QUATERNION IGN_QUATERNION::Squad(IGN_NUMERIC _fT, const IGN_QUATERNION &_rkP,
-    const IGN_QUATERNION &_rkA, const IGN_QUATERNION &_rkB,
-    const IGN_QUATERNION &_rkQ, bool _shortestPath)
+IGN_QUATERNION IGN_QUATERNION::Squad(IGN_NUMERIC _fT,
+    const IGN_QUATERNION &_rkP, const IGN_QUATERNION &_rkA,
+    const IGN_QUATERNION &_rkB, const IGN_QUATERNION &_rkQ, bool _shortestPath)
 {
   IGN_NUMERIC fSlerpT = 2.0f*_fT*(1.0f-_fT);
   IGN_QUATERNION kSlerpP = Slerp(_fT, _rkP, _rkQ, _shortestPath);
@@ -537,8 +542,8 @@ IGN_QUATERNION IGN_QUATERNION::Squad(IGN_NUMERIC _fT, const IGN_QUATERNION &_rkP
 }
 
 //////////////////////////////////////////////////
-IGN_QUATERNION IGN_QUATERNION::Slerp(IGN_NUMERIC _fT, const IGN_QUATERNION &_rkP,
-    const IGN_QUATERNION &_rkQ, bool _shortestPath)
+IGN_QUATERNION IGN_QUATERNION::Slerp(IGN_NUMERIC _fT,
+    const IGN_QUATERNION &_rkP, const IGN_QUATERNION &_rkQ, bool _shortestPath)
 {
   IGN_NUMERIC fCos = _rkP.Dot(_rkQ);
   IGN_QUATERNION rkT;

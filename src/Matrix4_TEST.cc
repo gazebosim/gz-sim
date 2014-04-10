@@ -206,7 +206,8 @@ TEST(Matrix4dTest, GetAsPose3d)
                     0, 2, 3, 1);
   math::Pose3d pose = mat.GetAsPose();
 
-  EXPECT_EQ(pose, math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
+  EXPECT_EQ(pose,
+      math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
 }
 
 /////////////////////////////////////////////////

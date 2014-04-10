@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_QUATERNION
-#error This class should not be used directly. Use Quaterniond.hh,\
+#error This class should not be used directly. Use Quaterniond.hh, \
 Quaterniond.hh, or Quaterioni.hh.
 #endif
 

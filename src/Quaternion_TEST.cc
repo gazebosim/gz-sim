@@ -156,9 +156,6 @@ TEST(QuaternionTest, Math)
   q = q * 5.0;
   EXPECT_TRUE(q == math::Quaterniond(7.67918, -1.184, 2.7592, 4.0149));
 
-  std::cerr << "[" << q.w() << ", " << q.x() << ", " << q.y() << ", " << q.z() << "]\n";
-  std::cerr << q.RotateVectorReverse(math::Vector3d(1, 2, 3)) << "\n";
-
   EXPECT_TRUE(q.RotateVectorReverse(math::Vector3d(1, 2, 3)) ==
       math::Vector3d(-0.104115, 0.4975, 3.70697));
 
@@ -169,7 +166,9 @@ TEST(QuaternionTest, Math)
         math::Quaterniond(0, 0, 2), true) ==
       math::Quaterniond(0.346807, -0.0511734, -0.0494723, 0.935232));
 
-  EXPECT_TRUE(math::Quaterniond::EulerToQuaternion(math::Vector3d(.1, .2, .3)) == math::Quaterniond(0.983347, 0.0342708, 0.106021, 0.143572));
+  EXPECT_TRUE(math::Quaterniond::EulerToQuaternion(
+        math::Vector3d(.1, .2, .3)) ==
+      math::Quaterniond(0.983347, 0.0342708, 0.106021, 0.143572));
 
   q.Round(2);
   EXPECT_TRUE(math::equal(-1.18, q.x()));

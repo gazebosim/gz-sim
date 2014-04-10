@@ -50,7 +50,8 @@ TEST(PoseTest, Pose)
     EXPECT_TRUE(math::equal((math::Pose3d() - A).pos().z(),               0.0));
     EXPECT_TRUE(math::equal((math::Pose3d() - A).rot().GetAsEuler().x(),  0.0));
     EXPECT_TRUE(math::equal((math::Pose3d() - A).rot().GetAsEuler().y(),  0.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).rot().GetAsEuler().z(), -M_PI/4));
+    EXPECT_TRUE(
+        math::equal((math::Pose3d() - A).rot().GetAsEuler().z(), -M_PI/4));
 
     // test negation operator
     EXPECT_TRUE(math::equal((-A).pos().x(),      -1.0/sqrt(2)));

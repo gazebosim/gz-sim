@@ -23,6 +23,6 @@
 using namespace ignition;
 using namespace math;
 
-#include <ignition/math/IntegerDefs.hh>
+#include "ignition/math/IntegerDefs.hh"
 #include "Pose3.cc"
-#include <ignition/math/Undefs.hh>
+#include "ignition/math/Undefs.hh"

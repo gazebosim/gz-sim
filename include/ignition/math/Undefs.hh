@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#undef IGN_NUMERIC 
+#undef IGN_NUMERIC
 #undef IGN_VECTOR2
 #undef IGN_VECTOR3
 #undef IGN_VECTOR4

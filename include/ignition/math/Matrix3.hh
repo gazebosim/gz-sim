@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_MATRIX3
-#error This class should not be used directly. Use Matrix3d.hh,\
+#error This class should not be used directly. Use Matrix3d.hh, \
 Matrix3f.hh, or Matrix3i.hh.
 #endif
 

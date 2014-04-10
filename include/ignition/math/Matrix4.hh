@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGN_MATRIX4
-#error This class should not be used directly. Use IGN_MATRIX4d.hh,\
+#error This class should not be used directly. Use IGN_MATRIX4d.hh, \
 IGN_MATRIX4f.hh, or IGN_MATRIX4i.hh.
 #endif
 
@@ -115,7 +115,7 @@ class IGN_MATRIX4
 
   /// \brief Get the rotation as a Euler angles
   /// \param[in] _firstSolution True to get the first Euler solution,
-  /// false to get the second. 
+  /// false to get the second.
   /// \return the rotation
   public: IGN_VECTOR3 GetEulerRotation(bool _firstSolution) const;
 

@@ -143,7 +143,7 @@ IGN_QUATERNION IGN_MATRIX4::GetRotation() const
 
     root = sqrt(this->data[i][i] - this->data[j][j] - this->data[k][k] + 1.0);
 
-    IGN_NUMERIC a, b, c; 
+    IGN_NUMERIC a, b, c;
     a = root / 2.0;
     root = 1.0 / (2.0 * root);
     b = (this->data[j][i] + this->data[i][j]) * root;
@@ -315,77 +315,77 @@ IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX4 &_m2) const
     this->data[0][1] * _m2(1, 0) +
     this->data[0][2] * _m2(2, 0) +
     this->data[0][3] * _m2(3, 0),
-  
+
     this->data[0][0] * _m2(0, 1) +
     this->data[0][1] * _m2(1, 1) +
     this->data[0][2] * _m2(2, 1) +
     this->data[0][3] * _m2(3, 1),
-  
+
     this->data[0][0] * _m2(0, 2) +
     this->data[0][1] * _m2(1, 2) +
     this->data[0][2] * _m2(2, 2) +
     this->data[0][3] * _m2(3, 2),
-  
+
     this->data[0][0] * _m2(0, 3) +
     this->data[0][1] * _m2(1, 3) +
     this->data[0][2] * _m2(2, 3) +
     this->data[0][3] * _m2(3, 3),
-  
+
     this->data[1][0] * _m2(0, 0) +
     this->data[1][1] * _m2(1, 0) +
     this->data[1][2] * _m2(2, 0) +
     this->data[1][3] * _m2(3, 0),
-  
+
     this->data[1][0] * _m2(0, 1) +
     this->data[1][1] * _m2(1, 1) +
     this->data[1][2] * _m2(2, 1) +
     this->data[1][3] * _m2(3, 1),
-  
+
     this->data[1][0] * _m2(0, 2) +
     this->data[1][1] * _m2(1, 2) +
     this->data[1][2] * _m2(2, 2) +
     this->data[1][3] * _m2(3, 2),
-  
+
     this->data[1][0] * _m2(0, 3) +
     this->data[1][1] * _m2(1, 3) +
     this->data[1][2] * _m2(2, 3) +
     this->data[1][3] * _m2(3, 3),
-  
+
     this->data[2][0] * _m2(0, 0) +
     this->data[2][1] * _m2(1, 0) +
     this->data[2][2] * _m2(2, 0) +
     this->data[2][3] * _m2(3, 0),
-  
+
     this->data[2][0] * _m2(0, 1) +
     this->data[2][1] * _m2(1, 1) +
     this->data[2][2] * _m2(2, 1) +
     this->data[2][3] * _m2(3, 1),
-  
+
     this->data[2][0] * _m2(0, 2) +
     this->data[2][1] * _m2(1, 2) +
     this->data[2][2] * _m2(2, 2) +
     this->data[2][3] * _m2(3, 2),
-  
+
     this->data[2][0] * _m2(0, 3) +
     this->data[2][1] * _m2(1, 3) +
     this->data[2][2] * _m2(2, 3) +
     this->data[2][3] * _m2(3, 3),
-  
+
     this->data[3][0] * _m2(0, 0) +
     this->data[3][1] * _m2(1, 0) +
     this->data[3][2] * _m2(2, 0) +
     this->data[3][3] * _m2(3, 0),
-  
+
     this->data[3][0] * _m2(0, 1) +
     this->data[3][1] * _m2(1, 1) +
     this->data[3][2] * _m2(2, 1) +
     this->data[3][3] * _m2(3, 1),
-  
+
     this->data[3][0] * _m2(0, 2) +
     this->data[3][1] * _m2(1, 2) +
     this->data[3][2] * _m2(2, 2) +
     this->data[3][3] * _m2(3, 2),
-  
+
     this->data[3][0] * _m2(0, 3) +
     this->data[3][1] * _m2(1, 3) +
     this->data[3][2] * _m2(2, 3) +
