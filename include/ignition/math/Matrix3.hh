@@ -53,6 +53,20 @@ class IGN_MATRIX3
   /// \brief Desctructor
   public: virtual ~IGN_MATRIX3();
 
+  /// \brief Set values
+  /// \param[in] _v00 Row 0, Col 0 value
+  /// \param[in] _v01 Row 0, Col 1 value
+  /// \param[in] _v02 Row 0, Col 2 value
+  /// \param[in] _v10 Row 1, Col 0 value
+  /// \param[in] _v11 Row 1, Col 1 value
+  /// \param[in] _v12 Row 1, Col 2 value
+  /// \param[in] _v20 Row 2, Col 0 value
+  /// \param[in] _v21 Row 2, Col 1 value
+  /// \param[in] _v22 Row 2, Col 2 value
+  public: void Set(IGN_NUMERIC _v00, IGN_NUMERIC _v01, IGN_NUMERIC _v02,
+                  IGN_NUMERIC _v10, IGN_NUMERIC _v11, IGN_NUMERIC _v12,
+                  IGN_NUMERIC _v20, IGN_NUMERIC _v21, IGN_NUMERIC _v22);
+
   /// \brief Set the matrix from three axis (1 per column)
   /// \param[in] _xAxis The x axis
   /// \param[in] _yAxis The y axis
@@ -120,3 +134,9 @@ class IGN_MATRIX3
 /// \return the stream
 std::ostream &operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX3 &_m);
+
+/// \brief Stream extraction operator
+/// \param _in input stream
+/// \param _pt Matrix3 to read values into
+/// \return the stream
+std::istream &operator>>(std::istream &_in, ignition::math::IGN_MATRIX3 &_pt);
