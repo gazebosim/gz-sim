@@ -11,7 +11,9 @@ set (headers
   Matrix4d.hh
   Matrix4f.hh
   Matrix4i.hh
-  Plane.hh
+  Planed.hh
+  Planef.hh
+  Planei.hh
   Pose3d.hh
   Pose3f.hh
   Pose3i.hh

@@ -9,18 +9,29 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUdouble WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUint WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
 */
-#define IGN_NUMERIC int
-#define IGN_VECTOR2 Vector2i
-#define IGN_VECTOR3 Vector3i
-#define IGN_VECTOR4 Vector4i
-#define IGN_MATRIX3 Matrix3i
-#define IGN_MATRIX4 Matrix4i
-#define IGN_POSE3 Pose3i
-#define IGN_POSE2 Pose2i
-#define IGN_QUATERNION Quaternioni
-#define IGN_PLANE Planei
+#ifndef _IGNITION_PLANEF_HH_
+#define _IGNITION_PLANEF_HH_
+
+#include <math.h>
+#include <iostream>
+#include <fstream>
+
+#include "ignition/math/Vector3f.hh"
+#include "ignition/math/Vector2f.hh"
+
+namespace ignition
+{
+  namespace math
+  {
+#include "ignition/math/FloatDefs.hh"
+#include "ignition/math/Plane.hh"
+#include "ignition/math/Undefs.hh"
+  }
+}
+
+#endif

@@ -14,37 +14,35 @@
  * limitations under the License.
  *
 */
-#include "ignition/math/Plane.hh"
-
-using namespace ignition;
-using namespace math;
 
 /////////////////////////////////////////////////
-Plane::Plane()
+IGN_PLANE::IGN_PLANE()
 {
   this->d = 0.0;
 }
 
 /////////////////////////////////////////////////
-Plane::Plane(const Vector3d &_normal, double _offset)
+IGN_PLANE::IGN_PLANE(const IGN_VECTOR3 &_normal, IGN_NUMERIC _offset)
 {
   this->normal = _normal;
   this->d = _offset;
 }
 
 /////////////////////////////////////////////////
-Plane::Plane(const Vector3d &_normal, const Vector2d &_size, double _offset)
+IGN_PLANE::IGN_PLANE(const IGN_VECTOR3 &_normal,
+    const IGN_VECTOR2 &_size, IGN_NUMERIC _offset)
 {
   this->Set(_normal, _size, _offset);
 }
 
 /////////////////////////////////////////////////
-Plane::~Plane()
+IGN_PLANE::~IGN_PLANE()
 {
 }
 
 /////////////////////////////////////////////////
-void Plane::Set(const Vector3d &_n, const Vector2d &_s, double _offset)
+void IGN_PLANE::Set(const IGN_VECTOR3 &_n, const IGN_VECTOR2 &_s,
+    IGN_NUMERIC _offset)
 {
   this->normal = _n;
   this->size = _s;
@@ -52,7 +50,7 @@ void Plane::Set(const Vector3d &_n, const Vector2d &_s, double _offset)
 }
 
 //////////////////////////////////////////////////
-Plane &Plane::operator =(const Plane & _p)
+IGN_PLANE &IGN_PLANE::operator =(const IGN_PLANE & _p)
 {
   this->normal = _p.normal;
   this->size = _p.size;
@@ -62,9 +60,10 @@ Plane &Plane::operator =(const Plane & _p)
 }
 
 //////////////////////////////////////////////////
-double Plane::Distance(const Vector3d &_origin, const Vector3d &_dir) const
+IGN_NUMERIC IGN_PLANE::Distance(const IGN_VECTOR3 &_origin,
+    const IGN_VECTOR3 &_dir) const
 {
-  double denom = this->normal.Dot(_dir);
+  IGN_NUMERIC denom = this->normal.Dot(_dir);
 
   if (fabs(denom) < 1e-3)
   {
@@ -73,8 +72,8 @@ double Plane::Distance(const Vector3d &_origin, const Vector3d &_dir) const
   }
   else
   {
-    double nom = _origin.Dot(this->normal) - this->d;
-    double t = -(nom/denom);
+    IGN_NUMERIC nom = _origin.Dot(this->normal) - this->d;
+    IGN_NUMERIC t = -(nom/denom);
     return t;
   }
 }

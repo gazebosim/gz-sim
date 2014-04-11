@@ -18,36 +18,62 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Plane.hh"
+#include "ignition/math/Planed.hh"
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
+TEST(PlaneTest, PlaneConstructor)
+{
+  math::Planed plane(math::Vector3d(1, 0, 0), 0.1);
+  EXPECT_EQ(plane.GetNormal(), math::Vector3d(1, 0, 0));
+  EXPECT_NEAR(plane.GetOffset(), 0.1, 1e-6);
+}
+
+/////////////////////////////////////////////////
+TEST(PlaneTest, Distance)
+{
+  math::Planed plane(math::Vector3d(0, 0, 1), 0.1);
+  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0),
+              math::Vector3d(0, 0, 1)), 0.1, 1e-6);
+
+  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.1),
+              math::Vector3d(0, 0, 1)), 0, 1e-6);
+
+  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.2),
+              math::Vector3d(0, 0, 1)), -0.1, 1e-6);
+
+  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.1),
+              math::Vector3d(1, 0, 0)), 0, 1e-6);
+}
+
+/////////////////////////////////////////////////
 TEST(PlaneTest, Plane)
 {
   {
-    math::Plane plane;
-    EXPECT_TRUE(math::equal(plane.d, 0.0));
-    EXPECT_TRUE(plane.normal == math::Vector3d());
-    EXPECT_TRUE(plane.size == math::Vector2d(0, 0));
+    math::Planed plane;
+    EXPECT_TRUE(math::equal(plane.GetOffset(), 0.0));
+    EXPECT_TRUE(plane.GetNormal() == math::Vector3d());
+    EXPECT_TRUE(plane.GetSize() == math::Vector2d(0, 0));
   }
 
   {
-    math::Plane plane(math::Vector3d(0, 0, 1), math::Vector2d(2, 3), 2.0);
-    EXPECT_TRUE(math::equal(plane.d, 2.0));
-    EXPECT_TRUE(plane.normal == math::Vector3d(0, 0, 1));
-    EXPECT_TRUE(plane.size == math::Vector2d(2, 3));
+    math::Planed plane(math::Vector3d(0, 0, 1), math::Vector2d(2, 3), 2.0);
+    EXPECT_TRUE(math::equal(plane.GetOffset(), 2.0));
+    EXPECT_TRUE(plane.GetNormal() == math::Vector3d(0, 0, 1));
+    EXPECT_TRUE(plane.GetSize() == math::Vector2d(2, 3));
 
     EXPECT_DOUBLE_EQ(-1, plane.Distance(math::Vector3d(0, 0, 1),
           math::Vector3d(0, 0, -1)));
 
     plane.Set(math::Vector3d(1, 0, 0), math::Vector2d(1, 1), 1.0);
-    EXPECT_TRUE(math::equal(plane.d, 1.0));
-    EXPECT_TRUE(plane.normal == math::Vector3d(1, 0, 0));
-    EXPECT_TRUE(plane.size == math::Vector2d(1, 1));
+    EXPECT_TRUE(math::equal(plane.GetOffset(), 1.0));
+    EXPECT_TRUE(plane.GetNormal() == math::Vector3d(1, 0, 0));
+    EXPECT_TRUE(plane.GetSize() == math::Vector2d(1, 1));
 
-    plane = math::Plane(math::Vector3d(0, 1, 0), math::Vector2d(4, 4), 5.0);
-    EXPECT_TRUE(math::equal(plane.d, 5.0));
-    EXPECT_TRUE(plane.normal == math::Vector3d(0, 1, 0));
-    EXPECT_TRUE(plane.size == math::Vector2d(4, 4));
+    plane = math::Planed(math::Vector3d(0, 1, 0), math::Vector2d(4, 4), 5.0);
+    EXPECT_TRUE(math::equal(plane.GetOffset(), 5.0));
+    EXPECT_TRUE(plane.GetNormal() == math::Vector3d(0, 1, 0));
+    EXPECT_TRUE(plane.GetSize() == math::Vector2d(4, 4));
   }
 }
