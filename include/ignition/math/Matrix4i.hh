@@ -17,6 +17,7 @@
 #ifndef _IGNITION_MATRIX4I_HH_
 #define _IGNITION_MATRIX4I_HH_
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
 #include <fstream>
