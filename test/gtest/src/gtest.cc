@@ -36,7 +36,7 @@
 #pragma GCC system_header
 
 #include <ctype.h>
-#include <math.h>
+#include <cmath>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

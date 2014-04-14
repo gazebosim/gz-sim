@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include <math.h>
+#include <cmath>
 #include <ignition/math/Box.hh>
 
 using namespace ignition;
