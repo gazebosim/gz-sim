@@ -17,8 +17,9 @@
 #ifndef _IGNITION_MATH_FUNCTIONS_HH_
 #define _IGNITION_MATH_FUNCTIONS_HH_
 
-#include <algorithm>
+#define _USE_MATH_DEFINES
 #include <cmath>
+#include <algorithm>
 #include <limits>
 #include <string>
 #include <iostream>
