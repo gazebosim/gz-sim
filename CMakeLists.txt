@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 set(IGN_PROJECT_NAME "Ignition project name, such as 'math', or 'transport'. The name should be one word and lower case.")
 
 
-project (igntion_${IGN_PROJECT_NAME})
+project (ignition_${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
@@ -22,7 +22,7 @@ set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
 include (${project_cmake_dir}/Utils.cmake)
 
 ########################################
-# Package Creation: 
+# Package Creation:
 include (${project_cmake_dir}/cpack.cmake)
 set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
 set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
@@ -88,27 +88,27 @@ if(LD_LIBRARY_PATH)
 endif()
 
 
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition") 
+set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition")
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
-    
+
 set (USE_FULL_RPATH OFF CACHE BOOL "Set to true to enable full rpath")
 
 if (USE_FULL_RPATH)
   # use, i.e. don't skip the full RPATH for the build tree
   set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-  
+
   # when building, don't use the install RPATH already
   # (but later on when installing)
-  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
-  
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
-  
+
   # add the automatically determined parts of the RPATH
   # which point to directories outside the build tree to the install RPATH
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-  
+
   # the RPATH to be used when installing, but only if its not a system directory
   list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}" isSystemDir)
   if("${isSystemDir}" STREQUAL "-1")
@@ -131,10 +131,10 @@ message (STATUS "----------------------------------------\n")
 MESSAGE(STATUS "Checking ignition build type")
 # Set the default build type
 if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING 
+    set (CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
         "Choose the type of build, options are: Debug Release RelWithDebInfo Profile Check" FORCE)
 endif (NOT CMAKE_BUILD_TYPE)
-# TODO: still convert to uppercase to keep backwards compatibility with 
+# TODO: still convert to uppercase to keep backwards compatibility with
 # uppercase old supported and deprecated modes
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPERCASE)
 
@@ -165,7 +165,7 @@ unset (CMAKE_C_FLAGS_ALL CACHE)
 unset (CMAKE_CXX_FLAGS CACHE)
 
 # USE_HOST_CFLAGS (default TRUE)
-# Will check building host machine for proper cflags 
+# Will check building host machine for proper cflags
 if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
   message(STATUS "Enable host CFlags")
   include (${project_cmake_dir}/HostCFlags.cmake)
@@ -246,7 +246,7 @@ else (build_errors)
   endif()
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
- 
+
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
@@ -257,27 +257,24 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  set (pkgconfig_files ${PROJECT_NAME_LOWER})
-
-  foreach (pkgconfig ${pkgconfig_files})
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
-      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc
-      DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
-      COMPONENT pkgconfig)
-  endforeach()
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
+    DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
+    COMPONENT pkgconfig)
 
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
   set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
-  
+
   set(PKG_DEPENDS)
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IgnitionMathConfig.cmake
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
     DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition
     COMPONENT cmake)
 
