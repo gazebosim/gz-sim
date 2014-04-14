@@ -15,7 +15,6 @@
  *
 */
 #include <sys/types.h>
-#include <cstdint>
 #include <ctime>
 
 #include "ignition/math/Rand.hh"
