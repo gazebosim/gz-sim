@@ -414,8 +414,12 @@ IGN_VECTOR3 IGN_QUATERNION::RotateVectorReverse(IGN_VECTOR3 _vec) const
 //////////////////////////////////////////////////
 bool IGN_QUATERNION::IsFinite() const
 {
-  return std::isfinite(this->qw) && std::isfinite(this->qx) && std::isfinite(this->qy) &&
-         std::isfinite(this->qz);
+  // std::isfinite works with floating point values, need to explicit 
+  // cast to avoid ambiguity in vc++.
+  return std::isfinite(static_cast<double>(this->qw)) &&
+         std::isfinite(static_cast<double>(this->qx)) &&
+         std::isfinite(static_cast<double>(this->qy)) &&
+         std::isfinite(static_cast<double>(this->qz));
 }
 
 //////////////////////////////////////////////////
