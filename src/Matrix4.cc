@@ -191,7 +191,7 @@ IGN_VECTOR3 IGN_MATRIX4::GetEulerRotation(bool _firstSolution) const
   IGN_NUMERIC m33 = this->data[2][2];
   IGN_NUMERIC m21 = this->data[1][0];
 
-  if (fabs(m31) >= 1.0)
+  if (std::abs(m31) >= 1.0)
   {
     euler.z(0.0);
     euler2.z(0.0);

@@ -55,19 +55,19 @@ Box::~Box()
 //////////////////////////////////////////////////
 double Box::GetXLength() const
 {
-  return fabs(max.x() - min.x());
+  return std::abs(max.x() - min.x());
 }
 
 //////////////////////////////////////////////////
 double Box::GetYLength() const
 {
-  return fabs(max.y() - min.y());
+  return std::abs(max.y() - min.y());
 }
 
 //////////////////////////////////////////////////
 double Box::GetZLength() const
 {
-  return fabs(max.z() - min.z());
+  return std::abs(max.z() - min.z());
 }
 
 //////////////////////////////////////////////////

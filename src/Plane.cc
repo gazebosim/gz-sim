@@ -66,7 +66,7 @@ double Plane::Distance(const Vector3d &_origin, const Vector3d &_dir) const
 {
   double denom = this->normal.Dot(_dir);
 
-  if (fabs(denom) < 1e-3)
+  if (std::abs(denom) < 1e-3)
   {
     // parallel
     return 0;

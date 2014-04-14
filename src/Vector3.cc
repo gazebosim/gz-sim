@@ -141,9 +141,9 @@ IGN_NUMERIC IGN_VECTOR3::Dot(const IGN_VECTOR3 &_pt) const
 //////////////////////////////////////////////////
 IGN_VECTOR3 IGN_VECTOR3::GetAbs() const
 {
-  return IGN_VECTOR3(fabs(this->data[0]),
-                     fabs(this->data[1]),
-                     fabs(this->data[2]));
+  return IGN_VECTOR3(std::abs(this->data[0]),
+                     std::abs(this->data[1]),
+                     std::abs(this->data[2]));
 }
 
 //////////////////////////////////////////////////
