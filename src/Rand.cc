@@ -20,6 +20,10 @@
 
 #include "ignition/math/Rand.hh"
 
+#ifdef _WIN32
+  #define getpid _getpid
+#endif
+
 using namespace ignition;
 using namespace math;
 
