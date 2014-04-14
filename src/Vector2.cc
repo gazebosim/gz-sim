@@ -182,7 +182,11 @@ bool IGN_VECTOR2::operator ==(const IGN_VECTOR2 &pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR2::IsFinite() const
 {
-  return std::isfinite(this->data[0]) && std::isfinite(this->data[1]);
+  // std::isfinite works with floating point values, need to explicit cast to
+  // avoid ambiguity in vc++.
+  return std::isfinite(static_cast<double>(this->data[0])) && 
+         std::isfinite(static_cast<double>(this->data[1]));
+   
 }
 
 //////////////////////////////////////////////////
