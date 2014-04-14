@@ -17,6 +17,7 @@
 #ifndef _IGNITION_QUATERNIONI_HH_
 #define _IGNITION_QUATERNIONI_HH_
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
 #include <fstream>
