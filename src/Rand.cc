@@ -15,13 +15,15 @@
  *
 */
 #include <sys/types.h>
-#include <unistd.h>
+#include <cstdint>
 #include <ctime>
 
 #include "ignition/math/Rand.hh"
 
 #ifdef _WIN32
   #define getpid _getpid
+#else
+  #include <unistd.h>
 #endif
 
 using namespace ignition;
