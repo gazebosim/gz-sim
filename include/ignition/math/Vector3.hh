@@ -262,11 +262,13 @@ class IGN_VECTOR3
   /// \brief Corrects any nan values
   public: inline void Correct()
           {
-            if (!std::isfinite(this->data[0]))
+            // std::isfinite works with floating point values, need to explicit 
+            // cast to avoid ambiguity in vc++.
+            if (!std::isfinite(static_cast<double>(this->data[0])))
               this->data[0] = 0;
-            if (!std::isfinite(this->data[1]))
+            if (!std::isfinite(static_cast<double>(this->data[1])))
               this->data[1] = 0;
-            if (!std::isfinite(this->data[2]))
+            if (!std::isfinite(static_cast<double>(this->data[2])))
               this->data[2] = 0;
           }
 
