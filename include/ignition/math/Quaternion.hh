@@ -263,13 +263,15 @@ class IGN_QUATERNION
   /// \brief Correct any nan
   public: inline void Correct()
           {
-            if (!std::isfinite(this->qx))
+            // std::isfinite works with floating point values, need to explicit 
+            // cast to avoid ambiguity in vc++.
+            if (!std::isfinite(static_cast<double>(this->qx)))
               this->qx = 0;
-            if (!std::isfinite(this->qy))
+            if (!std::isfinite(static_cast<double>(this->qy)))
               this->qy = 0;
-            if (!std::isfinite(this->qz))
+            if (!std::isfinite(static_cast<double>(this->qz)))
               this->qz = 0;
-            if (!std::isfinite(this->qw))
+            if (!std::isfinite(static_cast<double>(this->qw)))
               this->qw = 1;
 
             if (math::equal(this->qw, static_cast<IGN_NUMERIC>(0)) &&
