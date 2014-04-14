@@ -17,7 +17,7 @@
 #ifndef _IGNITION_QUATERNIONI_HH_
 #define _IGNITION_QUATERNIONI_HH_
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 

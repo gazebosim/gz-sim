@@ -19,6 +19,8 @@
 Vector3f.hh, or Vector3i.hh.
 #endif
 
+#include <cmath>
+
 /// \brief The Vector3 class represents the generic vector containing 3
 /// elements.  Since it's commonly used to keep coordinate system
 /// related information, its elements are labeled by x, y, z.
@@ -260,11 +262,11 @@ class IGN_VECTOR3
   /// \brief Corrects any nan values
   public: inline void Correct()
           {
-            if (!finite(this->data[0]))
+            if (!std::isfinite(this->data[0]))
               this->data[0] = 0;
-            if (!finite(this->data[1]))
+            if (!std::isfinite(this->data[1]))
               this->data[1] = 0;
-            if (!finite(this->data[2]))
+            if (!std::isfinite(this->data[2]))
               this->data[2] = 0;
           }
 

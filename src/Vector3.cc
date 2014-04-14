@@ -342,9 +342,9 @@ bool IGN_VECTOR3::operator!=(const IGN_VECTOR3 &_pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR3::IsFinite() const
 {
-  return finite(this->data[0]) &&
-         finite(this->data[1]) &&
-         finite(this->data[2]);
+  return std::isfinite(this->data[0]) &&
+         std::isfinite(this->data[1]) &&
+         std::isfinite(this->data[2]);
 }
 
 //////////////////////////////////////////////////

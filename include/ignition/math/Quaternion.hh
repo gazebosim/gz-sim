@@ -263,13 +263,13 @@ class IGN_QUATERNION
   /// \brief Correct any nan
   public: inline void Correct()
           {
-            if (!finite(this->qx))
+            if (!std::isfinite(this->qx))
               this->qx = 0;
-            if (!finite(this->qy))
+            if (!std::isfinite(this->qy))
               this->qy = 0;
-            if (!finite(this->qz))
+            if (!std::isfinite(this->qz))
               this->qz = 0;
-            if (!finite(this->qw))
+            if (!std::isfinite(this->qw))
               this->qw = 1;
 
             if (math::equal(this->qw, static_cast<IGN_NUMERIC>(0)) &&

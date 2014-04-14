@@ -182,7 +182,7 @@ bool IGN_VECTOR2::operator ==(const IGN_VECTOR2 &pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR2::IsFinite() const
 {
-  return finite(this->data[0]) && finite(this->data[1]);
+  return std::isfinite(this->data[0]) && std::isfinite(this->data[1]);
 }
 
 //////////////////////////////////////////////////

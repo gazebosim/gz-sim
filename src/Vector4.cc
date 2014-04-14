@@ -258,8 +258,8 @@ bool IGN_VECTOR4::operator!=(const IGN_VECTOR4 &pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR4::IsFinite() const
 {
-  return finite(this->data[0]) && finite(this->data[1]) &&
-    finite(this->data[2]) && finite(this->data[3]);
+  return std::isfinite(this->data[0]) && std::isfinite(this->data[1]) &&
+    std::isfinite(this->data[2]) && std::isfinite(this->data[3]);
 }
 
 //////////////////////////////////////////////////

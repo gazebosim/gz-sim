@@ -414,8 +414,8 @@ IGN_VECTOR3 IGN_QUATERNION::RotateVectorReverse(IGN_VECTOR3 _vec) const
 //////////////////////////////////////////////////
 bool IGN_QUATERNION::IsFinite() const
 {
-  return finite(this->qw) && finite(this->qx) && finite(this->qy) &&
-         finite(this->qz);
+  return std::isfinite(this->qw) && std::isfinite(this->qx) && std::isfinite(this->qy) &&
+         std::isfinite(this->qz);
 }
 
 //////////////////////////////////////////////////
