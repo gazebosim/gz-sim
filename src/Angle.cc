@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <cmath>
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"
 
