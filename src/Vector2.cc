@@ -186,7 +186,6 @@ bool IGN_VECTOR2::IsFinite() const
   // avoid ambiguity in vc++.
   return std::isfinite(static_cast<double>(this->data[0])) &&
          std::isfinite(static_cast<double>(this->data[1]));
-
 }
 
 //////////////////////////////////////////////////
