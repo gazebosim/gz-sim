@@ -10,7 +10,9 @@ set (sources
   Matrix4d.cc
   Matrix4f.cc
   Matrix4i.cc
-  Plane.cc
+  Planed.cc
+  Planef.cc
+  Planei.cc
   Pose3d.cc
   Pose3f.cc
   Pose3i.cc

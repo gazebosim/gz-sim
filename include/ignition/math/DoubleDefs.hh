@@ -23,3 +23,4 @@
 #define IGN_POSE3 Pose3d
 #define IGN_POSE2 Pose2d
 #define IGN_QUATERNION Quaterniond
+#define IGN_PLANE Planed

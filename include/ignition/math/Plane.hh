@@ -14,66 +14,78 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_PLANE_HH_
-#define _IGNITION_PLANE_HH_
-
-#include <ignition/math/Vector3d.hh>
-#include <ignition/math/Vector2d.hh>
-
-namespace ignition
-{
-  namespace math
-  {
-    /// \class Plane Plane.hh ignition/math.hh
-    /// \brief A plane and related functions.
-    class Plane
-    {
-      /// \brief Constructor
-      public: Plane();
-
-      /// \brief Constructor from a normal and a distanec
-      /// \param[in] _normal The plane normal
-      /// \param[in] _offset Offset along the normal
-      public: Plane(const Vector3d &_normal, double _offset = 0.0);
-
-      /// \brief Constructor
-      /// \param[in] _normal The plane normal
-      /// \param[in] _size Size of the plane
-      /// \param[in] _offset Offset along the normal
-      public: Plane(const Vector3d &_normal, const Vector2d &_size,
-                    double _offset);
-
-      /// \brief Destructor
-      public: virtual ~Plane();
-
-      /// \brief Set the plane
-      /// \param[in] _normal The plane normal
-      /// \param[in] _size Size of the plane
-      /// \param[in] _offset Offset along the normal
-      public: void Set(const Vector3d &_normal, const Vector2d &_size,
-                       double offset);
-
-      /// \brief Get distance to the plane give an origin and direction
-      /// \param[in] _origin the origin
-      /// \param[in] _dir a direction
-      /// \return the shortest distance
-      public: double Distance(const Vector3d &_origin,
-                              const Vector3d &_dir) const;
-
-      /// \brief Equal operator
-      /// \param _p another plane
-      /// \return itself
-      public: Plane &operator =(const Plane &_p);
-
-      /// \brief Plane normal
-      public: Vector3d normal;
-
-      /// \brief Plane size
-      public: Vector2d size;
-
-      /// \brief Plane offset
-      public: double d;
-    };
-  }
-}
+#ifndef IGN_PLANE
+#error This class should not be used directly. Use Planed.hh, \
+Planef.hh, or Planei.hh.
 #endif
+
+/// \class Plane Plane.hh ignition/math.hh
+/// \brief A plane and related functions.
+class IGN_PLANE
+{
+  /// \brief Constructor
+  public: IGN_PLANE();
+
+  /// \brief Constructor from a normal and a distanec
+  /// \param[in] _normal The plane normal
+  /// \param[in] _offset Offset along the normal
+  public: IGN_PLANE(const IGN_VECTOR3 &_normal, IGN_NUMERIC _offset = 0.0);
+
+  /// \brief Constructor
+  /// \param[in] _normal The plane normal
+  /// \param[in] _size Size of the plane
+  /// \param[in] _offset Offset along the normal
+  public: IGN_PLANE(const IGN_VECTOR3 &_normal, const IGN_VECTOR2 &_size,
+                IGN_NUMERIC _offset);
+
+  /// \brief Destructor
+  public: virtual ~IGN_PLANE();
+
+  /// \brief Set the plane
+  /// \param[in] _normal The plane normal
+  /// \param[in] _size Size of the plane
+  /// \param[in] _offset Offset along the normal
+  public: void Set(const IGN_VECTOR3 &_normal, const IGN_VECTOR2 &_size,
+                   IGN_NUMERIC offset);
+
+  /// \brief Get distance to the plane give an origin and direction
+  /// \param[in] _origin the origin
+  /// \param[in] _dir a direction
+  /// \return the shortest distance
+  public: IGN_NUMERIC Distance(const IGN_VECTOR3 &_origin,
+                          const IGN_VECTOR3 &_dir) const;
+
+  /// \brief Get the plane size
+  public: inline const IGN_VECTOR2 &GetSize() const
+          { return this->size; }
+
+  /// \brief Get the plane size
+  public: inline IGN_VECTOR2 &GetSize()
+          { return this->size; }
+
+  /// \brief Get the plane offset
+  public: inline const IGN_VECTOR3 &GetNormal() const
+          { return this->normal; }
+
+  /// \brief Get the plane offset
+  public: inline IGN_VECTOR3 &GetNormal()
+          { return this->normal; }
+
+  /// \brief Get the plane offset
+  public: inline IGN_NUMERIC GetOffset() const
+          { return this->d; }
+
+  /// \brief Equal operator
+  /// \param _p another plane
+  /// \return itself
+  public: IGN_PLANE &operator=(const IGN_PLANE &_p);
+
+  /// \brief Plane normal
+  private: IGN_VECTOR3 normal;
+
+  /// \brief Plane size
+  private: IGN_VECTOR2 size;
+
+  /// \brief Plane offset
+  private: IGN_NUMERIC d;
+};

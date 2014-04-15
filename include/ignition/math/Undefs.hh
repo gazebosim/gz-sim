@@ -23,3 +23,4 @@
 #undef IGN_POSE3
 #undef IGN_POSE2
 #undef IGN_QUATERNION
+#undef IGN_PLANE
