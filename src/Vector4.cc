@@ -260,9 +260,9 @@ bool IGN_VECTOR4::IsFinite() const
 {
   // std::isfinite works with floating point values, need to explicit cast to
   // avoid ambiguity in vc++.
-  return std::isfinite(static_cast<double>(this->data[0])) && 
+  return std::isfinite(static_cast<double>(this->data[0])) &&
          std::isfinite(static_cast<double>(this->data[1])) &&
-         std::isfinite(static_cast<double>(this->data[2])) && 
+         std::isfinite(static_cast<double>(this->data[2])) &&
          std::isfinite(static_cast<double>(this->data[3]));
 }
 
