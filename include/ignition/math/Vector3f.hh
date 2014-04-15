@@ -17,7 +17,7 @@
 #ifndef _IGNITION_VECTOR3F_HH_
 #define _IGNITION_VECTOR3F_HH_
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 

@@ -19,6 +19,7 @@
 
 #include <random>
 #include <cmath>
+#include <cstdint>
 
 namespace ignition
 {

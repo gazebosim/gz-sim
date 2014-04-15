@@ -141,9 +141,9 @@ IGN_NUMERIC IGN_VECTOR3::Dot(const IGN_VECTOR3 &_pt) const
 //////////////////////////////////////////////////
 IGN_VECTOR3 IGN_VECTOR3::GetAbs() const
 {
-  return IGN_VECTOR3(fabs(this->data[0]),
-                     fabs(this->data[1]),
-                     fabs(this->data[2]));
+  return IGN_VECTOR3(std::abs(this->data[0]),
+                     std::abs(this->data[1]),
+                     std::abs(this->data[2]));
 }
 
 //////////////////////////////////////////////////
@@ -342,9 +342,11 @@ bool IGN_VECTOR3::operator!=(const IGN_VECTOR3 &_pt) const
 //////////////////////////////////////////////////
 bool IGN_VECTOR3::IsFinite() const
 {
-  return finite(this->data[0]) &&
-         finite(this->data[1]) &&
-         finite(this->data[2]);
+  // std::isfinite works with floating point values, need to explicit cast to
+  // avoid ambiguity in vc++.
+  return std::isfinite(static_cast<double>(this->data[0])) &&
+         std::isfinite(static_cast<double>(this->data[1])) &&
+         std::isfinite(static_cast<double>(this->data[2]));
 }
 
 //////////////////////////////////////////////////

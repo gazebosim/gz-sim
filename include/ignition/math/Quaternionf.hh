@@ -17,7 +17,8 @@
 #ifndef _IGNITION_QUATERNIONF_HH_
 #define _IGNITION_QUATERNIONF_HH_
 
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <fstream>
 

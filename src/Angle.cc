@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <math.h>
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"
 

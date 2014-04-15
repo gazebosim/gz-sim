@@ -65,7 +65,7 @@ IGN_NUMERIC IGN_PLANE::Distance(const IGN_VECTOR3 &_origin,
 {
   IGN_NUMERIC denom = this->normal.Dot(_dir);
 
-  if (fabs(denom) < 1e-3)
+  if (std::abs(denom) < 1e-3)
   {
     // parallel
     return 0;

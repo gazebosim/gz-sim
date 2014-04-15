@@ -14,9 +14,16 @@
  * limitations under the License.
  *
 */
+
 #include <sys/types.h>
-#include <unistd.h>
 #include <ctime>
+
+#ifdef _WIN32
+  #include <process.h>
+  #define getpid _getpid
+#else
+  #include <unistd.h>
+#endif
 
 #include "ignition/math/Rand.hh"
 

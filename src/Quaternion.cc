@@ -94,11 +94,11 @@ IGN_QUATERNION IGN_QUATERNION::GetLog() const
   IGN_QUATERNION result;
   result.qw = 0.0;
 
-  if (std::fabs(this->qw) < 1.0)
+  if (std::abs(this->qw) < 1.0)
   {
     IGN_NUMERIC fAngle = acos(this->qw);
     IGN_NUMERIC fSin = sin(fAngle);
-    if (std::fabs(fSin) >= 1e-3)
+    if (std::abs(fSin) >= 1e-3)
     {
       IGN_NUMERIC fCoeff = fAngle/fSin;
       result.qx = fCoeff*this->qx;
@@ -129,7 +129,7 @@ IGN_QUATERNION IGN_QUATERNION::GetExp() const
   IGN_QUATERNION result;
   result.qw = cos(fAngle);
 
-  if (std::fabs(fSin) >= 1e-3)
+  if (std::abs(fSin) >= 1e-3)
   {
     IGN_NUMERIC fCoeff = fSin/fAngle;
     result.qx = fCoeff*this->qx;
@@ -414,8 +414,12 @@ IGN_VECTOR3 IGN_QUATERNION::RotateVectorReverse(IGN_VECTOR3 _vec) const
 //////////////////////////////////////////////////
 bool IGN_QUATERNION::IsFinite() const
 {
-  return finite(this->qw) && finite(this->qx) && finite(this->qy) &&
-         finite(this->qz);
+  // std::isfinite works with floating point values, need to explicit
+  // cast to avoid ambiguity in vc++.
+  return std::isfinite(static_cast<double>(this->qw)) &&
+         std::isfinite(static_cast<double>(this->qx)) &&
+         std::isfinite(static_cast<double>(this->qy)) &&
+         std::isfinite(static_cast<double>(this->qz));
 }
 
 //////////////////////////////////////////////////
@@ -559,12 +563,12 @@ IGN_QUATERNION IGN_QUATERNION::Slerp(IGN_NUMERIC _fT,
     rkT = _rkQ;
   }
 
-  if (std::fabs(fCos) < 1 - 1e-03)
+  if (std::abs(fCos) < 1 - 1e-03)
   {
     // Standard case (slerp)
     IGN_NUMERIC fSin = sqrt(1 - (fCos*fCos));
     IGN_NUMERIC fAngle = atan2(fSin, fCos);
-    // FIXME: should check if (std::fabs(fSin) >= 1e-3)
+    // FIXME: should check if (std::abs(fSin) >= 1e-3)
     IGN_NUMERIC fInvSin = 1.0f / fSin;
     IGN_NUMERIC fCoeff0 = sin((1.0f - _fT) * fAngle) * fInvSin;
     IGN_NUMERIC fCoeff1 = sin(_fT * fAngle) * fInvSin;

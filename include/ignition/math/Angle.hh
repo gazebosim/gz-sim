@@ -17,7 +17,8 @@
 #ifndef _IGNITION_ANGLE_HH_
 #define _IGNITION_ANGLE_HH_
 
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 
 /// \brief Macro that converts radians to degrees

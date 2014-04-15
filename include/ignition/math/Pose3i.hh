@@ -17,7 +17,8 @@
 #ifndef _IGNITION_POSE3I_HH_
 #define _IGNITION_POSE3I_HH_
 
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <fstream>
 

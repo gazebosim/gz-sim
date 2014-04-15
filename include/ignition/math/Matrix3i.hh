@@ -17,7 +17,7 @@
 #ifndef _IGNITION_MATRIX3I_HH_
 #define _IGNITION_MATRIX3I_HH_
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <cstring>
