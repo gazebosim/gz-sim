@@ -14,10 +14,9 @@
  * limitations under the License.
  *
 */
+
 #include <sys/types.h>
 #include <ctime>
-
-#include "ignition/math/Rand.hh"
 
 #ifdef _WIN32
   #include <process.h>
@@ -25,6 +24,8 @@
 #else
   #include <unistd.h>
 #endif
+
+#include "ignition/math/Rand.hh"
 
 using namespace ignition;
 using namespace math;
