@@ -50,6 +50,6 @@ set (gtest_sources
   Vector4_TEST.cc
 )
 
-ign_build_tests(${gtest_sources})
 ign_add_library(ignition_math ${sources})
+ign_build_tests(${gtest_sources})
 ign_install_library(ignition_math)
