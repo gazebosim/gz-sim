@@ -1,7 +1,3 @@
-if (WIN32)
-  include (GenerateExportHeader)
-endif()
-
 ################################################################################
 #APPEND_TO_CACHED_STRING(_string _cacheDesc [items...])
 # Appends items to a cached list.
@@ -57,13 +53,6 @@ endmacro (BUILD_WARNING)
 macro (ign_add_library _name)
   add_library(${_name} SHARED ${ARGN})
   target_link_libraries (${_name} ${general_libraries})
-  if (WIN32)
-	  GENERATE_EXPORT_HEADER( ${_name}
-             BASE_NAME ${_name}
-             EXPORT_MACRO_NAME ${_name}_EXPORT
-             EXPORT_FILE_NAME ${_name}_Export.h
-             STATIC_DEFINE ${_name}_BUILT_AS_STATIC)
-  endif()
 endmacro ()
 
 #################################################
