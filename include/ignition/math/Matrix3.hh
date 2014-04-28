@@ -21,7 +21,7 @@ Matrix3f.hh, or Matrix3i.hh.
 
 /// \class Matrix3 Matrix3.hh ignition/math.hh
 /// \brief A 3x3 matrix class
-class IGN_MATRIX3
+class IGNITION_VISIBLE IGN_MATRIX3
 {
   /// \brief Identity matrix
   public: static const IGN_MATRIX3 Identity;

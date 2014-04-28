@@ -26,7 +26,7 @@ class IGN_QUATERNION;
 
 /// \class Matrix4 Matrix4[dfi].hh ignition/math.hh
 /// \brief A 4x4 matrix class
-class IGN_MATRIX4
+class IGNITION_VISIBLE IGN_MATRIX4
 {
   /// \brief Identity matrix
   public: static const IGN_MATRIX4 Identity;

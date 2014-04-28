@@ -24,7 +24,7 @@ Vector3f.hh, or Vector3i.hh.
 /// \brief The Vector3 class represents the generic vector containing 3
 /// elements.  Since it's commonly used to keep coordinate system
 /// related information, its elements are labeled by x, y, z.
-class IGN_VECTOR3
+class IGNITION_VISIBLE IGN_VECTOR3
 {
   /// \brief math::IGN_VECTOR3(0, 0, 0)
   public: static const IGN_VECTOR3 Zero;

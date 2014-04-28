@@ -23,7 +23,7 @@ class IGN_MATRIX4;
 
 /// \class Vector4 Vector4.hh ignitino/math.hh
 /// \brief IGN_NUMERIC Generic x, y, z, w vector
-class IGN_VECTOR4
+class IGNITION_VISIBLE IGN_VECTOR4
 {
   /// \brief Constructor
   public: IGN_VECTOR4();

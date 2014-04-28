@@ -21,7 +21,7 @@ Pose3f.hh, or Pose3i.hh.
 
 /// \class Pose3 Pose3.hh ignition/math.hh
 /// \brief Encapsulates a position and rotation in three space
-class IGN_POSE3
+class IGNITION_VISIBLE IGN_POSE3
 {
   /// \brief math::IGN_POSE3(0, 0, 0, 0, 0, 0)
   public: static const IGN_POSE3 Zero;

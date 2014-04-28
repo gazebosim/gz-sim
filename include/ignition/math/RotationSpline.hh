@@ -26,7 +26,7 @@ namespace ignition
   {
     /// \class RotationSpline RotationSpline.hh ignition/math.hh
     /// \brief Spline for rotations
-    class  RotationSpline
+    class IGNITION_VISIBLE  RotationSpline
     {
       /// \brief Constructor. Sets the autoCalc to true
       public: RotationSpline();

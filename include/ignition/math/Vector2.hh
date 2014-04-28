@@ -20,7 +20,7 @@ Vector2f.hh, or Vector2i.hh.
 #endif
 
 /// \brief Two dimensional (x, y) vector.
-class IGN_VECTOR2
+class IGNITION_VISIBLE IGN_VECTOR2
 {
   /// \brief Default Constructor
   public: IGN_VECTOR2();
