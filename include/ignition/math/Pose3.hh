@@ -251,12 +251,12 @@ class IGNITION_VISIBLE IGN_POSE3
 /// \param[in] _out output stream
 /// \param[in] _pose pose to output
 /// \return the stream
-std::ostream &operator<<(std::ostream &_out,
+std::ostream IGNITION_VISIBLE &operator<<(std::ostream &_out,
     const ignition::math::IGN_POSE3 &_pose);
 
 /// \brief Stream extraction operator
 /// \param[in] _in the input stream
 /// \param[in] _pose the pose
 /// \return the stream
-std::istream &operator>>(std::istream &_in,
+std::istream IGNITION_VISIBLE &operator>>(std::istream &_in,
     ignition::math::IGN_POSE3 &_pose);

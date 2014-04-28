@@ -18,6 +18,7 @@
 #define _IGNTION_INDEX_EXCEPTION_HH_
 
 #include <stdexcept>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {

@@ -20,6 +20,7 @@
 #include <random>
 #include <cmath>
 #include <cstdint>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {

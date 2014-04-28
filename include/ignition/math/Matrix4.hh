@@ -209,11 +209,11 @@ class IGNITION_VISIBLE IGN_MATRIX4
 /// \param _out output stream
 /// \param _m Matrix to output
 /// \return the stream
-std::ostream &operator<<(std::ostream &_out,
+std::ostream IGNITION_VISIBLE &operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX4 &_m);
 
 /// \brief Stream extraction operator
 /// \param _in input stream
 /// \param _pt Matrix4 to read values into
 /// \return the stream
-std::istream &operator>>(std::istream &_in, ignition::math::IGN_MATRIX4 &_pt);
+std::istream IGNITION_VISIBLE &operator>>(std::istream &_in, ignition::math::IGN_MATRIX4 &_pt);
