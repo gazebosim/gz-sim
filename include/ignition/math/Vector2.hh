@@ -189,12 +189,13 @@ class IGNITION_VISIBLE IGN_VECTOR2
 /// \param[in] _pt Vector2 to output
 /// \return The stream
 /// \throws N/A.
-std::ostream IGNITION_VISIBLE &operator<<(std::ostream &_out,
-    const ignition::math::IGN_VECTOR2 &_pt);
+std::ostream IGNITION_VISIBLE
+&operator<<(std::ostream &_out, const ignition::math::IGN_VECTOR2 &_pt);
 
 /// \brief Stream extraction operator
 /// \param[in] _in input stream
 /// \param[in] _pt Vector2 to read values into
 /// \return The stream
 /// \throws N/A.
-std::istream IGNITION_VISIBLE &operator>>(std::istream &_in, ignition::math::IGN_VECTOR2 &_pt);
+std::istream IGNITION_VISIBLE
+&operator>>(std::istream &_in, ignition::math::IGN_VECTOR2 &_pt);
