@@ -26,7 +26,7 @@ macro (ign_build_tests)
          gtest_main.lib
          ignition_math.dll)
     else()
-       message(ERROR "Unsupported platform")
+       message(FATAL_ERROR "Unsupported platform")
     endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
