@@ -20,11 +20,13 @@ macro (ign_build_tests)
          libgtest_main.a
          libgtest.a
 	 ignition_math)
-    else()
+    elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
-	 gtest.lib
+         gtest.lib
          gtest_main.lib
-	 ignition_math.dll)
+         ignition_math.dll)
+    else()
+       message(ERROR "Unsupported platform")
     endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
