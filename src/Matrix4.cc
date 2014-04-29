@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
+IGNITION_VISIBLE
 const IGN_MATRIX4 IGN_MATRIX4::Identity(
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1);
 
-
+IGNITION_VISIBLE
 const IGN_MATRIX4 IGN_MATRIX4::Zero(
     0, 0, 0, 0,
     0, 0, 0, 0,

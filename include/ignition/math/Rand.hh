@@ -20,6 +20,7 @@
 #include <random>
 #include <cmath>
 #include <cstdint>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -40,7 +41,7 @@ namespace ignition
 
     /// \class Rand Rand.hh ignition/math.hh
     /// \brief Random number generator class
-    class Rand
+    class IGNITION_VISIBLE Rand
     {
       /// \brief Set the seed value.
       /// \param[in] _seed The seed used to initialize the randon number

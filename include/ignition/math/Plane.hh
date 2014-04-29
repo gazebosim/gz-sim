@@ -21,7 +21,7 @@ Planef.hh, or Planei.hh.
 
 /// \class Plane Plane.hh ignition/math.hh
 /// \brief A plane and related functions.
-class IGN_PLANE
+class IGNITION_VISIBLE IGN_PLANE
 {
   /// \brief Constructor
   public: IGN_PLANE();

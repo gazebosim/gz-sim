@@ -23,7 +23,7 @@ class IGN_MATRIX4;
 
 /// \class Vector4 Vector4.hh ignitino/math.hh
 /// \brief IGN_NUMERIC Generic x, y, z, w vector
-class IGN_VECTOR4
+class IGNITION_VISIBLE IGN_VECTOR4
 {
   /// \brief Constructor
   public: IGN_VECTOR4();
@@ -243,11 +243,12 @@ class IGN_VECTOR4
 /// \param[in] _out output stream
 /// \param[in] _pt Vector4 to output
 /// \return The stream
-std::ostream &operator<<(std::ostream &_out,
-    const ignition::math::IGN_VECTOR4 &_pt);
+std::ostream IGNITION_VISIBLE
+&operator<<(std::ostream &_out, const ignition::math::IGN_VECTOR4 &_pt);
 
 /// \brief Stream extraction operator
 /// \param[in] _in input stream
 /// \param[in] _pt Vector4 to read values into
 /// \return the stream
-std::istream &operator>>(std::istream &_in, ignition::math::IGN_VECTOR4 &_pt);
+std::istream IGNITION_VISIBLE
+&operator>>(std::istream &_in, ignition::math::IGN_VECTOR4 &_pt);
