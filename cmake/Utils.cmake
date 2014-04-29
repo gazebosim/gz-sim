@@ -52,6 +52,7 @@ endmacro (BUILD_WARNING)
 #################################################
 macro (ign_add_library _name)
   set(LIBS_DESTINATION ${PROJECT_BINARY_DIR}/src)
+  set_source_files_properties(${ARGN} PROPERTIES COMPILE_DEFINITIONS "BUILDING_DLL")
   add_library(${_name} SHARED ${ARGN})
   target_link_libraries (${_name} ${general_libraries})
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DESTINATION})
@@ -112,7 +113,6 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
-  add_definitions(BUILDING_DLL)
 endmacro()
 
 #################################################

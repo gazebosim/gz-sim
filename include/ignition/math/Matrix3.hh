@@ -141,3 +141,4 @@ std::ostream IGNITION_VISIBLE
 /// \return the stream
 std::istream IGNITION_VISIBLE
 &operator>>(std::istream &_in, ignition::math::IGN_MATRIX3 &_pt);
+
