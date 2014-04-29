@@ -84,6 +84,8 @@ TEST(HelpersTest, PowerOfTwo)
   EXPECT_TRUE(math::isPowerOfTwo(4));
 }
 
+// MSVC report errors on division by zero
+#ifndef _MSC_VER
 /////////////////////////////////////////////////
 // Test Helpers::fixnan functions
 TEST(HelpersTest, FixNaN)
@@ -102,3 +104,4 @@ TEST(HelpersTest, FixNaN)
   EXPECT_FLOAT_EQ(math::fixnan(42.0f), 42.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);
 }
+#endif
