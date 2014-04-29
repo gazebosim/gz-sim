@@ -14,12 +14,20 @@ macro (ign_build_tests)
       gtest gtest_main
       )
 
-    target_link_libraries(${BINARY_NAME}
-      ignition_math
-      libgtest.a
-      libgtest_main.a
-      pthread
-      )
+    if (UNIX)
+      target_link_libraries(${BINARY_NAME}
+         pthread
+         libgtest_main.a
+         libgtest.a
+	 ignition_math)
+    elseif(WIN32)
+      target_link_libraries(${BINARY_NAME}
+         gtest.lib
+         gtest_main.lib
+         ignition_math.dll)
+    else()
+       message(FATAL_ERROR "Unsupported platform")
+    endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
 	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
