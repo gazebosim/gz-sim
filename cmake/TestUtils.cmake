@@ -10,7 +10,7 @@ macro (ign_build_tests)
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
-      libignition_math
+      ignition_math
       gtest gtest_main
       )
 
