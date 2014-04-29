@@ -95,10 +95,24 @@ endmacro ()
 
 #################################################
 macro (ign_setup_unix)
+  # USE_HOST_CFLAGS (default TRUE)
+  # Will check building host machine for proper cflags 
+  if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
+    message(STATUS "Enable host CFlags")
+    include (${project_cmake_dir}/HostCFlags.cmake)
+  endif()
+
+  # USE_UPSTREAM_CFLAGS (default TRUE)
+  # Will use predefined ignition developers cflags
+  if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
+     message(STATUS "Enable upstream CFlags")
+     include(${project_cmake_dir}/DefaultCFlags.cmake)
+  endif()
 endmacro()
 
 #################################################
 macro (ign_setup_windows)
+  add_definitions(BUILDING_DLL)
 endmacro()
 
 #################################################
