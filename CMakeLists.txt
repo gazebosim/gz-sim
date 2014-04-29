@@ -163,18 +163,20 @@ endif()
 unset (CMAKE_C_FLAGS_ALL CACHE)
 unset (CMAKE_CXX_FLAGS CACHE)
 
-# USE_HOST_CFLAGS (default TRUE)
-# Will check building host machine for proper cflags 
-if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
-  message(STATUS "Enable host CFlags")
-  include (${project_cmake_dir}/HostCFlags.cmake)
-endif()
+if (UNIX)
+  # USE_HOST_CFLAGS (default TRUE)
+  # Will check building host machine for proper cflags 
+  if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
+    message(STATUS "Enable host CFlags")
+    include (${project_cmake_dir}/HostCFlags.cmake)
+  endif()
 
-# USE_UPSTREAM_CFLAGS (default TRUE)
-# Will use predefined ignition developers cflags
-if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
-  message(STATUS "Enable upstream CFlags")
-  include(${project_cmake_dir}/DefaultCFlags.cmake)
+  # USE_UPSTREAM_CFLAGS (default TRUE)
+  # Will use predefined ignition developers cflags
+  if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
+     message(STATUS "Enable upstream CFlags")
+     include(${project_cmake_dir}/DefaultCFlags.cmake)
+  endif()
 endif()
 
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
