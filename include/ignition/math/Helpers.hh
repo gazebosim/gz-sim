@@ -312,18 +312,10 @@ namespace ignition
  */
 
 #if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
+  #ifdef __GNUC__
+    #define IGNITION_VISIBLE __attribute__ ((dllexport))
   #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
+    #define IGNITION_VISIBLE __declspec(dllexport)
   #endif
   #define IGNITION_HIDDEN
 #else
