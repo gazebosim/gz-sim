@@ -21,7 +21,7 @@ Pose3f.hh, or Pose3i.hh.
 
 /// \class Pose3 Pose3.hh ignition/math.hh
 /// \brief Encapsulates a position and rotation in three space
-class IGN_POSE3
+class IGNITION_VISIBLE IGN_POSE3
 {
   /// \brief math::IGN_POSE3(0, 0, 0, 0, 0, 0)
   public: static const IGN_POSE3 Zero;
@@ -251,12 +251,12 @@ class IGN_POSE3
 /// \param[in] _out output stream
 /// \param[in] _pose pose to output
 /// \return the stream
-std::ostream &operator<<(std::ostream &_out,
+std::ostream IGNITION_VISIBLE &operator<<(std::ostream &_out,
     const ignition::math::IGN_POSE3 &_pose);
 
 /// \brief Stream extraction operator
 /// \param[in] _in the input stream
 /// \param[in] _pose the pose
 /// \return the stream
-std::istream &operator>>(std::istream &_in,
+std::istream IGNITION_VISIBLE &operator>>(std::istream &_in,
     ignition::math::IGN_POSE3 &_pose);

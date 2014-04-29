@@ -24,7 +24,7 @@ class IGN_MATRIX4;
 
 /// \class IGN_QUATERNION IGN_QUATERNION.hh ignition/math.hh
 /// \brief A quaternion class
-class IGN_QUATERNION
+class IGNITION_VISIBLE IGN_QUATERNION
 {
   /// \brief Default Constructor
   public: IGN_QUATERNION();
