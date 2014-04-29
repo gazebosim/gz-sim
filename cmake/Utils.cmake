@@ -51,8 +51,15 @@ endmacro (BUILD_WARNING)
 
 #################################################
 macro (ign_add_library _name)
+  set(LIBS_DESTINATION ${PROJECT_BINARY_DIR}/src)
   add_library(${_name} SHARED ${ARGN})
   target_link_libraries (${_name} ${general_libraries})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DESTINATION})
+  if (MSVC)
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DESTINATION})
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${LIBS_DESTINATION})
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBS_DESTINATION})
+  endif ( MSVC )
 endmacro ()
 
 #################################################
