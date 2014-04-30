@@ -163,22 +163,16 @@ endif()
 unset (CMAKE_C_FLAGS_ALL CACHE)
 unset (CMAKE_CXX_FLAGS CACHE)
 
-# USE_HOST_CFLAGS (default TRUE)
-# Will check building host machine for proper cflags 
-if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
-  message(STATUS "Enable host CFlags")
-  include (${project_cmake_dir}/HostCFlags.cmake)
-endif()
-
-# USE_UPSTREAM_CFLAGS (default TRUE)
-# Will use predefined ignition developers cflags
-if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
-  message(STATUS "Enable upstream CFlags")
-  include(${project_cmake_dir}/DefaultCFlags.cmake)
-endif()
-
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
-filter_valid_compiler_warnings(-Wall -Wextra -Wno-long-long
+# MSVC generates tons of warnings on gtest code. 
+# Recommended to use /W4 instead of /Wall
+if (MSVC)
+  set(WARN_LEVEL "/W4")
+else()
+  set(WARN_LEVEL "-Wall")
+endif()
+
+filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
   -Wmissing-include-dirs -pedantic)
