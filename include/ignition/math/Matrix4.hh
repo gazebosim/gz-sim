@@ -164,11 +164,6 @@ class IGNITION_VISIBLE IGN_MATRIX4
   public: IGN_MATRIX4 operator*(const IGN_MATRIX4 &_mat) const;
 
   /// \brief Multiplication operator
-  /// \param _mat Incoming matrix
-  /// \return This matrix * _mat
-  public: IGN_MATRIX4 operator*(const IGN_MATRIX3 &_mat) const;
-
-  /// \brief Multiplication operator
   /// \param _vec Vector3
   /// \return Resulting vector from multiplication
   public: IGN_VECTOR3 operator*(const IGN_VECTOR3 &_vec) const;
