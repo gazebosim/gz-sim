@@ -1,36 +1,14 @@
 include (${project_cmake_dir}/Utils.cmake)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set (sources
   Angle.cc
   Box.cc
   Helpers.cc
-  Matrix3d.cc
-  Matrix3f.cc
-  Matrix3i.cc
-  Matrix4d.cc
-  Matrix4f.cc
-  Matrix4i.cc
-  Planed.cc
-  Planef.cc
-  Planei.cc
-  Pose3d.cc
-  Pose3f.cc
-  Pose3i.cc
-  Quaterniond.cc
-  Quaternionf.cc
-  Quaternioni.cc
+  Pose3.cc
   Rand.cc
   RotationSpline.cc
   Spline.cc
-  Vector2d.cc
-  Vector2f.cc
-  Vector2i.cc
-  Vector3d.cc
-  Vector3f.cc
-  Vector3i.cc
-  Vector4d.cc
-  Vector4f.cc
-  Vector4i.cc
 )
 
 set (gtest_sources
@@ -50,6 +28,13 @@ set (gtest_sources
   Vector4_TEST.cc
 )
 
+
 ign_add_library(ignition_math ${sources})
 ign_build_tests(${gtest_sources})
 ign_install_library(ignition_math)
+
+set_source_files_properties(example.i PROPERTIES CPLUSPLUS ON)
+set_source_files_properties(example.i PROPERTIES SWIG_FLAGS "-builtin")
+
+#SWIG_ADD_MODULE(ign_math_py python example.i Vector2d.cc)
+#SWIG_LINK_LIBRARIES(ign_math_py ${PYTHON_LIBRARIES})

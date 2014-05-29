@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Pose3d.hh"
-#include "ignition/math/Quaterniond.hh"
-#include "ignition/math/Matrix4d.hh"
-#include "ignition/math/Vector3d.hh"
+#include "ignition/math/Pose3.hh"
+#include "ignition/math/Quaternion.hh"
+#include "ignition/math/Matrix4.hh"
+#include "ignition/math/Vector3.hh"
 
 using namespace ignition;
 

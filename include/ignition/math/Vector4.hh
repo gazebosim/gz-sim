@@ -14,241 +14,440 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_VECTOR4
-#error This class should not be used directly. Use Vector4d.hh, \
-IGN_VECTOR4f.hh, or IGN_VECTOR4i.hh.
-#endif
+#ifndef _IGNITION_VECTOR4_HH_
+#define _IGNITION_VECTOR4_HH_
 
-class IGN_MATRIX4;
+#include <ignition/math/Matrix4.hh>
 
-/// \class Vector4 Vector4.hh ignitino/math.hh
-/// \brief IGN_NUMERIC Generic x, y, z, w vector
-class IGNITION_VISIBLE IGN_VECTOR4
+namespace ignition
 {
-  /// \brief Constructor
-  public: IGN_VECTOR4();
+  namespace math
+  {
+    /// \class Vector4 Vector4.hh ignitino/math.hh
+    /// \brief T Generic x, y, z, w vector
+    template<typename T>
+    class IGNITION_VISIBLE Vector4
+    {
+      /// \brief math::Vector3(0, 0, 0)
+      public: static const Vector4<T> Zero;
 
-  /// \brief Constructor with component values
-  /// \param[in] _x value along x axis
-  /// \param[in] _y value along y axis
-  /// \param[in] _z value along z axis
-  /// \param[in] _w value along w axis
-  public: IGN_VECTOR4(const IGN_NUMERIC &_x, const IGN_NUMERIC &_y,
-              const IGN_NUMERIC &_z, const IGN_NUMERIC &_w);
+      /// \brief math::Vector3(1, 1, 1)
+      public: static const Vector4<T> One;
 
-  /// \brief Copy constructor
-  /// \param[in] _v vector
-  public: IGN_VECTOR4(const IGN_VECTOR4 &_v);
+      /// \brief Constructor
+      public: Vector4()
+      {
+        this->data[0] = this->data[1] = this->data[2] = this->data[3] = 0;
+      }
 
+      /// \brief Constructor with component values
+      /// \param[in] _x value along x axis
+      /// \param[in] _y value along y axis
+      /// \param[in] _z value along z axis
+      /// \param[in] _w value along w axis
+      public: Vector4(const T &_x, const T &_y, const T &_z, const T &_w)
+      {
+        this->data[0] = _x;
+        this->data[1] = _y;
+        this->data[2] = _z;
+        this->data[3] = _w;
+      }
 
-  /// \brief Destructor
-  public: virtual ~IGN_VECTOR4();
+      /// \brief Copy constructor
+      /// \param[in] _v vector
+      public: Vector4(const Vector4<T> &_v)
+      {
+        this->data[0] = _v[0];
+        this->data[1] = _v[1];
+        this->data[2] = _v[2];
+        this->data[3] = _v[3];
+      }
 
-  /// \brief Calc distance to the given point
-  /// \param[in] _pt the point
-  /// \return the distance
-  public: IGN_NUMERIC Distance(const IGN_VECTOR4 &_pt) const;
+      /// \brief Destructor
+      public: virtual ~Vector4() {}
 
-  /// \brief Returns the length (magnitude) of the vector
-  public: IGN_NUMERIC GetLength() const;
+      /// \brief Calc distance to the given point
+      /// \param[in] _pt the point
+      /// \return the distance
+      public: T Distance(const Vector4<T> &_pt) const
+      {
+        return sqrt((this->data[0]-_pt[0])*(this->data[0]-_pt[0]) +
+                    (this->data[1]-_pt[1])*(this->data[1]-_pt[1]) +
+                    (this->data[2]-_pt[2])*(this->data[2]-_pt[2]) +
+                    (this->data[3]-_pt[3])*(this->data[3]-_pt[3]));
+      }
 
-  /// \brief Return the square of the length (magnitude) of the vector
-  /// \return the length
-  public: IGN_NUMERIC GetSquaredLength() const;
+      /// \brief Returns the length (magnitude) of the vector
+      public: T GetLength() const
+      {
+        return sqrt(
+            this->data[0] * this->data[0] +
+            this->data[1] * this->data[1] +
+            this->data[2] * this->data[2] +
+            this->data[3] * this->data[3]);
+      }
 
-  /// \brief Normalize the vector length
-  public: void Normalize();
+      /// \brief Return the square of the length (magnitude) of the vector
+      /// \return the length
+      public: T GetSquaredLength() const
+      {
+        return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
+          this->data[2] * this->data[2] + this->data[3] * this->data[3];
+      }
 
-  /// \brief Set the contents of the vector
-  /// \param[in] _x value along x axis
-  /// \param[in] _y value along y axis
-  /// \param[in] _z value along z axis
-  /// \param[in] _w value along w axis
-  public: void Set(IGN_NUMERIC _x = 0, IGN_NUMERIC _y = 0,
-              IGN_NUMERIC _z = 0, IGN_NUMERIC _w = 0);
+      /// \brief Normalize the vector length
+      public: void Normalize()
+      {
+        T d = this->GetLength();
 
-  /// \brief Assignment operator
-  /// \param[in] _v the vector
-  /// \return a reference to this vector
-  public: IGN_VECTOR4 &operator =(const IGN_VECTOR4 &_v);
+        this->data[0] /= d;
+        this->data[1] /= d;
+        this->data[2] /= d;
+        this->data[3] /= d;
+      }
 
-  /// \brief Assignment operator
-  /// \param[in] _value
-  public: IGN_VECTOR4 &operator =(IGN_NUMERIC _value);
+      /// \brief Set the contents of the vector
+      /// \param[in] _x value along x axis
+      /// \param[in] _y value along y axis
+      /// \param[in] _z value along z axis
+      /// \param[in] _w value along w axis
+      public: void Set(T _x = 0, T _y = 0, T _z = 0, T _w = 0)
+      {
+        this->data[0] = _x;
+        this->data[1] = _y;
+        this->data[2] = _z;
+        this->data[3] = _w;
+      }
 
-  /// \brief Addition operator
-  /// \param[in] _v the vector to add
-  /// \result a sum vector
-  public: IGN_VECTOR4 operator+(const IGN_VECTOR4 &_v) const;
+      /// \brief Assignment operator
+      /// \param[in] _v the vector
+      /// \return a reference to this vector
+      public: Vector4<T> &operator=(const Vector4<T> &_v)
+      {
+        this->data[0] = _v[0];
+        this->data[1] = _v[1];
+        this->data[2] = _v[2];
+        this->data[3] = _v[3];
 
-  /// \brief Addition operator
-  /// \param[in] _v the vector to add
-  /// \return this vector
-  public: const IGN_VECTOR4 &operator+=(const IGN_VECTOR4 &_v);
+        return *this;
+      }
 
-  /// \brief Subtraction operator
-  /// \param[in] _v the vector to substract
-  /// \return a vector
-  public: IGN_VECTOR4 operator-(const IGN_VECTOR4 &_v) const;
+      /// \brief Assignment operator
+      /// \param[in] _value
+      public: Vector4<T> &operator=(T _value)
+      {
+        this->data[0] = _value;
+        this->data[1] = _value;
+        this->data[2] = _value;
+        this->data[3] = _value;
 
-  /// \brief Subtraction assigment operators
-  /// \param[in] _v the vector to substract
-  /// \return this vector
-  public: const IGN_VECTOR4 &operator-=(const IGN_VECTOR4 &_v);
+        return *this;
+      }
 
-  /// \brief Division assignment operator
-  /// \remarks Performs element wise division,
-  /// which has limited use.
-  /// \param[in] _v the vector to perform element wise division with
-  /// \return a result vector
-  public: const IGN_VECTOR4 operator/(const IGN_VECTOR4 &_v) const;
+      /// \brief Addition operator
+      /// \param[in] _v the vector to add
+      /// \result a sum vector
+      public: Vector4<T> operator+(const Vector4<T> &_v) const
+      {
+        return Vector4<T>(this->data[0] + _v[0],
+                          this->data[1] + _v[1],
+                          this->data[2] + _v[2],
+                          this->data[3] + _v[3]);
+      }
 
-  /// \brief Division assignment operator
-  /// \remarks Performs element wise division,
-  /// which has limited use.
-  /// \param[in] _v the vector to perform element wise division with
-  /// \return this
-  public: const IGN_VECTOR4 &operator/=(const IGN_VECTOR4 &_v);
+      /// \brief Addition operator
+      /// \param[in] _v the vector to add
+      /// \return this vector
+      public: const Vector4<T> &operator+=(const Vector4<T> &_v)
+      {
+        this->data[0] += _v[0];
+        this->data[1] += _v[1];
+        this->data[2] += _v[2];
+        this->data[3] += _v[3];
 
-  /// \brief Division assignment operator
-  /// \remarks Performs element wise division,
-  /// which has limited use.
-  /// \param[in] _pt another vector
-  /// \return a result vector
-  public: const IGN_VECTOR4 operator/(IGN_NUMERIC _v) const;
+        return *this;
+      }
 
-  /// \brief Division operator
-  /// \param[in] _v scaling factor
-  /// \return a vector
-  public: const IGN_VECTOR4 &operator/=(IGN_NUMERIC _v);
+      /// \brief Subtraction operator
+      /// \param[in] _v the vector to substract
+      /// \return a vector
+      public: Vector4<T> operator-(const Vector4<T> &_v) const
+      {
+        return Vector4<T>(this->data[0] - _v[0],
+                          this->data[1] - _v[1],
+                          this->data[2] - _v[2],
+                          this->data[3] - _v[3]);
+      }
 
-  /// \brief Multiplication operator.
-  /// \remarks Performs element wise multiplication,
-  /// which has limited use.
-  /// \param[in] _pt another vector
-  /// \return result vector
-  public: const IGN_VECTOR4 operator*(const IGN_VECTOR4 &_pt) const;
+      /// \brief Subtraction assigment operators
+      /// \param[in] _v the vector to substract
+      /// \return this vector
+      public: const Vector4<T> &operator-=(const Vector4<T> &_v)
+      {
+        this->data[0] -= _v[0];
+        this->data[1] -= _v[1];
+        this->data[2] -= _v[2];
+        this->data[3] -= _v[3];
 
-  /// \brief Matrix multiplication operator.
-  /// \param[in] _m matrix
-  /// \return the vector multiplied by _m
-  public: const IGN_VECTOR4 operator*(const IGN_MATRIX4 &_m) const;
+        return *this;
+      }
 
-  /// \brief Multiplication assignment operator
-  /// \remarks Performs element wise multiplication,
-  /// which has limited use.
-  /// \param[in] _pt a vector
-  /// \return this
-  public: const IGN_VECTOR4 &operator*=(const IGN_VECTOR4 &_pt);
+      /// \brief Division assignment operator
+      /// \remarks Performs element wise division,
+      /// which has limited use.
+      /// \param[in] _v the vector to perform element wise division with
+      /// \return a result vector
+      public: const Vector4<T> operator/(const Vector4<T> &_v) const
+      {
+        return Vector4<T>(this->data[0] / _v[0],
+                          this->data[1] / _v[1],
+                          this->data[2] / _v[2],
+                          this->data[3] / _v[3]);
+      }
 
-  /// \brief Multiplication operators
-  /// \param[in] _v scaling factor
-  /// \return a  scaled vector
-  public: const IGN_VECTOR4 operator*(IGN_NUMERIC _v) const;
+      /// \brief Division assignment operator
+      /// \remarks Performs element wise division,
+      /// which has limited use.
+      /// \param[in] _v the vector to perform element wise division with
+      /// \return this
+      public: const Vector4<T> &operator/=(const Vector4<T> &_v)
+      {
+        this->data[0] /= _v[0];
+        this->data[1] /= _v[1];
+        this->data[2] /= _v[2];
+        this->data[3] /= _v[3];
 
-  /// \brief Multiplication assignment operator
-  /// \param[in] _v scaling factor
-  /// \return this
-  public: const IGN_VECTOR4 &operator*=(IGN_NUMERIC _v);
+        return *this;
+      }
 
-  /// \brief Equal to operator
-  /// \param[in] _pt the other vector
-  /// \return true if each component is equal withing a
-  /// default tolerence (1e-6), false otherwise
-  public: bool operator ==(const IGN_VECTOR4 &_pt) const;
+      /// \brief Division assignment operator
+      /// \remarks Performs element wise division,
+      /// which has limited use.
+      /// \param[in] _pt another vector
+      /// \return a result vector
+      public: const Vector4<T> operator/(T _v) const
+      {
+        return Vector4<T>(this->data[0] / _v, this->data[1] / _v,
+            this->data[2] / _v, this->data[3] / _v);
+      }
 
-  /// \brief Not equal to operator
-  /// \param[in] _pt the other vector
-  /// \return true if each component is equal withing a
-  /// default tolerence (1e-6), false otherwise
-  public: bool operator!=(const IGN_VECTOR4 &_pt) const;
+      /// \brief Division operator
+      /// \param[in] _v scaling factor
+      /// \return a vector
+      public: const Vector4<T> &operator/=(T _v)
+      {
+        this->data[0] /= _v;
+        this->data[1] /= _v;
+        this->data[2] /= _v;
+        this->data[3] /= _v;
 
-  /// \brief See if a point is finite (e.g., not nan)
-  /// \return true if finite, false otherwise
-  public: bool IsFinite() const;
+        return *this;
+      }
 
-  /// \brief Array subscript operator
-  /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
-  /// \return The value. Throws an IndexException if _index is out of
-  /// bounds.
-  /// \throws IndexException if _index is >= 4.
-  public: inline IGN_NUMERIC operator[](size_t _index) const
-          {
-            if (_index > 3)
-              throw IndexException();
-            return this->data[_index];
-          }
+      /// \brief Multiplication operator.
+      /// \remarks Performs element wise multiplication,
+      /// which has limited use.
+      /// \param[in] _pt another vector
+      /// \return result vector
+      public: const Vector4<T> operator*(const Vector4<T> &_pt) const
+      {
+        return Vector4<T>(this->data[0] * _pt[0],
+                          this->data[1] * _pt[1],
+                          this->data[2] * _pt[2],
+                          this->data[3] * _pt[3]);
+      }
 
-  /// \brief Get the x value.
-  /// \return The x component of the vector
-  public: inline IGN_NUMERIC x() const
-          {
-            return this->data[0];
-          }
+      /// \brief Matrix multiplication operator.
+      /// \param[in] _m matrix
+      /// \return the vector multiplied by _m
+      public: const Vector4<T> operator*(const Matrix4<T> &_m) const
+      {
+        return Vector4<T>(
+            this->data[0]*_m(0, 0) + this->data[1]*_m(1, 0) +
+            this->data[2]*_m(2, 0) + this->data[3]*_m(3, 0),
+            this->data[0]*_m(0, 1) + this->data[1]*_m(1, 1) +
+            this->data[2]*_m(2, 1) + this->data[3]*_m(3, 1),
+            this->data[0]*_m(0, 2) + this->data[1]*_m(1, 2) +
+            this->data[2]*_m(2, 2) + this->data[3]*_m(3, 2),
+            this->data[0]*_m(0, 3) + this->data[1]*_m(1, 3) +
+            this->data[2]*_m(2, 3) + this->data[3]*_m(3, 3));
+      }
 
-  /// \brief Get the y value.
-  /// \return The y component of the vector
-  public: inline IGN_NUMERIC y() const
-          {
-            return this->data[1];
-          }
+      /// \brief Multiplication assignment operator
+      /// \remarks Performs element wise multiplication,
+      /// which has limited use.
+      /// \param[in] _pt a vector
+      /// \return this
+      public: const Vector4<T> &operator*=(const Vector4<T> &_pt)
+      {
+        this->data[0] *= _pt[0];
+        this->data[1] *= _pt[1];
+        this->data[2] *= _pt[2];
+        this->data[3] *= _pt[3];
 
-  /// \brief Get the z value.
-  /// \return The z component of the vector
-  public: inline IGN_NUMERIC z() const
-          {
-            return this->data[2];
-          }
+        return *this;
+      }
 
-  /// \brief Get the w value.
-  /// \return The w component of the vector
-  public: inline IGN_NUMERIC w() const
-          {
-            return this->data[3];
-          }
+      /// \brief Multiplication operators
+      /// \param[in] _v scaling factor
+      /// \return a  scaled vector
+      public: const Vector4<T> operator*(T _v) const
+      {
+        return Vector4<T>(this->data[0] * _v, this->data[1] * _v,
+            this->data[2] * _v, this->data[3] * _v);
+      }
 
-  /// \brief Set the x value.
-  /// \param[in] _v Value for the x component.
-  public: inline void x(const IGN_NUMERIC &_v)
-          {
-            this->data[0] = _v;
-          }
+      /// \brief Multiplication assignment operator
+      /// \param[in] _v scaling factor
+      /// \return this
+      public: const Vector4<T> &operator*=(T _v)
+      {
+        this->data[0] *= _v;
+        this->data[1] *= _v;
+        this->data[2] *= _v;
+        this->data[3] *= _v;
 
-  /// \brief Set the y value.
-  /// \param[in] _v Value for the y component.
-  public: inline void y(const IGN_NUMERIC &_v)
-          {
-            this->data[1] = _v;
-          }
+        return *this;
+      }
 
-  /// \brief Set the z value.
-  /// \param[in] _v Value for the z component.
-  public: inline void z(const IGN_NUMERIC &_v)
-          {
-            this->data[2] = _v;
-          }
+      /// \brief Equal to operator
+      /// \param[in] _v the other vector
+      /// \return true if each component is equal withing a
+      /// default tolerence (1e-6), false otherwise
+      public: bool operator==(const Vector4<T> &_v) const
+      {
+        return equal(this->data[0], _v[0]) && equal(this->data[1], _v[1]) &&
+               equal(this->data[2], _v[2]) && equal(this->data[3], _v[3]);
+      }
 
-  /// \brief Set the w value.
-  /// \param[in] _v Value for the w component.
-  public: inline void w(const IGN_NUMERIC &_v)
-          {
-            this->data[3] = _v;
-          }
+      /// \brief Not equal to operator
+      /// \param[in] _pt the other vector
+      /// \return true if each component is equal withing a
+      /// default tolerence (1e-6), false otherwise
+      public: bool operator!=(const Vector4<T> &_pt) const
+      {
+        return !(*this == _pt);
+      }
 
-  /// \brief Data values, 0==x, 1==y, 2==z, 3==w
-  private: IGN_NUMERIC data[4];
-};
+      /// \brief See if a point is finite (e.g., not nan)
+      /// \return true if finite, false otherwise
+      public: bool IsFinite() const
+      {
+        // std::isfinite works with floating point values,
+        // need to explicit cast to avoid ambiguity in vc++.
+        return std::isfinite(static_cast<double>(this->data[0])) &&
+               std::isfinite(static_cast<double>(this->data[1])) &&
+               std::isfinite(static_cast<double>(this->data[2])) &&
+               std::isfinite(static_cast<double>(this->data[3]));
+      }
+      /// \brief Array subscript operator
+      /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
+      /// \return The value. Throws an IndexException if _index is out of
+      /// bounds.
+      /// \throws IndexException if _index is >= 4.
+      public: inline T operator[](size_t _index) const
+      {
+        if (_index > 3)
+          throw IndexException();
+        return this->data[_index];
+      }
 
-/// \brief Stream insertion operator
-/// \param[in] _out output stream
-/// \param[in] _pt Vector4 to output
-/// \return The stream
-std::ostream IGNITION_VISIBLE
-&operator<<(std::ostream &_out, const ignition::math::IGN_VECTOR4 &_pt);
+      /// \brief Get the x value.
+      /// \return The x component of the vector
+      public: inline T x() const
+      {
+        return this->data[0];
+      }
 
-/// \brief Stream extraction operator
-/// \param[in] _in input stream
-/// \param[in] _pt Vector4 to read values into
-/// \return the stream
-std::istream IGNITION_VISIBLE
-&operator>>(std::istream &_in, ignition::math::IGN_VECTOR4 &_pt);
+      /// \brief Get the y value.
+      /// \return The y component of the vector
+      public: inline T y() const
+      {
+        return this->data[1];
+      }
+
+      /// \brief Get the z value.
+      /// \return The z component of the vector
+      public: inline T z() const
+      {
+        return this->data[2];
+      }
+
+      /// \brief Get the w value.
+      /// \return The w component of the vector
+      public: inline T w() const
+      {
+        return this->data[3];
+      }
+
+      /// \brief Set the x value.
+      /// \param[in] _v Value for the x component.
+      public: inline void x(const T &_v)
+      {
+        this->data[0] = _v;
+      }
+
+      /// \brief Set the y value.
+      /// \param[in] _v Value for the y component.
+      public: inline void y(const T &_v)
+      {
+        this->data[1] = _v;
+      }
+
+      /// \brief Set the z value.
+      /// \param[in] _v Value for the z component.
+      public: inline void z(const T &_v)
+      {
+        this->data[2] = _v;
+      }
+
+      /// \brief Set the w value.
+      /// \param[in] _v Value for the w component.
+      public: inline void w(const T &_v)
+      {
+        this->data[3] = _v;
+      }
+
+      /// \brief Stream insertion operator
+      /// \param[in] _out output stream
+      /// \param[in] _pt Vector4 to output
+      /// \return The stream
+      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+                  std::ostream &_out, const ignition::math::Vector4<T> &_pt)
+      {
+        _out << _pt[0] << " " << _pt[1] << " " << _pt[2] << " " << _pt[3];
+        return _out;
+      }
+
+      /// \brief Stream extraction operator
+      /// \param[in] _in input stream
+      /// \param[in] _pt Vector4 to read values into
+      /// \return the stream
+      public: friend std::istream IGNITION_VISIBLE &operator>>(
+                  std::istream &_in, ignition::math::Vector4<T> &_pt)
+      {
+        T x, y, z, w;
+
+        // Skip white spaces
+        _in.setf(std::ios_base::skipws);
+        _in >> x >> y >> z >> w;
+        _pt.Set(x, y, z, w);
+        return _in;
+      }
+
+      /// \brief Data values, 0==x, 1==y, 2==z, 3==w
+      private: T data[4];
+    };
+
+    template<typename T>
+    const Vector4<T> Vector4<T>::Zero(0, 0, 0,0);
+
+    template<typename T>
+    const Vector4<T> Vector4<T>::One(1, 1, 1, 1);
+
+    typedef Vector4<int> Vector4i;
+    typedef Vector4<double> Vector4d;
+    typedef Vector4<float> Vector4f;
+  }
+}
+#endif

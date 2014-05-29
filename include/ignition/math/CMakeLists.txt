@@ -1,37 +1,22 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
+  AffineException.hh
   Angle.hh
   Box.hh
   Helpers.hh
-  MathTypes.hh
-  Matrix3d.hh
-  Matrix3f.hh
-  Matrix3i.hh
-  Matrix4d.hh
-  Matrix4f.hh
-  Matrix4i.hh
-  Planed.hh
-  Planef.hh
-  Planei.hh
-  Pose3d.hh
-  Pose3f.hh
-  Pose3i.hh
-  Quaterniond.hh
-  Quaternionf.hh
-  Quaternioni.hh
+  IndexException.hh
+  Matrix3.hh
+  Matrix4.hh
+  Plane.hh
+  Pose3.hh
+  Quaternion.hh
   Rand.hh
   RotationSpline.hh
   Spline.hh
-  Vector2d.hh
-  Vector2f.hh
-  Vector2i.hh
-  Vector3d.hh
-  Vector3f.hh
-  Vector3i.hh
-  Vector4d.hh
-  Vector4f.hh
-  Vector4i.hh
+  Vector2.hh
+  Vector3.hh
+  Vector4.hh
 )
 
 set (ign_headers "" CACHE INTERNAL "Ignition math headers" FORCE)

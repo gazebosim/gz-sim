@@ -16,10 +16,10 @@ macro (ign_build_tests)
 
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
-         pthread
          libgtest_main.a
          libgtest.a
-	 ignition_math)
+         pthread
+	       ignition_math)
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
          gtest.lib

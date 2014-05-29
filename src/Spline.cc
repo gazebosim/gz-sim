@@ -18,7 +18,7 @@
 // spline and catmull-rom spline
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector4d.hh"
+#include "ignition/math/Vector4.hh"
 #include "ignition/math/Spline.hh"
 
 using namespace ignition;

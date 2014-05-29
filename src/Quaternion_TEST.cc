@@ -21,7 +21,9 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Quaterniond.hh"
+#include "ignition/math/Quaternion.hh"
+#include "ignition/math/Matrix3.hh"
+#include "ignition/math/Matrix4.hh"
 
 using namespace ignition;
 
@@ -277,12 +279,12 @@ TEST(QuaternionTest, Math)
     EXPECT_TRUE(-q == math::Quaterniond(-0.891007, -0.121334,
                                        -0.242668, -0.364002));
 
-    EXPECT_TRUE(q.GetAsMatrix3() == math::Matrix3d(
+    EXPECT_TRUE(math::Matrix3d(q) == math::Matrix3d(
                 0.617229, -0.589769, 0.52077,
                 0.707544, 0.705561, -0.0395554,
                 -0.344106, 0.392882, 0.85278));
 
-    EXPECT_TRUE(q.GetAsMatrix4() == math::Matrix4d(
+    EXPECT_TRUE(math::Matrix4d(q) == math::Matrix4d(
                 0.617229, -0.589769, 0.52077, 0,
                 0.707544, 0.705561, -0.0395554, 0,
                 -0.344106, 0.392882, 0.85278, 0,

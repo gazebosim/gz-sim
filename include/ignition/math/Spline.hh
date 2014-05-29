@@ -21,8 +21,8 @@
 
 #include <vector>
 
-#include "ignition/math/Vector3d.hh"
-#include "ignition/math/Matrix4d.hh"
+#include "ignition/math/Vector3.hh"
+#include "ignition/math/Matrix4.hh"
 
 namespace ignition
 {

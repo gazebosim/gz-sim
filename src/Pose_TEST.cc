@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Pose3d.hh"
+#include "ignition/math/Pose3.hh"
 
 using namespace ignition;
 

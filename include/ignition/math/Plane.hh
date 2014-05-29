@@ -14,78 +14,140 @@
  * limitations under the License.
  *
 */
-#ifndef IGN_PLANE
-#error This class should not be used directly. Use Planed.hh, \
-Planef.hh, or Planei.hh.
-#endif
 
-/// \class Plane Plane.hh ignition/math.hh
-/// \brief A plane and related functions.
-class IGNITION_VISIBLE IGN_PLANE
+#ifndef _IGNITION_PLANE_HH_
+#define _IGNITION_PLANE_HH_
+
+#include <ignition/math/Vector3.hh>
+#include <ignition/math/Vector2.hh>
+
+namespace ignition
 {
-  /// \brief Constructor
-  public: IGN_PLANE();
+  namespace math
+  {
+    /// \class Plane Plane.hh ignition/math.hh
+    /// \brief A plane and related functions.
+    template<typename T>
+    class IGNITION_VISIBLE Plane
+    {
+      /// \brief Constructor
+      public: Plane()
+      {
+        this->d = 0.0;
+      }
 
-  /// \brief Constructor from a normal and a distanec
-  /// \param[in] _normal The plane normal
-  /// \param[in] _offset Offset along the normal
-  public: IGN_PLANE(const IGN_VECTOR3 &_normal, IGN_NUMERIC _offset = 0.0);
+      /// \brief Constructor from a normal and a distanec
+      /// \param[in] _normal The plane normal
+      /// \param[in] _offset Offset along the normal
+      public: Plane(const Vector3<T> &_normal, T _offset = 0.0)
+      {
+        this->normal = _normal;
+        this->d = _offset;
+      }
 
-  /// \brief Constructor
-  /// \param[in] _normal The plane normal
-  /// \param[in] _size Size of the plane
-  /// \param[in] _offset Offset along the normal
-  public: IGN_PLANE(const IGN_VECTOR3 &_normal, const IGN_VECTOR2 &_size,
-                IGN_NUMERIC _offset);
+      /// \brief Constructor
+      /// \param[in] _normal The plane normal
+      /// \param[in] _size Size of the plane
+      /// \param[in] _offset Offset along the normal
+      public: Plane(const Vector3<T> &_normal, const Vector2<T> &_size,
+                    T _offset)
+      {
+        this->Set(_normal, _size, _offset);
+      }
 
-  /// \brief Destructor
-  public: virtual ~IGN_PLANE();
+      /// \brief Destructor
+      public: virtual ~Plane() {}
 
-  /// \brief Set the plane
-  /// \param[in] _normal The plane normal
-  /// \param[in] _size Size of the plane
-  /// \param[in] _offset Offset along the normal
-  public: void Set(const IGN_VECTOR3 &_normal, const IGN_VECTOR2 &_size,
-                   IGN_NUMERIC offset);
+      /// \brief Set the plane
+      /// \param[in] _normal The plane normal
+      /// \param[in] _size Size of the plane
+      /// \param[in] _offset Offset along the normal
+      public: void Set(const Vector3<T> &_normal, const Vector2<T> &_size,
+                       T _offset)
+      {
+        this->normal = _normal;
+        this->size = _size;
+        this->d = _offset;
+      }
 
-  /// \brief Get distance to the plane give an origin and direction
-  /// \param[in] _origin the origin
-  /// \param[in] _dir a direction
-  /// \return the shortest distance
-  public: IGN_NUMERIC Distance(const IGN_VECTOR3 &_origin,
-                          const IGN_VECTOR3 &_dir) const;
+      /// \brief Get distance to the plane give an origin and direction
+      /// \param[in] _origin the origin
+      /// \param[in] _dir a direction
+      /// \return the shortest distance
+      public: T Distance(const Vector3<T> &_origin,
+                         const Vector3<T> &_dir) const
+      {
+        T denom = this->normal.Dot(_dir);
 
-  /// \brief Get the plane size
-  public: inline const IGN_VECTOR2 &GetSize() const
-          { return this->size; }
+        if (std::abs(denom) < 1e-3)
+        {
+          // parallel
+          return 0;
+        }
+        else
+        {
+          T nom = _origin.Dot(this->normal) - this->d;
+          T t = -(nom/denom);
+          return t;
+        }
+      }
 
-  /// \brief Get the plane size
-  public: inline IGN_VECTOR2 &GetSize()
-          { return this->size; }
+      /// \brief Get the plane size
+      public: inline const Vector2<T> &GetSize() const
+      {
+        return this->size;
+      }
 
-  /// \brief Get the plane offset
-  public: inline const IGN_VECTOR3 &GetNormal() const
-          { return this->normal; }
+      /// \brief Get the plane size
+      public: inline Vector2<T> &GetSize()
+      {
+        return this->size;
+      }
 
-  /// \brief Get the plane offset
-  public: inline IGN_VECTOR3 &GetNormal()
-          { return this->normal; }
+      /// \brief Get the plane offset
+      public: inline const Vector3<T> &GetNormal() const
+      {
+        return this->normal;
+      }
 
-  /// \brief Get the plane offset
-  public: inline IGN_NUMERIC GetOffset() const
-          { return this->d; }
+      /// \brief Get the plane offset
+      public: inline Vector3<T> &GetNormal()
+      {
+        return this->normal;
+      }
 
-  /// \brief Equal operator
-  /// \param _p another plane
-  /// \return itself
-  public: IGN_PLANE &operator=(const IGN_PLANE &_p);
+      /// \brief Get the plane offset
+      public: inline T GetOffset() const
+      {
+        return this->d;
+      }
 
-  /// \brief Plane normal
-  private: IGN_VECTOR3 normal;
+      /// \brief Equal operator
+      /// \param _p another plane
+      /// \return itself
+      public: Plane<T> &operator=(const Plane<T> &_p)
+      {
+        this->normal = _p.normal;
+        this->size = _p.size;
+        this->d = _p.d;
 
-  /// \brief Plane size
-  private: IGN_VECTOR2 size;
+        return *this;
+      }
 
-  /// \brief Plane offset
-  private: IGN_NUMERIC d;
-};
+      /// \brief Plane normal
+      private: Vector3<T> normal;
+
+      /// \brief Plane size
+      private: Vector2<T> size;
+
+      /// \brief Plane offset
+      private: T d;
+    };
+
+    typedef Plane<int> Planei;
+    typedef Plane<double> Planed;
+    typedef Plane<float> Planef;
+  }
+}
+
+#endif

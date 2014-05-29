@@ -4,6 +4,14 @@ include (CheckCXXSourceCompiles)
 include (${project_cmake_dir}/FindOS.cmake)
 include (FindPkgConfig)
 
+find_package(SWIG REQUIRED)
+include(${SWIG_USE_FILE})
+
+find_package(PythonLibs)
+include_directories(${PYTHON_INCLUDE_PATH})
+
+SET(CMAKE_SWIG_FLAGS "")
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)
