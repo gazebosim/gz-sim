@@ -99,6 +99,19 @@ class IGNITION_VISIBLE IGN_MATRIX3
   /// \return product of this * _m
   public: IGN_MATRIX3 operator*(const IGN_MATRIX3 &_m) const;
 
+  /// \brief Multiplication operator
+  /// \param _vec Vector3
+  /// \return Resulting vector from multiplication
+  public: IGN_VECTOR3 operator*(const IGN_VECTOR3 &_vec) const;
+
+  /// \brief Matrix multiplication operator for scaling.
+  /// \param[in] _s Scaling factor.
+  /// \param[in] _m Input matrix.
+  /// \return A scaled matrix.
+  public: friend inline IGN_MATRIX3 operator*(IGN_NUMERIC _s,
+                                              const IGN_MATRIX3 &_m)
+          { return _m * _s; }
+
   /// \brief Equality test operator
   /// \param[in] _m IGN_MATRIX3 to test
   /// \return True if equal (using the default tolerance of 1e-6)

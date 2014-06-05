@@ -216,6 +216,18 @@ IGN_MATRIX3 IGN_MATRIX3::operator*(const IGN_MATRIX3 &_m) const
 }
 
 //////////////////////////////////////////////////
+IGN_VECTOR3 IGN_MATRIX3::operator*(const IGN_VECTOR3 &_vec) const
+{
+  return IGN_VECTOR3(this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
+                     this->data[0][2]*_vec.z(),
+                     this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
+                     this->data[1][2]*_vec.z(),
+                     this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
+                     this->data[2][2]*_vec.z());
+}
+
+
+//////////////////////////////////////////////////
 std::ostream &ignition::math::operator<<(std::ostream &_out,
     const ignition::math::IGN_MATRIX3 &_m)
 {
