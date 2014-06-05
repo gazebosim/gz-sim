@@ -571,42 +571,6 @@ namespace ignition
       }
 
       /// \brief Multiplication operator
-      /// \param _mat Incoming matrix
-      /// \return This matrix * _mat
-      public: Matrix4<T> operator*(const Matrix3<T> &_m2) const
-      {
-        return Matrix4<T>(
-            this->data[0][0] * _m2(0, 0) + this->data[0][1] * _m2(1, 0) +
-            this->data[0][2] * _m2(2, 0),
-            this->data[0][0] * _m2(0, 1) + this->data[0][1] * _m2(1, 1) +
-            this->data[0][2] * _m2(2, 1),
-            this->data[0][0] * _m2(0, 2) + this->data[0][1] * _m2(1, 2) +
-            this->data[0][2] * _m2(2, 2),
-            this->data[0][3],
-
-            this->data[1][0] * _m2(0, 0) + this->data[1][1] * _m2(1, 0) +
-            this->data[1][2] * _m2(2, 0),
-            this->data[1][0] * _m2(0, 1) + this->data[1][1] * _m2(1, 1) +
-            this->data[1][2] * _m2(2, 1),
-            this->data[1][0] * _m2(0, 2) + this->data[1][1] * _m2(1, 2) +
-            this->data[1][2] * _m2(2, 2),
-            this->data[1][3],
-
-            this->data[2][0] * _m2(0, 0) + this->data[2][1] * _m2(1, 0) +
-            this->data[2][2] * _m2(2, 0),
-            this->data[2][0] * _m2(0, 1) + this->data[2][1] * _m2(1, 1) +
-            this->data[2][2] * _m2(2, 1),
-            this->data[2][0] * _m2(0, 2) + this->data[2][1] * _m2(1, 2) +
-            this->data[2][2] * _m2(2, 2),
-            this->data[2][3],
-
-            this->data[3][0],
-            this->data[3][1],
-            this->data[3][2],
-            this->data[3][3]);
-      }
-
-      /// \brief Multiplication operator
       /// \param _vec Vector3
       /// \return Resulting vector from multiplication
       public: Vector3<T> operator*(const Vector3<T> &_vec) const

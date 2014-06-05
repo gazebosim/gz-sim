@@ -253,6 +253,29 @@ namespace ignition
             this->data[2][2]*_m(2, 2));
       }
 
+      /// \brief Multiplication operator
+      /// \param _vec Vector3
+      /// \return Resulting vector from multiplication
+      public: Vector3<T> operator*(const Vector3<T> &_vec) const
+      {
+        return Vector3<T>(
+            this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
+            this->data[0][2]*_vec.z(),
+            this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
+            this->data[1][2]*_vec.z(),
+            this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
+            this->data[2][2]*_vec.z());
+      }
+
+      /// \brief Matrix multiplication operator for scaling.
+      /// \param[in] _s Scaling factor.
+      /// \param[in] _m Input matrix.
+      /// \return A scaled matrix.
+      public: friend inline Matrix3<T> operator*(T _s, const Matrix3<T> &_m)
+      {
+        return _m * _s;
+      }
+
       /// \brief Equality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if equal (using the default tolerance of 1e-6)
