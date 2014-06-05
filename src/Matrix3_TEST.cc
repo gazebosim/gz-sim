@@ -205,11 +205,11 @@ TEST(Matrix3dTest, Vector3Multiplication)
 
     // Vector3::Unit[X|Y|Z]
     EXPECT_EQ(math::Vector3d(matrix(0, 0), matrix(1, 0), matrix(2, 0)),
-        matrix * math::Vector3d::UnitX);
+              matrix * math::Vector3d::UnitX);
     EXPECT_EQ(math::Vector3d(matrix(0, 1), matrix(1, 1), matrix(2, 1)),
-        matrix * math::Vector3d::UnitY);
+              matrix * math::Vector3d::UnitY);
     EXPECT_EQ(math::Vector3d(matrix(0, 2), matrix(1, 2), matrix(2, 2)),
-        matrix * math::Vector3d::UnitZ);
+              matrix * math::Vector3d::UnitZ);
 
     // Matrix3::IDENTITY
     EXPECT_EQ(matrix, matrix * math::Matrix3d::Identity);
@@ -220,8 +220,8 @@ TEST(Matrix3dTest, Vector3Multiplication)
     // Multiply arbitrary matrix by itself
     math::Matrix3d matrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     math::Matrix3d matrix2(30,  36,  42,
-        66,  81,  96,
-        102, 126, 150);
+                           66,  81,  96,
+                           102, 126, 150);
 
     EXPECT_EQ(matrix * matrix, matrix2);
   }
