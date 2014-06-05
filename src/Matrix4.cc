@@ -275,40 +275,6 @@ const IGN_MATRIX4 &IGN_MATRIX4::operator=(const IGN_MATRIX3 &_mat)
 
 
 //////////////////////////////////////////////////
-IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX3 &_m2) const
-{
-  return IGN_MATRIX4(
-      this->data[0][0] * _m2(0, 0) + this->data[0][1] * _m2(1, 0) +
-      this->data[0][2] * _m2(2, 0),
-      this->data[0][0] * _m2(0, 1) + this->data[0][1] * _m2(1, 1) +
-      this->data[0][2] * _m2(2, 1),
-      this->data[0][0] * _m2(0, 2) + this->data[0][1] * _m2(1, 2) +
-      this->data[0][2] * _m2(2, 2),
-      this->data[0][3],
-
-      this->data[1][0] * _m2(0, 0) + this->data[1][1] * _m2(1, 0) +
-      this->data[1][2] * _m2(2, 0),
-      this->data[1][0] * _m2(0, 1) + this->data[1][1] * _m2(1, 1) +
-      this->data[1][2] * _m2(2, 1),
-      this->data[1][0] * _m2(0, 2) + this->data[1][1] * _m2(1, 2) +
-      this->data[1][2] * _m2(2, 2),
-      this->data[1][3],
-
-      this->data[2][0] * _m2(0, 0) + this->data[2][1] * _m2(1, 0) +
-      this->data[2][2] * _m2(2, 0),
-      this->data[2][0] * _m2(0, 1) + this->data[2][1] * _m2(1, 1) +
-      this->data[2][2] * _m2(2, 1),
-      this->data[2][0] * _m2(0, 2) + this->data[2][1] * _m2(1, 2) +
-      this->data[2][2] * _m2(2, 2),
-      this->data[2][3],
-
-      this->data[3][0],
-      this->data[3][1],
-      this->data[3][2],
-      this->data[3][3]);
-}
-
-//////////////////////////////////////////////////
 IGN_MATRIX4 IGN_MATRIX4::operator*(const IGN_MATRIX4 &_m2) const
 {
   return IGN_MATRIX4(

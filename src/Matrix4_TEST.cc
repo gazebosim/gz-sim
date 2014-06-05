@@ -133,32 +133,6 @@ TEST(Matrix4dTest, MultiplyV)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4dTest, Multiply3)
-{
-  math::Matrix4d mat;
-  math::Matrix3d mat1;
-
-  for (int i = 0; i < 4; ++i)
-  {
-    for (int j = 0; j < 4; ++j)
-    {
-      mat(i, j) = i-j;
-      if (i < 3 && j < 3)
-        mat1(j, i) = i+j;
-    }
-  }
-
-  math::Matrix4d mat3(
-      -5, -8, -11, -3,
-      -2, -2, -2, -2,
-      1, 4, 7, -1,
-      3, 2, 1, 0);
-
-  math::Matrix4d mat2 = mat * mat1;
-  EXPECT_EQ(mat2, mat3);
-}
-
-/////////////////////////////////////////////////
 TEST(Matrix4dTest, Multiply4)
 {
   math::Matrix4d mat, mat1;
