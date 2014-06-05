@@ -177,7 +177,6 @@ TEST(Matrix3dTest, OperatorStreamIn)
 
 /////////////////////////////////////////////////
 TEST(Matrix3dTest, Vector3Multiplication)
-  Add a comment to this line
 {
   {
     // Multiply arbitrary matrix by zeros of different sizes
