@@ -28,13 +28,6 @@ set (gtest_sources
   Vector4_TEST.cc
 )
 
-
 ign_add_library(ignition_math ${sources})
 ign_build_tests(${gtest_sources})
 ign_install_library(ignition_math)
-
-set_source_files_properties(example.i PROPERTIES CPLUSPLUS ON)
-set_source_files_properties(example.i PROPERTIES SWIG_FLAGS "-builtin")
-
-#SWIG_ADD_MODULE(ign_math_py python example.i Vector2d.cc)
-#SWIG_LINK_LIBRARIES(ign_math_py ${PYTHON_LIBRARIES})
