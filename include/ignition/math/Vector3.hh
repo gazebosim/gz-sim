@@ -21,6 +21,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>

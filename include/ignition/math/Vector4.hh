@@ -440,7 +440,7 @@ namespace ignition
     };
 
     template<typename T>
-    const Vector4<T> Vector4<T>::Zero(0, 0, 0,0);
+    const Vector4<T> Vector4<T>::Zero(0, 0, 0, 0);
 
     template<typename T>
     const Vector4<T> Vector4<T>::One(1, 1, 1, 1);
