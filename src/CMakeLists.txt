@@ -5,7 +5,6 @@ set (sources
   Angle.cc
   Box.cc
   Helpers.cc
-  Pose3.cc
   Rand.cc
   RotationSpline.cc
   Spline.cc
