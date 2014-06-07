@@ -4,6 +4,7 @@ set (headers
   AffineException.hh
   Angle.hh
   Box.hh
+  Filter.hh
   Helpers.hh
   IndexException.hh
   Matrix3.hh

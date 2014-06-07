@@ -13,6 +13,7 @@ set (sources
 set (gtest_sources
   Angle_TEST.cc
   Box_TEST.cc
+  Filter_TEST.cc
   Helpers_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
