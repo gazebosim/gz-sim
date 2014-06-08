@@ -14,6 +14,7 @@ set (gtest_sources
   Angle_TEST.cc
   Box_TEST.cc
   Helpers_TEST.cc
+  Line2_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
   Plane_TEST.cc

@@ -46,7 +46,7 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _v the value
-      public: Vector2(const Vector2 &_v)
+      public: Vector2(const Vector2<T> &_v)
       {
         this->data[0] = _v[0];
         this->data[1] = _v[1];
