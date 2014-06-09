@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_ANGLE_HH_
-#define _IGNITION_ANGLE_HH_
+#ifndef _IGNITION_LINE2_HH_
+#define _IGNITION_LINE2_HH_
 
 #include <algorithm>
 #include <ignition/math/Vector2.hh>
