@@ -88,7 +88,7 @@ if(LD_LIBRARY_PATH)
 endif()
 
 
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/include/ignition") 
+set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition") 
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
@@ -269,9 +269,9 @@ else (build_errors)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition/
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/
     COMPONENT cmake)
 
   ########################################

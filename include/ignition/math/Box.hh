@@ -18,7 +18,7 @@
 #define _IGNITION_BOX_HH_
 
 #include <iostream>
-#include <ignition/math/Vector3d.hh>
+#include <ignition/math/Vector3.hh>
 
 namespace ignition
 {

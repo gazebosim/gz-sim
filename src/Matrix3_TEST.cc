@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Matrix3d.hh"
+#include "ignition/math/Matrix3.hh"
 
 using namespace ignition;
 

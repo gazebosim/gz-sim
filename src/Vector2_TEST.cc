@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector2d.hh"
+#include "ignition/math/Vector2.hh"
 
 using namespace ignition;
 

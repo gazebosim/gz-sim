@@ -1,36 +1,13 @@
 include (${project_cmake_dir}/Utils.cmake)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set (sources
   Angle.cc
   Box.cc
   Helpers.cc
-  Matrix3d.cc
-  Matrix3f.cc
-  Matrix3i.cc
-  Matrix4d.cc
-  Matrix4f.cc
-  Matrix4i.cc
-  Planed.cc
-  Planef.cc
-  Planei.cc
-  Pose3d.cc
-  Pose3f.cc
-  Pose3i.cc
-  Quaterniond.cc
-  Quaternionf.cc
-  Quaternioni.cc
   Rand.cc
   RotationSpline.cc
   Spline.cc
-  Vector2d.cc
-  Vector2f.cc
-  Vector2i.cc
-  Vector3d.cc
-  Vector3f.cc
-  Vector3i.cc
-  Vector4d.cc
-  Vector4f.cc
-  Vector4i.cc
 )
 
 set (gtest_sources

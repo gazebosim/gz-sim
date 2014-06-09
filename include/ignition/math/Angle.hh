@@ -20,6 +20,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
+#include <ignition/math/Helpers.hh>
 
 /// \brief Macro that converts radians to degrees
 /// \param[in] radians
