@@ -2,10 +2,10 @@
 
 **Math classes and functions for robot applications.**
 
-Ignition math is a component in the ignition framework, a set of libraries
+Ignition Math is a component in the Ignition framework, a set of libraries
 designed to rapidly develop robot applications. The library defines math
-classes and functions for ignition.
-  
+classes and functions used in other Ignition libraries and programs.
+
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
 
 ## Continuous integration
