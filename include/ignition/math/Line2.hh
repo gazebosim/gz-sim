@@ -69,10 +69,73 @@ namespace ignition
         this->pts[1].Set(_x2, _y2);
       }
 
+      /// \brief Return the cross product of this line and the given line.
+      /// Give 'a' as this line and 'b' as given line, the equation is:
+      /// (a.start.x - a.end.x) * (b.start.y - b.end.y) -
+      /// (a.start.y - a.end.y) * (b.start.x - b.end.x)
+      /// \param[in] _line Line for the cross product computation.
+      /// \brief Return the cross product of this line and the given line.
+      public: double CrossProduct(const Line2<T> &_line) const
+      {
+        return (this->pts[0].x() - this->pts[1].x()) *
+               (_line[0].y() -_line[1].y()) -
+               (this->pts[0].y() - this->pts[1].y()) *
+               (_line[0].x() - _line[1].x());
+      }
+
+      /// \brief Return the cross product of this line and the given point.
+      /// Given 'a' and 'b' as the start and end points, the equation is:
+      //  (_pt.y - a.y) * (b.x - a.x) - (_pt.x - a.x) * (b.y - a.y)
+      /// \param[in] _pt Point for the cross product computation.
+      /// \brief Return the cross product of this line and the given point.
+      public: double CrossProduct(const Vector2<T> &_pt) const
+      {
+        return (_pt.y() - this->pts[0].y()) *
+               (this->pts[1].x() - this->pts[0].x()) -
+               (_pt.x() - this->pts[0].x()) *
+               (this->pts[1].y() - this->pts[0].y());
+      }
+
+      /// \brief Check if the given point is colinear with this line.
+      /// \param[in] _pt The point to check.
+      /// \param[in] _epsilon The error bounds within which the colinear
+      /// check will return true.
+      /// \brief Return true if the point is colinear with this line, false
+      /// otherwise.
+      public: bool Colinear(const math::Vector2<T> &_pt,
+                            double _epsilon = 1e-6) const
+      {
+        return math::equal(this->CrossProduct(_pt),
+            static_cast<T>(0), _epsilon);
+      }
+
+      /// \brief Check if the given line is colinear with this line.
+      /// \param[in] _line The line to check.
+      /// \param[in] _epsilon The error bounds within which the colinear
+      /// check will return true.
+      /// \brief Return true if the line is colinear with this line, false
+      /// otherwise.
+      public: bool Colinear(const math::Line2<T> &_line,
+                            double _epsilon = 1e-6) const
+      {
+        return math::equal(this->CrossProduct(_line),
+            static_cast<T>(0), _epsilon);
+      }
+
       /// \brief Return whether the given point is on this line segment.
       /// \param[in] _pt Point to check.
       /// \return True if the point is on the segement.
       public: bool OnSegment(const math::Vector2<T> &_pt) const
+      {
+        return this->Colinear(_pt) && this->Within(_pt);
+      }
+
+      /// \brief Check if the given point is between the start and end
+      /// points of the line segment. This does not imply that the point is
+      /// on the segment.
+      /// \param[in] _pt Point to check.
+      /// \return True if the point is on the segement.
+      public: bool Within(const math::Vector2<T> &_pt) const
       {
         return _pt.x() <= std::max(this->pts[0].x(), this->pts[1].x()) &&
                _pt.x() >= std::min(this->pts[0].x(), this->pts[1].x()) &&
@@ -88,23 +151,20 @@ namespace ignition
       /// \return True if an intersection was found.
       public: bool Intersect(const Line2<T> &_line, math::Vector2<T> &_pt) const
       {
-        double d = (this->pts[0].x() - this->pts[1].x()) *
-                   (_line[0].y() -_line[1].y()) -
-                   (this->pts[0].y() - this->pts[1].y()) *
-                   (_line[0].x() - _line[1].x());
+        double d = this->CrossProduct(_line);
 
         // d is zero if the two line are co-linear. Must check special
         // cases.
         if (math::equal(d, 0.0))
         {
           // Check if _line's starting point is on the line.
-          if (this->OnSegment(_line[0]))
+          if (this->Within(_line[0]))
           {
             _pt = _line[0];
             return true;
           }
           // Check if _line's ending point is on the line.
-          else if (this->OnSegment(_line[1]))
+          else if (this->Within(_line[1]))
           {
             _pt = _line[1];
             return true;

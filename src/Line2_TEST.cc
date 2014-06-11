@@ -62,6 +62,41 @@ TEST(Line2Test, Slope)
 }
 
 /////////////////////////////////////////////////
+TEST(Line2Test, ColinearLine)
+{
+  math::Line2d lineA(0, 0, 10, 0);
+  math::Line2d lineB(0, 0, 10, 0);
+  EXPECT_TRUE(lineA.Colinear(lineB, 1e-10));
+
+  lineB.Set(0, 10, 10, 10);
+  EXPECT_TRUE(lineA.Colinear(lineB));
+
+  lineB.Set(0, 10, 10, 10.00001);
+  EXPECT_FALSE(lineA.Colinear(lineB, 1e-10));
+  EXPECT_FALSE(lineA.Colinear(lineB));
+  EXPECT_TRUE(lineA.Colinear(lineB, 1e-3));
+}
+
+/////////////////////////////////////////////////
+TEST(Line2Test, ColinearPoint)
+{
+  math::Line2d lineA(0, 0, 10, 0);
+  math::Vector2d pt(0, 0);
+  EXPECT_TRUE(lineA.Colinear(pt));
+
+  pt.Set(1000, 0);
+  EXPECT_TRUE(lineA.Colinear(pt, 1e-10));
+
+  pt.Set(0, 0.00001);
+  EXPECT_FALSE(lineA.Colinear(pt));
+  EXPECT_TRUE(lineA.Colinear(pt, 1e-4));
+
+  pt.Set(0, -0.00001);
+  EXPECT_FALSE(lineA.Colinear(pt));
+  EXPECT_TRUE(lineA.Colinear(pt, 1e-4));
+}
+
+/////////////////////////////////////////////////
 TEST(Line2Test, Intersect)
 {
   math::Vector2d pt;
