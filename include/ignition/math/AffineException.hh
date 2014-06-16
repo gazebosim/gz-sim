@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNTION_AFFINE_EXCEPTION_HH_
-#define _IGNTION_AFFINE_EXCEPTION_HH_
+#ifndef _IGNITION_AFFINE_EXCEPTION_HH_
+#define _IGNITION_AFFINE_EXCEPTION_HH_
 
 #include <stdexcept>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {

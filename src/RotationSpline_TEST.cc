@@ -18,8 +18,8 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Vector3d.hh"
-#include "ignition/math/Quaterniond.hh"
+#include "ignition/math/Vector3.hh"
+#include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
 
 using namespace ignition;

@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
-#include "ignition/math/Planed.hh"
+#include "ignition/math/Plane.hh"
 
 using namespace ignition;
 

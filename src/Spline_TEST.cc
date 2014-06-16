@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Vector3d.hh"
+#include "ignition/math/Vector3.hh"
 #include "ignition/math/Spline.hh"
 
 using namespace ignition;

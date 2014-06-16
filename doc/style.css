@@ -1,18 +1,22 @@
-body {
+body, table, div, p, dl {
   font-family: arial, verdana, sans, sans-serif;
   background-color: #FFF;
-  color:#000;
+	font-size: 12px;
+  margin: 0;
+  padding 0;
 }
 
-#content { 
-  position: absolute; 
-  left:12em; 
-  top:0em; 
-  padding-left:3em; 
-  padding-right:3em; 
-  padding-bottom:2em; 
-  margin-top:1em; 
-  margin-right:2em; 
+div#top {
+  margin: 0 0 0 20em;
+}
+div.header {
+	margin-left: 20em;
+}
+
+div.contents {
+	margin-top: 0px;
+	margin-left: 20em;
+	margin-right: 10px;
 }
 
 .floatright 
@@ -28,23 +32,26 @@ body {
 }
 
 
-div.leftbar{
-  position:absolute;
+div.leftbar
+{
   text-align:left;
   float: left;
-  width: 12em;
-  margin: 5 5 5 5;
+  border-right: 1px solid #dddddd;
+  width: 18em;
+  margin: 0 0 0 0;
   padding: 4 4 4 4;
-  background-color: #DDD;
+  background-color: #ffffff;
+  position: fixed;
   height: 100%;
 }
 
 div.menu {
   #display:block;
-  background:#EEE;
+  background:#ffffff;
   font-size: 90%;
-  border-top: 2px solid #000000;
-  border-bottom: 2px solid #000000;
+  /*border-top: 2px solid #000000;
+   *   border-bottom: 2px solid #000000;
+   *   */
   margin: 0 0 10px 0;
 }
 
@@ -83,4 +90,18 @@ div.submenu dd {
 
 div.submenu dd .secondline {
   margin-left: 12px;
+}
+
+#MSearchBox
+{
+  border: 1px solid black;
+  position: static;
+  margin: 10px;
+  display: block;
+  height: 20px;
+}
+
+#MSearchField
+{
+  background:none;
 }

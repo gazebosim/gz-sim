@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/math/Pose3d.hh"
-#include "ignition/math/Quaterniond.hh"
-#include "ignition/math/Matrix4d.hh"
-#include "ignition/math/Vector3d.hh"
+#include "ignition/math/Pose3.hh"
+#include "ignition/math/Quaternion.hh"
+#include "ignition/math/Matrix4.hh"
+#include "ignition/math/Vector3.hh"
 
 using namespace ignition;
 
@@ -130,32 +130,6 @@ TEST(Matrix4dTest, MultiplyV)
   }
 
   EXPECT_EQ(mat * vec, math::Vector3d(-26.3, -13.7, -1.1));
-}
-
-/////////////////////////////////////////////////
-TEST(Matrix4dTest, Multiply3)
-{
-  math::Matrix4d mat;
-  math::Matrix3d mat1;
-
-  for (int i = 0; i < 4; ++i)
-  {
-    for (int j = 0; j < 4; ++j)
-    {
-      mat(i, j) = i-j;
-      if (i < 3 && j < 3)
-        mat1(j, i) = i+j;
-    }
-  }
-
-  math::Matrix4d mat3(
-      -5, -8, -11, -3,
-      -2, -2, -2, -2,
-      1, 4, 7, -1,
-      3, 2, 1, 0);
-
-  math::Matrix4d mat2 = mat * mat1;
-  EXPECT_EQ(mat2, mat3);
 }
 
 /////////////////////////////////////////////////
