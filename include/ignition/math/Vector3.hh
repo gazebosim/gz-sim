@@ -431,9 +431,18 @@ namespace ignition
       /// \return a scaled vector
       public: inline Vector3<T> operator*(T _s) const
       {
-        return Vector3(this->data[0] * _s,
-                       this->data[1] * _s,
-                       this->data[2] * _s);
+        return Vector3<T>(this->data[0] * _s,
+                          this->data[1] * _s,
+                          this->data[2] * _s);
+      }
+
+      /// \brief Multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v input vector
+      /// \return a scaled vector
+      public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
+      {
+        return Vector3<T>(_v.x() * _s, _v.y() * _s, _v.z() * _s);
       }
 
       /// \brief Multiplication operator
