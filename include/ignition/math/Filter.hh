@@ -57,13 +57,12 @@ namespace ignition
     class IGNITION_VISIBLE OnePole : public Filter<T>
     {
       /// \brief Constructor.
-      public: OnePole() : a0(0), b1(0) {}
+      public: OnePole() = default;
 
       /// \brief Constructor.
       /// \param[in] _fc Cutoff frequency.
       /// \param[in] _fs Sample rate.
       public: OnePole(double _fc, double _fs)
-        : a0(0), b1(0)
       {
         this->SetFc(_fc, _fs);
       }
@@ -85,10 +84,10 @@ namespace ignition
       }
 
       /// \brief Input gain control.
-      protected: double a0;
+      protected: double a0 = 0;
 
       /// \brief Gain of the feedback.
-      protected: double b1;
+      protected: double b1 = 0;
     };
 
     /// \class OnePoleQuaternion Filter.hh math/gzmath.hh
@@ -148,16 +147,12 @@ namespace ignition
     class IGNITION_VISIBLE BiQuad : public Filter<T>
     {
       /// \brief Constructor.
-      public: BiQuad()
-        : a0(0), a1(0), a2(0), b0(0), b1(0), b2(0)
-      {
-      }
+      public: BiQuad() = default;
 
       /// \brief Constructor.
       /// \param[in] _fc Cutoff frequency.
       /// \param[in] _fs Sample rate.
       public: BiQuad(double _fc, double _fs)
-        : a0(0), a1(0), a2(0), b0(0), b1(0), b2(0)
       {
         this->SetFc(_fc, _fs);
       }
@@ -210,7 +205,7 @@ namespace ignition
       }
 
       /// \brief Input gain control coefficients.
-      protected: double a0, a1, a2, b0, b1, b2;
+      protected: double a0, a1, a2, b0, b1, b2 = 0;
 
       /// \brief Gain of the feedback coefficients.
       protected: T x1, x2, y1, y2;
