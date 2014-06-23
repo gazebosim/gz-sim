@@ -109,11 +109,11 @@ namespace ignition
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is colinear with this line.
+      /// \brief Check if the given line is parallel with this line.
       /// \param[in] _line The line to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the parallel
       /// check will return true.
-      /// \brief Return true if the line is colinear with this line, false
+      /// \brief Return true if the line is parallel with this line, false
       /// otherwise.
       public: bool Parallel(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
