@@ -150,19 +150,19 @@ TEST(Line2Test, Intersect)
   lineB.Set(-1, 0, -10, 0);
   EXPECT_FALSE(lineA.Intersect(lineB, pt));
 
-  // Two co-linear lines, one starts where the other stopped
+  // Two colinear lines, one starts where the other stopped
   lineA.Set(1, 1, 1, 10);
   lineB.Set(1, 10, 1, 11);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
   EXPECT_EQ(pt, math::Vector2d(1, 10));
 
-  // Two co-linear lines, one overlaps the other
+  // Two colinear lines, one overlaps the other
   lineA.Set(0, 0, 0, 10);
   lineB.Set(0, 9, 0, 11);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
   EXPECT_EQ(pt, math::Vector2d(0, 9));
 
-  // Two co-linear lines, one overlaps the other
+  // Two colinear lines, one overlaps the other
   lineA.Set(0, 0, 0, 10);
   lineB.Set(0, -10, 0, 1);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
