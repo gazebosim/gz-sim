@@ -62,6 +62,25 @@ TEST(Line2Test, Slope)
 }
 
 /////////////////////////////////////////////////
+TEST(Line2Test, ParallelLine)
+{
+  math::Line2d lineA(0, 0, 10, 0);
+  math::Line2d lineB(0, 0, 10, 0);
+  EXPECT_TRUE(lineA.Parallel(lineB, 1e-10));
+
+  lineB.Set(0, 0, 0, 10);
+  EXPECT_FALSE(lineA.Parallel(lineB));
+
+  lineB.Set(0, 10, 10, 10);
+  EXPECT_TRUE(lineA.Parallel(lineB));
+
+  lineB.Set(0, 10, 10, 10.00001);
+  EXPECT_FALSE(lineA.Parallel(lineB, 1e-10));
+  EXPECT_FALSE(lineA.Parallel(lineB));
+  EXPECT_TRUE(lineA.Parallel(lineB, 1e-3));
+}
+
+/////////////////////////////////////////////////
 TEST(Line2Test, ColinearLine)
 {
   math::Line2d lineA(0, 0, 10, 0);
@@ -69,9 +88,9 @@ TEST(Line2Test, ColinearLine)
   EXPECT_TRUE(lineA.Colinear(lineB, 1e-10));
 
   lineB.Set(0, 10, 10, 10);
-  EXPECT_TRUE(lineA.Colinear(lineB));
+  EXPECT_FALSE(lineA.Colinear(lineB));
 
-  lineB.Set(0, 10, 10, 10.00001);
+  lineB.Set(9, 0, 10, 0.00001);
   EXPECT_FALSE(lineA.Colinear(lineB, 1e-10));
   EXPECT_FALSE(lineA.Colinear(lineB));
   EXPECT_TRUE(lineA.Colinear(lineB, 1e-3));

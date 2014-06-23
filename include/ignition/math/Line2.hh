@@ -115,11 +115,23 @@ namespace ignition
       /// check will return true.
       /// \brief Return true if the line is colinear with this line, false
       /// otherwise.
-      public: bool Colinear(const math::Line2<T> &_line,
+      public: bool Parallel(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
       {
         return math::equal(this->CrossProduct(_line),
             static_cast<T>(0), _epsilon);
+      }
+
+      /// \brief Check if the given line is parallel with this line.
+      /// \param[in] _line The line to check.
+      /// \param[in] _epsilon The error bounds within which the colinear
+      /// check will return true.
+      /// \brief Return true if the line is colinear with this line, false
+      /// otherwise.
+      public: bool Colinear(const math::Line2<T> &_line,
+                            double _epsilon = 1e-6) const
+      {
+        return this->Parallel(_line, _epsilon) && this->Intersect(_line);
       }
 
       /// \brief Return whether the given point is on this line segment.
@@ -143,6 +155,15 @@ namespace ignition
                _pt.y() >= std::min(this->pts[0].y(), this->pts[1].y());
       }
 
+      /// \brief Check if this line intersects the given line segment.
+      /// \param[in] _line The line to check for intersection.
+      /// \return True if an intersection was found.
+      public: bool Intersect(const Line2<T> &_line) const
+      {
+        static math::Vector2<T> ignore;
+        return this->Intersect(_line, ignore);
+      }
+
       /// \brief Check if this line intersects the given line segment. The
       /// point of intersection is returned in the _result parameter.
       /// \param[in] _line The line to check for intersection.
@@ -153,7 +174,7 @@ namespace ignition
       {
         double d = this->CrossProduct(_line);
 
-        // d is zero if the two line are co-linear. Must check special
+        // d is zero if the two line are colinear. Must check special
         // cases.
         if (math::equal(d, 0.0))
         {
