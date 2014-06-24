@@ -76,6 +76,13 @@ TEST(Line2Test, ParallelLine)
     EXPECT_TRUE(line.Parallel(line, 1e-10));
   }
 
+  {
+    // Degenerate line segment
+    // Still expect Line is parallel with itself
+    math::Line2d line(0, 0, 0, 0);
+    EXPECT_TRUE(line.Parallel(line, 1e-10));
+  }
+
   math::Line2d lineA(0, 0, 10, 0);
   math::Line2d lineB(0, 0, 10, 0);
   EXPECT_TRUE(lineA.Parallel(lineB, 1e-10));
@@ -120,17 +127,35 @@ TEST(Line2Test, CollinearPoint)
   math::Line2d lineA(0, 0, 10, 0);
   math::Vector2d pt(0, 0);
   EXPECT_TRUE(lineA.Collinear(pt));
+  {
+    math::Line2d ptLine(pt, pt);
+    EXPECT_TRUE(lineA.Collinear(ptLine));
+  }
 
   pt.Set(1000, 0);
   EXPECT_TRUE(lineA.Collinear(pt, 1e-10));
+  {
+    math::Line2d ptLine(pt, pt);
+    EXPECT_TRUE(lineA.Collinear(ptLine, 1e-10));
+  }
 
   pt.Set(0, 0.00001);
   EXPECT_FALSE(lineA.Collinear(pt));
   EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
+  {
+    math::Line2d ptLine(pt, pt);
+    EXPECT_FALSE(lineA.Collinear(ptLine));
+    EXPECT_TRUE(lineA.Collinear(ptLine, 1e-4));
+  }
 
   pt.Set(0, -0.00001);
   EXPECT_FALSE(lineA.Collinear(pt));
   EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
+  {
+    math::Line2d ptLine(pt, pt);
+    EXPECT_FALSE(lineA.Collinear(ptLine));
+    EXPECT_TRUE(lineA.Collinear(ptLine, 1e-4));
+  }
 }
 
 /////////////////////////////////////////////////
