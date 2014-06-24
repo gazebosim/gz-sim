@@ -46,7 +46,7 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _v the value
-      public: Vector2(const Vector2 &_v)
+      public: Vector2(const Vector2<T> &_v)
       {
         this->data[0] = _v[0];
         this->data[1] = _v[1];
@@ -81,6 +81,14 @@ namespace ignition
       {
         this->data[0] = _x;
         this->data[1] = _y;
+      }
+
+      /// \brief Get the dot product of this vector and _v
+      /// \param[in] _v the vector
+      /// \return The dot product
+      public: T Dot(const Vector2<T> &_v) const
+      {
+        return (this->data[0] * _v[0]) + (this->data[1] * _v[1]);
       }
 
       /// \brief Assignment operator
@@ -300,6 +308,15 @@ namespace ignition
       {
         _out << _pt[0] << " " << _pt[1];
         return _out;
+      }
+
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector2 first or second value is less than
+      /// the given vector's first or second value.
+      public: bool operator<(const Vector2<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1];
       }
 
       /// \brief Stream extraction operator
