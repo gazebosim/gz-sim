@@ -122,7 +122,7 @@ namespace ignition
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is parallel with this line.
+      /// \brief Check if the given line is collinear with this line.
       /// \param[in] _line The line to check.
       /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.

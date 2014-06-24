@@ -51,19 +51,31 @@ TEST(Line2Test, Length)
 /////////////////////////////////////////////////
 TEST(Line2Test, Slope)
 {
-  math::Line2d lineA(0, 0, 10, 10);
-  EXPECT_NEAR(lineA.Slope(), 1.0, 1e-10);
+  {
+    math::Line2d line(0, 0, 10, 10);
+    EXPECT_NEAR(line.Slope(), 1.0, 1e-10);
+  }
 
-  math::Line2d lineB(0, 0, 0, 10);
-  EXPECT_TRUE(math::isnan(lineB.Slope()));
+  {
+    math::Line2d line(0, 0, 0, 10);
+    EXPECT_TRUE(math::isnan(line.Slope()));
+  }
 
-  math::Line2d lineC(-10, 0, 100, 0);
-  EXPECT_EQ(lineC.Slope(), 0.0);
+  {
+    math::Line2d line(-10, 0, 100, 0);
+    EXPECT_EQ(line.Slope(), 0.0);
+  }
 }
 
 /////////////////////////////////////////////////
 TEST(Line2Test, ParallelLine)
 {
+  {
+    // Line is always parallel with itself
+    math::Line2d line(0, 0, 10, 0);
+    EXPECT_TRUE(line.Parallel(line, 1e-10));
+  }
+
   math::Line2d lineA(0, 0, 10, 0);
   math::Line2d lineB(0, 0, 10, 0);
   EXPECT_TRUE(lineA.Parallel(lineB, 1e-10));
@@ -83,6 +95,12 @@ TEST(Line2Test, ParallelLine)
 /////////////////////////////////////////////////
 TEST(Line2Test, CollinearLine)
 {
+  {
+    // Line is always collinear with itself
+    math::Line2d line(0, 0, 10, 0);
+    EXPECT_TRUE(line.Collinear(line, 1e-10));
+  }
+
   math::Line2d lineA(0, 0, 10, 0);
   math::Line2d lineB(0, 0, 10, 0);
   EXPECT_TRUE(lineA.Collinear(lineB, 1e-10));
