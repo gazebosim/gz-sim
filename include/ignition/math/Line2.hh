@@ -96,13 +96,13 @@ namespace ignition
                (this->pts[1].y() - this->pts[0].y());
       }
 
-      /// \brief Check if the given point is colinear with this line.
+      /// \brief Check if the given point is collinear with this line.
       /// \param[in] _pt The point to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.
-      /// \return Return true if the point is colinear with this line, false
+      /// \return Return true if the point is collinear with this line, false
       /// otherwise.
-      public: bool Colinear(const math::Vector2<T> &_pt,
+      public: bool Collinear(const math::Vector2<T> &_pt,
                             double _epsilon = 1e-6) const
       {
         return math::equal(this->CrossProduct(_pt),
@@ -122,13 +122,13 @@ namespace ignition
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is parallel with this line.
+      /// \brief Check if the given line is collinear with this line.
       /// \param[in] _line The line to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.
-      /// \return Return true if the line is colinear with this line, false
+      /// \return Return true if the line is collinear with this line, false
       /// otherwise.
-      public: bool Colinear(const math::Line2<T> &_line,
+      public: bool Collinear(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
       {
         return this->Parallel(_line, _epsilon) && this->Intersect(_line);
@@ -139,7 +139,7 @@ namespace ignition
       /// \return True if the point is on the segement.
       public: bool OnSegment(const math::Vector2<T> &_pt) const
       {
-        return this->Colinear(_pt) && this->Within(_pt);
+        return this->Collinear(_pt) && this->Within(_pt);
       }
 
       /// \brief Check if the given point is between the start and end
@@ -174,7 +174,7 @@ namespace ignition
       {
         double d = this->CrossProduct(_line);
 
-        // d is zero if the two line are colinear. Must check special
+        // d is zero if the two line are collinear. Must check special
         // cases.
         if (math::equal(d, 0.0))
         {
