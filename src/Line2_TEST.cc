@@ -136,6 +136,12 @@ TEST(Line2Test, CollinearPoint)
   EXPECT_TRUE(lineA.Collinear(pt, 1e-10));
   {
     math::Line2d ptLine(pt, pt);
+    EXPECT_TRUE(lineA.Parallel(ptLine));
+    EXPECT_FALSE(lineA.Intersect(ptLine));
+    EXPECT_FALSE(lineA.Collinear(ptLine, 1e-10));
+
+    pt.Set(10, 0);
+    ptLine.Set(pt, pt);
     EXPECT_TRUE(lineA.Collinear(ptLine, 1e-10));
   }
 
@@ -145,7 +151,10 @@ TEST(Line2Test, CollinearPoint)
   {
     math::Line2d ptLine(pt, pt);
     EXPECT_FALSE(lineA.Collinear(ptLine));
-    EXPECT_TRUE(lineA.Collinear(ptLine, 1e-4));
+    EXPECT_TRUE(lineA.Parallel(ptLine));
+    EXPECT_FALSE(lineA.Intersect(ptLine));
+    EXPECT_TRUE(lineA.Intersect(ptLine, 1e-2));
+    EXPECT_TRUE(lineA.Collinear(ptLine, 1e-3));
   }
 
   pt.Set(0, -0.00001);
