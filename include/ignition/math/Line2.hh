@@ -74,7 +74,7 @@ namespace ignition
       /// (a.start.x - a.end.x) * (b.start.y - b.end.y) -
       /// (a.start.y - a.end.y) * (b.start.x - b.end.x)
       /// \param[in] _line Line for the cross product computation.
-      /// \brief Return the cross product of this line and the given line.
+      /// \return Return the cross product of this line and the given line.
       public: double CrossProduct(const Line2<T> &_line) const
       {
         return (this->pts[0].x() - this->pts[1].x()) *
@@ -87,7 +87,7 @@ namespace ignition
       /// Given 'a' and 'b' as the start and end points, the equation is:
       //  (_pt.y - a.y) * (b.x - a.x) - (_pt.x - a.x) * (b.y - a.y)
       /// \param[in] _pt Point for the cross product computation.
-      /// \brief Return the cross product of this line and the given point.
+      /// \return Return the cross product of this line and the given point.
       public: double CrossProduct(const Vector2<T> &_pt) const
       {
         return (_pt.y() - this->pts[0].y()) *
@@ -100,7 +100,7 @@ namespace ignition
       /// \param[in] _pt The point to check.
       /// \param[in] _epsilon The error bounds within which the colinear
       /// check will return true.
-      /// \brief Return true if the point is colinear with this line, false
+      /// \return Return true if the point is colinear with this line, false
       /// otherwise.
       public: bool Colinear(const math::Vector2<T> &_pt,
                             double _epsilon = 1e-6) const
@@ -113,7 +113,7 @@ namespace ignition
       /// \param[in] _line The line to check.
       /// \param[in] _epsilon The error bounds within which the colinear
       /// check will return true.
-      /// \brief Return true if the line is colinear with this line, false
+      /// \return Return true if the line is colinear with this line, false
       /// otherwise.
       public: bool Parallel(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
@@ -126,7 +126,7 @@ namespace ignition
       /// \param[in] _line The line to check.
       /// \param[in] _epsilon The error bounds within which the colinear
       /// check will return true.
-      /// \brief Return true if the line is colinear with this line, false
+      /// \return Return true if the line is colinear with this line, false
       /// otherwise.
       public: bool Colinear(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
