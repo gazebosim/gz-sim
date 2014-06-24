@@ -81,38 +81,38 @@ TEST(Line2Test, ParallelLine)
 }
 
 /////////////////////////////////////////////////
-TEST(Line2Test, ColinearLine)
+TEST(Line2Test, CollinearLine)
 {
   math::Line2d lineA(0, 0, 10, 0);
   math::Line2d lineB(0, 0, 10, 0);
-  EXPECT_TRUE(lineA.Colinear(lineB, 1e-10));
+  EXPECT_TRUE(lineA.Collinear(lineB, 1e-10));
 
   lineB.Set(0, 10, 10, 10);
-  EXPECT_FALSE(lineA.Colinear(lineB));
+  EXPECT_FALSE(lineA.Collinear(lineB));
 
   lineB.Set(9, 0, 10, 0.00001);
-  EXPECT_FALSE(lineA.Colinear(lineB, 1e-10));
-  EXPECT_FALSE(lineA.Colinear(lineB));
-  EXPECT_TRUE(lineA.Colinear(lineB, 1e-3));
+  EXPECT_FALSE(lineA.Collinear(lineB, 1e-10));
+  EXPECT_FALSE(lineA.Collinear(lineB));
+  EXPECT_TRUE(lineA.Collinear(lineB, 1e-3));
 }
 
 /////////////////////////////////////////////////
-TEST(Line2Test, ColinearPoint)
+TEST(Line2Test, CollinearPoint)
 {
   math::Line2d lineA(0, 0, 10, 0);
   math::Vector2d pt(0, 0);
-  EXPECT_TRUE(lineA.Colinear(pt));
+  EXPECT_TRUE(lineA.Collinear(pt));
 
   pt.Set(1000, 0);
-  EXPECT_TRUE(lineA.Colinear(pt, 1e-10));
+  EXPECT_TRUE(lineA.Collinear(pt, 1e-10));
 
   pt.Set(0, 0.00001);
-  EXPECT_FALSE(lineA.Colinear(pt));
-  EXPECT_TRUE(lineA.Colinear(pt, 1e-4));
+  EXPECT_FALSE(lineA.Collinear(pt));
+  EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
 
   pt.Set(0, -0.00001);
-  EXPECT_FALSE(lineA.Colinear(pt));
-  EXPECT_TRUE(lineA.Colinear(pt, 1e-4));
+  EXPECT_FALSE(lineA.Collinear(pt));
+  EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
 }
 
 /////////////////////////////////////////////////
@@ -150,19 +150,19 @@ TEST(Line2Test, Intersect)
   lineB.Set(-1, 0, -10, 0);
   EXPECT_FALSE(lineA.Intersect(lineB, pt));
 
-  // Two colinear lines, one starts where the other stopped
+  // Two collinear lines, one starts where the other stopped
   lineA.Set(1, 1, 1, 10);
   lineB.Set(1, 10, 1, 11);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
   EXPECT_EQ(pt, math::Vector2d(1, 10));
 
-  // Two colinear lines, one overlaps the other
+  // Two collinear lines, one overlaps the other
   lineA.Set(0, 0, 0, 10);
   lineB.Set(0, 9, 0, 11);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
   EXPECT_EQ(pt, math::Vector2d(0, 9));
 
-  // Two colinear lines, one overlaps the other
+  // Two collinear lines, one overlaps the other
   lineA.Set(0, 0, 0, 10);
   lineB.Set(0, -10, 0, 1);
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
