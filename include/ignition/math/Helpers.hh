@@ -49,6 +49,8 @@
 /// \brief 32bit integer minimum value
 #define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
 
+#define IGN_PI M_PI
+
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
