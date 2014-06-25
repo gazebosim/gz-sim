@@ -57,7 +57,7 @@ void Angle::SetFromRadian(double _radian)
 //////////////////////////////////////////////////
 void Angle::SetFromDegree(double _degree)
 {
-  this->value = _degree * M_PI / 180.0;
+  this->value = _degree * IGN_PI / 180.0;
 }
 
 //////////////////////////////////////////////////
@@ -69,7 +69,7 @@ double Angle::Radian() const
 //////////////////////////////////////////////////
 double Angle::Degree() const
 {
-  return this->value * 180.0 / M_PI;
+  return this->value * 180.0 / IGN_PI;
 }
 
 //////////////////////////////////////////////////

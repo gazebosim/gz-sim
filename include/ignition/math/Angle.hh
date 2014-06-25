@@ -49,13 +49,13 @@ namespace ignition
       /// \brief math::Angle(0)
       public: static const Angle Zero;
 
-      /// \brief math::Angle(M_PI)
+      /// \brief math::Angle(IGN_PI)
       public: static const Angle Pi;
 
-      /// \brief math::Angle(M_PI * 0.5)
+      /// \brief math::Angle(IGN_PI * 0.5)
       public: static const Angle HalfPi;
 
-      /// \brief math::Angle(M_PI * 2)
+      /// \brief math::Angle(IGN_PI * 2)
       public: static const Angle TwoPi;
 
       /// \brief Constructor
