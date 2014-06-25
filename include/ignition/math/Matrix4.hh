@@ -274,15 +274,15 @@ namespace ignition
 
           if (m31 < 0.0)
           {
-            euler.y(M_PI / 2.0);
-            euler2.y(M_PI / 2.0);
+            euler.y(IGN_PI / 2.0);
+            euler2.y(IGN_PI / 2.0);
             euler.x(atan2(m12, m13));
             euler2.x(atan2(m12, m13));
           }
           else
           {
-            euler.y(-M_PI / 2.0);
-            euler2.y(-M_PI / 2.0);
+            euler.y(-IGN_PI / 2.0);
+            euler2.y(-IGN_PI / 2.0);
             euler.x(atan2(-m12, -m13));
             euler2.x(atan2(-m12, -m13));
           }
@@ -290,7 +290,7 @@ namespace ignition
         else
         {
           euler.y(-asin(m31));
-          euler2.y(M_PI - euler.y());
+          euler2.y(IGN_PI - euler.y());
 
           euler.x(atan2(m32 / cos(euler.y()), m33 / cos(euler.y())));
           euler2.x(atan2(m32 / cos(euler2.y()), m33 / cos(euler2.y())));

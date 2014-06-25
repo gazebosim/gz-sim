@@ -17,20 +17,18 @@
 #ifndef _IGNITION_ANGLE_HH_
 #define _IGNITION_ANGLE_HH_
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <iostream>
 #include <ignition/math/Helpers.hh>
 
 /// \brief Macro that converts radians to degrees
 /// \param[in] radians
 /// \return degrees
-#define IGN_RTOD(r) ((r) * 180 / M_PI)
+#define IGN_RTOD(r) ((r) * 180 / IGN_PI)
 
 /// \brief Converts degrees to radians
 /// \param[in] degrees
 /// \return radians
-#define IGN_DTOR(d) ((d) * M_PI / 180)
+#define IGN_DTOR(d) ((d) * IGN_PI / 180)
 
 /// \brief Macro tha normalizes an angle in the range -Pi to Pi
 /// \param[in] angle

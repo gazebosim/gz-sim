@@ -21,9 +21,9 @@ using namespace ignition;
 using namespace math;
 
 const Angle Angle::Zero = math::Angle(0);
-const Angle Angle::Pi = math::Angle(M_PI);
-const Angle Angle::HalfPi = math::Angle(M_PI * 0.5);
-const Angle Angle::TwoPi = math::Angle(M_PI * 2.0);
+const Angle Angle::Pi = math::Angle(IGN_PI);
+const Angle Angle::HalfPi = math::Angle(IGN_PI * 0.5);
+const Angle Angle::TwoPi = math::Angle(IGN_PI * 2.0);
 
 //////////////////////////////////////////////////
 Angle::Angle()
