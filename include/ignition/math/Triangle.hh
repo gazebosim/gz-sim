@@ -214,6 +214,8 @@ namespace ignition
         T b = this->Side(1).Length();
         T c = this->Side(2).Length();
 
+        // Heron's formula
+        // http://en.wikipedia.org/wiki/Heron%27s_formula
         return sqrt(s * (s-a) * (s-b) * (s-c));
       }
 

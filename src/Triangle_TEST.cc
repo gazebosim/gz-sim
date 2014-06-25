@@ -25,26 +25,37 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(TriangleTest, Constructor)
 {
-  math::Triangled tri;
-  EXPECT_EQ(tri[0], math::Vector2d(0, 0));
-  EXPECT_EQ(tri[1], math::Vector2d(0, 0));
-  EXPECT_EQ(tri[2], math::Vector2d(0, 0));
+  {
+    // Default constructor
+    math::Triangled tri;
+    EXPECT_EQ(tri[0], math::Vector2d(0, 0));
+    EXPECT_EQ(tri[1], math::Vector2d(0, 0));
+    EXPECT_EQ(tri[2], math::Vector2d(0, 0));
+  }
 
-  math::Triangled tri2(math::Vector2d(0, 0),
-                       math::Vector2d(0, 1),
-                       math::Vector2d(1, 0));
+  {
+    // Construct from three points
+    math::Triangled tri(math::Vector2d(0, 0),
+                         math::Vector2d(0, 1),
+                         math::Vector2d(1, 0));
 
-  EXPECT_TRUE(tri2.Valid());
+    EXPECT_TRUE(tri.Valid());
 
-  EXPECT_EQ(tri2[0], math::Vector2d(0, 0));
-  EXPECT_EQ(tri2[1], math::Vector2d(0, 1));
-  EXPECT_EQ(tri2[2], math::Vector2d(1, 0));
-  EXPECT_THROW(tri2[3], math::IndexException);
+    EXPECT_EQ(tri[0], math::Vector2d(0, 0));
+    EXPECT_EQ(tri[1], math::Vector2d(0, 1));
+    EXPECT_EQ(tri[2], math::Vector2d(1, 0));
+    EXPECT_THROW(tri[3], math::IndexException);
+  }
 
-  math::Triangled tri3(math::Vector2d(0, 0),
-                       math::Vector2d(0, 1),
-                       math::Vector2d(0, 2));
-  EXPECT_FALSE(tri3.Valid());
+  {
+    // Construct degenerate from 3 collinear points
+    math::Triangled tri(math::Vector2d(0, 0),
+                         math::Vector2d(0, 1),
+                         math::Vector2d(0, 2));
+
+    // Expect not Valid
+    EXPECT_FALSE(tri.Valid());
+  }
 }
 
 /////////////////////////////////////////////////
