@@ -23,7 +23,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Vector4 Vector4.hh ignitino/math.hh
+    /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
     class IGNITION_VISIBLE Vector4

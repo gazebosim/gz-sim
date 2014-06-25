@@ -25,6 +25,7 @@ namespace ignition
 {
   namespace math
   {
+    /// \class Line2 Line2.hh ignition/math/Line2.hh
     /// \brief A two dimensional line segment. The line is defined by a
     /// start and end point.
     template<typename T>

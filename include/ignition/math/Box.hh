@@ -24,7 +24,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Box Box.hh ignition/math.hh
+    /// \class Box Box.hh ignition/math/Box.hh
     /// \brief Mathematical representation of a box and related functions.
     class IGNITION_VISIBLE Box
     {
