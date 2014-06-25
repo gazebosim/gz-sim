@@ -28,7 +28,7 @@ namespace ignition
     /// \brief A two dimensional line segment. The line is defined by a
     /// start and end point.
     template<typename T>
-    class IGNITION_HIDDEN Line2
+    class Line2
     {
       /// \brief Constructor.
       /// \param[in] _ptA Start point of the line segment

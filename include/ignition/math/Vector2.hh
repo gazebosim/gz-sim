@@ -26,7 +26,7 @@ namespace ignition
   {
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
-    class IGNITION_HIDDEN Vector2
+    class Vector2
     {
       /// \brief Default Constructor
       public: Vector2()
