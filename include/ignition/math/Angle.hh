@@ -41,7 +41,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Angle Angle.hh ignition/math.hh
+    /// \class Angle Angle.hh ignition/math/Angle.hh
     /// \brief An angle and related functions.
     class IGNITION_VISIBLE Angle
     {

@@ -39,7 +39,7 @@ namespace ignition
     /// \brief std::uniform_int<int>
     typedef std::uniform_int_distribution<int32_t> UniformIntDist;
 
-    /// \class Rand Rand.hh ignition/math.hh
+    /// \class Rand Rand.hh ignition/math/Rand.hh
     /// \brief Random number generator class
     class IGNITION_VISIBLE Rand
     {
