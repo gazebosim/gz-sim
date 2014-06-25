@@ -49,7 +49,11 @@
 /// \brief 32bit integer minimum value
 #define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
 
+#ifdef M_PI
 #define IGN_PI M_PI
+#else
+#define IGN_PI 3.14159265358979323846
+#endif
 
 namespace ignition
 {
