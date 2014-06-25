@@ -14,9 +14,6 @@
  * limitations under the License.
  *
 */
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <gtest/gtest.h>
 
 #include "ignition/math/Filter.hh"
