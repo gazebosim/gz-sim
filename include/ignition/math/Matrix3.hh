@@ -318,7 +318,7 @@ namespace ignition
       /// \param[in] _out Output stream
       /// \param[in] _m Matrix to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Matrix3<T> &_m)
       {
         _out << precision(_m(0, 0), 6) << " "
@@ -337,7 +337,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt Matrix3 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix3<T> &_m)
       {
         // Skip white spaces

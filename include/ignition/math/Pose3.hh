@@ -373,7 +373,7 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pose pose to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Pose3<T> &_pose)
       {
         _out << _pose.pos() << " " << _pose.rot();
@@ -384,7 +384,7 @@ namespace ignition
       /// \param[in] _in the input stream
       /// \param[in] _pose the pose
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Pose3<T> &_pose)
       {
         // Skip white spaces

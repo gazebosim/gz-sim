@@ -412,7 +412,7 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pt Vector4 to output
       /// \return The stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Vector4<T> &_pt)
       {
         _out << _pt[0] << " " << _pt[1] << " " << _pt[2] << " " << _pt[3];
@@ -423,7 +423,7 @@ namespace ignition
       /// \param[in] _in input stream
       /// \param[in] _pt Vector4 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Vector4<T> &_pt)
       {
         T x, y, z, w;
