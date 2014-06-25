@@ -275,7 +275,7 @@ else (build_errors)
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake" @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/ignition
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}
     COMPONENT cmake)
 
   ########################################
