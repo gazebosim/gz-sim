@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "ignition/math/Pose3.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Matrix4.hh"
