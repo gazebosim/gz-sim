@@ -18,6 +18,9 @@
 #ifndef _IGNITION_FILTER_HH_
 #define _IGNITION_FILTER_HH_
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 
@@ -70,7 +73,7 @@ namespace ignition
       // Documentation Inherited.
       public: virtual void SetFc(double _fc, double _fs)
       {
-        b1 = exp(-2.0 * IGN_PI * _fc / _fs);
+        b1 = exp(-2.0 * M_PI * _fc / _fs);
         a0 = 1.0 - b1;
       }
 
@@ -169,7 +172,7 @@ namespace ignition
       /// \param[in] _q Q coefficient.
       public: inline void SetFc(double _fc, double _fs, double _q)
       {
-        double k = tan(IGN_PI * _fc / _fs);
+        double k = tan(M_PI * _fc / _fs);
         double kQuadDenom = k * k + k / _q + 1.0;
         this->a0 = k * k/ kQuadDenom;
         this->a1 = 2 * this->a0;

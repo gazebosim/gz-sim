@@ -22,7 +22,7 @@ using namespace math;
 
 const Angle Angle::Zero = math::Angle(0);
 const Angle Angle::Pi = math::Angle(IGN_PI);
-const Angle Angle::HalfPi = math::Angle(IGN_PI * 0.5);
+const Angle Angle::HalfPi = math::Angle(IGN_PI_2);
 const Angle Angle::TwoPi = math::Angle(IGN_PI * 2.0);
 
 //////////////////////////////////////////////////
