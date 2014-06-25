@@ -29,7 +29,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Quaternion Quaternion.hh ignition/math.hh
+    /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
     /// \brief A quaternion class
     template<typename T>
     class Quaternion

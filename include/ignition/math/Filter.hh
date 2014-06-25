@@ -26,7 +26,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Filter Filter.hh math/gzmath.hh
+    /// \class Filter Filter.hh ignition/math/Filter.hh
     /// \brief Filter base class
     template <class T>
     class Filter
@@ -51,7 +51,7 @@ namespace ignition
       protected: T y0;
     };
 
-    /// \class OnePole Filter.hh math/gzmath.hh
+    /// \class OnePole Filter.hh ignition/math/Filter.hh
     /// \brief A one-pole DSP filter.
     /// \sa http://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
     template <class T>
@@ -91,7 +91,7 @@ namespace ignition
       protected: double b1 = 0;
     };
 
-    /// \class OnePoleQuaternion Filter.hh math/gzmath.hh
+    /// \class OnePoleQuaternion Filter.hh ignition/math/Filter.hh
     /// \brief One-pole quaternion filter.
     class OnePoleQuaternion : public OnePole<math::Quaterniond>
     {
@@ -121,7 +121,7 @@ namespace ignition
       }
     };
 
-    /// \class OnePoleVector3 Filter.hh math/gzmath.hh
+    /// \class OnePoleVector3 Filter.hh ignition/math/Filter.hh
     /// \brief One-pole vector3 filter.
     class OnePoleVector3 : public OnePole<math::Vector3d>
     {
@@ -141,7 +141,7 @@ namespace ignition
       }
     };
 
-    /// \class BiQuad Filter.hh math/gzmath.hh
+    /// \class BiQuad Filter.hh ignition/math/Filter.hh
     /// \brief Bi-quad filter base class.
     /// \sa http://www.earlevel.com/main/2003/03/02/the-bilinear-z-transform/
     template <class T>
@@ -212,7 +212,7 @@ namespace ignition
       protected: T x1, x2, y1, y2;
     };
 
-    /// \class BiQuadVector3 Filter.hh math/gzmath.hh
+    /// \class BiQuadVector3 Filter.hh ignition/math/Filter.hh
     /// \brief BiQuad vector3 filter
     class BiQuadVector3 : public BiQuad<math::Vector3d>
     {

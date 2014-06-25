@@ -25,7 +25,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Pose3 Pose3.hh ignition/math.hh
+    /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
     /// \brief Encapsulates a position and rotation in three space
     template<typename T>
     class Pose3

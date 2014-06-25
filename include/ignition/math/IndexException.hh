@@ -24,6 +24,7 @@ namespace ignition
 {
   namespace math
   {
+    /// \class IndexException IndexException.hh ignition/math/IndexException.hh
     /// \brief Exception that is thrown when an out-of-bounds index is
     /// encountered.
     class IndexException : public std::runtime_error

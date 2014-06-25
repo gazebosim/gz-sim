@@ -30,7 +30,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Matrix4 Matrix4.hh ignition/math.hh
+    /// \class Matrix4 Matrix4.hh ignition/math/Matrix4.hh
     /// \brief A 4x4 matrix class
     template<typename T>
     class Matrix4

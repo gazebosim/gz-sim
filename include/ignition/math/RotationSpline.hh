@@ -24,7 +24,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class RotationSpline RotationSpline.hh ignition/math.hh
+    /// \class RotationSpline RotationSpline.hh ignition/math/RotationSpline.hh
     /// \brief Spline for rotations
     class IGNITION_VISIBLE  RotationSpline
     {

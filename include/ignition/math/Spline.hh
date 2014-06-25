@@ -28,7 +28,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Spline Spline.hh ignition/math.hh
+    /// \class Spline Spline.hh ignition/math/Spline.hh
     /// \brief Splines
     class IGNITION_VISIBLE Spline
     {

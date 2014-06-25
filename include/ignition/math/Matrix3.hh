@@ -26,7 +26,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class Matrix3 Matrix3.hh ignition/math.hh
+    /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
     /// \brief A 3x3 matrix class
     template<typename T>
     class Matrix3

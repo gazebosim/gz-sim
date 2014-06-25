@@ -24,6 +24,7 @@ namespace ignition
 {
   namespace math
   {
+    /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
     class Vector2
