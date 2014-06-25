@@ -236,7 +236,7 @@ namespace ignition
         return NAN_I;
       }
 
-      return s * acc;
+      return static_cast<int>(s * acc);
     }
 
     /// \brief parse string into float
