@@ -30,7 +30,7 @@ namespace ignition
     /// \class Matrix4 Matrix4.hh ignition/math.hh
     /// \brief A 4x4 matrix class
     template<typename T>
-    class IGNITION_HIDDEN Matrix4
+    class Matrix4
     {
       /// \brief Identity matrix
       public: static const Matrix4<T> Identity;
