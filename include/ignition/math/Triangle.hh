@@ -37,8 +37,8 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _pt1 First point that defines the triangle.
-      /// \param[in] _pt1 Second point that defines the triangle.
-      /// \param[in] _pt1 Third point that defines the triangle.
+      /// \param[in] _pt2 Second point that defines the triangle.
+      /// \param[in] _pt3 Third point that defines the triangle.
       public: Triangle(const math::Vector2<T> &_pt1,
                        const math::Vector2<T> &_pt2,
                        const math::Vector2<T> &_pt3)
@@ -46,7 +46,7 @@ namespace ignition
         this->Set(_pt1, _pt2, _pt3);
       }
 
-      /// \brief Set one point of the triangle
+      /// \brief Set one vertex of the triangle.
       /// \param[in] _index Index of the point to set.
       /// \param[in] _pt Value of the point to set.
       /// \throws IndexException if _index is > 2.
@@ -58,10 +58,10 @@ namespace ignition
           this->pts[_index] = _pt;
       }
 
-      /// \brief Set all points of the triangle
+      /// \brief Set all vertices of the triangle.
       /// \param[in] _pt1 First point that defines the triangle.
-      /// \param[in] _pt1 Second point that defines the triangle.
-      /// \param[in] _pt1 Third point that defines the triangle.
+      /// \param[in] _pt2 Second point that defines the triangle.
+      /// \param[in] _pt3 Third point that defines the triangle.
       public: void Set(const math::Vector2<T> &_pt1,
                        const math::Vector2<T> &_pt2,
                        const math::Vector2<T> &_pt3)
@@ -197,7 +197,7 @@ namespace ignition
         return true;
       }
 
-      /// \brief Get the length of the triangle's permieter
+      /// \brief Get the length of the triangle's perimeter.
       /// \return Sum of the triangle's line segments.
       public: T Perimeter() const
       {
@@ -205,8 +205,8 @@ namespace ignition
                this->Side(2).Length();
       }
 
-      /// \brief Get the area of the triangle
-      /// \return Triangle area
+      /// \brief Get the area of this triangle.
+      /// \return Triangle's area.
       public: double Area() const
       {
         double s = this->Perimeter() / 2.0;
@@ -227,12 +227,17 @@ namespace ignition
         return this->pts[_index];
       }
 
-      /// \brief The points of the triangle
+      /// The points of the triangle
       private: math::Vector2<T> pts[3];
     };
 
+    /// Integer specialization of the Triangle class.
     typedef Triangle<int> Trianglei;
+
+    /// Double specialization of the Triangle class.
     typedef Triangle<double> Triangled;
+
+    /// Float specialization of the Triangle class.
     typedef Triangle<float> Trianglef;
   }
 }

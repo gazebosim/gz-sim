@@ -65,6 +65,8 @@ TEST(TriangleTest, Set)
   EXPECT_EQ(tri[0], math::Vector2d(0.1, 0.2));
   EXPECT_EQ(tri[1], math::Vector2d(0.3, 0.4));
   EXPECT_EQ(tri[2], math::Vector2d(1.5, 2.6));
+
+  EXPECT_THROW(tri.Set(3, math::Vector2d(1.5, 2.6)), math::IndexException);
 }
 
 /////////////////////////////////////////////////
