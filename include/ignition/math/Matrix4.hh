@@ -17,9 +17,6 @@
 #ifndef _IGNITION_MATRIX4_HH_
 #define _IGNITION_MATRIX4_HH_
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>

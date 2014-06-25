@@ -18,9 +18,6 @@
 #ifndef _IGNITION_QUATERNION_HH_
 #define _IGNITION_QUATERNION_HH_
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
