@@ -7,6 +7,7 @@ set (headers
   Filter.hh
   Helpers.hh
   IndexException.hh
+  Line2.hh
   Matrix3.hh
   Matrix4.hh
   Plane.hh
