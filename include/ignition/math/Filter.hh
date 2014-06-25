@@ -18,6 +18,7 @@
 #ifndef _IGNITION_FILTER_HH_
 #define _IGNITION_FILTER_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 
