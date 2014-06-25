@@ -74,7 +74,7 @@ namespace ignition
       /// (a.start.x - a.end.x) * (b.start.y - b.end.y) -
       /// (a.start.y - a.end.y) * (b.start.x - b.end.x)
       /// \param[in] _line Line for the cross product computation.
-      /// \brief Return the cross product of this line and the given line.
+      /// \return Return the cross product of this line and the given line.
       public: double CrossProduct(const Line2<T> &_line) const
       {
         return (this->pts[0].x() - this->pts[1].x()) *
@@ -87,7 +87,7 @@ namespace ignition
       /// Given 'a' and 'b' as the start and end points, the equation is:
       //  (_pt.y - a.y) * (b.x - a.x) - (_pt.x - a.x) * (b.y - a.y)
       /// \param[in] _pt Point for the cross product computation.
-      /// \brief Return the cross product of this line and the given point.
+      /// \return Return the cross product of this line and the given point.
       public: double CrossProduct(const Vector2<T> &_pt) const
       {
         return (_pt.y() - this->pts[0].y()) *
@@ -96,25 +96,26 @@ namespace ignition
                (this->pts[1].y() - this->pts[0].y());
       }
 
-      /// \brief Check if the given point is colinear with this line.
+      /// \brief Check if the given point is collinear with this line.
       /// \param[in] _pt The point to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.
-      /// \brief Return true if the point is colinear with this line, false
+      /// \return Return true if the point is collinear with this line, false
       /// otherwise.
-      public: bool Colinear(const math::Vector2<T> &_pt,
-                            double _epsilon = 1e-6) const
+      public: bool Collinear(const math::Vector2<T> &_pt,
+                             double _epsilon = 1e-6) const
       {
         return math::equal(this->CrossProduct(_pt),
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is colinear with this line.
+      /// \brief Check if the given line is parallel with this line.
       /// \param[in] _line The line to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the parallel
       /// check will return true.
-      /// \brief Return true if the line is colinear with this line, false
-      /// otherwise.
+      /// \return Return true if the line is parallel with this line, false
+      /// otherwise. Return true if either line is a point (line with zero
+      /// length).
       public: bool Parallel(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
       {
@@ -122,46 +123,61 @@ namespace ignition
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is parallel with this line.
+      /// \brief Check if the given line is collinear with this line. This
+      /// is the AND of Parallel and Intersect.
       /// \param[in] _line The line to check.
-      /// \param[in] _epsilon The error bounds within which the colinear
+      /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.
-      /// \brief Return true if the line is colinear with this line, false
+      /// \return Return true if the line is collinear with this line, false
       /// otherwise.
-      public: bool Colinear(const math::Line2<T> &_line,
-                            double _epsilon = 1e-6) const
+      public: bool Collinear(const math::Line2<T> &_line,
+                             double _epsilon = 1e-6) const
       {
-        return this->Parallel(_line, _epsilon) && this->Intersect(_line);
+        return this->Parallel(_line, _epsilon) &&
+               this->Intersect(_line, _epsilon);
       }
 
       /// \brief Return whether the given point is on this line segment.
       /// \param[in] _pt Point to check.
+      /// \param[in] _epsilon The error bounds within which the OnSegment
+      /// check will return true.
       /// \return True if the point is on the segement.
-      public: bool OnSegment(const math::Vector2<T> &_pt) const
+      public: bool OnSegment(const math::Vector2<T> &_pt,
+                             double _epsilon = 1e-6) const
       {
-        return this->Colinear(_pt) && this->Within(_pt);
+        return this->Collinear(_pt, _epsilon) && this->Within(_pt, _epsilon);
       }
 
       /// \brief Check if the given point is between the start and end
       /// points of the line segment. This does not imply that the point is
       /// on the segment.
       /// \param[in] _pt Point to check.
+      /// \param[in] _epsilon The error bounds within which the within
+      /// check will return true.
       /// \return True if the point is on the segement.
-      public: bool Within(const math::Vector2<T> &_pt) const
+      public: bool Within(const math::Vector2<T> &_pt,
+                          double _epsilon = 1e-6) const
       {
-        return _pt.x() <= std::max(this->pts[0].x(), this->pts[1].x()) &&
-               _pt.x() >= std::min(this->pts[0].x(), this->pts[1].x()) &&
-               _pt.y() <= std::max(this->pts[0].y(), this->pts[1].y()) &&
-               _pt.y() >= std::min(this->pts[0].y(), this->pts[1].y());
+        return _pt.x() <= std::max(this->pts[0].x(),
+                                   this->pts[1].x()) + _epsilon &&
+               _pt.x() >= std::min(this->pts[0].x(),
+                                   this->pts[1].x()) - _epsilon &&
+               _pt.y() <= std::max(this->pts[0].y(),
+                                   this->pts[1].y()) + _epsilon &&
+               _pt.y() >= std::min(this->pts[0].y(),
+                                   this->pts[1].y()) - _epsilon;
       }
 
       /// \brief Check if this line intersects the given line segment.
       /// \param[in] _line The line to check for intersection.
+      /// \param[in] _epsilon The error bounds within which the intersection
+      /// check will return true.
       /// \return True if an intersection was found.
-      public: bool Intersect(const Line2<T> &_line) const
+      public: bool Intersect(const Line2<T> &_line,
+                             double _epsilon = 1e-6) const
       {
         static math::Vector2<T> ignore;
-        return this->Intersect(_line, ignore);
+        return this->Intersect(_line, ignore, _epsilon);
       }
 
       /// \brief Check if this line intersects the given line segment. The
@@ -169,23 +185,26 @@ namespace ignition
       /// \param[in] _line The line to check for intersection.
       /// \param[out] _pt The point of intersection. This value is only
       /// valid if the return value is true.
+      /// \param[in] _epsilon The error bounds within which the intersection
+      /// check will return true.
       /// \return True if an intersection was found.
-      public: bool Intersect(const Line2<T> &_line, math::Vector2<T> &_pt) const
+      public: bool Intersect(const Line2<T> &_line, math::Vector2<T> &_pt,
+                             double _epsilon = 1e-6) const
       {
         double d = this->CrossProduct(_line);
 
-        // d is zero if the two line are colinear. Must check special
+        // d is zero if the two line are collinear. Must check special
         // cases.
-        if (math::equal(d, 0.0))
+        if (math::equal(d, 0.0, _epsilon))
         {
           // Check if _line's starting point is on the line.
-          if (this->Within(_line[0]))
+          if (this->Within(_line[0], _epsilon))
           {
             _pt = _line[0];
             return true;
           }
           // Check if _line's ending point is on the line.
-          else if (this->Within(_line[1]))
+          else if (this->Within(_line[1], _epsilon))
           {
             _pt = _line[1];
             return true;
