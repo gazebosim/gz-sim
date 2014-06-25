@@ -114,7 +114,8 @@ namespace ignition
       /// \param[in] _epsilon The error bounds within which the parallel
       /// check will return true.
       /// \return Return true if the line is parallel with this line, false
-      /// otherwise.
+      /// otherwise. Return true if either line is a point (line with zero
+      /// length).
       public: bool Parallel(const math::Line2<T> &_line,
                             double _epsilon = 1e-6) const
       {
@@ -122,7 +123,8 @@ namespace ignition
             static_cast<T>(0), _epsilon);
       }
 
-      /// \brief Check if the given line is collinear with this line.
+      /// \brief Check if the given line is collinear with this line. This
+      /// is the AND of Parallel and Intersect.
       /// \param[in] _line The line to check.
       /// \param[in] _epsilon The error bounds within which the collinear
       /// check will return true.
