@@ -28,7 +28,7 @@ namespace ignition
     /// \class Quaternion Quaternion.hh ignition/math.hh
     /// \brief A quaternion class
     template<typename T>
-    class IGNITION_VISIBLE Quaternion
+    class IGNITION_HIDDEN Quaternion
     {
       /// \brief Default Constructor
       public: Quaternion()

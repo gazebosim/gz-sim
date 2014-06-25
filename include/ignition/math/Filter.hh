@@ -28,7 +28,7 @@ namespace ignition
     /// \class Filter Filter.hh math/gzmath.hh
     /// \brief Filter base class
     template <class T>
-    class IGNITION_VISIBLE Filter
+    class IGNITION_HIDDEN Filter
     {
       /// \brief Destructor.
       public: virtual ~Filter() {}
@@ -54,7 +54,7 @@ namespace ignition
     /// \brief A one-pole DSP filter.
     /// \sa http://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
     template <class T>
-    class IGNITION_VISIBLE OnePole : public Filter<T>
+    class IGNITION_HIDDEN OnePole : public Filter<T>
     {
       /// \brief Constructor.
       public: OnePole() = default;
@@ -92,7 +92,7 @@ namespace ignition
 
     /// \class OnePoleQuaternion Filter.hh math/gzmath.hh
     /// \brief One-pole quaternion filter.
-    class IGNITION_VISIBLE OnePoleQuaternion : public OnePole<math::Quaterniond>
+    class IGNITION_HIDDEN OnePoleQuaternion : public OnePole<math::Quaterniond>
     {
       /// \brief Constructor.
       public: OnePoleQuaternion()
@@ -122,7 +122,7 @@ namespace ignition
 
     /// \class OnePoleVector3 Filter.hh math/gzmath.hh
     /// \brief One-pole vector3 filter.
-    class IGNITION_VISIBLE OnePoleVector3 : public OnePole<math::Vector3d>
+    class IGNITION_HIDDEN OnePoleVector3 : public OnePole<math::Vector3d>
     {
       /// \brief Constructor.
       public: OnePoleVector3()
@@ -144,7 +144,7 @@ namespace ignition
     /// \brief Bi-quad filter base class.
     /// \sa http://www.earlevel.com/main/2003/03/02/the-bilinear-z-transform/
     template <class T>
-    class IGNITION_VISIBLE BiQuad : public Filter<T>
+    class IGNITION_HIDDEN BiQuad : public Filter<T>
     {
       /// \brief Constructor.
       public: BiQuad() = default;
@@ -213,7 +213,7 @@ namespace ignition
 
     /// \class BiQuadVector3 Filter.hh math/gzmath.hh
     /// \brief BiQuad vector3 filter
-    class IGNITION_VISIBLE BiQuadVector3 : public BiQuad<math::Vector3d>
+    class IGNITION_HIDDEN BiQuadVector3 : public BiQuad<math::Vector3d>
     {
       /// \brief Constructor.
       public: BiQuadVector3()

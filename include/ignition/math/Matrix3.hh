@@ -29,7 +29,7 @@ namespace ignition
     /// \class Matrix3 Matrix3.hh ignition/math.hh
     /// \brief A 3x3 matrix class
     template<typename T>
-    class IGNITION_VISIBLE Matrix3
+    class IGNITION_HIDDEN Matrix3
     {
       /// \brief Identity matrix
       public: static const Matrix3<T> Identity;

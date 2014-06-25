@@ -28,7 +28,7 @@ namespace ignition
     /// \class Pose3 Pose3.hh ignition/math.hh
     /// \brief Encapsulates a position and rotation in three space
     template<typename T>
-    class IGNITION_VISIBLE Pose3
+    class IGNITION_HIDDEN Pose3
     {
       /// \brief math::Pose3<T>(0, 0, 0, 0, 0, 0)
       public: static const Pose3<T> Zero;

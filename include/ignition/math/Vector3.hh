@@ -34,7 +34,7 @@ namespace ignition
     /// elements.  Since it's commonly used to keep coordinate system
     /// related information, its elements are labeled by x, y, z.
     template<typename T>
-    class IGNITION_VISIBLE Vector3
+    class IGNITION_HIDDEN Vector3
     {
       /// \brief math::Vector3(0, 0, 0)
       public: static const Vector3 Zero;

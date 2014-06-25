@@ -26,7 +26,7 @@ namespace ignition
     /// \class Vector4 Vector4.hh ignitino/math.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
-    class IGNITION_VISIBLE Vector4
+    class IGNITION_HIDDEN Vector4
     {
       /// \brief math::Vector3(0, 0, 0)
       public: static const Vector4<T> Zero;
