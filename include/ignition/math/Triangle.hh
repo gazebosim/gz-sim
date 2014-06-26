@@ -102,7 +102,8 @@ namespace ignition
           return Line2<T>(this->pts[2], this->pts[0]);
       }
 
-      /// \brief Get whether this triangle completely contains the given line segment.
+      /// \brief Check if this triangle completely contains the given line
+      /// segment.
       /// \param[in] _line Line to check.
       /// \return True if the line's start and end points are both inside
       /// this triangle.
@@ -214,6 +215,8 @@ namespace ignition
         T b = this->Side(1).Length();
         T c = this->Side(2).Length();
 
+        // Heron's formula
+        // http://en.wikipedia.org/wiki/Heron%27s_formula
         return sqrt(s * (s-a) * (s-b) * (s-c));
       }
 
