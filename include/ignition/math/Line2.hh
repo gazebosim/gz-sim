@@ -269,6 +269,14 @@ namespace ignition
                static_cast<double>(this->pts[1].x() - this->pts[0].x());
       }
 
+      /// \brief Equality operator.
+      /// \param[in] _line Line to compare for equality.
+      /// \return True if the given line is equal to this line
+      public: bool operator==(const Line2<T> &_line) const
+      {
+        return this->pts[0] == _line[0] && this->pts[1] == _line[1];
+      }
+
       /// \brief Get the start or end point.
       /// \param[in] _index 0 = start point, 1 = end point.
       /// \throws IndexException if _index is > 1.
@@ -279,8 +287,21 @@ namespace ignition
         return this->pts[_index];
       }
 
+      /// \brief Stream extraction operator
+      /// \param[in] _out output stream
+      /// \param[in] _pt Line2 to output
+      /// \return The stream
+      /// \throws N/A.
+      public: friend std::ostream IGNITION_VISIBLE
+      &operator<<(std::ostream &_out, const Line2<T> &_line)
+      {
+        _out << _line[0] << " " << _line[1];
+        return _out;
+      }
+
       private: math::Vector2<T> pts[2];
     };
+
 
     typedef Line2<int> Line2i;
     typedef Line2<double> Line2d;

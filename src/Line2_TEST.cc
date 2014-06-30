@@ -226,3 +226,34 @@ TEST(Line2Test, Intersect)
   EXPECT_TRUE(lineA.Intersect(lineB, pt));
   EXPECT_EQ(pt, math::Vector2d(5, 5));
 }
+
+/////////////////////////////////////////////////
+TEST(Line2Test, Equality)
+{
+  math::Line2d lineA(1, 1, 2, 1);
+  math::Line2d lineB(1, 2, 2, 2);
+
+  EXPECT_FALSE(lineA == lineB);
+  EXPECT_TRUE(lineA == lineA);
+
+  lineB.Set(1, 1, 2, 1.1);
+  EXPECT_FALSE(lineA == lineB);
+
+  lineB.Set(1, 1, 2.1, 1);
+  EXPECT_FALSE(lineA == lineB);
+
+  lineB.Set(1, 1.1, 2, 1);
+  EXPECT_FALSE(lineA == lineB);
+
+  lineB.Set(1.1, 1, 2, 1);
+  EXPECT_FALSE(lineA == lineB);
+}
+
+/////////////////////////////////////////////////
+TEST(Line2Test, OperatorStreamOut)
+{
+  math::Line2d line(0, 1, 2, 3);
+  std::ostringstream stream;
+  stream << line;
+  EXPECT_EQ(stream.str(), "0 1 2 3");
+}

@@ -67,6 +67,6 @@ int main(int argc, char **argv)
   // between two vectors
   std::cout << vec2.Distance(vec2a) << std::endl;
 
-  // There are many functions in Vector2. Take a look at the API;
+  // There are more functions in Vector2. Take a look at the API;
   // http://ignitionrobotics.org/libraries/ign_mat/api
 }
