@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNTION_INDEX_EXCEPTION_HH_
-#define _IGNTION_INDEX_EXCEPTION_HH_
+#ifndef _IGNITION_INDEX_EXCEPTION_HH_
+#define _IGNITION_INDEX_EXCEPTION_HH_
 
 #include <stdexcept>
 #include <ignition/math/Helpers.hh>
