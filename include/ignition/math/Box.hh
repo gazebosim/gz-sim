@@ -55,23 +55,23 @@ namespace ignition
 
       /// \brief Get the length along the x dimension
       /// \return Double value of the length in the x dimension
-      public: double GetXLength() const;
+      public: double XLength() const;
 
       /// \brief Get the length along the y dimension
       /// \return Double value of the length in the y dimension
-      public: double GetYLength() const;
+      public: double YLength() const;
 
       /// \brief Get the length along the z dimension
       /// \return Double value of the length in the z dimension
-      public: double GetZLength() const;
+      public: double ZLength() const;
 
       /// \brief Get the size of the box
       /// \return Size of the box
-      public: math::Vector3d GetSize() const;
+      public: math::Vector3d Size() const;
 
       /// \brief Get the box center
       /// \return The center position of the box
-      public: math::Vector3d GetCenter() const;
+      public: math::Vector3d Center() const;
 
       /// \brief Merge a box with this box
       /// \param[in]  _box Box to add to this box
@@ -114,11 +114,39 @@ namespace ignition
         return _out;
       }
 
+      /// \brief Get the minimum corner.
+      /// \return The Vector3d that is the minimum corner of the box.
+      public: const Vector3d &Min() const
+      {
+        return this->min;
+      }
+
+      /// \brief Get the maximum corner.
+      /// \return The Vector3d that is the maximum corner of the box.
+      public: const Vector3d &Max() const
+      {
+        return this->max;
+      }
+
+      /// \brief Get a mutable version of the minimum corner.
+      /// \return The Vector3d that is the minimum corner of the box.
+      public: Vector3d &Min()
+      {
+        return this->min;
+      }
+
+      /// \brief Get a mutable version of the maximum corner.
+      /// \return The Vector3d that is the maximum corner of the box.
+      public: Vector3d &Max()
+      {
+        return this->max;
+      }
+
       /// \brief Minimum corner of the box
-      public: Vector3d min;
+      private: Vector3d min;
 
       /// \brief Maximum corner of the box
-      public: Vector3d max;
+      private: Vector3d max;
 
       /// \brief Enumeration of extents
       private: enum Extent {EXTENT_NULL, EXTENT_FINITE};

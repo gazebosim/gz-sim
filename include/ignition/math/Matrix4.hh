@@ -149,6 +149,28 @@ namespace ignition
         this->data[3][3] = _v33;
       }
 
+      /// \brief Set the upper-left 3x3 matrix from an axis and angle
+      /// \param[in] _axis the axis
+      /// \param[in] _angle ccw rotation around the axis in radians
+      public: void SetFromAxis(const Vector3<T> &_axis, T _angle)
+      {
+        T c = cos(_angle);
+        T s = sin(_angle);
+        T C = 1-c;
+
+        this->data[0][0] = _axis.x()*_axis.x()*C + c;
+        this->data[0][1] = _axis.x()*_axis.y()*C - _axis.z()*s;
+        this->data[0][2] = _axis.x()*_axis.z()*C + _axis.y()*s;
+
+        this->data[1][0] = _axis.y()*_axis.x()*C + _axis.z()*s;
+        this->data[1][1] = _axis.y()*_axis.y()*C + c;
+        this->data[1][2] = _axis.y()*_axis.z()*C - _axis.x()*s;
+
+        this->data[2][0] = _axis.z()*_axis.x()*C - _axis.y()*s;
+        this->data[2][1] = _axis.z()*_axis.y()*C + _axis.x()*s;
+        this->data[2][2] = _axis.z()*_axis.z()*C + c;
+      }
+
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
       public: void SetTranslate(const Vector3<T> &_t)
@@ -171,21 +193,21 @@ namespace ignition
 
       /// \brief Get the translational values as a Vector3
       /// \return x,y,z translation values
-      public: Vector3<T> GetTranslation() const
+      public: Vector3<T> Translation() const
       {
         return Vector3<T>(this->data[0][3], this->data[1][3], this->data[2][3]);
       }
 
       /// \brief Get the scale values as a Vector3<T>
       /// \return x,y,z scale values
-      public: Vector3<T> GetScale() const
+      public: Vector3<T> Scale() const
       {
         return Vector3<T>(this->data[0][0], this->data[1][1], this->data[2][2]);
       }
 
       /// \brief Get the rotation as a quaternion
       /// \return the rotation
-      public: Quaternion<T> GetRotation() const
+      public: Quaternion<T> Rotation() const
       {
         Quaternion<T> q;
         /// algorithm from Ogre::Quaternion<T> source, which in turn is based on
@@ -253,7 +275,7 @@ namespace ignition
       /// \param[in] _firstSolution True to get the first Euler solution,
       /// false to get the second.
       /// \return the rotation
-      public: Vector3<T> GetEulerRotation(bool _firstSolution) const
+      public: Vector3<T> EulerRotation(bool _firstSolution) const
       {
         Vector3<T> euler;
         Vector3<T> euler2;
@@ -306,9 +328,9 @@ namespace ignition
 
       /// \brief Get the transformation as math::Pose
       /// \return the pose
-      public: Pose3<T> GetAsPose() const
+      public: Pose3<T> ToPose() const
       {
-        return Pose3<T>(this->GetTranslation(), this->GetRotation());
+        return Pose3<T>(this->Translation(), this->Rotation());
       }
 
       /// \brief Set the scale

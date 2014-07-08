@@ -66,7 +66,7 @@ void Spline::SetTension(double _t)
 }
 
 ///////////////////////////////////////////////////////////
-double Spline::GetTension() const
+double Spline::Tension() const
 {
   return this->tension;
 }
@@ -100,11 +100,7 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
 {
   // Bounds check
   if (_fromIndex >= this->points.size())
-  {
-    std::cerr << "Invalid spline interpolation. _fromIndex["
-          << _fromIndex << "] >= points size[" << this->points.size() << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+    throw IndexException();
 
   if ((_fromIndex + 1) == this->points.size())
   {
@@ -226,33 +222,25 @@ void Spline::RecalcTangents()
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d Spline::GetPoint(unsigned int _index) const
+Vector3d Spline::Point(unsigned int _index) const
 {
   if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+    throw IndexException();
 
   return this->points[_index];
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d Spline::GetTangent(unsigned int _index) const
+Vector3d Spline::Tangent(unsigned int _index) const
 {
-  if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+  if (_index >= this->tangents.size())
+    throw IndexException();
 
   return this->tangents[_index];
 }
 
 ///////////////////////////////////////////////////////////
-unsigned int Spline::GetPointCount() const
+unsigned int Spline::PointCount() const
 {
   return this->points.size();
 }
@@ -268,11 +256,7 @@ void Spline::Clear()
 void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 {
   if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return;
-  }
+    throw IndexException();
 
   this->points[_index] = _value;
   if (this->autoCalc)

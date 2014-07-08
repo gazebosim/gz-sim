@@ -44,7 +44,7 @@ namespace ignition
 
       /// \brief Get the output of the filter.
       /// \return Filter's output.
-      public: inline virtual const T& GetValue() { return y0; }
+      public: inline virtual const T& Value() { return y0; }
 
       /// \brief Output.
       protected: T y0;

@@ -108,7 +108,7 @@ namespace ignition
 
       /// \brief Get the inverse of this quaternion
       /// \return Inverse quarenion
-      public: inline Quaternion<T> GetInverse() const
+      public: inline Quaternion<T> Inverse() const
               {
                 T s = 0;
                 Quaternion<T> q(this->qw, this->qx, this->qy, this->qz);
@@ -146,7 +146,7 @@ namespace ignition
 
       /// \brief Return the logarithm
       /// \return the log
-      public: Quaternion<T> GetLog() const
+      public: Quaternion<T> Log() const
       {
         // If q = cos(A)+sin(A)*(x*i+y*j+z*k) where (x, y, z) is unit length,
         // then log(q) = A*(x*i+y*j+z*k).  If sin(A) is near zero, use log(q) =
@@ -178,7 +178,7 @@ namespace ignition
 
       /// \brief Return the exponent
       /// \return the exp
-      public: Quaternion<T> GetExp() const
+      public: Quaternion<T> Exp() const
       {
         // If q = A*(x*i+y*j+z*k) where (x, y, z) is unit length, then
         // exp(q) = cos(A)+sin(A)*(x*i+y*j+z*k).  If sin(A) is near zero,
@@ -318,7 +318,7 @@ namespace ignition
 
       /// \brief Return the rotation in Euler angles
       /// \return This quaternion as an Euler vector
-      public: Vector3<T> GetAsEuler() const
+      public: Vector3<T> ToEuler() const
       {
         Vector3<T> vec;
 
@@ -371,29 +371,29 @@ namespace ignition
 
       /// \brief Get the Euler roll angle in radians
       /// \return the roll
-      public: T GetRoll()
+      public: T Roll()
       {
-        return this->GetAsEuler().x();
+        return this->ToEuler().x();
       }
 
       /// \brief Get the Euler pitch angle in radians
       /// \return the pitch
-      public: T GetPitch()
+      public: T Pitch()
       {
-        return this->GetAsEuler().y();
+        return this->ToEuler().y();
       }
 
       /// \brief Get the Euler yaw angle in radians
       /// \return the yaw
-      public: T GetYaw()
+      public: T Yaw()
       {
-        return this->GetAsEuler().z();
+        return this->ToEuler().z();
       }
 
       /// \brief Return rotation as axis and angle
       /// \param[in] _axis rotation axis
       /// \param[in] _angle ccw angle in radians
-      public: void GetAsAxis(Vector3<T> &_axis, T &_angle) const
+      public: void ToAxis(Vector3<T> &_axis, T &_angle) const
       {
         T len = this->qx*this->qx + this->qy*this->qy + this->qz*this->qz;
         if (equal<T>(len, static_cast<T>(0)))
@@ -418,7 +418,7 @@ namespace ignition
         T angle;
 
         // Convert to axis-and-angle
-        this->GetAsAxis(axis, angle);
+        this->ToAxis(axis, angle);
         angle *= _scale;
 
         this->SetFromAxis(axis.x(), axis.y(), axis.z(), angle);
@@ -543,7 +543,7 @@ namespace ignition
       {
         Quaternion<T> tmp(static_cast<T>(0),
             _vec.x(), _vec.y(), _vec.z());
-        tmp = (*this) * (tmp * this->GetInverse());
+        tmp = (*this) * (tmp * this->Inverse());
         return Vector3<T>(tmp.qx, tmp.qy, tmp.qz);
       }
 
@@ -554,7 +554,7 @@ namespace ignition
       {
         Quaternion<T> tmp(0.0, _vec.x(), _vec.y(), _vec.z());
 
-        tmp =  this->GetInverse() * (tmp * (*this));
+        tmp =  this->Inverse() * (tmp * (*this));
 
         return Vector3<T>(tmp.qx, tmp.qy, tmp.qz);
       }
@@ -596,7 +596,7 @@ namespace ignition
 
       /// \brief Return the X axis
       /// \return the vector
-      public: Vector3<T> GetXAxis() const
+      public: Vector3<T> XAxis() const
       {
         T fTy  = 2.0f*this->qy;
         T fTz  = 2.0f*this->qz;
@@ -613,7 +613,7 @@ namespace ignition
 
       /// \brief Return the Y axis
       /// \return the vector
-      public: Vector3<T> GetYAxis() const
+      public: Vector3<T> YAxis() const
       {
         T fTx  = 2.0f*this->qx;
         T fTy  = 2.0f*this->qy;
@@ -630,7 +630,7 @@ namespace ignition
 
       /// \brief Return the Z axis
       /// \return the vector
-      public: Vector3<T> GetZAxis() const
+      public: Vector3<T> ZAxis() const
       {
         T fTx  = 2.0f*this->qx;
         T fTy  = 2.0f*this->qy;
@@ -736,30 +736,60 @@ namespace ignition
           return t;
         }
       }
+
       /// \brief Get the w component.
       /// \return The w quaternion component.
-      public: inline T w() const
+      public: inline const T &w() const
       {
         return this->qw;
       }
 
       /// \brief Get the x component.
       /// \return The x quaternion component.
-      public: inline T x() const
+      public: inline const T &x() const
       {
         return this->qx;
       }
 
       /// \brief Get the y component.
       /// \return The y quaternion component.
-      public: inline T y() const
+      public: inline const T &y() const
       {
         return this->qy;
       }
 
       /// \brief Get the z component.
       /// \return The z quaternion component.
-      public: inline T z() const
+      public: inline const T &z() const
+      {
+        return this->qz;
+      }
+
+
+      /// \brief Get a mutable w component.
+      /// \return The w quaternion component.
+      public: inline T &w()
+      {
+        return this->qw;
+      }
+
+      /// \brief Get a mutable x component.
+      /// \return The x quaternion component.
+      public: inline T &x()
+      {
+        return this->qx;
+      }
+
+      /// \brief Get a mutable y component.
+      /// \return The y quaternion component.
+      public: inline T &y()
+      {
+        return this->qy;
+      }
+
+      /// \brief Get a mutable z component.
+      /// \return The z quaternion component.
+      public: inline T &z()
       {
         return this->qz;
       }
@@ -799,7 +829,7 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                   const ignition::math::Quaternion<T> &_q)
       {
-        Vector3<T> v(_q.GetAsEuler());
+        Vector3<T> v(_q.ToEuler());
         _out << precision(v.x(), 6) << " " << precision(v.y(), 6) << " "
              << precision(v.z(), 6);
         return _out;

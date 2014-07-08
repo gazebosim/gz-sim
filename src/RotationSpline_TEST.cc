@@ -24,22 +24,25 @@
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
 TEST(RotationSplineTest, RotationSpline)
 {
   math::RotationSpline s;
 
   s.AddPoint(math::Quaterniond(0, 0, 0));
-  EXPECT_EQ(static_cast<unsigned int>(1), s.GetNumPoints());
+  EXPECT_EQ(static_cast<unsigned int>(1), s.PointCount());
 
   s.Clear();
-  EXPECT_EQ(static_cast<unsigned int>(0), s.GetNumPoints());
+  EXPECT_EQ(static_cast<unsigned int>(0), s.PointCount());
 
   s.AddPoint(math::Quaterniond(0, 0, 0));
-  EXPECT_TRUE(s.GetPoint(0) == math::Quaterniond(0, 0, 0));
+  EXPECT_TRUE(s.Point(0) == math::Quaterniond(0, 0, 0));
   s.AddPoint(math::Quaterniond(.1, .1, .1));
-  EXPECT_TRUE(s.GetPoint(1) == math::Quaterniond(.1, .1, .1));
+  EXPECT_TRUE(s.Point(1) == math::Quaterniond(.1, .1, .1));
 
   // ::UpdatePoint
+  EXPECT_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)),
+               math::IndexException);
   s.UpdatePoint(1, math::Quaterniond(.2, .2, .2));
   s.SetAutoCalculate(false);
   s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
@@ -51,6 +54,23 @@ TEST(RotationSplineTest, RotationSpline)
 
   // ::Interpolate
   s.AddPoint(math::Quaterniond(.4, .4, .4));
+  EXPECT_THROW(s.Interpolate(4, 0.2), math::IndexException);
+  EXPECT_EQ(s.Interpolate(s.PointCount()-1, 0.2),
+            s.Point(s.PointCount()-1));
   EXPECT_TRUE(s.Interpolate(1, 0.2) ==
       math::Quaterniond(0.978787, 0.107618, 0.137159, 0.107618));
+  EXPECT_EQ(s.Interpolate(1, 0.0), s.Point(1));
+  EXPECT_EQ(s.Interpolate(1, 1.0), s.Point(2));
+}
+
+/////////////////////////////////////////////////
+TEST(RotationSplineTest, GetPoint)
+{
+  math::RotationSpline s;
+  EXPECT_THROW(s.Point(0), math::IndexException);
+  EXPECT_THROW(s.Point(1), math::IndexException);
+
+  s.AddPoint(math::Quaterniond(0, 0, 0));
+  EXPECT_NO_THROW(s.Point(0));
+  EXPECT_THROW(s.Point(1), math::IndexException);
 }

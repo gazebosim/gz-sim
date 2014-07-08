@@ -24,7 +24,7 @@ namespace ignition
 {
   namespace math
   {
-    /// \class AffineException AffineException.hh\
+    /// \class AffineException AffineException.hh
     /// ignition/math/AffineException.hh
     /// \brief Exception that is thrown when a matrix is not affine.
     class IGNITION_VISIBLE AffineException : public std::runtime_error

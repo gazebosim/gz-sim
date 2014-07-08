@@ -93,31 +93,31 @@ namespace ignition
       }
 
       /// \brief Get the plane size
-      public: inline const Vector2<T> &GetSize() const
+      public: inline const Vector2<T> &Size() const
       {
         return this->size;
       }
 
       /// \brief Get the plane size
-      public: inline Vector2<T> &GetSize()
+      public: inline Vector2<T> &Size()
       {
         return this->size;
       }
 
       /// \brief Get the plane offset
-      public: inline const Vector3<T> &GetNormal() const
+      public: inline const Vector3<T> &Normal() const
       {
         return this->normal;
       }
 
       /// \brief Get the plane offset
-      public: inline Vector3<T> &GetNormal()
+      public: inline Vector3<T> &Normal()
       {
         return this->normal;
       }
 
       /// \brief Get the plane offset
-      public: inline T GetOffset() const
+      public: inline T Offset() const
       {
         return this->d;
       }

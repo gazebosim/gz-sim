@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "ignition/math/Helpers.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Matrix4.hh"
 
@@ -45,7 +46,7 @@ namespace ignition
 
       /// \brief Get the tension value
       /// \return The value of the tension, which is between 0.0 and 1.0
-      public: double GetTension() const;
+      public: double Tension() const;
 
       /// \brief  Adds a control point to the end of the spline.
       /// \param[in] _pt point to add
@@ -55,15 +56,17 @@ namespace ignition
       /// \param[in] _index the control point index
       /// \return the control point, or [0,0,0] and a message on the error
       /// stream
-      public: Vector3d GetPoint(unsigned int _index) const;
+      /// \throws IndexException if _index >= PointCount()
+      public: Vector3d Point(unsigned int _index) const;
 
       /// \brief  Gets the number of control points in the spline.
       /// \return the count
-      public: unsigned int GetPointCount() const;
+      public: unsigned int PointCount() const;
 
       /// \brief Get the tangent value for a point
       /// \param[in] _index the control point index
-      public: Vector3d GetTangent(unsigned int _index) const;
+      /// \throws IndexException if _index >= PointCount()
+      public: Vector3d Tangent(unsigned int _index) const;
 
       /// \brief  Clears all the points in the spline.
       public: void Clear();
@@ -73,6 +76,7 @@ namespace ignition
       /// out of bounds
       /// \param[in] _index the control point index
       /// \param[in] _value the new position
+      /// \throws IndexException if _index >= PointCount()
       public: void UpdatePoint(unsigned int _index, const Vector3d &_value);
 
       /// \brief Returns an interpolated point based on a parametric value
@@ -85,8 +89,8 @@ namespace ignition
       /// \param[in] _fromIndex The point index to treat as t = 0.
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t Parametric value
+      /// \throws IndexException if _fromIndex >= PointCount()
       public: Vector3d Interpolate(unsigned int _fromIndex, double _t) const;
-
 
       /// \brief Tells the spline whether it should automatically
       ///        calculate tangents on demand as points are added.

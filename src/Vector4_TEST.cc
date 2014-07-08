@@ -46,12 +46,12 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(math::equal(v.Distance(
           math::Vector4d(0, 0, 0, 0)), 5.4772, 1e-3));
 
-  // ::GetLength()
+  // ::Length()
   v.Set(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(v.GetLength(), 5.4772, 1e-3));
+  EXPECT_TRUE(math::equal(v.Length(), 5.4772, 1e-3));
 
-  // ::GetSquaredLength()
-  EXPECT_TRUE(math::equal(v.GetSquaredLength(), 30.0));
+  // ::SquaredLength()
+  EXPECT_TRUE(math::equal(v.SquaredLength(), 30.0));
 
   // ::Normalize
   v.Normalize();

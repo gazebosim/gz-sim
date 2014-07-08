@@ -131,3 +131,12 @@ TEST(Vector2Test, IndexException)
 
   EXPECT_THROW(math::equal(v[2], 1.0), math::IndexException);
 }
+
+/////////////////////////////////////////////////
+TEST(Vector2Test, OperatorStreamOut)
+{
+  math::Vector2d v(0.1, 1.2);
+  std::ostringstream stream;
+  stream << v;
+  EXPECT_EQ(stream.str(), "0.1 1.2");
+}

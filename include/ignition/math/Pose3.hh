@@ -129,9 +129,9 @@ namespace ignition
 
       /// \brief Get the inverse of this pose
       /// \return the inverse pose
-      public: Pose3<T> GetInverse() const
+      public: Pose3<T> Inverse() const
       {
-        Quaternion<T> inv = this->q.GetInverse();
+        Quaternion<T> inv = this->q.Inverse();
         return Pose3<T>(inv * (this->p*-1), inv);
       }
 
@@ -235,7 +235,7 @@ namespace ignition
         Quaternion<T> tmp(0.0, _pos.x(), _pos.y(), _pos.z());
 
         // result = pose.q + pose.q * this->p * pose.q!
-        tmp = this->q * (tmp * this->q.GetInverse());
+        tmp = this->q * (tmp * this->q.Inverse());
 
         return Vector3<T>(this->p.x() + tmp.x(),
                           this->p.y() + tmp.y(),
@@ -251,7 +251,7 @@ namespace ignition
             this->p.x(), this->p.y(), this->p.z());
 
         // result = _pose.q + _pose.q * this->p * _pose.q!
-        tmp = _pose.q * (tmp * _pose.q.GetInverse());
+        tmp = _pose.q * (tmp * _pose.q.Inverse());
 
         return Vector3<T>(_pose.p.x() + tmp.x(),
                           _pose.p.y() + tmp.y(),
@@ -268,7 +268,7 @@ namespace ignition
             this->p.y() - _pose.p.y(),
             this->p.z() - _pose.p.z());
 
-        tmp = _pose.q.GetInverse() * (tmp * _pose.q);
+        tmp = _pose.q.Inverse() * (tmp * _pose.q);
         return Vector3<T>(tmp.x(), tmp.y(), tmp.z());
       }
 
@@ -286,7 +286,7 @@ namespace ignition
       public: inline Quaternion<T> CoordRotationSub(
                   const Quaternion<T> &_rot) const
       {
-        Quaternion<T> result(_rot.GetInverse() * this->q);
+        Quaternion<T> result(_rot.Inverse() * this->q);
         result.Normalize();
         return result;
       }
@@ -299,9 +299,9 @@ namespace ignition
         Quaternion<T> qt;
         Pose3<T> a;
 
-        a.q = this->q.GetInverse() * _b.q;
+        a.q = this->q.Inverse() * _b.q;
         qt = a.q * Quaternion<T>(0, this->p.x(), this->p.y(), this->p.z());
-        qt = qt * a.q.GetInverse();
+        qt = qt * a.q.Inverse();
         a.p = _b.p - Vector3<T>(qt.x(), qt.y(), qt.z());
 
         return a;
@@ -343,28 +343,28 @@ namespace ignition
 
       /// \brief Get the position.
       /// \return Origin of the pose.
-      public: inline const Vector3<T> &pos() const
+      public: inline const Vector3<T> &Pos() const
       {
         return this->p;
       }
 
       /// \brief Get a mutable reference to the position.
       /// \return Origin of the pose.
-      public: inline Vector3<T> &pos()
+      public: inline Vector3<T> &Pos()
       {
         return this->p;
       }
 
       /// \brief Get the rotation.
       /// \return Quaternion representation of the rotation.
-      public: inline const Quaternion<T> &rot() const
+      public: inline const Quaternion<T> &Rot() const
       {
         return this->q;
       }
 
       /// \brief Get a mutuable reference to the rotation.
       /// \return Quaternion representation of the rotation.
-      public: inline Quaternion<T> &rot()
+      public: inline Quaternion<T> &Rot()
       {
         return this->q;
       }
@@ -376,7 +376,7 @@ namespace ignition
       public: friend std::ostream IGNITION_VISIBLE &operator<<(
                   std::ostream &_out, const ignition::math::Pose3<T> &_pose)
       {
-        _out << _pose.pos() << " " << _pose.rot();
+        _out << _pose.Pos() << " " << _pose.Rot();
         return _out;
       }
 

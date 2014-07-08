@@ -22,22 +22,24 @@
 
 using namespace ignition;
 
+/////////////////////////////////////////////////
 TEST(SplineTest, Spline)
 {
   math::Spline s;
 
   s.AddPoint(math::Vector3d(0, 0, 0));
-  EXPECT_EQ(static_cast<unsigned int>(1), s.GetPointCount());
+  EXPECT_EQ(static_cast<unsigned int>(1), s.PointCount());
 
   s.Clear();
-  EXPECT_EQ(static_cast<unsigned int>(0), s.GetPointCount());
+  EXPECT_EQ(static_cast<unsigned int>(0), s.PointCount());
 
   s.AddPoint(math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(s.GetPoint(0) == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(s.Point(0) == math::Vector3d(0, 0, 0));
   s.AddPoint(math::Vector3d(1, 1, 1));
-  EXPECT_TRUE(s.GetPoint(1) == math::Vector3d(1, 1, 1));
+  EXPECT_TRUE(s.Point(1) == math::Vector3d(1, 1, 1));
 
   // ::UpdatePoint
+  EXPECT_THROW(s.UpdatePoint(2, math::Vector3d(2, 2, 2)), math::IndexException);
   s.UpdatePoint(1, math::Vector3d(2, 2, 2));
   s.SetAutoCalculate(false);
   s.UpdatePoint(0, math::Vector3d(-1, -1, -1));
@@ -49,4 +51,47 @@ TEST(SplineTest, Spline)
   // ::Interpolate
   s.AddPoint(math::Vector3d(4, 4, 4));
   EXPECT_TRUE(s.Interpolate(1, 0.2) == math::Vector3d(2.496, 2.496, 2.496));
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, Tension)
+{
+  math::Spline s;
+  s.SetTension(0.1);
+
+  EXPECT_DOUBLE_EQ(s.Tension(), 0.1);
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, Interpolate)
+{
+  math::Spline s;
+  EXPECT_THROW(s.Interpolate(0, 0.1), math::IndexException);
+
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  EXPECT_EQ(s.Interpolate(0, 0.1), math::Vector3d(0, 0, 0));
+
+  s.AddPoint(math::Vector3d(1, 2, 3));
+  EXPECT_EQ(s.Interpolate(0, 0.0), s.Point(0));
+
+  EXPECT_EQ(s.Interpolate(0, 1.0), s.Point(1));
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, Point)
+{
+  math::Spline s;
+  EXPECT_THROW(s.Point(0), math::IndexException);
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, Tangent)
+{
+  math::Spline s;
+  EXPECT_THROW(s.Tangent(0), math::IndexException);
+
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  EXPECT_THROW(s.Tangent(0), math::IndexException);
+  s.AddPoint(math::Vector3d(1, 0, 0));
+  EXPECT_EQ(s.Tangent(0), math::Vector3d(0.5, 0, 0));
 }

@@ -85,7 +85,7 @@ namespace ignition
 
       /// \brief Return the sum of the values
       /// \return the sum
-      public: T GetSum() const
+      public: T Sum() const
       {
         return this->data[0] + this->data[1] + this->data[2];
       }
@@ -112,7 +112,7 @@ namespace ignition
 
       /// \brief Returns the length (magnitude) of the vector
       /// \ return the length
-      public: T GetLength() const
+      public: T Length() const
       {
         return sqrt(this->data[0] * this->data[0] +
                     this->data[1] * this->data[1] +
@@ -121,7 +121,7 @@ namespace ignition
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the squared length
-      public: T GetSquaredLength() const
+      public: T SquaredLength() const
       {
         return this->data[0] * this->data[0] +
                this->data[1] * this->data[1] +
@@ -158,7 +158,7 @@ namespace ignition
 
       /// \brief Get a rounded version of this vector
       /// \return a rounded vector
-      public: Vector3 GetRounded() const
+      public: Vector3 Rounded() const
       {
         Vector3<T> result = *this;
         result.Round();
@@ -196,7 +196,7 @@ namespace ignition
 
       /// \brief Get the absolute value of the vector
       /// \return a vector with positive elements
-      public: Vector3 GetAbs() const
+      public: Vector3 Abs() const
       {
         return Vector3(std::abs(this->data[0]),
                            std::abs(this->data[1]),
@@ -205,14 +205,14 @@ namespace ignition
 
       /// \brief Return a vector that is perpendicular to this one.
       /// \return an orthogonal vector
-      public: Vector3 GetPerpendicular() const
+      public: Vector3 Perpendicular() const
       {
         static const T sqrZero = 1e-06 * 1e-06;
 
         Vector3<T> perp = this->Cross(Vector3(1, 0, 0));
 
         // Check the length of the vector
-        if (perp.GetSquaredLength() < sqrZero)
+        if (perp.SquaredLength() < sqrZero)
         {
           perp = this->Cross(Vector3(0, 1, 0));
         }
@@ -225,7 +225,7 @@ namespace ignition
       /// \param[in] _v2 second vertex
       /// \param[in] _v3 third vertex
       /// \return the normal
-      public: static Vector3 GetNormal(const Vector3<T> &_v1,
+      public: static Vector3 Normal(const Vector3<T> &_v1,
                   const Vector3<T> &_v2, const Vector3<T> &_v3)
       {
         Vector3<T> a = _v2 - _v1;
@@ -238,10 +238,10 @@ namespace ignition
       /// \param[in] _pt1 first point on the line
       /// \param[in] _pt2 second point on the line
       /// \return the minimum distance from this point to the line
-      public: T GetDistToLine(const Vector3<T> &_pt1, const Vector3 &_pt2)
+      public: T DistToLine(const Vector3<T> &_pt1, const Vector3 &_pt2)
       {
-        T d = ((*this) - _pt1).Cross((*this) - _pt2).GetLength();
-        d = d / (_pt2 - _pt1).GetLength();
+        T d = ((*this) - _pt1).Cross((*this) - _pt2).Length();
+        d = d / (_pt2 - _pt1).Length();
         return d;
       }
 
@@ -273,14 +273,14 @@ namespace ignition
 
       /// \brief Get the maximum value in the vector
       /// \return the maximum element
-      public: T GetMax() const
+      public: T Max() const
       {
         return std::max(std::max(this->data[0], this->data[1]), this->data[2]);
       }
 
       /// \brief Get the minimum value in the vector
       /// \return the minimum element
-      public: T GetMin() const
+      public: T Min() const
       {
         return std::min(std::min(this->data[0], this->data[1]), this->data[2]);
       }
@@ -550,6 +550,27 @@ namespace ignition
       /// \brief Get the z value.
       /// \return The z component of the vector
       public: inline T z() const
+      {
+        return this->data[2];
+      }
+
+      /// \brief Get a mutable reference to the x value.
+      /// \return The x component of the vector
+      public: inline T &x()
+      {
+        return this->data[0];
+      }
+
+      /// \brief Get a mutable reference to the y value.
+      /// \return The y component of the vector
+      public: inline T &y()
+      {
+        return this->data[1];
+      }
+
+      /// \brief Get a mutable reference to the z value.
+      /// \return The z component of the vector
+      public: inline T &z()
       {
         return this->data[2];
       }

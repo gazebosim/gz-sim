@@ -53,35 +53,35 @@ Box::~Box()
 }
 
 //////////////////////////////////////////////////
-double Box::GetXLength() const
+double Box::XLength() const
 {
   return std::abs(max.x() - min.x());
 }
 
 //////////////////////////////////////////////////
-double Box::GetYLength() const
+double Box::YLength() const
 {
   return std::abs(max.y() - min.y());
 }
 
 //////////////////////////////////////////////////
-double Box::GetZLength() const
+double Box::ZLength() const
 {
   return std::abs(max.z() - min.z());
 }
 
 //////////////////////////////////////////////////
-math::Vector3d Box::GetSize() const
+math::Vector3d Box::Size() const
 {
-  return math::Vector3d(this->GetXLength(),
-                       this->GetYLength(),
-                       this->GetZLength());
+  return math::Vector3d(this->XLength(),
+                        this->YLength(),
+                        this->ZLength());
 }
 
 //////////////////////////////////////////////////
-math::Vector3d Box::GetCenter() const
+math::Vector3d Box::Center() const
 {
-  Vector3d size = this->GetSize();
+  Vector3d size = this->Size();
   size /= 2.0;
   return this->min + size;
 }

@@ -51,27 +51,27 @@ namespace ignition
       /// \brief Get the seed value.
       /// \return The seed value used to initialize the random number
       /// generator.
-      public: static uint32_t GetSeed();
+      public: static uint32_t Seed();
 
       /// \brief Get a double from a uniform distribution
       /// \param[in] _min Minimum bound for the random number
       /// \param[in] _max Maximum bound for the random number
-      public: static double GetDblUniform(double _min = 0, double _max = 1);
+      public: static double DblUniform(double _min = 0, double _max = 1);
 
       /// \brief Get a double from a normal distribution
       /// \param[in] _mean Mean value for the distribution
       /// \param[in] _sigma Sigma value for the distribution
-      public: static double GetDblNormal(double _mean = 0, double _sigma = 1);
+      public: static double DblNormal(double _mean = 0, double _sigma = 1);
 
       /// \brief Get a integer from a uniform distribution
       /// \param[in] _min Minimum bound for the random number
       /// \param[in] _max Maximum bound for the random number
-      public: static int32_t GetIntUniform(int _min, int _max);
+      public: static int32_t IntUniform(int _min, int _max);
 
       /// \brief Get a double from a normal distribution
       /// \param[in] _mean Mean value for the distribution
       /// \param[in] _sigma Sigma value for the distribution
-      public: static int32_t GetIntNormal(int _mean, int _sigma);
+      public: static int32_t IntNormal(int _mean, int _sigma);
 
       /// \brief The random number generator.
       private: static GeneratorType *randGenerator;

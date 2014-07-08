@@ -29,22 +29,22 @@ TEST(RandTest, Rand)
   int i;
   // TODO: implement a proper random number generator test
 
-  d = ignition::math::Rand::GetDblUniform(1, 2);
+  d = ignition::math::Rand::DblUniform(1, 2);
   EXPECT_LE(d, 2);
   EXPECT_GE(d, 1);
 
-  d = math::Rand::GetDblNormal(2, 3);
-  i = math::Rand::GetIntUniform(1, 2);
+  d = math::Rand::DblNormal(2, 3);
+  i = math::Rand::IntUniform(1, 2);
   EXPECT_LE(i, 2);
   EXPECT_GE(i, 1);
 
-  i = math::Rand::GetIntNormal(2, 3);
+  i = math::Rand::IntNormal(2, 3);
 
   // Test setting the random number seed
   {
     math::Rand::SetSeed(1001);
 
-    d = math::Rand::GetDblNormal(2, 3);
+    d = math::Rand::DblNormal(2, 3);
     EXPECT_NEAR(d, 4.72597, 1e-5);
   }
 }
@@ -59,14 +59,15 @@ TEST(RandTest, SetSeed)
   for (int i = 0; i < N; ++i)
   {
     math::Rand::SetSeed(i);
-    first.push_back(math::Rand::GetIntUniform(-10, 10));
-    second.push_back(math::Rand::GetIntUniform(-10, 10));
+    first.push_back(math::Rand::IntUniform(-10, 10));
+    second.push_back(math::Rand::IntUniform(-10, 10));
   }
 
   for (int i = 0; i < N; ++i)
   {
     math::Rand::SetSeed(i);
-    EXPECT_EQ(first[i], math::Rand::GetIntUniform(-10, 10));
-    EXPECT_EQ(second[i], math::Rand::GetIntUniform(-10, 10));
+    EXPECT_EQ(math::Rand::Seed(), i);
+    EXPECT_EQ(first[i], math::Rand::IntUniform(-10, 10));
+    EXPECT_EQ(second[i], math::Rand::IntUniform(-10, 10));
   }
 }

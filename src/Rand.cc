@@ -46,27 +46,27 @@ void Rand::SetSeed(uint32_t _seed)
 }
 
 //////////////////////////////////////////////////
-uint32_t Rand::GetSeed()
+uint32_t Rand::Seed()
 {
   return seed;
 }
 
 //////////////////////////////////////////////////
-double Rand::GetDblUniform(double _min, double _max)
+double Rand::DblUniform(double _min, double _max)
 {
   UniformRealDist d(_min, _max);
   return d(*randGenerator);
 }
 
 //////////////////////////////////////////////////
-double Rand::GetDblNormal(double _mean, double _sigma)
+double Rand::DblNormal(double _mean, double _sigma)
 {
   NormalRealDist d(_mean, _sigma);
   return d(*randGenerator);
 }
 
 //////////////////////////////////////////////////
-int32_t Rand::GetIntUniform(int _min, int _max)
+int32_t Rand::IntUniform(int _min, int _max)
 {
   UniformIntDist d(_min, _max);
 
@@ -74,7 +74,7 @@ int32_t Rand::GetIntUniform(int _min, int _max)
 }
 
 //////////////////////////////////////////////////
-int32_t Rand::GetIntNormal(int _mean, int _sigma)
+int32_t Rand::IntNormal(int _mean, int _sigma)
 {
   NormalRealDist d(_mean, _sigma);
 

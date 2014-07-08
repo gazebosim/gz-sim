@@ -94,8 +94,8 @@ TEST(Matrix4dTest, Scale)
   EXPECT_DOUBLE_EQ(mat2(2, 2), 3.0);
   EXPECT_DOUBLE_EQ(mat2(3, 3), 1.0);
 
-  EXPECT_EQ(mat.GetScale(), mat2.GetScale());
-  EXPECT_EQ(mat.GetScale(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(mat.Scale(), mat2.Scale());
+  EXPECT_EQ(mat.Scale(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -178,7 +178,7 @@ TEST(Matrix4dTest, GetAsPose3d)
                     1, 0, 3, 1,
                     0, 2, -3, 2,
                     0, 2, 3, 1);
-  math::Pose3d pose = mat.GetAsPose();
+  math::Pose3d pose = mat.ToPose();
 
   EXPECT_EQ(pose,
       math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
@@ -201,8 +201,8 @@ TEST(Matrix4dTest, Translate)
   EXPECT_DOUBLE_EQ(mat2(1, 3), 2.0);
   EXPECT_DOUBLE_EQ(mat2(2, 3), 3.0);
 
-  EXPECT_EQ(mat.GetTranslation(), mat2.GetTranslation());
-  EXPECT_EQ(mat.GetTranslation(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(mat.Translation(), mat2.Translation());
+  EXPECT_EQ(mat.Translation(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -240,16 +240,16 @@ TEST(Matrix4dTest, RotationDiagZero)
   mat(3, 2) = 1.5;
   mat(3, 3) = 1.0;
 
-  math::Quaterniond quat = mat.GetRotation();
+  math::Quaterniond quat = mat.Rotation();
   EXPECT_NEAR(quat.x(), 0.5, 1e-6);
   EXPECT_NEAR(quat.y(), 0.35, 1e-6);
   EXPECT_NEAR(quat.z(), 0.6, 1e-6);
   EXPECT_NEAR(quat.w(), 0.15, 1e-6);
 
-  math::Vector3d euler = mat.GetEulerRotation(true);
+  math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.5708));
 
-  euler = mat.GetEulerRotation(false);
+  euler = mat.EulerRotation(false);
   EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.5708));
 }
 
@@ -277,16 +277,16 @@ TEST(Matrix4dTest, Rotation)
   mat(3, 2) = 1.5;
   mat(3, 3) = 1.6;
 
-  math::Quaterniond quat = mat.GetRotation();
+  math::Quaterniond quat = mat.Rotation();
   EXPECT_NEAR(quat.x(), 0.0896421, 1e-6);
   EXPECT_NEAR(quat.y(), -0.179284, 1e-6);
   EXPECT_NEAR(quat.z(), 0.0896421, 1e-6);
   EXPECT_NEAR(quat.w(), 0.83666, 1e-6);
 
-  math::Vector3d euler = mat.GetEulerRotation(true);
+  math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(0.737815, -1.11977, 1.3734));
 
-  euler = mat.GetEulerRotation(false);
+  euler = mat.EulerRotation(false);
   EXPECT_EQ(euler, math::Vector3d(-2.40378, 4.26136, -1.76819));
 }
 

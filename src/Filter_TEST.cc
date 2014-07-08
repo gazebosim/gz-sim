@@ -34,17 +34,17 @@ TEST(FilterTest, OnePole)
   EXPECT_DOUBLE_EQ(filterB.Process(0.5), 0.47839304086811385);
 
   filterB.SetValue(5.4);
-  EXPECT_DOUBLE_EQ(filterB.GetValue(), 5.4);
+  EXPECT_DOUBLE_EQ(filterB.Value(), 5.4);
 }
 
 /////////////////////////////////////////////////
 TEST(FilterTest, OnePoleQuaternion)
 {
   math::OnePoleQuaternion filterA;
-  EXPECT_EQ(filterA.GetValue(), math::Quaterniond(1, 0, 0, 0));
+  EXPECT_EQ(filterA.Value(), math::Quaterniond(1, 0, 0, 0));
 
   math::OnePoleQuaternion filterB(0.4, 1.4);
-  EXPECT_EQ(filterB.GetValue(), math::Quaterniond(1, 0, 0, 0));
+  EXPECT_EQ(filterB.Value(), math::Quaterniond(1, 0, 0, 0));
 
   EXPECT_EQ(filterA.Process(math::Quaterniond(0.1, 0.2, 0.3)),
             math::Quaterniond(1, 0, 0, 0));
@@ -57,10 +57,10 @@ TEST(FilterTest, OnePoleQuaternion)
 TEST(FilterTest, OnePoleVector3)
 {
   math::OnePoleVector3 filterA;
-  EXPECT_EQ(filterA.GetValue(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(filterA.Value(), math::Vector3d(0, 0, 0));
 
   math::OnePoleVector3 filterB(1.2, 3.4);
-  EXPECT_EQ(filterB.GetValue(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(filterB.Value(), math::Vector3d(0, 0, 0));
 
   EXPECT_EQ(filterA.Process(math::Vector3d(0.1, 0.2, 0.3)),
             math::Vector3d(0, 0, 0));
@@ -73,7 +73,7 @@ TEST(FilterTest, OnePoleVector3)
 TEST(FilterTest, Biquad)
 {
   math::BiQuad<double> filterA;
-  EXPECT_NEAR(filterA.GetValue(), 0.0, 1e-10);
+  EXPECT_NEAR(filterA.Value(), 0.0, 1e-10);
   EXPECT_NEAR(filterA.Process(1.1), 0.0, 1e-10);
 
   filterA.SetFc(0.3, 1.4);
@@ -83,23 +83,23 @@ TEST(FilterTest, Biquad)
   EXPECT_DOUBLE_EQ(filterA.Process(10.25), 0.96057152402651302);
 
   math::BiQuad<double> filterB(4.3, 10.6);
-  EXPECT_NEAR(filterB.GetValue(), 0.0, 1e-10);
+  EXPECT_NEAR(filterB.Value(), 0.0, 1e-10);
   EXPECT_DOUBLE_EQ(filterB.Process(0.1234),  0.072418159950486546);
 
   filterB.SetValue(4.5);
-  EXPECT_DOUBLE_EQ(filterB.GetValue(), 4.5);
+  EXPECT_DOUBLE_EQ(filterB.Value(), 4.5);
 }
 
 /////////////////////////////////////////////////
 TEST(FilterTest, BiquadVector3)
 {
   math::BiQuadVector3 filterA;
-  EXPECT_EQ(filterA.GetValue(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(filterA.Value(), math::Vector3d(0, 0, 0));
   EXPECT_EQ(filterA.Process(math::Vector3d(1.1, 2.3, 3.4)),
             math::Vector3d(0, 0, 0));
 
   math::BiQuadVector3 filterB(6.5, 22.4);
-  EXPECT_EQ(filterB.GetValue(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(filterB.Value(), math::Vector3d(0, 0, 0));
   EXPECT_EQ(filterB.Process(math::Vector3d(0.1, 20.3, 33.45)),
             math::Vector3d(0.031748, 6.44475, 10.6196));
 }
