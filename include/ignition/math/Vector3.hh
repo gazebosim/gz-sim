@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_VECTOR3_HH_
 #define _IGNITION_VECTOR3_HH_
 
@@ -248,7 +247,7 @@ namespace ignition
       /// \brief Set this vector's components to the maximum of itself and the
       ///        passed in vector
       /// \param[in] _v the maximum clamping vector
-      public: void SetToMax(const Vector3<T> &_v)
+      public: void Max(const Vector3<T> &_v)
       {
         if (_v[0] > this->data[0])
           this->data[0] = _v[0];
@@ -261,7 +260,7 @@ namespace ignition
       /// \brief Set this vector's components to the minimum of itself and the
       ///        passed in vector
       /// \param[in] _v the minimum clamping vector
-      public: void SetToMin(const Vector3<T> &_v)
+      public: void Min(const Vector3<T> &_v)
       {
         if (_v[0] < this->data[0])
           this->data[0] = _v[0];

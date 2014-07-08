@@ -42,7 +42,7 @@ TEST(RandTest, Rand)
 
   // Test setting the random number seed
   {
-    math::Rand::SetSeed(1001);
+    math::Rand::Seed(1001);
 
     d = math::Rand::DblNormal(2, 3);
     EXPECT_NEAR(d, 4.72597, 1e-5);
@@ -58,14 +58,14 @@ TEST(RandTest, SetSeed)
 
   for (int i = 0; i < N; ++i)
   {
-    math::Rand::SetSeed(i);
+    math::Rand::Seed(i);
     first.push_back(math::Rand::IntUniform(-10, 10));
     second.push_back(math::Rand::IntUniform(-10, 10));
   }
 
   for (int i = 0; i < N; ++i)
   {
-    math::Rand::SetSeed(i);
+    math::Rand::Seed(i);
     EXPECT_EQ(math::Rand::Seed(), i);
     EXPECT_EQ(first[i], math::Rand::IntUniform(-10, 10));
     EXPECT_EQ(second[i], math::Rand::IntUniform(-10, 10));

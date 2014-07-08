@@ -98,8 +98,8 @@ void Box::Merge(const Box &_box)
   }
   else
   {
-    this->min.SetToMin(_box.min);
-    this->max.SetToMax(_box.max);
+    this->min.Min(_box.min);
+    this->max.Max(_box.max);
   }
 }
 
@@ -123,8 +123,8 @@ Box Box::operator+(const Box &_b) const
     mn = this->min;
     mx = this->max;
 
-    mn.SetToMin(_b.min);
-    mx.SetToMax(_b.max);
+    mn.Min(_b.min);
+    mx.Max(_b.max);
   }
   else
   {
@@ -140,8 +140,8 @@ const Box &Box::operator+=(const Box &_b)
 {
   if (this->extent != EXTENT_NULL)
   {
-    this->min.SetToMin(_b.min);
-    this->max.SetToMax(_b.max);
+    this->min.Min(_b.min);
+    this->max.Max(_b.max);
   }
   else
   {

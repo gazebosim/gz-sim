@@ -42,7 +42,7 @@ namespace ignition
       /// \brief Set the tension parameter. A value of 0 = Catmull-Rom
       /// spline.
       /// \param[in] _t Tension value between 0.0 and 1.0
-      public: void SetTension(double _t);
+      public: void Tension(double _t);
 
       /// \brief Get the tension value
       /// \return The value of the tension, which is between 0.0 and 1.0
@@ -106,7 +106,7 @@ namespace ignition
       /// \param[in] _autoCalc If true, tangents are calculated for you whenever
       ///        a point changes. If false, you must call reclacTangents to
       ///        recalculate them when it best suits.
-      public: void SetAutoCalculate(bool _autoCalc);
+      public: void AutoCalculate(bool _autoCalc);
 
       /// \brief Recalculates the tangents associated with this spline.
       /// \remarks If you tell the spline not to update on demand by

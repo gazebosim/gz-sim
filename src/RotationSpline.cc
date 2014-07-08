@@ -53,7 +53,7 @@ Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
 
 /////////////////////////////////////////////////
 Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
-                                       bool _useShortestPath)
+                                        bool _useShortestPath)
 {
   // Bounds check
   if (_fromIndex >= this->points.size())
@@ -194,7 +194,7 @@ void RotationSpline::UpdatePoint(unsigned int _index,
 }
 
 /////////////////////////////////////////////////
-void RotationSpline::SetAutoCalculate(bool _autoCalc)
+void RotationSpline::AutoCalculate(bool _autoCalc)
 {
   this->autoCalc = _autoCalc;
 }

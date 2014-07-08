@@ -49,13 +49,13 @@ Angle::~Angle()
 }
 
 //////////////////////////////////////////////////
-void Angle::SetFromRadian(double _radian)
+void Angle::Radian(double _radian)
 {
   this->value = _radian;
 }
 
 //////////////////////////////////////////////////
-void Angle::SetFromDegree(double _degree)
+void Angle::Degree(double _degree)
 {
   this->value = _degree * M_PI / 180.0;
 }

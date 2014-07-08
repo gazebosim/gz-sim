@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_POSE_HH_
 #define _IGNITION_POSE_HH_
 
@@ -98,7 +97,7 @@ namespace ignition
       public: void Set(const Vector3<T> &_pos, const Vector3<T> &_rpy)
       {
         this->p = _pos;
-        this->q.SetFromEuler(_rpy);
+        this->q.Euler(_rpy);
       }
 
       /// \brief Set the pose from a six tuple.
@@ -111,7 +110,7 @@ namespace ignition
       public: void Set(T _x, T _y, T _z, T _roll, T _pitch, T _yaw)
       {
         this->p.Set(_x, _y, _z);
-        this->q.SetFromEuler(math::Vector3<T>(_roll, _pitch, _yaw));
+        this->q.Euler(math::Vector3<T>(_roll, _pitch, _yaw));
       }
 
       /// \brief See if a pose is finite (e.g., not nan)
@@ -312,7 +311,7 @@ namespace ignition
       {
         // set the position to zero
         this->p.Set();
-        this->q.SetToIdentity();
+        this->q = Quaterniond::Identity;
       }
 
       /// \brief Rotate vector part of a pose about the origin
@@ -409,5 +408,4 @@ namespace ignition
     typedef Pose3<float> Pose3f;
   }
 }
-
 #endif

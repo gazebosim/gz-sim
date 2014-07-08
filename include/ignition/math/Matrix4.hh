@@ -152,7 +152,7 @@ namespace ignition
       /// \brief Set the upper-left 3x3 matrix from an axis and angle
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
-      public: void SetFromAxis(const Vector3<T> &_axis, T _angle)
+      public: void Axis(const Vector3<T> &_axis, T _angle)
       {
         T c = cos(_angle);
         T s = sin(_angle);
@@ -173,7 +173,7 @@ namespace ignition
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
-      public: void SetTranslate(const Vector3<T> &_t)
+      public: void Translate(const Vector3<T> &_t)
       {
         this->data[0][3] = _t.x();
         this->data[1][3] = _t.y();
@@ -184,7 +184,7 @@ namespace ignition
       /// \param[in] _x X translation value.
       /// \param[in] _y Y translation value.
       /// \param[in] _z Z translation value.
-      public: void SetTranslate(T _x, T _y, T _z)
+      public: void Translate(T _x, T _y, T _z)
       {
         this->data[0][3] = _x;
         this->data[1][3] = _y;
@@ -245,24 +245,24 @@ namespace ignition
 
           switch (i)
           {
+            default:
             case 0: q.x(a); break;
             case 1: q.y(a); break;
             case 2: q.z(a); break;
-            default: break;
           };
           switch (j)
           {
+            default:
             case 0: q.x(b); break;
             case 1: q.y(b); break;
             case 2: q.z(b); break;
-            default: break;
           };
           switch (k)
           {
+            default:
             case 0: q.x(c); break;
             case 1: q.y(c); break;
             case 2: q.z(c); break;
-            default: break;
           };
 
           q.w((this->data[k][j] - this->data[j][k]) * root);
@@ -335,7 +335,7 @@ namespace ignition
 
       /// \brief Set the scale
       /// \param[in] _s scale
-      public: void SetScale(const Vector3<T> &_s)
+      public: void Scale(const Vector3<T> &_s)
       {
         this->data[0][0] = _s.x();
         this->data[1][1] = _s.y();
@@ -347,7 +347,7 @@ namespace ignition
       /// \param[in] _x X scale value.
       /// \param[in] _y Y scale value.
       /// \param[in] _z Z scale value.
-      public: void SetScale(T _x, T _y, T _z)
+      public: void Scale(T _x, T _y, T _z)
       {
         this->data[0][0] = _x;
         this->data[1][1] = _y;

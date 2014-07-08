@@ -27,13 +27,13 @@ TEST(FilterTest, OnePole)
   math::OnePole<double> filterA;
   EXPECT_DOUBLE_EQ(filterA.Process(0.2), 0.0);
 
-  filterA.SetFc(0.6, 1.4);
+  filterA.Fc(0.6, 1.4);
   EXPECT_DOUBLE_EQ(filterA.Process(2.5), 2.3307710879153634);
 
   math::OnePole<double> filterB(0.1, 0.2);
   EXPECT_DOUBLE_EQ(filterB.Process(0.5), 0.47839304086811385);
 
-  filterB.SetValue(5.4);
+  filterB.Set(5.4);
   EXPECT_DOUBLE_EQ(filterB.Value(), 5.4);
 }
 
@@ -76,17 +76,17 @@ TEST(FilterTest, Biquad)
   EXPECT_NEAR(filterA.Value(), 0.0, 1e-10);
   EXPECT_NEAR(filterA.Process(1.1), 0.0, 1e-10);
 
-  filterA.SetFc(0.3, 1.4);
+  filterA.Fc(0.3, 1.4);
   EXPECT_DOUBLE_EQ(filterA.Process(1.2), 0.66924691484768517);
 
-  filterA.SetFc(0.3, 1.4, 0.1);
+  filterA.Fc(0.3, 1.4, 0.1);
   EXPECT_DOUBLE_EQ(filterA.Process(10.25), 0.96057152402651302);
 
   math::BiQuad<double> filterB(4.3, 10.6);
   EXPECT_NEAR(filterB.Value(), 0.0, 1e-10);
   EXPECT_DOUBLE_EQ(filterB.Process(0.1234),  0.072418159950486546);
 
-  filterB.SetValue(4.5);
+  filterB.Set(4.5);
   EXPECT_DOUBLE_EQ(filterB.Value(), 4.5);
 }
 

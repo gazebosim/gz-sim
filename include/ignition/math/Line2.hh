@@ -45,9 +45,9 @@ namespace ignition
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       public: Line2(double _x1, double _y1, double _x2, double _y2)
-              {
-                this->Set(_x1, _y1, _x2, _y2);
-              }
+      {
+        this->Set(_x1, _y1, _x2, _y2);
+      }
 
       /// \brief Set the start and end point of the line segment
       /// \param[in] _ptA Start point of the line segment

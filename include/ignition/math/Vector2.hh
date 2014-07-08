@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_VECTOR2_HH_
 #define _IGNITION_VECTOR2_HH_
 

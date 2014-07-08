@@ -39,7 +39,7 @@ std::random_device rd;
 GeneratorType *Rand::randGenerator = new GeneratorType(rd());
 
 //////////////////////////////////////////////////
-void Rand::SetSeed(uint32_t _seed)
+void Rand::Seed(uint32_t _seed)
 {
   seed = _seed;
   randGenerator->seed(seed);

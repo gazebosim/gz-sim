@@ -182,10 +182,10 @@ TEST(Vector3dTest, Max)
 
   EXPECT_DOUBLE_EQ(vec1.Max(), 0.3);
 
-  vec1.SetToMax(vec2);
+  vec1.Max(vec2);
   EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 
-  vec1.SetToMax(vec3);
+  vec1.Max(vec3);
   EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 }
 
@@ -198,10 +198,10 @@ TEST(Vector3dTest, Min)
 
   EXPECT_DOUBLE_EQ(vec1.Min(), 0.1);
 
-  vec1.SetToMin(vec2);
+  vec1.Min(vec2);
   EXPECT_EQ(vec1, math::Vector3d(0.1, 0.2, 0.3));
 
-  vec1.SetToMin(vec3);
+  vec1.Min(vec3);
   EXPECT_EQ(vec1, math::Vector3d(0.05, 0.1, 0.2));
 }
 

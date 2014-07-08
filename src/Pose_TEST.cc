@@ -36,9 +36,9 @@ TEST(PoseTest, Pose)
     EXPECT_TRUE(math::equal((B + A).Pos().x(), 1.0 + 1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B + A).Pos().y(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B + A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().ToEuler().x(),  0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().ToEuler().y(),  0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().ToEuler().z(), 3.0*M_PI/4.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().x(),  0.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().y(),  0.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().z(), 3.0*M_PI/4.0));
   }
   {
     // If:
@@ -49,18 +49,18 @@ TEST(PoseTest, Pose)
     EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().x(),      -1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().y(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().ToEuler().x(),  0.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().ToEuler().y(),  0.0));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().x(),  0.0));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().y(),  0.0));
     EXPECT_TRUE(
-        math::equal((math::Pose3d() - A).Rot().ToEuler().z(), -M_PI/4));
+        math::equal((math::Pose3d() - A).Rot().Euler().z(), -M_PI/4));
 
     // test negation operator
     EXPECT_TRUE(math::equal((-A).Pos().x(),      -1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((-A).Pos().y(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((-A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().ToEuler().x(),  0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().ToEuler().y(),  0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().ToEuler().z(), -M_PI/4.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().x(),  0.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().y(),  0.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().z(), -M_PI/4.0));
   }
   {
     // If:
@@ -72,9 +72,9 @@ TEST(PoseTest, Pose)
     EXPECT_TRUE(math::equal((B - A).Pos().x(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B - A).Pos().y(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B - A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().ToEuler().x(),  0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().ToEuler().y(),  0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().ToEuler().z(), M_PI/4.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().x(),  0.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().y(),  0.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().z(), M_PI/4.0));
   }
   {
     math::Pose3d pose;
@@ -112,7 +112,7 @@ TEST(PoseTest, Pose)
       math::Pose3d(0, 0, 0, 0, 0, 0));
 
   pose.Pos().Set(5, 6, 7);
-  pose.Rot().SetFromEuler(math::Vector3d(.4, .6, 0));
+  pose.Rot().Euler(math::Vector3d(.4, .6, 0));
 
   EXPECT_TRUE(pose.CoordPositionAdd(math::Vector3d(1, 2, 3)) ==
       math::Vector3d(7.82531, 6.67387, 9.35871));

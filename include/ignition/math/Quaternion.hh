@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_QUATERNION_HH_
 #define _IGNITION_QUATERNION_HH_
 
@@ -30,6 +29,9 @@ namespace ignition
     template<typename T>
     class IGNITION_VISIBLE Quaternion
     {
+      /// \brief math::Quaternion(1, 0, 0, 1)
+      public: static const Quaternion Identity;
+
       /// \brief Default Constructor
       public: Quaternion()
       : qw(1), qx(0), qy(0), qz(0)
@@ -53,7 +55,7 @@ namespace ignition
       /// \param[in] _yaw   yaw
       public: Quaternion(const T &_roll, const T &_pitch, const T &_yaw)
       {
-        this->SetFromEuler(Vector3<T>(_roll, _pitch, _yaw));
+        this->Euler(Vector3<T>(_roll, _pitch, _yaw));
       }
 
       /// \brief Constructor from axis angle
@@ -61,14 +63,14 @@ namespace ignition
       /// \param[in] _angle the rotation angle in radians
       public: Quaternion(const Vector3<T> &_axis, const T &_angle)
       {
-        this->SetFromAxis(_axis, _angle);
+        this->Axis(_axis, _angle);
       }
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
       public: Quaternion(const Vector3<T> &_rpy)
       {
-        this->SetFromEuler(_rpy);
+        this->Euler(_rpy);
       }
 
       /// \brief Copy constructor
@@ -134,15 +136,6 @@ namespace ignition
                 }
                 return q;
               }
-
-      /// \brief Set the quatern to the identity
-      public: void SetToIdentity()
-      {
-        this->qw = static_cast<T>(1);
-        this->qx = static_cast<T>(0);
-        this->qy = static_cast<T>(0);
-        this->qz = static_cast<T>(0);
-      }
 
       /// \brief Return the logarithm
       /// \return the log
@@ -237,7 +230,7 @@ namespace ignition
       /// \param[in] _y Y axis
       /// \param[in] _z Z axis
       /// \param[in] _a Angle in radians
-      public: void SetFromAxis(T _ax, T _ay, T _az, T _aa)
+      public: void Axis(T _ax, T _ay, T _az, T _aa)
       {
         T l;
 
@@ -266,9 +259,9 @@ namespace ignition
       /// \brief Set the quaternion from an axis and angle
       /// \param[in] _axis Axis
       /// \param[in] _a Angle in radians
-      public: void SetFromAxis(const Vector3<T> &_axis, T _a)
+      public: void Axis(const Vector3<T> &_axis, T _a)
       {
-        this->SetFromAxis(_axis.x(), _axis.y(), _axis.z(), _a);
+        this->Axis(_axis.x(), _axis.y(), _axis.z(), _a);
       }
 
       /// \brief Set this quaternion from 4 floating numbers
@@ -287,16 +280,16 @@ namespace ignition
       /// \brief Set the quaternion from Euler angles. The order of operations
       /// are roll, pitch, yaw.
       /// \param[in] vec  Euler angle
-      public: void SetFromEuler(const Vector3<T> &_vec)
+      public: void Euler(const Vector3<T> &_vec)
       {
-        this->SetFromEuler(_vec.x(), _vec.y(), _vec.z());
+        this->Euler(_vec.x(), _vec.y(), _vec.z());
       }
 
       /// \brief Set the quaternion from Euler angles.
       /// \param[in] _roll Roll angle (radians).
       /// \param[in] _pitch Roll angle (radians).
       /// \param[in] _yaw Roll angle (radians).
-      public: void SetFromEuler(T _roll, T _pitch, T _yaw)
+      public: void Euler(T _roll, T _pitch, T _yaw)
       {
         T phi, the, psi;
 
@@ -318,7 +311,7 @@ namespace ignition
 
       /// \brief Return the rotation in Euler angles
       /// \return This quaternion as an Euler vector
-      public: Vector3<T> ToEuler() const
+      public: Vector3<T> Euler() const
       {
         Vector3<T> vec;
 
@@ -356,7 +349,7 @@ namespace ignition
       public: static Quaternion<T> EulerToQuaternion(const Vector3<T> &_vec)
       {
         Quaternion<T> result;
-        result.SetFromEuler(_vec);
+        result.Euler(_vec);
         return result;
       }
 
@@ -373,21 +366,21 @@ namespace ignition
       /// \return the roll
       public: T Roll()
       {
-        return this->ToEuler().x();
+        return this->Euler().x();
       }
 
       /// \brief Get the Euler pitch angle in radians
       /// \return the pitch
       public: T Pitch()
       {
-        return this->ToEuler().y();
+        return this->Euler().y();
       }
 
       /// \brief Get the Euler yaw angle in radians
       /// \return the yaw
       public: T Yaw()
       {
-        return this->ToEuler().z();
+        return this->Euler().z();
       }
 
       /// \brief Return rotation as axis and angle
@@ -421,7 +414,7 @@ namespace ignition
         this->ToAxis(axis, angle);
         angle *= _scale;
 
-        this->SetFromAxis(axis.x(), axis.y(), axis.z(), angle);
+        this->Axis(axis.x(), axis.y(), axis.z(), angle);
       }
 
       /// \brief Addition operator
@@ -829,7 +822,7 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                   const ignition::math::Quaternion<T> &_q)
       {
-        Vector3<T> v(_q.ToEuler());
+        Vector3<T> v(_q.Euler());
         _out << precision(v.x(), 6) << " " << precision(v.y(), 6) << " "
              << precision(v.z(), 6);
         return _out;
@@ -848,7 +841,7 @@ namespace ignition
         _in.setf(std::ios_base::skipws);
         _in >> roll >> pitch >> yaw;
 
-        _q.SetFromEuler(Vector3<T>(*roll, *pitch, *yaw));
+        _q.Euler(Vector3<T>(*roll, *pitch, *yaw));
 
         return _in;
       }
@@ -865,6 +858,9 @@ namespace ignition
       /// \brief Attributes of the quaternion
       private: T qz;
     };
+
+    template<typename T> const Quaternion<T>
+      Quaternion<T>::Identity(1, 0, 0, 0);
 
     typedef Quaternion<double> Quaterniond;
     typedef Quaternion<float> Quaternionf;

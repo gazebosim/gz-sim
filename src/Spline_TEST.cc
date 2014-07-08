@@ -41,9 +41,9 @@ TEST(SplineTest, Spline)
   // ::UpdatePoint
   EXPECT_THROW(s.UpdatePoint(2, math::Vector3d(2, 2, 2)), math::IndexException);
   s.UpdatePoint(1, math::Vector3d(2, 2, 2));
-  s.SetAutoCalculate(false);
+  s.AutoCalculate(false);
   s.UpdatePoint(0, math::Vector3d(-1, -1, -1));
-  s.SetAutoCalculate(true);
+  s.AutoCalculate(true);
 
   // ::Interpolate
   EXPECT_TRUE(s.Interpolate(0.5) == math::Vector3d(0.5, 0.5, 0.5));
@@ -57,7 +57,7 @@ TEST(SplineTest, Spline)
 TEST(SplineTest, Tension)
 {
   math::Spline s;
-  s.SetTension(0.1);
+  s.Tension(0.1);
 
   EXPECT_DOUBLE_EQ(s.Tension(), 0.1);
 }
@@ -94,4 +94,21 @@ TEST(SplineTest, Tangent)
   EXPECT_THROW(s.Tangent(0), math::IndexException);
   s.AddPoint(math::Vector3d(1, 0, 0));
   EXPECT_EQ(s.Tangent(0), math::Vector3d(0.5, 0, 0));
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, RecalcTangents)
+{
+  math::Spline s;
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  s.AddPoint(math::Vector3d(.4, .4, .4));
+  s.AddPoint(math::Vector3d(0, 0, 0));
+
+  s.RecalcTangents();
+
+  math::Vector3d v = s.Interpolate(0, 0.5);
+  EXPECT_EQ(s.Interpolate(0, 0.5), math::Vector3d(0.2, 0.2, 0.2));
+
+  v = s.Interpolate(1, 0.5);
+  EXPECT_EQ(s.Interpolate(1, 0.5), math::Vector3d(0.2, 0.2, 0.2));
 }

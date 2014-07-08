@@ -44,9 +44,9 @@ TEST(RotationSplineTest, RotationSpline)
   EXPECT_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)),
                math::IndexException);
   s.UpdatePoint(1, math::Quaterniond(.2, .2, .2));
-  s.SetAutoCalculate(false);
+  s.AutoCalculate(false);
   s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
-  s.SetAutoCalculate(true);
+  s.AutoCalculate(true);
 
   // ::Interpolate
   EXPECT_TRUE(s.Interpolate(0.5) ==
@@ -73,4 +73,23 @@ TEST(RotationSplineTest, GetPoint)
   s.AddPoint(math::Quaterniond(0, 0, 0));
   EXPECT_NO_THROW(s.Point(0));
   EXPECT_THROW(s.Point(1), math::IndexException);
+}
+
+/////////////////////////////////////////////////
+TEST(RotationSplineTest, RecalcTangents)
+{
+  math::RotationSpline s;
+  s.AddPoint(math::Quaterniond(0, 0, 0));
+  s.AddPoint(math::Quaterniond(.4, .4, .4));
+  s.AddPoint(math::Quaterniond(0, 0, 0));
+
+  s.RecalcTangents();
+  math::Quaterniond q = s.Interpolate(0, 0.5);
+  std::cout << q.w() << " " << q.x() << " " << q.y() << " " << q.z() << "\n";
+  EXPECT_EQ(s.Interpolate(0, 0.5),
+      math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
+
+  q = s.Interpolate(1, 0.5);
+  EXPECT_EQ(s.Interpolate(1, 0.5),
+      math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 }

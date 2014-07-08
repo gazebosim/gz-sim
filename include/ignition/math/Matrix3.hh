@@ -124,19 +124,19 @@ namespace ignition
       /// \param[in] _xAxis The x axis
       /// \param[in] _yAxis The y axis
       /// \param[in] _zAxis The z axis
-      public: void SetFromAxes(const Vector3<T> &_xAxis,
-                               const Vector3<T> &_yAxis,
-                               const Vector3<T> &_zAxis)
+      public: void Axes(const Vector3<T> &_xAxis,
+                        const Vector3<T> &_yAxis,
+                        const Vector3<T> &_zAxis)
       {
-        this->SetCol(0, _xAxis);
-        this->SetCol(1, _yAxis);
-        this->SetCol(2, _zAxis);
+        this->Col(0, _xAxis);
+        this->Col(1, _yAxis);
+        this->Col(2, _zAxis);
       }
 
       /// \brief Set the matrix from an axis and angle
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
-      public: void SetFromAxis(const Vector3<T> &_axis, T _angle)
+      public: void Axis(const Vector3<T> &_axis, T _angle)
       {
         T c = cos(_angle);
         T s = sin(_angle);
@@ -158,7 +158,7 @@ namespace ignition
       /// \brief Set a column
       /// \param[in] _c The colum index (0, 1, 2)
       /// \param[in] _v The value to set in each row of the column
-      public: void SetCol(unsigned int _c, const Vector3<T> &_v)
+      public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
         if (_c >= 3)
           throw IndexException();

@@ -73,11 +73,11 @@ namespace ignition
 
       /// \brief Set the value from an angle in radians
       /// \param[in] _radian Radian value
-      public: void SetFromRadian(double _radian);
+      public: void Radian(double _radian);
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
-      public: void SetFromDegree(double _degree);
+      public: void Degree(double _degree);
 
       /// \brief Get the angle in radians
       /// \return double containing the angle's radian value

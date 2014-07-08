@@ -80,7 +80,7 @@ namespace ignition
       /// \brief Assignment operator. Set this box to the parameter
       /// \param[in]  _b Box to copy
       /// \return The new box.
-      public: Box &operator =(const Box &_b);
+      public: Box &operator=(const Box &_b);
 
       /// \brief Addition operator. result = this + _b
       /// \param[in] _b Box to add
@@ -107,7 +107,7 @@ namespace ignition
       /// \param[in] _b Box to output to the stream
       /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                               const ignition::math::Box &_b)
+                                              const ignition::math::Box &_b)
       {
         _out << "Min[" << _b.min << "] Max[" << _b.max << "]";
 

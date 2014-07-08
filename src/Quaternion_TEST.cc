@@ -86,8 +86,7 @@ TEST(QuaternionTest, ConstructAxisAngle)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Identity)
 {
-  math::Quaterniond q;
-  q.SetToIdentity();
+  math::Quaterniond q = math::Quaterniond::Identity;
   EXPECT_TRUE(math::equal(q.w(), 1.0));
   EXPECT_TRUE(math::equal(q.x(), 0.0));
   EXPECT_TRUE(math::equal(q.y(), 0.0));
@@ -120,10 +119,10 @@ TEST(QuaternionTest, Math)
   q.Invert();
   EXPECT_TRUE(q == math::Quaterniond(0.110616, 0.698401, -0.110616, -0.698401));
 
-  q.SetFromAxis(0, 1, 0, M_PI);
+  q.Axis(0, 1, 0, M_PI);
   EXPECT_TRUE(q == math::Quaterniond(6.12303e-17, 0, 1, 0));
 
-  q.SetFromAxis(math::Vector3d(1, 0, 0), M_PI);
+  q.Axis(math::Vector3d(1, 0, 0), M_PI);
   EXPECT_TRUE(q == math::Quaterniond(0, 1, 0, 0));
 
   q.Set(1, 2, 3, 4);
@@ -194,7 +193,7 @@ TEST(QuaternionTest, Math)
   q.Normalize();
   EXPECT_TRUE(q == math::Quaterniond());
 
-  q.SetFromAxis(0, 0, 0, 0);
+  q.Axis(0, 0, 0, 0);
   EXPECT_TRUE(q == math::Quaterniond());
 
   EXPECT_TRUE(math::Quaterniond::EulerToQuaternion(0.1, 0.2, 0.3) ==
@@ -245,7 +244,7 @@ TEST(QuaternionTest, Math)
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
-    q.SetFromAxis(math::Vector3d(1, 2, 3), 0.3*M_PI);
+    q.Axis(math::Vector3d(1, 2, 3), 0.3*M_PI);
     std::cout << "[" << q.w() << ", " << q.x() << ", "
       << q.y() << ", " << q.z() << "]\n";
     std::cout << " x [" << q.Inverse().XAxis() << "]\n";

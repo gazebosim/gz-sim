@@ -59,7 +59,7 @@ Spline::~Spline()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::SetTension(double _t)
+void Spline::Tension(double _t)
 {
   this->tension = _t;
   this->RecalcTangents();
@@ -264,7 +264,7 @@ void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::SetAutoCalculate(bool _autoCalc)
+void Spline::AutoCalculate(bool _autoCalc)
 {
   this->autoCalc = _autoCalc;
 }
