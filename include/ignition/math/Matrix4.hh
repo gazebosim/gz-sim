@@ -84,19 +84,19 @@ namespace ignition
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
-        this->Set(1 - 2*qt.y()*qt.y() - 2 *qt.z()*qt.z(),
-                  2 * qt.x()*qt.y() - 2*qt.z()*qt.w(),
-                  2 * qt.x() * qt.z() + 2 * qt.y() * qt.w(),
+        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
+                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
+                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
                   0,
 
-                  2 * qt.x() * qt.y() + 2 * qt.z() * qt.w(),
-                  1 - 2*qt.x()*qt.x() - 2 * qt.z()*qt.z(),
-                  2 * qt.y() * qt.z() - 2 * qt.x() * qt.w(),
+                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
+                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
+                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
                   0,
 
-                  2 * qt.x() * qt.z() - 2 * qt.y() * qt.w(),
-                  2 * qt.y() * qt.z() + 2 * qt.x() * qt.w(),
-                  1 - 2 * qt.x()*qt.x() - 2 * qt.y()*qt.y(),
+                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
+                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
+                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y(),
                   0,
 
                   0, 0, 0, 1);
@@ -158,26 +158,26 @@ namespace ignition
         T s = sin(_angle);
         T C = 1-c;
 
-        this->data[0][0] = _axis.x()*_axis.x()*C + c;
-        this->data[0][1] = _axis.x()*_axis.y()*C - _axis.z()*s;
-        this->data[0][2] = _axis.x()*_axis.z()*C + _axis.y()*s;
+        this->data[0][0] = _axis.X()*_axis.X()*C + c;
+        this->data[0][1] = _axis.X()*_axis.Y()*C - _axis.Z()*s;
+        this->data[0][2] = _axis.X()*_axis.Z()*C + _axis.Y()*s;
 
-        this->data[1][0] = _axis.y()*_axis.x()*C + _axis.z()*s;
-        this->data[1][1] = _axis.y()*_axis.y()*C + c;
-        this->data[1][2] = _axis.y()*_axis.z()*C - _axis.x()*s;
+        this->data[1][0] = _axis.Y()*_axis.X()*C + _axis.Z()*s;
+        this->data[1][1] = _axis.Y()*_axis.Y()*C + c;
+        this->data[1][2] = _axis.Y()*_axis.Z()*C - _axis.X()*s;
 
-        this->data[2][0] = _axis.z()*_axis.x()*C - _axis.y()*s;
-        this->data[2][1] = _axis.z()*_axis.y()*C + _axis.x()*s;
-        this->data[2][2] = _axis.z()*_axis.z()*C + c;
+        this->data[2][0] = _axis.Z()*_axis.X()*C - _axis.Y()*s;
+        this->data[2][1] = _axis.Z()*_axis.Y()*C + _axis.X()*s;
+        this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
       public: void Translate(const Vector3<T> &_t)
       {
-        this->data[0][3] = _t.x();
-        this->data[1][3] = _t.y();
-        this->data[2][3] = _t.z();
+        this->data[0][3] = _t.X();
+        this->data[1][3] = _t.Y();
+        this->data[2][3] = _t.Z();
       }
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
@@ -311,13 +311,13 @@ namespace ignition
         else
         {
           euler.y(-asin(m31));
-          euler2.y(M_PI - euler.y());
+          euler2.y(M_PI - euler.Y());
 
-          euler.x(atan2(m32 / cos(euler.y()), m33 / cos(euler.y())));
-          euler2.x(atan2(m32 / cos(euler2.y()), m33 / cos(euler2.y())));
+          euler.x(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
+          euler2.x(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
 
-          euler.z(atan2(m21 / cos(euler.y()), m11 / cos(euler.y())));
-          euler2.z(atan2(m21 / cos(euler2.y()), m11 / cos(euler2.y())));
+          euler.z(atan2(m21 / cos(euler.Y()), m11 / cos(euler.Y())));
+          euler2.z(atan2(m21 / cos(euler2.Y()), m11 / cos(euler2.Y())));
         }
 
         if (_firstSolution)
@@ -328,7 +328,7 @@ namespace ignition
 
       /// \brief Get the transformation as math::Pose
       /// \return the pose
-      public: Pose3<T> ToPose() const
+      public: Pose3<T> Pose() const
       {
         return Pose3<T>(this->Translation(), this->Rotation());
       }
@@ -337,9 +337,9 @@ namespace ignition
       /// \param[in] _s scale
       public: void Scale(const Vector3<T> &_s)
       {
-        this->data[0][0] = _s.x();
-        this->data[1][1] = _s.y();
-        this->data[2][2] = _s.z();
+        this->data[0][0] = _s.X();
+        this->data[1][1] = _s.Y();
+        this->data[2][2] = _s.Z();
         this->data[3][3] = 1.0;
       }
 
@@ -374,12 +374,12 @@ namespace ignition
         if (!this->IsAffine())
           throw AffineException();
 
-        return Vector3<T>(this->data[0][0]*_v.x() + this->data[0][1]*_v.y() +
-                           this->data[0][2]*_v.z() + this->data[0][3],
-                           this->data[1][0]*_v.x() + this->data[1][1]*_v.y() +
-                           this->data[1][2]*_v.z() + this->data[1][3],
-                           this->data[2][0]*_v.x() + this->data[2][1]*_v.y() +
-                           this->data[2][2]*_v.z() + this->data[2][3]);
+        return Vector3<T>(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
+                           this->data[0][2]*_v.Z() + this->data[0][3],
+                           this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
+                           this->data[1][2]*_v.Z() + this->data[1][3],
+                           this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
+                           this->data[2][2]*_v.Z() + this->data[2][3]);
       }
 
       /// \brief Return the inverse matrix.
@@ -598,12 +598,12 @@ namespace ignition
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
       {
         return Vector3<T>(
-            this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
-            this->data[0][2]*_vec.z() + this->data[0][3],
-            this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
-            this->data[1][2]*_vec.z() + this->data[1][3],
-            this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
-            this->data[2][2]*_vec.z() + this->data[2][3]);
+            this->data[0][0]*_vec.X() + this->data[0][1]*_vec.Y() +
+            this->data[0][2]*_vec.Z() + this->data[0][3],
+            this->data[1][0]*_vec.X() + this->data[1][1]*_vec.Y() +
+            this->data[1][2]*_vec.Z() + this->data[1][3],
+            this->data[2][0]*_vec.X() + this->data[2][1]*_vec.Y() +
+            this->data[2][2]*_vec.Z() + this->data[2][3]);
       }
 
       /// \brief Get the value at the specified row, column index

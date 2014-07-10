@@ -95,7 +95,7 @@ namespace ignition
       /// \brief Equality test operatoer
       /// \param[in] _b Box to test
       /// \return True if equal
-      public: bool operator==(const Box &_b);
+      public: bool operator==(const Box &_b) const;
 
       /// \brief Subtract a vector from the min and max values
       /// \param _v The vector to use during subtraction
@@ -123,7 +123,7 @@ namespace ignition
 
       /// \brief Get the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: const Vector3d &Max() const
+      public: const Vector3d &MaX() const
       {
         return this->max;
       }
@@ -137,7 +137,7 @@ namespace ignition
 
       /// \brief Get a mutable version of the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: Vector3d &Max()
+      public: Vector3d &MaX()
       {
         return this->max;
       }

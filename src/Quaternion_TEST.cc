@@ -31,36 +31,36 @@ using namespace ignition;
 TEST(QuaternionTest, Unit)
 {
   math::Quaterniond q;
-  EXPECT_TRUE(math::equal(q.w(), 1.0));
-  EXPECT_TRUE(math::equal(q.x(), 0.0));
-  EXPECT_TRUE(math::equal(q.y(), 0.0));
-  EXPECT_TRUE(math::equal(q.z(), 0.0));
+  EXPECT_TRUE(math::equal(q.W(), 1.0));
+  EXPECT_TRUE(math::equal(q.X(), 0.0));
+  EXPECT_TRUE(math::equal(q.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q.Z(), 0.0));
 }
 
 /////////////////////////////////////////////////
 TEST(QuaternionTest, ConstructWithValues)
 {
   math::Quaterniond q(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(q.w(), 1.0));
-  EXPECT_TRUE(math::equal(q.x(), 2.0));
-  EXPECT_TRUE(math::equal(q.y(), 3.0));
-  EXPECT_TRUE(math::equal(q.z(), 4.0));
+  EXPECT_TRUE(math::equal(q.W(), 1.0));
+  EXPECT_TRUE(math::equal(q.X(), 2.0));
+  EXPECT_TRUE(math::equal(q.Y(), 3.0));
+  EXPECT_TRUE(math::equal(q.Z(), 4.0));
 }
 
 /////////////////////////////////////////////////
 TEST(QuaternionTest, ConstructZero)
 {
   math::Quaterniond q(0, 0, 0, 0);
-  EXPECT_TRUE(math::equal(q.w(), 0.0));
-  EXPECT_TRUE(math::equal(q.x(), 0.0));
-  EXPECT_TRUE(math::equal(q.y(), 0.0));
-  EXPECT_TRUE(math::equal(q.z(), 0.0));
+  EXPECT_TRUE(math::equal(q.W(), 0.0));
+  EXPECT_TRUE(math::equal(q.X(), 0.0));
+  EXPECT_TRUE(math::equal(q.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q.Z(), 0.0));
 
   math::Quaterniond qI = q.Inverse();
-  EXPECT_TRUE(math::equal(qI.w(), 1.0));
-  EXPECT_TRUE(math::equal(qI.x(), 0.0));
-  EXPECT_TRUE(math::equal(qI.y(), 0.0));
-  EXPECT_TRUE(math::equal(qI.z(), 0.0));
+  EXPECT_TRUE(math::equal(qI.W(), 1.0));
+  EXPECT_TRUE(math::equal(qI.X(), 0.0));
+  EXPECT_TRUE(math::equal(qI.Y(), 0.0));
+  EXPECT_TRUE(math::equal(qI.Z(), 0.0));
 }
 
 /////////////////////////////////////////////////
@@ -74,10 +74,10 @@ TEST(QuaternionTest, ConstructEuler)
 TEST(QuaternionTest, ConstructAxisAngle)
 {
   math::Quaterniond q1(math::Vector3d(0, 0, 1), M_PI);
-  EXPECT_TRUE(math::equal(q1.x(), 0.0));
-  EXPECT_TRUE(math::equal(q1.y(), 0.0));
-  EXPECT_TRUE(math::equal(q1.z(), 1.0));
-  EXPECT_TRUE(math::equal(q1.w(), 0.0));
+  EXPECT_TRUE(math::equal(q1.X(), 0.0));
+  EXPECT_TRUE(math::equal(q1.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q1.Z(), 1.0));
+  EXPECT_TRUE(math::equal(q1.W(), 0.0));
 
   math::Quaterniond q(q1);
   EXPECT_TRUE(q == q1);
@@ -87,10 +87,10 @@ TEST(QuaternionTest, ConstructAxisAngle)
 TEST(QuaternionTest, Identity)
 {
   math::Quaterniond q = math::Quaterniond::Identity;
-  EXPECT_TRUE(math::equal(q.w(), 1.0));
-  EXPECT_TRUE(math::equal(q.x(), 0.0));
-  EXPECT_TRUE(math::equal(q.y(), 0.0));
-  EXPECT_TRUE(math::equal(q.z(), 0.0));
+  EXPECT_TRUE(math::equal(q.W(), 1.0));
+  EXPECT_TRUE(math::equal(q.X(), 0.0));
+  EXPECT_TRUE(math::equal(q.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q.Z(), 0.0));
 }
 
 /////////////////////////////////////////////////
@@ -126,10 +126,10 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(q == math::Quaterniond(0, 1, 0, 0));
 
   q.Set(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(q.w(), 1.0));
-  EXPECT_TRUE(math::equal(q.x(), 2.0));
-  EXPECT_TRUE(math::equal(q.y(), 3.0));
-  EXPECT_TRUE(math::equal(q.z(), 4.0));
+  EXPECT_TRUE(math::equal(q.W(), 1.0));
+  EXPECT_TRUE(math::equal(q.X(), 2.0));
+  EXPECT_TRUE(math::equal(q.Y(), 3.0));
+  EXPECT_TRUE(math::equal(q.Z(), 4.0));
 
   q.Normalize();
   EXPECT_TRUE(q == math::Quaterniond(0.182574, 0.365148, 0.547723, 0.730297));
@@ -137,7 +137,7 @@ TEST(QuaternionTest, Math)
 
   EXPECT_TRUE(math::equal(q.Roll(), 1.4289, 1e-3));
   EXPECT_TRUE(math::equal(q.Pitch(), -0.339837, 1e-3));
-  EXPECT_TRUE(math::equal(q.Yaw(), 2.35619, 1e-3));
+  EXPECT_TRUE(math::equal(q.YaW(), 2.35619, 1e-3));
 
   math::Vector3d axis;
   double angle;
@@ -181,10 +181,10 @@ TEST(QuaternionTest, Math)
       math::Quaterniond(0.983347, 0.0342708, 0.106021, 0.143572));
 
   q.Round(2);
-  EXPECT_TRUE(math::equal(-1.18, q.x()));
-  EXPECT_TRUE(math::equal(2.76, q.y()));
-  EXPECT_TRUE(math::equal(4.01, q.z()));
-  EXPECT_TRUE(math::equal(7.68, q.w()));
+  EXPECT_TRUE(math::equal(-1.18, q.X()));
+  EXPECT_TRUE(math::equal(2.76, q.Y()));
+  EXPECT_TRUE(math::equal(4.01, q.Z()));
+  EXPECT_TRUE(math::equal(7.68, q.W()));
 
   q.x(0.0);
   q.y(0.0);
@@ -212,8 +212,8 @@ TEST(QuaternionTest, Math)
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
-    std::cout << "[" << q.w() << ", " << q.x() << ", "
-      << q.y() << ", " << q.z() << "]\n";
+    std::cout << "[" << q.W() << ", " << q.X() << ", "
+      << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " forward turns [" << v << "] to [" << r1 << "]\n";
     std::cout << " reverse turns [" << v << "] to [" << r2 << "]\n";
     EXPECT_TRUE(r1 == math::Vector3d(-1, -2, 3));
@@ -227,8 +227,8 @@ TEST(QuaternionTest, Math)
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
-    std::cout << "[" << q.w() << ", " << q.x() << ", "
-      << q.y() << ", " << q.z() << "]\n";
+    std::cout << "[" << q.W() << ", " << q.X() << ", "
+      << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " forward turns [" << v << "] to [" << r1 << "]\n";
     std::cout << " reverse turns [" << v << "] to [" << r2 << "]\n";
     std::cout << " x axis [" << q.XAxis() << "]\n";
@@ -245,8 +245,8 @@ TEST(QuaternionTest, Math)
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
     q.Axis(math::Vector3d(1, 2, 3), 0.3*M_PI);
-    std::cout << "[" << q.w() << ", " << q.x() << ", "
-      << q.y() << ", " << q.z() << "]\n";
+    std::cout << "[" << q.W() << ", " << q.X() << ", "
+      << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " x [" << q.Inverse().XAxis() << "]\n";
     std::cout << " y [" << q.Inverse().YAxis() << "]\n";
     std::cout << " z [" << q.Inverse().ZAxis() << "]\n";

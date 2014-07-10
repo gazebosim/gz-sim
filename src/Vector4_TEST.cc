@@ -28,17 +28,17 @@ TEST(Vector4dTest, Vector4d)
 {
   {
     math::Vector4d v;
-    EXPECT_TRUE(math::equal(v.x(), 0.0));
-    EXPECT_TRUE(math::equal(v.y(), 0.0));
-    EXPECT_TRUE(math::equal(v.z(), 0.0));
-    EXPECT_TRUE(math::equal(v.w(), 0.0));
+    EXPECT_TRUE(math::equal(v.X(), 0.0));
+    EXPECT_TRUE(math::equal(v.Y(), 0.0));
+    EXPECT_TRUE(math::equal(v.Z(), 0.0));
+    EXPECT_TRUE(math::equal(v.W(), 0.0));
   }
 
   math::Vector4d v1(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(v1.x(), 1.0));
-  EXPECT_TRUE(math::equal(v1.y(), 2.0));
-  EXPECT_TRUE(math::equal(v1.z(), 3.0));
-  EXPECT_TRUE(math::equal(v1.w(), 4.0));
+  EXPECT_TRUE(math::equal(v1.X(), 1.0));
+  EXPECT_TRUE(math::equal(v1.Y(), 2.0));
+  EXPECT_TRUE(math::equal(v1.Z(), 3.0));
+  EXPECT_TRUE(math::equal(v1.W(), 4.0));
 
   math::Vector4d v(v1);
   EXPECT_TRUE(v == v1);

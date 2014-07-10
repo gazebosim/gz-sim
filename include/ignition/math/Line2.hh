@@ -78,10 +78,10 @@ namespace ignition
       /// \return Return the cross product of this line and the given line.
       public: double CrossProduct(const Line2<T> &_line) const
       {
-        return (this->pts[0].x() - this->pts[1].x()) *
-               (_line[0].y() -_line[1].y()) -
-               (this->pts[0].y() - this->pts[1].y()) *
-               (_line[0].x() - _line[1].x());
+        return (this->pts[0].X() - this->pts[1].X()) *
+               (_line[0].Y() -_line[1].Y()) -
+               (this->pts[0].Y() - this->pts[1].Y()) *
+               (_line[0].X() - _line[1].X());
       }
 
       /// \brief Return the cross product of this line and the given point.
@@ -91,10 +91,10 @@ namespace ignition
       /// \return Return the cross product of this line and the given point.
       public: double CrossProduct(const Vector2<T> &_pt) const
       {
-        return (_pt.y() - this->pts[0].y()) *
-               (this->pts[1].x() - this->pts[0].x()) -
-               (_pt.x() - this->pts[0].x()) *
-               (this->pts[1].y() - this->pts[0].y());
+        return (_pt.Y() - this->pts[0].Y()) *
+               (this->pts[1].X() - this->pts[0].X()) -
+               (_pt.X() - this->pts[0].X()) *
+               (this->pts[1].Y() - this->pts[0].Y());
       }
 
       /// \brief Check if the given point is collinear with this line.
@@ -159,14 +159,14 @@ namespace ignition
       public: bool Within(const math::Vector2<T> &_pt,
                           double _epsilon = 1e-6) const
       {
-        return _pt.x() <= std::max(this->pts[0].x(),
-                                   this->pts[1].x()) + _epsilon &&
-               _pt.x() >= std::min(this->pts[0].x(),
-                                   this->pts[1].x()) - _epsilon &&
-               _pt.y() <= std::max(this->pts[0].y(),
-                                   this->pts[1].y()) + _epsilon &&
-               _pt.y() >= std::min(this->pts[0].y(),
-                                   this->pts[1].y()) - _epsilon;
+        return _pt.X() <= std::max(this->pts[0].X(),
+                                   this->pts[1].X()) + _epsilon &&
+               _pt.X() >= std::min(this->pts[0].X(),
+                                   this->pts[1].X()) - _epsilon &&
+               _pt.Y() <= std::max(this->pts[0].Y(),
+                                   this->pts[1].Y()) + _epsilon &&
+               _pt.Y() >= std::min(this->pts[0].Y(),
+                                   this->pts[1].Y()) - _epsilon;
       }
 
       /// \brief Check if this line intersects the given line segment.
@@ -215,32 +215,32 @@ namespace ignition
             return false;
         }
 
-        _pt.x((_line[0].x() - _line[1].x()) *
-              (this->pts[0].x() * this->pts[1].y() -
-               this->pts[0].y() * this->pts[1].x()) -
-              (this->pts[0].x() - this->pts[1].x()) *
-              (_line[0].x() * _line[1].y() - _line[0].y() * _line[1].x()));
+        _pt.X((_line[0].X() - _line[1].X()) *
+              (this->pts[0].X() * this->pts[1].Y() -
+               this->pts[0].Y() * this->pts[1].X()) -
+              (this->pts[0].X() - this->pts[1].X()) *
+              (_line[0].X() * _line[1].Y() - _line[0].Y() * _line[1].X()));
 
-        _pt.y((_line[0].y() - _line[1].y()) *
-              (this->pts[0].x() * this->pts[1].y() -
-               this->pts[0].y() * this->pts[1].x()) -
-              (this->pts[0].y() - this->pts[1].y()) *
-              (_line[0].x() * _line[1].y() - _line[0].y() * _line[1].x()));
+        _pt.Y((_line[0].Y() - _line[1].Y()) *
+              (this->pts[0].X() * this->pts[1].Y() -
+               this->pts[0].Y() * this->pts[1].X()) -
+              (this->pts[0].Y() - this->pts[1].Y()) *
+              (_line[0].X() * _line[1].Y() - _line[0].Y() * _line[1].X()));
 
         _pt /= d;
 
-        if (_pt.x() < std::min(this->pts[0].x(), this->pts[1].x()) ||
-            _pt.x() > std::max(this->pts[0].x(), this->pts[1].x()) ||
-            _pt.x() < std::min(_line[0].x(), _line[1].x()) ||
-            _pt.x() > std::max(_line[0].x(), _line[1].x()))
+        if (_pt.X() < std::min(this->pts[0].X(), this->pts[1].X()) ||
+            _pt.X() > std::max(this->pts[0].X(), this->pts[1].X()) ||
+            _pt.X() < std::min(_line[0].X(), _line[1].X()) ||
+            _pt.X() > std::max(_line[0].X(), _line[1].X()))
         {
           return false;
         }
 
-        if (_pt.y() < std::min(this->pts[0].y(), this->pts[1].y()) ||
-            _pt.y() > std::max(this->pts[0].y(), this->pts[1].y()) ||
-            _pt.y() < std::min(_line[0].y(), _line[1].y()) ||
-            _pt.y() > std::max(_line[0].y(), _line[1].y()))
+        if (_pt.Y() < std::min(this->pts[0].Y(), this->pts[1].Y()) ||
+            _pt.Y() > std::max(this->pts[0].Y(), this->pts[1].Y()) ||
+            _pt.Y() < std::min(_line[0].Y(), _line[1].Y()) ||
+            _pt.Y() > std::max(_line[0].Y(), _line[1].Y()))
         {
           return false;
         }
@@ -252,21 +252,21 @@ namespace ignition
       /// \return The length of the line.
       public: T Length() const
       {
-        return sqrt((this->pts[0].x() - this->pts[1].x()) *
-                    (this->pts[0].x() - this->pts[1].x()) +
-                    (this->pts[0].y() - this->pts[1].y()) *
-                    (this->pts[0].y() - this->pts[1].y()));
+        return sqrt((this->pts[0].X() - this->pts[1].X()) *
+                    (this->pts[0].X() - this->pts[1].X()) +
+                    (this->pts[0].Y() - this->pts[1].Y()) *
+                    (this->pts[0].Y() - this->pts[1].Y()));
       }
 
       /// \brief Get the slope of the line
       /// \return The slope of the line, NAN_D if the line is vertical.
       public: double Slope() const
       {
-        if (math::equal(this->pts[1].x(), this->pts[0].x()))
+        if (math::equal(this->pts[1].X(), this->pts[0].X()))
           return NAN_D;
 
-        return (this->pts[1].y() - this->pts[0].y()) /
-               static_cast<double>(this->pts[1].x() - this->pts[0].x());
+        return (this->pts[1].Y() - this->pts[0].Y()) /
+               static_cast<double>(this->pts[1].X() - this->pts[0].X());
       }
 
       /// \brief Get the start or end point.

@@ -272,7 +272,7 @@ namespace ignition
 
       /// \brief Get the maximum value in the vector
       /// \return the maximum element
-      public: T Max() const
+      public: T MaX() const
       {
         return std::max(std::max(this->data[0], this->data[1]), this->data[2]);
       }
@@ -442,7 +442,7 @@ namespace ignition
       /// \return a scaled vector
       public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.x() * _s, _v.y() * _s, _v.z() * _s);
+        return Vector3<T>(_v.X() * _s, _v.Y() * _s, _v.Z() * _s);
       }
 
       /// \brief Multiplication operator
@@ -534,42 +534,42 @@ namespace ignition
 
       /// \brief Get the x value.
       /// \return The x component of the vector
-      public: inline T x() const
+      public: inline T X() const
       {
         return this->data[0];
       }
 
       /// \brief Get the y value.
       /// \return The y component of the vector
-      public: inline T y() const
+      public: inline T Y() const
       {
         return this->data[1];
       }
 
       /// \brief Get the z value.
       /// \return The z component of the vector
-      public: inline T z() const
+      public: inline T Z() const
       {
         return this->data[2];
       }
 
       /// \brief Get a mutable reference to the x value.
       /// \return The x component of the vector
-      public: inline T &x()
+      public: inline T &X()
       {
         return this->data[0];
       }
 
       /// \brief Get a mutable reference to the y value.
       /// \return The y component of the vector
-      public: inline T &y()
+      public: inline T &Y()
       {
         return this->data[1];
       }
 
       /// \brief Get a mutable reference to the z value.
       /// \return The z component of the vector
-      public: inline T &z()
+      public: inline T &Z()
       {
         return this->data[2];
       }

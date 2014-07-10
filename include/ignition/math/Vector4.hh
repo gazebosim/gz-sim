@@ -354,28 +354,28 @@ namespace ignition
 
       /// \brief Get the x value.
       /// \return The x component of the vector
-      public: inline T x() const
+      public: inline T X() const
       {
         return this->data[0];
       }
 
       /// \brief Get the y value.
       /// \return The y component of the vector
-      public: inline T y() const
+      public: inline T Y() const
       {
         return this->data[1];
       }
 
       /// \brief Get the z value.
       /// \return The z component of the vector
-      public: inline T z() const
+      public: inline T Z() const
       {
         return this->data[2];
       }
 
       /// \brief Get the w value.
       /// \return The w component of the vector
-      public: inline T w() const
+      public: inline T W() const
       {
         return this->data[3];
       }

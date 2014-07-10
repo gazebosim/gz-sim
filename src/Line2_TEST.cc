@@ -26,19 +26,19 @@ using namespace ignition;
 TEST(Line2Test, Constructor)
 {
   math::Line2d lineA(0, 0, 10, 10);
-  EXPECT_DOUBLE_EQ(lineA[0].x(), 0.0);
-  EXPECT_DOUBLE_EQ(lineA[0].y(), 0.0);
-  EXPECT_DOUBLE_EQ(lineA[1].x(), 10.0);
-  EXPECT_DOUBLE_EQ(lineA[1].y(), 10.0);
+  EXPECT_DOUBLE_EQ(lineA[0].X(), 0.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Y(), 0.0);
+  EXPECT_DOUBLE_EQ(lineA[1].X(), 10.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Y(), 10.0);
 
   math::Line2d lineB(math::Vector2d(1, 2), math::Vector2d(3, 4));
-  EXPECT_DOUBLE_EQ(lineB[0].x(), 1.0);
-  EXPECT_DOUBLE_EQ(lineB[0].y(), 2.0);
-  EXPECT_DOUBLE_EQ(lineB[1].x(), 3.0);
-  EXPECT_DOUBLE_EQ(lineB[1].y(), 4.0);
+  EXPECT_DOUBLE_EQ(lineB[0].X(), 1.0);
+  EXPECT_DOUBLE_EQ(lineB[0].Y(), 2.0);
+  EXPECT_DOUBLE_EQ(lineB[1].X(), 3.0);
+  EXPECT_DOUBLE_EQ(lineB[1].Y(), 4.0);
 
-  EXPECT_THROW(lineB[2].x(), math::IndexException);
-  EXPECT_NO_THROW(lineA[0].x());
+  EXPECT_THROW(lineB[2].X(), math::IndexException);
+  EXPECT_NO_THROW(lineA[0].X());
 }
 
 /////////////////////////////////////////////////

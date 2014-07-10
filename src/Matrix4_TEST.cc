@@ -178,7 +178,7 @@ TEST(Matrix4dTest, GetAsPose3d)
                     1, 0, 3, 1,
                     0, 2, -3, 2,
                     0, 2, 3, 1);
-  math::Pose3d pose = mat.ToPose();
+  math::Pose3d pose = mat.Pose();
 
   EXPECT_EQ(pose,
       math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
@@ -241,10 +241,10 @@ TEST(Matrix4dTest, RotationDiagZero)
   mat(3, 3) = 1.0;
 
   math::Quaterniond quat = mat.Rotation();
-  EXPECT_NEAR(quat.x(), 0.5, 1e-6);
-  EXPECT_NEAR(quat.y(), 0.35, 1e-6);
-  EXPECT_NEAR(quat.z(), 0.6, 1e-6);
-  EXPECT_NEAR(quat.w(), 0.15, 1e-6);
+  EXPECT_NEAR(quat.X(), 0.5, 1e-6);
+  EXPECT_NEAR(quat.Y(), 0.35, 1e-6);
+  EXPECT_NEAR(quat.Z(), 0.6, 1e-6);
+  EXPECT_NEAR(quat.W(), 0.15, 1e-6);
 
   math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.5708));
@@ -279,10 +279,10 @@ TEST(Matrix4dTest, RotationDiagLessThanZero)
 
   {
     math::Quaterniond quat = mat.Rotation();
-    EXPECT_NEAR(quat.x(), 0.333712, 1e-6);
-    EXPECT_NEAR(quat.y(), 0.524404, 1e-6);
-    EXPECT_NEAR(quat.z(), 0.810443, 1e-6);
-    EXPECT_NEAR(quat.w(), -0.286039, 1e-6);
+    EXPECT_NEAR(quat.X(), 0.333712, 1e-6);
+    EXPECT_NEAR(quat.Y(), 0.524404, 1e-6);
+    EXPECT_NEAR(quat.Z(), 0.810443, 1e-6);
+    EXPECT_NEAR(quat.W(), -0.286039, 1e-6);
 
     math::Vector3d euler = mat.EulerRotation(true);
     EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.76819));
@@ -298,10 +298,10 @@ TEST(Matrix4dTest, RotationDiagLessThanZero)
     mat(2, 2) = 0.0;
 
     math::Quaterniond quat = mat.Rotation();
-    EXPECT_NEAR(quat.x(), 0.526235, 1e-6);
-    EXPECT_NEAR(quat.y(), 0.745499, 1e-6);
-    EXPECT_NEAR(quat.z(), 0.570088, 1e-6);
-    EXPECT_NEAR(quat.w(), 0.131559, 1e-6);
+    EXPECT_NEAR(quat.X(), 0.526235, 1e-6);
+    EXPECT_NEAR(quat.Y(), 0.745499, 1e-6);
+    EXPECT_NEAR(quat.Z(), 0.570088, 1e-6);
+    EXPECT_NEAR(quat.W(), 0.131559, 1e-6);
 
     math::Vector3d euler = mat.EulerRotation(true);
     EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.76819));
@@ -337,10 +337,10 @@ TEST(Matrix4dTest, Rotation)
   mat(3, 3) = 1.6;
 
   math::Quaterniond quat = mat.Rotation();
-  EXPECT_NEAR(quat.x(), 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.y(), -0.179284, 1e-6);
-  EXPECT_NEAR(quat.z(), 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.w(), 0.83666, 1e-6);
+  EXPECT_NEAR(quat.X(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.Y(), -0.179284, 1e-6);
+  EXPECT_NEAR(quat.Z(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.W(), 0.83666, 1e-6);
 
   math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(0.737815, -1.11977, 1.3734));

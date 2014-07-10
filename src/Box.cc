@@ -55,19 +55,19 @@ Box::~Box()
 //////////////////////////////////////////////////
 double Box::XLength() const
 {
-  return std::abs(max.x() - min.x());
+  return std::abs(max.X() - min.X());
 }
 
 //////////////////////////////////////////////////
 double Box::YLength() const
 {
-  return std::abs(max.y() - min.y());
+  return std::abs(max.Y() - min.Y());
 }
 
 //////////////////////////////////////////////////
 double Box::ZLength() const
 {
-  return std::abs(max.z() - min.z());
+  return std::abs(max.Z() - min.Z());
 }
 
 //////////////////////////////////////////////////
@@ -153,7 +153,7 @@ const Box &Box::operator+=(const Box &_b)
 }
 
 //////////////////////////////////////////////////
-bool Box::operator==(const Box &_b)
+bool Box::operator==(const Box &_b) const
 {
   return this->min == _b.min && this->max == _b.max;
 }

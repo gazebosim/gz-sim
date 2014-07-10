@@ -261,7 +261,7 @@ namespace ignition
       /// \param[in] _a Angle in radians
       public: void Axis(const Vector3<T> &_axis, T _a)
       {
-        this->Axis(_axis.x(), _axis.y(), _axis.z(), _a);
+        this->Axis(_axis.X(), _axis.Y(), _axis.Z(), _a);
       }
 
       /// \brief Set this quaternion from 4 floating numbers
@@ -282,7 +282,7 @@ namespace ignition
       /// \param[in] vec  Euler angle
       public: void Euler(const Vector3<T> &_vec)
       {
-        this->Euler(_vec.x(), _vec.y(), _vec.z());
+        this->Euler(_vec.X(), _vec.Y(), _vec.Z());
       }
 
       /// \brief Set the quaternion from Euler angles.
@@ -366,21 +366,21 @@ namespace ignition
       /// \return the roll
       public: T Roll()
       {
-        return this->Euler().x();
+        return this->Euler().X();
       }
 
       /// \brief Get the Euler pitch angle in radians
       /// \return the pitch
       public: T Pitch()
       {
-        return this->Euler().y();
+        return this->Euler().Y();
       }
 
       /// \brief Get the Euler yaw angle in radians
       /// \return the yaw
-      public: T Yaw()
+      public: T YaW()
       {
-        return this->Euler().z();
+        return this->Euler().Z();
       }
 
       /// \brief Return rotation as axis and angle
@@ -414,7 +414,7 @@ namespace ignition
         this->ToAxis(axis, angle);
         angle *= _scale;
 
-        this->Axis(axis.x(), axis.y(), axis.z(), angle);
+        this->Axis(axis.X(), axis.Y(), axis.Z(), angle);
       }
 
       /// \brief Addition operator
@@ -535,7 +535,7 @@ namespace ignition
       public: inline Vector3<T> RotateVector(const Vector3<T> &_vec) const
       {
         Quaternion<T> tmp(static_cast<T>(0),
-            _vec.x(), _vec.y(), _vec.z());
+            _vec.X(), _vec.Y(), _vec.Z());
         tmp = (*this) * (tmp * this->Inverse());
         return Vector3<T>(tmp.qx, tmp.qy, tmp.qz);
       }
@@ -545,7 +545,7 @@ namespace ignition
       /// \return the
       public: Vector3<T> RotateVectorReverse(Vector3<T> _vec) const
       {
-        Quaternion<T> tmp(0.0, _vec.x(), _vec.y(), _vec.z());
+        Quaternion<T> tmp(0.0, _vec.X(), _vec.Y(), _vec.Z());
 
         tmp =  this->Inverse() * (tmp * (*this));
 
@@ -732,28 +732,28 @@ namespace ignition
 
       /// \brief Get the w component.
       /// \return The w quaternion component.
-      public: inline const T &w() const
+      public: inline const T &W() const
       {
         return this->qw;
       }
 
       /// \brief Get the x component.
       /// \return The x quaternion component.
-      public: inline const T &x() const
+      public: inline const T &X() const
       {
         return this->qx;
       }
 
       /// \brief Get the y component.
       /// \return The y quaternion component.
-      public: inline const T &y() const
+      public: inline const T &Y() const
       {
         return this->qy;
       }
 
       /// \brief Get the z component.
       /// \return The z quaternion component.
-      public: inline const T &z() const
+      public: inline const T &Z() const
       {
         return this->qz;
       }
@@ -761,28 +761,28 @@ namespace ignition
 
       /// \brief Get a mutable w component.
       /// \return The w quaternion component.
-      public: inline T &w()
+      public: inline T &W()
       {
         return this->qw;
       }
 
       /// \brief Get a mutable x component.
       /// \return The x quaternion component.
-      public: inline T &x()
+      public: inline T &X()
       {
         return this->qx;
       }
 
       /// \brief Get a mutable y component.
       /// \return The y quaternion component.
-      public: inline T &y()
+      public: inline T &Y()
       {
         return this->qy;
       }
 
       /// \brief Get a mutable z component.
       /// \return The z quaternion component.
-      public: inline T &z()
+      public: inline T &Z()
       {
         return this->qz;
       }
@@ -823,8 +823,8 @@ namespace ignition
                   const ignition::math::Quaternion<T> &_q)
       {
         Vector3<T> v(_q.Euler());
-        _out << precision(v.x(), 6) << " " << precision(v.y(), 6) << " "
-             << precision(v.z(), 6);
+        _out << precision(v.X(), 6) << " " << precision(v.Y(), 6) << " "
+             << precision(v.Z(), 6);
         return _out;
       }
 

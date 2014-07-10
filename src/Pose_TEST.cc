@@ -33,12 +33,12 @@ TEST(PoseTest, Pose)
     // then, B + A is the transform from O to Q specified in frame O
     math::Pose3d A(math::Vector3d(1, 0, 0), math::Quaterniond(0, 0, M_PI/4.0));
     math::Pose3d B(math::Vector3d(1, 0, 0), math::Quaterniond(0, 0, M_PI/2.0));
-    EXPECT_TRUE(math::equal((B + A).Pos().x(), 1.0 + 1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((B + A).Pos().y(),       1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((B + A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().Euler().x(),  0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().Euler().y(),  0.0));
-    EXPECT_TRUE(math::equal((B + A).Rot().Euler().z(), 3.0*M_PI/4.0));
+    EXPECT_TRUE(math::equal((B + A).Pos().X(), 1.0 + 1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((B + A).Pos().Y(),       1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((B + A).Pos().Z(),               0.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().X(),  0.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().Y(),  0.0));
+    EXPECT_TRUE(math::equal((B + A).Rot().Euler().Z(), 3.0*M_PI/4.0));
   }
   {
     // If:
@@ -46,21 +46,21 @@ TEST(PoseTest, Pose)
     // B is the transform from O to Q in frame O
     // then -A is transform from P to O specified in frame P
     math::Pose3d A(math::Vector3d(1, 0, 0), math::Quaterniond(0, 0, M_PI/4.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().x(),      -1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().y(),       1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().x(),  0.0));
-    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().y(),  0.0));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().X(),      -1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().Y(),       1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Pos().Z(),               0.0));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().X(),  0.0));
+    EXPECT_TRUE(math::equal((math::Pose3d() - A).Rot().Euler().Y(),  0.0));
     EXPECT_TRUE(
-        math::equal((math::Pose3d() - A).Rot().Euler().z(), -M_PI/4));
+        math::equal((math::Pose3d() - A).Rot().Euler().Z(), -M_PI/4));
 
     // test negation operator
-    EXPECT_TRUE(math::equal((-A).Pos().x(),      -1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((-A).Pos().y(),       1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((-A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().Euler().x(),  0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().Euler().y(),  0.0));
-    EXPECT_TRUE(math::equal((-A).Rot().Euler().z(), -M_PI/4.0));
+    EXPECT_TRUE(math::equal((-A).Pos().X(),      -1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((-A).Pos().Y(),       1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((-A).Pos().Z(),               0.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().X(),  0.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().Y(),  0.0));
+    EXPECT_TRUE(math::equal((-A).Rot().Euler().Z(), -M_PI/4.0));
   }
   {
     // If:
@@ -69,12 +69,12 @@ TEST(PoseTest, Pose)
     // B - A is the transform from P to Q in frame P
     math::Pose3d A(math::Vector3d(1, 0, 0), math::Quaterniond(0, 0, M_PI/4.0));
     math::Pose3d B(math::Vector3d(1, 1, 0), math::Quaterniond(0, 0, M_PI/2.0));
-    EXPECT_TRUE(math::equal((B - A).Pos().x(),       1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((B - A).Pos().y(),       1.0/sqrt(2)));
-    EXPECT_TRUE(math::equal((B - A).Pos().z(),               0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().Euler().x(),  0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().Euler().y(),  0.0));
-    EXPECT_TRUE(math::equal((B - A).Rot().Euler().z(), M_PI/4.0));
+    EXPECT_TRUE(math::equal((B - A).Pos().X(),       1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((B - A).Pos().Y(),       1.0/sqrt(2)));
+    EXPECT_TRUE(math::equal((B - A).Pos().Z(),               0.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().X(),  0.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().Y(),  0.0));
+    EXPECT_TRUE(math::equal((B - A).Rot().Euler().Z(), M_PI/4.0));
   }
   {
     math::Pose3d pose;

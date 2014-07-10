@@ -26,25 +26,25 @@
 #include <vector>
 
 /// \brief Double maximum value
-#define IGN_DBL_MAX std::numeric_limits<double>::max()
+#define IGN_DBL_MAX std::numeric_limits<double>::maX()
 
 /// \brief Double min value
 #define IGN_DBL_MIN std::numeric_limits<double>::min()
 
 /// \brief Float maximum value
-#define IGN_FLT_MAX std::numeric_limits<float>::max()
+#define IGN_FLT_MAX std::numeric_limits<float>::maX()
 
 /// \brief Float minimum value
 #define IGN_FLT_MIN std::numeric_limits<float>::min()
 
 /// \brief 32bit unsigned integer maximum value
-#define IGN_UINT32_MAX std::numeric_limits<uint32_t>::max()
+#define IGN_UINT32_MAX std::numeric_limits<uint32_t>::maX()
 
 /// \brief 32bit unsigned integer minimum value
 #define IGN_UINT32_MIN std::numeric_limits<uint32_t>::min()
 
 /// \brief 32bit integer maximum value
-#define IGN_INT32_MAX std::numeric_limits<int32_t>::max()
+#define IGN_INT32_MAX std::numeric_limits<int32_t>::maX()
 
 /// \brief 32bit integer minimum value
 #define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
@@ -150,7 +150,7 @@ namespace ignition
     template<typename T>
     inline T min(const std::vector<T> &_values)
     {
-      T min = std::numeric_limits<T>::max();
+      T min = std::numeric_limits<T>::maX();
       for (unsigned int i = 0; i < _values.size(); ++i)
         if (_values[i] < min)
           min = _values[i];

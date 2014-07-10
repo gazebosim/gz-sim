@@ -85,7 +85,7 @@ TEST(RotationSplineTest, RecalcTangents)
 
   s.RecalcTangents();
   math::Quaterniond q = s.Interpolate(0, 0.5);
-  std::cout << q.w() << " " << q.x() << " " << q.y() << " " << q.z() << "\n";
+  std::cout << q.W() << " " << q.X() << " " << q.Y() << " " << q.Z() << "\n";
   EXPECT_EQ(s.Interpolate(0, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 
