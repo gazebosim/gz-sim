@@ -272,7 +272,7 @@ namespace ignition
 
       /// \brief Get the maximum value in the vector
       /// \return the maximum element
-      public: T MaX() const
+      public: T Max() const
       {
         return std::max(std::max(this->data[0], this->data[1]), this->data[2]);
       }

@@ -123,7 +123,7 @@ namespace ignition
 
       /// \brief Get the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: const Vector3d &MaX() const
+      public: const Vector3d &Max() const
       {
         return this->max;
       }
@@ -137,7 +137,7 @@ namespace ignition
 
       /// \brief Get a mutable version of the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: Vector3d &MaX()
+      public: Vector3d &Max()
       {
         return this->max;
       }

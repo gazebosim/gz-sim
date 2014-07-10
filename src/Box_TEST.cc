@@ -50,7 +50,7 @@ TEST(BoxTest, Inherit)
   }
 
   EXPECT_TRUE(box->Min() == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box->MaX() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Max() == math::Vector3d(0, 0, 0));
 
   {
     delete box;
@@ -69,7 +69,7 @@ TEST(BoxTest, EmptyConstructorNew)
   }
 
   EXPECT_TRUE(box->Min() == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box->MaX() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Max() == math::Vector3d(0, 0, 0));
 
   {
     delete box;
@@ -82,14 +82,14 @@ TEST(BoxTest, EmptyConstructor)
 {
   math::Box box;
   EXPECT_TRUE(box.Min() == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box.MaX() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box.Max() == math::Vector3d(0, 0, 0));
 }
 
 /////////////////////////////////////////////////
 TEST_F(ExampleBox, Constructor)
 {
   EXPECT_EQ(box.Min(), math::Vector3d(0, 1, 2));
-  EXPECT_EQ(box.MaX(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(box.Max(), math::Vector3d(1, 2, 3));
 }
 
 /////////////////////////////////////////////////
@@ -97,7 +97,7 @@ TEST_F(ExampleBox, CopyConstructor)
 {
   math::Box box1(box);
   EXPECT_TRUE(box1.Min() == box.Min());
-  EXPECT_TRUE(box1.MaX() == box.MaX());
+  EXPECT_TRUE(box1.Max() == box.Max());
 }
 
 /////////////////////////////////////////////////
@@ -131,9 +131,9 @@ TEST(BoxTest, MergeEmpty)
   EXPECT_NEAR(box1.Min().Y(), 0, 1e-6);
   EXPECT_NEAR(box1.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box1.MaX().X(), 0, 1e-6);
-  EXPECT_NEAR(box1.MaX().Y(), 0, 1e-6);
-  EXPECT_NEAR(box1.MaX().Z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Z(), 0, 1e-6);
 }
 
 /////////////////////////////////////////////////
@@ -144,7 +144,7 @@ TEST(BoxTest, Minus)
 
   math::Box box2 = box1 - sub;
   EXPECT_EQ(box2.Min(), box1.Min() - sub);
-  EXPECT_EQ(box2.MaX(), box1.MaX() - sub);
+  EXPECT_EQ(box2.Max(), box1.Max() - sub);
 }
 
 /////////////////////////////////////////////////
@@ -158,18 +158,18 @@ TEST(BoxTest, PlusEmpty)
   EXPECT_NEAR(box1.Min().Y(), 0, 1e-6);
   EXPECT_NEAR(box1.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box1.MaX().X(), 0, 1e-6);
-  EXPECT_NEAR(box1.MaX().Y(), 0, 1e-6);
-  EXPECT_NEAR(box1.MaX().Z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Z(), 0, 1e-6);
 
   math::Box box3 = box2 + box1;
   EXPECT_NEAR(box3.Min().X(), 0, 1e-6);
   EXPECT_NEAR(box3.Min().Y(), 0, 1e-6);
   EXPECT_NEAR(box3.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box3.MaX().X(), 0, 1e-6);
-  EXPECT_NEAR(box3.MaX().Y(), 0, 1e-6);
-  EXPECT_NEAR(box3.MaX().Z(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().Z(), 0, 1e-6);
 }
 
 /////////////////////////////////////////////////

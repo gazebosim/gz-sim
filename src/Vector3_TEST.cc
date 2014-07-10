@@ -180,7 +180,7 @@ TEST(Vector3dTest, Max)
   math::Vector3d vec2(0.2, 0.3, 0.4);
   math::Vector3d vec3(0.1, 0.2, 0.3);
 
-  EXPECT_DOUBLE_EQ(vec1.MaX(), 0.3);
+  EXPECT_DOUBLE_EQ(vec1.Max(), 0.3);
 
   vec1.Max(vec2);
   EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
