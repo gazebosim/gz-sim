@@ -133,6 +133,17 @@ TEST(Vector2Test, IndexException)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector2Test, Dot)
+{
+  math::Vector2d v(1, 2);
+
+  EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(3, 4)), 11.0);
+  EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(0, 0)), 0.0);
+  EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(1, 0)), 1.0);
+  EXPECT_DOUBLE_EQ(v.Dot(math::Vector2d(0, 1)), 2.0);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector2Test, OperatorStreamOut)
 {
   math::Vector2d v(0.1, 1.2);

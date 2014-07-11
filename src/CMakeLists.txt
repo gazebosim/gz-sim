@@ -24,6 +24,7 @@ set (gtest_sources
   Rand_TEST.cc
   RotationSpline_TEST.cc
   Spline_TEST.cc
+  Triangle_TEST.cc
   Vector2_TEST.cc
   Vector3_TEST.cc
   Vector4_TEST.cc

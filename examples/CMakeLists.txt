@@ -7,3 +7,4 @@ include_directories(${IGNITION_MATH_INCLUDE_DIRS})
 link_directories(${IGNITION_MATH_LIBRARY_DIRS})
 
 add_executable(vector2_example vector2_example.cc)
+add_executable(triangle_example triangle_example.cc)
