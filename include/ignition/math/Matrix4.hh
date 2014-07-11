@@ -17,6 +17,7 @@
 #ifndef _IGNITION_MATRIX4_HH_
 #define _IGNITION_MATRIX4_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
@@ -29,7 +30,7 @@ namespace ignition
     /// \class Matrix4 Matrix4.hh ignition/math/Matrix4.hh
     /// \brief A 4x4 matrix class
     template<typename T>
-    class IGNITION_VISIBLE Matrix4
+    class Matrix4
     {
       /// \brief Identity matrix
       public: static const Matrix4<T> Identity;
@@ -295,15 +296,15 @@ namespace ignition
 
           if (m31 < 0.0)
           {
-            euler.y(M_PI / 2.0);
-            euler2.y(M_PI / 2.0);
+            euler.y(IGN_PI / 2.0);
+            euler2.y(IGN_PI / 2.0);
             euler.x(atan2(m12, m13));
             euler2.x(atan2(m12, m13));
           }
           else
           {
-            euler.y(-M_PI / 2.0);
-            euler2.y(-M_PI / 2.0);
+            euler.y(-IGN_PI / 2.0);
+            euler2.y(-IGN_PI / 2.0);
             euler.x(atan2(-m12, -m13));
             euler2.x(atan2(-m12, -m13));
           }
@@ -311,7 +312,7 @@ namespace ignition
         else
         {
           euler.y(-asin(m31));
-          euler2.y(M_PI - euler.Y());
+          euler2.y(IGN_PI - euler.Y());
 
           euler.x(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
           euler2.x(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
@@ -660,7 +661,7 @@ namespace ignition
       /// \param _out output stream
       /// \param _m Matrix to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Matrix4<T> &_m)
       {
         _out << precision(_m(0, 0), 6) << " "
@@ -687,7 +688,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt Matrix4<T> to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix4<T> &_m)
       {
         // Skip white spaces

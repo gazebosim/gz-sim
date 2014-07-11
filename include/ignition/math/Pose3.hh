@@ -27,7 +27,7 @@ namespace ignition
     /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
     /// \brief Encapsulates a position and rotation in three space
     template<typename T>
-    class IGNITION_VISIBLE Pose3
+    class Pose3
     {
       /// \brief math::Pose3<T>(0, 0, 0, 0, 0, 0)
       public: static const Pose3<T> Zero;
@@ -372,7 +372,7 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pose pose to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Pose3<T> &_pose)
       {
         _out << _pose.Pos() << " " << _pose.Rot();
@@ -383,7 +383,7 @@ namespace ignition
       /// \param[in] _in the input stream
       /// \param[in] _pose the pose
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Pose3<T> &_pose)
       {
         // Skip white spaces

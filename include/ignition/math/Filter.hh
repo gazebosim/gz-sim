@@ -18,6 +18,7 @@
 #ifndef _IGNITION_FILTER_HH_
 #define _IGNITION_FILTER_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 
@@ -28,7 +29,7 @@ namespace ignition
     /// \class Filter Filter.hh ignition/math/Filter.hh
     /// \brief Filter base class
     template <class T>
-    class IGNITION_VISIBLE Filter
+    class Filter
     {
       /// \brief Destructor.
       public: virtual ~Filter() {}
@@ -60,7 +61,7 @@ namespace ignition
     /// \brief A one-pole DSP filter.
     /// \sa http://www.earlevel.com/main/2012/12/15/a-one-pole-filter/
     template <class T>
-    class IGNITION_VISIBLE OnePole : public Filter<T>
+    class OnePole : public Filter<T>
     {
       /// \brief Constructor.
       public: OnePole() = default;
@@ -76,7 +77,7 @@ namespace ignition
       // Documentation Inherited.
       public: virtual void Fc(double _fc, double _fs)
       {
-        b1 = exp(-2.0 * M_PI * _fc / _fs);
+        b1 = exp(-2.0 * IGN_PI * _fc / _fs);
         a0 = 1.0 - b1;
       }
 
@@ -98,7 +99,7 @@ namespace ignition
 
     /// \class OnePoleQuaternion Filter.hh ignition/math/Filter.hh
     /// \brief One-pole quaternion filter.
-    class IGNITION_VISIBLE OnePoleQuaternion : public OnePole<math::Quaterniond>
+    class OnePoleQuaternion : public OnePole<math::Quaterniond>
     {
       /// \brief Constructor.
       public: OnePoleQuaternion()
@@ -128,7 +129,7 @@ namespace ignition
 
     /// \class OnePoleVector3 Filter.hh ignition/math/Filter.hh
     /// \brief One-pole vector3 filter.
-    class IGNITION_VISIBLE OnePoleVector3 : public OnePole<math::Vector3d>
+    class OnePoleVector3 : public OnePole<math::Vector3d>
     {
       /// \brief Constructor.
       public: OnePoleVector3()
@@ -150,7 +151,7 @@ namespace ignition
     /// \brief Bi-quad filter base class.
     /// \sa http://www.earlevel.com/main/2003/03/02/the-bilinear-z-transform/
     template <class T>
-    class IGNITION_VISIBLE BiQuad : public Filter<T>
+    class BiQuad : public Filter<T>
     {
       /// \brief Constructor.
       public: BiQuad() = default;
@@ -175,7 +176,7 @@ namespace ignition
       /// \param[in] _q Q coefficient.
       public: inline void Fc(double _fc, double _fs, double _q)
       {
-        double k = tan(M_PI * _fc / _fs);
+        double k = tan(IGN_PI * _fc / _fs);
         double kQuadDenom = k * k + k / _q + 1.0;
         this->a0 = k * k/ kQuadDenom;
         this->a1 = 2 * this->a0;
@@ -219,7 +220,7 @@ namespace ignition
 
     /// \class BiQuadVector3 Filter.hh ignition/math/Filter.hh
     /// \brief BiQuad vector3 filter
-    class IGNITION_VISIBLE BiQuadVector3 : public BiQuad<math::Vector3d>
+    class BiQuadVector3 : public BiQuad<math::Vector3d>
     {
       /// \brief Constructor.
       public: BiQuadVector3()

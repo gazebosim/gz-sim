@@ -73,7 +73,7 @@ TEST(QuaternionTest, ConstructEuler)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, ConstructAxisAngle)
 {
-  math::Quaterniond q1(math::Vector3d(0, 0, 1), M_PI);
+  math::Quaterniond q1(math::Vector3d(0, 0, 1), IGN_PI);
   EXPECT_TRUE(math::equal(q1.X(), 0.0));
   EXPECT_TRUE(math::equal(q1.Y(), 0.0));
   EXPECT_TRUE(math::equal(q1.Z(), 1.0));
@@ -96,7 +96,7 @@ TEST(QuaternionTest, Identity)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Math)
 {
-  math::Quaterniond q(M_PI*0.1, M_PI*0.5, M_PI);
+  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
   EXPECT_TRUE(q == math::Quaterniond(0.110616, -0.698401, 0.110616, 0.698401));
 
   EXPECT_TRUE(q.Log() ==
@@ -119,10 +119,10 @@ TEST(QuaternionTest, Math)
   q.Invert();
   EXPECT_TRUE(q == math::Quaterniond(0.110616, 0.698401, -0.110616, -0.698401));
 
-  q.Axis(0, 1, 0, M_PI);
+  q.Axis(0, 1, 0, IGN_PI);
   EXPECT_TRUE(q == math::Quaterniond(6.12303e-17, 0, 1, 0));
 
-  q.Axis(math::Vector3d(1, 0, 0), M_PI);
+  q.Axis(math::Vector3d(1, 0, 0), IGN_PI);
   EXPECT_TRUE(q == math::Quaterniond(0, 1, 0, 0));
 
   q.Set(1, 2, 3, 4);
@@ -208,7 +208,7 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(angle, 0.0, 1e-3));
   {
     // simple 180 rotation about yaw, should result in x and y flipping signs
-    q = math::Quaterniond(0, 0, M_PI);
+    q = math::Quaterniond(0, 0, IGN_PI);
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
@@ -223,7 +223,7 @@ TEST(QuaternionTest, Math)
   {
     // simple  90 rotation about yaw, should map x to y, y to -x
     // simple -90 rotation about yaw, should map x to -y, y to x
-    q = math::Quaterniond(0, 0, 0.5*M_PI);
+    q = math::Quaterniond(0, 0, 0.5*IGN_PI);
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
@@ -244,7 +244,7 @@ TEST(QuaternionTest, Math)
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
-    q.Axis(math::Vector3d(1, 2, 3), 0.3*M_PI);
+    q.Axis(math::Vector3d(1, 2, 3), 0.3*IGN_PI);
     std::cout << "[" << q.W() << ", " << q.X() << ", "
       << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " x [" << q.Inverse().XAxis() << "]\n";

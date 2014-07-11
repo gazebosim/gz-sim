@@ -34,7 +34,7 @@ namespace ignition
     /// elements.  Since it's commonly used to keep coordinate system
     /// related information, its elements are labeled by x, y, z.
     template<typename T>
-    class IGNITION_VISIBLE Vector3
+    class Vector3
     {
       /// \brief math::Vector3(0, 0, 0)
       public: static const Vector3 Zero;
@@ -599,7 +599,7 @@ namespace ignition
       /// \param _out output stream
       /// \param _pt Vector3 to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Vector3<T> &_pt)
       {
         _out << precision(_pt[0], 6) << " " << precision(_pt[1], 6) << " "
@@ -611,7 +611,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt vector3 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Vector3<T> &_pt)
       {
         // Skip white spaces

@@ -28,7 +28,7 @@ namespace ignition
     /// \class Plane Plane.hh ignition/math/Plane.hh
     /// \brief A plane and related functions.
     template<typename T>
-    class IGNITION_VISIBLE Plane
+    class Plane
     {
       /// \brief Constructor
       public: Plane()

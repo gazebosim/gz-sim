@@ -29,7 +29,7 @@ TEST(Vector3Test, Vector3d)
 
   // ::Distance, ::LEngth()
   v.Set(1, 2, 3);
-  EXPECT_FLOAT_EQ(v.Length(), v.Distance(math::Vector3d(0, 0, 0)));
+  EXPECT_DOUBLE_EQ(v.Length(), v.Distance(math::Vector3d(0, 0, 0)));
 
   // ::Round
   v.Set(1.23, 2.34, 3.55);

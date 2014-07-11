@@ -26,7 +26,7 @@ namespace ignition
     /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
-    class IGNITION_VISIBLE Vector2
+    class Vector2
     {
       /// \brief Default Constructor
       public: Vector2()
@@ -311,7 +311,7 @@ namespace ignition
       /// \param[in] _pt Vector2 to output
       /// \return The stream
       /// \throws N/A.
-      public: friend std::ostream IGNITION_VISIBLE
+      public: friend std::ostream
       &operator<<(std::ostream &_out, const Vector2<T> &_pt)
       {
         _out << _pt[0] << " " << _pt[1];
@@ -323,7 +323,7 @@ namespace ignition
       /// \param[in] _pt Vector2 to read values into
       /// \return The stream
       /// \throws N/A.
-      public: friend std::istream IGNITION_VISIBLE
+      public: friend std::istream
       &operator>>(std::istream &_in, Vector2<T> &_pt)
       {
         T x, y;

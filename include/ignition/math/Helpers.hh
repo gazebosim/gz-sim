@@ -49,6 +49,18 @@
 /// \brief 32bit integer minimum value
 #define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
 
+/// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
+/// This was put here for Windows support.
+#ifdef M_PI
+#define IGN_PI M_PI
+#define IGN_PI_2 M_PI_2
+#define IGN_PI_4 M_PI_4
+#else
+#define IGN_PI   3.14159265358979323846
+#define IGN_PI_2 1.57079632679489661923
+#define IGN_PI_4 0.78539816339744830962
+#endif
+
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
@@ -236,7 +248,7 @@ namespace ignition
         return NAN_I;
       }
 
-      return s * acc;
+      return static_cast<int>(s * acc);
     }
 
     /// \brief parse string into float

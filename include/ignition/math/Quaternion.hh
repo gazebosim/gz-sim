@@ -17,6 +17,7 @@
 #ifndef _IGNITION_QUATERNION_HH_
 #define _IGNITION_QUATERNION_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
 
@@ -27,7 +28,7 @@ namespace ignition
     /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
     /// \brief A quaternion class
     template<typename T>
-    class IGNITION_VISIBLE Quaternion
+    class Quaternion
     {
       /// \brief math::Quaternion(1, 0, 0, 1)
       public: static const Quaternion Identity;
@@ -334,8 +335,8 @@ namespace ignition
 
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
-        vec.y(sarg <= -1.0 ? -0.5*M_PI :
-            (sarg >= 1.0 ? 0.5*M_PI : asin(sarg)));
+        vec.y(sarg <= -1.0 ? -0.5*IGN_PI :
+            (sarg >= 1.0 ? 0.5*IGN_PI : asin(sarg)));
 
         // Yaw
         vec.z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
