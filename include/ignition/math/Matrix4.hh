@@ -657,6 +657,14 @@ namespace ignition
                math::equal(this->data[3][3], _m(3, 3));
       }
 
+      /// \brief Inequality test operator
+      /// \param[in] _m Matrix3<T> to test
+      /// \return True if not equal (using the default tolerance of 1e-6)
+      public: bool operator!=(const Matrix4<T> &_m) const
+      {
+        return !(*this == _m);
+      }
+
       /// \brief Stream insertion operator
       /// \param _out output stream
       /// \param _m Matrix to output

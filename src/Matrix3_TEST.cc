@@ -226,3 +226,27 @@ TEST(Matrix3dTest, Vector3Multiplication)
     EXPECT_EQ(matrix * matrix, matrix2);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, NotEqual)
+{
+  {
+    math::Matrix3d matrix1;
+    math::Matrix3d matrix2;
+    EXPECT_TRUE(matrix1 == matrix2);
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+
+  {
+    math::Matrix3d matrix1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    math::Matrix3d matrix2(matrix1);
+
+    EXPECT_FALSE(matrix1 != matrix1);
+
+    matrix2(0, 0) = 1.00001;
+    EXPECT_TRUE(matrix1 != matrix2);
+
+    matrix2(0, 0) = 1.000001;
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+}

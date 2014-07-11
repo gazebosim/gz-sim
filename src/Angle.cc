@@ -131,7 +131,7 @@ Angle Angle::operator/=(const Angle &angle)
 }
 
 //////////////////////////////////////////////////
-bool Angle::operator ==(const Angle &angle) const
+bool Angle::operator==(const Angle &angle) const
 {
   return equal(this->value, angle.value, 0.001);
 }

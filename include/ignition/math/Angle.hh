@@ -138,7 +138,7 @@ namespace ignition
       /// \brief Equality operator, result = this == _angle
       /// \param[in] _angle Angle to check for equality
       /// \return true if this == _angle
-      public: bool operator ==(const Angle &_angle) const;
+      public: bool operator==(const Angle &_angle) const;
 
       /// \brief Inequality
       /// \param[in] _angle Angle to check for inequality

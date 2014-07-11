@@ -448,3 +448,30 @@ TEST(Matrix4dTest, OperatorStreamIn)
                                 9, 10, 11, 12,
                                 13, 14, 15, 16));
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, NotEqual)
+{
+  {
+    math::Matrix4d matrix1;
+    math::Matrix4d matrix2;
+    EXPECT_TRUE(matrix1 == matrix2);
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+
+  {
+    math::Matrix4d matrix1(1, 2, 3, 4,
+                           5, 6, 7, 8,
+                           9, 10, 11, 12,
+                           13, 14, 15, 16);
+    math::Matrix4d matrix2(matrix1);
+
+    EXPECT_FALSE(matrix1 != matrix1);
+
+    matrix2(0, 0) = 1.00001;
+    EXPECT_TRUE(matrix1 != matrix2);
+
+    matrix2(0, 0) = 1.000001;
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+}
