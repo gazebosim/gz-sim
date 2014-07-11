@@ -658,7 +658,7 @@ namespace ignition
       }
 
       /// \brief Inequality test operator
-      /// \param[in] _m Matrix3<T> to test
+      /// \param[in] _m Matrix4<T> to test
       /// \return True if not equal (using the default tolerance of 1e-6)
       public: bool operator!=(const Matrix4<T> &_m) const
       {
