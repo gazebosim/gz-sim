@@ -30,7 +30,7 @@ namespace ignition
     /// \class Triangle Triangle.hh ignition/math/Triangle.hh
     /// \brief Triangle class and related functions.
     template<typename T>
-    class IGNITION_VISIBLE Triangle
+    class Triangle
     {
       /// \brief Default constructor
       public: Triangle() = default;
