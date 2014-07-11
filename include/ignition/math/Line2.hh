@@ -292,8 +292,8 @@ namespace ignition
       /// \param[in] _pt Line2 to output
       /// \return The stream
       /// \throws N/A.
-      public: friend std::ostream IGNITION_VISIBLE
-      &operator<<(std::ostream &_out, const Line2<T> &_line)
+      public: friend std::ostream &operator<<(
+                  std::ostream &_out, const Line2<T> &_line)
       {
         _out << _line[0] << " " << _line[1];
         return _out;
