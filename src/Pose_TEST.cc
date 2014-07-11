@@ -32,9 +32,9 @@ TEST(PoseTest, Pose)
     // B is the transform from P to Q specified in frame P
     // then, B + A is the transform from O to Q specified in frame O
     math::Pose3d A(math::Vector3d(1, 0, 0),
-        math::Quaterniond(0, 0, IGN_PI/4.0));
+                   math::Quaterniond(0, 0, IGN_PI/4.0));
     math::Pose3d B(math::Vector3d(1, 0, 0),
-        math::Quaterniond(0, 0, IGN_PI/2.0));
+                   math::Quaterniond(0, 0, IGN_PI/2.0));
     EXPECT_TRUE(math::equal((B + A).Pos().X(), 1.0 + 1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B + A).Pos().Y(),       1.0/sqrt(2)));
     EXPECT_TRUE(math::equal((B + A).Pos().Z(),               0.0));
