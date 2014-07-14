@@ -46,7 +46,7 @@ void Rand::Seed(unsigned int _seed)
 }
 
 //////////////////////////////////////////////////
-uint32_t Rand::Seed()
+unsigned int Rand::Seed()
 {
   return seed;
 }

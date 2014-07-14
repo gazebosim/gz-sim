@@ -51,7 +51,7 @@ namespace ignition
       /// \brief Get the seed value.
       /// \return The seed value used to initialize the random number
       /// generator.
-      public: static uint32_t Seed();
+      public: static unsigned int Seed();
 
       /// \brief Get a double from a uniform distribution
       /// \param[in] _min Minimum bound for the random number
