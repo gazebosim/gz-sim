@@ -45,8 +45,7 @@ TEST(RandTest, Rand)
     math::Rand::Seed(1001);
 
     d = math::Rand::DblNormal(2, 3);
-    //EXPECT_NEAR(d, 4.72597, 1e-5);
-    //EXPECT_NEAR(d, 3.00618, 1e-5);
+    EXPECT_NEAR(d, 4.72597, 1e-5);
   }
 }
 
