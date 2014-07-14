@@ -38,7 +38,7 @@ uint32_t Rand::seed = std::random_device{}();
 GeneratorType *Rand::randGenerator = new GeneratorType(seed);
 
 //////////////////////////////////////////////////
-void Rand::Seed(uint32_t _seed)
+void Rand::Seed(unsigned int _seed)
 {
   std::seed_seq seq{_seed};
   seed = _seed;

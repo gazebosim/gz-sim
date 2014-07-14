@@ -46,7 +46,7 @@ namespace ignition
       /// \brief Set the seed value.
       /// \param[in] _seed The seed used to initialize the randon number
       /// generator.
-      public: static void Seed(uint32_t _seed);
+      public: static void Seed(unsigned int _seed);
 
       /// \brief Get the seed value.
       /// \return The seed value used to initialize the random number
