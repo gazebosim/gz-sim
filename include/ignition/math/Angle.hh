@@ -30,7 +30,7 @@
 /// \return radians
 #define IGN_DTOR(d) ((d) * IGN_PI / 180)
 
-/// \brief Macro tha normalizes an angle in the range -Pi to Pi
+/// \brief Macro that normalizes an angle in the range -Pi to Pi
 /// \param[in] angle
 /// \return the angle, in range
 #define IGN_NORMALIZE(a) (atan2(sin(a), cos(a)))
