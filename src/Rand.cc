@@ -41,8 +41,9 @@ GeneratorType *Rand::randGenerator = new GeneratorType(rd());
 //////////////////////////////////////////////////
 void Rand::Seed(uint32_t _seed)
 {
+  std::seed_seq seq{_seed};
   seed = _seed;
-  randGenerator->seed(seed);
+  randGenerator->seed(seq);
 }
 
 //////////////////////////////////////////////////
