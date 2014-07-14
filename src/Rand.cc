@@ -41,13 +41,15 @@ GeneratorType *Rand::randGenerator = new GeneratorType(rd());
 //////////////////////////////////////////////////
 void Rand::Seed(uint32_t _seed)
 {
-  std::seed_seq seq{_seed};
   seed = _seed;
+
   if (randGenerator)
     delete randGenerator;
+  randGenerator = new GeneratorType(seed);
 
-  randGenerator = new GeneratorType(seq);
-  //randGenerator->seed(seq);
+  // We used to use the seed function, but the results are not the same on
+  // OSX. Instead, we delete the random number generator, and recreate it.
+  // randGenerator->seed(seed);
 }
 
 //////////////////////////////////////////////////
