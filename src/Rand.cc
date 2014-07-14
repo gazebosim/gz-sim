@@ -43,7 +43,11 @@ void Rand::Seed(uint32_t _seed)
 {
   std::seed_seq seq{_seed};
   seed = _seed;
-  randGenerator->seed(seq);
+  if (randGenerator)
+    delete randGenerator;
+
+  randGenerator = new GeneratorType(seq);
+  //randGenerator->seed(seq);
 }
 
 //////////////////////////////////////////////////
