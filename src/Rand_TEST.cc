@@ -22,20 +22,6 @@
 
 using namespace ignition;
 
-TEST(RandTest, RandSeed1)
-{
-  // Test setting the random number seed
-  math::Rand::Seed(1001);
-
-  double d = math::Rand::DblNormal(2, 3);
-
-#ifdef __APPLE__
-  EXPECT_NEAR(d, 2.00926, 1e-5);
-#else
-  EXPECT_NEAR(d, 3.00618, 1e-5);
-#endif
-}
-
 //////////////////////////////////////////////////
 TEST(RandTest, Rand)
 {
@@ -53,6 +39,20 @@ TEST(RandTest, Rand)
   EXPECT_GE(i, 1);
 
   i = math::Rand::IntNormal(2, 3);
+
+  {
+    // Test setting the random number seed
+    math::Rand::Seed(1001);
+
+    d = math::Rand::DblNormal(2, 3);
+
+#ifdef __APPLE__
+    EXPECT_NEAR(d, 2.00926, 1e-5);
+#else
+    EXPECT_NEAR(d, 3.00618, 1e-5);
+#endif
+  }
+
 }
 
 //////////////////////////////////////////////////
