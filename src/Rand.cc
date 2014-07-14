@@ -33,24 +33,16 @@ using namespace math;
 // We don't seed with time for the cases when two processes are started the
 // same time (this mostly happens with launch scripts that start a server
 // and gui simultaneously).
-uint32_t Rand::seed = getpid();
-std::random_device rd;
+uint32_t Rand::seed = std::random_device{}();
 
-GeneratorType *Rand::randGenerator = new GeneratorType(rd());
+GeneratorType *Rand::randGenerator = new GeneratorType(seed);
 
 //////////////////////////////////////////////////
 void Rand::Seed(uint32_t _seed)
 {
   std::seed_seq seq{_seed};
   seed = _seed;
-
-  if (randGenerator)
-    delete randGenerator;
-  randGenerator = new GeneratorType(seq);
-
-  // We used to use the seed function, but the results are not the same on
-  // OSX. Instead, we delete the random number generator, and recreate it.
-  // randGenerator->seed(seed);
+  randGenerator->seed(seq);
 }
 
 //////////////////////////////////////////////////
