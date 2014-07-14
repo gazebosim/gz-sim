@@ -54,7 +54,7 @@ namespace ignition
       }
 
       /// \brief Output.
-      protected: T y0;
+      protected: T y0{};
     };
 
     /// \class OnePole Filter.hh ignition/math/Filter.hh
@@ -212,10 +212,15 @@ namespace ignition
       }
 
       /// \brief Input gain control coefficients.
-      protected: double a0, a1, a2, b0, b1, b2 = 0;
+      protected: double a0 = 0,
+                        a1 = 0,
+                        a2 = 0,
+                        b0 = 0,
+                        b1 = 0,
+                        b2 = 0;
 
       /// \brief Gain of the feedback coefficients.
-      protected: T x1, x2, y1, y2;
+      protected: T x1{}, x2{}, y1{}, y2{};
     };
 
     /// \class BiQuadVector3 Filter.hh ignition/math/Filter.hh
