@@ -28,8 +28,12 @@ TEST(RandTest, RandSeed1)
   math::Rand::Seed(1001);
 
   double d = math::Rand::DblNormal(2, 3);
-  //EXPECT_NEAR(d, 4.72597, 1e-5);
+
+#ifdef __APPLE__
+  EXPECT_NEAR(d, 2.00926, 1e-5);
+#else
   EXPECT_NEAR(d, 3.00618, 1e-5);
+#endif
 }
 
 //////////////////////////////////////////////////
