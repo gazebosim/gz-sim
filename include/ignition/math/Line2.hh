@@ -277,6 +277,14 @@ namespace ignition
         return this->pts[0] == _line[0] && this->pts[1] == _line[1];
       }
 
+      /// \brief Inequality operator.
+      /// \param[in] _line Line to compare for inequality.
+      /// \return True if the given line is not to this line
+      public: bool operator!=(const Line2<T> &_line) const
+      {
+        return !(*this == _line);
+      }
+
       /// \brief Get the start or end point.
       /// \param[in] _index 0 = start point, 1 = end point.
       /// \throws IndexException if _index is > 1.

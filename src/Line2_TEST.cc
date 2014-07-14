@@ -233,7 +233,7 @@ TEST(Line2Test, Equality)
   math::Line2d lineA(1, 1, 2, 1);
   math::Line2d lineB(1, 2, 2, 2);
 
-  EXPECT_FALSE(lineA == lineB);
+  EXPECT_TRUE(lineA != lineB);
   EXPECT_TRUE(lineA == lineA);
 
   lineB.Set(1, 1, 2, 1.1);
