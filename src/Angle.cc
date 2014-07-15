@@ -21,9 +21,9 @@ using namespace ignition;
 using namespace math;
 
 const Angle Angle::Zero = math::Angle(0);
-const Angle Angle::Pi = math::Angle(M_PI);
-const Angle Angle::HalfPi = math::Angle(M_PI * 0.5);
-const Angle Angle::TwoPi = math::Angle(M_PI * 2.0);
+const Angle Angle::Pi = math::Angle(IGN_PI);
+const Angle Angle::HalfPi = math::Angle(IGN_PI_2);
+const Angle Angle::TwoPi = math::Angle(IGN_PI * 2.0);
 
 //////////////////////////////////////////////////
 Angle::Angle()
@@ -49,15 +49,15 @@ Angle::~Angle()
 }
 
 //////////////////////////////////////////////////
-void Angle::SetFromRadian(double _radian)
+void Angle::Radian(double _radian)
 {
   this->value = _radian;
 }
 
 //////////////////////////////////////////////////
-void Angle::SetFromDegree(double _degree)
+void Angle::Degree(double _degree)
 {
-  this->value = _degree * M_PI / 180.0;
+  this->value = _degree * IGN_PI / 180.0;
 }
 
 //////////////////////////////////////////////////
@@ -69,7 +69,7 @@ double Angle::Radian() const
 //////////////////////////////////////////////////
 double Angle::Degree() const
 {
-  return this->value * 180.0 / M_PI;
+  return this->value * 180.0 / IGN_PI;
 }
 
 //////////////////////////////////////////////////
@@ -131,7 +131,7 @@ Angle Angle::operator/=(const Angle &angle)
 }
 
 //////////////////////////////////////////////////
-bool Angle::operator ==(const Angle &angle) const
+bool Angle::operator==(const Angle &angle) const
 {
   return equal(this->value, angle.value, 0.001);
 }

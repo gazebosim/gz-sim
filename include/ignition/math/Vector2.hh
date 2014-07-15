@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_VECTOR2_HH_
 #define _IGNITION_VECTOR2_HH_
 
@@ -27,7 +26,7 @@ namespace ignition
     /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
-    class IGNITION_VISIBLE Vector2
+    class Vector2
     {
       /// \brief Default Constructor
       public: Vector2()
@@ -272,7 +271,7 @@ namespace ignition
       /// \brief Return the x value.
       /// \return Value of the X component.
       /// \throws N/A.
-      public: inline T x() const
+      public: inline T X() const
       {
         return this->data[0];
       }
@@ -280,21 +279,37 @@ namespace ignition
       /// \brief Return the y value.
       /// \return Value of the Y component.
       /// \throws N/A.
-      public: inline T y() const
+      public: inline T Y() const
+      {
+        return this->data[1];
+      }
+
+      /// \brief Return a mutable x value.
+      /// \return Value of the X component.
+      /// \throws N/A.
+      public: inline T &X()
+      {
+        return this->data[0];
+      }
+
+      /// \brief Return a mutable y value.
+      /// \return Value of the Y component.
+      /// \throws N/A.
+      public: inline T &Y()
       {
         return this->data[1];
       }
 
       /// \brief Set the x value.
       /// \param[in] _v Value for the x component.
-      public: inline void x(const T &_v)
+      public: inline void X(const T &_v)
       {
         this->data[0] = _v;
       }
 
       /// \brief Set the y value.
       /// \param[in] _v Value for the y component.
-      public: inline void y(const T &_v)
+      public: inline void Y(const T &_v)
       {
         this->data[1] = _v;
       }
@@ -304,7 +319,7 @@ namespace ignition
       /// \param[in] _pt Vector2 to output
       /// \return The stream
       /// \throws N/A.
-      public: friend std::ostream IGNITION_VISIBLE
+      public: friend std::ostream
       &operator<<(std::ostream &_out, const Vector2<T> &_pt)
       {
         _out << _pt[0] << " " << _pt[1];
@@ -325,7 +340,7 @@ namespace ignition
       /// \param[in] _pt Vector2 to read values into
       /// \return The stream
       /// \throws N/A.
-      public: friend std::istream IGNITION_VISIBLE
+      public: friend std::istream
       &operator>>(std::istream &_in, Vector2<T> &_pt)
       {
         T x, y;

@@ -33,3 +33,8 @@ set (gtest_sources
 ign_add_library(ignition_math ${sources})
 ign_build_tests(${gtest_sources})
 ign_install_library(ignition_math)
+
+set_source_files_properties(Angle.i PROPERTIES CPLUSPLUS ON)
+set_source_files_properties(Angle.i PROPERTIES SWIG_FLAGS "-includeall")
+SWIG_ADD_MODULE(ign_math python Angle.i Angle.cc)
+SWIG_LINK_LIBRARIES(ign_math ${PYTHON_LIBRARIES})

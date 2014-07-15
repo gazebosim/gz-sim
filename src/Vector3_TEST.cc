@@ -27,24 +27,24 @@ TEST(Vector3Test, Vector3d)
 {
   math::Vector3d v;
 
-  // ::Distance, ::GetLEngth()
+  // ::Distance, ::LEngth()
   v.Set(1, 2, 3);
-  EXPECT_FLOAT_EQ(v.GetLength(), v.Distance(math::Vector3d(0, 0, 0)));
+  EXPECT_DOUBLE_EQ(v.Length(), v.Distance(math::Vector3d(0, 0, 0)));
 
-  // ::GetRound
+  // ::Round
   v.Set(1.23, 2.34, 3.55);
-  EXPECT_TRUE(v.GetRounded() == math::Vector3d(1, 2, 4));
+  EXPECT_TRUE(v.Rounded() == math::Vector3d(1, 2, 4));
 
   // ::Round
   v.Round();
   EXPECT_TRUE(v.Round() == math::Vector3d(1, 2, 4));
 
-  // ::GetDotProd
+  // ::DotProd
   EXPECT_TRUE(math::equal(17.0, v.Dot(math::Vector3d(1, 2, 3)), 1e-2));
 
-  // ::GetDistToLine
+  // ::DistToLine
   v.Set(0, 0, 0);
-  EXPECT_DOUBLE_EQ(1.0, v.GetDistToLine(math::Vector3d(1, -1, 0),
+  EXPECT_DOUBLE_EQ(1.0, v.DistToLine(math::Vector3d(1, -1, 0),
         math::Vector3d(1, 1, 0)));
 
   // ::operator= double
@@ -74,7 +74,7 @@ TEST(Vector3Test, Vector3d)
 
   // operator GetAbs
   v.Set(-1, -2, -3);
-  EXPECT_TRUE(v.GetAbs() == math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(v.Abs() == math::Vector3d(1, 2, 3));
 
   // operator /=
   v.Set(1, 2, 4);
@@ -113,8 +113,8 @@ TEST(Vector3dTest, Sum)
   math::Vector3d vec1(0, 0, 0);
   math::Vector3d vec2(1, 2, 3);
 
-  double sum1 = vec1.GetSum();
-  double sum2 = vec2.GetSum();
+  double sum1 = vec1.Sum();
+  double sum2 = vec2.Sum();
 
   EXPECT_DOUBLE_EQ(sum1, 0);
   EXPECT_DOUBLE_EQ(sum2, 6);
@@ -126,8 +126,8 @@ TEST(Vector3dTest, SquaredLength)
   math::Vector3d vec1(0, 0, 0);
   math::Vector3d vec2(1, 2, 3);
 
-  double sum1 = vec1.GetSquaredLength();
-  double sum2 = vec2.GetSquaredLength();
+  double sum1 = vec1.SquaredLength();
+  double sum2 = vec2.SquaredLength();
 
   EXPECT_DOUBLE_EQ(sum1, 0);
   EXPECT_DOUBLE_EQ(sum2, 14);
@@ -155,7 +155,7 @@ TEST(Vector3dTest, GetNormal)
   math::Vector3d vec2(0, 1, 0);
   math::Vector3d vec3(1, 1, 0);
 
-  math::Vector3d norm = math::Vector3d::GetNormal(vec1, vec2, vec3);
+  math::Vector3d norm = math::Vector3d::Normal(vec1, vec2, vec3);
   EXPECT_EQ(norm, math::Vector3d(0, 0, -1));
 }
 
@@ -167,10 +167,10 @@ TEST(Vector3dTest, Perpendicular)
   math::Vector3d vec3(1e-7, 1e-7, 1e-7);
   math::Vector3d vec4(1, 0, 0);
 
-  EXPECT_EQ(vec1.GetPerpendicular(), math::Vector3d(0, 0, -1));
-  EXPECT_EQ(vec2.GetPerpendicular(), math::Vector3d(0, 1, -1));
-  EXPECT_EQ(vec3.GetPerpendicular(), math::Vector3d(0, 0, 0));
-  EXPECT_EQ(vec4.GetPerpendicular(), math::Vector3d(0, 0, 1));
+  EXPECT_EQ(vec1.Perpendicular(), math::Vector3d(0, 0, -1));
+  EXPECT_EQ(vec2.Perpendicular(), math::Vector3d(0, 1, -1));
+  EXPECT_EQ(vec3.Perpendicular(), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(vec4.Perpendicular(), math::Vector3d(0, 0, 1));
 }
 
 /////////////////////////////////////////////////
@@ -180,12 +180,12 @@ TEST(Vector3dTest, Max)
   math::Vector3d vec2(0.2, 0.3, 0.4);
   math::Vector3d vec3(0.1, 0.2, 0.3);
 
-  EXPECT_DOUBLE_EQ(vec1.GetMax(), 0.3);
+  EXPECT_DOUBLE_EQ(vec1.Max(), 0.3);
 
-  vec1.SetToMax(vec2);
+  vec1.Max(vec2);
   EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 
-  vec1.SetToMax(vec3);
+  vec1.Max(vec3);
   EXPECT_EQ(vec1, math::Vector3d(0.2, 0.3, 0.4));
 }
 
@@ -196,12 +196,12 @@ TEST(Vector3dTest, Min)
   math::Vector3d vec2(0.2, 0.3, 0.4);
   math::Vector3d vec3(0.05, 0.1, 0.2);
 
-  EXPECT_DOUBLE_EQ(vec1.GetMin(), 0.1);
+  EXPECT_DOUBLE_EQ(vec1.Min(), 0.1);
 
-  vec1.SetToMin(vec2);
+  vec1.Min(vec2);
   EXPECT_EQ(vec1, math::Vector3d(0.1, 0.2, 0.3));
 
-  vec1.SetToMin(vec3);
+  vec1.Min(vec3);
   EXPECT_EQ(vec1, math::Vector3d(0.05, 0.1, 0.2));
 }
 

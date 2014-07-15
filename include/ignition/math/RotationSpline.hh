@@ -18,6 +18,7 @@
 #define _IGNITION_ROTATIONSPLINE_HH_
 
 #include <vector>
+#include <ignition/math/IndexException.hh>
 #include <ignition/math/Quaternion.hh>
 
 namespace ignition
@@ -41,12 +42,13 @@ namespace ignition
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the index of the control point.
       /// \remarks This point must already exist in the spline.
+      /// \throws IndexException if _index >= PointCount()
       /// \return a quaternion (out of bound index result in assertion)
-      public: const Quaterniond &GetPoint(unsigned int _index) const;
+      public: const Quaterniond &Point(unsigned int _index) const;
 
       /// \brief Gets the number of control points in the spline.
       /// \return the count
-      public: unsigned int GetNumPoints() const;
+      public: unsigned int PointCount() const;
 
       /// \brief Clears all the points in the spline.
       public: void Clear();
@@ -55,6 +57,7 @@ namespace ignition
       /// \remarks This point must already exist in the spline.
       /// \param[in] _index index
       /// \param[in] _value the new control point value
+      /// \throws IndexException if _index >= PointCount()
       public: void UpdatePoint(unsigned int _index, const Quaterniond &_value);
 
       /// \brief Returns an interpolated point based on a parametric
@@ -75,6 +78,7 @@ namespace ignition
       /// \param[in] _t Parametric value
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///         shortest possible path
+      /// \throws IndexException if _fromIndex >= PointCount()
       /// \return the rotation
       public: Quaterniond Interpolate(unsigned int _fromIndex, double _t,
           bool _useShortestPath = true);
@@ -93,7 +97,7 @@ namespace ignition
       /// \param[in] _autoCalc If true, tangents are calculated for you
       /// whenever a point changes. If false, you must call reclacTangents to
       /// recalculate them when it best suits.
-      public: void SetAutoCalculate(bool _autoCalc);
+      public: void AutoCalculate(bool _autoCalc);
 
       /// \brief Recalculates the tangents associated with this spline.
       /// \remarks If you tell the spline not to update on demand by calling

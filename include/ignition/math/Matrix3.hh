@@ -29,7 +29,7 @@ namespace ignition
     /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
     /// \brief A 3x3 matrix class
     template<typename T>
-    class IGNITION_VISIBLE Matrix3
+    class Matrix3
     {
       /// \brief Identity matrix
       public: static const Matrix3<T> Identity;
@@ -81,15 +81,15 @@ namespace ignition
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
-        this->Set(1 - 2*qt.y()*qt.y() - 2 *qt.z()*qt.z(),
-                  2 * qt.x()*qt.y() - 2*qt.z()*qt.w(),
-                  2 * qt.x() * qt.z() + 2 * qt.y() * qt.w(),
-                  2 * qt.x() * qt.y() + 2 * qt.z() * qt.w(),
-                  1 - 2*qt.x()*qt.x() - 2 * qt.z()*qt.z(),
-                  2 * qt.y() * qt.z() - 2 * qt.x() * qt.w(),
-                  2 * qt.x() * qt.z() - 2 * qt.y() * qt.w(),
-                  2 * qt.y() * qt.z() + 2 * qt.x() * qt.w(),
-                  1 - 2 * qt.x()*qt.x() - 2 * qt.y()*qt.y());
+        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
+                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
+                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
+                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
+                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
+                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
+                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
+                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
+                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y());
       }
 
       /// \brief Desctructor
@@ -124,48 +124,48 @@ namespace ignition
       /// \param[in] _xAxis The x axis
       /// \param[in] _yAxis The y axis
       /// \param[in] _zAxis The z axis
-      public: void SetFromAxes(const Vector3<T> &_xAxis,
-                               const Vector3<T> &_yAxis,
-                               const Vector3<T> &_zAxis)
+      public: void Axes(const Vector3<T> &_xAxis,
+                        const Vector3<T> &_yAxis,
+                        const Vector3<T> &_zAxis)
       {
-        this->SetCol(0, _xAxis);
-        this->SetCol(1, _yAxis);
-        this->SetCol(2, _zAxis);
+        this->Col(0, _xAxis);
+        this->Col(1, _yAxis);
+        this->Col(2, _zAxis);
       }
 
       /// \brief Set the matrix from an axis and angle
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
-      public: void SetFromAxis(const Vector3<T> &_axis, T _angle)
+      public: void Axis(const Vector3<T> &_axis, T _angle)
       {
         T c = cos(_angle);
         T s = sin(_angle);
         T C = 1-c;
 
-        this->data[0][0] = _axis.x()*_axis.x()*C + c;
-        this->data[0][1] = _axis.x()*_axis.y()*C - _axis.z()*s;
-        this->data[0][2] = _axis.x()*_axis.z()*C + _axis.y()*s;
+        this->data[0][0] = _axis.X()*_axis.X()*C + c;
+        this->data[0][1] = _axis.X()*_axis.Y()*C - _axis.Z()*s;
+        this->data[0][2] = _axis.X()*_axis.Z()*C + _axis.Y()*s;
 
-        this->data[1][0] = _axis.y()*_axis.x()*C + _axis.z()*s;
-        this->data[1][1] = _axis.y()*_axis.y()*C + c;
-        this->data[1][2] = _axis.y()*_axis.z()*C - _axis.x()*s;
+        this->data[1][0] = _axis.Y()*_axis.X()*C + _axis.Z()*s;
+        this->data[1][1] = _axis.Y()*_axis.Y()*C + c;
+        this->data[1][2] = _axis.Y()*_axis.Z()*C - _axis.X()*s;
 
-        this->data[2][0] = _axis.z()*_axis.x()*C - _axis.y()*s;
-        this->data[2][1] = _axis.z()*_axis.y()*C + _axis.x()*s;
-        this->data[2][2] = _axis.z()*_axis.z()*C + c;
+        this->data[2][0] = _axis.Z()*_axis.X()*C - _axis.Y()*s;
+        this->data[2][1] = _axis.Z()*_axis.Y()*C + _axis.X()*s;
+        this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
       /// \brief Set a column
       /// \param[in] _c The colum index (0, 1, 2)
       /// \param[in] _v The value to set in each row of the column
-      public: void SetCol(unsigned int _c, const Vector3<T> &_v)
+      public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
         if (_c >= 3)
           throw IndexException();
 
-        this->data[0][_c] = _v.x();
-        this->data[1][_c] = _v.y();
-        this->data[2][_c] = _v.z();
+        this->data[0][_c] = _v.X();
+        this->data[1][_c] = _v.Y();
+        this->data[2][_c] = _v.Z();
       }
 
       /// \brief returns the element wise difference of two matrices
@@ -259,12 +259,12 @@ namespace ignition
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
       {
         return Vector3<T>(
-            this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
-            this->data[0][2]*_vec.z(),
-            this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
-            this->data[1][2]*_vec.z(),
-            this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
-            this->data[2][2]*_vec.z());
+            this->data[0][0]*_vec.X() + this->data[0][1]*_vec.Y() +
+            this->data[0][2]*_vec.Z(),
+            this->data[1][0]*_vec.X() + this->data[1][1]*_vec.Y() +
+            this->data[1][2]*_vec.Z(),
+            this->data[2][0]*_vec.X() + this->data[2][1]*_vec.Y() +
+            this->data[2][2]*_vec.Z());
       }
 
       /// \brief Matrix multiplication operator for scaling.
@@ -294,6 +294,14 @@ namespace ignition
                math::equal(this->data[2][2], _m(2, 2));
       }
 
+      /// \brief Inequality test operator
+      /// \param[in] _m Matrix3<T> to test
+      /// \return True if not equal (using the default tolerance of 1e-6)
+      public: bool operator!=(const Matrix3<T> &_m) const
+      {
+        return !(*this == _m);
+      }
+
       /// \brief Array subscript operator
       /// \param[in] _row row index
       /// \return a pointer to the row
@@ -318,7 +326,7 @@ namespace ignition
       /// \param[in] _out Output stream
       /// \param[in] _m Matrix to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Matrix3<T> &_m)
       {
         _out << precision(_m(0, 0), 6) << " "
@@ -337,7 +345,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt Matrix3 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix3<T> &_m)
       {
         // Skip white spaces

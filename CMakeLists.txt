@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 set (IGN_PROJECT_NAME "math")
 
-project (ignition-${IGN_PROJECT_NAME})
+project (ignition_${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
@@ -225,7 +225,11 @@ else (build_errors)
   ign_install_includes(${IGN_PROJECT_NAME}
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
+  include(${SWIG_USE_FILE})
+  set(CMAKE_SWIG_FLAGS "")
+
   include_directories(
+    ${PYTHON_INCLUDE_PATH}
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}/include
   )

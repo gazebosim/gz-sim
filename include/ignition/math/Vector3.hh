@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef _IGNITION_VECTOR3_HH_
 #define _IGNITION_VECTOR3_HH_
 
@@ -35,7 +34,7 @@ namespace ignition
     /// elements.  Since it's commonly used to keep coordinate system
     /// related information, its elements are labeled by x, y, z.
     template<typename T>
-    class IGNITION_VISIBLE Vector3
+    class Vector3
     {
       /// \brief math::Vector3(0, 0, 0)
       public: static const Vector3 Zero;
@@ -85,7 +84,7 @@ namespace ignition
 
       /// \brief Return the sum of the values
       /// \return the sum
-      public: T GetSum() const
+      public: T Sum() const
       {
         return this->data[0] + this->data[1] + this->data[2];
       }
@@ -112,7 +111,7 @@ namespace ignition
 
       /// \brief Returns the length (magnitude) of the vector
       /// \ return the length
-      public: T GetLength() const
+      public: T Length() const
       {
         return sqrt(this->data[0] * this->data[0] +
                     this->data[1] * this->data[1] +
@@ -121,7 +120,7 @@ namespace ignition
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the squared length
-      public: T GetSquaredLength() const
+      public: T SquaredLength() const
       {
         return this->data[0] * this->data[0] +
                this->data[1] * this->data[1] +
@@ -158,7 +157,7 @@ namespace ignition
 
       /// \brief Get a rounded version of this vector
       /// \return a rounded vector
-      public: Vector3 GetRounded() const
+      public: Vector3 Rounded() const
       {
         Vector3<T> result = *this;
         result.Round();
@@ -196,7 +195,7 @@ namespace ignition
 
       /// \brief Get the absolute value of the vector
       /// \return a vector with positive elements
-      public: Vector3 GetAbs() const
+      public: Vector3 Abs() const
       {
         return Vector3(std::abs(this->data[0]),
                            std::abs(this->data[1]),
@@ -205,14 +204,14 @@ namespace ignition
 
       /// \brief Return a vector that is perpendicular to this one.
       /// \return an orthogonal vector
-      public: Vector3 GetPerpendicular() const
+      public: Vector3 Perpendicular() const
       {
         static const T sqrZero = 1e-06 * 1e-06;
 
         Vector3<T> perp = this->Cross(Vector3(1, 0, 0));
 
         // Check the length of the vector
-        if (perp.GetSquaredLength() < sqrZero)
+        if (perp.SquaredLength() < sqrZero)
         {
           perp = this->Cross(Vector3(0, 1, 0));
         }
@@ -225,7 +224,7 @@ namespace ignition
       /// \param[in] _v2 second vertex
       /// \param[in] _v3 third vertex
       /// \return the normal
-      public: static Vector3 GetNormal(const Vector3<T> &_v1,
+      public: static Vector3 Normal(const Vector3<T> &_v1,
                   const Vector3<T> &_v2, const Vector3<T> &_v3)
       {
         Vector3<T> a = _v2 - _v1;
@@ -238,17 +237,17 @@ namespace ignition
       /// \param[in] _pt1 first point on the line
       /// \param[in] _pt2 second point on the line
       /// \return the minimum distance from this point to the line
-      public: T GetDistToLine(const Vector3<T> &_pt1, const Vector3 &_pt2)
+      public: T DistToLine(const Vector3<T> &_pt1, const Vector3 &_pt2)
       {
-        T d = ((*this) - _pt1).Cross((*this) - _pt2).GetLength();
-        d = d / (_pt2 - _pt1).GetLength();
+        T d = ((*this) - _pt1).Cross((*this) - _pt2).Length();
+        d = d / (_pt2 - _pt1).Length();
         return d;
       }
 
       /// \brief Set this vector's components to the maximum of itself and the
       ///        passed in vector
       /// \param[in] _v the maximum clamping vector
-      public: void SetToMax(const Vector3<T> &_v)
+      public: void Max(const Vector3<T> &_v)
       {
         if (_v[0] > this->data[0])
           this->data[0] = _v[0];
@@ -261,7 +260,7 @@ namespace ignition
       /// \brief Set this vector's components to the minimum of itself and the
       ///        passed in vector
       /// \param[in] _v the minimum clamping vector
-      public: void SetToMin(const Vector3<T> &_v)
+      public: void Min(const Vector3<T> &_v)
       {
         if (_v[0] < this->data[0])
           this->data[0] = _v[0];
@@ -273,14 +272,14 @@ namespace ignition
 
       /// \brief Get the maximum value in the vector
       /// \return the maximum element
-      public: T GetMax() const
+      public: T Max() const
       {
         return std::max(std::max(this->data[0], this->data[1]), this->data[2]);
       }
 
       /// \brief Get the minimum value in the vector
       /// \return the minimum element
-      public: T GetMin() const
+      public: T Min() const
       {
         return std::min(std::min(this->data[0], this->data[1]), this->data[2]);
       }
@@ -443,7 +442,7 @@ namespace ignition
       /// \return a scaled vector
       public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.x() * _s, _v.y() * _s, _v.z() * _s);
+        return Vector3<T>(_v.X() * _s, _v.Y() * _s, _v.Z() * _s);
       }
 
       /// \brief Multiplication operator
@@ -535,42 +534,63 @@ namespace ignition
 
       /// \brief Get the x value.
       /// \return The x component of the vector
-      public: inline T x() const
+      public: inline T X() const
       {
         return this->data[0];
       }
 
       /// \brief Get the y value.
       /// \return The y component of the vector
-      public: inline T y() const
+      public: inline T Y() const
       {
         return this->data[1];
       }
 
       /// \brief Get the z value.
       /// \return The z component of the vector
-      public: inline T z() const
+      public: inline T Z() const
+      {
+        return this->data[2];
+      }
+
+      /// \brief Get a mutable reference to the x value.
+      /// \return The x component of the vector
+      public: inline T &X()
+      {
+        return this->data[0];
+      }
+
+      /// \brief Get a mutable reference to the y value.
+      /// \return The y component of the vector
+      public: inline T &Y()
+      {
+        return this->data[1];
+      }
+
+      /// \brief Get a mutable reference to the z value.
+      /// \return The z component of the vector
+      public: inline T &Z()
       {
         return this->data[2];
       }
 
       /// \brief Set the x value.
       /// \param[in] _v Value for the x component.
-      public: inline void x(const T &_v)
+      public: inline void X(const T &_v)
       {
         this->data[0] = _v;
       }
 
       /// \brief Set the y value.
       /// \param[in] _v Value for the y component.
-      public: inline void y(const T &_v)
+      public: inline void Y(const T &_v)
       {
         this->data[1] = _v;
       }
 
       /// \brief Set the z value.
       /// \param[in] _v Value for the z component.
-      public: inline void z(const T &_v)
+      public: inline void Z(const T &_v)
       {
         this->data[2] = _v;
       }
@@ -579,7 +599,7 @@ namespace ignition
       /// \param _out output stream
       /// \param _pt Vector3 to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Vector3<T> &_pt)
       {
         _out << precision(_pt[0], 6) << " " << precision(_pt[1], 6) << " "
@@ -591,7 +611,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt vector3 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Vector3<T> &_pt)
       {
         // Skip white spaces

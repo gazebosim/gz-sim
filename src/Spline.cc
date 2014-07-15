@@ -59,14 +59,14 @@ Spline::~Spline()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::SetTension(double _t)
+void Spline::Tension(double _t)
 {
   this->tension = _t;
   this->RecalcTangents();
 }
 
 ///////////////////////////////////////////////////////////
-double Spline::GetTension() const
+double Spline::Tension() const
 {
   return this->tension;
 }
@@ -100,11 +100,7 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
 {
   // Bounds check
   if (_fromIndex >= this->points.size())
-  {
-    std::cerr << "Invalid spline interpolation. _fromIndex["
-          << _fromIndex << "] >= points size[" << this->points.size() << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+    throw IndexException();
 
   if ((_fromIndex + 1) == this->points.size())
   {
@@ -135,26 +131,26 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
   const Vector3d &tan2 = this->tangents[_fromIndex+1];
   Matrix4d pt;
 
-  pt(0, 0) = point1.x();
-  pt(0, 1) = point1.y();
-  pt(0, 2) = point1.z();
+  pt(0, 0) = point1.X();
+  pt(0, 1) = point1.Y();
+  pt(0, 2) = point1.Z();
   pt(0, 3) = 1.0f;
-  pt(1, 0) = point2.x();
-  pt(1, 1) = point2.y();
-  pt(1, 2) = point2.z();
+  pt(1, 0) = point2.X();
+  pt(1, 1) = point2.Y();
+  pt(1, 2) = point2.Z();
   pt(1, 3) = 1.0f;
-  pt(2, 0) = tan1.x();
-  pt(2, 1) = tan1.y();
-  pt(2, 2) = tan1.z();
+  pt(2, 0) = tan1.X();
+  pt(2, 1) = tan1.Y();
+  pt(2, 2) = tan1.Z();
   pt(2, 3) = 1.0f;
-  pt(3, 0) = tan2.x();
-  pt(3, 1) = tan2.y();
-  pt(3, 2) = tan2.z();
+  pt(3, 0) = tan2.X();
+  pt(3, 1) = tan2.Y();
+  pt(3, 2) = tan2.Z();
   pt(3, 3) = 1.0f;
 
   Vector4d ret = powers * this->coeffs * pt;
 
-  return Vector3d(ret.x(), ret.y(), ret.z());
+  return Vector3d(ret.X(), ret.Y(), ret.Z());
 }
 
 ///////////////////////////////////////////////////////////
@@ -226,33 +222,25 @@ void Spline::RecalcTangents()
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d Spline::GetPoint(unsigned int _index) const
+Vector3d Spline::Point(unsigned int _index) const
 {
   if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+    throw IndexException();
 
   return this->points[_index];
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d Spline::GetTangent(unsigned int _index) const
+Vector3d Spline::Tangent(unsigned int _index) const
 {
-  if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return Vector3d(0, 0, 0);
-  }
+  if (_index >= this->tangents.size())
+    throw IndexException();
 
   return this->tangents[_index];
 }
 
 ///////////////////////////////////////////////////////////
-unsigned int Spline::GetPointCount() const
+unsigned int Spline::PointCount() const
 {
   return this->points.size();
 }
@@ -268,11 +256,7 @@ void Spline::Clear()
 void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 {
   if (_index >= this->points.size())
-  {
-    std::cerr << "Index[" << _index << "] is out of bounds[0.."
-          << this->points.size()-1 << "]\n";
-    return;
-  }
+    throw IndexException();
 
   this->points[_index] = _value;
   if (this->autoCalc)
@@ -280,7 +264,7 @@ void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::SetAutoCalculate(bool _autoCalc)
+void Spline::AutoCalculate(bool _autoCalc)
 {
   this->autoCalc = _autoCalc;
 }

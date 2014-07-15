@@ -79,8 +79,8 @@ TEST(Matrix4dTest, Construct)
 TEST(Matrix4dTest, Scale)
 {
   math::Matrix4d mat, mat2;
-  mat.SetScale(math::Vector3d(1, 2, 3));
-  mat2.SetScale(1, 2, 3);
+  mat.Scale(math::Vector3d(1, 2, 3));
+  mat2.Scale(1, 2, 3);
 
   EXPECT_EQ(mat, mat2);
 
@@ -94,8 +94,8 @@ TEST(Matrix4dTest, Scale)
   EXPECT_DOUBLE_EQ(mat2(2, 2), 3.0);
   EXPECT_DOUBLE_EQ(mat2(3, 3), 1.0);
 
-  EXPECT_EQ(mat.GetScale(), mat2.GetScale());
-  EXPECT_EQ(mat.GetScale(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(mat.Scale(), mat2.Scale());
+  EXPECT_EQ(mat.Scale(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -178,7 +178,7 @@ TEST(Matrix4dTest, GetAsPose3d)
                     1, 0, 3, 1,
                     0, 2, -3, 2,
                     0, 2, 3, 1);
-  math::Pose3d pose = mat.GetAsPose();
+  math::Pose3d pose = mat.Pose();
 
   EXPECT_EQ(pose,
       math::Pose3d(5, 1, 2, -0.204124, 1.22474, 0.816497, 0.204124));
@@ -188,8 +188,8 @@ TEST(Matrix4dTest, GetAsPose3d)
 TEST(Matrix4dTest, Translate)
 {
   math::Matrix4d mat, mat2;
-  mat.SetTranslate(math::Vector3d(1, 2, 3));
-  mat2.SetTranslate(1, 2, 3);
+  mat.Translate(math::Vector3d(1, 2, 3));
+  mat2.Translate(1, 2, 3);
 
   EXPECT_EQ(mat, mat2);
 
@@ -201,8 +201,8 @@ TEST(Matrix4dTest, Translate)
   EXPECT_DOUBLE_EQ(mat2(1, 3), 2.0);
   EXPECT_DOUBLE_EQ(mat2(2, 3), 3.0);
 
-  EXPECT_EQ(mat.GetTranslation(), mat2.GetTranslation());
-  EXPECT_EQ(mat.GetTranslation(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(mat.Translation(), mat2.Translation());
+  EXPECT_EQ(mat.Translation(), math::Vector3d(1, 2, 3));
 
   for (int i = 0; i < 4; ++i)
   {
@@ -240,18 +240,77 @@ TEST(Matrix4dTest, RotationDiagZero)
   mat(3, 2) = 1.5;
   mat(3, 3) = 1.0;
 
-  math::Quaterniond quat = mat.GetRotation();
-  EXPECT_NEAR(quat.x(), 0.5, 1e-6);
-  EXPECT_NEAR(quat.y(), 0.35, 1e-6);
-  EXPECT_NEAR(quat.z(), 0.6, 1e-6);
-  EXPECT_NEAR(quat.w(), 0.15, 1e-6);
+  math::Quaterniond quat = mat.Rotation();
+  EXPECT_NEAR(quat.X(), 0.5, 1e-6);
+  EXPECT_NEAR(quat.Y(), 0.35, 1e-6);
+  EXPECT_NEAR(quat.Z(), 0.6, 1e-6);
+  EXPECT_NEAR(quat.W(), 0.15, 1e-6);
 
-  math::Vector3d euler = mat.GetEulerRotation(true);
+  math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.5708));
 
-  euler = mat.GetEulerRotation(false);
+  euler = mat.EulerRotation(false);
   EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.5708));
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, RotationDiagLessThanZero)
+{
+  math::Matrix4d mat;
+  mat(0, 0) = -0.1;
+  mat(0, 1) = 0.2;
+  mat(0, 2) = 0.3;
+  mat(0, 3) = 0.4;
+
+  mat(1, 0) = 0.5;
+  mat(1, 1) = 0;
+  mat(1, 2) = 0.7;
+  mat(1, 3) = 0.8;
+
+  mat(2, 0) = 0.9;
+  mat(2, 1) = 1.0;
+  mat(2, 2) = 0;
+  mat(2, 3) = 1.2;
+
+  mat(3, 0) = 1.3;
+  mat(3, 1) = 1.4;
+  mat(3, 2) = 1.5;
+  mat(3, 3) = 1.0;
+
+  {
+    math::Quaterniond quat = mat.Rotation();
+    EXPECT_NEAR(quat.X(), 0.333712, 1e-6);
+    EXPECT_NEAR(quat.Y(), 0.524404, 1e-6);
+    EXPECT_NEAR(quat.Z(), 0.810443, 1e-6);
+    EXPECT_NEAR(quat.W(), -0.286039, 1e-6);
+
+    math::Vector3d euler = mat.EulerRotation(true);
+    EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.76819));
+
+    euler = mat.EulerRotation(false);
+    EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.3734));
+  }
+
+
+  {
+    mat(0, 0) = -0.1;
+    mat(1, 1) = -0.2;
+    mat(2, 2) = 0.0;
+
+    math::Quaterniond quat = mat.Rotation();
+    EXPECT_NEAR(quat.X(), 0.526235, 1e-6);
+    EXPECT_NEAR(quat.Y(), 0.745499, 1e-6);
+    EXPECT_NEAR(quat.Z(), 0.570088, 1e-6);
+    EXPECT_NEAR(quat.W(), 0.131559, 1e-6);
+
+    math::Vector3d euler = mat.EulerRotation(true);
+    EXPECT_EQ(euler, math::Vector3d(1.5708, -1.11977, 1.76819));
+
+    euler = mat.EulerRotation(false);
+    EXPECT_EQ(euler, math::Vector3d(-1.5708, 4.26136, -1.3734));
+  }
+}
+
 
 /////////////////////////////////////////////////
 TEST(Matrix4dTest, Rotation)
@@ -277,17 +336,55 @@ TEST(Matrix4dTest, Rotation)
   mat(3, 2) = 1.5;
   mat(3, 3) = 1.6;
 
-  math::Quaterniond quat = mat.GetRotation();
-  EXPECT_NEAR(quat.x(), 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.y(), -0.179284, 1e-6);
-  EXPECT_NEAR(quat.z(), 0.0896421, 1e-6);
-  EXPECT_NEAR(quat.w(), 0.83666, 1e-6);
+  math::Quaterniond quat = mat.Rotation();
+  EXPECT_NEAR(quat.X(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.Y(), -0.179284, 1e-6);
+  EXPECT_NEAR(quat.Z(), 0.0896421, 1e-6);
+  EXPECT_NEAR(quat.W(), 0.83666, 1e-6);
 
-  math::Vector3d euler = mat.GetEulerRotation(true);
+  math::Vector3d euler = mat.EulerRotation(true);
   EXPECT_EQ(euler, math::Vector3d(0.737815, -1.11977, 1.3734));
 
-  euler = mat.GetEulerRotation(false);
+  euler = mat.EulerRotation(false);
   EXPECT_EQ(euler, math::Vector3d(-2.40378, 4.26136, -1.76819));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, EulerRotation2)
+{
+  math::Matrix4d mat;
+  mat(0, 0) = 0.1;
+  mat(0, 1) = 0.2;
+  mat(0, 2) = 0.3;
+  mat(0, 3) = 0.4;
+
+  mat(1, 0) = 0.5;
+  mat(1, 1) = 0.6;
+  mat(1, 2) = 0.7;
+  mat(1, 3) = 0.8;
+
+  mat(2, 0) = 1.9;
+  mat(2, 1) = 1.2;
+  mat(2, 2) = 1.1;
+  mat(2, 3) = 1.2;
+
+  mat(3, 0) = 1.3;
+  mat(3, 1) = 1.4;
+  mat(3, 2) = 1.5;
+  mat(3, 3) = 1.6;
+
+  math::Vector3d euler = mat.EulerRotation(true);
+  EXPECT_EQ(euler, math::Vector3d(-2.55359, -1.5708, 0));
+
+  euler = mat.EulerRotation(false);
+  EXPECT_EQ(euler, math::Vector3d(-2.55359, -1.5708, 0));
+
+  mat(2, 0) = -1.2;
+  euler = mat.EulerRotation(true);
+  EXPECT_EQ(euler, math::Vector3d(0.588003, 1.5708, 0));
+
+  euler = mat.EulerRotation(false);
+  EXPECT_EQ(euler, math::Vector3d(0.588003, 1.5708, 0));
 }
 
 /////////////////////////////////////////////////
@@ -350,4 +447,31 @@ TEST(Matrix4dTest, OperatorStreamIn)
                                 5, 6, 7, 8,
                                 9, 10, 11, 12,
                                 13, 14, 15, 16));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, NotEqual)
+{
+  {
+    math::Matrix4d matrix1;
+    math::Matrix4d matrix2;
+    EXPECT_TRUE(matrix1 == matrix2);
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+
+  {
+    math::Matrix4d matrix1(1, 2, 3, 4,
+                           5, 6, 7, 8,
+                           9, 10, 11, 12,
+                           13, 14, 15, 16);
+    math::Matrix4d matrix2(matrix1);
+
+    EXPECT_FALSE(matrix1 != matrix1);
+
+    matrix2(0, 0) = 1.00001;
+    EXPECT_TRUE(matrix1 != matrix2);
+
+    matrix2(0, 0) = 1.000001;
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
 }
