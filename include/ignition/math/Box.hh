@@ -18,6 +18,7 @@
 #define _IGNITION_BOX_HH_
 
 #include <iostream>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 
 namespace ignition
@@ -97,6 +98,11 @@ namespace ignition
       /// \return True if equal
       public: bool operator==(const Box &_b) const;
 
+      /// \brief Inequality test operatoer
+      /// \param[in] _b Box to test
+      /// \return True if not equal
+      public: bool operator!=(const Box &_b) const;
+
       /// \brief Subtract a vector from the min and max values
       /// \param _v The vector to use during subtraction
       /// \return The new box
@@ -141,6 +147,13 @@ namespace ignition
       {
         return this->max;
       }
+
+      /// \brief Test box intersection. This test will only work if
+      /// both box's minimum corner is less than or equal to their
+      /// maximum corner.
+      /// \param[in] _box Box to check for intersection with this box.
+      /// \return True if this box intersects _box.
+      public: bool Intersects(const Box &_box) const;
 
       /// \brief Minimum corner of the box
       private: Vector3d min;

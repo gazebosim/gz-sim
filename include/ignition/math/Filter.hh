@@ -84,7 +84,7 @@ namespace ignition
       /// \brief Update the filter's output.
       /// \paran[in] _x Input value.
       /// \return The filter's current output.
-      public: inline const T& Process(const T &_x)
+      public: const T& Process(const T &_x)
       {
         this->y0 = a0 * _x + b1 * this->y0;
         return this->y0;
@@ -119,7 +119,7 @@ namespace ignition
       /// \brief Update the filter's output.
       /// \paran[in] _x Input value.
       /// \return The filter's current output.
-      public: inline const math::Quaterniond& Process(
+      public: const math::Quaterniond& Process(
                   const math::Quaterniond &_x)
       {
         y0 = math::Quaterniond::Slerp(a0, y0, _x);
@@ -165,7 +165,7 @@ namespace ignition
       }
 
       // Documentation Inherited.
-      public: inline void Fc(double _fc, double _fs)
+      public: void Fc(double _fc, double _fs)
       {
         this->Fc(_fc, _fs, 0.5);
       }
@@ -174,7 +174,7 @@ namespace ignition
       /// \param[in] _fc Cutoff frequency.
       /// \param[in] _fs Sample rate.
       /// \param[in] _q Q coefficient.
-      public: inline void Fc(double _fc, double _fs, double _q)
+      public: void Fc(double _fc, double _fs, double _q)
       {
         double k = tan(IGN_PI * _fc / _fs);
         double kQuadDenom = k * k + k / _q + 1.0;
@@ -196,7 +196,7 @@ namespace ignition
       /// \brief Update the filter's output.
       /// \param[in] _x Input value.
       /// \return The filter's current output.
-      public: inline virtual const T& Process(const T &_x)
+      public: virtual const T& Process(const T &_x)
       {
         this->y0 = this->a0 * _x +
                    this->a1 * this->x1 +

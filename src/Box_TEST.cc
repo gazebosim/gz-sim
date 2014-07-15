@@ -193,6 +193,18 @@ TEST(BoxTest, OperatorEqual)
 }
 
 /////////////////////////////////////////////////
+TEST(BoxTest, OperatorNotEqual)
+{
+  math::Box box = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(3, 3, 3));
+  math::Box box2 = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(1, 3, 3));
+  math::Box box3 = math::Box(math::Vector3d(0, 1, 1), math::Vector3d(1, 3, 3));
+  EXPECT_FALSE(box != math::Box(math::Vector3d(1, 1, 1),
+        math::Vector3d(3, 3, 3)));
+  EXPECT_TRUE(box != box2);
+  EXPECT_TRUE(box3 != box);
+}
+
+/////////////////////////////////////////////////
 TEST(BoxTest, OperatorPlusEqual)
 {
   math::Box box = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(3, 3, 3));
@@ -208,4 +220,32 @@ TEST(BoxTest, OperatorPlus)
   box = box + math::Box(math::Vector3d(-2, -2, -2), math::Vector3d(4, 4, 4));
   EXPECT_TRUE(box == math::Box(math::Vector3d(-2, -2, -2),
                                math::Vector3d(4, 4, 4)));
+}
+
+/////////////////////////////////////////////////
+TEST(BoxTest, Intersects)
+{
+  math::Box box = math::Box(math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(1.1, 0, 0), math::Vector3d(2, 1, 1))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(0, 1.1, 0), math::Vector3d(1, 2, 1))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(0, 0, 1.1), math::Vector3d(1, 1, 2))));
+
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(-0.1, 0, 0))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(0, -0.1, 0))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(0, 0, -0.1))));
+
+  EXPECT_TRUE(box.Intersects(math::Box(
+          math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1))));
 }

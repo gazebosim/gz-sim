@@ -159,7 +159,35 @@ bool Box::operator==(const Box &_b) const
 }
 
 //////////////////////////////////////////////////
+bool Box::operator!=(const Box &_b) const
+{
+  return !(*this == _b);
+}
+
+//////////////////////////////////////////////////
 Box Box::operator-(const Vector3d &_v)
 {
   return Box(this->min - _v, this->max - _v);
+}
+
+//////////////////////////////////////////////////
+bool Box::Intersects(const Box &_box) const
+{
+  // Check the six separating planes.
+  if (this->Max().X() < _box.Min().X())
+    return false;
+  if (this->Max().Y() < _box.Min().Y())
+    return false;
+  if (this->Max().Z() < _box.Min().Z())
+    return false;
+
+  if (this->Min().X() > _box.Max().X())
+    return false;
+  if (this->Min().Y() > _box.Max().Y())
+    return false;
+  if (this->Min().Z() > _box.Max().Z())
+    return false;
+
+  // Otherwise the two boxes must intersect.
+  return true;
 }
