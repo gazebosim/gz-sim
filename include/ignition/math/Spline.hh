@@ -21,10 +21,10 @@
 
 #include <vector>
 
-#include <ignition/math/IndexException.hh>
 #include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
+#include <ignition/math/IndexException.hh>
 #include <ignition/math/Matrix4.hh>
+#include <ignition/math/Vector3.hh>
 
 namespace ignition
 {
