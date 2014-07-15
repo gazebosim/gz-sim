@@ -330,16 +330,16 @@ namespace ignition
         sqz = copy.qz * copy.qz;
 
         // Roll
-        vec.x(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
+        vec.X(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
               squ - sqx - sqy + sqz));
 
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
-        vec.y(sarg <= -1.0 ? -0.5*IGN_PI :
+        vec.Y(sarg <= -1.0 ? -0.5*IGN_PI :
             (sarg >= 1.0 ? 0.5*IGN_PI : asin(sarg)));
 
         // Yaw
-        vec.z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
+        vec.Z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
               squ + sqx - sqy - sqz));
 
         return vec;
@@ -790,28 +790,28 @@ namespace ignition
 
       /// \brief Set the x component.
       /// \param[in] _v The new value for the x quaternion component.
-      public: inline void x(T _v)
+      public: inline void X(T _v)
       {
         this->qx = _v;
       }
 
       /// \brief Set the y component.
       /// \param[in] _v The new value for the y quaternion component.
-      public: inline void y(T _v)
+      public: inline void Y(T _v)
       {
         this->qy = _v;
       }
 
       /// \brief Set the z component.
       /// \param[in] _v The new value for the z quaternion component.
-      public: inline void z(T _v)
+      public: inline void Z(T _v)
       {
         this->qz = _v;
       }
 
       /// \brief Set the w component.
       /// \param[in] _v The new value for the w quaternion component.
-      public: inline void w(T _v)
+      public: inline void W(T _v)
       {
         this->qw = _v;
       }

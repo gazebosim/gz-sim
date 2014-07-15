@@ -106,14 +106,14 @@ TEST(QuaternionTest, Math)
       math::Quaterniond(0.545456, -0.588972, 0.093284, 0.588972));
 
   math::Quaterniond q1 = q;
-  q1.w(2.0);
+  q1.W(2.0);
   EXPECT_TRUE(q1.Log() ==
       math::Quaterniond(0, -0.698401, 0.110616, 0.698401));
 
-  q1.x(0.000000001);
-  q1.y(0.0);
-  q1.z(0.0);
-  q1.w(0.0);
+  q1.X(0.000000001);
+  q1.Y(0.0);
+  q1.Z(0.0);
+  q1.W(0.0);
   EXPECT_TRUE(q1.Exp() == math::Quaterniond(1, 0, 0, 0));
 
   q.Invert();
@@ -186,10 +186,10 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(4.01, q.Z()));
   EXPECT_TRUE(math::equal(7.68, q.W()));
 
-  q.x(0.0);
-  q.y(0.0);
-  q.z(0.0);
-  q.w(0.0);
+  q.X(0.0);
+  q.Y(0.0);
+  q.Z(0.0);
+  q.W(0.0);
   q.Normalize();
   EXPECT_TRUE(q == math::Quaterniond());
 
@@ -199,10 +199,10 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::Quaterniond::EulerToQuaternion(0.1, 0.2, 0.3) ==
       math::Quaterniond(0.983347, 0.0342708, 0.106021, 0.143572));
 
-  q.x(0.0);
-  q.y(0.0);
-  q.z(0.0);
-  q.w(0.0);
+  q.X(0.0);
+  q.Y(0.0);
+  q.Z(0.0);
+  q.W(0.0);
   q.ToAxis(axis, angle);
   EXPECT_TRUE(axis == math::Vector3d(1, 0, 0));
   EXPECT_TRUE(math::equal(angle, 0.0, 1e-3));
