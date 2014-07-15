@@ -18,6 +18,7 @@
 #define _IGNITION_ROTATIONSPLINE_HH_
 
 #include <vector>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>
 #include <ignition/math/Quaternion.hh>
 
