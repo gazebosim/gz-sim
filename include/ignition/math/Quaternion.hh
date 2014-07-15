@@ -790,28 +790,28 @@ namespace ignition
 
       /// \brief Set the x component.
       /// \param[in] _v The new value for the x quaternion component.
-      public: inline void x(T _v)
+      public: inline void X(T _v)
       {
         this->qx = _v;
       }
 
       /// \brief Set the y component.
       /// \param[in] _v The new value for the y quaternion component.
-      public: inline void y(T _v)
+      public: inline void Y(T _v)
       {
         this->qy = _v;
       }
 
       /// \brief Set the z component.
       /// \param[in] _v The new value for the z quaternion component.
-      public: inline void z(T _v)
+      public: inline void Z(T _v)
       {
         this->qz = _v;
       }
 
       /// \brief Set the w component.
       /// \param[in] _v The new value for the w quaternion component.
-      public: inline void w(T _v)
+      public: inline void W(T _v)
       {
         this->qw = _v;
       }

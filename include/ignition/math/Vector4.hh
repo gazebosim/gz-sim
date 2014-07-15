@@ -382,28 +382,28 @@ namespace ignition
 
       /// \brief Set the x value.
       /// \param[in] _v Value for the x component.
-      public: inline void x(const T &_v)
+      public: inline void X(const T &_v)
       {
         this->data[0] = _v;
       }
 
       /// \brief Set the y value.
       /// \param[in] _v Value for the y component.
-      public: inline void y(const T &_v)
+      public: inline void Y(const T &_v)
       {
         this->data[1] = _v;
       }
 
       /// \brief Set the z value.
       /// \param[in] _v Value for the z component.
-      public: inline void z(const T &_v)
+      public: inline void Z(const T &_v)
       {
         this->data[2] = _v;
       }
 
       /// \brief Set the w value.
       /// \param[in] _v Value for the w component.
-      public: inline void w(const T &_v)
+      public: inline void W(const T &_v)
       {
         this->data[3] = _v;
       }

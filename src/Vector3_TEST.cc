@@ -27,7 +27,7 @@ TEST(Vector3Test, Vector3d)
 {
   math::Vector3d v;
 
-  // ::Distance, ::LEngth()
+  // ::Distance, ::Length()
   v.Set(1, 2, 3);
   EXPECT_DOUBLE_EQ(v.Length(), v.Distance(math::Vector3d(0, 0, 0)));
 

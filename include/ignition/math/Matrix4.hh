@@ -218,11 +218,11 @@ namespace ignition
         if (trace > 0)
         {
           root = sqrt(trace + 1.0);
-          q.w(root / 2.0);
+          q.W(root / 2.0);
           root = 1.0 / (2.0 * root);
-          q.x((this->data[2][1] - this->data[1][2]) * root);
-          q.y((this->data[0][2] - this->data[2][0]) * root);
-          q.z((this->data[1][0] - this->data[0][1]) * root);
+          q.X((this->data[2][1] - this->data[1][2]) * root);
+          q.Y((this->data[0][2] - this->data[2][0]) * root);
+          q.Z((this->data[1][0] - this->data[0][1]) * root);
         }
         else
         {
@@ -247,26 +247,26 @@ namespace ignition
           switch (i)
           {
             default:
-            case 0: q.x(a); break;
-            case 1: q.y(a); break;
-            case 2: q.z(a); break;
+            case 0: q.X(a); break;
+            case 1: q.Y(a); break;
+            case 2: q.Z(a); break;
           };
           switch (j)
           {
             default:
-            case 0: q.x(b); break;
-            case 1: q.y(b); break;
-            case 2: q.z(b); break;
+            case 0: q.X(b); break;
+            case 1: q.Y(b); break;
+            case 2: q.Z(b); break;
           };
           switch (k)
           {
             default:
-            case 0: q.x(c); break;
-            case 1: q.y(c); break;
-            case 2: q.z(c); break;
+            case 0: q.X(c); break;
+            case 1: q.Y(c); break;
+            case 2: q.Z(c); break;
           };
 
-          q.w((this->data[k][j] - this->data[j][k]) * root);
+          q.W((this->data[k][j] - this->data[j][k]) * root);
         }
 
         return q;
@@ -291,34 +291,34 @@ namespace ignition
 
         if (std::abs(m31) >= 1.0)
         {
-          euler.z(0.0);
-          euler2.z(0.0);
+          euler.Z(0.0);
+          euler2.Z(0.0);
 
           if (m31 < 0.0)
           {
-            euler.y(IGN_PI / 2.0);
-            euler2.y(IGN_PI / 2.0);
-            euler.x(atan2(m12, m13));
-            euler2.x(atan2(m12, m13));
+            euler.Y(IGN_PI / 2.0);
+            euler2.Y(IGN_PI / 2.0);
+            euler.X(atan2(m12, m13));
+            euler2.X(atan2(m12, m13));
           }
           else
           {
-            euler.y(-IGN_PI / 2.0);
-            euler2.y(-IGN_PI / 2.0);
-            euler.x(atan2(-m12, -m13));
-            euler2.x(atan2(-m12, -m13));
+            euler.Y(-IGN_PI / 2.0);
+            euler2.Y(-IGN_PI / 2.0);
+            euler.X(atan2(-m12, -m13));
+            euler2.X(atan2(-m12, -m13));
           }
         }
         else
         {
-          euler.y(-asin(m31));
-          euler2.y(IGN_PI - euler.Y());
+          euler.Y(-asin(m31));
+          euler2.Y(IGN_PI - euler.Y());
 
-          euler.x(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
-          euler2.x(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
+          euler.X(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
+          euler2.X(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
 
-          euler.z(atan2(m21 / cos(euler.Y()), m11 / cos(euler.Y())));
-          euler2.z(atan2(m21 / cos(euler2.Y()), m11 / cos(euler2.Y())));
+          euler.Z(atan2(m21 / cos(euler.Y()), m11 / cos(euler.Y())));
+          euler2.Z(atan2(m21 / cos(euler2.Y()), m11 / cos(euler2.Y())));
         }
 
         if (_firstSolution)
