@@ -731,7 +731,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # messages should be written. If left blank the output is written to standard
 # error (stderr).
 
-WARN_LOGFILE           = /tmp/igntion_math_dox.warn
+WARN_LOGFILE           = /tmp/ignition-math_dox.warn
 
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
@@ -1060,7 +1060,7 @@ HTML_FOOTER            = "@CMAKE_SOURCE_DIR@/doc/footer.html"
 # obsolete.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_STYLESHEET        = 
+HTML_STYLESHEET        =
 
 # The HTML_EXTRA_STYLESHEET tag can be used to specify an additional user-
 # defined cascading style sheet that is included after the standard style sheets
@@ -1081,7 +1081,7 @@ HTML_EXTRA_STYLESHEET  = "@CMAKE_SOURCE_DIR@/doc/style.css"
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = 
+HTML_EXTRA_FILES       =
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the stylesheet and background images according to
