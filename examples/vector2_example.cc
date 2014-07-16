@@ -44,9 +44,9 @@ int main(int argc, char **argv)
 
   // You can also get access to each component in the vector using the
   // x(), y() accessors or the [] operator.
-  std::cout << "Vec2: x=" << vec2.x() << " y=" << vec2.y() << "\n";
+  std::cout << "Vec2: x=" << vec2.X() << " y=" << vec2.Y() << "\n";
   std::cout << "Vec2a: x=" << vec2a[0] << " y=" << vec2a[1] << "\n";
-  std::cout << "Vec2b: x=" << vec2b.x() << " y=" << vec2b[1] << "\n";
+  std::cout << "Vec2b: x=" << vec2b.X() << " y=" << vec2b[1] << "\n";
 
   // An IndexException will be thrown if the [] operator is given a
   // value that is too high
