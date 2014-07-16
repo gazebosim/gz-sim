@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 set(IGN_PROJECT_NAME "Ignition project name, such as 'math', or 'transport'. The name should be one word and lower case.")
 
 
-project (ignition_${IGN_PROJECT_NAME})
+project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
