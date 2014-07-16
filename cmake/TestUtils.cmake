@@ -10,7 +10,7 @@ macro (ign_build_tests)
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
-      ignition_math
+      ignition-math
       gtest gtest_main
       )
 
@@ -19,12 +19,12 @@ macro (ign_build_tests)
          libgtest_main.a
          libgtest.a
          pthread
-	       ignition_math)
+	       ignition-math)
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
          gtest.lib
          gtest_main.lib
-         ignition_math.lib)
+         ignition-math.lib)
     else()
        message(FATAL_ERROR "Unsupported platform")
     endif()

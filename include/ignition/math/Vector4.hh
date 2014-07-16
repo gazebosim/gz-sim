@@ -26,7 +26,7 @@ namespace ignition
     /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
-    class IGNITION_VISIBLE Vector4
+    class Vector4
     {
       /// \brief math::Vector3(0, 0, 0)
       public: static const Vector4<T> Zero;
@@ -78,7 +78,7 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
-      public: T GetLength() const
+      public: T Length() const
       {
         return sqrt(
             this->data[0] * this->data[0] +
@@ -89,7 +89,7 @@ namespace ignition
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the length
-      public: T GetSquaredLength() const
+      public: T SquaredLength() const
       {
         return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
           this->data[2] * this->data[2] + this->data[3] * this->data[3];
@@ -98,7 +98,7 @@ namespace ignition
       /// \brief Normalize the vector length
       public: void Normalize()
       {
-        T d = this->GetLength();
+        T d = this->Length();
 
         this->data[0] /= d;
         this->data[1] /= d;
@@ -354,56 +354,56 @@ namespace ignition
 
       /// \brief Get the x value.
       /// \return The x component of the vector
-      public: inline T x() const
+      public: inline T X() const
       {
         return this->data[0];
       }
 
       /// \brief Get the y value.
       /// \return The y component of the vector
-      public: inline T y() const
+      public: inline T Y() const
       {
         return this->data[1];
       }
 
       /// \brief Get the z value.
       /// \return The z component of the vector
-      public: inline T z() const
+      public: inline T Z() const
       {
         return this->data[2];
       }
 
       /// \brief Get the w value.
       /// \return The w component of the vector
-      public: inline T w() const
+      public: inline T W() const
       {
         return this->data[3];
       }
 
       /// \brief Set the x value.
       /// \param[in] _v Value for the x component.
-      public: inline void x(const T &_v)
+      public: inline void X(const T &_v)
       {
         this->data[0] = _v;
       }
 
       /// \brief Set the y value.
       /// \param[in] _v Value for the y component.
-      public: inline void y(const T &_v)
+      public: inline void Y(const T &_v)
       {
         this->data[1] = _v;
       }
 
       /// \brief Set the z value.
       /// \param[in] _v Value for the z component.
-      public: inline void z(const T &_v)
+      public: inline void Z(const T &_v)
       {
         this->data[2] = _v;
       }
 
       /// \brief Set the w value.
       /// \param[in] _v Value for the w component.
-      public: inline void w(const T &_v)
+      public: inline void W(const T &_v)
       {
         this->data[3] = _v;
       }
@@ -412,7 +412,7 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pt Vector4 to output
       /// \return The stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Vector4<T> &_pt)
       {
         _out << _pt[0] << " " << _pt[1] << " " << _pt[2] << " " << _pt[3];
@@ -423,7 +423,7 @@ namespace ignition
       /// \param[in] _in input stream
       /// \param[in] _pt Vector4 to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Vector4<T> &_pt)
       {
         T x, y, z, w;

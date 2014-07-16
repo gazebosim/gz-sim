@@ -40,17 +40,17 @@ TEST(Matrix3dTest, Matrix3d)
   }
 
   math::Matrix3d matrix;
-  matrix.SetFromAxes(math::Vector3d(1, 1, 1), math::Vector3d(2, 2, 2),
+  matrix.Axes(math::Vector3d(1, 1, 1), math::Vector3d(2, 2, 2),
                      math::Vector3d(3, 3, 3));
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 3, 1, 2, 3, 1, 2, 3));
 
-  matrix.SetFromAxis(math::Vector3d(1, 1, 1), M_PI);
+  matrix.Axis(math::Vector3d(1, 1, 1), IGN_PI);
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 2, 2, 1, 2, 2, 2, 1));
 
-  matrix.SetCol(0, math::Vector3d(3, 4, 5));
+  matrix.Col(0, math::Vector3d(3, 4, 5));
   EXPECT_TRUE(matrix == math::Matrix3d(3, 2, 2, 4, 1, 2, 5, 2, 1));
 
-  EXPECT_THROW(matrix.SetCol(3, math::Vector3d(1, 1, 1)),
+  EXPECT_THROW(matrix.Col(3, math::Vector3d(1, 1, 1)),
       ignition::math::IndexException);
 }
 
@@ -224,5 +224,29 @@ TEST(Matrix3dTest, Vector3Multiplication)
                            102, 126, 150);
 
     EXPECT_EQ(matrix * matrix, matrix2);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, NotEqual)
+{
+  {
+    math::Matrix3d matrix1;
+    math::Matrix3d matrix2;
+    EXPECT_TRUE(matrix1 == matrix2);
+    EXPECT_FALSE(matrix1 != matrix2);
+  }
+
+  {
+    math::Matrix3d matrix1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    math::Matrix3d matrix2(matrix1);
+
+    EXPECT_FALSE(matrix1 != matrix1);
+
+    matrix2(0, 0) = 1.00001;
+    EXPECT_TRUE(matrix1 != matrix2);
+
+    matrix2(0, 0) = 1.000001;
+    EXPECT_FALSE(matrix1 != matrix2);
   }
 }

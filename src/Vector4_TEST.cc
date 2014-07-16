@@ -28,17 +28,17 @@ TEST(Vector4dTest, Vector4d)
 {
   {
     math::Vector4d v;
-    EXPECT_TRUE(math::equal(v.x(), 0.0));
-    EXPECT_TRUE(math::equal(v.y(), 0.0));
-    EXPECT_TRUE(math::equal(v.z(), 0.0));
-    EXPECT_TRUE(math::equal(v.w(), 0.0));
+    EXPECT_TRUE(math::equal(v.X(), 0.0));
+    EXPECT_TRUE(math::equal(v.Y(), 0.0));
+    EXPECT_TRUE(math::equal(v.Z(), 0.0));
+    EXPECT_TRUE(math::equal(v.W(), 0.0));
   }
 
   math::Vector4d v1(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(v1.x(), 1.0));
-  EXPECT_TRUE(math::equal(v1.y(), 2.0));
-  EXPECT_TRUE(math::equal(v1.z(), 3.0));
-  EXPECT_TRUE(math::equal(v1.w(), 4.0));
+  EXPECT_TRUE(math::equal(v1.X(), 1.0));
+  EXPECT_TRUE(math::equal(v1.Y(), 2.0));
+  EXPECT_TRUE(math::equal(v1.Z(), 3.0));
+  EXPECT_TRUE(math::equal(v1.W(), 4.0));
 
   math::Vector4d v(v1);
   EXPECT_TRUE(v == v1);
@@ -46,12 +46,12 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(math::equal(v.Distance(
           math::Vector4d(0, 0, 0, 0)), 5.4772, 1e-3));
 
-  // ::GetLength()
+  // ::Length()
   v.Set(1, 2, 3, 4);
-  EXPECT_TRUE(math::equal(v.GetLength(), 5.4772, 1e-3));
+  EXPECT_TRUE(math::equal(v.Length(), 5.4772, 1e-3));
 
-  // ::GetSquaredLength()
-  EXPECT_TRUE(math::equal(v.GetSquaredLength(), 30.0));
+  // ::SquaredLength()
+  EXPECT_TRUE(math::equal(v.SquaredLength(), 30.0));
 
   // ::Normalize
   v.Normalize();

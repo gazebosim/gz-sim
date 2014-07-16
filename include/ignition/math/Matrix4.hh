@@ -17,6 +17,7 @@
 #ifndef _IGNITION_MATRIX4_HH_
 #define _IGNITION_MATRIX4_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
@@ -29,7 +30,7 @@ namespace ignition
     /// \class Matrix4 Matrix4.hh ignition/math/Matrix4.hh
     /// \brief A 4x4 matrix class
     template<typename T>
-    class IGNITION_VISIBLE Matrix4
+    class Matrix4
     {
       /// \brief Identity matrix
       public: static const Matrix4<T> Identity;
@@ -84,19 +85,19 @@ namespace ignition
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
-        this->Set(1 - 2*qt.y()*qt.y() - 2 *qt.z()*qt.z(),
-                  2 * qt.x()*qt.y() - 2*qt.z()*qt.w(),
-                  2 * qt.x() * qt.z() + 2 * qt.y() * qt.w(),
+        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
+                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
+                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
                   0,
 
-                  2 * qt.x() * qt.y() + 2 * qt.z() * qt.w(),
-                  1 - 2*qt.x()*qt.x() - 2 * qt.z()*qt.z(),
-                  2 * qt.y() * qt.z() - 2 * qt.x() * qt.w(),
+                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
+                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
+                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
                   0,
 
-                  2 * qt.x() * qt.z() - 2 * qt.y() * qt.w(),
-                  2 * qt.y() * qt.z() + 2 * qt.x() * qt.w(),
-                  1 - 2 * qt.x()*qt.x() - 2 * qt.y()*qt.y(),
+                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
+                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
+                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y(),
                   0,
 
                   0, 0, 0, 1);
@@ -149,20 +150,42 @@ namespace ignition
         this->data[3][3] = _v33;
       }
 
+      /// \brief Set the upper-left 3x3 matrix from an axis and angle
+      /// \param[in] _axis the axis
+      /// \param[in] _angle ccw rotation around the axis in radians
+      public: void Axis(const Vector3<T> &_axis, T _angle)
+      {
+        T c = cos(_angle);
+        T s = sin(_angle);
+        T C = 1-c;
+
+        this->data[0][0] = _axis.X()*_axis.X()*C + c;
+        this->data[0][1] = _axis.X()*_axis.Y()*C - _axis.Z()*s;
+        this->data[0][2] = _axis.X()*_axis.Z()*C + _axis.Y()*s;
+
+        this->data[1][0] = _axis.Y()*_axis.X()*C + _axis.Z()*s;
+        this->data[1][1] = _axis.Y()*_axis.Y()*C + c;
+        this->data[1][2] = _axis.Y()*_axis.Z()*C - _axis.X()*s;
+
+        this->data[2][0] = _axis.Z()*_axis.X()*C - _axis.Y()*s;
+        this->data[2][1] = _axis.Z()*_axis.Y()*C + _axis.X()*s;
+        this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
+      }
+
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
-      public: void SetTranslate(const Vector3<T> &_t)
+      public: void Translate(const Vector3<T> &_t)
       {
-        this->data[0][3] = _t.x();
-        this->data[1][3] = _t.y();
-        this->data[2][3] = _t.z();
+        this->data[0][3] = _t.X();
+        this->data[1][3] = _t.Y();
+        this->data[2][3] = _t.Z();
       }
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _x X translation value.
       /// \param[in] _y Y translation value.
       /// \param[in] _z Z translation value.
-      public: void SetTranslate(T _x, T _y, T _z)
+      public: void Translate(T _x, T _y, T _z)
       {
         this->data[0][3] = _x;
         this->data[1][3] = _y;
@@ -171,21 +194,21 @@ namespace ignition
 
       /// \brief Get the translational values as a Vector3
       /// \return x,y,z translation values
-      public: Vector3<T> GetTranslation() const
+      public: Vector3<T> Translation() const
       {
         return Vector3<T>(this->data[0][3], this->data[1][3], this->data[2][3]);
       }
 
       /// \brief Get the scale values as a Vector3<T>
       /// \return x,y,z scale values
-      public: Vector3<T> GetScale() const
+      public: Vector3<T> Scale() const
       {
         return Vector3<T>(this->data[0][0], this->data[1][1], this->data[2][2]);
       }
 
       /// \brief Get the rotation as a quaternion
       /// \return the rotation
-      public: Quaternion<T> GetRotation() const
+      public: Quaternion<T> Rotation() const
       {
         Quaternion<T> q;
         /// algorithm from Ogre::Quaternion<T> source, which in turn is based on
@@ -195,11 +218,11 @@ namespace ignition
         if (trace > 0)
         {
           root = sqrt(trace + 1.0);
-          q.w(root / 2.0);
+          q.W(root / 2.0);
           root = 1.0 / (2.0 * root);
-          q.x((this->data[2][1] - this->data[1][2]) * root);
-          q.y((this->data[0][2] - this->data[2][0]) * root);
-          q.z((this->data[1][0] - this->data[0][1]) * root);
+          q.X((this->data[2][1] - this->data[1][2]) * root);
+          q.Y((this->data[0][2] - this->data[2][0]) * root);
+          q.Z((this->data[1][0] - this->data[0][1]) * root);
         }
         else
         {
@@ -223,27 +246,27 @@ namespace ignition
 
           switch (i)
           {
-            case 0: q.x(a); break;
-            case 1: q.y(a); break;
-            case 2: q.z(a); break;
-            default: break;
+            default:
+            case 0: q.X(a); break;
+            case 1: q.Y(a); break;
+            case 2: q.Z(a); break;
           };
           switch (j)
           {
-            case 0: q.x(b); break;
-            case 1: q.y(b); break;
-            case 2: q.z(b); break;
-            default: break;
+            default:
+            case 0: q.X(b); break;
+            case 1: q.Y(b); break;
+            case 2: q.Z(b); break;
           };
           switch (k)
           {
-            case 0: q.x(c); break;
-            case 1: q.y(c); break;
-            case 2: q.z(c); break;
-            default: break;
+            default:
+            case 0: q.X(c); break;
+            case 1: q.Y(c); break;
+            case 2: q.Z(c); break;
           };
 
-          q.w((this->data[k][j] - this->data[j][k]) * root);
+          q.W((this->data[k][j] - this->data[j][k]) * root);
         }
 
         return q;
@@ -253,7 +276,7 @@ namespace ignition
       /// \param[in] _firstSolution True to get the first Euler solution,
       /// false to get the second.
       /// \return the rotation
-      public: Vector3<T> GetEulerRotation(bool _firstSolution) const
+      public: Vector3<T> EulerRotation(bool _firstSolution) const
       {
         Vector3<T> euler;
         Vector3<T> euler2;
@@ -268,34 +291,34 @@ namespace ignition
 
         if (std::abs(m31) >= 1.0)
         {
-          euler.z(0.0);
-          euler2.z(0.0);
+          euler.Z(0.0);
+          euler2.Z(0.0);
 
           if (m31 < 0.0)
           {
-            euler.y(M_PI / 2.0);
-            euler2.y(M_PI / 2.0);
-            euler.x(atan2(m12, m13));
-            euler2.x(atan2(m12, m13));
+            euler.Y(IGN_PI / 2.0);
+            euler2.Y(IGN_PI / 2.0);
+            euler.X(atan2(m12, m13));
+            euler2.X(atan2(m12, m13));
           }
           else
           {
-            euler.y(-M_PI / 2.0);
-            euler2.y(-M_PI / 2.0);
-            euler.x(atan2(-m12, -m13));
-            euler2.x(atan2(-m12, -m13));
+            euler.Y(-IGN_PI / 2.0);
+            euler2.Y(-IGN_PI / 2.0);
+            euler.X(atan2(-m12, -m13));
+            euler2.X(atan2(-m12, -m13));
           }
         }
         else
         {
-          euler.y(-asin(m31));
-          euler2.y(M_PI - euler.y());
+          euler.Y(-asin(m31));
+          euler2.Y(IGN_PI - euler.Y());
 
-          euler.x(atan2(m32 / cos(euler.y()), m33 / cos(euler.y())));
-          euler2.x(atan2(m32 / cos(euler2.y()), m33 / cos(euler2.y())));
+          euler.X(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
+          euler2.X(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
 
-          euler.z(atan2(m21 / cos(euler.y()), m11 / cos(euler.y())));
-          euler2.z(atan2(m21 / cos(euler2.y()), m11 / cos(euler2.y())));
+          euler.Z(atan2(m21 / cos(euler.Y()), m11 / cos(euler.Y())));
+          euler2.Z(atan2(m21 / cos(euler2.Y()), m11 / cos(euler2.Y())));
         }
 
         if (_firstSolution)
@@ -306,18 +329,18 @@ namespace ignition
 
       /// \brief Get the transformation as math::Pose
       /// \return the pose
-      public: Pose3<T> GetAsPose() const
+      public: Pose3<T> Pose() const
       {
-        return Pose3<T>(this->GetTranslation(), this->GetRotation());
+        return Pose3<T>(this->Translation(), this->Rotation());
       }
 
       /// \brief Set the scale
       /// \param[in] _s scale
-      public: void SetScale(const Vector3<T> &_s)
+      public: void Scale(const Vector3<T> &_s)
       {
-        this->data[0][0] = _s.x();
-        this->data[1][1] = _s.y();
-        this->data[2][2] = _s.z();
+        this->data[0][0] = _s.X();
+        this->data[1][1] = _s.Y();
+        this->data[2][2] = _s.Z();
         this->data[3][3] = 1.0;
       }
 
@@ -325,7 +348,7 @@ namespace ignition
       /// \param[in] _x X scale value.
       /// \param[in] _y Y scale value.
       /// \param[in] _z Z scale value.
-      public: void SetScale(T _x, T _y, T _z)
+      public: void Scale(T _x, T _y, T _z)
       {
         this->data[0][0] = _x;
         this->data[1][1] = _y;
@@ -352,12 +375,12 @@ namespace ignition
         if (!this->IsAffine())
           throw AffineException();
 
-        return Vector3<T>(this->data[0][0]*_v.x() + this->data[0][1]*_v.y() +
-                           this->data[0][2]*_v.z() + this->data[0][3],
-                           this->data[1][0]*_v.x() + this->data[1][1]*_v.y() +
-                           this->data[1][2]*_v.z() + this->data[1][3],
-                           this->data[2][0]*_v.x() + this->data[2][1]*_v.y() +
-                           this->data[2][2]*_v.z() + this->data[2][3]);
+        return Vector3<T>(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
+                           this->data[0][2]*_v.Z() + this->data[0][3],
+                           this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
+                           this->data[1][2]*_v.Z() + this->data[1][3],
+                           this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
+                           this->data[2][2]*_v.Z() + this->data[2][3]);
       }
 
       /// \brief Return the inverse matrix.
@@ -576,12 +599,12 @@ namespace ignition
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
       {
         return Vector3<T>(
-            this->data[0][0]*_vec.x() + this->data[0][1]*_vec.y() +
-            this->data[0][2]*_vec.z() + this->data[0][3],
-            this->data[1][0]*_vec.x() + this->data[1][1]*_vec.y() +
-            this->data[1][2]*_vec.z() + this->data[1][3],
-            this->data[2][0]*_vec.x() + this->data[2][1]*_vec.y() +
-            this->data[2][2]*_vec.z() + this->data[2][3]);
+            this->data[0][0]*_vec.X() + this->data[0][1]*_vec.Y() +
+            this->data[0][2]*_vec.Z() + this->data[0][3],
+            this->data[1][0]*_vec.X() + this->data[1][1]*_vec.Y() +
+            this->data[1][2]*_vec.Z() + this->data[1][3],
+            this->data[2][0]*_vec.X() + this->data[2][1]*_vec.Y() +
+            this->data[2][2]*_vec.Z() + this->data[2][3]);
       }
 
       /// \brief Get the value at the specified row, column index
@@ -634,11 +657,19 @@ namespace ignition
                math::equal(this->data[3][3], _m(3, 3));
       }
 
+      /// \brief Inequality test operator
+      /// \param[in] _m Matrix4<T> to test
+      /// \return True if not equal (using the default tolerance of 1e-6)
+      public: bool operator!=(const Matrix4<T> &_m) const
+      {
+        return !(*this == _m);
+      }
+
       /// \brief Stream insertion operator
       /// \param _out output stream
       /// \param _m Matrix to output
       /// \return the stream
-      public: friend std::ostream IGNITION_VISIBLE &operator<<(
+      public: friend std::ostream &operator<<(
                   std::ostream &_out, const ignition::math::Matrix4<T> &_m)
       {
         _out << precision(_m(0, 0), 6) << " "
@@ -665,7 +696,7 @@ namespace ignition
       /// \param _in input stream
       /// \param _pt Matrix4<T> to read values into
       /// \return the stream
-      public: friend std::istream IGNITION_VISIBLE &operator>>(
+      public: friend std::istream &operator>>(
                   std::istream &_in, ignition::math::Matrix4<T> &_m)
       {
         // Skip white spaces

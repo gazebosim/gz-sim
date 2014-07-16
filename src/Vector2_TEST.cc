@@ -27,14 +27,14 @@ TEST(Vector2Test, Vector2)
 {
   {
     math::Vector2d v;
-    EXPECT_DOUBLE_EQ(0, v.x());
-    EXPECT_DOUBLE_EQ(0, v.y());
+    EXPECT_DOUBLE_EQ(0, v.X());
+    EXPECT_DOUBLE_EQ(0, v.Y());
   }
 
   // Constructor
   math::Vector2d v(1, 2);
-  EXPECT_DOUBLE_EQ(1, v.x());
-  EXPECT_DOUBLE_EQ(2, v.y());
+  EXPECT_DOUBLE_EQ(1, v.X());
+  EXPECT_DOUBLE_EQ(2, v.Y());
 
   // ::Distance
   EXPECT_TRUE(math::equal(2.236, v.Distance(math::Vector2d(0, 0)), 1e-2));
@@ -146,8 +146,8 @@ TEST(Vector2Test, Dot)
 /////////////////////////////////////////////////
 TEST(Vector2Test, OperatorStreamOut)
 {
-  math::Vector2d v(1, 2);
+  math::Vector2d v(0.1, 1.2);
   std::ostringstream stream;
   stream << v;
-  EXPECT_EQ(stream.str(), "1 2");
+  EXPECT_EQ(stream.str(), "0.1 1.2");
 }

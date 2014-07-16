@@ -49,8 +49,8 @@ TEST(BoxTest, Inherit)
     EXPECT_TRUE(box != NULL);
   }
 
-  EXPECT_TRUE(box->min == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box->max == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Min() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Max() == math::Vector3d(0, 0, 0));
 
   {
     delete box;
@@ -68,8 +68,8 @@ TEST(BoxTest, EmptyConstructorNew)
     EXPECT_TRUE(box != NULL);
   }
 
-  EXPECT_TRUE(box->min == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box->max == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Min() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box->Max() == math::Vector3d(0, 0, 0));
 
   {
     delete box;
@@ -81,43 +81,43 @@ TEST(BoxTest, EmptyConstructorNew)
 TEST(BoxTest, EmptyConstructor)
 {
   math::Box box;
-  EXPECT_TRUE(box.min == math::Vector3d(0, 0, 0));
-  EXPECT_TRUE(box.max == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box.Min() == math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(box.Max() == math::Vector3d(0, 0, 0));
 }
 
 /////////////////////////////////////////////////
 TEST_F(ExampleBox, Constructor)
 {
-  EXPECT_TRUE(box.min == math::Vector3d(0, 1, 2));
-  EXPECT_TRUE(box.max == math::Vector3d(1, 2, 3));
+  EXPECT_EQ(box.Min(), math::Vector3d(0, 1, 2));
+  EXPECT_EQ(box.Max(), math::Vector3d(1, 2, 3));
 }
 
 /////////////////////////////////////////////////
 TEST_F(ExampleBox, CopyConstructor)
 {
   math::Box box1(box);
-  EXPECT_TRUE(box1.min == box.min);
-  EXPECT_TRUE(box1.max == box.max);
+  EXPECT_TRUE(box1.Min() == box.Min());
+  EXPECT_TRUE(box1.Max() == box.Max());
 }
 
 /////////////////////////////////////////////////
-TEST_F(ExampleBox, GetLength)
+TEST_F(ExampleBox, Length)
 {
-  EXPECT_DOUBLE_EQ(box.GetXLength(), 1);
-  EXPECT_DOUBLE_EQ(box.GetYLength(), 1);
-  EXPECT_DOUBLE_EQ(box.GetZLength(), 1);
+  EXPECT_DOUBLE_EQ(box.XLength(), 1);
+  EXPECT_DOUBLE_EQ(box.YLength(), 1);
+  EXPECT_DOUBLE_EQ(box.ZLength(), 1);
 }
 
 /////////////////////////////////////////////////
-TEST_F(ExampleBox, GetSize)
+TEST_F(ExampleBox, Size)
 {
-  EXPECT_TRUE(box.GetSize() == math::Vector3d(1, 1, 1));
+  EXPECT_TRUE(box.Size() == math::Vector3d(1, 1, 1));
 }
 
 /////////////////////////////////////////////////
-TEST_F(ExampleBox, GetCenter)
+TEST_F(ExampleBox, Center)
 {
-  EXPECT_TRUE(box.GetCenter() == math::Vector3d(0.5, 1.5, 2.5));
+  EXPECT_TRUE(box.Center() == math::Vector3d(0.5, 1.5, 2.5));
 }
 
 /////////////////////////////////////////////////
@@ -127,13 +127,13 @@ TEST(BoxTest, MergeEmpty)
   math::Box box2;
 
   box1.Merge(box2);
-  EXPECT_NEAR(box1.min.x(), 0, 1e-6);
-  EXPECT_NEAR(box1.min.y(), 0, 1e-6);
-  EXPECT_NEAR(box1.min.z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box1.max.x(), 0, 1e-6);
-  EXPECT_NEAR(box1.max.y(), 0, 1e-6);
-  EXPECT_NEAR(box1.max.z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Z(), 0, 1e-6);
 }
 
 /////////////////////////////////////////////////
@@ -143,8 +143,8 @@ TEST(BoxTest, Minus)
   math::Vector3d sub(1, 1, 1);
 
   math::Box box2 = box1 - sub;
-  EXPECT_EQ(box2.min, box1.min - sub);
-  EXPECT_EQ(box2.max, box1.max - sub);
+  EXPECT_EQ(box2.Min(), box1.Min() - sub);
+  EXPECT_EQ(box2.Max(), box1.Max() - sub);
 }
 
 /////////////////////////////////////////////////
@@ -154,22 +154,22 @@ TEST(BoxTest, PlusEmpty)
   math::Box box2;
 
   box1 += box2;
-  EXPECT_NEAR(box1.min.x(), 0, 1e-6);
-  EXPECT_NEAR(box1.min.y(), 0, 1e-6);
-  EXPECT_NEAR(box1.min.z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box1.max.x(), 0, 1e-6);
-  EXPECT_NEAR(box1.max.y(), 0, 1e-6);
-  EXPECT_NEAR(box1.max.z(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box1.Max().Z(), 0, 1e-6);
 
   math::Box box3 = box2 + box1;
-  EXPECT_NEAR(box3.min.x(), 0, 1e-6);
-  EXPECT_NEAR(box3.min.y(), 0, 1e-6);
-  EXPECT_NEAR(box3.min.z(), 0, 1e-6);
+  EXPECT_NEAR(box3.Min().X(), 0, 1e-6);
+  EXPECT_NEAR(box3.Min().Y(), 0, 1e-6);
+  EXPECT_NEAR(box3.Min().Z(), 0, 1e-6);
 
-  EXPECT_NEAR(box3.max.x(), 0, 1e-6);
-  EXPECT_NEAR(box3.max.y(), 0, 1e-6);
-  EXPECT_NEAR(box3.max.z(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().X(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().Y(), 0, 1e-6);
+  EXPECT_NEAR(box3.Max().Z(), 0, 1e-6);
 }
 
 /////////////////////////////////////////////////
@@ -193,6 +193,18 @@ TEST(BoxTest, OperatorEqual)
 }
 
 /////////////////////////////////////////////////
+TEST(BoxTest, OperatorNotEqual)
+{
+  math::Box box = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(3, 3, 3));
+  math::Box box2 = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(1, 3, 3));
+  math::Box box3 = math::Box(math::Vector3d(0, 1, 1), math::Vector3d(1, 3, 3));
+  EXPECT_FALSE(box != math::Box(math::Vector3d(1, 1, 1),
+        math::Vector3d(3, 3, 3)));
+  EXPECT_TRUE(box != box2);
+  EXPECT_TRUE(box3 != box);
+}
+
+/////////////////////////////////////////////////
 TEST(BoxTest, OperatorPlusEqual)
 {
   math::Box box = math::Box(math::Vector3d(1, 1, 1), math::Vector3d(3, 3, 3));
@@ -208,4 +220,32 @@ TEST(BoxTest, OperatorPlus)
   box = box + math::Box(math::Vector3d(-2, -2, -2), math::Vector3d(4, 4, 4));
   EXPECT_TRUE(box == math::Box(math::Vector3d(-2, -2, -2),
                                math::Vector3d(4, 4, 4)));
+}
+
+/////////////////////////////////////////////////
+TEST(BoxTest, Intersects)
+{
+  math::Box box = math::Box(math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(1.1, 0, 0), math::Vector3d(2, 1, 1))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(0, 1.1, 0), math::Vector3d(1, 2, 1))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(0, 0, 1.1), math::Vector3d(1, 1, 2))));
+
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(-0.1, 0, 0))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(0, -0.1, 0))));
+
+  EXPECT_FALSE(box.Intersects(math::Box(
+          math::Vector3d(-1, -1, -1), math::Vector3d(0, 0, -0.1))));
+
+  EXPECT_TRUE(box.Intersects(math::Box(
+          math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1))));
 }

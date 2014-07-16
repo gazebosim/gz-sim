@@ -33,40 +33,40 @@ using namespace math;
 // We don't seed with time for the cases when two processes are started the
 // same time (this mostly happens with launch scripts that start a server
 // and gui simultaneously).
-uint32_t Rand::seed = getpid();
-std::random_device rd;
+uint32_t Rand::seed = std::random_device{}();
 
-GeneratorType *Rand::randGenerator = new GeneratorType(rd());
+GeneratorType *Rand::randGenerator = new GeneratorType(seed);
 
 //////////////////////////////////////////////////
-void Rand::SetSeed(uint32_t _seed)
+void Rand::Seed(unsigned int _seed)
 {
+  std::seed_seq seq{_seed};
   seed = _seed;
-  randGenerator->seed(seed);
+  randGenerator->seed(seq);
 }
 
 //////////////////////////////////////////////////
-uint32_t Rand::GetSeed()
+unsigned int Rand::Seed()
 {
   return seed;
 }
 
 //////////////////////////////////////////////////
-double Rand::GetDblUniform(double _min, double _max)
+double Rand::DblUniform(double _min, double _max)
 {
   UniformRealDist d(_min, _max);
   return d(*randGenerator);
 }
 
 //////////////////////////////////////////////////
-double Rand::GetDblNormal(double _mean, double _sigma)
+double Rand::DblNormal(double _mean, double _sigma)
 {
   NormalRealDist d(_mean, _sigma);
   return d(*randGenerator);
 }
 
 //////////////////////////////////////////////////
-int32_t Rand::GetIntUniform(int _min, int _max)
+int32_t Rand::IntUniform(int _min, int _max)
 {
   UniformIntDist d(_min, _max);
 
@@ -74,7 +74,7 @@ int32_t Rand::GetIntUniform(int _min, int _max)
 }
 
 //////////////////////////////////////////////////
-int32_t Rand::GetIntNormal(int _mean, int _sigma)
+int32_t Rand::IntNormal(int _mean, int _sigma)
 {
   NormalRealDist d(_mean, _sigma);
 

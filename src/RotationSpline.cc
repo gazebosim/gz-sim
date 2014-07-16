@@ -53,7 +53,7 @@ Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
 
 /////////////////////////////////////////////////
 Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
-                                       bool _useShortestPath)
+                                        bool _useShortestPath)
 {
   // Bounds check
   if (_fromIndex >= this->points.size())
@@ -118,20 +118,20 @@ void RotationSpline::RecalcTangents()
   for (i = 0; i < numPoints; ++i)
   {
     Quaterniond &p = this->points[i];
-    invp = p.GetInverse();
+    invp = p.Inverse();
 
     if (i == 0)
     {
       // special case start
-      part1 = (invp * this->points[i+1]).GetLog();
+      part1 = (invp * this->points[i+1]).Log();
       if (isClosed)
       {
         // Use numPoints-2 since numPoints-1 == end == start == this one
-        part2 = (invp * this->points[numPoints-2]).GetLog();
+        part2 = (invp * this->points[numPoints-2]).Log();
       }
       else
       {
-        part2 = (invp * p).GetLog();
+        part2 = (invp * p).Log();
       }
     }
     else if (i == numPoints-1)
@@ -140,27 +140,27 @@ void RotationSpline::RecalcTangents()
       if (isClosed)
       {
         // Wrap to [1] (not [0], this is the same as end == this one)
-        part1 = (invp * this->points[1]).GetLog();
+        part1 = (invp * this->points[1]).Log();
       }
       else
       {
-        part1 = (invp * p).GetLog();
+        part1 = (invp * p).Log();
       }
-      part2 = (invp * this->points[i-1]).GetLog();
+      part2 = (invp * this->points[i-1]).Log();
     }
     else
     {
-      part1 = (invp * this->points[i+1]).GetLog();
-      part2 = (invp * this->points[i-1]).GetLog();
+      part1 = (invp * this->points[i+1]).Log();
+      part2 = (invp * this->points[i-1]).Log();
     }
 
     preExp = (part1 + part2) * -0.25;
-    this->tangents[i] = p * preExp.GetExp();
+    this->tangents[i] = p * preExp.Exp();
   }
 }
 
 /////////////////////////////////////////////////
-const Quaterniond &RotationSpline::GetPoint(unsigned int _index) const
+const Quaterniond &RotationSpline::Point(unsigned int _index) const
 {
   if (_index >= this->points.size())
     throw IndexException();
@@ -169,7 +169,7 @@ const Quaterniond &RotationSpline::GetPoint(unsigned int _index) const
 }
 
 /////////////////////////////////////////////////
-unsigned int RotationSpline::GetNumPoints() const
+unsigned int RotationSpline::PointCount() const
 {
   return this->points.size();
 }
@@ -194,7 +194,7 @@ void RotationSpline::UpdatePoint(unsigned int _index,
 }
 
 /////////////////////////////////////////////////
-void RotationSpline::SetAutoCalculate(bool _autoCalc)
+void RotationSpline::AutoCalculate(bool _autoCalc)
 {
   this->autoCalc = _autoCalc;
 }

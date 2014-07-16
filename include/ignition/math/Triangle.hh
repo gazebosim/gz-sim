@@ -30,7 +30,7 @@ namespace ignition
     /// \class Triangle Triangle.hh ignition/math/Triangle.hh
     /// \brief Triangle class and related functions.
     template<typename T>
-    class IGNITION_VISIBLE Triangle
+    class Triangle
     {
       /// \brief Default constructor
       public: Triangle() = default;
@@ -161,24 +161,24 @@ namespace ignition
         Line2<T> line3(this->pts[2], this->pts[0]);
 
         math::Vector2<T> pt;
-        std::set<math::Vector2<T> > pts;
+        std::set<math::Vector2<T> > points;
 
         if (line1.Intersect(_line, pt))
-          pts.insert(pt);
+          points.insert(pt);
 
         if (line2.Intersect(_line, pt))
-          pts.insert(pt);
+          points.insert(pt);
 
         if (line3.Intersect(_line, pt))
-          pts.insert(pt);
+          points.insert(pt);
 
-        if (pts.empty())
+        if (points.empty())
         {
           return false;
         }
-        else if (pts.size() == 1)
+        else if (points.size() == 1)
         {
-          typename std::set<math::Vector2<T> >::iterator iter = pts.begin();
+          typename std::set<math::Vector2<T> >::iterator iter = points.begin();
 
           _ipt1 = *iter;
           if (this->Contains(_line[0]))
@@ -190,7 +190,7 @@ namespace ignition
         }
         else
         {
-          typename std::set<math::Vector2<T> >::iterator iter = pts.begin();
+          typename std::set<math::Vector2<T> >::iterator iter = points.begin();
           _ipt1 = *(iter++);
           _ipt2 = *iter;
         }
