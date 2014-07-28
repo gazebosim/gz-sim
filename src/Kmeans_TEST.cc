@@ -92,6 +92,13 @@ TEST(KmeansTest, Kmeans)
   obsCopy.clear();
   EXPECT_FALSE(kmeans.Observations(obsCopy));
 
+  // Try to call 'Cluster()' with an empty vector.
+  math::Kmeans kmeansEmpty(obsCopy);
+  EXPECT_FALSE(kmeansEmpty.Cluster(2, centroids, labels));
+
+  // Try to use a non positive k.
+  EXPECT_FALSE(kmeans.Cluster(0, centroids, labels));
+
   // Try to use a k > num_observations.
   EXPECT_FALSE(kmeans.Cluster(obs.size() + 1, centroids, labels));
 }
@@ -101,6 +108,7 @@ TEST(KmeansTest, Append)
 {
   // Create some observations.
   std::vector<math::Vector3d> obs, obs2, obsTotal;
+
   obs.push_back(math::Vector3d(1.0, 1.0, 0.0));
   obs.push_back(math::Vector3d(1.1, 1.0, 0.0));
   obs.push_back(math::Vector3d(1.2, 1.0, 0.0));
@@ -124,4 +132,8 @@ TEST(KmeansTest, Append)
   std::vector<math::Vector3d> obsCopy;
   obsCopy = kmeans.Observations();
   EXPECT_EQ(obsTotal, obsCopy);
+
+  // Append an empty vector.
+  std::vector<math::Vector3d> emptyVector;
+  EXPECT_FALSE(kmeans.AppendObservations(emptyVector));
 }
