@@ -5,6 +5,7 @@ set (sources
   Angle.cc
   Box.cc
   Helpers.cc
+  Kmeans.cc
   Rand.cc
   RotationSpline.cc
   Spline.cc
@@ -15,6 +16,7 @@ set (gtest_sources
   Box_TEST.cc
   Filter_TEST.cc
   Helpers_TEST.cc
+  Kmeans_TEST.cc
   Line2_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
