@@ -5509,7 +5509,7 @@ def ProcessFile(filename, vlevel, extra_check_functions=[]):
         Error(filename, linenum, 'whitespace/newline', 1,
               'Unexpected \\r (^M) found; better to use only \\n')
 
-  sys.stderr.write('Done processing %s\n' % filename)
+  # sys.stderr.write('Done processing %s\n' % filename)
 
 
 def PrintUsage(message):
