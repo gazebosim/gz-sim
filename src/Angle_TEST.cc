@@ -16,9 +16,9 @@
 */
 
 #define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <gtest/gtest.h>
+
+#include <cmath>
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"

@@ -33,7 +33,7 @@ using namespace math;
 // We don't seed with time for the cases when two processes are started the
 // same time (this mostly happens with launch scripts that start a server
 // and gui simultaneously).
-uint32_t Rand::seed = std::random_device{}();
+uint32_t Rand::seed = std::random_device {}();
 
 GeneratorType *Rand::randGenerator = new GeneratorType(seed);
 
