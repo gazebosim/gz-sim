@@ -3768,7 +3768,7 @@ def CheckEmptyBlockBody(filename, clean_lines, linenum, error):
       if matched.group(1) == 'if':
         error(filename, end_linenum, 'whitespace/empty_conditional_body', 5,
               'Empty conditional bodies should use {}')
-      else:
+      elif matched.group(1) != "while":
         error(filename, end_linenum, 'whitespace/empty_loop_body', 5,
               'Empty loop bodies should use {} or continue')
 

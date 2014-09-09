@@ -15,8 +15,8 @@
  *
 */
 
-#include <vector>
 #include <gtest/gtest.h>
+#include <vector>
 #include "ignition/math/Kmeans.hh"
 
 using namespace ignition;
