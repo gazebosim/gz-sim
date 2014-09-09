@@ -450,7 +450,7 @@ _line_length = 80
 
 # The allowed extensions for file names
 # This is set by --extensions flag.
-_valid_extensions = set(['cc', 'h', 'cpp', 'cu', 'cuh'])
+_valid_extensions = set(['cc', 'hh', 'h', 'cpp', 'cu', 'cuh'])
 
 def ParseNolintSuppressions(filename, raw_line, linenum, error):
   """Updates the global list of error-suppressions.
@@ -5331,7 +5331,7 @@ def ProcessLine(filename, file_extension, clean_lines, line,
   CheckPosixThreading(filename, clean_lines, line, error)
   CheckInvalidIncrement(filename, clean_lines, line, error)
   CheckMakePairUsesDeduction(filename, clean_lines, line, error)
-  CheckDefaultLambdaCaptures(filename, clean_lines, line, error)
+  # CheckDefaultLambdaCaptures(filename, clean_lines, line, error)
   for check_fn in extra_check_functions:
     check_fn(filename, clean_lines, line, error)
 	
@@ -5348,19 +5348,15 @@ def FlagCxx11Features(filename, clean_lines, linenum, error):
 
   # Flag unapproved C++11 headers.
   include = Match(r'\s*#\s*include\s+[<"]([^<"]+)[">]', line)
-  if include and include.group(1) in ('cfenv',
-                                      'condition_variable',
-                                      'fenv.h',
-                                      'future',
-                                      'mutex',
-                                      'thread',
-                                      'chrono',
-                                      'ratio',
-                                      'regex',
-                                      'system_error',
-                                     ):
-    error(filename, linenum, 'build/c++11', 5,
-          ('<%s> is an unapproved C++11 header.') % include.group(1))
+  # if include and include.group(1) in ('cfenv',
+  #                                     'condition_variable',
+  #                                     'fenv.h',
+  #                                     'ratio',
+  #                                     'regex',
+  #                                     'system_error',
+  #                                    ):
+  #   error(filename, linenum, 'build/c++11', 5,
+  #         ('<%s> is an unapproved C++11 header.') % include.group(1))
 
   # The only place where we need to worry about C++11 keywords and library
   # features in preprocessor directives is in macro definitions.
