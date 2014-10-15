@@ -19,6 +19,7 @@
 
 #include <map>
 #include <string>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -29,7 +30,7 @@ namespace ignition
 
     /// \class SignalStatistic SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Statistical properties of a discrete time scalar signal.
-    class SignalStatistic
+    class IGNITION_VISIBLE SignalStatistic
     {
       /// \brief Constructor
       public: SignalStatistic();
@@ -63,7 +64,7 @@ namespace ignition
 
     /// \class SignalMean SignalStats.hh math/gzmath.hh
     /// \brief Computing the mean value of a discretely sampled signal.
-    class SignalMean : public SignalStatistic
+    class IGNITION_VISIBLE SignalMean : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -80,7 +81,7 @@ namespace ignition
     /// \class SignalRootMeanSquare SignalStats.hh math/gzmath.hh
     /// \brief Computing the square root of the mean squared value
     /// of a discretely sampled signal.
-    class SignalRootMeanSquare : public SignalStatistic
+    class IGNITION_VISIBLE SignalRootMeanSquare : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -98,7 +99,7 @@ namespace ignition
     /// \brief Computing the maximum of the absolute value
     /// of a discretely sampled signal.
     /// Also known as the maximum norm, infinity norm, or supremum norm.
-    class SignalMaxAbsoluteValue : public SignalStatistic
+    class IGNITION_VISIBLE SignalMaxAbsoluteValue : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -117,7 +118,7 @@ namespace ignition
 
     /// \class SignalStats SignalStats.hh math/gzmath.hh
     /// \brief Collection of statistics for a scalar signal.
-    class SignalStats
+    class IGNITION_VISIBLE SignalStats
     {
       /// \brief Constructor
       public: SignalStats();

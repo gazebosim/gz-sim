@@ -34,12 +34,12 @@ Vector3Stats::~Vector3Stats()
 }
 
 //////////////////////////////////////////////////
-void Vector3Stats::InsertData(const Vector3 &_data)
+void Vector3Stats::InsertData(const Vector3d &_data)
 {
-  this->dataPtr->x.InsertData(_data.x);
-  this->dataPtr->y.InsertData(_data.y);
-  this->dataPtr->z.InsertData(_data.z);
-  this->dataPtr->mag.InsertData(_data.GetLength());
+  this->dataPtr->x.InsertData(_data.X());
+  this->dataPtr->y.InsertData(_data.Y());
+  this->dataPtr->z.InsertData(_data.Z());
+  this->dataPtr->mag.InsertData(_data.Length());
 }
 
 //////////////////////////////////////////////////

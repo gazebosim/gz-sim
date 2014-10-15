@@ -134,9 +134,9 @@ TEST_F(Vector3StatsTest, Vector3Stats)
     EXPECT_EQ(v3stats.Z().Count(), 0u);
     EXPECT_EQ(v3stats.Mag().Count(), 0u);
 
-    v3stats.InsertData(math::Vector3::UnitX);
-    v3stats.InsertData(math::Vector3::UnitX);
-    v3stats.InsertData(math::Vector3::UnitY);
+    v3stats.InsertData(math::Vector3d::UnitX);
+    v3stats.InsertData(math::Vector3d::UnitX);
+    v3stats.InsertData(math::Vector3d::UnitY);
 
     EXPECT_EQ(v3stats.X().Count(), 3u);
     EXPECT_EQ(v3stats.Y().Count(), 3u);
@@ -159,9 +159,9 @@ TEST_F(Vector3StatsTest, Vector3Stats)
     const std::string name("maxAbs");
     EXPECT_TRUE(this->stats.InsertStatistics(name));
 
-    this->stats.InsertData(math::Vector3::UnitX);
-    this->stats.InsertData(math::Vector3::UnitX);
-    this->stats.InsertData(math::Vector3::UnitY);
+    this->stats.InsertData(math::Vector3d::UnitX);
+    this->stats.InsertData(math::Vector3d::UnitX);
+    this->stats.InsertData(math::Vector3d::UnitY);
 
     EXPECT_EQ(this->stats.X().Count(), 3u);
     EXPECT_EQ(this->stats.Y().Count(), 3u);

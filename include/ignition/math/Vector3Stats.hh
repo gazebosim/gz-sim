@@ -18,6 +18,7 @@
 #define _IGNITION_VECTOR3_STATS_HH_
 
 #include <string>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/SignalStats.hh>
 #include <ignition/math/Vector3.hh>
 
@@ -30,7 +31,7 @@ namespace ignition
 
     /// \class Vector3Stats Vector3Stats.hh ignition/math/Vector3Stats.hh
     /// \brief Collection of statistics for a Vector3 signal.
-    class Vector3Stats
+    class IGNITION_VISIBLE Vector3Stats
     {
       /// \brief Constructor
       public: Vector3Stats();
@@ -40,7 +41,7 @@ namespace ignition
 
       /// \brief Add a new sample to the statistical measures.
       /// \param[in] _data New signal data point.
-      public: void InsertData(const Vector3 &_data);
+      public: void InsertData(const Vector3d &_data);
 
       /// \brief Add a new type of statistic.
       /// \param[in] _name Short name of new statistic.
