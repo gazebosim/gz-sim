@@ -8,7 +8,9 @@ set (sources
   Kmeans.cc
   Rand.cc
   RotationSpline.cc
+  SignalStats.cc
   Spline.cc
+  Vector3Stats.cc
 )
 
 set (gtest_sources
@@ -25,10 +27,12 @@ set (gtest_sources
   Quaternion_TEST.cc
   Rand_TEST.cc
   RotationSpline_TEST.cc
+  SignalStats_TEST.cc
   Spline_TEST.cc
   Triangle_TEST.cc
   Vector2_TEST.cc
   Vector3_TEST.cc
+  Vector3Stats_TEST.cc
   Vector4_TEST.cc
 )
 
