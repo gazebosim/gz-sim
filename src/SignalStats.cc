@@ -17,8 +17,8 @@
 #include <cmath>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
-#include "ignition/math/SignalStatsPrivate.hh"
-#include "ignition/math/SignalStats.hh"
+#include <ignition/math/SignalStatsPrivate.hh>
+#include <ignition/math/SignalStats.hh>
 
 using namespace ignition;
 using namespace math;
@@ -34,6 +34,8 @@ SignalStatistic::SignalStatistic()
 //////////////////////////////////////////////////
 SignalStatistic::~SignalStatistic()
 {
+  delete this->dataPtr;
+  this->dataPtr = 0;
 }
 
 //////////////////////////////////////////////////

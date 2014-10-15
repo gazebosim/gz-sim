@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#include "gazebo/math/Vector3StatsPrivate.hh"
-#include "gazebo/math/Vector3Stats.hh"
+#include <ignition/math/Vector3StatsPrivate.hh>
+#include <ignition/math/Vector3Stats.hh>
 
-using namespace gazebo;
+using namespace ignition;
 using namespace math;
 
 //////////////////////////////////////////////////
@@ -29,6 +29,8 @@ Vector3Stats::Vector3Stats()
 //////////////////////////////////////////////////
 Vector3Stats::~Vector3Stats()
 {
+  delete this->dataPtr;
+  this->dataPtr = 0;
 }
 
 //////////////////////////////////////////////////

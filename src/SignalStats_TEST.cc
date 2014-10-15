@@ -17,14 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include "gazebo/math/SignalStats.hh"
-#include "test/util.hh"
+#include <ignition/math/SignalStats.hh>
 
-using namespace gazebo;
+using namespace ignition;
 
-class SignalStatsTest : public gazebo::testing::AutoLogFixture { };
-
-TEST_F(SignalStatsTest, SignalMean)
+TEST(SignalStatsTest, SignalMean)
 {
   {
     // Constructor
@@ -92,7 +89,7 @@ TEST_F(SignalStatsTest, SignalMean)
   }
 }
 
-TEST_F(SignalStatsTest, SignalRootMeanSquare)
+TEST(SignalStatsTest, SignalRootMeanSquare)
 {
   {
     // Constructor
@@ -163,7 +160,7 @@ TEST_F(SignalStatsTest, SignalRootMeanSquare)
   }
 }
 
-TEST_F(SignalStatsTest, SignalMaxAbsoluteValue)
+TEST(SignalStatsTest, SignalMaxAbsoluteValue)
 {
   {
     // Constructor
@@ -234,7 +231,7 @@ TEST_F(SignalStatsTest, SignalMaxAbsoluteValue)
   }
 }
 
-TEST_F(SignalStatsTest, SignalStats)
+TEST(SignalStatsTest, SignalStats)
 {
   {
     // Constructor

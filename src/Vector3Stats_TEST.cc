@@ -17,12 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include "gazebo/math/Vector3Stats.hh"
-#include "test/util.hh"
+#include <ignition/math/Vector3Stats.hh>
 
-using namespace gazebo;
+using namespace ignition;
 
-class Vector3StatsTest : public gazebo::testing::AutoLogFixture
+class Vector3StatsTest : public ::testing::Test
 {
   /// \brief Get X value of statistic _name.
   public: double X(const std::string &_name) const;
