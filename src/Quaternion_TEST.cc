@@ -137,7 +137,7 @@ TEST(QuaternionTest, Math)
 
   EXPECT_TRUE(math::equal(q.Roll(), 1.4289, 1e-3));
   EXPECT_TRUE(math::equal(q.Pitch(), -0.339837, 1e-3));
-  EXPECT_TRUE(math::equal(q.YaW(), 2.35619, 1e-3));
+  EXPECT_TRUE(math::equal(q.Yaw(), 2.35619, 1e-3));
 
   math::Vector3d axis;
   double angle;
