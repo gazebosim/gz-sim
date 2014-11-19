@@ -33,7 +33,7 @@ namespace ignition
       public: Box();
 
       /// \brief Constructor. This constructor will compute the box's
-      /// minumum and maximum corners based on the two arguments.
+      /// minimum and maximum corners based on the two arguments.
       /// \param[in] _vec1 One corner of the box
       /// \param[in] _vec2 Another corner of the box
       public: Box(const Vector3d &_vec1, const Vector3d &_vec2);
