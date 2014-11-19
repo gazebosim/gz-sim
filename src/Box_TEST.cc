@@ -33,7 +33,7 @@ class ExampleBox : public ::testing::Test
   protected:
     virtual void SetUp()
     {
-       box = math::Box(math::Vector3d(0, 1, 2), math::Vector3d(1, 2, 3));
+       box = math::Box(math::Vector3d(0, -1, 2), math::Vector3d(1, -2, 3));
     }
 
     math::Box box;
@@ -88,8 +88,8 @@ TEST(BoxTest, EmptyConstructor)
 /////////////////////////////////////////////////
 TEST_F(ExampleBox, Constructor)
 {
-  EXPECT_EQ(box.Min(), math::Vector3d(0, 1, 2));
-  EXPECT_EQ(box.Max(), math::Vector3d(1, 2, 3));
+  EXPECT_EQ(box.Min(), math::Vector3d(0, -2, 2));
+  EXPECT_EQ(box.Max(), math::Vector3d(1, -1, 3));
 }
 
 /////////////////////////////////////////////////
@@ -117,7 +117,7 @@ TEST_F(ExampleBox, Size)
 /////////////////////////////////////////////////
 TEST_F(ExampleBox, Center)
 {
-  EXPECT_TRUE(box.Center() == math::Vector3d(0.5, 1.5, 2.5));
+  EXPECT_TRUE(box.Center() == math::Vector3d(0.5, -1.5, 2.5));
 }
 
 /////////////////////////////////////////////////
@@ -176,7 +176,7 @@ TEST(BoxTest, PlusEmpty)
 TEST_F(ExampleBox, Merge)
 {
   box.Merge(math::Box(math::Vector3d(-1, -1, -1), math::Vector3d(2, 2, 2)));
-  EXPECT_TRUE(box == math::Box(math::Vector3d(-1, -1, -1),
+  EXPECT_TRUE(box == math::Box(math::Vector3d(-1, -2, -1),
                                math::Vector3d(2, 2, 3)));
 }
 
