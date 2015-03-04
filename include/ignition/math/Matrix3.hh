@@ -322,6 +322,41 @@ namespace ignition
         return this->data[_row][_col];
       }
 
+      /// \brief Return the inverse matrix
+      /// \return Inverse of this matrix.
+      public: Matrix3<T> Inverse() const
+      {
+        double t0 = this->data[2][2]*this->data[1][1] -
+                    this->data[2][1]*this->data[1][2];
+
+        double t1 = -(this->data[2][2]*this->data[1][0] -
+                      this->data[2][0]*this->data[1][2]);
+
+        double t2 = this->data[2][1]*this->data[1][0] -
+                    this->data[2][0]*this->data[1][1];
+
+        double invDet = 1.0 / (t0 * this->data[0][0] +
+                               t1 * this->data[0][1] +
+                               t2 * this->data[0][2]);
+
+        return invDet * Matrix3<T>(
+          t0,
+          - (this->data[2][2] * this->data[0][1] -
+             this->data[2][1] * this->data[0][2]),
+          + (this->data[1][2] * this->data[0][1] -
+             this->data[1][1] * this->data[0][2]),
+          t1,
+          + (this->data[2][2] * this->data[0][0] -
+             this->data[2][0] * this->data[0][2]),
+          - (this->data[1][2] * this->data[0][0] -
+             this->data[1][0] * this->data[0][2]),
+          t2,
+          - (this->data[2][1] * this->data[0][0] -
+             this->data[2][0] * this->data[0][1]),
+          + (this->data[1][1] * this->data[0][0] -
+             this->data[1][0] * this->data[0][1]));
+      }
+
       /// \brief Stream insertion operator
       /// \param[in] _out Output stream
       /// \param[in] _m Matrix to output
