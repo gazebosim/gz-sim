@@ -250,3 +250,23 @@ TEST(Matrix3dTest, NotEqual)
     EXPECT_FALSE(matrix1 != matrix2);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Inverse)
+{
+  // Inverse of identity matrix is itself
+  EXPECT_EQ(math::Matrix3d::Identity, math::Matrix3d::Identity.Inverse());
+
+  // Matrix multiplied by its inverse results in the identity matrix
+  math::Matrix3d matrix1(-2, 4, 0, 0.1, 9, 55, -7, 1, 26);
+  math::Matrix3d matrix2 = matrix1.Inverse();
+  EXPECT_EQ(matrix1 * matrix2, math::Matrix3d::Identity);
+  EXPECT_EQ(matrix2 * matrix1, math::Matrix3d::Identity);
+
+  // Inverse of inverse results in the same matrix
+  EXPECT_EQ((matrix1.Inverse()).Inverse(), matrix1);
+
+  // Invert multiplication by scalar
+  double scalar = 2.5;
+  EXPECT_EQ((matrix1 * scalar).Inverse(), matrix1.Inverse() * (1.0/scalar));
+}
