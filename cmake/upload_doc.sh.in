@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Check if the node was configured to use s3cmd
+# This is done by running s3cmd --configure
+if [ ! -f "${HOME}/.s3cfg" ]; then
+    echo "No $HOME/.s3cfg file found. Please config the software first in your system"
+    exit 1
+fi
+
+# Make documentation if not build
+if [ ! -f "@CMAKE_BINARY_DIR@/doxygen/html/index.html" ]; then
+  make doc
+  if [ ! -f "@CMAKE_BINARY_DIR@/doxygen/html/index.html" ]; then
+    echo "Documentation not present. Install doxygen, and run `make doc` in the build directory"
+    exit 1
+  fi
+fi
+
+# Dry run
+s3cmd sync @CMAKE_BINARY_DIR@/doxygen/html/* s3://osrf-distributions/ign-@IGN_PROJECT_NAME@/api/@PROJECT_VERSION_FULL@/ --dry-run -v
+
+echo -n "Upload (Y/n)? "
+read ans
+
+if [ "$ans" = "n" ] || [ "$ans" = "N" ]; then
+  exit 1
+else
+  s3cmd sync @CMAKE_BINARY_DIR@/doxygen/html/* s3://osrf-distributions/ign-@IGN_PROJECT_NAME@/api/@PROJECT_VERSION_FULL@/ -v
+fi
