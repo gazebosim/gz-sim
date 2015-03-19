@@ -17,7 +17,7 @@ if [ ! -f "@CMAKE_BINARY_DIR@/doxygen/html/index.html" ]; then
 fi
 
 # Dry run
-s3cmd sync /home/nkoenig/work/ignition/ign-math/build/doxygen/html/* s3://osrf-distributions/ign-math/api/1.0.0/ --dry-run -v
+s3cmd sync @CMAKE_BINARY_DIR@/doxygen/html/* s3://osrf-distributions/ign-@IGN_PROJECT_NAME@/api/@PROJECT_VERSION_FULL@/ --dry-run -v
 
 echo -n "Upload (Y/n)? "
 read ans
@@ -25,5 +25,5 @@ read ans
 if [ "$ans" = "n" ] || [ "$ans" = "N" ]; then
   exit 1
 else
-  s3cmd sync /home/nkoenig/work/ignition/ign-math/build/doxygen/html/* s3://osrf-distributions/ign-math/api/1.0.0/
+  s3cmd sync @CMAKE_BINARY_DIR@/doxygen/html/* s3://osrf-distributions/ign-@IGN_PROJECT_NAME@/api/@PROJECT_VERSION_FULL@/ -v
 fi
