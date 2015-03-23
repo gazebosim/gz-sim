@@ -7,4 +7,4 @@ Description: A set of math classes for robot applications
 Version: @PROJECT_VERSION_FULL@
 Requires:
 Libs: -L${libdir} -lignition-math
-CFlags: -I${includedir}
+CFlags: -I${includedir} -std=c++11
