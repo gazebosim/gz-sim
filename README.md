@@ -1,5 +1,6 @@
 # Ignition Math 
 
+
 **Math classes and functions for robot applications.**
 
 Ignition Math is a component in the Ignition framework, a set of libraries
