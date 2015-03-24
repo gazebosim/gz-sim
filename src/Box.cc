@@ -27,18 +27,26 @@ Box::Box()
 }
 
 //////////////////////////////////////////////////
-Box::Box(double _minX, double _minY, double _minZ,
-         double _maxX, double _maxY, double _maxZ)
-: min(_minX, _minY, _minZ),
-  max(_maxX, _maxY, _maxZ),
-  extent(EXTENT_FINITE)
+Box::Box(double _vec1X, double _vec1Y, double _vec1Z,
+         double _vec2X, double _vec2Y, double _vec2Z)
+: extent(EXTENT_FINITE)
 {
+  this->min.Set(_vec1X, _vec1Y, _vec1Z);
+  this->max.Set(_vec2X, _vec2Y, _vec2Z);
+
+  this->min.Min(math::Vector3d(_vec2X, _vec2Y, _vec2Z));
+  this->max.Max(math::Vector3d(_vec1X, _vec1Y, _vec1Z));
 }
 
 //////////////////////////////////////////////////
-Box::Box(const Vector3d &_min, const Vector3d &_max)
-  : min(_min), max(_max), extent(EXTENT_FINITE)
+Box::Box(const Vector3d &_vec1, const Vector3d &_vec2)
+: extent(EXTENT_FINITE)
 {
+  this->min = _vec1;
+  this->min.Min(_vec2);
+
+  this->max = _vec2;
+  this->max.Max(_vec1);
 }
 
 //////////////////////////////////////////////////
@@ -81,9 +89,7 @@ math::Vector3d Box::Size() const
 //////////////////////////////////////////////////
 math::Vector3d Box::Center() const
 {
-  Vector3d size = this->Size();
-  size /= 2.0;
-  return this->min + size;
+  return this->min + (this->max - this->min) * 0.5;
 }
 
 

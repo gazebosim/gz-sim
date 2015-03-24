@@ -365,21 +365,21 @@ namespace ignition
 
       /// \brief Get the Euler roll angle in radians
       /// \return the roll
-      public: T Roll()
+      public: T Roll() const
       {
         return this->Euler().X();
       }
 
       /// \brief Get the Euler pitch angle in radians
       /// \return the pitch
-      public: T Pitch()
+      public: T Pitch() const
       {
         return this->Euler().Y();
       }
 
       /// \brief Get the Euler yaw angle in radians
       /// \return the yaw
-      public: T YaW()
+      public: T Yaw() const
       {
         return this->Euler().Z();
       }

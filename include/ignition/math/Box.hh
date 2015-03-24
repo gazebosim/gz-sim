@@ -32,20 +32,22 @@ namespace ignition
       /// \brief Default constructor
       public: Box();
 
-      /// \brief Constructor
-      /// \param[in] _min Minimum corner of the box
-      /// \param[in] _max Maximum corner of the box
-      public: Box(const Vector3d &_min, const Vector3d &_max);
+      /// \brief Constructor. This constructor will compute the box's
+      /// minimum and maximum corners based on the two arguments.
+      /// \param[in] _vec1 One corner of the box
+      /// \param[in] _vec2 Another corner of the box
+      public: Box(const Vector3d &_vec1, const Vector3d &_vec2);
 
-      /// \brief Constructor
-      /// \param[in] _minX Minimum X corner of the box
-      /// \param[in] _minY Minimum Y corner of the box
-      /// \param[in] _minZ Minimum Z corner of the box
-      /// \param[in] _maxX Maximum X corner of the box
-      /// \param[in] _maxY Maximum Y corner of the box
-      /// \param[in] _maxZ Maximum Z corner of the box
-      public: Box(double _minX, double _minY, double _minZ,
-                  double _maxX, double _maxY, double _maxZ);
+      /// \brief Constructor. This constructor will compute the box's
+      /// minimum and maximum corners based on the arguments.
+      /// \param[in] _vec1X One corner's X position
+      /// \param[in] _vec1Y One corner's Y position
+      /// \param[in] _vec1Z One corner's Z position
+      /// \param[in] _vec2X Other corner's X position
+      /// \param[in] _vec2Y Other corner's Y position
+      /// \param[in] _vec2Z Other corner's Z position
+      public: Box(double _vec1X, double _vec1Y, double _vec1Z,
+                  double _vec2X, double _vec2Y, double _vec2Z);
 
       /// \brief Copy Constructor
       /// \param[in]  _b Box to copy
