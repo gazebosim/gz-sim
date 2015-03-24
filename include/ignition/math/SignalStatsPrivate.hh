@@ -37,7 +37,7 @@ namespace ignition
     class SignalStatistic;
 
     /// \def SignalStatisticPtr
-    /// \brief Boost shared pointer to SignalStatistic object
+    /// \brief Shared pointer to SignalStatistic object
     typedef std::shared_ptr<SignalStatistic> SignalStatisticPtr;
 
     /// \def SignalStatistic_V
