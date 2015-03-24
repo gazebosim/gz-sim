@@ -281,15 +281,17 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_TRUE(stats.Map().empty());
 
     EXPECT_TRUE(stats.InsertStatistics("maxAbs,rms"));
+    EXPECT_EQ(stats.Map().size(), 2u);
     EXPECT_FALSE(stats.InsertStatistics("maxAbs,rms"));
     EXPECT_FALSE(stats.InsertStatistics("maxAbs"));
     EXPECT_FALSE(stats.InsertStatistics("rms"));
-    EXPECT_FALSE(stats.Map().empty());
+    EXPECT_EQ(stats.Map().size(), 2u);
 
     EXPECT_FALSE(stats.InsertStatistics("mean,FakeStatistic"));
-    EXPECT_FALSE(stats.Map().empty());
+    EXPECT_EQ(stats.Map().size(), 3u);
 
     EXPECT_FALSE(stats.InsertStatistics("FakeStatistic"));
+    EXPECT_EQ(stats.Map().size(), 3u);
 
     // Map with no data
     std::map<std::string, double> map = stats.Map();
