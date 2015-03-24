@@ -93,6 +93,44 @@ TEST(QuaternionTest, Identity)
   EXPECT_TRUE(math::equal(q.Z(), 0.0));
 }
 
+//////////////////////////////////////////////////
+TEST(QuaternionTest, Integrate)
+{
+  // Integrate by zero, expect no change
+  {
+    const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::Zero, 1.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitX, 0.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitY, 0.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitZ, 0.0));
+  }
+
+  // Integrate along single axes,
+  // expect linear change in roll, pitch, yaw
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    math::Quaterniond qRoll  = q.Integrate(math::Vector3d::UnitX, 1.0);
+    math::Quaterniond qPitch = q.Integrate(math::Vector3d::UnitY, 1.0);
+    math::Quaterniond qYaw   = q.Integrate(math::Vector3d::UnitZ, 1.0);
+    EXPECT_EQ(qRoll.Euler(),  math::Vector3d::UnitX);
+    EXPECT_EQ(qPitch.Euler(), math::Vector3d::UnitY);
+    EXPECT_EQ(qYaw.Euler(),   math::Vector3d::UnitZ);
+  }
+
+  // Integrate a full rotation about different axes,
+  // expect no change.
+  {
+    const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
+    const double fourPi = 4 * M_PI;
+    math::Quaterniond qX = q.Integrate(math::Vector3d::UnitX, fourPi);
+    math::Quaterniond qY = q.Integrate(math::Vector3d::UnitY, fourPi);
+    math::Quaterniond qZ = q.Integrate(math::Vector3d::UnitZ, fourPi);
+    EXPECT_EQ(q, qX);
+    EXPECT_EQ(q, qY);
+    EXPECT_EQ(q, qZ);
+  }
+}
+
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Math)
 {

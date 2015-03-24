@@ -738,6 +738,38 @@ namespace ignition
         }
       }
 
+      /// \brief Integrate quaternion for constant angular velocity vector
+      /// along specified interval `_deltaT`.
+      /// Implementation based on:
+      /// http://physicsforgames.blogspot.com/2010/02/quaternions.html
+      /// \param[in] _angularVelocity Angular velocity vector, specified in
+      /// same reference frame as base of this quaternion.
+      /// \param[in] _deltaT Time interval in seconds to integrate over.
+      /// \return Quaternion at integrated configuration.
+      public: Quaternion<T> Integrate(const Vector3<T> &_angularVelocity,
+                                      const T _deltaT) const
+      {
+        Quaternion<T> deltaQ;
+        Vector3<T> theta = _angularVelocity * _deltaT * 0.5;
+        T thetaMagSq = theta.SquaredLength();
+        T s;
+        if (thetaMagSq * thetaMagSq / 24.0 < IGN_DBL_MIN)
+        {
+          deltaQ.W() = 1.0 - thetaMagSq / 2.0;
+          s = 1.0 - thetaMagSq / 6.0;
+        }
+        else
+        {
+          double thetaMag = sqrt(thetaMagSq);
+          deltaQ.W() = cos(thetaMag);
+          s = sin(thetaMag) / thetaMag;
+        }
+        deltaQ.X() = theta.X() * s;
+        deltaQ.Y() = theta.Y() * s;
+        deltaQ.Z() = theta.Z() * s;
+        return deltaQ * (*this);
+      }
+
       /// \brief Get the w component.
       /// \return The w quaternion component.
       public: inline const T &W() const
