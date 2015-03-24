@@ -117,6 +117,70 @@ TEST(QuaternionTest, Integrate)
     EXPECT_EQ(qYaw.Euler(),   math::Vector3d::UnitZ);
   }
 
+  // Integrate sequentially along single axes in order XYZ,
+  // expect rotations to match Euler Angles
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXY  = qX.Integrate(math::Vector3d::UnitY, angle);
+    EXPECT_EQ(qXY.Euler(), angle*math::Vector3d(1, 1, 0));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXZ  = qX.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qXZ.Euler(), angle*math::Vector3d(1, 0, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qY   = q.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qYZ  = qY.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qYZ.Euler(), angle*math::Vector3d(0, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXY  = qX.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qXYZ = qXY.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qXYZ.Euler(), angle*math::Vector3d::One);
+  }
+
+  // Integrate sequentially along single axes in order ZYX,
+  // expect rotations to not match Euler Angles
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZY  = qZ.Integrate(math::Vector3d::UnitY, angle);
+    EXPECT_NE(qZY.Euler(), angle*math::Vector3d(0, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZX  = qZ.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qZX.Euler(), angle*math::Vector3d(1, 0, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZY  = qZ.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qZYX = qZY.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qZYX.Euler(), angle*math::Vector3d(1, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qY   = q.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qYX  = qY.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qYX.Euler(), angle*math::Vector3d(1, 1, 0));
+  }
+
   // Integrate a full rotation about different axes,
   // expect no change.
   {
