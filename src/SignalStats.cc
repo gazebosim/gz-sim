@@ -16,7 +16,6 @@
 */
 #include <cmath>
 #include <iostream>
-#include <boost/algorithm/string.hpp>
 #include <ignition/math/SignalStatsPrivate.hh>
 #include <ignition/math/SignalStats.hh>
 
@@ -144,10 +143,9 @@ size_t SignalStats::Count() const
 std::map<std::string, double> SignalStats::Map() const
 {
   std::map<std::string, double> map;
-  for (SignalStatistic_V::const_iterator iter = this->dataPtr->stats.begin();
-       iter != this->dataPtr->stats.end(); ++iter)
+  for (auto const &statistic : this->dataPtr->stats)
   {
-    map[(*iter)->ShortName()] = (*iter)->Value();
+    map[statistic->ShortName()] = statistic->Value();
   }
   return map;
 }
@@ -155,10 +153,9 @@ std::map<std::string, double> SignalStats::Map() const
 //////////////////////////////////////////////////
 void SignalStats::InsertData(const double _data)
 {
-  for (SignalStatistic_V::iterator iter = this->dataPtr->stats.begin();
-       iter != this->dataPtr->stats.end(); ++iter)
+  for (auto &statistic : this->dataPtr->stats)
   {
-    (*iter)->InsertData(_data);
+    statistic->InsertData(_data);
   }
 }
 
@@ -167,7 +164,7 @@ bool SignalStats::InsertStatistic(const std::string &_name)
 {
   // Check if the statistic is already inserted
   {
-    std::map<std::string, double> map = this->Map();
+    auto map = this->Map();
     if (map.find(_name) != map.end())
     {
       std::cerr << "Unable to InsertStatistic ["
@@ -219,11 +216,27 @@ bool SignalStats::InsertStatistics(const std::string &_names)
 
   bool result = true;
   std::vector<std::string> names;
-  boost::split(names, _names, boost::is_any_of(","));
-  for (std::vector<std::string>::iterator iter = names.begin();
-       iter != names.end(); ++iter)
+  // Replace the following with std::string functions
+  // boost::split(names, _names, boost::is_any_of(","));
+  // std::regex_token_iterator may be considered when it
+  // is supported by gcc
   {
-    result = result && this->InsertStatistic(*iter);
+    std::string::size_type start = 0;
+    std::string::size_type end = _names.find(',', start);
+    while (end != std::string::npos)
+    {
+      names.push_back(_names.substr(start, end-start));
+      start = end + 1;
+      end = _names.find(',', start);
+    }
+    if (start < _names.length())
+    {
+      names.push_back(_names.substr(start));
+    }
+  }
+  for (auto const &name : names)
+  {
+    result = result && this->InsertStatistic(name);
   }
   return result;
 }
@@ -231,10 +244,9 @@ bool SignalStats::InsertStatistics(const std::string &_names)
 //////////////////////////////////////////////////
 void SignalStats::Reset()
 {
-  for (SignalStatistic_V::iterator iter = this->dataPtr->stats.begin();
-       iter != this->dataPtr->stats.end(); ++iter)
+  for (auto &statistic : this->dataPtr->stats)
   {
-    (*iter)->Reset();
+    statistic->Reset();
   }
 }
 
