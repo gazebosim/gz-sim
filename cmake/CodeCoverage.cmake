@@ -96,7 +96,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 	ENDIF() # NOT LCOV_PATH
 
   IF(NOT GREP_PATH)
-    MESSAGE(FATAL_ERROR "grep not found! Run code check on linux or mac.")
+    MESSAGE(FATAL_ERROR "grep not found! Run code coverage on linux or mac.")
   ENDIF()
 
 	IF(NOT GENHTML_PATH)
