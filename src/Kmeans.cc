@@ -143,7 +143,10 @@ bool Kmeans::Cluster(int _k,
 
     // Update the centroids.
     for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
-      this->dataPtr->centroids[i] = this->dataPtr->sums[i] / this->dataPtr->counters[i];
+    {
+      this->dataPtr->centroids[i] =
+        this->dataPtr->sums[i] / this->dataPtr->counters[i];
+    }
   }
   while (changed > (this->dataPtr->obs.size() >> 10));
 
