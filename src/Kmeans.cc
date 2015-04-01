@@ -26,14 +26,22 @@ using namespace math;
 
 //////////////////////////////////////////////////
 Kmeans::Kmeans(const std::vector<Vector3d> &_obs)
+: dataPtr(new KmeansPrivate)
 {
   this->Observations(_obs);
 }
 
 //////////////////////////////////////////////////
+Kmeans::~Kmeans()
+{
+  delete this->dataPtr;
+  this->dataPtr = NULL;
+}
+
+//////////////////////////////////////////////////
 std::vector<Vector3d> Kmeans::Observations() const
 {
-  return this->obs;
+  return this->dataPtr->obs;
 }
 
 //////////////////////////////////////////////////
@@ -45,7 +53,7 @@ bool Kmeans::Observations(const std::vector<Vector3d> &_obs)
               << std::endl;
     return false;
   }
-  this->obs = _obs;
+  this->dataPtr->obs = _obs;
   return true;
 }
 
@@ -58,7 +66,7 @@ bool Kmeans::AppendObservations(const std::vector<Vector3d> &_obs)
               << std::endl;
     return false;
   }
-  this->obs.insert(this->obs.end(), _obs.begin(), _obs.end());
+  this->dataPtr->obs.insert(this->dataPtr->obs.end(), _obs.begin(), _obs.end());
   return true;
 }
 
@@ -68,7 +76,7 @@ bool Kmeans::Cluster(int _k,
                      std::vector<unsigned int> &_labels)
 {
   // Sanity check.
-  if (this->obs.empty())
+  if (this->dataPtr->obs.empty())
   {
     std::cerr << "Kmeans error: The set of observations is empty" << std::endl;
     return false;
@@ -82,65 +90,65 @@ bool Kmeans::Cluster(int _k,
     return false;
   }
 
-  if (_k > static_cast<int>(this->obs.size()))
+  if (_k > static_cast<int>(this->dataPtr->obs.size()))
   {
     std::cerr << "Kmeans error: The number of clusters [" << _k << "] has to be"
               << " lower or equal to the number of observations ["
-              << this->obs.size() << "]" << std::endl;
+              << this->dataPtr->obs.size() << "]" << std::endl;
     return false;
   }
 
   size_t changed = 0;
 
   // Initialize the size of the vectors;
-  this->centroids.clear();
-  this->labels.resize(this->obs.size());
-  this->sums.resize(_k);
-  this->counters.resize(_k);
+  this->dataPtr->centroids.clear();
+  this->dataPtr->labels.resize(this->dataPtr->obs.size());
+  this->dataPtr->sums.resize(_k);
+  this->dataPtr->counters.resize(_k);
 
   for (auto i = 0; i < _k; ++i)
   {
     // Choose a random observation and make sure it has not been chosen before.
     // Note: This is not really random but it's faster than choosing a random
     // one and verifying that it was not taken before.
-    this->centroids.push_back(this->obs[i]);
+    this->dataPtr->centroids.push_back(this->dataPtr->obs[i]);
   }
 
   // Initialize labels.
-  for (auto i = 0; i < this->obs.size(); ++i)
-    this->labels[i] = 0;
+  for (auto i = 0; i < this->dataPtr->obs.size(); ++i)
+    this->dataPtr->labels[i] = 0;
 
   do
   {
     // Reset sums and counters.
-    for (auto i = 0; i < this->centroids.size(); ++i)
+    for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
     {
-      this->sums[i] = Vector3d::Zero;
-      this->counters[i] = 0;
+      this->dataPtr->sums[i] = Vector3d::Zero;
+      this->dataPtr->counters[i] = 0;
     }
     changed = 0;
 
-    for (auto i = 0; i < this->obs.size(); ++i)
+    for (auto i = 0; i < this->dataPtr->obs.size(); ++i)
     {
       // Update the labels containing the closest centroid for each point.
-      auto label = this->ClosestCentroid(this->obs[i]);
-      if (this->labels[i] != label)
+      auto label = this->ClosestCentroid(this->dataPtr->obs[i]);
+      if (this->dataPtr->labels[i] != label)
       {
-        this->labels[i] = label;
+        this->dataPtr->labels[i] = label;
         changed++;
       }
-      this->sums[label] += this->obs[i];
-      this->counters[label]++;
+      this->dataPtr->sums[label] += this->dataPtr->obs[i];
+      this->dataPtr->counters[label]++;
     }
 
     // Update the centroids.
-    for (auto i = 0; i < this->centroids.size(); ++i)
-      this->centroids[i] = this->sums[i] / this->counters[i];
+    for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
+      this->dataPtr->centroids[i] = this->dataPtr->sums[i] / this->dataPtr->counters[i];
   }
-  while (changed > (this->obs.size() >> 10));
+  while (changed > (this->dataPtr->obs.size() >> 10));
 
-  _centroids = this->centroids;
-  _labels = this->labels;
+  _centroids = this->dataPtr->centroids;
+  _labels = this->dataPtr->labels;
   return true;
 }
 
@@ -149,9 +157,9 @@ unsigned int Kmeans::ClosestCentroid(const Vector3d &_p) const
 {
   double min = HUGE_VAL;
   unsigned int minIdx = 0;
-  for (auto i = 0; i < this->centroids.size(); ++i)
+  for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
   {
-    double d = _p.Distance(this->centroids[i]);
+    double d = _p.Distance(this->dataPtr->centroids[i]);
     if (d < min)
     {
       min = d;
