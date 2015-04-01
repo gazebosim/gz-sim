@@ -21,6 +21,12 @@ using namespace ignition;
 using namespace math;
 
 //////////////////////////////////////////////////
+BoxPrivate::BoxPrivate()
+: min(0, 0, 0), max(0, 0, 0), extent(EXTENT_NULL)
+{
+}
+
+//////////////////////////////////////////////////
 Box::Box()
 : dataPtr(new BoxPrivate)
 {

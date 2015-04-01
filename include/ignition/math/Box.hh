@@ -30,7 +30,7 @@ namespace ignition
     class BoxPrivate
     {
       /// \brief Constructor
-      public: BoxPrivate() : min(0, 0, 0), max(0, 0, 0), extent(EXTENT_NULL) {}
+      public: BoxPrivate();
 
       /// \brief Enumeration of extents
       public: enum Extent {EXTENT_NULL, EXTENT_FINITE};
