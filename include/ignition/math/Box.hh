@@ -25,6 +25,27 @@ namespace ignition
 {
   namespace math
   {
+    /// \internal
+    /// \brief Private data for Box class
+    class BoxPrivate
+    {
+      /// \brief Constructor
+      public: BoxPrivate() : min(0, 0, 0), max(0, 0, 0), extent(EXTENT_NULL) {}
+
+      /// \brief Enumeration of extents
+      public: enum Extent {EXTENT_NULL, EXTENT_FINITE};
+
+      /// \brief Minimum corner of the box
+      public: Vector3d min;
+
+      /// \brief Maximum corner of the box
+      public: Vector3d max;
+
+      /// \brief When set to EXTENT_NULL (in the default constructor)
+      /// the min and max are not valid positions
+      public: Extent extent;
+    };
+
     /// \class Box Box.hh ignition/math/Box.hh
     /// \brief Mathematical representation of a box and related functions.
     class IGNITION_VISIBLE Box
@@ -117,38 +138,26 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const ignition::math::Box &_b)
       {
-        _out << "Min[" << _b.min << "] Max[" << _b.max << "]";
+        _out << "Min[" << _b.dataPtr->min << "] Max[" << _b.dataPtr->max << "]";
 
         return _out;
       }
 
       /// \brief Get the minimum corner.
       /// \return The Vector3d that is the minimum corner of the box.
-      public: const Vector3d &Min() const
-      {
-        return this->min;
-      }
+      public: const Vector3d &Min() const;
 
       /// \brief Get the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: const Vector3d &Max() const
-      {
-        return this->max;
-      }
+      public: const Vector3d &Max() const;
 
       /// \brief Get a mutable version of the minimum corner.
       /// \return The Vector3d that is the minimum corner of the box.
-      public: Vector3d &Min()
-      {
-        return this->min;
-      }
+      public: Vector3d &Min();
 
       /// \brief Get a mutable version of the maximum corner.
       /// \return The Vector3d that is the maximum corner of the box.
-      public: Vector3d &Max()
-      {
-        return this->max;
-      }
+      public: Vector3d &Max();
 
       /// \brief Test box intersection. This test will only work if
       /// both box's minimum corner is less than or equal to their
@@ -157,18 +166,8 @@ namespace ignition
       /// \return True if this box intersects _box.
       public: bool Intersects(const Box &_box) const;
 
-      /// \brief Minimum corner of the box
-      private: Vector3d min;
-
-      /// \brief Maximum corner of the box
-      private: Vector3d max;
-
-      /// \brief Enumeration of extents
-      private: enum Extent {EXTENT_NULL, EXTENT_FINITE};
-
-      /// \brief When set to EXTENT_NULL (in the default constructor)
-      /// the min and max are not valid positions
-      private: Extent extent;
+      /// \brief Private data pointer
+      private: BoxPrivate *dataPtr;
     };
   }
 }
