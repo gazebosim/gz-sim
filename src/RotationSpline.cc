@@ -15,15 +15,10 @@
  *
 */
 #include "ignition/math/RotationSpline.hh"
+#include "ignition/math/RotationSplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;
-
-/////////////////////////////////////////////////
-RotationSplinePrivate::RotationSplinePrivate()
-: autoCalc(true)
-{
-}
 
 /////////////////////////////////////////////////
 RotationSpline::RotationSpline()
