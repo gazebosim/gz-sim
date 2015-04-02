@@ -16,10 +16,9 @@
 */
 
 #include <iostream>
-#include <vector>
 #include <ignition/math/Kmeans.hh>
 #include <ignition/math/Rand.hh>
-#include <ignition/math/Vector3.hh>
+#include "ignition/math/KmeansPrivate.hh"
 
 using namespace ignition;
 using namespace math;
