@@ -17,14 +17,10 @@
 #include <cmath>
 #include <ignition/math/Box.hh>
 
+#include "ignition/math/BoxPrivate.hh"
+
 using namespace ignition;
 using namespace math;
-
-//////////////////////////////////////////////////
-BoxPrivate::BoxPrivate()
-: min(0, 0, 0), max(0, 0, 0), extent(EXTENT_NULL)
-{
-}
 
 //////////////////////////////////////////////////
 Box::Box()
@@ -234,4 +230,11 @@ Vector3d &Box::Min()
 Vector3d &Box::Max()
 {
   return this->dataPtr->max;
+}
+
+//////////////////////////////////////////////////
+std::ostream &operator<<(std::ostream &_out, const ignition::math::Box &_b)
+{
+  _out << "Min[" << _b.Min() << "] Max[" << _b.Max() << "]";
+  return _out;
 }

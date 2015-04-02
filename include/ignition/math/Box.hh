@@ -25,26 +25,8 @@ namespace ignition
 {
   namespace math
   {
-    /// \internal
-    /// \brief Private data for Box class
-    class BoxPrivate
-    {
-      /// \brief Constructor
-      public: BoxPrivate();
-
-      /// \brief Enumeration of extents
-      public: enum Extent {EXTENT_NULL, EXTENT_FINITE};
-
-      /// \brief Minimum corner of the box
-      public: Vector3d min;
-
-      /// \brief Maximum corner of the box
-      public: Vector3d max;
-
-      /// \brief When set to EXTENT_NULL (in the default constructor)
-      /// the min and max are not valid positions
-      public: Extent extent;
-    };
+    // Forward declaration of private data
+    class BoxPrivate;
 
     /// \class Box Box.hh ignition/math/Box.hh
     /// \brief Mathematical representation of a box and related functions.
@@ -136,12 +118,7 @@ namespace ignition
       /// \param[in] _b Box to output to the stream
       /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ignition::math::Box &_b)
-      {
-        _out << "Min[" << _b.dataPtr->min << "] Max[" << _b.dataPtr->max << "]";
-
-        return _out;
-      }
+                                              const ignition::math::Box &_b);
 
       /// \brief Get the minimum corner.
       /// \return The Vector3d that is the minimum corner of the box.
