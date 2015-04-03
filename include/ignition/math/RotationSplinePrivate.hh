@@ -31,7 +31,7 @@ namespace ignition
       /// \brief Constructor
       public: RotationSplinePrivate();
 
-      /// \brief Automatic recalcultation of tangeants when control points are
+      /// \brief Automatic recalculation of tangents when control points are
       /// updated
       public: bool autoCalc;
 
