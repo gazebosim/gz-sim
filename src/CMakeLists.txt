@@ -8,6 +8,7 @@ set (sources
   Kmeans.cc
   Rand.cc
   RotationSpline.cc
+  RotationSplinePrivate.cc
   Spline.cc
 )
 
