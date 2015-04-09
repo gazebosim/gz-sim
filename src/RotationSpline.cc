@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
 #include "ignition/math/RotationSplinePrivate.hh"
 
