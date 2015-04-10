@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Open Source Robotics Foundation
+ * Copyright (C) 2014-2015 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ namespace ignition
 {
   namespace math
   {
+    // Forward declare private data
+    class KmeansPrivate;
+
     /// \class Kmeans Kmeans.hh math/gzmath.hh
     /// \brief K-Means clustering algorithm. Given a set of observations,
     /// k-means partitions the observations into k sets so as to minimize the
@@ -37,7 +40,7 @@ namespace ignition
       public: Kmeans(const std::vector<Vector3d> &_obs);
 
       /// \brief Destructor.
-      public: virtual ~Kmeans() = default;
+      public: virtual ~Kmeans();
 
       /// \brief Get the observations to cluster.
       /// \return The vector of observations.
@@ -73,20 +76,8 @@ namespace ignition
       /// \return The index of the closest centroid to the point _p.
       private: unsigned int ClosestCentroid(const Vector3d &_p) const;
 
-      /// \brief Observations.
-      private: std::vector<Vector3d> obs;
-
-      /// \brief Centroids.
-      private: std::vector<Vector3d> centroids;
-
-      /// \brief Each element stores the cluster to which observation i belongs.
-      private: std::vector<unsigned int> labels;
-
-      /// \brief Used to calculate the centroid of each partition.
-      private: std::vector<Vector3d> sums;
-
-      /// \brief Counts the number of observations contained in each partition.
-      private: std::vector<unsigned int> counters;
+      /// \brief Private data pointer
+      private: KmeansPrivate *dataPtr;
     };
   }
 }
