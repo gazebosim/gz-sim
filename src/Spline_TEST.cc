@@ -106,9 +106,6 @@ TEST(SplineTest, RecalcTangents)
 
   s.RecalcTangents();
 
-  math::Vector3d v = s.Interpolate(0, 0.5);
   EXPECT_EQ(s.Interpolate(0, 0.5), math::Vector3d(0.2, 0.2, 0.2));
-
-  v = s.Interpolate(1, 0.5);
   EXPECT_EQ(s.Interpolate(1, 0.5), math::Vector3d(0.2, 0.2, 0.2));
 }

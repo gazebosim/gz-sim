@@ -17,15 +17,15 @@
 #ifndef _IGNITION_ROTATIONSPLINE_HH_
 #define _IGNITION_ROTATIONSPLINE_HH_
 
-#include <vector>
-#include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>
-#include <ignition/math/Quaternion.hh>
 
 namespace ignition
 {
   namespace math
   {
+    // Forward declare private data
+    class RotationSplinePrivate;
+
     /// \class RotationSpline RotationSpline.hh ignition/math/RotationSpline.hh
     /// \brief Spline for rotations
     class IGNITION_VISIBLE  RotationSpline
@@ -106,15 +106,8 @@ namespace ignition
       /// completing your updates to the spline points.
       public: void RecalcTangents();
 
-      /// \brief Automatic recalcultation of tangeants when control points are
-      /// updated
-      protected: bool autoCalc;
-
-      /// \brief the control points
-      protected: std::vector<Quaterniond> points;
-
-      /// \brief the tangents
-      protected: std::vector<Quaterniond> tangents;
+      /// \brief Private data pointer
+      private: RotationSplinePrivate *dataPtr;
     };
   }
 }

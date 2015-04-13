@@ -4,10 +4,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set (sources
   Angle.cc
   Box.cc
+  BoxPrivate.cc
   Helpers.cc
   Kmeans.cc
   Rand.cc
   RotationSpline.cc
+  RotationSplinePrivate.cc
   SignalStats.cc
   Spline.cc
   Vector3Stats.cc
