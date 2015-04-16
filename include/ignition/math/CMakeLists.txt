@@ -16,6 +16,7 @@ set (headers
   Quaternion.hh
   Rand.hh
   RotationSpline.hh
+  SignalStats.hh
   Spline.hh
   Triangle.hh
   Vector2.hh

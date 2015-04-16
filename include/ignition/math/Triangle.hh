@@ -178,7 +178,7 @@ namespace ignition
         }
         else if (points.size() == 1)
         {
-          typename std::set<math::Vector2<T> >::iterator iter = points.begin();
+          auto iter = points.begin();
 
           _ipt1 = *iter;
           if (this->Contains(_line[0]))
@@ -190,7 +190,7 @@ namespace ignition
         }
         else
         {
-          typename std::set<math::Vector2<T> >::iterator iter = points.begin();
+          auto iter = points.begin();
           _ipt1 = *(iter++);
           _ipt2 = *iter;
         }
