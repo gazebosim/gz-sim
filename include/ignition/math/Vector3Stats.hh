@@ -78,8 +78,8 @@ namespace ignition
       /// \return Statistics for z component of signal.
       public: SignalStats Z() const;
 
-      /// \brief Get statistics for mag component of signal.
-      /// \return Statistics for mag component of signal.
+      /// \brief Get statistics for magnitude component of signal.
+      /// \return Statistics for magnitude component of signal.
       public: SignalStats Mag() const;
 
       /// \brief Get mutable reference to statistics for x component of signal.

@@ -24,15 +24,23 @@ using namespace ignition;
 class Vector3StatsTest : public ::testing::Test
 {
   /// \brief Get X value of statistic _name.
+  /// \param[in] _name Name of statistic.
+  /// \return X value of statistic.
   public: double X(const std::string &_name) const;
 
   /// \brief Get Y value of statistic _name.
+  /// \param[in] _name Name of statistic.
+  /// \return Y value of statistic.
   public: double Y(const std::string &_name) const;
 
   /// \brief Get Z value of statistic _name.
+  /// \param[in] _name Name of statistic.
+  /// \return Z value of statistic.
   public: double Z(const std::string &_name) const;
 
-  /// \brief Get Mag value of statistic _name.
+  /// \brief Get Magnitude value of statistic _name.
+  /// \param[in] _name Name of statistic.
+  /// \return Magnitude value of statistic.
   public: double Mag(const std::string &_name) const;
 
   /// \brief Stats instance.
