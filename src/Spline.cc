@@ -192,10 +192,11 @@ void Spline::RecalcTangents()
       // Special case start
       if (isClosed)
       {
-        // Use nuthis->dataPtr->points-2 since nuthis->dataPtr->points-1 is the last
-        // point and == [0]
+        // Use this->dataPtr->points-2 since this->dataPtr->points-1
+        // is the last point and == [0]
         this->dataPtr->tangents[i] =
-          ((this->dataPtr->points[1] - this->dataPtr->points[numPoints-2]) * 0.5) * t;
+          ((this->dataPtr->points[1] -
+            this->dataPtr->points[numPoints-2]) * 0.5) * t;
       }
       else
       {
