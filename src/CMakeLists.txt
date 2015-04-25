@@ -38,6 +38,6 @@ set (gtest_sources
   Vector4_TEST.cc
 )
 
-ign_add_library(ignition-math ${sources})
+ign_add_library(ignition-math${PROJECT_MAJOR_VERSION} ${sources})
 ign_build_tests(${gtest_sources})
-ign_install_library(ignition-math)
+ign_install_library(ignition-math${PROJECT_MAJOR_VERSION})

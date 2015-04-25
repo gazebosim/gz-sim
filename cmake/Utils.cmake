@@ -78,7 +78,8 @@ endmacro ()
 
 #################################################
 macro (ign_install_includes _subdir)
-  install(FILES ${ARGN} DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
+  install(FILES ${ARGN}
+    DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
 endmacro()
 
 #################################################
