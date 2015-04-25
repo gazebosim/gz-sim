@@ -113,6 +113,23 @@ namespace ignition
     };
     /// \}
 
+    /// \class SignalVariance SignalStats.hh math/gzmath.hh
+    /// \brief Computing the incremental variance
+    /// of a discretely sampled signal.
+    class IGNITION_VISIBLE SignalVariance : public SignalStatistic
+    {
+      // Documentation inherited.
+      public: virtual double Value() const;
+
+      /// \brief Get a short version of the name of this statistical measure.
+      /// \return "var"
+      public: virtual std::string ShortName() const;
+
+      // Documentation inherited.
+      public: virtual void InsertData(const double _data);
+    };
+    /// \}
+
     /// \brief Forward declare private data class.
     class SignalStatsPrivate;
 
