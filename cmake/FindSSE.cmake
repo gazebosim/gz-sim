@@ -1,7 +1,7 @@
 # Check if SSE instructions are available on the machine where 
 # the project is compiled.
 
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux" AND ARCH MATCHES "x86")
    EXEC_PROGRAM(cat ARGS "/proc/cpuinfo" OUTPUT_VARIABLE CPUINFO)
 
    STRING(REGEX REPLACE "^.*(sse2).*$" "\\1" SSE_THERE ${CPUINFO})
@@ -95,7 +95,7 @@ ELSE(CMAKE_SYSTEM_NAME MATCHES "Linux")
    set(SSE3_FOUND   false CACHE BOOL "SSE3 available on host")
    set(SSSE3_FOUND  false CACHE BOOL "SSSE3 available on host")
    set(SSE4_1_FOUND false CACHE BOOL "SSE4.1 available on host")
-ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux" AND ARCH MATCHES "x86")
 
 if(NOT SSE2_FOUND)
       MESSAGE(STATUS "Could not find hardware support for SSE2 on this machine.")
