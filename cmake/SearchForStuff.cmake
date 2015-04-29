@@ -4,6 +4,11 @@ include (CheckCXXSourceCompiles)
 include (${project_cmake_dir}/FindOS.cmake)
 include (FindPkgConfig)
 
+# Detect the architecture
+include (${project_cmake_dir}/TargetArch.cmake)
+target_architecture(ARCH)
+message(STATUS "Building for arch: ${ARCH}")
+
 ########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)
