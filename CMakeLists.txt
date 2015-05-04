@@ -6,9 +6,9 @@ project (ignition-${IGN_PROJECT_NAME})
 string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
-set (PROJECT_MAJOR_VERSION 1)
+set (PROJECT_MAJOR_VERSION 2)
 set (PROJECT_MINOR_VERSION 0)
-set (PROJECT_PATCH_VERSION 0)
+set (PROJECT_PATCH_VERSION 1)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
 set (PROJECT_VERSION_FULL
@@ -226,7 +226,8 @@ else (build_errors)
   # Write the config.h file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
-  ign_install_includes(${IGN_PROJECT_NAME}
+  ign_install_includes(
+    ${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
   include_directories(
@@ -257,23 +258,23 @@ else (build_errors)
 
   foreach (pkgconfig ${pkgconfig_files})
     configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
-      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}.pc
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc
       DESTINATION ${LIB_INSTALL_DIR}/pkgconfig COMPONENT pkgconfig)
   endforeach()
 
   ########################################
   # Make the cmake config files
   set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
   
   set(PKG_DEPENDS)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake" @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/ COMPONENT cmake)
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake" @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}/ COMPONENT cmake)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
