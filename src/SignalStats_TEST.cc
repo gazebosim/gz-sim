@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/math/Rand.hh>
 #include <ignition/math/SignalStats.hh>
 
 using namespace ignition;
@@ -290,6 +291,37 @@ TEST(SignalStatsTest, SignalVarianceConstantValues)
   }
 }
 
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalVarianceRandomValues)
+{
+  // Random normally distributed values
+  // The sample variance has the following variance:
+  // 2 variance^2 / (count - 1)
+  // en.wikipedia.org/wiki/Variance#Distribution_of_the_sample_variance
+  // We will use 5 sigma (4e-5 chance of failure)
+  math::SignalVariance var;
+  const double stdDev = 3.14159;
+  const int count = 10000;
+  const double sigma = 5.0;
+  for (int i = 0; i < count; ++i)
+  {
+    var.InsertData(math::Rand::DblNormal(0.0, stdDev));
+  }
+  const double variance = stdDev*stdDev;
+  double sampleVariance2 = 2 * variance*variance / (count - 1);
+  EXPECT_NEAR(var.Value(), variance, sigma*sqrt(sampleVariance2));
+  std::cout << "True variance " << variance
+            << ", measured variance " << var.Value()
+            << ", sigma " << sqrt(sampleVariance2)
+            << std::endl;
+
+  // Reset
+  var.Reset();
+  EXPECT_DOUBLE_EQ(var.Value(), 0.0);
+  EXPECT_EQ(var.Count(), 0u);
+}
+
+//////////////////////////////////////////////////
 TEST(SignalStatsTest, SignalStats)
 {
   {
