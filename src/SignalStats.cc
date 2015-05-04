@@ -228,6 +228,11 @@ bool SignalStats::InsertStatistic(const std::string &_name)
     stat.reset(new SignalRootMeanSquare());
     this->dataPtr->stats.push_back(stat);
   }
+  else if (_name == "var")
+  {
+    stat.reset(new SignalVariance());
+    this->dataPtr->stats.push_back(stat);
+  }
   else
   {
     // Unrecognized name string

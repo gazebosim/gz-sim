@@ -321,15 +321,20 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_FALSE(stats.InsertStatistic("rms"));
     EXPECT_FALSE(stats.Map().empty());
 
+    EXPECT_TRUE(stats.InsertStatistic("var"));
+    EXPECT_FALSE(stats.InsertStatistic("var"));
+    EXPECT_FALSE(stats.Map().empty());
+
     EXPECT_FALSE(stats.InsertStatistic("FakeStatistic"));
 
     // Map with no data
     std::map<std::string, double> map = stats.Map();
     EXPECT_FALSE(map.empty());
-    EXPECT_EQ(map.size(), 3u);
+    EXPECT_EQ(map.size(), 4u);
     EXPECT_EQ(map.count("maxAbs"), 1u);
     EXPECT_EQ(map.count("mean"), 1u);
     EXPECT_EQ(map.count("rms"), 1u);
+    EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
   }
 
@@ -349,16 +354,20 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_FALSE(stats.InsertStatistics("mean,FakeStatistic"));
     EXPECT_EQ(stats.Map().size(), 3u);
 
+    EXPECT_FALSE(stats.InsertStatistics("var,FakeStatistic"));
+    EXPECT_EQ(stats.Map().size(), 4u);
+
     EXPECT_FALSE(stats.InsertStatistics("FakeStatistic"));
-    EXPECT_EQ(stats.Map().size(), 3u);
+    EXPECT_EQ(stats.Map().size(), 4u);
 
     // Map with no data
     std::map<std::string, double> map = stats.Map();
     EXPECT_FALSE(map.empty());
-    EXPECT_EQ(map.size(), 3u);
+    EXPECT_EQ(map.size(), 4u);
     EXPECT_EQ(map.count("maxAbs"), 1u);
     EXPECT_EQ(map.count("mean"), 1u);
     EXPECT_EQ(map.count("rms"), 1u);
+    EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
   }
 
