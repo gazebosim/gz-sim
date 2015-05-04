@@ -160,6 +160,7 @@ TEST(SignalStatsTest, SignalRootMeanSquare)
   }
 }
 
+//////////////////////////////////////////////////
 TEST(SignalStatsTest, SignalMaxAbsoluteValue)
 {
   {
@@ -228,6 +229,64 @@ TEST(SignalStatsTest, SignalMaxAbsoluteValue)
       EXPECT_DOUBLE_EQ(max.Value(), 0.0);
       EXPECT_EQ(max.Count(), 0u);
     }
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalVarianceConstructor)
+{
+  // Constructor
+  math::SignalVariance var;
+  EXPECT_DOUBLE_EQ(var.Value(), 0.0);
+  EXPECT_EQ(var.Count(), 0u);
+  EXPECT_EQ(var.ShortName(), std::string("var"));
+
+  // Reset
+  var.Reset();
+  EXPECT_DOUBLE_EQ(var.Value(), 0.0);
+  EXPECT_EQ(var.Count(), 0u);
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalVarianceOneValue)
+{
+  // Add one value, expect 0.0 variance
+  std::vector<double> values = {0, 1.0, 10.0, -100.0};
+  for (auto value : values)
+  {
+    math::SignalVariance var;
+    var.InsertData(value);
+    EXPECT_EQ(var.Count(), 1u);
+    EXPECT_DOUBLE_EQ(0.0, var.Value());
+
+    // Reset
+    var.Reset();
+    EXPECT_DOUBLE_EQ(0.0, var.Value());
+    EXPECT_EQ(var.Count(), 0u);
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalVarianceConstantValues)
+{
+  // Constant values, expect 0.0 variance
+  math::SignalVariance var;
+  const double value = 3.14159;
+
+  // Loop two times to verify Reset
+  for (int j = 0; j < 2; ++j)
+  {
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+      var.InsertData(value);
+      EXPECT_DOUBLE_EQ(0.0, var.Value());
+      EXPECT_EQ(var.Count(), i);
+    }
+
+    // Reset
+    var.Reset();
+    EXPECT_DOUBLE_EQ(var.Value(), 0.0);
+    EXPECT_EQ(var.Count(), 0u);
   }
 }
 
