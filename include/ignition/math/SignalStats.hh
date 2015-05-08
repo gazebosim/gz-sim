@@ -62,7 +62,7 @@ namespace ignition
     };
     /// \}
 
-    /// \class SignalMean SignalStats.hh math/gzmath.hh
+    /// \class SignalMean SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the mean value of a discretely sampled signal.
     class IGNITION_VISIBLE SignalMean : public SignalStatistic
     {
@@ -78,7 +78,7 @@ namespace ignition
     };
     /// \}
 
-    /// \class SignalRootMeanSquare SignalStats.hh math/gzmath.hh
+    /// \class SignalRootMeanSquare SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the square root of the mean squared value
     /// of a discretely sampled signal.
     class IGNITION_VISIBLE SignalRootMeanSquare : public SignalStatistic
@@ -95,7 +95,8 @@ namespace ignition
     };
     /// \}
 
-    /// \class SignalMaxAbsoluteValue SignalStats.hh math/gzmath.hh
+    /// \class SignalMaxAbsoluteValue SignalStats.hh
+    /// ignition/math/SignalStats.hh
     /// \brief Computing the maximum of the absolute value
     /// of a discretely sampled signal.
     /// Also known as the maximum norm, infinity norm, or supremum norm.
@@ -113,7 +114,7 @@ namespace ignition
     };
     /// \}
 
-    /// \class SignalVariance SignalStats.hh math/gzmath.hh
+    /// \class SignalVariance SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the incremental variance
     /// of a discretely sampled signal.
     class IGNITION_VISIBLE SignalVariance : public SignalStatistic
@@ -133,7 +134,7 @@ namespace ignition
     /// \brief Forward declare private data class.
     class SignalStatsPrivate;
 
-    /// \class SignalStats SignalStats.hh math/gzmath.hh
+    /// \class SignalStats SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Collection of statistics for a scalar signal.
     class IGNITION_VISIBLE SignalStats
     {
