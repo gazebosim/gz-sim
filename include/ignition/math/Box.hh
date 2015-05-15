@@ -147,7 +147,7 @@ namespace ignition
       /// \return True if this box intersects _box.
       public: bool Intersects(const Box &_box) const;
 
-      /// \brief Checks if a point lies inside the box.
+      /// \brief Check if a point lies inside the box.
       /// \param[in] _p Point to check.
       /// \return True if the point is inside the box.
       public: bool Contains(const Vector3d &_p) const;
