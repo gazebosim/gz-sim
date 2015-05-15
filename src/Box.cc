@@ -233,8 +233,9 @@ Vector3d &Box::Max()
 }
 
 //////////////////////////////////////////////////
-std::ostream &operator<<(std::ostream &_out, const ignition::math::Box &_b)
+bool Box::Contains(const Vector3d &_p) const
 {
-  _out << "Min[" << _b.Min() << "] Max[" << _b.Max() << "]";
-  return _out;
+  return _p.X() >= this->dataPtr->min.X() && _p.X() <= this->dataPtr->max.X() &&
+         _p.Y() >= this->dataPtr->min.Y() && _p.Y() <= this->dataPtr->max.Y() &&
+         _p.Z() >= this->dataPtr->min.Z() && _p.Z() <= this->dataPtr->max.Z();
 }

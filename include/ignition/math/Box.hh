@@ -118,7 +118,11 @@ namespace ignition
       /// \param[in] _b Box to output to the stream
       /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ignition::math::Box &_b);
+                                              const ignition::math::Box &_b)
+      {
+        _out << "Min[" << _b.Min() << "] Max[" << _b.Max() << "]";
+        return _out;
+      }
 
       /// \brief Get the minimum corner.
       /// \return The Vector3d that is the minimum corner of the box.
@@ -142,6 +146,11 @@ namespace ignition
       /// \param[in] _box Box to check for intersection with this box.
       /// \return True if this box intersects _box.
       public: bool Intersects(const Box &_box) const;
+
+      /// \brief Checks if a point lies inside the box.
+      /// \param[in] _p Point to check.
+      /// \return True if the point is inside the box.
+      public: bool Contains(const Vector3d &_p) const;
 
       /// \brief Private data pointer
       private: BoxPrivate *dataPtr;
