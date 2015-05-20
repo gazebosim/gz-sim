@@ -6,5 +6,5 @@ Name: Ignition Math
 Description: A set of math classes for robot applications
 Version: @PROJECT_VERSION_FULL@
 Requires:
-Libs: -L${libdir} -lignition-math@PROJECT_MAJOR_VERSION@
-CFlags: -I${includedir} -std=c++11
+Libs: "-L${libdir}" -lignition-math@PROJECT_MAJOR_VERSION@
+CFlags: "-I${includedir}" -std=c++11
