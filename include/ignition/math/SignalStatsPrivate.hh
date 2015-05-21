@@ -30,6 +30,10 @@ namespace ignition
       /// \brief Scalar representation of signal data.
       public: double data;
 
+      /// \brief Scalar representation of extra signal data.
+      /// For example, the standard deviation statistic needs an extra variable.
+      public: double extraData;
+
       /// \brief Count of data values in mean.
       public: unsigned int count;
     };
