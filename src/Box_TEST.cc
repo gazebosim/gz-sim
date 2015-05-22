@@ -249,3 +249,42 @@ TEST(BoxTest, Intersects)
   EXPECT_TRUE(box.Intersects(math::Box(
           math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1))));
 }
+
+/////////////////////////////////////////////////
+TEST(BoxTest, Contains)
+{
+  math::Box box = math::Box(math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1));
+
+  EXPECT_TRUE(box.Contains(math::Vector3d(0, 0, 0)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(0, 0, 1)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(0, 1, 1)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(1, 1, 1)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(1, 1, 0)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(1, 0, 0)));
+  EXPECT_TRUE(box.Contains(math::Vector3d(0.5, 0.5, 0.5)));
+
+  EXPECT_FALSE(box.Contains(math::Vector3d(0, 0, -1)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(0, -1, -1)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-1, -1, -1)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-1, -1, 0)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-1, 0, 0)));
+
+  EXPECT_FALSE(box.Contains(math::Vector3d(0.5, 0.5, -0.5)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(0.5, -0.5, 0.5)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-0.5, 0.5, 0.5)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-0.5, -0.5, 0.5)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-0.5, -0.5, -0.5)));
+
+  EXPECT_FALSE(box.Contains(math::Vector3d(0, 0, -0.01)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(0, -0.01, 0)));
+  EXPECT_FALSE(box.Contains(math::Vector3d(-0.01, 0, 0)));
+}
+
+/////////////////////////////////////////////////
+TEST(BoxTest, OperatorStreamOut)
+{
+  math::Box b(0.1, 1.2, 2.3, 1.1, 2.2, 4.3);
+  std::ostringstream stream;
+  stream << b;
+  EXPECT_EQ(stream.str(), "Min[0.1 1.2 2.3] Max[1.1 2.2 4.3]");
+}
