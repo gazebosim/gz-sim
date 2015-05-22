@@ -17,7 +17,10 @@
 #ifndef _IGNITION_MATH_FUNCTIONS_HH_
 #define _IGNITION_MATH_FUNCTIONS_HH_
 
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
+
 #include <cmath>
 #include <algorithm>
 #include <limits>
