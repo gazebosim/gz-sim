@@ -22,6 +22,79 @@
 
 using namespace ignition;
 
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMaximumConstructor)
+{
+  // Constructor
+  math::SignalMaximum max;
+  EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+  EXPECT_EQ(max.Count(), 0u);
+  EXPECT_EQ(max.ShortName(), std::string("max"));
+
+  // Reset
+  max.Reset();
+  EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+  EXPECT_EQ(max.Count(), 0u);
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMaximumConstantValues)
+{
+  // Constant values, max should match
+  math::SignalMaximum max;
+  EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+  EXPECT_EQ(max.Count(), 0u);
+
+  const double value = 3.14159;
+
+  // Loop two times to verify Reset
+  for (int j = 0; j < 2; ++j)
+  {
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+      max.InsertData(value);
+      EXPECT_NEAR(max.Value(), value, 1e-10);
+      EXPECT_EQ(max.Count(), i);
+    }
+
+    // Reset
+    max.Reset();
+    EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+    EXPECT_EQ(max.Count(), 0u);
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMaximumAlternatingValues)
+{
+  // Values with alternating sign, increasing magnitude
+  // Should always match positive value
+  math::SignalMaximum max;
+  EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+  EXPECT_EQ(max.Count(), 0u);
+
+  const double value = 3.14159;
+
+  // Loop two times to verify Reset
+  for (int j = 0; j < 2; ++j)
+  {
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+      max.InsertData(value * i);
+      EXPECT_NEAR(max.Value(), value * i, 1e-10);
+      max.InsertData(-value * i);
+      EXPECT_NEAR(max.Value(), value * i, 1e-10);
+      EXPECT_EQ(max.Count(), i*2);
+    }
+
+    // Reset
+    max.Reset();
+    EXPECT_DOUBLE_EQ(max.Value(), 0.0);
+    EXPECT_EQ(max.Count(), 0u);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST(SignalStatsTest, SignalMean)
 {
   {
@@ -90,6 +163,78 @@ TEST(SignalStatsTest, SignalMean)
   }
 }
 
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMinimumConstructor)
+{
+  // Constructor
+  math::SignalMinimum min;
+  EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+  EXPECT_EQ(min.Count(), 0u);
+  EXPECT_EQ(min.ShortName(), std::string("min"));
+
+  // Reset
+  min.Reset();
+  EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+  EXPECT_EQ(min.Count(), 0u);
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMinimumConstantValues)
+{
+  // Constant values, min should match
+  math::SignalMinimum min;
+  EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+  EXPECT_EQ(min.Count(), 0u);
+
+  const double value = 3.14159;
+
+  // Loop two times to verify Reset
+  for (int j = 0; j < 2; ++j)
+  {
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+      min.InsertData(value);
+      EXPECT_NEAR(min.Value(), value, 1e-10);
+      EXPECT_EQ(min.Count(), i);
+    }
+
+    // Reset
+    min.Reset();
+    EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+    EXPECT_EQ(min.Count(), 0u);
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(SignalStatsTest, SignalMinimumAlternatingValues)
+{
+  // Values with alternating sign, increasing magnitude
+  // Should always match positive value
+  math::SignalMinimum min;
+  EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+  EXPECT_EQ(min.Count(), 0u);
+
+  const double value = 3.14159;
+
+  // Loop two times to verify Reset
+  for (int j = 0; j < 2; ++j)
+  {
+    for (unsigned int i = 1; i <= 10; ++i)
+    {
+      min.InsertData(value * i);
+      min.InsertData(-value * i);
+      EXPECT_NEAR(min.Value(), -value * i, 1e-10);
+      EXPECT_EQ(min.Count(), i*2);
+    }
+
+    // Reset
+    min.Reset();
+    EXPECT_DOUBLE_EQ(min.Value(), 0.0);
+    EXPECT_EQ(min.Count(), 0u);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST(SignalStatsTest, SignalRootMeanSquare)
 {
   {
@@ -341,12 +486,20 @@ TEST(SignalStatsTest, SignalStats)
     math::SignalStats stats;
     EXPECT_TRUE(stats.Map().empty());
 
+    EXPECT_TRUE(stats.InsertStatistic("max"));
+    EXPECT_FALSE(stats.InsertStatistic("max"));
+    EXPECT_FALSE(stats.Map().empty());
+
     EXPECT_TRUE(stats.InsertStatistic("maxAbs"));
     EXPECT_FALSE(stats.InsertStatistic("maxAbs"));
     EXPECT_FALSE(stats.Map().empty());
 
     EXPECT_TRUE(stats.InsertStatistic("mean"));
     EXPECT_FALSE(stats.InsertStatistic("mean"));
+    EXPECT_FALSE(stats.Map().empty());
+
+    EXPECT_TRUE(stats.InsertStatistic("min"));
+    EXPECT_FALSE(stats.InsertStatistic("min"));
     EXPECT_FALSE(stats.Map().empty());
 
     EXPECT_TRUE(stats.InsertStatistic("rms"));
@@ -362,9 +515,11 @@ TEST(SignalStatsTest, SignalStats)
     // Map with no data
     std::map<std::string, double> map = stats.Map();
     EXPECT_FALSE(map.empty());
-    EXPECT_EQ(map.size(), 4u);
+    EXPECT_EQ(map.size(), 6u);
+    EXPECT_EQ(map.count("max"), 1u);
     EXPECT_EQ(map.count("maxAbs"), 1u);
     EXPECT_EQ(map.count("mean"), 1u);
+    EXPECT_EQ(map.count("min"), 1u);
     EXPECT_EQ(map.count("rms"), 1u);
     EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
@@ -389,15 +544,23 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_FALSE(stats.InsertStatistics("var,FakeStatistic"));
     EXPECT_EQ(stats.Map().size(), 4u);
 
+    EXPECT_FALSE(stats.InsertStatistics("max,FakeStatistic"));
+    EXPECT_EQ(stats.Map().size(), 5u);
+
+    EXPECT_FALSE(stats.InsertStatistics("min,FakeStatistic"));
+    EXPECT_EQ(stats.Map().size(), 6u);
+
     EXPECT_FALSE(stats.InsertStatistics("FakeStatistic"));
-    EXPECT_EQ(stats.Map().size(), 4u);
+    EXPECT_EQ(stats.Map().size(), 6u);
 
     // Map with no data
     std::map<std::string, double> map = stats.Map();
     EXPECT_FALSE(map.empty());
-    EXPECT_EQ(map.size(), 4u);
+    EXPECT_EQ(map.size(), 6u);
+    EXPECT_EQ(map.count("max"), 1u);
     EXPECT_EQ(map.count("maxAbs"), 1u);
     EXPECT_EQ(map.count("mean"), 1u);
+    EXPECT_EQ(map.count("min"), 1u);
     EXPECT_EQ(map.count("rms"), 1u);
     EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
@@ -406,8 +569,8 @@ TEST(SignalStatsTest, SignalStats)
   {
     // Add some statistics
     math::SignalStats stats;
-    EXPECT_TRUE(stats.InsertStatistics("maxAbs,mean,rms"));
-    EXPECT_EQ(stats.Map().size(), 3u);
+    EXPECT_TRUE(stats.InsertStatistics("max,maxAbs,mean,min,rms"));
+    EXPECT_EQ(stats.Map().size(), 5u);
 
     // No data yet
     EXPECT_EQ(stats.Count(), 0u);
@@ -420,17 +583,21 @@ TEST(SignalStatsTest, SignalStats)
 
     {
       std::map<std::string, double> map = stats.Map();
+      EXPECT_NEAR(map["max"], value, 1e-10);
       EXPECT_NEAR(map["maxAbs"], value, 1e-10);
+      EXPECT_NEAR(map["min"], -value, 1e-10);
       EXPECT_NEAR(map["rms"], value, 1e-10);
       EXPECT_NEAR(map["mean"], 0.0, 1e-10);
     }
 
     stats.Reset();
-    EXPECT_EQ(stats.Map().size(), 3u);
+    EXPECT_EQ(stats.Map().size(), 5u);
     EXPECT_EQ(stats.Count(), 0u);
     {
       std::map<std::string, double> map = stats.Map();
+      EXPECT_DOUBLE_EQ(map["max"], 0.0);
       EXPECT_DOUBLE_EQ(map["maxAbs"], 0.0);
+      EXPECT_DOUBLE_EQ(map["min"], 0.0);
       EXPECT_DOUBLE_EQ(map["rms"], 0.0);
       EXPECT_DOUBLE_EQ(map["mean"], 0.0);
     }
