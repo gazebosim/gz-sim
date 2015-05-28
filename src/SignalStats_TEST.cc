@@ -209,7 +209,7 @@ TEST(SignalStatsTest, SignalMinimumConstantValues)
 TEST(SignalStatsTest, SignalMinimumAlternatingValues)
 {
   // Values with alternating sign, increasing magnitude
-  // Should always match positive value
+  // Should always match negative value
   math::SignalMinimum min;
   EXPECT_DOUBLE_EQ(min.Value(), 0.0);
   EXPECT_EQ(min.Count(), 0u);
