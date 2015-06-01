@@ -28,10 +28,10 @@ namespace ignition
     template<typename T>
     class Vector4
     {
-      /// \brief math::Vector3(0, 0, 0)
+      /// \brief math::Vector4(0, 0, 0, 0)
       public: static const Vector4<T> Zero;
 
-      /// \brief math::Vector3(1, 1, 1)
+      /// \brief math::Vector4(1, 1, 1, 1)
       public: static const Vector4<T> One;
 
       /// \brief Constructor
