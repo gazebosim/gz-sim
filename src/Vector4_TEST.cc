@@ -151,3 +151,40 @@ TEST(Vector4dTest, IndexException)
 
   EXPECT_THROW(math::equal(v[4], 5.0), math::IndexException);
 }
+
+/////////////////////////////////////////////////
+TEST(Vector4Test, Multiply)
+{
+  math::Vector4d v(0.1, -4.2, 11.1, 8.4);
+
+  // Multiply by zero
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 * v, math::Vector4d::Zero);
+    EXPECT_EQ(v * 0, math::Vector4d::Zero);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector4d::Zero, math::Vector4d::Zero);
+  }
+
+  // Multiply by one
+  {
+    // Scalar left and right
+    EXPECT_EQ(1 * v, v);
+    EXPECT_EQ(v * 1, v);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector4d::One, v);
+  }
+
+  // Multiply by non-trivial scalar value
+  {
+    const double scalar = 2.5;
+    math::Vector4d expect(0.25, -10.5, 27.75, 21.0);
+    EXPECT_EQ(scalar * v, expect);
+    EXPECT_EQ(v * scalar, expect);
+  }
+
+  // Multiply by itself element-wise
+  EXPECT_EQ(v*v, math::Vector4d(0.01, 17.64, 123.21, 70.56));
+}

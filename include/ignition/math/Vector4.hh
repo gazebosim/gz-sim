@@ -297,6 +297,15 @@ namespace ignition
             this->data[2] * _v, this->data[3] * _v);
       }
 
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector4 operator*(T _s, const Vector4 &_v)
+      {
+        return Vector4(_v * _s);
+      }
+
       /// \brief Multiplication assignment operator
       /// \param[in] _v scaling factor
       /// \return this
