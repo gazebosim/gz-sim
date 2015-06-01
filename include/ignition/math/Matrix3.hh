@@ -276,6 +276,22 @@ namespace ignition
         return _m * _s;
       }
 
+      /// \brief Matrix left multiplication operator for Vector3.
+      /// \param[in] _v Input vector.
+      /// \param[in] _m Input matrix.
+      /// \return A scaled matrix.
+      public: friend inline Vector3<T> operator*(const Vector3<T> &_v,
+                                                 const Matrix3<T> &_m)
+      {
+        return Vector3<T>(
+            _m(0, 0)*_v.X() + _m(1, 0)*_v.Y() +
+            _m(2, 0)*_v.Z(),
+            _m(0, 1)*_v.X() + _m(1, 1)*_v.Y() +
+            _m(2, 1)*_v.Z(),
+            _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() +
+            _m(2, 2)*_v.Z());
+      }
+
       /// \brief Equality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if equal (using the default tolerance of 1e-6)
