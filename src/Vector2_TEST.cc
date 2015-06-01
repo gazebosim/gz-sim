@@ -151,3 +151,40 @@ TEST(Vector2Test, OperatorStreamOut)
   stream << v;
   EXPECT_EQ(stream.str(), "0.1 1.2");
 }
+
+/////////////////////////////////////////////////
+TEST(Vector2Test, Multiply)
+{
+  math::Vector2d v(0.1, -4.2);
+
+  // Multiply by zero
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 * v, math::Vector2d::Zero);
+    EXPECT_EQ(v * 0, math::Vector2d::Zero);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector2d::Zero, math::Vector2d::Zero);
+  }
+
+  // Multiply by one
+  {
+    // Scalar left and right
+    EXPECT_EQ(1 * v, v);
+    EXPECT_EQ(v * 1, v);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector2d::One, v);
+  }
+
+  // Multiply by non-trivial scalar value
+  {
+    const double scalar = 2.5;
+    math::Vector2d expect(0.25, -10.5);
+    EXPECT_EQ(scalar * v, expect);
+    EXPECT_EQ(v * scalar, expect);
+  }
+
+  // Multiply by itself element-wise
+  EXPECT_EQ(v*v, math::Vector2d(0.01, 17.64));
+}
