@@ -53,7 +53,7 @@ TEST(SignalStatsTest, SignalMaximumConstantValues)
     for (unsigned int i = 1; i <= 10; ++i)
     {
       max.InsertData(value);
-      EXPECT_NEAR(max.Value(), value, 1e-10);
+      EXPECT_DOUBLE_EQ(max.Value(), value);
       EXPECT_EQ(max.Count(), i);
     }
 
@@ -81,9 +81,9 @@ TEST(SignalStatsTest, SignalMaximumAlternatingValues)
     for (unsigned int i = 1; i <= 10; ++i)
     {
       max.InsertData(value * i);
-      EXPECT_NEAR(max.Value(), value * i, 1e-10);
+      EXPECT_DOUBLE_EQ(max.Value(), value * i);
       max.InsertData(-value * i);
-      EXPECT_NEAR(max.Value(), value * i, 1e-10);
+      EXPECT_DOUBLE_EQ(max.Value(), value * i);
       EXPECT_EQ(max.Count(), i*2);
     }
 
@@ -124,7 +124,7 @@ TEST(SignalStatsTest, SignalMean)
       for (unsigned int i = 1; i <= 10; ++i)
       {
         mean.InsertData(value);
-        EXPECT_NEAR(mean.Value(), value, 1e-10);
+        EXPECT_DOUBLE_EQ(mean.Value(), value);
         EXPECT_EQ(mean.Count(), i);
       }
 
@@ -151,7 +151,7 @@ TEST(SignalStatsTest, SignalMean)
       {
         mean.InsertData(value * i);
         mean.InsertData(-value * i);
-        EXPECT_NEAR(mean.Value(), 0.0, 1e-10);
+        EXPECT_DOUBLE_EQ(mean.Value(), 0.0);
         EXPECT_EQ(mean.Count(), i*2);
       }
 
@@ -194,7 +194,7 @@ TEST(SignalStatsTest, SignalMinimumConstantValues)
     for (unsigned int i = 1; i <= 10; ++i)
     {
       min.InsertData(value);
-      EXPECT_NEAR(min.Value(), value, 1e-10);
+      EXPECT_DOUBLE_EQ(min.Value(), value);
       EXPECT_EQ(min.Count(), i);
     }
 
@@ -223,7 +223,7 @@ TEST(SignalStatsTest, SignalMinimumAlternatingValues)
     {
       min.InsertData(value * i);
       min.InsertData(-value * i);
-      EXPECT_NEAR(min.Value(), -value * i, 1e-10);
+      EXPECT_DOUBLE_EQ(min.Value(), -value * i);
       EXPECT_EQ(min.Count(), i*2);
     }
 
@@ -264,7 +264,7 @@ TEST(SignalStatsTest, SignalRootMeanSquare)
       for (unsigned int i = 1; i <= 10; ++i)
       {
         rms.InsertData(value);
-        EXPECT_NEAR(rms.Value(), value, 1e-10);
+        EXPECT_DOUBLE_EQ(rms.Value(), value);
         EXPECT_EQ(rms.Count(), i);
       }
 
@@ -290,11 +290,11 @@ TEST(SignalStatsTest, SignalRootMeanSquare)
       for (unsigned int i = 1; i <= 10; ++i)
       {
         rms.InsertData(value);
-        EXPECT_NEAR(rms.Value(), value, 1e-10);
+        EXPECT_DOUBLE_EQ(rms.Value(), value);
         EXPECT_EQ(rms.Count(), i*2-1);
 
         rms.InsertData(-value);
-        EXPECT_NEAR(rms.Value(), value, 1e-10);
+        EXPECT_DOUBLE_EQ(rms.Value(), value);
         EXPECT_EQ(rms.Count(), i*2);
       }
 
@@ -336,7 +336,7 @@ TEST(SignalStatsTest, SignalMaxAbsoluteValue)
       for (unsigned int i = 1; i <= 10; ++i)
       {
         max.InsertData(value);
-        EXPECT_NEAR(max.Value(), value, 1e-10);
+        EXPECT_DOUBLE_EQ(max.Value(), value);
         EXPECT_EQ(max.Count(), i);
       }
 
@@ -362,11 +362,11 @@ TEST(SignalStatsTest, SignalMaxAbsoluteValue)
       for (unsigned int i = 1; i <= 10; ++i)
       {
         max.InsertData(value * i);
-        EXPECT_NEAR(max.Value(), value * i, 1e-10);
+        EXPECT_DOUBLE_EQ(max.Value(), value * i);
         EXPECT_EQ(max.Count(), i*2-1);
 
         max.InsertData(-value * i);
-        EXPECT_NEAR(max.Value(), value * i, 1e-10);
+        EXPECT_DOUBLE_EQ(max.Value(), value * i);
         EXPECT_EQ(max.Count(), i*2);
       }
 
@@ -583,11 +583,11 @@ TEST(SignalStatsTest, SignalStats)
 
     {
       std::map<std::string, double> map = stats.Map();
-      EXPECT_NEAR(map["max"], value, 1e-10);
-      EXPECT_NEAR(map["maxAbs"], value, 1e-10);
-      EXPECT_NEAR(map["min"], -value, 1e-10);
-      EXPECT_NEAR(map["rms"], value, 1e-10);
-      EXPECT_NEAR(map["mean"], 0.0, 1e-10);
+      EXPECT_DOUBLE_EQ(map["max"], value);
+      EXPECT_DOUBLE_EQ(map["maxAbs"], value);
+      EXPECT_DOUBLE_EQ(map["min"], -value);
+      EXPECT_DOUBLE_EQ(map["rms"], value);
+      EXPECT_DOUBLE_EQ(map["mean"], 0.0);
     }
 
     stats.Reset();
