@@ -12,6 +12,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(@PKG_NAME@_CXX_FLAGS "${@PKG_NAME@_CXX_FLAGS} -stdlib=libc++")
 endif ()
 
+# On windows we produce .dll libraries with no prefix
+if (WIN32)
+ set(CMAKE_FIND_LIBRARY_PREFIXES "")
+ set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
+endif()
+
 foreach(lib @PKG_LIBRARIES@)
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
