@@ -307,6 +307,7 @@ namespace ignition
         return _out;
       }
 
+      /// \brief Vector for storing the start and end points of the line
       private: math::Vector2<T> pts[2];
     };
 

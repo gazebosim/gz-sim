@@ -44,7 +44,7 @@ namespace ignition
         this->Set(_ptA, _ptB);
       }
 
-      /// \brief Constructor.
+      /// \brief 2D Constructor where Z coordinates are 0
       /// \param[in] _x1 X coordinate of the start point.
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
@@ -59,7 +59,7 @@ namespace ignition
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _z1 Z coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
-      /// \param[in] _y2 Y coordinate of the start point.
+      /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
       public: Line3(double _x1, double _y1, double _z1,
         double _x2, double _y2, double _z2)
@@ -77,7 +77,8 @@ namespace ignition
         this->pts[1] = _ptB;
       }
 
-      /// \brief Set the start and end point of the line segment
+      /// \brief Set the start and end point of the line segment, with Z
+      /// coordinates being 0
       /// \param[in] _x1 X coordinate of the start point.
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
@@ -93,7 +94,7 @@ namespace ignition
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _z1 Z coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
-      /// \param[in] _y2 Y coordinate of the start point.
+      /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
       public: void Set(double _x1, double _y1, double _z1,
         double _x2, double _y2, double _z2)
@@ -104,7 +105,7 @@ namespace ignition
 
       /// \brief Get the direction of the line
       /// \return The direction vector
-      public: math::Vector3<T> Dir() const
+      public: math::Vector3<T> Direction() const
       {
         return this->pts[1] - this->pts[0];
       }
@@ -159,6 +160,7 @@ namespace ignition
         return _out;
       }
 
+      /// \brief Vector for storing the start and end points of the line
       private: math::Vector3<T> pts[2];
     };
 
