@@ -132,7 +132,10 @@ TEST(Line3Test, OperatorAssign)
 /////////////////////////////////////////////////
 TEST(Line3Test, Direction)
 {
-  math::Line3d lineA(1, 1, 1, 2, 1, 6);
-  EXPECT_TRUE(lineA.Direction() == lineA[1] - lineA[0]);
-  EXPECT_FALSE(lineA.Direction() == lineA[0] - lineA[1]);
+  math::Line3d lineA(1, 1, 1, 0, 0, 0);
+  math::Line3d lineB(2, 2, 2, 0, 0, 0);
+  math::Line3d lineC(0, 0, 0, 1, 1, 1);
+  EXPECT_TRUE(lineA.Direction() == (lineA[1] - lineA[0]).Normalize());
+  EXPECT_TRUE(lineA.Direction() == lineB.Direction());
+  EXPECT_FALSE(lineA.Direction() == lineC.Direction());
 }
