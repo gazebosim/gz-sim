@@ -36,6 +36,14 @@ namespace ignition
       {
       }
 
+      /// \brief Copy constructor
+      /// \param[in] _line a line object
+      public: Line3(const Line3<T> &_line)
+      {
+        this->pts[0] = _line[0];
+        this->pts[1] = _line[1];
+      }
+
       /// \brief Constructor.
       /// \param[in] _ptA Start point of the line segment
       /// \param[in] _ptB End point of the line segment
@@ -107,7 +115,7 @@ namespace ignition
       /// \return The direction vector
       public: math::Vector3<T> Direction() const
       {
-        return this->pts[1] - this->pts[0];
+        return (this->pts[1] - this->pts[0]).Normalize();
       }
 
       /// \brief Get the length of the line
@@ -158,6 +166,17 @@ namespace ignition
       {
         _out << _line[0] << " " << _line[1];
         return _out;
+      }
+
+      /// \brief Assignment operator
+      /// \param[in] _line a new value
+      /// \return this
+      public: Line3 &operator=(const Line3<T> &_line)
+      {
+        this->pts[0] = _line[0];
+        this->pts[1] = _line[1];
+
+        return *this;
       }
 
       /// \brief Vector for storing the start and end points of the line

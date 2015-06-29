@@ -112,9 +112,27 @@ TEST(Line3Test, OperatorStreamOut)
 }
 
 /////////////////////////////////////////////////
+TEST(Line3Test, CopyConstructor)
+{
+  math::Line3d lineA(0, 1, 4, 2, 3, 7);
+  math::Line3d lineB(lineA);
+
+  EXPECT_EQ(lineA, lineB);
+}
+
+/////////////////////////////////////////////////
+TEST(Line3Test, OperatorAssign)
+{
+  math::Line3d lineA(0, 1, 4, 2, 3, 7);
+  math::Line3d lineB = lineA;
+
+  EXPECT_EQ(lineA, lineB);
+}
+
+/////////////////////////////////////////////////
 TEST(Line3Test, Direction)
 {
   math::Line3d lineA(1, 1, 1, 2, 1, 6);
-  EXPECT_TRUE(lineA.Dir() == lineA[1] - lineA[0]);
-  EXPECT_FALSE(lineA.Dir() == lineA[0] - lineA[1]);
+  EXPECT_TRUE(lineA.Direction() == lineA[1] - lineA[0]);
+  EXPECT_FALSE(lineA.Direction() == lineA[0] - lineA[1]);
 }
