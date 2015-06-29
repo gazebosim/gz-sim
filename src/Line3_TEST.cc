@@ -71,6 +71,16 @@ TEST(Line3Test, Set)
   EXPECT_DOUBLE_EQ(lineA[1].X(), 2.0);
   EXPECT_DOUBLE_EQ(lineA[1].Y(), 2.0);
   EXPECT_DOUBLE_EQ(lineA[1].Z(), 4.0);
+
+  lineA.SetA(math::Vector3<double>(2, 2, 4));
+  EXPECT_DOUBLE_EQ(lineA[0].X(), 2.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Y(), 2.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Z(), 4.0);
+
+  lineA.SetB(math::Vector3<double>(5, 6, 7));
+  EXPECT_DOUBLE_EQ(lineA[1].X(), 5.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Y(), 6.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Z(), 7.0);
 }
 
 /////////////////////////////////////////////////

@@ -85,6 +85,20 @@ namespace ignition
         this->pts[1] = _ptB;
       }
 
+      /// \brief Set the start point of the line segment
+      /// \param[in] _ptA Start point of the line segment
+      public: void SetA(const math::Vector3<T> &_ptA)
+      {
+        this->pts[0] = _ptA;
+      }
+
+      /// \brief Set the end point of the line segment
+      /// \param[in] _ptB End point of the line segment
+      public: void SetB(const math::Vector3<T> &_ptB)
+      {
+        this->pts[1] = _ptB;
+      }
+
       /// \brief Set the start and end point of the line segment, with Z
       /// coordinates being 0
       /// \param[in] _x1 X coordinate of the start point.
