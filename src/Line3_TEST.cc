@@ -64,20 +64,26 @@ TEST(Line3Test, Set)
   EXPECT_DOUBLE_EQ(lineA[1].Y(), 2.0);
   EXPECT_DOUBLE_EQ(lineA[1].Z(), 0.0);
 
-  lineA.Set(1, 1, 3, 2, 2, 4);
-  EXPECT_DOUBLE_EQ(lineA[0].X(), 1.0);
-  EXPECT_DOUBLE_EQ(lineA[0].Y(), 1.0);
-  EXPECT_DOUBLE_EQ(lineA[0].Z(), 3.0);
-  EXPECT_DOUBLE_EQ(lineA[1].X(), 2.0);
-  EXPECT_DOUBLE_EQ(lineA[1].Y(), 2.0);
-  EXPECT_DOUBLE_EQ(lineA[1].Z(), 4.0);
+  lineA.Set(10, 11, 12, 13, 14, 15);
+  EXPECT_DOUBLE_EQ(lineA[0].X(), 10.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Y(), 11.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Z(), 12.0);
+  EXPECT_DOUBLE_EQ(lineA[1].X(), 13.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Y(), 14.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Z(), 15.0);
 
-  lineA.SetA(math::Vector3<double>(2, 2, 4));
-  EXPECT_DOUBLE_EQ(lineA[0].X(), 2.0);
-  EXPECT_DOUBLE_EQ(lineA[0].Y(), 2.0);
-  EXPECT_DOUBLE_EQ(lineA[0].Z(), 4.0);
+  lineA.SetA(math::Vector3<double>(0, -1, -2));
+  EXPECT_DOUBLE_EQ(lineA[0].X(), 0.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Y(), -1.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Z(), -2.0);
+  EXPECT_DOUBLE_EQ(lineA[1].X(), 13.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Y(), 14.0);
+  EXPECT_DOUBLE_EQ(lineA[1].Z(), 15.0);
 
   lineA.SetB(math::Vector3<double>(5, 6, 7));
+  EXPECT_DOUBLE_EQ(lineA[0].X(), 0.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Y(), -1.0);
+  EXPECT_DOUBLE_EQ(lineA[0].Z(), -2.0);
   EXPECT_DOUBLE_EQ(lineA[1].X(), 5.0);
   EXPECT_DOUBLE_EQ(lineA[1].Y(), 6.0);
   EXPECT_DOUBLE_EQ(lineA[1].Z(), 7.0);
