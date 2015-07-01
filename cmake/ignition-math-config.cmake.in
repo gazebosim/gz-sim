@@ -14,8 +14,8 @@ endif ()
 
 # On windows we produce .dll libraries with no prefix
 if (WIN32)
-  SET(CMAKE_FIND_LIBRARY_PREFIXES "")
-  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
+ set(CMAKE_FIND_LIBRARY_PREFIXES "")
+ set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
 endif()
 
 foreach(lib @PKG_LIBRARIES@)
