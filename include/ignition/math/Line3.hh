@@ -57,7 +57,8 @@ namespace ignition
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
-      public: Line3(double _x1, double _y1, double _x2, double _y2)
+      public: Line3(const double _x1, const double _y1,
+        const double _x2, const double _y2)
       {
         this->Set(_x1, _y1, _x2, _y2);
       }
@@ -69,8 +70,8 @@ namespace ignition
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
-      public: Line3(double _x1, double _y1, double _z1,
-        double _x2, double _y2, double _z2)
+      public: Line3(const double _x1, const double _y1, const double _z1,
+        const double _x2, const double _y2, const double _z2)
       {
         this->Set(_x1, _y1, _z1, _x2, _y2, _z2);
       }
@@ -105,10 +106,11 @@ namespace ignition
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
-      public: void Set(double _x1, double _y1, double _x2, double _y2)
+      public: void Set(const double _x1, const double _y1, const double _x2,
+        const double _y2, const double _z = 0)
       {
-        this->pts[0].Set(_x1, _y1, 0);
-        this->pts[1].Set(_x2, _y2, 0);
+        this->pts[0].Set(_x1, _y1, _z);
+        this->pts[1].Set(_x2, _y2, _z);
       }
 
       /// \brief Set the start and end point of the line segment
@@ -118,8 +120,8 @@ namespace ignition
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
-      public: void Set(double _x1, double _y1, double _z1,
-        double _x2, double _y2, double _z2)
+      public: void Set(const double _x1, const double _y1, const double _z1,
+        const double _x2, const double _y2, const double _z2)
       {
         this->pts[0].Set(_x1, _y1, _z1);
         this->pts[1].Set(_x2, _y2, _z2);
@@ -136,12 +138,7 @@ namespace ignition
       /// \return The length of the line.
       public: T Length() const
       {
-        return sqrt((this->pts[0].X() - this->pts[1].X()) *
-                    (this->pts[0].X() - this->pts[1].X()) +
-                    (this->pts[0].Y() - this->pts[1].Y()) *
-                    (this->pts[0].Y() - this->pts[1].Y()) +
-                    (this->pts[0].Z() - this->pts[1].Z()) *
-                    (this->pts[0].Z() - this->pts[1].Z()));
+        return this->pts[0].Distance(this->pts[1]);
       }
 
       /// \brief Equality operator.
@@ -163,7 +160,7 @@ namespace ignition
       /// \brief Get the start or end point.
       /// \param[in] _index 0 = start point, 1 = end point.
       /// \throws IndexException if _index is > 1.
-      public: math::Vector3<T> operator[](size_t _index) const
+      public: math::Vector3<T> operator[](const size_t _index) const
       {
         if (_index > 1)
           throw IndexException();
@@ -196,7 +193,6 @@ namespace ignition
       /// \brief Vector for storing the start and end points of the line
       private: math::Vector3<T> pts[2];
     };
-
 
     typedef Line3<int> Line3i;
     typedef Line3<double> Line3d;
