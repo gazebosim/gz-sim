@@ -31,7 +31,7 @@ namespace ignition
     template<typename T>
     class Line3
     {
-      /// \brief Constructor
+      /// \brief Line Constructor
       public: Line3()
       {
       }
