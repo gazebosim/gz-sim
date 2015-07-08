@@ -30,6 +30,24 @@ namespace ignition
     template<typename T>
     class Plane
     {
+      /// \brief Enum used to indicate a side of the plane, or no side for
+      /// entities on the plane.
+      /// \sa Side function
+      public: enum PlaneSide
+      {
+        /// \brief Negative side of the plane.
+        NEGATIVE_SIDE = 0,
+
+        /// \brief Positive side of the plane.
+        POSITIVE_SIDE = 1,
+
+        /// \brief On the plane.
+        NO_SIDE = 2,
+
+        /// \brief On both sides of the plane.
+        BOTH_SIDE = 3
+      };
+
       /// \brief Constructor
       public: Plane()
       {
@@ -68,6 +86,52 @@ namespace ignition
         this->normal = _normal;
         this->size = _size;
         this->d = _offset;
+      }
+
+      /// \brief Get the distance to the plane from the give point.
+      /// \param[in] _point 3D point to calculate distance from.
+      /// \return Distance from the point to the plane.
+      public: T Distance(const Vector3<T> &_point) const
+      {
+        return this->normal.Dot(_point) + this->d;
+      }
+
+      /// \brief Get the side a point is on.
+      /// \param[in] _point The 3D point to check.
+      /// \return Plane::NEGATIVE_SIDE if the distance from the point to the
+      /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
+      /// point to the plane is positive, or Plane::NO_SIDE if the
+      /// point is on the plane.
+      public: PlaneSide Side(const Vector3<T> &_point) const
+      {
+        T dist = this->Distance(_point);
+        if (dist < 0.0)
+          return NEGATIVE_SIDE;
+
+        if (dist > 0.0)
+          return POSITIVE_SIDE;
+
+        return NO_SIDE;
+      }
+
+      /// \brief Get the side a box is on.
+      /// \param[in] _box The 3D box to check.
+      /// \return Plane::NEGATIVE_SIDE if the distance from the box to the
+      /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
+      /// box to the plane is positive, or Plane::BOTH_SIDE if the
+      /// box is on the plane.
+      public: PlaneSide Side(const Box &_box) const
+      {
+        double dist = this->Distance(_box.Center());
+        double maxAbsDist = this->normal.AbsDot(_box.Size()/2.0);
+
+        if (dist < -maxAbsDist)
+          return NEGATIVE_SIDE;
+
+        if (dist > maxAbsDist)
+          return POSITIVE_SIDE;
+
+        return BOTH_SIDE;
       }
 
       /// \brief Get distance to the plane give an origin and direction
