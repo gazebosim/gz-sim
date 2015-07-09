@@ -29,10 +29,10 @@ Frustum::Frustum(const double _nearClip,
                                const Angle &_fov,
                                const double _aspectRatio,
                                const Pose3d &_pose)
-  : dataPtr(new FrustumPrivate(_nearClip, _farClip, _fov, _aspectRatio))
+  : dataPtr(new FrustumPrivate(_nearClip, _farClip, _fov, _aspectRatio, _pose))
 {
   // Compute plane based on near clip, far clip, field of view, and pose
-  this->SetPose(_pose);
+  this->ComputePlanes();
 }
 
 /////////////////////////////////////////////////
@@ -45,7 +45,7 @@ Frustum::~Frustum()
 /////////////////////////////////////////////////
 Frustum::Frustum(const Frustum &_p)
   : dataPtr(new FrustumPrivate(_p.NearClip(), _p.FarClip(), _p.FOV(),
-        _p.AspectRatio()))
+        _p.AspectRatio(), _p.Pose()))
 {
   for (int i = 0; i < 6; ++i)
     this->dataPtr->planes[i] = _p.dataPtr->planes[i];

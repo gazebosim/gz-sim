@@ -241,11 +241,31 @@ TEST(FrustumTest, AspectRatio)
       // Pose
       Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
 
-  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
-
   EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 320.0/320.0);
 
   frustum.SetAspectRatio(1.3434);
 
   EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 1.3434);
+}
+
+/////////////////////////////////////////////////
+TEST(FrustumTest, Pose)
+{
+  Frustum frustum(
+      // Near clip distance
+      1,
+      // Far clip distance
+      10,
+      // Field of view
+      Angle(IGN_DTOR(45)),
+      // Aspect ratio
+      320.0/320.0,
+      // Pose
+      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+
+  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+
+  frustum.SetPose(Pose3d(1, 2, 3, M_PI, 0, 0));
+
+  EXPECT_EQ(frustum.Pose(), Pose3d(1, 2, 3, M_PI, 0, 0));
 }

@@ -32,12 +32,22 @@ namespace ignition
     class FrustumPrivate
     {
       /// \brief Constructor
-      public: FrustumPrivate(const double _nearClipDist,
-                                    const double _farClipDist,
-                                    const math::Angle &_fov,
-                                    const double _aspectRatio)
-              : nearClip(_nearClipDist), farClip(_farClipDist), fov(_fov),
-                aspectRatio(_aspectRatio)
+      /// \param[in] _nearClip Near clip distance. This is the distance from
+      /// the frustum's vertex to the closest clip plane
+      /// \param[in] _farClip Far clip distance. This is the distance from the
+      /// frustum's vertex to the farthest clip plane.
+      /// \param[in] _fov Field of view. The field of view is the
+      /// angle between the frustum's vertex and the edges of the near or far
+      /// clip plane. This value represents the horizontal angle.
+      /// \param[in] _aspectRatio The aspect ratio, which is the width divided
+      /// by height of the near or far clip planes.
+      public: FrustumPrivate(const double _nearClip,
+                             const double _farClip,
+                             const math::Angle &_fov,
+                             const double _aspectRatio,
+                             const Pose3d &_pose)
+              : nearClip(_nearClip), farClip(_farClip), fov(_fov),
+                aspectRatio(_aspectRatio), pose(_pose)
               {
               }
 
@@ -54,12 +64,12 @@ namespace ignition
       // width divided by the height.
       public: double aspectRatio;
 
+      /// \brief Pose of the frustum
+      public: math::Pose3d pose;
+
       /// \brief Each plane of the frustum.
       /// \sa Frustum::FrustumPlane
       public: std::array<Planed, 6> planes;
-
-      /// \brief Pose of the frustum
-      public: math::Pose3d pose;
     };
   }
 }

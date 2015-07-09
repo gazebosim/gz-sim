@@ -28,29 +28,51 @@ namespace ignition
     // Forward declaration of private data
     class FrustumPrivate;
 
-    /// \class Box Box.hh ignition/math/Box.hh
-    /// \brief Mathematical representation of a box and related functions.
+    /// \class Frustum Frustum.hh ignition/math/Frustum.hh
+    /// \brief Mathematical representation of a frustum and related functions.
+    /// This is also known as a square frustum or view frustum.
     class IGNITION_VISIBLE Frustum
     {
+      /// \brief Planes of that define the boundaries of the frustum
       public: enum FrustumPlane
       {
+        /// \brief Near plane
         FRUSTUM_PLANE_NEAR   = 0,
+
+        /// \brief Far plane
         FRUSTUM_PLANE_FAR    = 1,
+
+        /// \brief Left plane
         FRUSTUM_PLANE_LEFT   = 2,
+
+        /// \brief Right plane
         FRUSTUM_PLANE_RIGHT  = 3,
+
+        /// \brief Top plane
         FRUSTUM_PLANE_TOP    = 4,
+
+        /// \brief Bottom plane
         FRUSTUM_PLANE_BOTTOM = 5
       };
 
       /// \brief Default constructor
+      /// \param[in] _nearClip Near clip distance. This is the distance from
+      /// the frustum's vertex to the closest clip plane
+      /// \param[in] _farClip Far clip distance. This is the distance from the
+      /// frustum's vertex to the farthest clip plane.
+      /// \param[in] _fov Field of view. The field of view is the
+      /// angle between the frustum's vertex and the edges of the near or far
+      /// clip plane. This value represents the horizontal angle.
+      /// \param[in] _aspectRatio The aspect ratio, which is the width divided
+      /// by height of the near or far clip planes.
       public: Frustum(const double _nearClip,
-                             const double _farClip,
-                             const math::Angle &_fov,
-                             const double _aspectRatio,
-                             const math::Pose3d &_pose);
+                      const double _farClip,
+                      const math::Angle &_fov,
+                      const double _aspectRatio,
+                      const math::Pose3d &_pose = math::Pose3d::Zero);
 
       /// \brief Copy Constructor
-      /// \param[in] _p Frustum to copy
+      /// \param[in] _p Frustum to copy.
       public: Frustum(const Frustum &_p);
 
       /// \brief Destructor
@@ -122,7 +144,7 @@ namespace ignition
       public: bool Contains(const Vector3d &_p) const;
 
       /// \brief Get the pose of the frustum
-      /// \return  Pose of the frustum
+      /// \return Pose of the frustum
       /// \sa SetPose
       public: Pose3d Pose() const;
 
