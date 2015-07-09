@@ -247,7 +247,7 @@ namespace ignition
         Vector3<T> a = _v2 - _v1;
         Vector3<T> b = _v3 - _v1;
         Vector3<T> n = a.Cross(b);
-        return n;
+        return n.Normalize();
       }
 
       /// \brief Get distance to a line

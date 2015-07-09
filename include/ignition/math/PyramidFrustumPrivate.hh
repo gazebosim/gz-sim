@@ -17,7 +17,10 @@
 #ifndef _IGNITION_PYRAMID_FRUSTUM_PRIVATE_HH_
 #define _IGNITION_PYRAMID_FRUSTUM_PRIVATE_HH_
 
-#include <ignition/math/Vector3.hh>
+#include <array>
+
+#include <ignition/math/Angle.hh>
+#include <ignition/math/Plane.hh>
 
 namespace ignition
 {
@@ -27,9 +30,31 @@ namespace ignition
     /// \brief Private data for the PyramidFrustum class
     class PyramidFrustumPrivate
     {
+      /// \brief Constructor
+      public: PyramidFrustumPrivate(const double _nearClipDist,
+                                    const double _farClipDist,
+                                    const math::Angle &_fov)
+              : nearClip(_nearClipDist), farClip(_farClipDist), fov(_fov),
+                aspectRatio(1.0)
+              {
+              }
+
+      /// \brief Near clip distance
+      public: double nearClip;
+
+      /// \brief Far clip distance
+      public: double farClip;
+
+      /// \brief Field of view
+      public: math::Angle fov;
+
+      /// \brief Aspect ratio of the near and far clip planes. This is the
+      // width divided by the height.
+      public: double aspectRatio;
+
       /// \brief Each plane of the frustum.
       /// \sa PyramidFrustum::PyramidFrustumPlane
-      public: Plane[6] planes;
+      public: std::array<Planed, 6> planes;
     };
   }
 }

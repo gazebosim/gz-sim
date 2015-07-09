@@ -88,6 +88,10 @@ namespace ignition
       /// \brief Normalize the angle in the range -Pi to Pi
       public: void Normalize();
 
+      /// \brief Return the angle's radian value
+      /// \return double containing the angle's radian value
+      public: double operator()() const;
+
       /// \brief Dereference operator
       /// \return Double containing the angle's radian value
       public: inline double operator*() const

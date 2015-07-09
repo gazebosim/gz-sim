@@ -17,6 +17,10 @@
 #ifndef _IGNITION_PYRAMID_FRUSTUM_HH_
 #define _IGNITION_PYRAMID_FRUSTUM_HH_
 
+#include <ignition/math/Plane.hh>
+#include <ignition/math/Angle.hh>
+#include <ignition/math/Pose3.hh>
+
 namespace ignition
 {
   namespace math
@@ -39,19 +43,34 @@ namespace ignition
       };
 
       /// \brief Default constructor
-      public: PyramidFrustum();
+      public: PyramidFrustum(const double _nearClip,
+                             const double _farClip,
+                             const math::Angle &_fov,
+                             const math::Pose3d &_pose);
 
       /// \brief Copy Constructor
-      /// \param[in]  _p PyramidFrustum to copy
+      /// \param[in] _p PyramidFrustum to copy
       public: PyramidFrustum(const PyramidFrustum &_p);
 
       /// \brief Destructor
       public: virtual ~PyramidFrustum();
 
+      /// \brief Get the near clip distance.
+      /// \return Near clip distance.
+      public: double NearClip() const;
+
+      /// \brief Get the far clip distance.
+      /// \return Far clip distance.
+      public: double FarClip() const;
+
+      /// \brief Get the field of view.
+      /// \return The field of view.
+      public: math::Angle FOV() const;
+
       /// \brief Get a plane of the frustum.
       /// \param[in] _plane The plane to return.
       /// \return Plane of the frustum.
-      public: Plane Plane(const PyramidFrustumPlane _plane) const;
+      public: Planed Plane(const PyramidFrustumPlane _plane) const;
 
       /// \brief Check if a box lies inside the pyramid frustum.
       /// \param[in] _b Box to check.
@@ -63,6 +82,10 @@ namespace ignition
       /// \return True if the point is inside the pyramid frustum.
       public: bool Contains(const Vector3d &_p) const;
 
+      /// \brief Set the pose of the frustum
+      /// \param[in] _pose Pose of the frustum
+      public: void SetPose(const Pose3d &_pose);
+
       /// \brief Output operator
       /// \param[in] _out Output stream
       /// \param[in] _b Box to output to the stream
@@ -70,12 +93,14 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                   const ignition::math::PyramidFrustum &_p)
       {
+        /*
           _out << _p.dataPtr->planes[0] << " "
                << _p.dataPtr->planes[1] << " "
                << _p.dataPtr->planes[2] << " "
                << _p.dataPtr->planes[3] << " "
                << _p.dataPtr->planes[4] << " "
                << _p.dataPtr->planes[5];
+               */
 
         return _out;
       }

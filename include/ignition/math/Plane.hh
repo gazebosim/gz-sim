@@ -18,6 +18,7 @@
 #ifndef _IGNITION_PLANE_HH_
 #define _IGNITION_PLANE_HH_
 
+#include <ignition/math/Box.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector2.hh>
 
@@ -54,7 +55,7 @@ namespace ignition
         this->d = 0.0;
       }
 
-      /// \brief Constructor from a normal and a distanec
+      /// \brief Constructor from a normal and a distance
       /// \param[in] _normal The plane normal
       /// \param[in] _offset Offset along the normal
       public: Plane(const Vector3<T> &_normal, T _offset = 0.0)
@@ -75,6 +76,15 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~Plane() {}
+
+      /// \brief Set the plane
+      /// \param[in] _normal The plane normal
+      /// \param[in] _offset Offset along the normal
+      public: void Set(const Vector3<T> &_normal, T _offset)
+      {
+        this->normal = _normal;
+        this->d = _offset;
+      }
 
       /// \brief Set the plane
       /// \param[in] _normal The plane normal
@@ -120,7 +130,7 @@ namespace ignition
       /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
       /// box to the plane is positive, or Plane::BOTH_SIDE if the
       /// box is on the plane.
-      public: PlaneSide Side(const Box &_box) const
+      public: PlaneSide Side(const math::Box &_box) const
       {
         double dist = this->Distance(_box.Center());
         double maxAbsDist = this->normal.AbsDot(_box.Size()/2.0);
