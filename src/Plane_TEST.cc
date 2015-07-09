@@ -77,3 +77,33 @@ TEST(PlaneTest, Plane)
     EXPECT_TRUE(plane.Size() == math::Vector2d(4, 4));
   }
 }
+
+/////////////////////////////////////////////////
+TEST(PlaneTest, SidePoint)
+{
+  math::Planed plane(math::Vector3d(0, 0, 1), 1);
+
+  // On the negative side of the plane (below the plane)
+  math::Vector3d point(0, 0, 0);
+  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+
+  // Still on the negative side of the plane (below the plane)
+  point.Set(1, 1, 0);
+  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+
+  // Above the plane (positive side)
+  point.Set(1, 1, 2);
+  EXPECT_EQ(plane.Side(point), math::Planed::POSITIVE_SIDE);
+
+  // On the plane
+  point.Set(0, 0, 1);
+  EXPECT_EQ(plane.Side(point), math::Planed::NO_SIDE);
+
+  // Change the plane, but the point is still on the negative side
+  plane.Set(math::Vector3d(1, 0, 0), 4);
+  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+
+  // Point is now on the positive side
+  point.Set(4.1, 0, 1);
+  EXPECT_EQ(plane.Side(point), math::Planed::POSITIVE_SIDE);
+}

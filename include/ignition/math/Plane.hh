@@ -103,7 +103,7 @@ namespace ignition
       /// \return Distance from the point to the plane.
       public: T Distance(const Vector3<T> &_point) const
       {
-        return this->normal.Dot(_point) + this->d;
+        return this->normal.Dot(_point) - this->d;
       }
 
       /// \brief Get the side a point is on.
