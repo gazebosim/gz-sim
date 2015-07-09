@@ -31,15 +31,17 @@ namespace ignition
     template<typename T>
     class Plane
     {
-      /// \brief Enum used to indicate a side of the plane, or no side for
-      /// entities on the plane.
-      /// \sa Side function
+      /// \brief Enum used to indicate a side of the plane, no side, or both
+      /// sides for entities on the plane.
+      /// \sa Side
       public: enum PlaneSide
       {
-        /// \brief Negative side of the plane.
+        /// \brief Negative side of the plane. This is the side that is
+        /// opposite the normal.
         NEGATIVE_SIDE = 0,
 
-        /// \brief Positive side of the plane.
+        /// \brief Positive side of the plane. This is the side that has the
+        /// normal vector.
         POSITIVE_SIDE = 1,
 
         /// \brief On the plane.
@@ -98,7 +100,7 @@ namespace ignition
         this->d = _offset;
       }
 
-      /// \brief Get the distance to the plane from the give point.
+      /// \brief The distance to the plane from the given point.
       /// \param[in] _point 3D point to calculate distance from.
       /// \return Distance from the point to the plane.
       public: T Distance(const Vector3<T> &_point) const
@@ -106,7 +108,7 @@ namespace ignition
         return this->normal.Dot(_point) - this->d;
       }
 
-      /// \brief Get the side a point is on.
+      /// \brief The side of the plane a point is on.
       /// \param[in] _point The 3D point to check.
       /// \return Plane::NEGATIVE_SIDE if the distance from the point to the
       /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
@@ -115,6 +117,7 @@ namespace ignition
       public: PlaneSide Side(const Vector3<T> &_point) const
       {
         T dist = this->Distance(_point);
+
         if (dist < 0.0)
           return NEGATIVE_SIDE;
 
@@ -124,7 +127,7 @@ namespace ignition
         return NO_SIDE;
       }
 
-      /// \brief Get the side a box is on.
+      /// \brief The side of the plane a box is on.
       /// \param[in] _box The 3D box to check.
       /// \return Plane::NEGATIVE_SIDE if the distance from the box to the
       /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
