@@ -157,13 +157,11 @@ void Frustum::ComputePlanes()
   // Tangent of half the field of view.
   double tanFOV2 = std::tan(this->dataPtr->fov() * 0.5);
 
-  // Width and height of near plane
+  // Height of near plane
   double nearHeight = 2.0 * tanFOV2 * this->dataPtr->near;
-  double nearWidth = nearHeight * this->dataPtr->aspectRatio;
 
-  // Width and height of far plane
+  // Height of far plane
   double farHeight = 2.0 * tanFOV2 * this->dataPtr->far;
-  double farWidth = farHeight * this->dataPtr->aspectRatio;
 
   // Up, right, and forward unit vectors.
   Vector3d forward = this->dataPtr->pose.Rot().RotateVector(Vector3d::UnitX);
