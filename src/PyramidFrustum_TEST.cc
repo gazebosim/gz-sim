@@ -31,4 +31,7 @@ TEST(PyramidFrustumTest, PyramidConstructor)
   EXPECT_FALSE(frustum.Contains(math::Vector3d(0, 0, 0)));
   std::cout << "_-----------------\n";
   EXPECT_TRUE(frustum.Contains(math::Vector3d(1, 0, 0)));
+
+  EXPECT_TRUE(frustum.Contains(math::Vector3d(2, 0, 0)));
+  EXPECT_TRUE(frustum.Contains(math::Vector3d(10, 0, 0)));
 }

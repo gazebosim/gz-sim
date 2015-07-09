@@ -188,19 +188,19 @@ void PyramidFrustum::SetPose(const Pose3d &_pose)
       nearNormal, this->dataPtr->nearClip);
 
   this->dataPtr->planes[PYRAMID_FRUSTUM_PLANE_FAR].Set(
-      farNormal, this->dataPtr->farClip);
+      farNormal, -this->dataPtr->farClip);
 
   this->dataPtr->planes[PYRAMID_FRUSTUM_PLANE_LEFT].Set(
-      leftNormal, leftOffset);
+      leftNormal, -leftOffset);
 
   this->dataPtr->planes[PYRAMID_FRUSTUM_PLANE_RIGHT].Set(
-      rightNormal, rightOffset);
+      rightNormal, -rightOffset);
 
   this->dataPtr->planes[PYRAMID_FRUSTUM_PLANE_TOP].Set(
-      topNormal, topOffset);
+      topNormal, -topOffset);
 
   this->dataPtr->planes[PYRAMID_FRUSTUM_PLANE_BOTTOM].Set(
-      bottomNormal, bottomOffset);
+      bottomNormal, -bottomOffset);
 
 /*  std::cout << "Dir[" << dir << "]\n";
   std::cout << "Up[" << up << "]\n";
