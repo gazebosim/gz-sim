@@ -28,9 +28,9 @@ TEST(FrustumTest, CopyConstructor)
 {
   // Frustum pointing down the +x axis
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -42,8 +42,8 @@ TEST(FrustumTest, CopyConstructor)
   Frustum frustum2(frustum);
 
   EXPECT_EQ(frustum.FOV(), frustum2.FOV());
-  EXPECT_EQ(frustum.NearClip(), frustum2.NearClip());
-  EXPECT_EQ(frustum.FarClip(), frustum2.FarClip());
+  EXPECT_EQ(frustum.Near(), frustum2.Near());
+  EXPECT_EQ(frustum.Far(), frustum2.Far());
   EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
   EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
 
@@ -71,9 +71,9 @@ TEST(FrustumTest, PyramidXAxisPos)
 {
   // Frustum pointing down the +x axis
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -98,9 +98,9 @@ TEST(FrustumTest, PyramidXAxisNeg)
 {
   // Frustum pointing down the -x axis
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -126,9 +126,9 @@ TEST(FrustumTest, PyramidYAxis)
 {
   // Frustum pointing down the +y axis
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       .1,
-      // Far clip distance
+      // Far distance
       5,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -154,9 +154,9 @@ TEST(FrustumTest, PyramidZAxis)
 {
   // Frustum pointing down the -z axis
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -180,12 +180,12 @@ TEST(FrustumTest, PyramidZAxis)
 }
 
 /////////////////////////////////////////////////
-TEST(FrustumTest, Clip)
+TEST(FrustumTest, NearFar)
 {
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -194,23 +194,23 @@ TEST(FrustumTest, Clip)
       // Pose
       Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
 
-  EXPECT_DOUBLE_EQ(frustum.NearClip(), 1.0);
-  EXPECT_DOUBLE_EQ(frustum.FarClip(), 10.0);
+  EXPECT_DOUBLE_EQ(frustum.Near(), 1.0);
+  EXPECT_DOUBLE_EQ(frustum.Far(), 10.0);
 
-  frustum.SetNearClip(-1.0);
-  frustum.SetFarClip(-10.0);
+  frustum.SetNear(-1.0);
+  frustum.SetFar(-10.0);
 
-  EXPECT_DOUBLE_EQ(frustum.NearClip(), -1.0);
-  EXPECT_DOUBLE_EQ(frustum.FarClip(), -10.0);
+  EXPECT_DOUBLE_EQ(frustum.Near(), -1.0);
+  EXPECT_DOUBLE_EQ(frustum.Far(), -10.0);
 }
 
 /////////////////////////////////////////////////
 TEST(FrustumTest, FOV)
 {
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -230,9 +230,9 @@ TEST(FrustumTest, FOV)
 TEST(FrustumTest, AspectRatio)
 {
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),
@@ -252,9 +252,9 @@ TEST(FrustumTest, AspectRatio)
 TEST(FrustumTest, Pose)
 {
   Frustum frustum(
-      // Near clip distance
+      // Near distance
       1,
-      // Far clip distance
+      // Far distance
       10,
       // Field of view
       Angle(IGN_DTOR(45)),

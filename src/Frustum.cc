@@ -24,14 +24,15 @@ using namespace ignition;
 using namespace math;
 
 /////////////////////////////////////////////////
-Frustum::Frustum(const double _nearClip,
-                               const double _farClip,
-                               const Angle &_fov,
-                               const double _aspectRatio,
-                               const Pose3d &_pose)
-  : dataPtr(new FrustumPrivate(_nearClip, _farClip, _fov, _aspectRatio, _pose))
+Frustum::Frustum(const double _near,
+                 const double _far,
+                 const Angle &_fov,
+                 const double _aspectRatio,
+                 const Pose3d &_pose)
+  : dataPtr(new FrustumPrivate(_near, _far, _fov, _aspectRatio, _pose))
 {
-  // Compute plane based on near clip, far clip, field of view, and pose
+  // Compute plane based on near distance, far distance, field of view,
+  // aspect ratio, and pose
   this->ComputePlanes();
 }
 
@@ -44,7 +45,7 @@ Frustum::~Frustum()
 
 /////////////////////////////////////////////////
 Frustum::Frustum(const Frustum &_p)
-  : dataPtr(new FrustumPrivate(_p.NearClip(), _p.FarClip(), _p.FOV(),
+  : dataPtr(new FrustumPrivate(_p.Near(), _p.Far(), _p.FOV(),
         _p.AspectRatio(), _p.Pose()))
 {
   for (int i = 0; i < 6; ++i)
@@ -86,28 +87,28 @@ bool Frustum::Contains(const Vector3d &_p) const
 }
 
 /////////////////////////////////////////////////
-double Frustum::NearClip() const
+double Frustum::Near() const
 {
-  return this->dataPtr->nearClip;
+  return this->dataPtr->near;
 }
 
 /////////////////////////////////////////////////
-void Frustum::SetNearClip(const double _near)
+void Frustum::SetNear(const double _near)
 {
-  this->dataPtr->nearClip = _near;
+  this->dataPtr->near = _near;
   this->ComputePlanes();
 }
 
 /////////////////////////////////////////////////
-double Frustum::FarClip() const
+double Frustum::Far() const
 {
-  return this->dataPtr->farClip;
+  return this->dataPtr->far;
 }
 
 /////////////////////////////////////////////////
-void Frustum::SetFarClip(const double _far)
+void Frustum::SetFar(const double _far)
 {
-  this->dataPtr->farClip = _far;
+  this->dataPtr->far = _far;
   this->ComputePlanes();
 }
 
@@ -156,12 +157,12 @@ void Frustum::ComputePlanes()
   // Tangent of half the field of view.
   double tanFOV2 = std::tan(this->dataPtr->fov() * 0.5);
 
-  // Width and height of near clip plane
-  double nearHeight = 2.0 * tanFOV2 * this->dataPtr->nearClip;
+  // Width and height of near plane
+  double nearHeight = 2.0 * tanFOV2 * this->dataPtr->near;
   double nearWidth = nearHeight * this->dataPtr->aspectRatio;
 
-  // Width and height of far clip plane
-  double farHeight = 2.0 * tanFOV2 * this->dataPtr->farClip;
+  // Width and height of far plane
+  double farHeight = 2.0 * tanFOV2 * this->dataPtr->far;
   double farWidth = farHeight * this->dataPtr->aspectRatio;
 
   // Up, right, and forward unit vectors.
@@ -171,16 +172,16 @@ void Frustum::ComputePlanes()
 
   // Near plane center
   Vector3d nearCenter = this->dataPtr->pose.Pos() + forward *
-    this->dataPtr->nearClip;
+    this->dataPtr->near;
 
   // Far plane center
   Vector3d farCenter = this->dataPtr->pose.Pos() + forward *
-    this->dataPtr->farClip;
+    this->dataPtr->far;
 
   // Center point between near and far planes
   Vector3d center = this->dataPtr->pose.Pos() + forward *
-    ((this->dataPtr->farClip - this->dataPtr->nearClip) * 0.5 +
-     this->dataPtr->nearClip);
+    ((this->dataPtr->far - this->dataPtr->near) * 0.5 +
+     this->dataPtr->near);
 
   // These four variables are here for convenience.
   Vector3d upNearHeight2 = up * (nearHeight * 0.5);
@@ -188,13 +189,13 @@ void Frustum::ComputePlanes()
   Vector3d upFarHeight2 = up * (farHeight * 0.5);
   Vector3d rightFarWidth2 = right * (farHeight * 0.5);
 
-  // Comptue the vertices of the near clip plane
+  // Comptue the vertices of the near plane
   Vector3d nearTopLeft = nearCenter + upNearHeight2 - rightNearWidth2;
   Vector3d nearTopRight = nearCenter + upNearHeight2 + rightNearWidth2;
   Vector3d nearBottomLeft = nearCenter - upNearHeight2 - rightNearWidth2;
   Vector3d nearBottomRight = nearCenter - upNearHeight2 + rightNearWidth2;
 
-  // Compute the vertices of the far clip plane
+  // Compute the vertices of the far plane
   Vector3d farTopLeft = farCenter + upFarHeight2 - rightFarWidth2;
   Vector3d farTopRight = farCenter + upFarHeight2 + rightFarWidth2;
   Vector3d farBottomLeft = farCenter - upFarHeight2 - rightFarWidth2;
@@ -217,11 +218,11 @@ void Frustum::ComputePlanes()
   // second the plane offset
   this->dataPtr->planes[FRUSTUM_PLANE_NEAR].Set(
       Vector3d::Normal(nearTopLeft, nearTopRight, nearBottomLeft),
-      this->dataPtr->nearClip);
+      this->dataPtr->near);
 
   this->dataPtr->planes[FRUSTUM_PLANE_FAR].Set(
       Vector3d::Normal(farTopRight, farTopLeft, farBottomLeft),
-      -this->dataPtr->farClip);
+      -this->dataPtr->far);
 
   this->dataPtr->planes[FRUSTUM_PLANE_LEFT].Set(
       Vector3d::Normal(farTopLeft, nearTopLeft, nearBottomLeft), leftOffset);

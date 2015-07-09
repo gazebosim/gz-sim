@@ -33,7 +33,7 @@ namespace ignition
     /// This is also known as a square frustum or view frustum.
     class IGNITION_VISIBLE Frustum
     {
-      /// \brief Planes of that define the boundaries of the frustum
+      /// \brief Planes that define the boundaries of the frustum.
       public: enum FrustumPlane
       {
         /// \brief Near plane
@@ -56,17 +56,17 @@ namespace ignition
       };
 
       /// \brief Default constructor
-      /// \param[in] _nearClip Near clip distance. This is the distance from
-      /// the frustum's vertex to the closest clip plane
-      /// \param[in] _farClip Far clip distance. This is the distance from the
-      /// frustum's vertex to the farthest clip plane.
+      /// \param[in] _near Near plane distance. This is the distance from
+      /// the frustum's vertex to the closest plane
+      /// \param[in] _far Far plane distance. This is the distance from the
+      /// frustum's vertex to the farthest plane.
       /// \param[in] _fov Field of view. The field of view is the
       /// angle between the frustum's vertex and the edges of the near or far
-      /// clip plane. This value represents the horizontal angle.
+      /// plane. This value represents the horizontal angle.
       /// \param[in] _aspectRatio The aspect ratio, which is the width divided
-      /// by height of the near or far clip planes.
-      public: Frustum(const double _nearClip,
-                      const double _farClip,
+      /// by height of the near or far planes.
+      public: Frustum(const double _near,
+                      const double _far,
                       const math::Angle &_fov,
                       const double _aspectRatio,
                       const math::Pose3d &_pose = math::Pose3d::Zero);
@@ -78,52 +78,52 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~Frustum();
 
-      /// \brief Get the near clip distance. This is the distance from the
-      /// frustum's vertex to the closest clip plane.
-      /// \return Near clip distance.
-      /// \sa SetNearClip
-      public: double NearClip() const;
+      /// \brief Get the near distance. This is the distance from the
+      /// frustum's vertex to the closest plane.
+      /// \return Near distance.
+      /// \sa SetNear
+      public: double Near() const;
 
-      /// \brief Set the near clip distance. This is the distance from the
-      /// frustum's vertex to the closest clip plane.
-      /// \param[in] _near Near clip distance.
-      /// \sa NearClip
-      public: void SetNearClip(const double _near);
+      /// \brief Set the near distance. This is the distance from the
+      /// frustum's vertex to the closest plane.
+      /// \param[in] _near Near distance.
+      /// \sa Near
+      public: void SetNear(const double _near);
 
-      /// \brief Get the far clip distance. This is the distance from the
-      /// frustum's vertex to the farthest clip plane.
-      /// \return Far clip distance.
-      /// \sa SetFarClip
-      public: double FarClip() const;
+      /// \brief Get the far distance. This is the distance from the
+      /// frustum's vertex to the farthest plane.
+      /// \return Far distance.
+      /// \sa SetFar
+      public: double Far() const;
 
-      /// \brief Set the far clip distance. This is the distance from the
-      /// frustum's vertex to the farthest clip plane.
-      /// \param[in] _far Far clip distance.
-      /// \sa FarClip
-      public: void SetFarClip(const double _far);
+      /// \brief Set the far distance. This is the distance from the
+      /// frustum's vertex to the farthest plane.
+      /// \param[in] _far Far distance.
+      /// \sa Far
+      public: void SetFar(const double _far);
 
       /// \brief Get the horizontal field of view. The field of view is the
       /// angle between the frustum's vertex and the edges of the near or far
-      /// clip plane. This value represents the horizontal angle.
+      /// plane. This value represents the horizontal angle.
       /// \return The field of view.
       /// \sa SetFOV
       public: math::Angle FOV() const;
 
       /// \brief Set the horizontal field of view. The field of view is the
       /// angle between the frustum's vertex and the edges of the near or far
-      /// clip plane. This value represents the horizontal angle.
+      /// plane. This value represents the horizontal angle.
       /// \param[in] _fov The field of view.
       /// \sa FOV
       public: void SetFOV(const math::Angle &_fov);
 
       /// \brief Get the aspect ratio, which is the width divided by height
-      /// of the near or far clip planes.
+      /// of the near or far planes.
       /// \return The frustum's aspect ratio.
       /// \sa SetAspectRatio
       public: double AspectRatio() const;
 
       /// \brief Set the aspect ratio, which is the width divided by height
-      /// of the near or far clip planes.
+      /// of the near or far planes.
       /// \param[in] _aspectRatio The frustum's aspect ratio.
       /// \sa AspectRatio
       public: void SetAspectRatio(const double _aspectRatio);
