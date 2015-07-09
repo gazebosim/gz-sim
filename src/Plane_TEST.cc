@@ -21,89 +21,120 @@
 #include "ignition/math/Plane.hh"
 
 using namespace ignition;
+using namespace math;
 
 /////////////////////////////////////////////////
 TEST(PlaneTest, PlaneConstructor)
 {
-  math::Planed plane(math::Vector3d(1, 0, 0), 0.1);
-  EXPECT_EQ(plane.Normal(), math::Vector3d(1, 0, 0));
+  Planed plane(Vector3d(1, 0, 0), 0.1);
+  EXPECT_EQ(plane.Normal(), Vector3d(1, 0, 0));
   EXPECT_NEAR(plane.Offset(), 0.1, 1e-6);
 }
 
 /////////////////////////////////////////////////
 TEST(PlaneTest, Distance)
 {
-  math::Planed plane(math::Vector3d(0, 0, 1), 0.1);
-  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0),
-              math::Vector3d(0, 0, 1)), 0.1, 1e-6);
+  Planed plane(Vector3d(0, 0, 1), 0.1);
+  EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0),
+              Vector3d(0, 0, 1)), 0.1, 1e-6);
 
-  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.1),
-              math::Vector3d(0, 0, 1)), 0, 1e-6);
+  EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.1),
+              Vector3d(0, 0, 1)), 0, 1e-6);
 
-  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.2),
-              math::Vector3d(0, 0, 1)), -0.1, 1e-6);
+  EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.2),
+              Vector3d(0, 0, 1)), -0.1, 1e-6);
 
-  EXPECT_NEAR(plane.Distance(math::Vector3d(0, 0, 0.1),
-              math::Vector3d(1, 0, 0)), 0, 1e-6);
+  EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.1),
+              Vector3d(1, 0, 0)), 0, 1e-6);
 }
 
 /////////////////////////////////////////////////
 TEST(PlaneTest, Plane)
 {
   {
-    math::Planed plane;
-    EXPECT_TRUE(math::equal(plane.Offset(), 0.0));
-    EXPECT_TRUE(plane.Normal() == math::Vector3d());
-    EXPECT_TRUE(plane.Size() == math::Vector2d(0, 0));
+    Planed plane;
+    EXPECT_TRUE(equal(plane.Offset(), 0.0));
+    EXPECT_TRUE(plane.Normal() == Vector3d());
+    EXPECT_TRUE(plane.Size() == Vector2d(0, 0));
   }
 
   {
-    math::Planed plane(math::Vector3d(0, 0, 1), math::Vector2d(2, 3), 2.0);
-    EXPECT_TRUE(math::equal(plane.Offset(), 2.0));
-    EXPECT_TRUE(plane.Normal() == math::Vector3d(0, 0, 1));
-    EXPECT_TRUE(plane.Size() == math::Vector2d(2, 3));
+    Planed plane(Vector3d(0, 0, 1), Vector2d(2, 3), 2.0);
+    EXPECT_TRUE(equal(plane.Offset(), 2.0));
+    EXPECT_TRUE(plane.Normal() == Vector3d(0, 0, 1));
+    EXPECT_TRUE(plane.Size() == Vector2d(2, 3));
 
-    EXPECT_DOUBLE_EQ(-1, plane.Distance(math::Vector3d(0, 0, 1),
-          math::Vector3d(0, 0, -1)));
+    EXPECT_DOUBLE_EQ(-1, plane.Distance(Vector3d(0, 0, 1),
+          Vector3d(0, 0, -1)));
 
-    plane.Set(math::Vector3d(1, 0, 0), math::Vector2d(1, 1), 1.0);
-    EXPECT_TRUE(math::equal(plane.Offset(), 1.0));
-    EXPECT_TRUE(plane.Normal() == math::Vector3d(1, 0, 0));
-    EXPECT_TRUE(plane.Size() == math::Vector2d(1, 1));
+    plane.Set(Vector3d(1, 0, 0), Vector2d(1, 1), 1.0);
+    EXPECT_TRUE(equal(plane.Offset(), 1.0));
+    EXPECT_TRUE(plane.Normal() == Vector3d(1, 0, 0));
+    EXPECT_TRUE(plane.Size() == Vector2d(1, 1));
 
-    plane = math::Planed(math::Vector3d(0, 1, 0), math::Vector2d(4, 4), 5.0);
-    EXPECT_TRUE(math::equal(plane.Offset(), 5.0));
-    EXPECT_TRUE(plane.Normal() == math::Vector3d(0, 1, 0));
-    EXPECT_TRUE(plane.Size() == math::Vector2d(4, 4));
+    plane = Planed(Vector3d(0, 1, 0), Vector2d(4, 4), 5.0);
+    EXPECT_TRUE(equal(plane.Offset(), 5.0));
+    EXPECT_TRUE(plane.Normal() == Vector3d(0, 1, 0));
+    EXPECT_TRUE(plane.Size() == Vector2d(4, 4));
   }
 }
 
 /////////////////////////////////////////////////
 TEST(PlaneTest, SidePoint)
 {
-  math::Planed plane(math::Vector3d(0, 0, 1), 1);
+  Planed plane(Vector3d(0, 0, 1), 1);
 
   // On the negative side of the plane (below the plane)
-  math::Vector3d point(0, 0, 0);
-  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+  Vector3d point(0, 0, 0);
+  EXPECT_EQ(plane.Side(point), Planed::NEGATIVE_SIDE);
 
   // Still on the negative side of the plane (below the plane)
   point.Set(1, 1, 0);
-  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+  EXPECT_EQ(plane.Side(point), Planed::NEGATIVE_SIDE);
 
   // Above the plane (positive side)
   point.Set(1, 1, 2);
-  EXPECT_EQ(plane.Side(point), math::Planed::POSITIVE_SIDE);
+  EXPECT_EQ(plane.Side(point), Planed::POSITIVE_SIDE);
 
   // On the plane
   point.Set(0, 0, 1);
-  EXPECT_EQ(plane.Side(point), math::Planed::NO_SIDE);
+  EXPECT_EQ(plane.Side(point), Planed::NO_SIDE);
 
   // Change the plane, but the point is still on the negative side
-  plane.Set(math::Vector3d(1, 0, 0), 4);
-  EXPECT_EQ(plane.Side(point), math::Planed::NEGATIVE_SIDE);
+  plane.Set(Vector3d(1, 0, 0), 4);
+  EXPECT_EQ(plane.Side(point), Planed::NEGATIVE_SIDE);
 
   // Point is now on the positive side
   point.Set(4.1, 0, 1);
-  EXPECT_EQ(plane.Side(point), math::Planed::POSITIVE_SIDE);
+  EXPECT_EQ(plane.Side(point), Planed::POSITIVE_SIDE);
+}
+
+/////////////////////////////////////////////////
+TEST(PlaneTest, SideBox)
+{
+  Planed plane(Vector3d(0, 0, 1), 1);
+
+  // On the negative side of the plane (below the plane)
+  {
+    Box box(Vector3d(-.5, -.5, -.5), Vector3d(.5, .5, .5));
+    EXPECT_EQ(plane.Side(box), Planed::NEGATIVE_SIDE);
+  }
+
+  // Still on the negative side of the plane (below the plane)
+  {
+    Box box(Vector3d(-10, -10, -10), Vector3d(.9, .9, .9));
+    EXPECT_EQ(plane.Side(box), Planed::NEGATIVE_SIDE);
+  }
+
+  // Above the plane (positive side)
+  {
+    Box box(Vector3d(2, 2, 2), Vector3d(3, 3, 3));
+    EXPECT_EQ(plane.Side(box), Planed::POSITIVE_SIDE);
+  }
+
+  // On both sides the plane
+  {
+    Box box(Vector3d(0, 0, 0), Vector3d(3, 3, 3));
+    EXPECT_EQ(plane.Side(box), Planed::BOTH_SIDE);
+  }
 }

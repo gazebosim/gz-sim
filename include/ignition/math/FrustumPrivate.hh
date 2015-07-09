@@ -19,6 +19,7 @@
 
 #include <array>
 
+#include <ignition/math/Pose3.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Plane.hh>
 
@@ -27,15 +28,16 @@ namespace ignition
   namespace math
   {
     /// \internal
-    /// \brief Private data for the PyramidFrustum class
-    class PyramidFrustumPrivate
+    /// \brief Private data for the Frustum class
+    class FrustumPrivate
     {
       /// \brief Constructor
-      public: PyramidFrustumPrivate(const double _nearClipDist,
+      public: FrustumPrivate(const double _nearClipDist,
                                     const double _farClipDist,
-                                    const math::Angle &_fov)
+                                    const math::Angle &_fov,
+                                    const double _aspectRatio)
               : nearClip(_nearClipDist), farClip(_farClipDist), fov(_fov),
-                aspectRatio(1.0)
+                aspectRatio(_aspectRatio)
               {
               }
 
@@ -53,8 +55,11 @@ namespace ignition
       public: double aspectRatio;
 
       /// \brief Each plane of the frustum.
-      /// \sa PyramidFrustum::PyramidFrustumPlane
+      /// \sa Frustum::FrustumPlane
       public: std::array<Planed, 6> planes;
+
+      /// \brief Pose of the frustum
+      public: math::Pose3d pose;
     };
   }
 }
