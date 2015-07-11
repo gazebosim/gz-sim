@@ -100,9 +100,12 @@ namespace ignition
         this->d = _offset;
       }
 
-      /// \brief The distance to the plane from the given point.
+      /// \brief The distance to the plane from the given point. The
+      /// distance can be negative, which indicates the point is on the
+      /// negative side of the plane.
       /// \param[in] _point 3D point to calculate distance from.
       /// \return Distance from the point to the plane.
+      /// \sa Side
       public: T Distance(const Vector3<T> &_point) const
       {
         return this->normal.Dot(_point) - this->d;

@@ -28,9 +28,8 @@ namespace ignition
     // Forward declaration of private data
     class FrustumPrivate;
 
-    /// \class Frustum Frustum.hh ignition/math/Frustum.hh
     /// \brief Mathematical representation of a frustum and related functions.
-    /// This is also known as a square frustum or view frustum.
+    /// This is also known as a view frustum.
     class IGNITION_VISIBLE Frustum
     {
       /// \brief Planes that define the boundaries of the frustum.
@@ -65,6 +64,7 @@ namespace ignition
       /// plane. This value represents the horizontal angle.
       /// \param[in] _aspectRatio The aspect ratio, which is the width divided
       /// by height of the near or far planes.
+      /// \param[in] _pose Pose of the frustum.
       public: Frustum(const double _near,
                       const double _far,
                       const math::Angle &_fov,
@@ -157,6 +157,7 @@ namespace ignition
       /// a property of the frustum is changed.
       private: void ComputePlanes();
 
+      /// \internal
       /// \brief Private data pointer
       private: FrustumPrivate *dataPtr;
     };

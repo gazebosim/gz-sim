@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_PYRAMID_FRUSTUM_PRIVATE_HH_
-#define _IGNITION_PYRAMID_FRUSTUM_PRIVATE_HH_
+#ifndef _IGNITION_FRUSTUM_PRIVATE_HH_
+#define _IGNITION_FRUSTUM_PRIVATE_HH_
 
 #include <array>
 
@@ -41,6 +41,7 @@ namespace ignition
       /// plane. This value represents the horizontal angle.
       /// \param[in] _aspectRatio The aspect ratio, which is the width divided
       /// by height of the near or far planes.
+      /// \param[in] _pose Pose of the frustum.
       public: FrustumPrivate(const double _near,
                              const double _far,
                              const math::Angle &_fov,

@@ -157,11 +157,17 @@ void Frustum::ComputePlanes()
   // Tangent of half the field of view.
   double tanFOV2 = std::tan(this->dataPtr->fov() * 0.5);
 
+  // Width of near plane
+  double nearWidth = 2.0 * tanFOV2 * this->dataPtr->near;
+
   // Height of near plane
-  double nearHeight = 2.0 * tanFOV2 * this->dataPtr->near;
+  double nearHeight = nearWidth / this->dataPtr->aspectRatio;
+
+  // Width of near plane
+  double farWidth = 2.0 * tanFOV2 * this->dataPtr->far;
 
   // Height of far plane
-  double farHeight = 2.0 * tanFOV2 * this->dataPtr->far;
+  double farHeight = farWidth / this->dataPtr->aspectRatio;
 
   // Up, right, and forward unit vectors.
   Vector3d forward = this->dataPtr->pose.Rot().RotateVector(Vector3d::UnitX);
@@ -176,18 +182,13 @@ void Frustum::ComputePlanes()
   Vector3d farCenter = this->dataPtr->pose.Pos() + forward *
     this->dataPtr->far;
 
-  // Center point between near and far planes
-  Vector3d center = this->dataPtr->pose.Pos() + forward *
-    ((this->dataPtr->far - this->dataPtr->near) * 0.5 +
-     this->dataPtr->near);
-
   // These four variables are here for convenience.
   Vector3d upNearHeight2 = up * (nearHeight * 0.5);
-  Vector3d rightNearWidth2 = right * (nearHeight * 0.5);
+  Vector3d rightNearWidth2 = right * (nearWidth * 0.5);
   Vector3d upFarHeight2 = up * (farHeight * 0.5);
-  Vector3d rightFarWidth2 = right * (farHeight * 0.5);
+  Vector3d rightFarWidth2 = right * (farWidth * 0.5);
 
-  // Comptue the vertices of the near plane
+  // Compute the vertices of the near plane
   Vector3d nearTopLeft = nearCenter + upNearHeight2 - rightNearWidth2;
   Vector3d nearTopRight = nearCenter + upNearHeight2 + rightNearWidth2;
   Vector3d nearBottomLeft = nearCenter - upNearHeight2 - rightNearWidth2;
@@ -200,18 +201,6 @@ void Frustum::ComputePlanes()
   Vector3d farBottomRight = farCenter - upFarHeight2 + rightFarWidth2;
 
   // Compute plane offsets
-  double leftOffset = -((nearTopLeft + nearBottomLeft + farTopLeft +
-        farBottomLeft) / 4.0).Distance(center);
-
-  double rightOffset = -((nearTopRight + nearBottomRight + farTopRight +
-        farBottomRight) / 4.0).Distance(center);
-
-  double topOffset = -((nearTopLeft + nearTopRight + farTopLeft +
-        farTopRight) / 4.0).Distance(center);
-
-  double bottomOffset = -((nearBottomLeft + nearBottomRight + farBottomLeft +
-        farBottomRight) / 4.0).Distance(center);
-
   // Set the planes, where the first value is the plane normal and the
   // second the plane offset
   this->dataPtr->planes[FRUSTUM_PLANE_NEAR].Set(
@@ -223,15 +212,14 @@ void Frustum::ComputePlanes()
       -this->dataPtr->far);
 
   this->dataPtr->planes[FRUSTUM_PLANE_LEFT].Set(
-      Vector3d::Normal(farTopLeft, nearTopLeft, nearBottomLeft), leftOffset);
+      Vector3d::Normal(farTopLeft, nearTopLeft, nearBottomLeft), 0);
 
   this->dataPtr->planes[FRUSTUM_PLANE_RIGHT].Set(
-      Vector3d::Normal(nearTopRight, farTopRight, farBottomRight), rightOffset);
+      Vector3d::Normal(nearTopRight, farTopRight, farBottomRight), 0);
 
   this->dataPtr->planes[FRUSTUM_PLANE_TOP].Set(
-      Vector3d::Normal(nearTopLeft, farTopLeft, nearTopRight), topOffset);
+      Vector3d::Normal(nearTopLeft, farTopLeft, nearTopRight), 0);
 
   this->dataPtr->planes[FRUSTUM_PLANE_BOTTOM].Set(
-      Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight),
-      bottomOffset);
+      Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight), 0);
 }
