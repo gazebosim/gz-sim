@@ -24,7 +24,6 @@ set (gtest_sources
   Helpers_TEST.cc
   Kmeans_TEST.cc
   Line2_TEST.cc
-  Line3_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
   Plane_TEST.cc
