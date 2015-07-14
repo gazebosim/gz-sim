@@ -41,7 +41,8 @@ namespace ignition
       /// plane. This value represents the horizontal angle.
       /// \param[in] _aspectRatio The aspect ratio, which is the width divided
       /// by height of the near or far planes.
-      /// \param[in] _pose Pose of the frustum.
+      /// \param[in] _pose Pose of the frustum, which is the vertex (top of
+      /// the pyramid).
       public: FrustumPrivate(const double _near,
                              const double _far,
                              const math::Angle &_fov,
