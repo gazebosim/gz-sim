@@ -199,7 +199,7 @@ namespace ignition
       /// another vector. This is similar to the Dot function, except the
       /// absolute value of each component of the vector is used.
       ///
-      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 *x2)
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 *z2)
       ///
       /// \param[in] _v the vector
       /// \return The absolute dot product
