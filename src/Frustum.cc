@@ -163,7 +163,7 @@ void Frustum::ComputePlanes()
   // Height of near plane
   double nearHeight = nearWidth / this->dataPtr->aspectRatio;
 
-  // Width of near plane
+  // Width of far plane
   double farWidth = 2.0 * tanFOV2 * this->dataPtr->far;
 
   // Height of far plane
