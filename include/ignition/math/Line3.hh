@@ -100,17 +100,16 @@ namespace ignition
         this->pts[1] = _ptB;
       }
 
-      /// \brief Set the start and end point of the line segment, with Z
-      /// coordinates being 0
+      /// \brief Set the start and end point of the line segment
       /// \param[in] _x1 X coordinate of the start point.
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       public: void Set(const double _x1, const double _y1, const double _x2,
-        const double _y2, const double _z = 0)
+        const double _y2)
       {
-        this->pts[0].Set(_x1, _y1, _z);
-        this->pts[1].Set(_x2, _y2, _z);
+        this->pts[0].Set(_x1, _y1, this->pts[0].Z());
+        this->pts[1].Set(_x2, _y2, this->pts[1].Z());
       }
 
       /// \brief Set the start and end point of the line segment
@@ -169,9 +168,8 @@ namespace ignition
 
       /// \brief Stream extraction operator
       /// \param[in] _out output stream
-      /// \param[in] _pt Line3 to output
+      /// \param[in] _line Line3 to output
       /// \return The stream
-      /// \throws N/A.
       public: friend std::ostream &operator<<(
                   std::ostream &_out, const Line3<T> &_line)
       {
