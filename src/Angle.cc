@@ -166,4 +166,8 @@ bool Angle::operator>=(const Angle &angle) const
   return this->value > angle.value || math::equal(this->value, angle.value);
 }
 
-
+//////////////////////////////////////////////////
+double Angle::operator()() const
+{
+  return this->value;
+}

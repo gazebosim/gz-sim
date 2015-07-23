@@ -195,6 +195,21 @@ namespace ignition
                this->data[2] * _v[2];
       }
 
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 *z2)
+      ///
+      /// \param[in] _v the vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector3<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]) +
+               std::abs(this->data[2] * _v[2]);
+      }
+
       /// \brief Get the absolute value of the vector
       /// \return a vector with positive elements
       public: Vector3 Abs() const
@@ -232,7 +247,7 @@ namespace ignition
         Vector3<T> a = _v2 - _v1;
         Vector3<T> b = _v3 - _v1;
         Vector3<T> n = a.Cross(b);
-        return n;
+        return n.Normalize();
       }
 
       /// \brief Get distance to a line
