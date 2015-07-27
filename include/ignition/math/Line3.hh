@@ -32,7 +32,7 @@ namespace ignition
     class Line3
     {
       /// \brief Line Constructor
-      public: Line3() {}
+      public: Line3() = default;
 
       /// \brief Copy constructor
       /// \param[in] _line a line object
