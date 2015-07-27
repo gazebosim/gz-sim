@@ -5,6 +5,7 @@ set (headers
   Angle.hh
   Box.hh
   Filter.hh
+  Frustum.hh
   Helpers.hh
   IndexException.hh
   Kmeans.hh
