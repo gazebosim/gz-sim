@@ -32,9 +32,7 @@ namespace ignition
     class Line3
     {
       /// \brief Line Constructor
-      public: Line3()
-      {
-      }
+      public: Line3() {}
 
       /// \brief Copy constructor
       /// \param[in] _line a line object
@@ -70,8 +68,9 @@ namespace ignition
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
-      public: Line3(const double _x1, const double _y1, const double _z1,
-        const double _x2, const double _y2, const double _z2)
+      public: Line3(const double _x1, const double _y1,
+        const double _z1, const double _x2, 
+        const double _y2, const double _z2)
       {
         this->Set(_x1, _y1, _z1, _x2, _y2, _z2);
       }
@@ -100,16 +99,20 @@ namespace ignition
         this->pts[1] = _ptB;
       }
 
-      /// \brief Set the start and end point of the line segment
+      /// \brief Set the start and end point of the line segment, assuming that
+      /// both points have the same height.
       /// \param[in] _x1 X coordinate of the start point.
       /// \param[in] _y1 Y coordinate of the start point.
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
-      public: void Set(const double _x1, const double _y1, const double _x2,
-        const double _y2)
+      /// \param[in] _z Z coordinate of both points,
+      /// by default _z is set to 0.
+      public: void Set(const double _x1, const double _y1,
+        const double _x2, const double _y2,
+        const double _z = 0)
       {
-        this->pts[0].Set(_x1, _y1, this->pts[0].Z());
-        this->pts[1].Set(_x2, _y2, this->pts[1].Z());
+        this->pts[0].Set(_x1, _y1, _z);
+        this->pts[1].Set(_x2, _y2, _z);
       }
 
       /// \brief Set the start and end point of the line segment
@@ -119,8 +122,9 @@ namespace ignition
       /// \param[in] _x2 X coordinate of the end point.
       /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
-      public: void Set(const double _x1, const double _y1, const double _z1,
-        const double _x2, const double _y2, const double _z2)
+      public: void Set(const double _x1, const double _y1,
+        const double _z1, const double _x2,
+        const double _y2, const double _z2)
       {
         this->pts[0].Set(_x1, _y1, _z1);
         this->pts[1].Set(_x2, _y2, _z2);

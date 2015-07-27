@@ -154,4 +154,13 @@ TEST(Line3Test, Direction)
   EXPECT_TRUE(lineA.Direction() == (lineA[1] - lineA[0]).Normalize());
   EXPECT_TRUE(lineA.Direction() == lineB.Direction());
   EXPECT_FALSE(lineA.Direction() == lineC.Direction());
+
+  lineA.Set(1, 1, 2, 1, 1, 10);
+  EXPECT_TRUE(lineA.Direction() == math::Vector3d::UnitZ);
+
+  lineA.Set(1, 5, 1, 1, 1, 1);
+  EXPECT_TRUE(lineA.Direction() == -math::Vector3d::UnitY);
+
+  lineA.Set(1, 1, 1, 7, 1, 1);
+  EXPECT_TRUE(lineA.Direction() == math::Vector3d::UnitX);
 }
