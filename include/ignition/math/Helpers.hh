@@ -34,6 +34,9 @@
 /// \brief Double min value
 #define IGN_DBL_MIN std::numeric_limits<double>::min()
 
+/// \brief Double positive infinite value
+#define IGN_DBL_INF std::numeric_limits<double>::infinity()
+
 /// \brief Float maximum value
 #define IGN_FLT_MAX std::numeric_limits<float>::max()
 

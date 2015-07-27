@@ -9,6 +9,7 @@ set (headers
   IndexException.hh
   Kmeans.hh
   Line2.hh
+  Line3.hh
   Matrix3.hh
   Matrix4.hh
   Plane.hh
