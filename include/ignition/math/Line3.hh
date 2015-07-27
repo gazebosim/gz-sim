@@ -69,7 +69,7 @@ namespace ignition
       /// \param[in] _y2 Y coordinate of the end point.
       /// \param[in] _z2 Z coordinate of the end point.
       public: Line3(const double _x1, const double _y1,
-        const double _z1, const double _x2, 
+        const double _z1, const double _x2,
         const double _y2, const double _z2)
       {
         this->Set(_x1, _y1, _z1, _x2, _y2, _z2);
