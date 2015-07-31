@@ -54,7 +54,16 @@ namespace ignition
         FRUSTUM_PLANE_BOTTOM = 5
       };
 
-      /// \brief Default constructor
+      /// \brief Default constructor. With the following default values:
+      ///
+      /// * near: 0.0
+      /// * far: 1.0
+      /// * fov: 0.78539 radians (45 degrees)
+      /// * aspect ratio: 1.0
+      /// * pose: Pose3d::Zero
+      public: Frustum();
+
+      /// \brief Constructor
       /// \param[in] _near Near plane distance. This is the distance from
       /// the frustum's vertex to the closest plane
       /// \param[in] _far Far plane distance. This is the distance from the

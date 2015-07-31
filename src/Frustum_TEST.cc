@@ -24,6 +24,18 @@ using namespace ignition;
 using namespace math;
 
 /////////////////////////////////////////////////
+TEST(FrustumTest, Constructor)
+{
+  Frustum frustum;
+
+  EXPECT_EQ(frustum.Near(), 0);
+  EXPECT_EQ(frustum.Far(), 1);
+  EXPECT_EQ(frustum.FOV(), IGN_DTOR(45));
+  EXPECT_EQ(frustum.AspectRatio(), 1);
+  EXPECT_EQ(frustum.Pose(), Pose3d::Zero);
+}
+
+/////////////////////////////////////////////////
 TEST(FrustumTest, CopyConstructor)
 {
   // Frustum pointing down the +x axis

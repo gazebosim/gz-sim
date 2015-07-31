@@ -24,6 +24,12 @@ using namespace ignition;
 using namespace math;
 
 /////////////////////////////////////////////////
+Frustum::Frustum()
+  : dataPtr(new FrustumPrivate(0, 1, IGN_DTOR(45), 1, Pose3d::Zero))
+{
+}
+
+/////////////////////////////////////////////////
 Frustum::Frustum(const double _near,
                  const double _far,
                  const Angle &_fov,
