@@ -206,26 +206,42 @@ void Frustum::ComputePlanes()
   Vector3d farBottomLeft = farCenter - upFarHeight2 - rightFarWidth2;
   Vector3d farBottomRight = farCenter - upFarHeight2 + rightFarWidth2;
 
+  Vector3d leftCenter =
+    (farTopLeft + nearTopLeft + farBottomLeft + nearBottomLeft) / 4.0;
+
+  Vector3d rightCenter =
+    (farTopRight + nearTopRight + farBottomRight + nearBottomRight) / 4.0;
+
+  Vector3d topCenter =
+    (farTopRight + nearTopRight + farTopLeft + nearTopLeft) / 4.0;
+
+  Vector3d bottomCenter =
+    (farBottomRight + nearBottomRight + farBottomLeft + nearBottomLeft) / 4.0;
+
   // Compute plane offsets
   // Set the planes, where the first value is the plane normal and the
   // second the plane offset
-  this->dataPtr->planes[FRUSTUM_PLANE_NEAR].Set(
-      Vector3d::Normal(nearTopLeft, nearTopRight, nearBottomLeft),
-      this->dataPtr->near);
+  Vector3d norm = Vector3d::Normal(nearTopLeft, nearTopRight, nearBottomLeft);
+  this->dataPtr->planes[FRUSTUM_PLANE_NEAR].Set(norm,
+      (nearCenter * norm).Sum());
 
-  this->dataPtr->planes[FRUSTUM_PLANE_FAR].Set(
-      Vector3d::Normal(farTopRight, farTopLeft, farBottomLeft),
-      -this->dataPtr->far);
+  norm = Vector3d::Normal(farTopRight, farTopLeft, farBottomLeft);
+  this->dataPtr->planes[FRUSTUM_PLANE_FAR].Set(norm,
+      (farCenter * norm).Sum());
 
-  this->dataPtr->planes[FRUSTUM_PLANE_LEFT].Set(
-      Vector3d::Normal(farTopLeft, nearTopLeft, nearBottomLeft), 0);
+  norm = Vector3d::Normal(farTopLeft, nearTopLeft, nearBottomLeft);
+  this->dataPtr->planes[FRUSTUM_PLANE_LEFT].Set(norm,
+      (leftCenter * norm).Sum());
 
-  this->dataPtr->planes[FRUSTUM_PLANE_RIGHT].Set(
-      Vector3d::Normal(nearTopRight, farTopRight, farBottomRight), 0);
+  norm = Vector3d::Normal(nearTopRight, farTopRight, farBottomRight);
+  this->dataPtr->planes[FRUSTUM_PLANE_RIGHT].Set(norm,
+      (rightCenter * norm).Sum());
 
-  this->dataPtr->planes[FRUSTUM_PLANE_TOP].Set(
-      Vector3d::Normal(nearTopLeft, farTopLeft, nearTopRight), 0);
+  norm = Vector3d::Normal(nearTopLeft, farTopLeft, nearTopRight);
+  this->dataPtr->planes[FRUSTUM_PLANE_TOP].Set(norm,
+      (topCenter * norm).Sum());
 
-  this->dataPtr->planes[FRUSTUM_PLANE_BOTTOM].Set(
-      Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight), 0);
+  norm = Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight);
+  this->dataPtr->planes[FRUSTUM_PLANE_BOTTOM].Set(norm,
+      (bottomCenter * norm).Sum());
 }
