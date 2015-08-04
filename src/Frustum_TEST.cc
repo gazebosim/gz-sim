@@ -312,7 +312,7 @@ TEST(FrustumTest, PoseContains)
   // is also used to generate point outside the frustum.
   double offset = 0.00001;
 
-  // Compute far clip points
+  // Compute near clip points
   Vector3d nearTopLeft(
       -tan(IGN_DTOR(30)) + offset,
       frustum.Pose().Pos().Y() + frustum.Near() + offset,
