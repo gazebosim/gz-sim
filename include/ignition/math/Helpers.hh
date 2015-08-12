@@ -123,6 +123,38 @@ namespace ignition
       return isnan(_v) || std::isinf(_v) ? 0.0 : _v;
     }
 
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const int _v)
+    {
+      return !(_v & 1);
+    }
+
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const unsigned int _v)
+    {
+      return !(_v & 1);
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const int _v)
+    {
+      return _v & 1;
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const unsigned int _v)
+    {
+      return _v & 1;
+    }
+
     /// \brief get mean of vector of values
     /// \param[in] _values the vector of values
     /// \return the mean

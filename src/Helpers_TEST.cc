@@ -105,3 +105,85 @@ TEST(HelpersTest, FixNaN)
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);
 }
 #endif
+
+/////////////////////////////////////////////////
+// Even test
+TEST(HelpersTest, Even)
+{
+  int i = 1;
+  signed s = 1;
+  signed int si = 1;
+  unsigned u = 1;
+  unsigned int ui = 1;
+
+  EXPECT_FALSE(math::isEven(i));
+  EXPECT_FALSE(math::isEven(s));
+  EXPECT_FALSE(math::isEven(si));
+  EXPECT_FALSE(math::isEven(u));
+  EXPECT_FALSE(math::isEven(ui));
+
+  i = 4;
+  s = 4;
+  si = 4;
+  u = 4;
+  ui = 4;
+
+  EXPECT_TRUE(math::isEven(i));
+  EXPECT_TRUE(math::isEven(s));
+  EXPECT_TRUE(math::isEven(si));
+  EXPECT_TRUE(math::isEven(u));
+  EXPECT_TRUE(math::isEven(ui));
+
+  i = 0;
+  s = 0;
+  si = 0;
+  u = 0;
+  ui = 0;
+
+  EXPECT_TRUE(math::isEven(i));
+  EXPECT_TRUE(math::isEven(s));
+  EXPECT_TRUE(math::isEven(si));
+  EXPECT_TRUE(math::isEven(u));
+  EXPECT_TRUE(math::isEven(ui));
+}
+
+/////////////////////////////////////////////////
+// Odd test
+TEST(HelpersTest, Odd)
+{
+  int i = 1;
+  signed s = 1;
+  signed int si = 1;
+  unsigned u = 1;
+  unsigned int ui = 1;
+
+  EXPECT_TRUE(math::isOdd(i));
+  EXPECT_TRUE(math::isOdd(s));
+  EXPECT_TRUE(math::isOdd(si));
+  EXPECT_TRUE(math::isOdd(u));
+  EXPECT_TRUE(math::isOdd(ui));
+
+  i = 4;
+  s = 4;
+  si = 4;
+  u = 4;
+  ui = 4;
+
+  EXPECT_FALSE(math::isOdd(i));
+  EXPECT_FALSE(math::isOdd(s));
+  EXPECT_FALSE(math::isOdd(si));
+  EXPECT_FALSE(math::isOdd(u));
+  EXPECT_FALSE(math::isOdd(ui));
+
+  i = 0;
+  s = 0;
+  si = 0;
+  u = 0;
+  ui = 0;
+
+  EXPECT_FALSE(math::isOdd(i));
+  EXPECT_FALSE(math::isOdd(s));
+  EXPECT_FALSE(math::isOdd(si));
+  EXPECT_FALSE(math::isOdd(u));
+  EXPECT_FALSE(math::isOdd(ui));
+}
