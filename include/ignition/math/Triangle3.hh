@@ -248,13 +248,13 @@ namespace ignition
       private: Vector3<T> pts[3];
     };
 
-    /// Integer specialization of the Triangle class.
+    /// \brief Integer specialization of the Triangle class.
     typedef Triangle3<int> Triangle3i;
 
-    /// Double specialization of the Triangle class.
+    /// \brief Double specialization of the Triangle class.
     typedef Triangle3<double> Triangle3d;
 
-    /// Float specialization of the Triangle class.
+    /// \brief Float specialization of the Triangle class.
     typedef Triangle3<float> Triangle3f;
   }
 }
