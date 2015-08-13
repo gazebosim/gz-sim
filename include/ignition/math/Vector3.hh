@@ -620,8 +620,8 @@ namespace ignition
 
       /// \brief Less than operator.
       /// \param[in] _pt Vector to compare.
-      /// \return True if this vector's first, second, or third value is less
-      /// than the given vector's first or second value.
+      /// \return True if this vector's X(), Y(), or Z() value is less
+      /// than the given vector's corresponding values.
       public: bool operator<(const Vector3<T> &_pt) const
       {
         return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
