@@ -154,8 +154,8 @@ namespace ignition
                             const double _epsilon = 1e-6) const
       {
         Vector3<T> p13, p43, p21;
-        double d1343,d4321,d1321,d4343,d2121;
-        double numer,denom;
+        double d1343, d4321, d1321, d4343, d2121;
+        double numer, denom;
 
         p13 = this->pts[0] - _line[0];
         p43 = _line[1] - _line[0];
