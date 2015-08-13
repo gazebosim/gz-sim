@@ -280,39 +280,6 @@ namespace ignition
         return false;
       }
 
-      /// \brief Return the cross product of this line and the given line.
-      /// Give 'a' as this line and 'b' as given line, the equation is:
-      /// (a.start.x - a.end.x) * (b.start.y - b.end.y) -
-      /// (a.start.y - a.end.y) * (b.start.x - b.end.x) -
-      /// (a.start.z - a.end.z) * (b.start.z - b.end.z) -
-      /// \param[in] _line Line for the cross product computation.
-      /// \return Return the cross product of this line and the given line.
-      public: double CrossProduct(const Line3<T> &_line) const
-      {
-        return (this->pts[0].X() - this->pts[1].X()) *
-               (_line[0].Y() - _line[1].Y()) -
-               (this->pts[0].Y() - this->pts[1].Y()) *
-               (_line[0].X() - _line[1].X()) -
-               (this->pts[0].Z() - this->pts[1].Z()) *
-               (_line[0].Z() - _line[1].Z());
-      }
-
-      /// \brief Return the cross product of this line and the given point.
-      /// Given 'a' and 'b' as the start and end points, the equation is:
-      ///  (_pt.y - a.y) * (b.x - a.x) - (_pt.x - a.x) * (b.y - a.y) -
-      ///  (_pt.z - a.z) * (b.z - a.z)
-      /// \param[in] _pt Point for the cross product computation.
-      /// \return Return the cross product of this line and the given point.
-      public: double CrossProduct(const Vector3<T> &_pt) const
-      {
-        return (_pt.Y() - this->pts[0].Y()) *
-               (this->pts[1].X() - this->pts[0].X()) -
-               (_pt.X() - this->pts[0].X()) *
-               (this->pts[1].Y() - this->pts[0].Y()) -
-               (_pt.Z() - this->pts[0].Z()) *
-               (this->pts[1].Z() - this->pts[0].Z());
-      }
-
       /// \brief Check if the given point is between the start and end
       /// points of the line segment. This does not imply that the point is
       /// on the segment.
