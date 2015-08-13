@@ -618,6 +618,16 @@ namespace ignition
         this->data[2] = _v;
       }
 
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector's first, second, or third value is less
+      /// than the given vector's first or second value.
+      public: bool operator<(const Vector3<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
+               this->data[2] < _pt[2];
+      }
+
       /// \brief Stream insertion operator
       /// \param _out output stream
       /// \param _pt Vector3 to output
