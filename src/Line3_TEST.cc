@@ -196,8 +196,10 @@ TEST(Line3Test, Distance)
   EXPECT_NEAR(result.Length(), 0.1, 1e-4);
   EXPECT_EQ(result, math::Line3d(0, 1, 0, 0, 1.1, 0));
 
-  // Expect false when lines are parallel
-  EXPECT_FALSE(line.Distance(math::Line3d(2, 0, 0, 2, 1, 0), result));
+  // Expect true when lines are parallel
+  EXPECT_TRUE(line.Distance(math::Line3d(2, 0, 0, 2, 1, 0), result));
+  EXPECT_EQ(result[0], line[0]);
+  EXPECT_EQ(result[1], math::Vector3d(2, 0, 0));
 
   // Expect false when the passed in line is a point
   EXPECT_FALSE(line.Distance(math::Line3d(2, 0, 0, 2, 0, 0), result));

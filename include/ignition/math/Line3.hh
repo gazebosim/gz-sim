@@ -146,6 +146,9 @@ namespace ignition
 
       /// \brief Get the shortest line between this line and the
       /// provided line.
+      ///
+      /// In the case when the two lines are paralle, we choose the first
+      /// point of this line and the closest point in the provided line.
       /// \param[in] _line Line to compare against this.
       /// \param[out] _result The shortest line between _line and this.
       /// \return True if a solution was found. False if a solution is not
@@ -182,9 +185,23 @@ namespace ignition
 
         denom = d2121 * d4343 - d4321 * d4321;
 
+        // This is the case when the two lines are parallel.
+        // In this case, we choose the first point in this line,
+        // and the closest point in the provided line.
         if (std::abs(denom) < _epsilon)
         {
-          return false;
+          _result.SetA(this->pts[0]);
+          if (this->pts[0].Distance(_line[0]) <
+              this->pts[0].Distance(_line[1]))
+          {
+            _result.SetB(_line[0]);
+          }
+          else
+          {
+            _result.SetB(_line[1]);
+          }
+
+          return true;
         }
 
         numer = d1343 * d4321 - d1321 * d4343;
