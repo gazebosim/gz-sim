@@ -52,7 +52,7 @@ namespace ignition
       /// \throws IndexException if _index is > 2.
       public: void Set(const unsigned int _index, const Vector3<T> &_pt)
       {
-        if (_index >2)
+        if (_index > 2)
           throw IndexException();
         else
           this->pts[_index] = _pt;
@@ -145,6 +145,8 @@ namespace ignition
         return (r+t <= 1);
       }
 
+      /// \brief Get the triangle's normal vector.
+      /// \return The normal vector for the triangle.
       public: Vector3d Normal() const
       {
          return Vector3d::Normal(this->pts[0], this->pts[1], this->pts[2]);
