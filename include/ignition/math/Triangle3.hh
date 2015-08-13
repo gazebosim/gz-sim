@@ -28,7 +28,7 @@ namespace ignition
   namespace math
   {
     /// \class Triangle3 Triangle3.hh ignition/math/Triangle3.hh
-    /// \brief Triangle3 class and related functions.
+    /// \brief A 3-dimensional triangle and related functions.
     template<typename T>
     class Triangle3
     {
@@ -84,7 +84,7 @@ namespace ignition
       }
 
       /// \brief Get a line segment for one side of the triangle.
-      /// \param[in] _index Index of the side to retreive, where
+      /// \param[in] _index Index of the side to retrieve, where
       /// 0 == Line2(pt1, pt2),
       /// 1 == Line2(pt2, pt3),
       /// 2 == Line2(pt3, pt1)
@@ -165,7 +165,7 @@ namespace ignition
 
         double denom = norm.Dot(dir);
 
-        // Handle the case when the line is not coplanar with the triangle
+        // Handle the case when the line is not co-planar with the triangle
         if (!math::equal(denom, 0.0))
         {
           // Distance from line start to triangle intersection
@@ -184,7 +184,7 @@ namespace ignition
         // Line co-planar with triangle
         else
         {
-          // If the line is completly inside the triangle
+          // If the line is completely inside the triangle
           if (this->Contains(_line))
           {
             _ipt1 = _line[0];
