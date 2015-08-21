@@ -215,7 +215,8 @@ namespace ignition
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = 1e-6)
     {
-      return std::abs(_a - _b) <= _epsilon;
+      T diff = std::abs(_a - _b);
+      return diff <= _epsilon;
     }
 
     /// \brief get value at a specified precision
