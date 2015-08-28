@@ -158,7 +158,7 @@ namespace ignition
     /// \return True if _v is odd.
     inline bool isOdd(const int _v)
     {
-      return _v % 2;
+      return (_v % 2) != 0;
     }
 
     /// \brief Check if parameter is odd.
@@ -166,7 +166,7 @@ namespace ignition
     /// \return True if _v is odd.
     inline bool isOdd(const unsigned int _v)
     {
-      return _v % 2;
+      return (_v % 2) != 0;
     }
 
     /// \brief get mean of vector of values
