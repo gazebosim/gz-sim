@@ -6,6 +6,7 @@ set (sources
   Box.cc
   BoxPrivate.cc
   Helpers.cc
+  IndexException.cc
   Kmeans.cc
   Rand.cc
   RotationSpline.cc
