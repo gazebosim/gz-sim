@@ -114,20 +114,20 @@ bool Kmeans::Cluster(int _k,
   }
 
   // Initialize labels.
-  for (auto i = 0; i < this->dataPtr->obs.size(); ++i)
+  for (auto i = 0u; i < this->dataPtr->obs.size(); ++i)
     this->dataPtr->labels[i] = 0;
 
   do
   {
     // Reset sums and counters.
-    for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
+    for (auto i = 0u; i < this->dataPtr->centroids.size(); ++i)
     {
       this->dataPtr->sums[i] = Vector3d::Zero;
       this->dataPtr->counters[i] = 0;
     }
     changed = 0;
 
-    for (auto i = 0; i < this->dataPtr->obs.size(); ++i)
+    for (auto i = 0u; i < this->dataPtr->obs.size(); ++i)
     {
       // Update the labels containing the closest centroid for each point.
       auto label = this->ClosestCentroid(this->dataPtr->obs[i]);
@@ -141,7 +141,7 @@ bool Kmeans::Cluster(int _k,
     }
 
     // Update the centroids.
-    for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
+    for (auto i = 0u; i < this->dataPtr->centroids.size(); ++i)
     {
       this->dataPtr->centroids[i] =
         this->dataPtr->sums[i] / this->dataPtr->counters[i];
@@ -159,7 +159,7 @@ unsigned int Kmeans::ClosestCentroid(const Vector3d &_p) const
 {
   double min = HUGE_VAL;
   unsigned int minIdx = 0;
-  for (auto i = 0; i < this->dataPtr->centroids.size(); ++i)
+  for (auto i = 0u; i < this->dataPtr->centroids.size(); ++i)
   {
     double d = _p.Distance(this->dataPtr->centroids[i]);
     if (d < min)

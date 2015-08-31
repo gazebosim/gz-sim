@@ -5,10 +5,12 @@ set (headers
   Angle.hh
   Box.hh
   Filter.hh
+  Frustum.hh
   Helpers.hh
   IndexException.hh
   Kmeans.hh
   Line2.hh
+  Line3.hh
   Matrix3.hh
   Matrix4.hh
   Plane.hh

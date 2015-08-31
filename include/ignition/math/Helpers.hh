@@ -34,6 +34,9 @@
 /// \brief Double min value
 #define IGN_DBL_MIN std::numeric_limits<double>::min()
 
+/// \brief Double positive infinite value
+#define IGN_DBL_INF std::numeric_limits<double>::infinity()
+
 /// \brief Float maximum value
 #define IGN_FLT_MAX std::numeric_limits<float>::max()
 
@@ -118,6 +121,38 @@ namespace ignition
     inline double fixnan(double _v)
     {
       return isnan(_v) || std::isinf(_v) ? 0.0 : _v;
+    }
+
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const int _v)
+    {
+      return !(_v % 2);
+    }
+
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const unsigned int _v)
+    {
+      return !(_v % 2);
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const int _v)
+    {
+      return _v % 2;
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const unsigned int _v)
+    {
+      return _v % 2;
     }
 
     /// \brief get mean of vector of values
