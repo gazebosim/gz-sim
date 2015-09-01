@@ -224,5 +224,5 @@ TEST(Triangle3Test, Area)
 {
   Triangle3d tri(Vector3d(0, 0, 0), Vector3d(0, 1, 0), Vector3d(1, 0, 0));
 
-  EXPECT_NEAR(tri.Area(), 0.499999, 1e-6);
+  EXPECT_NEAR(tri.Area(), 0.5, 1e-6);
 }
