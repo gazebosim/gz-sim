@@ -286,7 +286,7 @@ namespace ignition
       }
 
       /// \brief Check if this line intersects the given line segment. The
-      /// point of intersection is returned in the _result parameter.
+      /// point of intersection is returned in the _pt parameter.
       /// \param[in] _line The line to check for intersection.
       /// \param[out] _pt The point of intersection. This value is only
       /// valid if the return value is true.
