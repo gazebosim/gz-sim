@@ -20,6 +20,7 @@
 #include <set>
 
 #include <ignition/math/Line3.hh>
+#include <ignition/math/Plane.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/IndexException.hh>
 
@@ -99,9 +100,9 @@ namespace ignition
 
       /// \brief Get a line segment for one side of the triangle.
       /// \param[in] _index Index of the side to retrieve, where
-      /// 0 == Line2(pt1, pt2),
-      /// 1 == Line2(pt2, pt3),
-      /// 2 == Line2(pt3, pt1)
+      /// 0 == Line3(pt1, pt2),
+      /// 1 == Line3(pt2, pt3),
+      /// 2 == Line3(pt3, pt1)
       /// \return Line segment of the requested side.
       /// \throws IndexException if _index is > 2.
       public: Line3<T> Side(const unsigned int _index) const
@@ -131,32 +132,31 @@ namespace ignition
       /// \return True if the point is inside or on the triangle.
       public: bool Contains(const Vector3<T> &_pt) const
       {
-        // Prepare our barycentric variables
-        Vector3<T> u = this->pts[1] - this->pts[0];
-        Vector3<T> v = this->pts[2] - this->pts[0];
-        Vector3<T> w = _pt - this->pts[0];
+        // Make sure the point is on the same plane as the triangle
+        if (Planed(this->Normal()).Side(_pt) == Planed::NO_SIDE)
+        {
+          Vector3d v0 = this->pts[2] - this->pts[0];
+          Vector3d v1 = this->pts[1] - this->pts[0];
+          Vector3d v2 = _pt - this->pts[0];
 
-        Vector3<T> vCrossW = v.Cross(w);
-        Vector3<T> vCrossU = v.Cross(u);
+          double dot00 = v0.Dot(v0);
+          double dot01 = v0.Dot(v1);
+          double dot02 = v0.Dot(v2);
+          double dot11 = v1.Dot(v1);
+          double dot12 = v1.Dot(v2);
 
-        // Test sign of r
-        if (vCrossW.Dot(vCrossU) < 0)
+          // Compute barycentric coordinates
+          double invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+          double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+          double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+          // Check if point is in triangle
+          return (u >= 0) && (v >= 0) && (u + v <= 1);
+        }
+        else
+        {
           return false;
-
-        Vector3<T> uCrossW = u.Cross(w);
-        Vector3<T> uCrossV = u.Cross(v);
-
-        // Test sign of t
-        if (uCrossW.Dot(uCrossV) < 0)
-          return false;
-
-        // At this point, we know that r and t and both > 0.
-        // Therefore, as long as their sum is <= 1, each must be less <= 1
-        float denom = uCrossV.Length();
-        float r = vCrossW.Length() / denom;
-        float t = uCrossW.Length() / denom;
-
-        return (r+t <= 1);
+        }
       }
 
       /// \brief Get the triangle's normal vector.
