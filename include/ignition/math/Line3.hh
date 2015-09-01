@@ -264,7 +264,7 @@ namespace ignition
       /// \param[in] _line Line to check against.
       /// \param[in] _epsilon The error bounds within which the
       /// check will return true.
-      /// \return True if the two lines are collinear.
+      /// \return True if the two lines are coplanar.
       public: bool Coplanar(const Line3<T> &_line,
                             const double _epsilon = 1e-6) const
       {
