@@ -35,7 +35,11 @@ namespace ignition
       /// \brief Default constructor
       public: Triangle3() = default;
 
-      /// \brief Constructor
+      /// \brief Constructor. 
+      ///
+      /// Keep in mind that the triangle normal
+      /// is determined by the order of these vertices. Search
+      /// the internet for "triangle winding" for more information.
       /// \param[in] _pt1 First point that defines the triangle.
       /// \param[in] _pt2 Second point that defines the triangle.
       /// \param[in] _pt3 Third point that defines the triangle.
@@ -47,6 +51,11 @@ namespace ignition
       }
 
       /// \brief Set one vertex of the triangle.
+      ///
+      /// Keep in mind that the triangle normal
+      /// is determined by the order of these vertices. Search
+      /// the internet for "triangle winding" for more information.
+      ///
       /// \param[in] _index Index of the point to set.
       /// \param[in] _pt Value of the point to set.
       /// \throws IndexException if _index is > 2.
@@ -59,6 +68,11 @@ namespace ignition
       }
 
       /// \brief Set all vertices of the triangle.
+      ///
+      /// Keep in mind that the triangle normal
+      /// is determined by the order of these vertices. Search
+      /// the internet for "triangle winding" for more information.
+      ///      
       /// \param[in] _pt1 First point that defines the triangle.
       /// \param[in] _pt2 Second point that defines the triangle.
       /// \param[in] _pt3 Third point that defines the triangle.
