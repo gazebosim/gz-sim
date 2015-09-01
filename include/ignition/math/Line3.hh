@@ -332,8 +332,7 @@ namespace ignition
       }
 
       /// \brief Check if the given point is between the start and end
-      /// points of the line segment. This does not imply that the point is
-      /// on the segment.
+      /// points of the line segment.
       /// \param[in] _pt Point to check.
       /// \param[in] _epsilon The error bounds within which the within
       /// check will return true.
