@@ -196,6 +196,14 @@ TEST(Line3Test, Distance)
   EXPECT_NEAR(result.Length(), 0.1, 1e-4);
   EXPECT_EQ(result, math::Line3d(0, 1, 0, 0, 1.1, 0));
 
+  EXPECT_TRUE(line.Distance(math::Line3d(1, 0.5, 0.4, -1, 0.5, 0.4), result));
+  EXPECT_NEAR(result.Length(), 0.4, 1e-4);
+  EXPECT_EQ(result, math::Line3d(0, 0.5, 0, 0, 0.5, 0.4));
+
+  EXPECT_TRUE(line.Distance(math::Line3d(0, 0.5, 1, 1, 0.5, 0), result));
+  EXPECT_NEAR(result.Length(), sin(IGN_PI / 4), 1e-4);
+  EXPECT_EQ(result, math::Line3d(0, 0.5, 0, 0.5, 0.5, 0.5));
+
   // Expect true when lines are parallel
   EXPECT_TRUE(line.Distance(math::Line3d(2, 0, 0, 2, 1, 0), result));
   EXPECT_EQ(result[0], line[0]);
@@ -239,6 +247,14 @@ TEST(Line3Test, Intersect)
   EXPECT_TRUE(line.Intersect(math::Line3d(1, 1, 0, -1, 1, 0), pt));
   EXPECT_EQ(pt, math::Vector3d(0, 1, 0));
 
+  EXPECT_TRUE(line.Intersect(math::Line3d(0, 0.5, -1, 0, 0.5, 1)));
+  EXPECT_TRUE(line.Intersect(math::Line3d(0, 0.5, -1, 0, 0.5, 1), pt));
+  EXPECT_EQ(pt, math::Vector3d(0, 0.5, 0));
+
+  EXPECT_TRUE(line.Intersect(math::Line3d(-1, 0.5, -1, 1, 0.5, 1)));
+  EXPECT_TRUE(line.Intersect(math::Line3d(-1, 0.5, -1, 1, 0.5, 1), pt));
+  EXPECT_EQ(pt, math::Vector3d(0, 0.5, 0));
+
   EXPECT_FALSE(line.Intersect(math::Line3d(1, 1.1, 0, -1, 1.1, 0)));
   EXPECT_FALSE(line.Intersect(math::Line3d(1, -0.1, 0, -1, -0.1, 0)));
 
@@ -254,11 +270,13 @@ TEST(Line3Test, Parallel)
 {
   math::Line3d line(0, 0, 0, 0, 1, 0);
   EXPECT_TRUE(line.Parallel(math::Line3d(1, 0, 0, 1, 1, 0)));
+  EXPECT_TRUE(line.Parallel(math::Line3d(1, 1, 0, 1, 0, 0)));
   EXPECT_TRUE(line.Parallel(math::Line3d(0, 0, 0, 0, 10, 0)));
   EXPECT_TRUE(line.Parallel(math::Line3d(-100, 100, 20, -100, 200, 20)));
 
   EXPECT_FALSE(line.Parallel(math::Line3d(1, 0, 0, 1, 1, 1)));
   EXPECT_FALSE(line.Parallel(math::Line3d(1, 0, 0, 2, 0, 0)));
+  EXPECT_FALSE(line.Parallel(math::Line3d(1, 0, 1, 2, 0, 1)));
 }
 
 /////////////////////////////////////////////////

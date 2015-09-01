@@ -85,9 +85,9 @@ namespace ignition
 
       /// \brief Get a line segment for one side of the triangle.
       /// \param[in] _index Index of the side to retrieve, where
-      /// 0 == Line2(pt1, pt2),
-      /// 1 == Line2(pt2, pt3),
-      /// 2 == Line2(pt3, pt1)
+      /// 0 == Line3(pt1, pt2),
+      /// 1 == Line3(pt2, pt3),
+      /// 2 == Line3(pt3, pt1)
       /// \return Line segment of the requested side.
       /// \throws IndexException if _index is > 2.
       public: Line3<T> Side(const unsigned int _index) const

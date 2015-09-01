@@ -62,18 +62,18 @@ TEST(Triangle3Test, Set)
   Triangle3d tri;
 
   tri.Set(0, Vector3d(3, 4, 1));
-  tri.Set(1, Vector3d(5, 6, 2));
-  tri.Set(2, Vector3d(7, 8, 3));
+  tri.Set(1, Vector3d(5, -6, 2));
+  tri.Set(2, Vector3d(7, 8, -3));
   EXPECT_EQ(tri[0], Vector3d(3, 4, 1));
-  EXPECT_EQ(tri[1], Vector3d(5, 6, 2));
-  EXPECT_EQ(tri[2], Vector3d(7, 8, 3));
+  EXPECT_EQ(tri[1], Vector3d(5, -6, 2));
+  EXPECT_EQ(tri[2], Vector3d(7, 8, -3));
 
-  tri.Set(Vector3d(0.1, 0.2, 0.3),
-          Vector3d(0.3, 0.4, 0.5),
-          Vector3d(1.5, 2.6, 3.7));
-  EXPECT_EQ(tri[0], Vector3d(0.1, 0.2, 0.3));
-  EXPECT_EQ(tri[1], Vector3d(0.3, 0.4, 0.5));
-  EXPECT_EQ(tri[2], Vector3d(1.5, 2.6, 3.7));
+  tri.Set(Vector3d(0.1, 0.2, -0.3),
+          Vector3d(0.3, -0.4, 0.5),
+          Vector3d(1.5, -2.6, 3.7));
+  EXPECT_EQ(tri[0], Vector3d(0.1, 0.2, -0.3));
+  EXPECT_EQ(tri[1], Vector3d(0.3, -0.4, 0.5));
+  EXPECT_EQ(tri[2], Vector3d(1.5, -2.6, 3.7));
 
   EXPECT_THROW(tri.Set(3, Vector3d(1.5, 2.6, 3.8)), IndexException);
 }
@@ -103,6 +103,8 @@ TEST(Triangle3Test, ContainsLine)
 
   EXPECT_FALSE(tri.Contains(Line3d(0.1, 0.1, 0, 0.6, 0.6, 0)));
   EXPECT_FALSE(tri.Contains(Line3d(-0.1, -0.1, 0, 0.5, 0.5, 0)));
+  EXPECT_FALSE(tri.Contains(Line3d(0.1, 0.1, 0.1, 0.5, 0.5, 0.1)));
+  EXPECT_FALSE(tri.Contains(Line3d(0.1, 0.1, -0.1, 0.1, 0.1, 0.1)));
 }
 
 /////////////////////////////////////////////////
