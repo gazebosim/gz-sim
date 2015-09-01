@@ -87,6 +87,28 @@ TEST(Matrix4dTest, ConstructFromPose3d)
   EXPECT_EQ(trans, mat.Translation());
   EXPECT_EQ(qt, mat.Rotation());
   EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+
+  // Zero values
+  math::Vector3d trans_0(0, 0, 0);
+  math::Quaterniond qt_0(0, 0, 0);
+  math::Pose3d pose_0(trans_0, qt_0);
+  math::Matrix4d mat_0(pose_0);
+
+  EXPECT_EQ(pose_0, mat_0.Pose());
+  EXPECT_EQ(trans_0, mat_0.Translation());
+  EXPECT_EQ(qt_0, mat_0.Rotation());
+  EXPECT_EQ(pose_0.Inverse(), mat_0.Inverse().Pose());
+
+  // Rotate pitch by pi/2 so yaw coincides with roll causing a gimbal lock
+  math::Vector3d trans_lock(3, 2, 1);
+  math::Quaterniond qt_lock(0, IGN_PI/2, 0);
+  math::Pose3d pose_lock(trans_lock, qt_lock);
+  math::Matrix4d mat_lock(pose_lock);
+
+  EXPECT_EQ(pose_lock, mat_lock.Pose());
+  EXPECT_EQ(trans_lock, mat_lock.Translation());
+  EXPECT_EQ(qt_lock, mat_lock.Rotation());
+  EXPECT_EQ(pose_lock.Inverse(), mat_lock.Inverse().Pose());
 }
 
 /////////////////////////////////////////////////
