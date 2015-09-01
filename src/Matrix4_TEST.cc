@@ -76,6 +76,20 @@ TEST(Matrix4dTest, Construct)
 }
 
 /////////////////////////////////////////////////
+TEST(Matrix4dTest, ConstructFromPose3d)
+{
+  math::Vector3d trans(1, 2, 3);
+  math::Quaterniond qt(0.1, 0.2, 0.3);
+  math::Pose3d pose(trans, qt);
+  math::Matrix4d mat(pose);
+
+  EXPECT_EQ(pose, mat.Pose());
+  EXPECT_EQ(trans, mat.Translation());
+  EXPECT_EQ(qt, mat.Rotation());
+  EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix4dTest, Scale)
 {
   math::Matrix4d mat, mat2;

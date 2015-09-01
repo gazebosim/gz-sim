@@ -103,6 +103,31 @@ namespace ignition
                   0, 0, 0, 1);
       }
 
+      /// \brief Construct Matrix4 from a math::Pose3
+      /// \param[in] _pose Pose.
+      public: Matrix4(const Pose3<T> &_pose)
+      {
+        Vector3<T> pos = _pose.Pos();
+        Quaternion<T> qt = _pose.Rot();
+        qt.Normalize();
+        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
+                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
+                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
+                  pos.X(),
+
+                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
+                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
+                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
+                  pos.Y(),
+
+                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
+                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
+                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y(),
+                  pos.Z(),
+
+                  0, 0, 0, 1);
+      }
+
       /// \brief Destructor
       public: virtual ~Matrix4() {}
 
