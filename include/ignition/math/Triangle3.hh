@@ -35,7 +35,7 @@ namespace ignition
       /// \brief Default constructor
       public: Triangle3() = default;
 
-      /// \brief Constructor. 
+      /// \brief Constructor.
       ///
       /// Keep in mind that the triangle normal
       /// is determined by the order of these vertices. Search
@@ -72,7 +72,7 @@ namespace ignition
       /// Keep in mind that the triangle normal
       /// is determined by the order of these vertices. Search
       /// the internet for "triangle winding" for more information.
-      ///      
+      ///
       /// \param[in] _pt1 First point that defines the triangle.
       /// \param[in] _pt2 Second point that defines the triangle.
       /// \param[in] _pt3 Third point that defines the triangle.
@@ -166,7 +166,18 @@ namespace ignition
          return Vector3d::Normal(this->pts[0], this->pts[1], this->pts[2]);
       }
 
-      /// \brief Get whether the given line intersects this triangle.
+      /// \brief Get whether the given line intersects an edge of this triangle.
+      ///
+      /// The returned intersection point is one of:
+      ///
+      /// * If the line is coplanar with the triangle:
+      ///   * The point on the closest edge of the triangle that the line
+      ///     intersects.
+      ///   OR
+      ///   * The first point on the line, if the line is completely contained
+      /// * If the line is not coplanar, the point on the triangle that the
+      ///   line intersects.
+      ///
       /// \param[in] _line Line to check.
       /// \param[out] _ipt1 Return value of the first intersection point,
       /// only valid if the return value of the function is true.

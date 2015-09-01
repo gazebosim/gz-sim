@@ -168,7 +168,7 @@ namespace ignition
         double d1321;
 
         // Holds the result of p43.Dot(p43)
-        double d4343, d2121;
+        double d4343;
 
         // Holds the result of p21.Dot(p21)
         double d2121;
