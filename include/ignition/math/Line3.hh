@@ -152,13 +152,32 @@ namespace ignition
       /// \param[in] _line Line to compare against this.
       /// \param[out] _result The shortest line between _line and this.
       /// \return True if a solution was found. False if a solution is not
-      /// possible (for example two parallel lines).
+      /// possible.
       public: bool Distance(const Line3<T> &_line, Line3<T> &_result,
                             const double _epsilon = 1e-6) const
       {
         Vector3<T> p13, p43, p21;
-        double d1343, d4321, d1321, d4343, d2121;
-        double numer, denom;
+
+        // Holds the result of p12.Dot(p43)
+        double d1343;
+
+        // Holds the result of p43.Dot(p21)
+        double d4321;
+
+        // Holds the result of p13.Dot(p21)
+        double d1321;
+
+        // Holds the result of p43.Dot(p43)
+        double d4343, d2121;
+
+        // Holds the result of p21.Dot(p21)
+        double d2121;
+
+        // The numerator
+        double numer;
+
+        // The denominator
+        double denom;
 
         p13 = this->pts[0] - _line[0];
         p43 = _line[1] - _line[0];
