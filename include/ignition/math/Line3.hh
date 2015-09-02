@@ -156,31 +156,8 @@ namespace ignition
       public: bool Distance(const Line3<T> &_line, Line3<T> &_result,
                             const double _epsilon = 1e-6) const
       {
-        Vector3<T> p13, p43, p21;
-
-        // Holds the result of p12.Dot(p43)
-        double d1343;
-
-        // Holds the result of p43.Dot(p21)
-        double d4321;
-
-        // Holds the result of p13.Dot(p21)
-        double d1321;
-
-        // Holds the result of p43.Dot(p43)
-        double d4343;
-
-        // Holds the result of p21.Dot(p21)
-        double d2121;
-
-        // The numerator
-        double numer;
-
-        // The denominator
-        double denom;
-
-        p13 = this->pts[0] - _line[0];
-        p43 = _line[1] - _line[0];
+        Vector3<T> p13 = this->pts[0] - _line[0];
+        Vector3<T> p43 = _line[1] - _line[0];
 
         if (std::abs(p43.X()) < _epsilon && std::abs(p43.Y()) < _epsilon &&
             std::abs(p43.Z()) < _epsilon)
@@ -188,7 +165,7 @@ namespace ignition
           return false;
         }
 
-        p21 = this->pts[1] - this->pts[0];
+        Vector3<T> p21 = this->pts[1] - this->pts[0];
 
         if (std::abs(p21.X()) < _epsilon && std::abs(p21.Y()) < _epsilon &&
             std::abs(p21.Z()) < _epsilon)
@@ -196,13 +173,13 @@ namespace ignition
           return false;
         }
 
-        d1343 = p13.Dot(p43);
-        d4321 = p43.Dot(p21);
-        d1321 = p13.Dot(p21);
-        d4343 = p43.Dot(p43);
-        d2121 = p21.Dot(p21);
+        double d1343 = p13.Dot(p43);
+        double d4321 = p43.Dot(p21);
+        double d1321 = p13.Dot(p21);
+        double d4343 = p43.Dot(p43);
+        double d2121 = p21.Dot(p21);
 
-        denom = d2121 * d4343 - d4321 * d4321;
+        double denom = d2121 * d4343 - d4321 * d4321;
 
         // In this case, we choose the first point in this line,
         // and the closest point in the provided line.
@@ -238,7 +215,7 @@ namespace ignition
           return true;
         }
 
-        numer = d1343 * d4321 - d1321 * d4343;
+        double numer = d1343 * d4321 - d1321 * d4343;
 
         double mua = clamp(numer / denom, 0.0, 1.0);
         double mub = clamp((d1343 + d4321 * mua) / d4343, 0.0, 1.0);
