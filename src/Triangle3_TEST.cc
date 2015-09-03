@@ -130,6 +130,9 @@ TEST(Triangle3Test, Intersects)
   EXPECT_TRUE(tri.Intersects(Line3d(0.1, 0.1, 0, 0.6, 0.6, 0), pt1));
   EXPECT_EQ(pt1, Vector3d(0.5, 0.5, 0));
 
+  EXPECT_TRUE(tri.Intersects(Line3d(0.6, 0.6, 0, 0.1, 0.1, 0), pt1));
+  EXPECT_EQ(pt1, Vector3d(0.5, 0.5, 0));
+
   EXPECT_TRUE(tri.Intersects(Line3d(0.1, 0.1, 0, -0.6, 0.1, 0), pt1));
   EXPECT_EQ(pt1, Vector3d(0.0, 0.1, 0));
 
@@ -141,6 +144,12 @@ TEST(Triangle3Test, Intersects)
 
   EXPECT_TRUE(tri.Intersects(Line3d(-2, -2, 0, 0.2, 0.2, 0), pt1));
   EXPECT_EQ(pt1, Vector3d(0.0, 0.0, 0));
+
+  EXPECT_TRUE(tri.Intersects(Line3d(0.1, 0.1, -1, 0.1, 0.1, 1), pt1));
+  EXPECT_EQ(pt1, Vector3d(0.1, 0.1, 0));
+
+  EXPECT_TRUE(tri.Intersects(Line3d(0.1, 0.1, -1, 0.3, 0.3, 1), pt1));
+  EXPECT_EQ(pt1, Vector3d(0.2, 0.2, 0));
 
   EXPECT_FALSE(tri.Intersects(Line3d(-0.1, 0, 0, -0.1, 1, 0), pt1));
 
@@ -209,22 +218,41 @@ TEST(Triangle3Test, ContainsPt)
   EXPECT_FALSE(tri.Contains(Vector3d(-0.01, -0.01, 0)));
   EXPECT_FALSE(tri.Contains(Vector3d(1.01, 0, 0)));
   EXPECT_FALSE(tri.Contains(Vector3d(0, 1.01, 0)));
+  EXPECT_FALSE(tri.Contains(Vector3d(0.1, 0.1, 0.1)));
+  EXPECT_FALSE(tri.Contains(Vector3d(0.1, 0.1, -0.1)));
 }
 
 /////////////////////////////////////////////////
 TEST(Triangle3Test, Perimeter)
 {
-  Triangle3d tri(Vector3d(0, 0, 0),
-                 Vector3d(0, 1, 0),
-                 Vector3d(1, 0, 0));
+  {
+    Triangle3d tri(Vector3d(0, 0, 0),
+                   Vector3d(0, 1, 0),
+                   Vector3d(1, 0, 0));
 
-  EXPECT_DOUBLE_EQ(tri.Perimeter(), 2.0 + sqrt(2.0));
+    EXPECT_DOUBLE_EQ(tri.Perimeter(), 2.0 + sqrt(2.0));
+  }
+  {
+    Triangle3d tri(Vector3d(0, 0, 1),
+                   Vector3d(0, 1, 0),
+                   Vector3d(1, 0, 0));
+
+    EXPECT_DOUBLE_EQ(tri.Perimeter(), 3*sqrt(2.0));
+  }
 }
 
 /////////////////////////////////////////////////
 TEST(Triangle3Test, Area)
 {
-  Triangle3d tri(Vector3d(0, 0, 0), Vector3d(0, 1, 0), Vector3d(1, 0, 0));
+  {
+    Triangle3d tri(Vector3d(0, 0, 0), Vector3d(0, 1, 0), Vector3d(1, 0, 0));
 
-  EXPECT_NEAR(tri.Area(), 0.5, 1e-6);
+    EXPECT_NEAR(tri.Area(), 0.5, 1e-6);
+  }
+  {
+    Triangle3d tri(Vector3d(0, 0, 1), Vector3d(0, 1, 0), Vector3d(1, 0, 0));
+
+    // (base * height) / 2
+    EXPECT_NEAR(tri.Area(), (sqrt(2) * sqrt(1.5))*0.5, 1e-6);
+  }
 }
