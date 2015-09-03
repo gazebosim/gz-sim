@@ -103,6 +103,13 @@ namespace ignition
                   0, 0, 0, 1);
       }
 
+      /// \brief Construct Matrix4 from a math::Pose3
+      /// \param[in] _pose Pose.
+      public: Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
+      {
+        this->Translate(_pose.Pos());
+      }
+
       /// \brief Destructor
       public: virtual ~Matrix4() {}
 
