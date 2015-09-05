@@ -292,7 +292,7 @@ else (build_errors)
   if(WIN32 AND NOT CYGWIN)
     set(CMAKE_CONFIG_INSTALL_DIR CMake)
   else()
-    set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${_Name})
+    set(CMAKE_CONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/)
   endif()
 
   install(FILES 
