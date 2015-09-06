@@ -67,6 +67,15 @@
 #define IGN_PI_4 0.78539816339744830962
 #endif
 
+/// \brief Define IGN_FP_VOLATILE for FP equality comparisons
+/// Use volatile parameters when checking floating point equality on
+/// the 387 math coprocessor to work around bugs from the 387 extra precision
+#if defined __FLT_EVAL_METHOD__  &&  __FLT_EVAL_METHOD__ == 2
+#define IGN_FP_VOLATILE volatile
+#else
+#define IGN_FP_VOLATILE
+#endif
+
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
@@ -215,7 +224,7 @@ namespace ignition
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = 1e-6)
     {
-      T diff = std::abs(_a - _b);
+      IGN_FP_VOLATILE T diff = std::abs(_a - _b);
       return diff <= _epsilon;
     }
 
