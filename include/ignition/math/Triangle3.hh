@@ -17,7 +17,6 @@
 
 #ifndef _IGNITION_TRIANGLE3_HH_
 #define _IGNITION_TRIANGLE3_HH_
-#include <set>
 
 #include <ignition/math/Line3.hh>
 #include <ignition/math/Plane.hh>
@@ -182,7 +181,7 @@ namespace ignition
       /// \param[out] _ipt1 Return value of the first intersection point,
       /// only valid if the return value of the function is true.
       /// \return True if the given line intersects this triangle.
-      public: bool Intersects(const Line3<T> &_line, Vector3<T> &_ipt1)
+      public: bool Intersects(const Line3<T> &_line, Vector3<T> &_ipt1) const
       {
         // Triangle normal
         Vector3d norm = this->Normal();
