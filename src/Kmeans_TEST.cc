@@ -100,7 +100,8 @@ TEST(KmeansTest, Kmeans)
   EXPECT_FALSE(kmeans.Cluster(0, centroids, labels));
 
   // Try to use a k > num_observations.
-  EXPECT_FALSE(kmeans.Cluster(static_cast<int>(obs.size() + 1), centroids, labels));
+  EXPECT_FALSE(kmeans.Cluster(static_cast<int>(obs.size() + 1),
+                              centroids, labels));
 }
 
 //////////////////////////////////////////////////
