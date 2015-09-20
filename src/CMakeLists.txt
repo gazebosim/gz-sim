@@ -7,6 +7,7 @@ set (sources
   BoxPrivate.cc
   Frustum.cc
   Helpers.cc
+  IndexException.cc
   Kmeans.cc
   Rand.cc
   RotationSpline.cc
