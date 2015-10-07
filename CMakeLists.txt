@@ -2,19 +2,22 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 set (IGN_PROJECT_NAME "math")
 
-project (ignition-${IGN_PROJECT_NAME})
-string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
-string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
-
 set (PROJECT_MAJOR_VERSION 2)
 set (PROJECT_MINOR_VERSION 2)
 set (PROJECT_PATCH_VERSION 2)
+
+project (ignition-${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
+set(PROJECT_NAME_NO_VERSION "ignition-${IGN_PROJECT_NAME}")
+string (TOLOWER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_LOWER)
+string (TOUPPER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_UPPER)
+string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
+string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
 set (PROJECT_VERSION_FULL
   ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
 
-message (STATUS "${PROJECT_NAME} version ${PROJECT_VERSION_FULL}")
+message (STATUS "${PROJECT_NAME_NO_VERSION} version ${PROJECT_VERSION_FULL}")
 
 set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
   CACHE PATH "Location of CMake scripts")
@@ -254,7 +257,7 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  set (pkgconfig_files ${PROJECT_NAME_LOWER})
+  set (pkgconfig_files ${PROJECT_NAME_NO_VERSION_LOWER})
 
   foreach (pkgconfig ${pkgconfig_files})
     configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
@@ -265,15 +268,15 @@ else (build_errors)
 
   ########################################
   # Make the cmake config files
-  set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
-  set(cmake_conf_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake")
-  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config-version.cmake")
+  set(PKG_NAME ${PROJECT_NAME_NO_VERSION_UPPER})
+  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER})
+  set(cmake_conf_file "${PROJECT_NAME_LOWER}-config.cmake")
+  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}-config-version.cmake")
   
   set(PKG_DEPENDS)
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_NO_VERSION_LOWER}-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}" @ONLY)
 
   # Use write_basic_package_version_file to generate a ConfigVersion file that
@@ -285,11 +288,17 @@ else (build_errors)
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
     VERSION "${PROJECT_VERSION_FULL}"
     COMPATIBILITY SameMajorVersion)
+    
+  if(WIN32 AND NOT CYGWIN)
+    set(CMAKE_CONFIG_INSTALL_DIR CMake)
+  else()
+    set(CMAKE_CONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/)
+  endif()
 
   install(FILES 
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}/ COMPONENT cmake)
+    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
