@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 
 set (IGN_PROJECT_NAME "math")
 
