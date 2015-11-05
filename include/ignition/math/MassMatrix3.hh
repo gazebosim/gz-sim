@@ -35,31 +35,42 @@ namespace ignition
     class MassMatrix3
     {
       /// \brief Default Constructor
-      public: MassMatrix3();
+      public: MassMatrix3() : mass(1), principals(1, 1, 1), products(0, 0, 0)
+      {}
 
       /// \brief Constructor.
       /// \param[in] _mass Mass value in kg if using metric.
       /// \param[in] _principalMoments Principal moments of inertia
       /// \param[in] _productMoments Product moments of inertia
-      public: explicit MassMatrix3(const T &_mass,
-                                   const Vector3<T> &_principalMoments,
-                                   const Vector3<T> &_productMoments);
+      public: MassMatrix3(const T &_mass,
+                          const Vector3<T> &_principalMoments,
+                          const Vector3<T> &_productMoments)
+      : mass(_mass), principals(_principalMoments), products(_productMoments)
+      {}
 
       /// \brief Copy constructor.
       /// \param[in] _massMatrix MassMatrix3 element to copy
       public: MassMatrix3(const MassMatrix3<T> &_massMatrix);
 
       /// \brief Destructor.
-      public: virtual ~MassMatrix3();
+      public: virtual ~MassMatrix3() {}
 
       /// \brief Set the mass.
       /// \param[in] _m New mass value.
       /// \return True if the mass was set successfully.
-      public: bool Mass(const T &_m);
+      public: bool Mass(const T &_m)
+      {
+        // Should we only accept positive values?
+        this->mass = _m;
+        return true;
+      }
 
       /// \brief Get the mass
       /// \return The mass value
-      public: T Mass() const;
+      public: T Mass() const
+      {
+        return this->mass;
+      }
 
       /// \brief Set the moment of inertia matrix.
       /// \param[in] _ixx X second moment of inertia (MOI) about x axis.
@@ -70,83 +81,179 @@ namespace ignition
       /// \param[in] _iyz YZ inertia.
       /// \return True if the inertia matrix was set successfully.
       public: bool InertiaMatrix(const T &_ixx, const T &_iyy, const T &_izz,
-                                 const T &_ixy, const T &_ixz, const T &_iyz);
+                                 const T &_ixy, const T &_ixz, const T &_iyz)
+      {
+        // Should we validate the values?
+        // matrix must be positive definite
+        this->principals.Set(_ixx, _iyy, _izz);
+        this->products.Set(_ixy, _ixz, _iyz);
+        return true;
+      }
 
       /// \brief Get the principal moments of inertia (Ixx, Iyy, Izz).
       /// \return The principal moments.
-      public: Vector3<T> PrincipalMoments() const;
+      public: Vector3<T> PrincipalMoments() const
+      {
+        return this->principals;
+      }
 
       /// \brief Get the products of inertia (Ixy, Ixz, Iyz).
       /// \return The products of inertia.
-      public: Vector3<T> ProductsofInertia() const;
+      public: Vector3<T> ProductsofInertia() const
+      {
+        return this->products;
+      }
 
       /// \brief Get IXX
       /// \return IXX value
-      public: T IXX() const;
+      public: T IXX() const
+      {
+        return this->principals[0];
+      }
 
       /// \brief Get IYY
       /// \return IYY value
-      public: T IYY() const;
+      public: T IYY() const
+      {
+        return this->principals[1];
+      }
 
       /// \brief Get IZZ
       /// \return IZZ value
-      public: T IZZ() const;
+      public: T IZZ() const
+      {
+        return this->principals[2];
+      }
 
       /// \brief Get IXY
       /// \return IXY value
-      public: T IXY() const;
+      public: T IXY() const
+      {
+        return this->products[0];
+      }
 
       /// \brief Get IXZ
       /// \return IXZ value
-      public: T IXZ() const;
+      public: T IXZ() const
+      {
+        return this->products[1];
+      }
 
       /// \brief Get IXZ
       /// \return IYZ value
-      public: T IYZ() const;
+      public: T IYZ() const
+      {
+        return this->products[2];
+      }
 
       /// \brief Set IXX
       /// \param[in] _v IXX value
       /// \return True if the value was set successfully.
-      public: bool IXX(const T &_v);
+      public: bool IXX(const T &_v)
+      {
+        // Should we validate?
+        this->principals[0] = _v;
+        return true;
+      }
 
       /// \brief Set IYY
       /// \param[in] _v IYY value
       /// \return True if the value was set successfully.
-      public: bool IYY(const T &_v);
+      public: bool IYY(const T &_v)
+      {
+        // Should we validate?
+        this->principals[1] = _v;
+        return true;
+      }
 
       /// \brief Set IZZ
       /// \param[in] _v IZZ value
       /// \return True if the value was set successfully.
-      public: bool IZZ(const T &_v);
+      public: bool IZZ(const T &_v)
+      {
+        // Should we validate?
+        this->principals[2] = _v;
+        return true;
+      }
 
       /// \brief Set IXY
       /// \param[in] _v IXY value
       /// \return True if the value was set successfully.
-      public: bool IXY(const T &_v);
+      public: bool IXY(const T &_v)
+      {
+        // Should we validate?
+        this->products[0] = _v;
+        return true;
+      }
 
       /// \brief Set IXZ
       /// \param[in] _v IXZ value
       /// \return True if the value was set successfully.
-      public: bool IXZ(const T &_v);
+      public: bool IXZ(const T &_v)
+      {
+        // Should we validate?
+        this->products[1] = _v;
+        return true;
+      }
 
       /// \brief Set IYZ
       /// \param[in] _v IXX value
       /// \return True if the value was set successfully.
-      public: bool IYZ(const T &_v);
+      public: bool IYZ(const T &_v)
+      {
+        // Should we validate?
+        this->products[2] = _v;
+        return true;
+      }
 
       /// \brief returns Moments of Inertia as a Matrix3
       /// \return Moments of Inertia as a Matrix3
-      public: Matrix3<T> MOI() const;
+      public: Matrix3<T> MOI() const
+      {
+        return Matrix3<T>(
+          this->principals[0], this->products[0], this->products[1],
+          this->products[0], this->principals[1], this->products[2],
+          this->products[1], this->products[2], this->principals[2]);
+      }
 
-      /// \brief Sets Moments of Inertia (MOI) from a Matrix3
+      /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
+      /// Symmetric component of input matrix is used by averaging
+      /// off-axis terms.
       /// \param[in] Moments of Inertia as a Matrix3
       /// \return True if the inertia matrix was set successfully.
-      public: bool MOI(const Matrix3<T> &_moi);
+      public: bool MOI(const Matrix3<T> &_moi)
+      {
+        // Should we validate?
+        this->principals.Set(_moi[0][0], _moi[1][1], _moi[2][2]);
+        this->products.Set(
+          0.5*(_moi[0][1] + _moi[1][0]),
+          0.5*(_moi[0][2] + _moi[2][0]),
+          0.5*(_moi[1][2] + _moi[2][1]));
+        return true;
+      }
 
       /// \brief Equal operator.
       /// \param[in] _massMatrix MassMatrix3 to copy.
       /// \return Reference to this object.
-      public: MassMatrix3 &operator=(const MassMatrix3<T> &_massMatrix);
+      public: MassMatrix3 &operator=(const MassMatrix3<T> &_massMatrix)
+      {
+        this->mass = _massMatrix.Mass();
+        this->principals = _massMatrix.PrincipalMoments();
+        this->products = _massMatrix.ProductsofInertia();
+
+        return *this;
+      }
+
+      /// \brief Equality comparison operator.
+      /// \param[in] _m MassMatrix3 to copy.
+      /// \return true if each component is equal within a default tolerance,
+      /// false otherwise
+      public: bool operator==(const MassMatrix3<T> &_m) const
+      {
+        return equal<T>(this->mass, _m.Mass()) &&
+               (this->principals == _m.PrincipalMoments()) &&
+               (this->products == _m.ProductsofInertia());
+      }
 
       /// \brief Get dimensions and rotation offset of uniform box
       /// with equivalent mass and moment of inertia.

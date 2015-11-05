@@ -9,7 +9,6 @@ set (sources
   Helpers.cc
   IndexException.cc
   Kmeans.cc
-  MassMatrix3.cc
   Rand.cc
   RotationSpline.cc
   RotationSplinePrivate.cc
