@@ -52,9 +52,6 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~MassMatrix3();
 
-      /// \brief Reset all the inertial properties.
-      public: void Reset();
-
       /// \brief Set the mass.
       /// \param[in] _m New mass value.
       /// \return True if the mass was set successfully.
