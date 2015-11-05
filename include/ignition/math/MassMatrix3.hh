@@ -50,7 +50,10 @@ namespace ignition
 
       /// \brief Copy constructor.
       /// \param[in] _massMatrix MassMatrix3 element to copy
-      public: MassMatrix3(const MassMatrix3<T> &_massMatrix);
+      public: MassMatrix3(const MassMatrix3<T> &_m)
+      : mass(_m.Mass()), principals(_m.PrincipalMoments()),
+        products(_m.ProductsofInertia())
+      {}
 
       /// \brief Destructor.
       public: virtual ~MassMatrix3() {}
@@ -253,6 +256,14 @@ namespace ignition
         return equal<T>(this->mass, _m.Mass()) &&
                (this->principals == _m.PrincipalMoments()) &&
                (this->products == _m.ProductsofInertia());
+      }
+
+      /// \brief Inequality test operator
+      /// \param[in] _m MassMatrix3<T> to test
+      /// \return True if not equal (using the default tolerance of 1e-6)
+      public: bool operator!=(const MassMatrix3<T> &_m) const
+      {
+        return !(*this == _m);
       }
 
       /// \brief Get dimensions and rotation offset of uniform box
