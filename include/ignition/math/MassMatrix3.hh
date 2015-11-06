@@ -284,6 +284,19 @@ namespace ignition
         return !(*this == _m);
       }
 
+      /// \brief Verify that inertia values are positive definite
+      /// \return True if mass is positive and moment of inertia matrix
+      /// is positive definite.
+      public: bool IsPositive() const
+      {
+        // Check if mass and determinants of all upper left submatrices
+        // of moment of inertia matrix are positive
+        return (this->mass > 0) &&
+               (this->IXX() > 0) &&
+               (this->IXX()*this->IYY() - this->IXY()*this->IXY() > 0) &&
+               (this->MOI().Determinant() > 0);
+      }
+
       /// \brief Get dimensions and rotation offset of uniform box
       /// with equivalent mass and moment of inertia.
       /// To compute this, the Matrix3 is diagonalized.
