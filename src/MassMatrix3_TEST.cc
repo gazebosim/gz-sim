@@ -24,7 +24,7 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(MassMatrix3dTest, MassMatrix3d)
+TEST(MassMatrix3dTest, Constructors)
 {
   // Simple constructor, test default values
   {
@@ -76,6 +76,70 @@ TEST(MassMatrix3dTest, MassMatrix3d)
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
     EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
     EXPECT_EQ(m.MOI(), MOI);
+
+    // Test assignment operator
+    math::MassMatrix3d m2;
+    EXPECT_NE(m, m2);
+    m2 = m;
+    EXPECT_EQ(m, m2);
   }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, Setters)
+{
+  // Simple constructor, test default values
+  math::MassMatrix3d m;
+  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
+
+  const double mass = 5.0;
+  const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
+  const math::Vector3d Ixyxzyz(0.2, 0.3, 0.4);
+  const math::Matrix3d MOI(2.0, 0.2, 0.3,
+                           0.2, 3.0, 0.4,
+                           0.3, 0.4, 4.0);
+
+  // Test scalar setters
+  EXPECT_TRUE(m.Mass(mass));
+  EXPECT_TRUE(m.IXX(Ixxyyzz[0]));
+  EXPECT_TRUE(m.IYY(Ixxyyzz[1]));
+  EXPECT_TRUE(m.IZZ(Ixxyyzz[2]));
+  EXPECT_TRUE(m.IXY(Ixyxzyz[0]));
+  EXPECT_TRUE(m.IXZ(Ixyxzyz[1]));
+  EXPECT_TRUE(m.IYZ(Ixyxzyz[2]));
+  EXPECT_DOUBLE_EQ(m.Mass(), mass);
+  EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
+  EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
+  EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
+  EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
+  EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
+  EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+  EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
+  EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
+  EXPECT_EQ(m.MOI(), MOI);
+
+  // Test vector setters for moment of inertia
+  // reset to default values
+  EXPECT_TRUE(m.PrincipalMoments(math::Vector3d::One));
+  EXPECT_TRUE(m.ProductsofInertia(math::Vector3d::Zero));
+  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
+
+  // Test Matrix3 setter for moment of inertia
+  // set to specified values
+  EXPECT_TRUE(m.MOI(MOI));
+  EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
+  EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
+  EXPECT_EQ(m.MOI(), MOI);
+
+  // Test atomic InertiaMatrix setter
+  // reset to default values
+  EXPECT_TRUE(m.InertiaMatrix(1, 1, 1, 0, 0, 0));
+  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
 }
 

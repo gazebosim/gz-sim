@@ -107,6 +107,24 @@ namespace ignition
         return this->products;
       }
 
+      /// \brief Get the principal moments of inertia (Ixx, Iyy, Izz).
+      /// \return The principal moments.
+      public: bool PrincipalMoments(const Vector3<T> &_ixxyyzz)
+      {
+        // Should we validate?
+        this->principals = _ixxyyzz;
+        return true;
+      }
+
+      /// \brief Get the products of inertia (Ixy, Ixz, Iyz).
+      /// \return The products of inertia.
+      public: bool ProductsofInertia(const Vector3<T> &_ixyxzyz)
+      {
+        // Should we validate?
+        this->products = _ixyxzyz;
+        return true;
+      }
+
       /// \brief Get IXX
       /// \return IXX value
       public: T IXX() const
@@ -155,7 +173,7 @@ namespace ignition
       public: bool IXX(const T &_v)
       {
         // Should we validate?
-        this->principals[0] = _v;
+        this->principals.X(_v);
         return true;
       }
 
@@ -165,7 +183,7 @@ namespace ignition
       public: bool IYY(const T &_v)
       {
         // Should we validate?
-        this->principals[1] = _v;
+        this->principals.Y(_v);
         return true;
       }
 
@@ -175,7 +193,7 @@ namespace ignition
       public: bool IZZ(const T &_v)
       {
         // Should we validate?
-        this->principals[2] = _v;
+        this->principals.Z(_v);
         return true;
       }
 
@@ -185,7 +203,7 @@ namespace ignition
       public: bool IXY(const T &_v)
       {
         // Should we validate?
-        this->products[0] = _v;
+        this->products.X(_v);
         return true;
       }
 
@@ -195,7 +213,7 @@ namespace ignition
       public: bool IXZ(const T &_v)
       {
         // Should we validate?
-        this->products[1] = _v;
+        this->products.Y(_v);
         return true;
       }
 
@@ -205,7 +223,7 @@ namespace ignition
       public: bool IYZ(const T &_v)
       {
         // Should we validate?
-        this->products[2] = _v;
+        this->products.Z(_v);
         return true;
       }
 
@@ -227,11 +245,11 @@ namespace ignition
       public: bool MOI(const Matrix3<T> &_moi)
       {
         // Should we validate?
-        this->principals.Set(_moi[0][0], _moi[1][1], _moi[2][2]);
+        this->principals.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
         this->products.Set(
-          0.5*(_moi[0][1] + _moi[1][0]),
-          0.5*(_moi[0][2] + _moi[2][0]),
-          0.5*(_moi[1][2] + _moi[2][1]));
+          0.5*(_moi(0, 1) + _moi(1, 0)),
+          0.5*(_moi(0, 2) + _moi(2, 0)),
+          0.5*(_moi(1, 2) + _moi(2, 1)));
         return true;
       }
 
