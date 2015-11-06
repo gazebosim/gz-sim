@@ -297,6 +297,34 @@ namespace ignition
                (this->MOI().Determinant() > 0);
       }
 
+      /// \brief Compute Eigenvalues of Moment of Inertia Matrix.
+      /// \return Eigenvalues of moment of inertia matrix.
+      public: Vector3<T> EigenMoments() const
+      {
+        if (this->products == Vector3d::Zero)
+          return this->principals;
+
+        // Algorithm based on http://arxiv.org/abs/1306.6291v3
+        // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
+        // Matrix, by Maarten Kronenburg
+        Vector3<T> Id(this->principals);
+        Vector3<T> Ip(this->products);
+        // b = Ixx + Iyy + Izz
+        T b = Id.Sum();
+        // c = Ixx*Iyy - Ixy^2  +  Ixx*Izz - Ixz^2  +  Iyy*Izz - Iyz^2
+        T c = Id[0]*Id[1] - pow(Ip[0], 2)
+            + Id[0]*Id[2] - pow(Ip[1], 2)
+            + Id[1]*Id[2] - pow(Ip[2], 2);
+        // d = Ixx*Iyz^2 + Iyy*Ixz^2 + Izz*Ixy^2 - Ixx*Iyy*Izz - 2*Ixy*Ixz*Iyz
+        T d = Id[0]*Ip[2]*Ip[2] + Id[1]*Ip[1]*Ip[1] + Id[2]*Ip[0]*Ip[0]
+            - Id[0]*Id[1]*Id[2] - 2*Ip[0]*Ip[1]*Ip[2];
+        T p = pow(b, 2) - 3*c;
+        T q = 2*pow(b, 3) - 9*b*c - 27*d;
+
+        // not finished yet
+        return Vector3d();
+      }
+
       /// \brief Get dimensions and rotation offset of uniform box
       /// with equivalent mass and moment of inertia.
       /// To compute this, the Matrix3 is diagonalized.
@@ -305,7 +333,10 @@ namespace ignition
       /// \param[in] _size Dimensions of box aligned with principal axes.
       /// \param[in] _rot Rotational offset of principal axes.
       /// \return True if box properties were computed successfully.
-      public: bool EquivalentBox(Vector3<T> &_size, Quaternion<T> &_rot);
+      public: bool EquivalentBox(Vector3<T> &_size, Quaternion<T> &_rot) const
+      {
+        return true;
+      }
 
       /// \brief Mass the object. Default is 1.0.
       private: T mass;
