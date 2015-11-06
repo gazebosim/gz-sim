@@ -301,10 +301,10 @@ namespace ignition
       /// \return Eigenvalues of moment of inertia matrix.
       public: Vector3<T> EigenMoments() const
       {
-        if (this->products == Vector3d::Zero)
+        if ((this->IXY() == 0) && (this->IXZ() == 0) && (this->IYZ() == 0))
           return this->principals;
 
-        // Algorithm based on http://arxiv.org/abs/1306.6291v3
+        // Algorithm based on http://arxiv.org/abs/1306.6291v4
         // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
         // Matrix, by Maarten Kronenburg
         Vector3<T> Id(this->principals);
@@ -316,7 +316,7 @@ namespace ignition
             + Id[0]*Id[2] - pow(Ip[1], 2)
             + Id[1]*Id[2] - pow(Ip[2], 2);
         // d = Ixx*Iyz^2 + Iyy*Ixz^2 + Izz*Ixy^2 - Ixx*Iyy*Izz - 2*Ixy*Ixz*Iyz
-        T d = Id[0]*Ip[2]*Ip[2] + Id[1]*Ip[1]*Ip[1] + Id[2]*Ip[0]*Ip[0]
+        T d = Id[0]*pow(Ip[2], 2) + Id[1]*pow(Ip[1], 2) + Id[2]*pow(Ip[0], 2)
             - Id[0]*Id[1]*Id[2] - 2*Ip[0]*Ip[1]*Ip[2];
         T p = pow(b, 2) - 3*c;
         T q = 2*pow(b, 3) - 9*b*c - 27*d;
