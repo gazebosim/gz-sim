@@ -37,24 +37,24 @@ namespace ignition
     class MassMatrix3
     {
       /// \brief Default Constructor
-      public: MassMatrix3() : mass(1), principals(1, 1, 1), products(0, 0, 0)
+      public: MassMatrix3() : mass(1), Ixxyyzz(1, 1, 1), Ixyxzyz(0, 0, 0)
       {}
 
       /// \brief Constructor.
       /// \param[in] _mass Mass value in kg if using metric.
-      /// \param[in] _principalMoments Principal moments of inertia
-      /// \param[in] _productMoments Product moments of inertia
+      /// \param[in] _Ixxyyzz Diagonal moments of inertia.
+      /// \param[in] _Ixyxzyz Off-diagonal moments of inertia
       public: MassMatrix3(const T &_mass,
-                          const Vector3<T> &_principalMoments,
-                          const Vector3<T> &_productMoments)
-      : mass(_mass), principals(_principalMoments), products(_productMoments)
+                          const Vector3<T> &_ixxyyzz,
+                          const Vector3<T> &_ixyxzyz )
+      : mass(_mass), Ixxyyzz(_ixxyyzz), Ixyxzyz(_ixyxzyz)
       {}
 
       /// \brief Copy constructor.
       /// \param[in] _massMatrix MassMatrix3 element to copy
       public: MassMatrix3(const MassMatrix3<T> &_m)
-      : mass(_m.Mass()), principals(_m.PrincipalMoments()),
-        products(_m.ProductsofInertia())
+      : mass(_m.Mass()), Ixxyyzz(_m.DiagonalMoments()),
+        Ixyxzyz(_m.OffDiagonalMoments())
       {}
 
       /// \brief Destructor.
@@ -90,40 +90,42 @@ namespace ignition
       {
         // Should we validate the values?
         // matrix must be positive definite
-        this->principals.Set(_ixx, _iyy, _izz);
-        this->products.Set(_ixy, _ixz, _iyz);
+        this->Ixxyyzz.Set(_ixx, _iyy, _izz);
+        this->Ixyxzyz.Set(_ixy, _ixz, _iyz);
         return true;
       }
 
-      /// \brief Get the principal moments of inertia (Ixx, Iyy, Izz).
-      /// \return The principal moments.
-      public: Vector3<T> PrincipalMoments() const
+      /// \brief Get the diagonal moments of inertia (Ixx, Iyy, Izz).
+      /// \return The diagonal moments.
+      public: Vector3<T> DiagonalMoments() const
       {
-        return this->principals;
+        return this->Ixxyyzz;
       }
 
-      /// \brief Get the products of inertia (Ixy, Ixz, Iyz).
-      /// \return The products of inertia.
-      public: Vector3<T> ProductsofInertia() const
+      /// \brief Get the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
+      /// \return The off-diagonal moments of inertia.
+      public: Vector3<T> OffDiagonalMoments() const
       {
-        return this->products;
+        return this->Ixyxzyz;
       }
 
-      /// \brief Get the principal moments of inertia (Ixx, Iyy, Izz).
-      /// \return The principal moments.
-      public: bool PrincipalMoments(const Vector3<T> &_ixxyyzz)
+      /// \brief Set the diagonal moments of inertia (Ixx, Iyy, Izz).
+      /// \param[in] _ixxyyzz diagonal moments of inertia
+      /// \return True if the moments were set successfully.
+      public: bool DiagonalMoments(const Vector3<T> &_ixxyyzz)
       {
         // Should we validate?
-        this->principals = _ixxyyzz;
+        this->Ixxyyzz = _ixxyyzz;
         return true;
       }
 
-      /// \brief Get the products of inertia (Ixy, Ixz, Iyz).
-      /// \return The products of inertia.
-      public: bool ProductsofInertia(const Vector3<T> &_ixyxzyz)
+      /// \brief Set the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
+      /// \param[in] _ixyxzyz off-diagonal moments of inertia
+      /// \return True if the moments were set successfully.
+      public: bool OffDiagonalMoments(const Vector3<T> &_ixyxzyz)
       {
         // Should we validate?
-        this->products = _ixyxzyz;
+        this->Ixyxzyz = _ixyxzyz;
         return true;
       }
 
@@ -131,42 +133,42 @@ namespace ignition
       /// \return IXX value
       public: T IXX() const
       {
-        return this->principals[0];
+        return this->Ixxyyzz[0];
       }
 
       /// \brief Get IYY
       /// \return IYY value
       public: T IYY() const
       {
-        return this->principals[1];
+        return this->Ixxyyzz[1];
       }
 
       /// \brief Get IZZ
       /// \return IZZ value
       public: T IZZ() const
       {
-        return this->principals[2];
+        return this->Ixxyyzz[2];
       }
 
       /// \brief Get IXY
       /// \return IXY value
       public: T IXY() const
       {
-        return this->products[0];
+        return this->Ixyxzyz[0];
       }
 
       /// \brief Get IXZ
       /// \return IXZ value
       public: T IXZ() const
       {
-        return this->products[1];
+        return this->Ixyxzyz[1];
       }
 
-      /// \brief Get IXZ
+      /// \brief Get IYZ
       /// \return IYZ value
       public: T IYZ() const
       {
-        return this->products[2];
+        return this->Ixyxzyz[2];
       }
 
       /// \brief Set IXX
@@ -175,7 +177,7 @@ namespace ignition
       public: bool IXX(const T &_v)
       {
         // Should we validate?
-        this->principals.X(_v);
+        this->Ixxyyzz.X(_v);
         return true;
       }
 
@@ -185,7 +187,7 @@ namespace ignition
       public: bool IYY(const T &_v)
       {
         // Should we validate?
-        this->principals.Y(_v);
+        this->Ixxyyzz.Y(_v);
         return true;
       }
 
@@ -195,7 +197,7 @@ namespace ignition
       public: bool IZZ(const T &_v)
       {
         // Should we validate?
-        this->principals.Z(_v);
+        this->Ixxyyzz.Z(_v);
         return true;
       }
 
@@ -205,7 +207,7 @@ namespace ignition
       public: bool IXY(const T &_v)
       {
         // Should we validate?
-        this->products.X(_v);
+        this->Ixyxzyz.X(_v);
         return true;
       }
 
@@ -215,17 +217,17 @@ namespace ignition
       public: bool IXZ(const T &_v)
       {
         // Should we validate?
-        this->products.Y(_v);
+        this->Ixyxzyz.Y(_v);
         return true;
       }
 
       /// \brief Set IYZ
-      /// \param[in] _v IXX value
+      /// \param[in] _v IYZ value
       /// \return True if the value was set successfully.
       public: bool IYZ(const T &_v)
       {
         // Should we validate?
-        this->products.Z(_v);
+        this->Ixyxzyz.Z(_v);
         return true;
       }
 
@@ -234,9 +236,9 @@ namespace ignition
       public: Matrix3<T> MOI() const
       {
         return Matrix3<T>(
-          this->principals[0], this->products[0], this->products[1],
-          this->products[0], this->principals[1], this->products[2],
-          this->products[1], this->products[2], this->principals[2]);
+          this->Ixxyyzz[0], this->Ixyxzyz[0], this->Ixyxzyz[1],
+          this->Ixyxzyz[0], this->Ixxyyzz[1], this->Ixyxzyz[2],
+          this->Ixyxzyz[1], this->Ixyxzyz[2], this->Ixxyyzz[2]);
       }
 
       /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
@@ -247,8 +249,8 @@ namespace ignition
       public: bool MOI(const Matrix3<T> &_moi)
       {
         // Should we validate?
-        this->principals.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
-        this->products.Set(
+        this->Ixxyyzz.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
+        this->Ixyxzyz.Set(
           0.5*(_moi(0, 1) + _moi(1, 0)),
           0.5*(_moi(0, 2) + _moi(2, 0)),
           0.5*(_moi(1, 2) + _moi(2, 1)));
@@ -261,8 +263,8 @@ namespace ignition
       public: MassMatrix3 &operator=(const MassMatrix3<T> &_massMatrix)
       {
         this->mass = _massMatrix.Mass();
-        this->principals = _massMatrix.PrincipalMoments();
-        this->products = _massMatrix.ProductsofInertia();
+        this->Ixxyyzz = _massMatrix.DiagonalMoments();
+        this->Ixyxzyz = _massMatrix.OffDiagonalMoments();
 
         return *this;
       }
@@ -274,8 +276,8 @@ namespace ignition
       public: bool operator==(const MassMatrix3<T> &_m) const
       {
         return equal<T>(this->mass, _m.Mass()) &&
-               (this->principals == _m.PrincipalMoments()) &&
-               (this->products == _m.ProductsofInertia());
+               (this->Ixxyyzz == _m.DiagonalMoments()) &&
+               (this->Ixyxzyz == _m.OffDiagonalMoments());
       }
 
       /// \brief Inequality test operator
@@ -305,25 +307,36 @@ namespace ignition
       /// the triangle inequality.
       public: bool IsValid() const
       {
-        Vector3<T> moments = this->EigenMoments();
+        Vector3<T> moments = this->PrincipalMoments();
         return this->IsPositive() &&
           moments[0] + moments[1] > moments[2] &&
           moments[1] + moments[2] > moments[0] &&
           moments[2] + moments[0] > moments[1];
       }
 
-      /// \brief Compute Eigenvalues of Moment of Inertia Matrix.
-      /// \return Eigenvalues of moment of inertia matrix.
-      public: Vector3<T> EigenMoments() const
+      /// \brief Compute principal moments of inertia,
+      /// which are the eigenvalues of the moment of inertia matrix.
+      /// \return Principal moments of inertia, sorted from
+      /// smallest to largest.
+      public: Vector3<T> PrincipalMoments() const
       {
         if ((this->IXY() == 0) && (this->IXZ() == 0) && (this->IYZ() == 0))
-          return this->principals;
+        {
+          // Matrix is already diagonalized,
+          // return sorted copy of Ixxyyzz
+          std::vector<T> moments(3, 0);
+          moments[0] = Ixxyyzz[0];
+          moments[1] = Ixxyyzz[1];
+          moments[2] = Ixxyyzz[2];
+          std::sort(moments.begin(), moments.end());
+          return Vector3<T>(moments[0], moments[1], moments[2]);
+        }
 
         // Algorithm based on http://arxiv.org/abs/1306.6291v4
         // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
         // Matrix, by Maarten Kronenburg
-        Vector3<T> Id(this->principals);
-        Vector3<T> Ip(this->products);
+        Vector3<T> Id(this->Ixxyyzz);
+        Vector3<T> Ip(this->Ixyxzyz);
         // b = Ixx + Iyy + Izz
         T b = Id.Sum();
         // c = Ixx*Iyy - Ixy^2  +  Ixx*Izz - Ixz^2  +  Iyy*Izz - Iyz^2
@@ -376,12 +389,13 @@ namespace ignition
 
       /// \brief Principal moments of inertia. Default is (1.0 1.0 1.0)
       /// These Moments of Inertia are specified in the local frame.
-      private: Vector3<T> principals;
+      /// Where Ixxyyzz.x is Ixx, Ixxyyzz.y is Iyy and Ixxyyzz.z is Izz.
+      private: Vector3<T> Ixxyyzz;
 
       /// \brief Product moments of inertia. Default is (0.0 0.0 0.0)
       /// These MOI off-diagonals are specified in the local frame.
-      /// Where products.x is Ixy, products.y is Ixz and products.z is Iyz.
-      private: Vector3<T> products;
+      /// Where Ixyxzyz.x is Ixy, Ixyxzyz.y is Ixz and Ixyxzyz.z is Iyz.
+      private: Vector3<T> Ixyxzyz;
     };
 
     typedef MassMatrix3<double> MassMatrix3d;

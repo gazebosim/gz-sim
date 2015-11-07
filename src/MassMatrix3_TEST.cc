@@ -36,8 +36,8 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_DOUBLE_EQ(m.IXY(), 0.0);
     EXPECT_DOUBLE_EQ(m.IXZ(), 0.0);
     EXPECT_DOUBLE_EQ(m.IYZ(), 0.0);
-    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
-    EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+    EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+    EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
     EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -77,8 +77,8 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
     EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
-    EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
-    EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.MOI(), MOI);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -96,8 +96,8 @@ TEST(MassMatrix3dTest, Setters)
 {
   // Simple constructor, test default values
   math::MassMatrix3d m;
-  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
-  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
   EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
 
   const double mass = 5.0;
@@ -122,18 +122,18 @@ TEST(MassMatrix3dTest, Setters)
   EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
   EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
   EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
-  EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
-  EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
+  EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+  EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
   EXPECT_EQ(m.MOI(), MOI);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
 
   // Test vector setters for moment of inertia
   // reset to default values
-  EXPECT_TRUE(m.PrincipalMoments(math::Vector3d::One));
-  EXPECT_TRUE(m.ProductsofInertia(math::Vector3d::Zero));
-  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
-  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_TRUE(m.DiagonalMoments(math::Vector3d::One));
+  EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
   EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
@@ -141,8 +141,8 @@ TEST(MassMatrix3dTest, Setters)
   // Test Matrix3 setter for moment of inertia
   // set to specified values
   EXPECT_TRUE(m.MOI(MOI));
-  EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
-  EXPECT_EQ(m.ProductsofInertia(), Ixyxzyz);
+  EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+  EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
   EXPECT_EQ(m.MOI(), MOI);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
@@ -150,28 +150,28 @@ TEST(MassMatrix3dTest, Setters)
   // Test atomic InertiaMatrix setter
   // reset to default values
   EXPECT_TRUE(m.InertiaMatrix(1, 1, 1, 0, 0, 0));
-  EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
-  EXPECT_EQ(m.ProductsofInertia(), math::Vector3d::Zero);
+  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
   EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
 }
 
 /////////////////////////////////////////////////
-TEST(MassMatrix3dTest, EigenMoments)
+TEST(MassMatrix3dTest, PrincipalMoments)
 {
   // Expect default inertia moments (1, 1, 1)
   {
     math::MassMatrix3d m;
-    EXPECT_EQ(m.EigenMoments(), math::Vector3d::One);
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
 
     // Minor perturbations of product moments
-    // shouldn't affect EigenMoments, given the tolerance
+    // shouldn't affect PrincipalMoments, given the tolerance
     // of the Vector3 equality operator
     EXPECT_TRUE(m.IXY(1e-10));
     EXPECT_TRUE(m.IXZ(2e-10));
     EXPECT_TRUE(m.IYZ(3e-10));
-    EXPECT_EQ(m.EigenMoments(), math::Vector3d::One);
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
   }
@@ -180,15 +180,15 @@ TEST(MassMatrix3dTest, EigenMoments)
   {
     math::MassMatrix3d m;
     const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
-    EXPECT_TRUE(m.PrincipalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.ProductsofInertia(math::Vector3d::Zero));
-    EXPECT_EQ(m.EigenMoments(), Ixxyyzz);
+    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
 
     // Minor perturbation of product moments
     EXPECT_TRUE(m.IXY(1e-10));
     EXPECT_TRUE(m.IXZ(2e-10));
     EXPECT_TRUE(m.IYZ(3e-10));
-    EXPECT_EQ(m.EigenMoments(), Ixxyyzz);
+    EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
   }
@@ -205,9 +205,9 @@ TEST(MassMatrix3dTest, EigenMoments)
     const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     const math::Vector3d Ieigen(2-M_SQRT2, 2, 2+M_SQRT2);
-    EXPECT_TRUE(m.PrincipalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.ProductsofInertia(Ixyxzyz));
-    EXPECT_EQ(m.EigenMoments(), Ieigen);
+    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
   }
@@ -219,9 +219,9 @@ TEST(MassMatrix3dTest, EigenMoments)
     const math::Vector3d Ixxyyzz(4.0, 4.0, 4.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     const math::Vector3d Ieigen(4-M_SQRT2, 4, 4+M_SQRT2);
-    EXPECT_TRUE(m.PrincipalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.ProductsofInertia(Ixyxzyz));
-    EXPECT_EQ(m.EigenMoments(), Ieigen);
+    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
   }
