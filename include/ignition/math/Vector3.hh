@@ -481,8 +481,8 @@ namespace ignition
 
       /// \brief Equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return true if each component is equal within a
+      /// default tolerence (1e-3), false otherwise
       public: bool operator==(const Vector3<T> &_v) const
       {
         return equal<T>(this->data[0], _v[0], static_cast<T>(0.001)) &&
@@ -492,8 +492,8 @@ namespace ignition
 
       /// \brief Not equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-3), true otherwise
       public: bool operator!=(const Vector3<T> &_v) const
       {
         return !(*this == _v);

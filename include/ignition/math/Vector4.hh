@@ -312,7 +312,7 @@ namespace ignition
 
       /// \brief Equal to operator
       /// \param[in] _v the other vector
-      /// \return true if each component is equal withing a
+      /// \return true if each component is equal within a
       /// default tolerence (1e-6), false otherwise
       public: bool operator==(const Vector4<T> &_v) const
       {
@@ -322,8 +322,8 @@ namespace ignition
 
       /// \brief Not equal to operator
       /// \param[in] _pt the other vector
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-6), true otherwise
       public: bool operator!=(const Vector4<T> &_pt) const
       {
         return !(*this == _pt);
