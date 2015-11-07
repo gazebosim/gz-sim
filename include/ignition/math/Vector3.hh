@@ -347,6 +347,37 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector3<T> operator+(T _s) const
+      {
+        return Vector3<T>(this->data[0] + _s,
+                          this->data[1] + _s,
+                          this->data[2] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector3<T> operator+(T _s, const Vector3<T> &_v)
+      {
+        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector3<T> &operator+=(T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+        this->data[2] += _s;
+
+        return *this;
+      }
+
       /// \brief Negation operator
       /// \return negative of this vector
       public: inline Vector3 operator-() const
@@ -372,6 +403,37 @@ namespace ignition
         this->data[0] -= _pt[0];
         this->data[1] -= _pt[1];
         this->data[2] -= _pt[2];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \return difference vector
+      public: inline Vector3<T> operator-(T _s) const
+      {
+        return Vector3<T>(this->data[0] - _s,
+                          this->data[1] - _s,
+                          this->data[2] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \param[in] _v vector minuend
+      /// \return difference vector
+      public: friend inline Vector3<T> operator-(T _s, const Vector3<T> &_v)
+      {
+        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar minuend
+      /// \return this
+      public: const Vector3<T> &operator-=(T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
+        this->data[2] -= _s;
 
         return *this;
       }
