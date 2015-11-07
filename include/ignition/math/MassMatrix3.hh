@@ -17,7 +17,9 @@
 #ifndef _IGNITION_MASSMATRIX3_HH_
 #define _IGNITION_MASSMATRIX3_HH_
 
+#include <algorithm>
 #include <string>
+#include <vector>
 
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector3.hh"
@@ -297,6 +299,19 @@ namespace ignition
                (this->MOI().Determinant() > 0);
       }
 
+      /// \brief Verify that inertia values are positive definite
+      /// and satisfy the triangle inequality.
+      /// \return True if IsPositive and moment of inertia satisfies
+      /// the triangle inequality.
+      public: bool IsValid() const
+      {
+        Vector3<T> moments = this->EigenMoments();
+        return this->IsPositive() &&
+          moments[0] + moments[1] > moments[2] &&
+          moments[1] + moments[2] > moments[0] &&
+          moments[2] + moments[0] > moments[1];
+      }
+
       /// \brief Compute Eigenvalues of Moment of Inertia Matrix.
       /// \return Eigenvalues of moment of inertia matrix.
       public: Vector3<T> EigenMoments() const
@@ -318,11 +333,29 @@ namespace ignition
         // d = Ixx*Iyz^2 + Iyy*Ixz^2 + Izz*Ixy^2 - Ixx*Iyy*Izz - 2*Ixy*Ixz*Iyz
         T d = Id[0]*pow(Ip[2], 2) + Id[1]*pow(Ip[1], 2) + Id[2]*pow(Ip[0], 2)
             - Id[0]*Id[1]*Id[2] - 2*Ip[0]*Ip[1]*Ip[2];
+        // p = b^2 - 3c
         T p = pow(b, 2) - 3*c;
+
+        // p can also be expressed as a sum of squares (see eq 4.7)
+        // so it must be non-negative (p >= 0)
+        // Also, if p is zero (or close enough):
+        //  then the diagonal terms must be close to zero
+        //  and the three roots are equal
+        if (p < 1e-18)
+          return b / 3.0 * Vector3<T>::One;
+
+        // q = 2b^3 - 9bc - 27d
         T q = 2*pow(b, 3) - 9*b*c - 27*d;
 
-        // not finished yet
-        return Vector3d();
+        // delta = acos(q / (2 * p^(1.5)))
+        T delta = acos(0.5 * q / (p * sqrt(p)));
+
+        std::vector<T> moments(3, 0);
+        moments[0] = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
+        moments[1] = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
+        moments[2] = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
+        std::sort(moments.begin(), moments.end());
+        return Vector3<T>(moments[0], moments[1], moments[2]);
       }
 
       /// \brief Get dimensions and rotation offset of uniform box
