@@ -279,7 +279,7 @@ namespace ignition
       /// \brief Matrix left multiplication operator for Vector3.
       /// \param[in] _v Input vector.
       /// \param[in] _m Input matrix.
-      /// \return A scaled matrix.
+      /// \return The product vector.
       public: friend inline Vector3<T> operator*(const Vector3<T> &_v,
                                                  const Matrix3<T> &_m)
       {
