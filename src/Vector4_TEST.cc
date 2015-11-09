@@ -151,3 +151,85 @@ TEST(Vector4dTest, IndexException)
 
   EXPECT_THROW(math::equal(v[4], 5.0), math::IndexException);
 }
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Add)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.4, 0.8);
+  math::Vector4d vec2(1.1, 2.2, 3.4, 4.8);
+
+  math::Vector4d vec3 = vec1;
+  vec3 += vec2;
+
+  EXPECT_EQ(vec1 + vec2, math::Vector4d(1.2, 2.4, 3.8, 5.6));
+  EXPECT_EQ(vec3, math::Vector4d(1.2, 2.4, 3.8, 5.6));
+
+  // Add zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 + vec1, vec1);
+    EXPECT_EQ(vec1 + 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector4d::Zero + vec1, vec1);
+    EXPECT_EQ(vec1 + math::Vector4d::Zero, vec1);
+
+    // Addition assignment
+    math::Vector4d vec4(vec1);
+    vec4 += 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 += math::Vector4d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Add non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 + vec1, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+    EXPECT_EQ(vec1 + 2.5, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+
+    math::Vector4d vec4(vec1);
+    vec4 += 2.5;
+    EXPECT_EQ(vec4, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Sub)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.4, 0.8);
+  math::Vector4d vec2(1.1, 2.2, 3.4, 4.8);
+
+  math::Vector4d vec3 = vec2;
+  vec3 -= vec1;
+
+  EXPECT_EQ(vec2 - vec1, math::Vector4d(1.0, 2.0, 3.0, 4.0));
+  EXPECT_EQ(vec3, math::Vector4d(1.0, 2.0, 3.0, 4.0));
+
+  // Subtraction with zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 - vec1, -vec1);
+    EXPECT_EQ(vec1 - 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector4d::Zero - vec1, -vec1);
+    EXPECT_EQ(vec1 - math::Vector4d::Zero, vec1);
+
+    // Subtraction assignment
+    math::Vector4d vec4(vec1);
+    vec4 -= 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 -= math::Vector4d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Subtract non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 - vec1, math::Vector4d(2.4, 2.3, 2.1, 1.7));
+    EXPECT_EQ(vec1 - 2.5, -math::Vector4d(2.4, 2.3, 2.1, 1.7));
+
+    math::Vector4d vec4(vec1);
+    vec4 -= 2.5;
+    EXPECT_EQ(vec4, -math::Vector4d(2.4, 2.3, 2.1, 1.7));
+  }
+}
