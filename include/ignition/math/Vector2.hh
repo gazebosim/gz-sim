@@ -194,7 +194,7 @@ namespace ignition
       }
 
       /// \brief Subtraction operators
-      /// \param[in] _s the scalar minuend
+      /// \param[in] _s the scalar subtrahend
       /// \return difference vector
       public: inline Vector2<T> operator-(T _s) const
       {
@@ -203,8 +203,8 @@ namespace ignition
       }
 
       /// \brief Subtraction operators
-      /// \param[in] _s the scalar subtrahend
-      /// \param[in] _v vector minuend
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
       /// \return difference vector
       public: friend inline Vector2<T> operator-(T _s, const Vector2<T> &_v)
       {
@@ -212,7 +212,7 @@ namespace ignition
       }
 
       /// \brief Subtraction assignment operator
-      /// \param[in] _s scalar minuend
+      /// \param[in] _s scalar subtrahend
       /// \return this
       public: const Vector2<T> &operator-=(T _s)
       {
