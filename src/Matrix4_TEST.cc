@@ -517,3 +517,18 @@ TEST(Matrix4dTest, NotEqual)
     EXPECT_FALSE(matrix1 != matrix2);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, Determinant)
+{
+  // |Zero matrix| = 0.0
+  EXPECT_DOUBLE_EQ(0.0, math::Matrix4d::Zero.Determinant());
+
+  // |Identity matrix| = 1.0
+  EXPECT_DOUBLE_EQ(1.0, math::Matrix4d::Identity.Determinant());
+
+  // Matrix multiplied by its inverse results in the identity matrix
+  math::Matrix4d m(2, 3, 0.1, -5, 1, 0, 3.2, 1,
+                     0, 2, -3, 2.1, 0, 2, 3.2, 1);
+  EXPECT_DOUBLE_EQ(129.82, m.Determinant());
+}
