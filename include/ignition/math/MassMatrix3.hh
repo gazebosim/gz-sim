@@ -297,7 +297,7 @@ namespace ignition
         // of moment of inertia matrix are positive
         return (this->mass > 0) &&
                (this->IXX() > 0) &&
-               (this->IXX()*this->IYY() - this->IXY()*this->IXY() > 0) &&
+               (this->IXX()*this->IYY() - std::pow(this->IXY(), 2) > 0) &&
                (this->MOI().Determinant() > 0);
       }
 
@@ -355,8 +355,8 @@ namespace ignition
         // p can also be expressed as a sum of squares (see eq 4.7)
         // so it must be non-negative (p >= 0)
         // Also, if p is zero (or close enough):
-        //  then the diagonal terms must be close to zero
-        //  and the three roots are equal
+        //  then the off-diagonal terms must be close to zero
+        //  and the three eigenvalues are equal
         if (p < 1e-18)
           return b / 3.0 * Vector3<T>::One;
 
@@ -364,7 +364,7 @@ namespace ignition
         T q = 2*std::pow(b, 3) - 9*b*c - 27*d;
 
         // delta = acos(q / (2 * p^(1.5)))
-        T delta = acos(0.5 * q / (p * sqrt(p)));
+        T delta = acos(0.5 * q / std::pow(p, 1.5));
 
         std::vector<T> moments(3, 0);
         moments[0] = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
