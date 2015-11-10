@@ -350,7 +350,7 @@ namespace ignition
       /// \brief Addition operators
       /// \param[in] _s the scalar addend
       /// \return sum vector
-      public: inline Vector3<T> operator+(T _s) const
+      public: inline Vector3<T> operator+(const T _s) const
       {
         return Vector3<T>(this->data[0] + _s,
                           this->data[1] + _s,
@@ -361,7 +361,8 @@ namespace ignition
       /// \param[in] _s the scalar addend
       /// \param[in] _v input vector
       /// \return sum vector
-      public: friend inline Vector3<T> operator+(T _s, const Vector3<T> &_v)
+      public: friend inline Vector3<T> operator+(const T _s,
+                                                 const Vector3<T> &_v)
       {
         return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
       }
@@ -369,7 +370,7 @@ namespace ignition
       /// \brief Addition assignment operator
       /// \param[in] _s scalar addend
       /// \return this
-      public: const Vector3<T> &operator+=(T _s)
+      public: const Vector3<T> &operator+=(const T _s)
       {
         this->data[0] += _s;
         this->data[1] += _s;
@@ -410,7 +411,7 @@ namespace ignition
       /// \brief Subtraction operators
       /// \param[in] _s the scalar subtrahend
       /// \return difference vector
-      public: inline Vector3<T> operator-(T _s) const
+      public: inline Vector3<T> operator-(const T _s) const
       {
         return Vector3<T>(this->data[0] - _s,
                           this->data[1] - _s,
@@ -421,7 +422,8 @@ namespace ignition
       /// \param[in] _s the scalar minuend
       /// \param[in] _v vector subtrahend
       /// \return difference vector
-      public: friend inline Vector3<T> operator-(T _s, const Vector3<T> &_v)
+      public: friend inline Vector3<T> operator-(const T _s,
+                                                 const Vector3<T> &_v)
       {
         return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
       }
@@ -429,7 +431,7 @@ namespace ignition
       /// \brief Subtraction assignment operator
       /// \param[in] _s scalar subtrahend
       /// \return this
-      public: const Vector3<T> &operator-=(T _s)
+      public: const Vector3<T> &operator-=(const T _s)
       {
         this->data[0] -= _s;
         this->data[1] -= _s;

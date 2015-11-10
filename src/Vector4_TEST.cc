@@ -233,3 +233,12 @@ TEST(Vector4dTest, Sub)
     EXPECT_EQ(vec4, -math::Vector4d(2.4, 2.3, 2.1, 1.7));
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, OperatorStreamOut)
+{
+  math::Vector4d v(0.1, 1.2, 2.3, 0.0);
+  std::ostringstream stream;
+  stream << v;
+  EXPECT_EQ(stream.str(), "0.1 1.2 2.3 0");
+}
