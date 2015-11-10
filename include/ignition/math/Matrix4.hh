@@ -409,14 +409,10 @@ namespace ignition
         v5 = this->data[2][2]*this->data[3][3]
            - this->data[2][3]*this->data[3][2];
 
-        t00 = +(v5*this->data[1][1] -
-            v4*this->data[1][2] + v3*this->data[1][3]);
-        t10 = -(v5*this->data[1][0] -
-            v2*this->data[1][2] + v1*this->data[1][3]);
-        t20 = +(v4*this->data[1][0] -
-            v2*this->data[1][1] + v0*this->data[1][3]);
-        t30 = -(v3*this->data[1][0] -
-            v1*this->data[1][1] + v0*this->data[1][2]);
+        t00 =  v5*this->data[1][1] - v4*this->data[1][2] + v3*this->data[1][3];
+        t10 = -v5*this->data[1][0] + v2*this->data[1][2] - v1*this->data[1][3];
+        t20 =  v4*this->data[1][0] - v2*this->data[1][1] + v0*this->data[1][3];
+        t30 = -v3*this->data[1][0] + v1*this->data[1][1] - v0*this->data[1][2];
 
         return t00 * this->data[0][0]
              + t10 * this->data[0][1]

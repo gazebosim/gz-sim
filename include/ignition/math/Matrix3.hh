@@ -326,14 +326,14 @@ namespace ignition
       /// \return Determinant of this matrix.
       public: T Determinant() const
       {
-        T t0 = this->data[2][2]*this->data[1][1] -
-                    this->data[2][1]*this->data[1][2];
+        T t0 = this->data[2][2]*this->data[1][1]
+             - this->data[2][1]*this->data[1][2];
 
-        T t1 = -(this->data[2][2]*this->data[1][0] -
-                      this->data[2][0]*this->data[1][2]);
+        T t1 = -(this->data[2][2]*this->data[1][0]
+                -this->data[2][0]*this->data[1][2]);
 
-        T t2 = this->data[2][1]*this->data[1][0] -
-                    this->data[2][0]*this->data[1][1];
+        T t2 = this->data[2][1]*this->data[1][0]
+             - this->data[2][0]*this->data[1][1];
 
         return t0 * this->data[0][0]
              + t1 * this->data[0][1]
