@@ -304,11 +304,16 @@ else (build_errors)
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
     DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
+    
+  # Create *-targets.cmake file for build directory
+  export(EXPORT ${PROJECT_EXPORT_NAME}
+         FILE  ${CMAKE_BINARY_DIR}/${cmake_targets_file})
 
   # Install *-targets.cmake file
   install(EXPORT ${PROJECT_EXPORT_NAME}
           DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
           FILE ${cmake_targets_file})
+          
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
@@ -320,5 +325,5 @@ else (build_errors)
     add_subdirectory(cmake/packager-hooks)
   endif()
 
-  message(STATUS "Configuration successful. Type make to compile ${PROJECT_NAME_LOWER}")
+  message(STATUS "Configuration successful.")
 endif(build_errors)
