@@ -253,7 +253,8 @@ namespace ignition
             this->data[2][2]*_m(2, 2));
       }
 
-      /// \brief Multiplication operator
+      /// \brief Multiplication operator with Vector3 on the right
+      /// treated like a column vector.
       /// \param _vec Vector3
       /// \return Resulting vector from multiplication
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
@@ -277,6 +278,8 @@ namespace ignition
       }
 
       /// \brief Matrix left multiplication operator for Vector3.
+      /// Treats the Vector3 like a row vector multiplying the matrix
+      /// from the left.
       /// \param[in] _v Input vector.
       /// \param[in] _m Input matrix.
       /// \return The product vector.
