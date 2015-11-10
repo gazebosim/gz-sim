@@ -350,7 +350,7 @@ namespace ignition
       /// \brief Addition operators
       /// \param[in] _s the scalar addend
       /// \return sum vector
-      public: inline Vector3<T> operator+(T _s) const
+      public: inline Vector3<T> operator+(const T _s) const
       {
         return Vector3<T>(this->data[0] + _s,
                           this->data[1] + _s,
@@ -361,7 +361,8 @@ namespace ignition
       /// \param[in] _s the scalar addend
       /// \param[in] _v input vector
       /// \return sum vector
-      public: friend inline Vector3<T> operator+(T _s, const Vector3<T> &_v)
+      public: friend inline Vector3<T> operator+(const T _s,
+                                                 const Vector3<T> &_v)
       {
         return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
       }
@@ -369,7 +370,7 @@ namespace ignition
       /// \brief Addition assignment operator
       /// \param[in] _s scalar addend
       /// \return this
-      public: const Vector3<T> &operator+=(T _s)
+      public: const Vector3<T> &operator+=(const T _s)
       {
         this->data[0] += _s;
         this->data[1] += _s;
@@ -408,9 +409,9 @@ namespace ignition
       }
 
       /// \brief Subtraction operators
-      /// \param[in] _s the scalar minuend
+      /// \param[in] _s the scalar subtrahend
       /// \return difference vector
-      public: inline Vector3<T> operator-(T _s) const
+      public: inline Vector3<T> operator-(const T _s) const
       {
         return Vector3<T>(this->data[0] - _s,
                           this->data[1] - _s,
@@ -418,18 +419,19 @@ namespace ignition
       }
 
       /// \brief Subtraction operators
-      /// \param[in] _s the scalar subtrahend
-      /// \param[in] _v vector minuend
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
       /// \return difference vector
-      public: friend inline Vector3<T> operator-(T _s, const Vector3<T> &_v)
+      public: friend inline Vector3<T> operator-(const T _s,
+                                                 const Vector3<T> &_v)
       {
         return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
       }
 
       /// \brief Subtraction assignment operator
-      /// \param[in] _s scalar minuend
+      /// \param[in] _s scalar subtrahend
       /// \return this
-      public: const Vector3<T> &operator-=(T _s)
+      public: const Vector3<T> &operator-=(const T _s)
       {
         this->data[0] -= _s;
         this->data[1] -= _s;
@@ -543,8 +545,8 @@ namespace ignition
 
       /// \brief Equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return true if each component is equal within a
+      /// default tolerence (1e-3), false otherwise
       public: bool operator==(const Vector3<T> &_v) const
       {
         return equal<T>(this->data[0], _v[0], static_cast<T>(0.001)) &&
@@ -554,8 +556,8 @@ namespace ignition
 
       /// \brief Not equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-3), true otherwise
       public: bool operator!=(const Vector3<T> &_v) const
       {
         return !(*this == _v);
