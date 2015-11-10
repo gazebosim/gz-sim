@@ -284,12 +284,9 @@ namespace ignition
                                                  const Matrix3<T> &_m)
       {
         return Vector3<T>(
-            _m(0, 0)*_v.X() + _m(1, 0)*_v.Y() +
-            _m(2, 0)*_v.Z(),
-            _m(0, 1)*_v.X() + _m(1, 1)*_v.Y() +
-            _m(2, 1)*_v.Z(),
-            _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() +
-            _m(2, 2)*_v.Z());
+            _m(0, 0)*_v.X() + _m(1, 0)*_v.Y() + _m(2, 0)*_v.Z(),
+            _m(0, 1)*_v.X() + _m(1, 1)*_v.Y() + _m(2, 1)*_v.Z(),
+            _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() + _m(2, 2)*_v.Z());
       }
 
       /// \brief Equality test operator
