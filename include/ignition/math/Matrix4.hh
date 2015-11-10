@@ -103,6 +103,13 @@ namespace ignition
                   0, 0, 0, 1);
       }
 
+      /// \brief Construct Matrix4 from a math::Pose3
+      /// \param[in] _pose Pose.
+      public: Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
+      {
+        this->Translate(_pose.Pos());
+      }
+
       /// \brief Destructor
       public: virtual ~Matrix4() {}
 
@@ -381,6 +388,36 @@ namespace ignition
                            this->data[1][2]*_v.Z() + this->data[1][3],
                            this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
                            this->data[2][2]*_v.Z() + this->data[2][3]);
+      }
+
+      /// \brief Return the determinant of the matrix
+      /// \return Determinant of this matrix.
+      public: T Determinant() const
+      {
+        T v0, v1, v2, v3, v4, v5, t00, t10, t20, t30;
+
+        v0 = this->data[2][0]*this->data[3][1]
+           - this->data[2][1]*this->data[3][0];
+        v1 = this->data[2][0]*this->data[3][2]
+           - this->data[2][2]*this->data[3][0];
+        v2 = this->data[2][0]*this->data[3][3]
+           - this->data[2][3]*this->data[3][0];
+        v3 = this->data[2][1]*this->data[3][2]
+           - this->data[2][2]*this->data[3][1];
+        v4 = this->data[2][1]*this->data[3][3]
+           - this->data[2][3]*this->data[3][1];
+        v5 = this->data[2][2]*this->data[3][3]
+           - this->data[2][3]*this->data[3][2];
+
+        t00 =  v5*this->data[1][1] - v4*this->data[1][2] + v3*this->data[1][3];
+        t10 = -v5*this->data[1][0] + v2*this->data[1][2] - v1*this->data[1][3];
+        t20 =  v4*this->data[1][0] - v2*this->data[1][1] + v0*this->data[1][3];
+        t30 = -v3*this->data[1][0] + v1*this->data[1][1] - v0*this->data[1][2];
+
+        return t00 * this->data[0][0]
+             + t10 * this->data[0][1]
+             + t20 * this->data[0][2]
+             + t30 * this->data[0][3];
       }
 
       /// \brief Return the inverse matrix.

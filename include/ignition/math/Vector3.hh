@@ -195,6 +195,21 @@ namespace ignition
                this->data[2] * _v[2];
       }
 
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 *z2)
+      ///
+      /// \param[in] _v the vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector3<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]) +
+               std::abs(this->data[2] * _v[2]);
+      }
+
       /// \brief Get the absolute value of the vector
       /// \return a vector with positive elements
       public: Vector3 Abs() const
@@ -232,7 +247,7 @@ namespace ignition
         Vector3<T> a = _v2 - _v1;
         Vector3<T> b = _v3 - _v1;
         Vector3<T> n = a.Cross(b);
-        return n;
+        return n.Normalize();
       }
 
       /// \brief Get distance to a line
@@ -332,6 +347,38 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector3<T> operator+(const T _s) const
+      {
+        return Vector3<T>(this->data[0] + _s,
+                          this->data[1] + _s,
+                          this->data[2] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector3<T> operator+(const T _s,
+                                                 const Vector3<T> &_v)
+      {
+        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector3<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+        this->data[2] += _s;
+
+        return *this;
+      }
+
       /// \brief Negation operator
       /// \return negative of this vector
       public: inline Vector3 operator-() const
@@ -357,6 +404,38 @@ namespace ignition
         this->data[0] -= _pt[0];
         this->data[1] -= _pt[1];
         this->data[2] -= _pt[2];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector3<T> operator-(const T _s) const
+      {
+        return Vector3<T>(this->data[0] - _s,
+                          this->data[1] - _s,
+                          this->data[2] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector3<T> operator-(const T _s,
+                                                 const Vector3<T> &_v)
+      {
+        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector3<T> &operator-=(const T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
+        this->data[2] -= _s;
 
         return *this;
       }
@@ -466,8 +545,8 @@ namespace ignition
 
       /// \brief Equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return true if each component is equal within a
+      /// default tolerence (1e-3), false otherwise
       public: bool operator==(const Vector3<T> &_v) const
       {
         return equal<T>(this->data[0], _v[0], static_cast<T>(0.001)) &&
@@ -477,8 +556,8 @@ namespace ignition
 
       /// \brief Not equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-3), true otherwise
       public: bool operator!=(const Vector3<T> &_v) const
       {
         return !(*this == _v);

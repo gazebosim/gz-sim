@@ -216,6 +216,34 @@ TEST(Vector3dTest, Add)
 
   EXPECT_EQ(vec1 + vec2, math::Vector3d(1.2, 2.4, 3.8));
   EXPECT_EQ(vec3, math::Vector3d(1.2, 2.4, 3.8));
+
+  // Add zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 + vec1, vec1);
+    EXPECT_EQ(vec1 + 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector3d::Zero + vec1, vec1);
+    EXPECT_EQ(vec1 + math::Vector3d::Zero, vec1);
+
+    // Addition assignment
+    math::Vector3d vec4(vec1);
+    vec4 += 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 += math::Vector3d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Add non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 + vec1, math::Vector3d(2.6, 2.7, 2.9));
+    EXPECT_EQ(vec1 + 2.5, math::Vector3d(2.6, 2.7, 2.9));
+
+    math::Vector3d vec4(vec1);
+    vec4 += 2.5;
+    EXPECT_EQ(vec4, math::Vector3d(2.6, 2.7, 2.9));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -229,6 +257,34 @@ TEST(Vector3dTest, Sub)
 
   EXPECT_EQ(vec2 - vec1, math::Vector3d(1.0, 2.0, 3.0));
   EXPECT_EQ(vec3, math::Vector3d(1.0, 2.0, 3.0));
+
+  // Subtraction with zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 - vec1, -vec1);
+    EXPECT_EQ(vec1 - 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector3d::Zero - vec1, -vec1);
+    EXPECT_EQ(vec1 - math::Vector3d::Zero, vec1);
+
+    // Subtraction assignment
+    math::Vector3d vec4(vec1);
+    vec4 -= 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 -= math::Vector3d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Subtract non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 - vec1, math::Vector3d(2.4, 2.3, 2.1));
+    EXPECT_EQ(vec1 - 2.5, -math::Vector3d(2.4, 2.3, 2.1));
+
+    math::Vector3d vec4(vec1);
+    vec4 -= 2.5;
+    EXPECT_EQ(vec4, -math::Vector3d(2.4, 2.3, 2.1));
+  }
 }
 
 /////////////////////////////////////////////////

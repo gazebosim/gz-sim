@@ -138,6 +138,43 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector2<T> operator+(const T _s) const
+      {
+        return Vector2<T>(this->data[0] + _s,
+                          this->data[1] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector2<T> operator+(const T _s,
+                                                 const Vector2<T> &_v)
+      {
+        return _v + _s;
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector2<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+
+        return *this;
+      }
+
+      /// \brief Negation operator
+      /// \return negative of this vector
+      public: inline Vector2 operator-() const
+      {
+        return Vector2(-this->data[0], -this->data[1]);
+      }
+
       /// \brief Subtraction operator
       /// \param[in] _v the vector to substract
       /// \return the subtracted vector
@@ -153,6 +190,36 @@ namespace ignition
       {
         this->data[0] -= _v[0];
         this->data[1] -= _v[1];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector2<T> operator-(const T _s) const
+      {
+        return Vector2<T>(this->data[0] - _s,
+                          this->data[1] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector2<T> operator-(const T _s,
+                                                 const Vector2<T> &_v)
+      {
+        return Vector2<T>(_s - _v.X(), _s - _v.Y());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector2<T> &operator-=(T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
 
         return *this;
       }

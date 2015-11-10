@@ -279,3 +279,17 @@ TEST(Matrix3dTest, Inverse)
   double scalar = 2.5;
   EXPECT_EQ((matrix1 * scalar).Inverse(), matrix1.Inverse() * (1.0/scalar));
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Determinant)
+{
+  // |Zero matrix| = 0.0
+  EXPECT_DOUBLE_EQ(0.0, math::Matrix3d::Zero.Determinant());
+
+  // |Identity matrix| = 1.0
+  EXPECT_DOUBLE_EQ(1.0, math::Matrix3d::Identity.Determinant());
+
+  // Determinant of arbitrary matrix
+  math::Matrix3d m(-2, 4, 0, 0.1, 9, 55, -7, 1, 26);
+  EXPECT_DOUBLE_EQ(-1908.4, m.Determinant());
+}
