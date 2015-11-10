@@ -229,7 +229,8 @@ namespace ignition
       /// \param[in] _s the scaling factor
       /// \param[in] _v the vector to scale
       /// \return a scaled vector
-      public: friend inline const Vector2 operator*(T _s, const Vector2 &_v)
+      public: friend inline const Vector2 operator*(const T _s,
+                                                    const Vector2 &_v)
       {
         return Vector2(_v * _s);
       }
