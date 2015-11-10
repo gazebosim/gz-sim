@@ -340,14 +340,17 @@ namespace ignition
         // b = Ixx + Iyy + Izz
         T b = Id.Sum();
         // c = Ixx*Iyy - Ixy^2  +  Ixx*Izz - Ixz^2  +  Iyy*Izz - Iyz^2
-        T c = Id[0]*Id[1] - pow(Ip[0], 2)
-            + Id[0]*Id[2] - pow(Ip[1], 2)
-            + Id[1]*Id[2] - pow(Ip[2], 2);
+        T c = Id[0]*Id[1] - std::pow(Ip[0], 2)
+            + Id[0]*Id[2] - std::pow(Ip[1], 2)
+            + Id[1]*Id[2] - std::pow(Ip[2], 2);
         // d = Ixx*Iyz^2 + Iyy*Ixz^2 + Izz*Ixy^2 - Ixx*Iyy*Izz - 2*Ixy*Ixz*Iyz
-        T d = Id[0]*pow(Ip[2], 2) + Id[1]*pow(Ip[1], 2) + Id[2]*pow(Ip[0], 2)
-            - Id[0]*Id[1]*Id[2] - 2*Ip[0]*Ip[1]*Ip[2];
+        T d = Id[0]*std::pow(Ip[2], 2)
+            + Id[1]*std::pow(Ip[1], 2)
+            + Id[2]*std::pow(Ip[0], 2)
+            - Id[0]*Id[1]*Id[2]
+            - 2*Ip[0]*Ip[1]*Ip[2];
         // p = b^2 - 3c
-        T p = pow(b, 2) - 3*c;
+        T p = std::pow(b, 2) - 3*c;
 
         // p can also be expressed as a sum of squares (see eq 4.7)
         // so it must be non-negative (p >= 0)
@@ -358,7 +361,7 @@ namespace ignition
           return b / 3.0 * Vector3<T>::One;
 
         // q = 2b^3 - 9bc - 27d
-        T q = 2*pow(b, 3) - 9*b*c - 27*d;
+        T q = 2*std::pow(b, 3) - 9*b*c - 27*d;
 
         // delta = acos(q / (2 * p^(1.5)))
         T delta = acos(0.5 * q / (p * sqrt(p)));
