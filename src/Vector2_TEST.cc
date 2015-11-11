@@ -270,3 +270,21 @@ TEST(Vector2Test, Multiply)
   // Multiply by itself element-wise
   EXPECT_EQ(v*v, math::Vector2d(0.01, 17.64));
 }
+
+/////////////////////////////////////////////////
+TEST(Vector2dTest, Length)
+{
+  // Zero vector
+  EXPECT_DOUBLE_EQ(math::Vector2d::Zero.Length(), 0.0);
+  EXPECT_DOUBLE_EQ(math::Vector2d::Zero.SquaredLength(), 0.0);
+
+  // One vector
+  EXPECT_NEAR(math::Vector2d::One.Length(), M_SQRT2, 1e-10);
+  EXPECT_DOUBLE_EQ(math::Vector2d::One.SquaredLength(), 2.0);
+
+  // Arbitrary vector
+  math::Vector2d v(0.1, -4.2);
+  EXPECT_NEAR(v.Length(), 4.20119030752, 1e-10);
+  EXPECT_DOUBLE_EQ(v.SquaredLength(), 17.65);
+}
+

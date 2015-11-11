@@ -70,11 +70,25 @@ namespace ignition
                     (this->data[1]-_pt[1])*(this->data[1]-_pt[1]));
       }
 
+      /// \brief Returns the length (magnitude) of the vector
+      /// \ return the length
+      public: T Length() const
+      {
+        return sqrt(this->SquaredLength());
+      }
+
+      /// \brief Return the square of the length (magnitude) of the vector
+      /// \return the squared length
+      public: T SquaredLength() const
+      {
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2);
+      }
+
       /// \brief  Normalize the vector length
       public: void Normalize()
       {
-        double d = sqrt(this->data[0] * this->data[0] +
-                        this->data[1] * this->data[1]);
+        double d = this->Length();
 
         this->data[0] /= d;
         this->data[1] /= d;
