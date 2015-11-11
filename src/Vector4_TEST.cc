@@ -279,3 +279,4 @@ TEST(Vector4Test, Multiply)
   // Multiply by itself element-wise
   EXPECT_EQ(v*v, math::Vector4d(0.01, 17.64, 123.21, 70.56));
 }
+
