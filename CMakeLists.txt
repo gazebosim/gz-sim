@@ -306,7 +306,10 @@ else (build_errors)
     DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
     
   # Create *-targets.cmake file for build directory
-  export(EXPORT ${PROJECT_EXPORT_NAME}
+  # TODO: keep this instruction until we depend on CMake 3
+  #       then change the first line from TARGETS ...  
+  #       to EXPORT ... to match the format used in install(EXPORT
+  export(TARGETS ${PROJECT_LIBRARY_TARGET_NAME}
          FILE  ${CMAKE_BINARY_DIR}/${cmake_targets_file})
 
   # Install *-targets.cmake file
