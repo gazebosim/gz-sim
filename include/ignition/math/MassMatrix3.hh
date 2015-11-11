@@ -374,6 +374,57 @@ namespace ignition
         return Vector3<T>(moments[0], moments[1], moments[2]);
       }
 
+      /// \brief Compute rotational offset of principal axes.
+      /// \return Quaternion representing rotational offset of principal axes.
+      public: Quaternion<T> PrincipalAxesOffset() const
+      {
+        Vector3<T> moments = this->PrincipalMoments();
+        if (moments == this->DiagonalMoments())
+        {
+          // matrix is already aligned with principal axes
+          // return identity rotation
+          return Quaternion<T>();
+        }
+
+        // Check if Diagonal Moments are all equal
+        // Will this code ever be called?
+        // I think the previous block will catch this
+        Vector3<T> momentsDiff = Vector3<T>(
+          moments[0] - moments[1],
+          moments[1] - moments[2],
+          moments[2] - moments[0]);
+        if (momentsDiff == Vector3d::Zero)
+        {
+          // Diagonal Moments are all equal
+          // eigenvectors for identity matrix
+          // return identity rotation
+          return Quaternion<T>();
+        }
+
+        // // Check if two moments are equal.
+        // // The moments vector is already sorted,
+        // // so just check adjacent values.
+        // {
+        //   // index of unequal moment
+        //   int unequalMoment = -1;
+        //   if (equal<T>(momentsDiff[0], 0)
+        //     unequalMoment = 2;
+        //   else if (equal<T>(momentsDiff[1], 0)
+        //     unequalMoment = 0;
+
+        //   if (unequalMoment >= 0)
+        //   {
+        //     // moments[1] is equal to one of the other moments
+        //     // it is not equal to moments[unequalMoment]
+
+
+        //     return Quaternion<T>()
+        //   }
+        // }
+
+        return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
+      }
+
       /// \brief Get dimensions and rotation offset of uniform box
       /// with equivalent mass and moment of inertia.
       /// To compute this, the Matrix3 is diagonalized.

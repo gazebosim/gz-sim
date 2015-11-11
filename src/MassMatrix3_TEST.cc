@@ -226,3 +226,84 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     EXPECT_TRUE(m.IsValid());
   }
 }
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
+{
+  // Identity inertia matrix, expect unit quaternion
+  math::MassMatrix3d m;
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+
+  // Scale the diagonal terms
+  EXPECT_TRUE(m.DiagonalMoments(3.5 * math::Vector3d::One));
+  EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
+{
+  // Each of these inertia matrices has a repeated value
+
+  // Diagonal inertia matrix with sorted diagonal, expect unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 3.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with sorted diagonal, expect unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 2.0, 3.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 2.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 2.0, 3.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
+{
+  // These inertia matrices do not have repeated values
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 4.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 2.0, 3.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Nontrivial inertia matrix, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 4.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+}
