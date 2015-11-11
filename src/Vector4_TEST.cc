@@ -41,7 +41,7 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(math::equal(v1.W(), 4.0));
 
   math::Vector4d v(v1);
-  EXPECT_TRUE(v == v1);
+  EXPECT_EQ(v, v1);
 
   EXPECT_TRUE(math::equal(v.Distance(
           math::Vector4d(0, 0, 0, 0)), 5.4772, 1e-3));
@@ -55,79 +55,79 @@ TEST(Vector4dTest, Vector4d)
 
   // ::Normalize
   v.Normalize();
-  EXPECT_TRUE(v == math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
+  EXPECT_EQ(v, math::Vector4d(0.182574, 0.365148, 0.547723, 0.730297));
 
   // ::Set
   v.Set(2, 4, 6, 8);
-  EXPECT_TRUE(v == math::Vector4d(2, 4, 6, 8));
+  EXPECT_EQ(v, math::Vector4d(2, 4, 6, 8));
 
   // ::operator= vector4
   v = v1;
-  EXPECT_TRUE(v == v1);
+  EXPECT_EQ(v, v1);
 
   // ::operator= double
   v = 1.2;
-  EXPECT_TRUE(v == math::Vector4d(1.2, 1.2, 1.2, 1.2));
+  EXPECT_EQ(v, math::Vector4d(1.2, 1.2, 1.2, 1.2));
 
   // ::operator+ vector4
   v = v + math::Vector4d(1, 2, 3, 4);
-  EXPECT_TRUE(v == math::Vector4d(2.2, 3.2, 4.2, 5.2));
+  EXPECT_EQ(v, math::Vector4d(2.2, 3.2, 4.2, 5.2));
 
   // ::operator+=
   v += v;
-  EXPECT_TRUE(v == math::Vector4d(4.4, 6.4, 8.4, 10.4));
+  EXPECT_EQ(v, math::Vector4d(4.4, 6.4, 8.4, 10.4));
 
   // ::operator- vector4
   v = v - math::Vector4d(1, 1, 1, 1);
-  EXPECT_TRUE(v == math::Vector4d(3.4, 5.4, 7.4, 9.4));
+  EXPECT_EQ(v, math::Vector4d(3.4, 5.4, 7.4, 9.4));
 
   // ::operator-= vector4
   v -= math::Vector4d(1, 1, 1, 1);
-  EXPECT_TRUE(v == math::Vector4d(2.4, 4.4, 6.4, 8.4));
+  EXPECT_EQ(v, math::Vector4d(2.4, 4.4, 6.4, 8.4));
 
 
   // ::operator/ vector4
   v = v / math::Vector4d(.1, .1, .1, .1);
-  EXPECT_TRUE(v == math::Vector4d(24, 44, 64, 84));
+  EXPECT_EQ(v, math::Vector4d(24, 44, 64, 84));
 
   // ::operator/ double
   v = v / 2.0;
-  EXPECT_TRUE(v == math::Vector4d(12, 22, 32, 42));
+  EXPECT_EQ(v, math::Vector4d(12, 22, 32, 42));
 
   // ::operator/= vector4
   v /= math::Vector4d(4, 4, 4, 4);
-  EXPECT_TRUE(v == math::Vector4d(3, 5.5, 8, 10.5));
+  EXPECT_EQ(v, math::Vector4d(3, 5.5, 8, 10.5));
 
   // ::operator/= double
   v /= .1;
-  EXPECT_TRUE(v == math::Vector4d(30, 55, 80, 105));
+  EXPECT_EQ(v, math::Vector4d(30, 55, 80, 105));
 
   // ::operator * matrix4
   v = v * math::Matrix4d(1, 2, 3, 4,
                         5, 6, 7, 8,
                         9, 10, 11, 12,
                         13, 14, 15, 16);
-  EXPECT_TRUE(v == math::Vector4d(2390, 2660, 2930, 3200));
+  EXPECT_EQ(v, math::Vector4d(2390, 2660, 2930, 3200));
 
 
   // ::operator * vector4
   v = v * math::Vector4d(.2, .3, .4, .5);
-  EXPECT_TRUE(v == math::Vector4d(478, 798, 1172, 1600));
+  EXPECT_EQ(v, math::Vector4d(478, 798, 1172, 1600));
 
   // ::operator *= vector4
   v *= math::Vector4d(2, 4, 6, 8);
-  EXPECT_TRUE(v == math::Vector4d(956, 3192, 7032, 12800));
+  EXPECT_EQ(v, math::Vector4d(956, 3192, 7032, 12800));
 
   // ::operator * double
   v = v * 5.2;
-  EXPECT_TRUE(v == math::Vector4d(4971.2, 16598.4, 36566.4, 66560));
+  EXPECT_EQ(v, math::Vector4d(4971.2, 16598.4, 36566.4, 66560));
 
   // ::operator *= double
   v *= 10.0;
-  EXPECT_TRUE(v == math::Vector4d(49712, 1.65984e+05, 3.65664e+05, 6.656e+05));
+  EXPECT_EQ(v, math::Vector4d(49712, 1.65984e+05, 3.65664e+05, 6.656e+05));
 
   // ::operator != vector4
-  EXPECT_TRUE(v != math::Vector4d());
+  EXPECT_NE(v, math::Vector4d());
 
   // ::IsFinite
   EXPECT_TRUE(v.IsFinite());
@@ -150,4 +150,132 @@ TEST(Vector4dTest, IndexException)
   EXPECT_NO_THROW(math::equal(v[3], 4.0));
 
   EXPECT_THROW(math::equal(v[4], 5.0), math::IndexException);
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Add)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.4, 0.8);
+  math::Vector4d vec2(1.1, 2.2, 3.4, 4.8);
+
+  math::Vector4d vec3 = vec1;
+  vec3 += vec2;
+
+  EXPECT_EQ(vec1 + vec2, math::Vector4d(1.2, 2.4, 3.8, 5.6));
+  EXPECT_EQ(vec3, math::Vector4d(1.2, 2.4, 3.8, 5.6));
+
+  // Add zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 + vec1, vec1);
+    EXPECT_EQ(vec1 + 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector4d::Zero + vec1, vec1);
+    EXPECT_EQ(vec1 + math::Vector4d::Zero, vec1);
+
+    // Addition assignment
+    math::Vector4d vec4(vec1);
+    vec4 += 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 += math::Vector4d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Add non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 + vec1, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+    EXPECT_EQ(vec1 + 2.5, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+
+    math::Vector4d vec4(vec1);
+    vec4 += 2.5;
+    EXPECT_EQ(vec4, math::Vector4d(2.6, 2.7, 2.9, 3.3));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Sub)
+{
+  math::Vector4d vec1(0.1, 0.2, 0.4, 0.8);
+  math::Vector4d vec2(1.1, 2.2, 3.4, 4.8);
+
+  math::Vector4d vec3 = vec2;
+  vec3 -= vec1;
+
+  EXPECT_EQ(vec2 - vec1, math::Vector4d(1.0, 2.0, 3.0, 4.0));
+  EXPECT_EQ(vec3, math::Vector4d(1.0, 2.0, 3.0, 4.0));
+
+  // Subtraction with zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 - vec1, -vec1);
+    EXPECT_EQ(vec1 - 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector4d::Zero - vec1, -vec1);
+    EXPECT_EQ(vec1 - math::Vector4d::Zero, vec1);
+
+    // Subtraction assignment
+    math::Vector4d vec4(vec1);
+    vec4 -= 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 -= math::Vector4d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Subtract non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 - vec1, math::Vector4d(2.4, 2.3, 2.1, 1.7));
+    EXPECT_EQ(vec1 - 2.5, -math::Vector4d(2.4, 2.3, 2.1, 1.7));
+
+    math::Vector4d vec4(vec1);
+    vec4 -= 2.5;
+    EXPECT_EQ(vec4, -math::Vector4d(2.4, 2.3, 2.1, 1.7));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4dTest, OperatorStreamOut)
+{
+  math::Vector4d v(0.1, 1.2, 2.3, 0.0);
+  std::ostringstream stream;
+  stream << v;
+  EXPECT_EQ(stream.str(), "0.1 1.2 2.3 0");
+}
+
+/////////////////////////////////////////////////
+TEST(Vector4Test, Multiply)
+{
+  math::Vector4d v(0.1, -4.2, 11.1, 8.4);
+
+  // Multiply by zero
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 * v, math::Vector4d::Zero);
+    EXPECT_EQ(v * 0, math::Vector4d::Zero);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector4d::Zero, math::Vector4d::Zero);
+  }
+
+  // Multiply by one
+  {
+    // Scalar left and right
+    EXPECT_EQ(1 * v, v);
+    EXPECT_EQ(v * 1, v);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector4d::One, v);
+  }
+
+  // Multiply by non-trivial scalar value
+  {
+    const double scalar = 2.5;
+    math::Vector4d expect(0.25, -10.5, 27.75, 21.0);
+    EXPECT_EQ(scalar * v, expect);
+    EXPECT_EQ(v * scalar, expect);
+  }
+
+  // Multiply by itself element-wise
+  EXPECT_EQ(v*v, math::Vector4d(0.01, 17.64, 123.21, 70.56));
 }

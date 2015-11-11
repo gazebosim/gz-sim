@@ -151,3 +151,122 @@ TEST(Vector2Test, OperatorStreamOut)
   stream << v;
   EXPECT_EQ(stream.str(), "0.1 1.2");
 }
+
+/////////////////////////////////////////////////
+TEST(Vector2dTest, Add)
+{
+  math::Vector2d vec1(0.1, 0.2);
+  math::Vector2d vec2(1.1, 2.2);
+
+  math::Vector2d vec3 = vec1;
+  vec3 += vec2;
+
+  EXPECT_EQ(vec1 + vec2, math::Vector2d(1.2, 2.4));
+  EXPECT_EQ(vec3, math::Vector2d(1.2, 2.4));
+
+  // Add zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 + vec1, vec1);
+    EXPECT_EQ(vec1 + 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector2d::Zero + vec1, vec1);
+    EXPECT_EQ(vec1 + math::Vector2d::Zero, vec1);
+
+    // Addition assignment
+    math::Vector2d vec4(vec1);
+    vec4 += 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 += math::Vector2d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Add non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 + vec1, math::Vector2d(2.6, 2.7));
+    EXPECT_EQ(vec1 + 2.5, math::Vector2d(2.6, 2.7));
+
+    math::Vector2d vec4(vec1);
+    vec4 += 2.5;
+    EXPECT_EQ(vec4, math::Vector2d(2.6, 2.7));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Vector2dTest, Sub)
+{
+  math::Vector2d vec1(0.1, 0.2);
+  math::Vector2d vec2(1.1, 2.2);
+
+  math::Vector2d vec3 = vec2;
+  vec3 -= vec1;
+
+  EXPECT_EQ(vec2 - vec1, math::Vector2d(1.0, 2.0));
+  EXPECT_EQ(vec3, math::Vector2d(1.0, 2.0));
+
+  // Subtraction with zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 - vec1, -vec1);
+    EXPECT_EQ(vec1 - 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector2d::Zero - vec1, -vec1);
+    EXPECT_EQ(vec1 - math::Vector2d::Zero, vec1);
+
+    // Subtraction assignment
+    math::Vector2d vec4(vec1);
+    vec4 -= 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 -= math::Vector2d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Subtract non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 - vec1, math::Vector2d(2.4, 2.3));
+    EXPECT_EQ(vec1 - 2.5, -math::Vector2d(2.4, 2.3));
+
+    math::Vector2d vec4(vec1);
+    vec4 -= 2.5;
+    EXPECT_EQ(vec4, -math::Vector2d(2.4, 2.3));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Vector2Test, Multiply)
+{
+  math::Vector2d v(0.1, -4.2);
+
+  // Multiply by zero
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 * v, math::Vector2d::Zero);
+    EXPECT_EQ(v * 0, math::Vector2d::Zero);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector2d::Zero, math::Vector2d::Zero);
+  }
+
+  // Multiply by one
+  {
+    // Scalar left and right
+    EXPECT_EQ(1 * v, v);
+    EXPECT_EQ(v * 1, v);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector2d::One, v);
+  }
+
+  // Multiply by non-trivial scalar value
+  {
+    const double scalar = 2.5;
+    math::Vector2d expect(0.25, -10.5);
+    EXPECT_EQ(scalar * v, expect);
+    EXPECT_EQ(v * scalar, expect);
+  }
+
+  // Multiply by itself element-wise
+  EXPECT_EQ(v*v, math::Vector2d(0.01, 17.64));
+}

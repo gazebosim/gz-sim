@@ -253,7 +253,8 @@ namespace ignition
             this->data[2][2]*_m(2, 2));
       }
 
-      /// \brief Multiplication operator
+      /// \brief Multiplication operator with Vector3 on the right
+      /// treated like a column vector.
       /// \param _vec Vector3
       /// \return Resulting vector from multiplication
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
@@ -274,6 +275,21 @@ namespace ignition
       public: friend inline Matrix3<T> operator*(T _s, const Matrix3<T> &_m)
       {
         return _m * _s;
+      }
+
+      /// \brief Matrix left multiplication operator for Vector3.
+      /// Treats the Vector3 like a row vector multiplying the matrix
+      /// from the left.
+      /// \param[in] _v Input vector.
+      /// \param[in] _m Input matrix.
+      /// \return The product vector.
+      public: friend inline Vector3<T> operator*(const Vector3<T> &_v,
+                                                 const Matrix3<T> &_m)
+      {
+        return Vector3<T>(
+            _m(0, 0)*_v.X() + _m(1, 0)*_v.Y() + _m(2, 0)*_v.Z(),
+            _m(0, 1)*_v.X() + _m(1, 1)*_v.Y() + _m(2, 1)*_v.Z(),
+            _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() + _m(2, 2)*_v.Z());
       }
 
       /// \brief Equality test operator
@@ -322,20 +338,38 @@ namespace ignition
         return this->data[_row][_col];
       }
 
+      /// \brief Return the determinant of the matrix
+      /// \return Determinant of this matrix.
+      public: T Determinant() const
+      {
+        T t0 = this->data[2][2]*this->data[1][1]
+             - this->data[2][1]*this->data[1][2];
+
+        T t1 = -(this->data[2][2]*this->data[1][0]
+                -this->data[2][0]*this->data[1][2]);
+
+        T t2 = this->data[2][1]*this->data[1][0]
+             - this->data[2][0]*this->data[1][1];
+
+        return t0 * this->data[0][0]
+             + t1 * this->data[0][1]
+             + t2 * this->data[0][2];
+      }
+
       /// \brief Return the inverse matrix
       /// \return Inverse of this matrix.
       public: Matrix3<T> Inverse() const
       {
-        double t0 = this->data[2][2]*this->data[1][1] -
+        T t0 = this->data[2][2]*this->data[1][1] -
                     this->data[2][1]*this->data[1][2];
 
-        double t1 = -(this->data[2][2]*this->data[1][0] -
+        T t1 = -(this->data[2][2]*this->data[1][0] -
                       this->data[2][0]*this->data[1][2]);
 
-        double t2 = this->data[2][1]*this->data[1][0] -
+        T t2 = this->data[2][1]*this->data[1][0] -
                     this->data[2][0]*this->data[1][1];
 
-        double invDet = 1.0 / (t0 * this->data[0][0] +
+        T invDet = 1.0 / (t0 * this->data[0][0] +
                                t1 * this->data[0][1] +
                                t2 * this->data[0][2]);
 

@@ -28,10 +28,10 @@ namespace ignition
     template<typename T>
     class Vector4
     {
-      /// \brief math::Vector3(0, 0, 0)
+      /// \brief math::Vector4(0, 0, 0, 0)
       public: static const Vector4<T> Zero;
 
-      /// \brief math::Vector3(1, 1, 1)
+      /// \brief math::Vector4(1, 1, 1, 1)
       public: static const Vector4<T> One;
 
       /// \brief Constructor
@@ -168,6 +168,48 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector4<T> operator+(const T _s) const
+      {
+        return Vector4<T>(this->data[0] + _s,
+                          this->data[1] + _s,
+                          this->data[2] + _s,
+                          this->data[3] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector4<T> operator+(const T _s,
+                                                 const Vector4<T> &_v)
+      {
+        return _v + _s;
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector4<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+        this->data[2] += _s;
+        this->data[3] += _s;
+
+        return *this;
+      }
+
+      /// \brief Negation operator
+      /// \return negative of this vector
+      public: inline Vector4 operator-() const
+      {
+        return Vector4(-this->data[0], -this->data[1],
+                       -this->data[2], -this->data[3]);
+      }
+
       /// \brief Subtraction operator
       /// \param[in] _v the vector to substract
       /// \return a vector
@@ -188,6 +230,40 @@ namespace ignition
         this->data[1] -= _v[1];
         this->data[2] -= _v[2];
         this->data[3] -= _v[3];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector4<T> operator-(const T _s) const
+      {
+        return Vector4<T>(this->data[0] - _s,
+                          this->data[1] - _s,
+                          this->data[2] - _s,
+                          this->data[3] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector4<T> operator-(const T _s,
+                                                 const Vector4<T> &_v)
+      {
+        return Vector4<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector4<T> &operator-=(const T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
+        this->data[2] -= _s;
+        this->data[3] -= _s;
 
         return *this;
       }
@@ -295,6 +371,16 @@ namespace ignition
       {
         return Vector4<T>(this->data[0] * _v, this->data[1] * _v,
             this->data[2] * _v, this->data[3] * _v);
+      }
+
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector4 operator*(const T _s,
+                                                    const Vector4 &_v)
+      {
+        return Vector4(_v * _s);
       }
 
       /// \brief Multiplication assignment operator
