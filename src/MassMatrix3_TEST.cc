@@ -237,6 +237,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
   // Scale the diagonal terms
   EXPECT_TRUE(m.DiagonalMoments(3.5 * math::Vector3d::One));
   EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+  EXPECT_TRUE(m.IsValid());
   EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
 }
 
@@ -250,6 +251,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 3.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 
@@ -258,6 +260,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 2.0, 3.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 
@@ -266,6 +269,16 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 2.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 2.0, 2.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 
@@ -274,6 +287,29 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 2.0, 3.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Diagonal inertia matrix with unsorted diagonal, expect non-unit quaternion
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 3.0, 2.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  }
+
+  // Non-zero off-diagonal terms
+  // Principal moments [4, 4, 5]
+  // Rotated by [45, 45, 45] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.25, 4.25)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25*math::Vector3d(-M_SQRT2, M_SQRT2, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4, 4, 5));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 }
@@ -288,6 +324,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(2.0, 3.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 
@@ -296,6 +333,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 2.0, 3.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 
@@ -304,6 +342,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
+    EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
   }
 }

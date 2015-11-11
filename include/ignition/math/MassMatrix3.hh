@@ -419,7 +419,7 @@ namespace ignition
             // momentsDiff3 = lambda - lambda3
             T momentsDiff3 = moments[1] - moments[unequalMoment];
             // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
-            T s = (this->Ixxyyzz[0] - moments[2]) / momentsDiff3;
+            T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
             T phi2 = acos(sqrt(s));
             Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
             Vector2<T> g2(momentsDiff3 * s, 0);
