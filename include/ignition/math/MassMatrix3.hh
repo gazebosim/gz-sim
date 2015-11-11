@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ignition/math/Quaternion.hh"
+#include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Matrix3.hh"
 
@@ -382,45 +383,51 @@ namespace ignition
         if (moments == this->DiagonalMoments())
         {
           // matrix is already aligned with principal axes
+          // this includes case when all three moments are
+          // approximately equal
           // return identity rotation
           return Quaternion<T>();
         }
 
-        // Check if Diagonal Moments are all equal
-        // Will this code ever be called?
-        // I think the previous block will catch this
-        Vector3<T> momentsDiff = Vector3<T>(
-          moments[0] - moments[1],
-          moments[1] - moments[2],
-          moments[2] - moments[0]);
-        if (momentsDiff == Vector3d::Zero)
+        // Algorithm based on http://arxiv.org/abs/1306.6291v4
+        // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
+        // Matrix, by Maarten Kronenburg
+
+        // f1, f2 defined in equations 5.5, 5.6
+        Vector2<T> f1(this->Ixyxzyz[0], -this->Ixyxzyz[1]);
+        Vector2<T> f2(this->Ixxyyzz[1] - this->Ixxyyzz[2],
+                      -2*this->Ixyxzyz[2]);
+
+        // Check if two moments are equal.
+        // The moments vector is already sorted,
+        // so just check adjacent values.
+        Vector2<T> momentsDiff(moments[0] - moments[1],
+                               moments[1] - moments[2]);
+
         {
-          // Diagonal Moments are all equal
-          // eigenvectors for identity matrix
-          // return identity rotation
-          return Quaternion<T>();
+          // index of unequal moment
+          int unequalMoment = -1;
+          if (equal<T>(momentsDiff[0], 0))
+            unequalMoment = 2;
+          else if (equal<T>(momentsDiff[1], 0))
+            unequalMoment = 0;
+
+          if (unequalMoment >= 0)
+          {
+            // moments[1] is the repeated value
+            // it is not equal to moments[unequalMoment]
+            // momentsDiff3 = lambda - lambda3
+            T momentsDiff3 = moments[1] - moments[unequalMoment];
+            // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
+            T s = (this->Ixxyyzz[0] - moments[2]) / momentsDiff3;
+            T phi2 = acos(sqrt(s));
+            Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
+            Vector2<T> g2(momentsDiff3 * s, 0);
+
+
+            return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
+          }
         }
-
-        // // Check if two moments are equal.
-        // // The moments vector is already sorted,
-        // // so just check adjacent values.
-        // {
-        //   // index of unequal moment
-        //   int unequalMoment = -1;
-        //   if (equal<T>(momentsDiff[0], 0)
-        //     unequalMoment = 2;
-        //   else if (equal<T>(momentsDiff[1], 0)
-        //     unequalMoment = 0;
-
-        //   if (unequalMoment >= 0)
-        //   {
-        //     // moments[1] is equal to one of the other moments
-        //     // it is not equal to moments[unequalMoment]
-
-
-        //     return Quaternion<T>()
-        //   }
-        // }
 
         return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
       }
