@@ -28,10 +28,10 @@ namespace ignition
     template<typename T>
     class Vector4
     {
-      /// \brief math::Vector3(0, 0, 0)
+      /// \brief math::Vector4(0, 0, 0, 0)
       public: static const Vector4<T> Zero;
 
-      /// \brief math::Vector3(1, 1, 1)
+      /// \brief math::Vector4(1, 1, 1, 1)
       public: static const Vector4<T> One;
 
       /// \brief Constructor
@@ -80,19 +80,17 @@ namespace ignition
       /// \brief Returns the length (magnitude) of the vector
       public: T Length() const
       {
-        return sqrt(
-            this->data[0] * this->data[0] +
-            this->data[1] * this->data[1] +
-            this->data[2] * this->data[2] +
-            this->data[3] * this->data[3]);
+        return sqrt(this->SquaredLength());
       }
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the length
       public: T SquaredLength() const
       {
-        return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
-          this->data[2] * this->data[2] + this->data[3] * this->data[3];
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2)
+             + std::pow(this->data[2], 2)
+             + std::pow(this->data[3], 2);
       }
 
       /// \brief Normalize the vector length
@@ -371,6 +369,16 @@ namespace ignition
       {
         return Vector4<T>(this->data[0] * _v, this->data[1] * _v,
             this->data[2] * _v, this->data[3] * _v);
+      }
+
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector4 operator*(const T _s,
+                                                    const Vector4 &_v)
+      {
+        return Vector4(_v * _s);
       }
 
       /// \brief Multiplication assignment operator
