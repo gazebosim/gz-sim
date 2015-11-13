@@ -100,7 +100,8 @@ TEST(KmeansTest, Kmeans)
   EXPECT_FALSE(kmeans.Cluster(0, centroids, labels));
 
   // Try to use a k > num_observations.
-  EXPECT_FALSE(kmeans.Cluster(obs.size() + 1, centroids, labels));
+  EXPECT_FALSE(kmeans.Cluster(static_cast<int>(obs.size() + 1),
+                              centroids, labels));
 }
 
 //////////////////////////////////////////////////
@@ -131,7 +132,9 @@ TEST(KmeansTest, Append)
 
   std::vector<math::Vector3d> obsCopy;
   obsCopy = kmeans.Observations();
-  EXPECT_EQ(obsTotal, obsCopy);
+
+  for (auto i = 0; i < obsCopy.size(); ++i)
+    EXPECT_EQ(obsTotal[i], obsCopy[i]);
 
   // Append an empty vector.
   std::vector<math::Vector3d> emptyVector;

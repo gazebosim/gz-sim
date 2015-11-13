@@ -371,3 +371,4 @@ TEST(Vector3dTest, IndexException)
 
   EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
 }
+
