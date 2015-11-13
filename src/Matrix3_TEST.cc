@@ -188,6 +188,7 @@ TEST(Matrix3dTest, Vector3Multiplication)
 
     // Vector3::Zero
     EXPECT_EQ(math::Vector3d::Zero, matrix * math::Vector3d::Zero);
+    EXPECT_EQ(math::Vector3d::Zero, math::Vector3d::Zero * matrix);
     // left multiply with Vector3 not implemented
 
     // Matrix3::Zero
@@ -204,12 +205,20 @@ TEST(Matrix3dTest, Vector3Multiplication)
     EXPECT_EQ(matrix, 1.0 * matrix);
 
     // Vector3::Unit[X|Y|Z]
+    // right multiply
     EXPECT_EQ(math::Vector3d(matrix(0, 0), matrix(1, 0), matrix(2, 0)),
               matrix * math::Vector3d::UnitX);
     EXPECT_EQ(math::Vector3d(matrix(0, 1), matrix(1, 1), matrix(2, 1)),
               matrix * math::Vector3d::UnitY);
     EXPECT_EQ(math::Vector3d(matrix(0, 2), matrix(1, 2), matrix(2, 2)),
               matrix * math::Vector3d::UnitZ);
+    // left multiply
+    EXPECT_EQ(math::Vector3d(matrix(0, 0), matrix(0, 1), matrix(0, 2)),
+              math::Vector3d::UnitX * matrix);
+    EXPECT_EQ(math::Vector3d(matrix(1, 0), matrix(1, 1), matrix(1, 2)),
+              math::Vector3d::UnitY * matrix);
+    EXPECT_EQ(math::Vector3d(matrix(2, 0), matrix(2, 1), matrix(2, 2)),
+              math::Vector3d::UnitZ * matrix);
 
     // Matrix3::IDENTITY
     EXPECT_EQ(matrix, matrix * math::Matrix3d::Identity);

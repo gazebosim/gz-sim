@@ -292,6 +292,16 @@ namespace ignition
         return Vector2(this->data[0] * _v, this->data[1] * _v);
       }
 
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector2 operator*(const T _s,
+                                                    const Vector2 &_v)
+      {
+        return Vector2(_v * _s);
+      }
+
       /// \brief Multiplication assignment operator
       /// \param[in] _v the scaling factor
       /// \return a scaled vector
