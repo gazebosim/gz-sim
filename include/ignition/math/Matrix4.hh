@@ -514,6 +514,17 @@ namespace ignition
         return r;
       }
 
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix4<T> Transpose() const
+      {
+        return Matrix4<T>(
+        this->data[0][0], this->data[1][0], this->data[2][0], this->data[3][0],
+        this->data[0][1], this->data[1][1], this->data[2][1], this->data[3][1],
+        this->data[0][2], this->data[1][2], this->data[2][2], this->data[3][2],
+        this->data[0][3], this->data[1][3], this->data[2][3], this->data[3][3]);
+      }
+
       /// \brief Equal operator. this = _mat
       /// \param _mat Incoming matrix
       /// \return itself
