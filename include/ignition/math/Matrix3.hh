@@ -391,6 +391,16 @@ namespace ignition
              this->data[1][0] * this->data[0][1]));
       }
 
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix3<T> Transpose() const
+      {
+        return Matrix3<T>(
+          this->data[0][0], this->data[1][0], this->data[2][0],
+          this->data[0][1], this->data[1][1], this->data[2][1],
+          this->data[0][2], this->data[1][2], this->data[2][2]);
+      }
+
       /// \brief Stream insertion operator
       /// \param[in] _out Output stream
       /// \param[in] _m Matrix to output

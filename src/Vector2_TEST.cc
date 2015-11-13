@@ -287,4 +287,3 @@ TEST(Vector2dTest, Length)
   EXPECT_NEAR(v.Length(), 4.20119030752, 1e-10);
   EXPECT_DOUBLE_EQ(v.SquaredLength(), 17.65);
 }
-
