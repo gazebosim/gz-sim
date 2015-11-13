@@ -1,5 +1,9 @@
 #################################################
 macro (ign_build_tests)
+  # Find the Python interpreter for running the 
+  # check_test_ran.py script 
+  find_package(PythonInterp QUIET)
+
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
@@ -34,9 +38,11 @@ macro (ign_build_tests)
 
     set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
-    # Check that the test produced a result and create a failure if it didn't.
-    # Guards against crashed and timed out tests.
-    add_test(check_${BINARY_NAME} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
-	${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+    if(PYTHONINTERP_FOUND)
+      # Check that the test produced a result and create a failure if it didn't.
+      # Guards against crashed and timed out tests.
+      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
+        ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+    endif()
   endforeach()
 endmacro()
