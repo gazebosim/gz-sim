@@ -71,21 +71,21 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
-      /// \ return the length
+      /// \return The length
       public: T Length() const
       {
         return sqrt(this->SquaredLength());
       }
 
-      /// \brief Return the square of the length (magnitude) of the vector
-      /// \return the squared length
+      /// \brief Returns the square of the length (magnitude) of the vector
+      /// \return The squared length
       public: T SquaredLength() const
       {
         return std::pow(this->data[0], 2)
              + std::pow(this->data[1], 2);
       }
 
-      /// \brief  Normalize the vector length
+      /// \brief Normalize the vector length
       public: void Normalize()
       {
         double d = this->Length();
