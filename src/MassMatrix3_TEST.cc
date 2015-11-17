@@ -418,6 +418,20 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
   }
+
+  // Non-zero off-diagonal terms, small magnitude
+  // Principal moments [4e-9, 4e-9, 5e-9]
+  // different rotation
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(1e-9*math::Vector3d(4.5, 4.25, 4.25)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25e-9*math::Vector3d(M_SQRT2, -M_SQRT2, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4e-9, 4e-9, 5e-9));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
 }
 
 /////////////////////////////////////////////////

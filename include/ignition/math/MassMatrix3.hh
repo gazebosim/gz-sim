@@ -317,14 +317,15 @@ namespace ignition
 
       /// \brief Compute principal moments of inertia,
       /// which are the eigenvalues of the moment of inertia matrix.
+      /// \param[in] _tol Relative tolerance.
       /// \return Principal moments of inertia. If the matrix is
       /// already diagonal, they are returned in the existing order.
       /// Otherwise, the moments are sorted from smallest to largest.
-      public: Vector3<T> PrincipalMoments() const
+      public: Vector3<T> PrincipalMoments(const T _tol=1e-6) const
       {
-        if (equal<T>(this->IXY(), 0) &&
-            equal<T>(this->IXZ(), 0) &&
-            equal<T>(this->IYZ(), 0))
+        // Compute tolerance relative to maximum value of inertia diagonal
+        T tol = _tol * this->Ixxyyzz.Max();
+        if (this->Ixyxzyz.Equal(Vector3<T>::Zero, tol))
         {
           // Matrix is already diagonalized, return diagonal moments
           return this->Ixxyyzz;
@@ -355,15 +356,17 @@ namespace ignition
         // Also, if p is zero (or close enough):
         //  then the off-diagonal terms must be close to zero
         //  and the three eigenvalues are equal
-        if (p < 1e-18)
+        if (p < std::pow(tol, 2))
           return b / 3.0 * Vector3<T>::One;
 
         // q = 2b^3 - 9bc - 27d
         T q = 2*std::pow(b, 3) - 9*b*c - 27*d;
 
         // delta = acos(q / (2 * p^(1.5)))
-        T delta = acos(0.5 * q / std::pow(p, 1.5));
+        // additionally clamp the argument to [-1,1]
+        T delta = acos(clamp(0.5 * q / std::pow(p, 1.5), -1, 1));
 
+        // sort the moments from smallest to largest
         std::vector<T> moments(3, 0);
         moments[0] = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
         moments[1] = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
