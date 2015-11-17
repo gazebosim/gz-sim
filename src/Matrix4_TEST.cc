@@ -519,6 +519,17 @@ TEST(Matrix4dTest, NotEqual)
 }
 
 /////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Matrix4Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-6));
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-3));
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-1));
+  EXPECT_TRUE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1));
+  EXPECT_TRUE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix4dTest, Determinant)
 {
   // |Zero matrix| = 0.0

@@ -261,6 +261,17 @@ TEST(Matrix3dTest, NotEqual)
 }
 
 /////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Matrix3Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-6));
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-3));
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-1));
+  EXPECT_TRUE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1));
+  EXPECT_TRUE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix3dTest, Inverse)
 {
   // Inverse of identity matrix is itself
