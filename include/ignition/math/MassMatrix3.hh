@@ -364,7 +364,7 @@ namespace ignition
 
         // delta = acos(q / (2 * p^(1.5)))
         // additionally clamp the argument to [-1,1]
-        T delta = acos(clamp(0.5 * q / std::pow(p, 1.5), -1, 1));
+        T delta = acos(clamp<T>(0.5 * q / std::pow(p, 1.5), -1, 1));
 
         // sort the moments from smallest to largest
         std::vector<T> moments(3, 0);
@@ -424,7 +424,7 @@ namespace ignition
           // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
           T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
           T phi1 = 0;
-          T phi2 = acos(clamp(sqrt(s), -1, 1));
+          T phi2 = acos(clamp<T>(sqrt(s), -1, 1));
           T phi3 = 0;
 
           Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
@@ -465,8 +465,8 @@ namespace ignition
         T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
             / ((moments[0] - moments[1]) * v);
         T phi1 = 0;
-        T phi2 = acos(clamp(sqrt(v), -1, 1));
-        T phi3 = acos(clamp(sqrt(w), -1, 1));
+        T phi2 = acos(clamp<T>(sqrt(v), -1, 1));
+        T phi3 = acos(clamp<T>(sqrt(w), -1, 1));
 
         Vector2<T> g1(
           0.5* (moments[0]-moments[1])*sqrt(v)*sin(2*phi3),
