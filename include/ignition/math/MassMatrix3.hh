@@ -321,7 +321,7 @@ namespace ignition
       /// \return Principal moments of inertia. If the matrix is
       /// already diagonal, they are returned in the existing order.
       /// Otherwise, the moments are sorted from smallest to largest.
-      public: Vector3<T> PrincipalMoments(const T _tol=1e-6) const
+      public: Vector3<T> PrincipalMoments(const T _tol = 1e-6) const
       {
         // Compute tolerance relative to maximum value of inertia diagonal
         T tol = _tol * this->Ixxyyzz.Max();
@@ -424,7 +424,7 @@ namespace ignition
           // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
           T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
           T phi1 = 0;
-          T phi2 = acos(sqrt(s));
+          T phi2 = acos(clamp(sqrt(s), -1, 1));
           T phi3 = 0;
 
           Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
@@ -445,75 +445,52 @@ namespace ignition
           else
           {
             phi1 = phi12.Radian();
-            T erra = pow(sin(phi1) - sin(phi11a.Radian()), 2)
-                   + pow(cos(phi1) - cos(phi11a.Radian()), 2);
-            T errb = pow(sin(phi1) - sin(phi11b.Radian()), 2)
-                   + pow(cos(phi1) - cos(phi11b.Radian()), 2);
+            T erra = std::pow(sin(phi1) - sin(phi11a.Radian()), 2)
+                   + std::pow(cos(phi1) - cos(phi11a.Radian()), 2);
+            T errb = std::pow(sin(phi1) - sin(phi11b.Radian()), 2)
+                   + std::pow(cos(phi1) - cos(phi11b.Radian()), 2);
             if (errb < erra)
             {
               phi2 *= -1;
             }
           }
           return Quaternion<T>(-phi1, -phi2, phi3);
-
-          // Matrix3<T> R1(1, 0, 0,
-          //               0, cos(phi1), -sin(phi1),
-          //               0, sin(phi1),  cos(phi1));
-          // Matrix3<T> R2( cos(phi2), 0, sin(phi2),
-          //                0,         1, 0,
-          //               -sin(phi2), 0, cos(phi2));
-          // Matrix3<T> R3(cos(phi3), -sin(phi3), 0,
-          //               sin(phi3),  cos(phi3), 0,
-          //               0,          0,         1);
-          // Matrix3<T> D = R1 * R2 * R3;
-          // Matrix3<T> L(moments[0], 0, 0,
-          //              0, moments[1], 0,
-          //              0, 0, moments[2]);
-          // Matrix3<T> A = D*L*D.Transpose();
-
-          // // Assert f1.Length() == g1a.Length()
-          // // Assert f1.Length() == g1b.Length()
-          // // Assert f2.Length() == g2a.Length()
-          // // Assert f2.Length() == g2b.Length()
-          // std::cout << this->DiagonalMoments()
-          //           << "\t" << this->OffDiagonalMoments()
-          //           // << "\t " << momentsDiff
-          //           // << "\t " << unequalMoment
-          //           << "\t s " << s
-          //           << "\t f1 " << f1
-          //           << "\t f2 " << f2
-          //           << "\t g1 " << g1
-          //           << "\t g2 " << g2
-          //           // << "\t |f1| " << f1.Length()
-          //           // << "\t |f2| " << f2.Length()
-          //           // << "\t |f1|-|g1| " << f1.Length() - g1.Length()
-          //           // << "\t |f2|-|g2| " << f2.Length() - g2.Length()
-          //           << "\t phi1 "  << phi1
-          //           << "\t phi2 "  << phi2
-          //           << "\t phi3 "  << phi3
-          //           << "\t <g1>-<f1> "  << phi11a
-          //           << "\t <-g1>-<f1> " << phi11b
-          //           << "\t <g2>-<f2> "  << phi12
-          //           << std::endl;
-          // std::cout << A-this->MOI() << std::endl;
-          // std::cout << D - Matrix3<T>(q1).Transpose() << std::endl;
-
-          // return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
         }
 
-        // // No repeated principal moments
-        // T v = (pow(this->Ixyxzyz[0], 2) + pow(this->Ixyxzyz[1], 2)
-        //       +(this->Ixxyyzz[0] - moments[2])
-        //       *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
-        //     / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
-        // T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
-        //     / ((moments[0] - moments[1]) * v);
-        // T phi1 = 0;
-        // T phi2 = acos(sqrt(v));
-        // T phi3 = acos(sqrt(w));
+        // No repeated principal moments
+        T v = (std::pow(this->Ixyxzyz[0], 2) + std::pow(this->Ixyxzyz[1], 2)
+              +(this->Ixxyyzz[0] - moments[2])
+              *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
+            / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
+        T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
+            / ((moments[0] - moments[1]) * v);
+        T phi1 = 0;
+        T phi2 = acos(clamp(sqrt(v), -1, 1));
+        T phi3 = acos(clamp(sqrt(w), -1, 1));
 
-        // Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
-        // Vector2<T> g2(momentsDiff3 * s, 0);
+        Vector2<T> g1(
+          0.5* (moments[0]-moments[1])*sqrt(v)*sin(2*phi3),
+          0.5*((moments[0]-moments[1])*w + moments[1]-moments[2])*sin(2*phi2));
+        Vector2<T> g2(
+          (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
+          (moments[0]-moments[1])*sin(phi2)*sin(2*phi3));
+        // phi2      <= 0
+        Vector2<T> g1a = Vector2<T>(1, -1) * g1;
+        Vector2<T> g2a = Vector2<T>(1, -1) * g2;
+        // phi3      <= 0
+        Vector2<T> g1b = Vector2<T>(-1,  1) * g1;
+        Vector2<T> g2b = g2a;
+        // phi2,phi3 <= 0
+        Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
+        Vector2<T> g2c = g2;
+
+        math::Angle phi11a(Angle2(g1) - Angle2(f1));
+        math::Angle phi11b(Angle2(-g1) - Angle2(f1));
+        math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+        phi11a.Normalize();
+        phi11b.Normalize();
+        phi12.Normalize();
+
         return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
       }
 
@@ -533,9 +510,9 @@ namespace ignition
       /// \brief Angle formed by direction of a Vector2.
       /// \return Angle formed between vector and X axis,
       /// or zero if vector has length less than 1e-6.
-      private: static T Angle2(const Vector2<T> &_v)
+      private: static T Angle2(const Vector2<T> &_v, const T _tol = 1e-12)
       {
-        if (_v.SquaredLength() < 1e-12)
+        if (_v.SquaredLength() < _tol)
           return 0;
         return atan2(_v[1], _v[0]);
       }
