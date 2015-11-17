@@ -376,15 +376,18 @@ namespace ignition
       }
 
       /// \brief Compute rotational offset of principal axes.
+      /// \param[in] _tol Relative tolerance.
       /// \return Quaternion representing rotational offset of principal axes.
       /// With a rotation matrix constructed from this quaternion R(q)
       /// and a diagonal matrix L with principal moments on the diagonal,
       /// the original moment of inertia matrix MOI can be reconstructed
-      /// with MOI = R(q) * L * R(q).Transpose()
-      public: Quaternion<T> PrincipalAxesOffset() const
+      /// with MOI = R(q).Transpose() * L * R(q)
+      public: Quaternion<T> PrincipalAxesOffset(const T _tol = 1e-6) const
       {
+        // Compute tolerance relative to maximum value of inertia diagonal
+        T tol = _tol * this->Ixxyyzz.Max();
         Vector3<T> moments = this->PrincipalMoments();
-        if (moments == this->DiagonalMoments())
+        if (moments.Equal(this->Ixxyyzz, tol))
         {
           // matrix is already aligned with principal axes
           // this includes case when all three moments are
@@ -410,9 +413,9 @@ namespace ignition
 
         // index of unequal moment
         int unequalMoment = -1;
-        if (equal<T>(momentsDiff[0], 0))
+        if (equal<T>(momentsDiff[0], 0, tol))
           unequalMoment = 2;
-        else if (equal<T>(momentsDiff[1], 0))
+        else if (equal<T>(momentsDiff[1], 0, tol))
           unequalMoment = 0;
 
         if (unequalMoment >= 0)
@@ -437,7 +440,7 @@ namespace ignition
           phi11b.Normalize();
           phi12.Normalize();
 
-          bool f1small = f1.SquaredLength() < 1e-16;
+          bool f1small = f1.SquaredLength() < std::pow(tol, 2);
           if (f1small)
           {
             phi1 = phi12.Radian();
@@ -454,7 +457,7 @@ namespace ignition
               phi2 *= -1;
             }
           }
-          return Quaternion<T>(-phi1, -phi2, phi3);
+          return Quaternion<T>(-phi1, -phi2, phi3).Inverse();
         }
 
         // No repeated principal moments
