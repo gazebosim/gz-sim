@@ -133,6 +133,17 @@ TEST(Vector2Test, IndexException)
 }
 
 /////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Vector2Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Vector2d::Zero.Equal(math::Vector2d::One, 1e-6));
+  EXPECT_FALSE(math::Vector2d::Zero.Equal(math::Vector2d::One, 1e-3));
+  EXPECT_FALSE(math::Vector2d::Zero.Equal(math::Vector2d::One, 1e-1));
+  EXPECT_TRUE(math::Vector2d::Zero.Equal(math::Vector2d::One, 1));
+  EXPECT_TRUE(math::Vector2d::Zero.Equal(math::Vector2d::One, 1.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Vector2Test, Dot)
 {
   math::Vector2d v(1, 2);

@@ -379,6 +379,17 @@ TEST(Vector3dTest, NotEqual)
 }
 
 /////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Vector2Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-6));
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-3));
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-1));
+  EXPECT_TRUE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1));
+  EXPECT_TRUE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Vector3dTest, Finite)
 {
   math::Vector3d vec1(0.1, 0.2, 0.3);
@@ -396,3 +407,4 @@ TEST(Vector3dTest, IndexException)
 
   EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
 }
+

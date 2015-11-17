@@ -678,31 +678,38 @@ namespace ignition
         return this->data[_row][_col];
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _m the matrix to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the matrices are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Matrix4 &_m, const T &_tol) const
+      {
+        return equal<T>(this->data[0][0], _m(0, 0), _tol)
+            && equal<T>(this->data[0][1], _m(0, 1), _tol)
+            && equal<T>(this->data[0][2], _m(0, 2), _tol)
+            && equal<T>(this->data[0][3], _m(0, 3), _tol)
+            && equal<T>(this->data[1][0], _m(1, 0), _tol)
+            && equal<T>(this->data[1][1], _m(1, 1), _tol)
+            && equal<T>(this->data[1][2], _m(1, 2), _tol)
+            && equal<T>(this->data[1][3], _m(1, 3), _tol)
+            && equal<T>(this->data[2][0], _m(2, 0), _tol)
+            && equal<T>(this->data[2][1], _m(2, 1), _tol)
+            && equal<T>(this->data[2][2], _m(2, 2), _tol)
+            && equal<T>(this->data[2][3], _m(2, 3), _tol)
+            && equal<T>(this->data[3][0], _m(3, 0), _tol)
+            && equal<T>(this->data[3][1], _m(3, 1), _tol)
+            && equal<T>(this->data[3][2], _m(3, 2), _tol)
+            && equal<T>(this->data[3][3], _m(3, 3), _tol);
+      }
+
       /// \brief Equality operator
       /// \param[in] _m Matrix3 to test
       /// \return true if the 2 matrices are equal (using the tolerance 1e-6),
       ///  false otherwise
       public: bool operator==(const Matrix4<T> &_m) const
       {
-        return math::equal(this->data[0][0], _m(0, 0)) &&
-               math::equal(this->data[0][1], _m(0, 1)) &&
-               math::equal(this->data[0][2], _m(0, 2)) &&
-               math::equal(this->data[0][3], _m(0, 3)) &&
-
-               math::equal(this->data[1][0], _m(1, 0)) &&
-               math::equal(this->data[1][1], _m(1, 1)) &&
-               math::equal(this->data[1][2], _m(1, 2)) &&
-               math::equal(this->data[1][3], _m(1, 3)) &&
-
-               math::equal(this->data[2][0], _m(2, 0)) &&
-               math::equal(this->data[2][1], _m(2, 1)) &&
-               math::equal(this->data[2][2], _m(2, 2)) &&
-               math::equal(this->data[2][3], _m(2, 3)) &&
-
-               math::equal(this->data[3][0], _m(3, 0)) &&
-               math::equal(this->data[3][1], _m(3, 1)) &&
-               math::equal(this->data[3][2], _m(3, 2)) &&
-               math::equal(this->data[3][3], _m(3, 3));
+        return this->Equal(_m, static_cast<T>(1e-6));
       }
 
       /// \brief Inequality test operator
