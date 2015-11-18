@@ -426,28 +426,48 @@ namespace ignition
           T momentsDiff3 = moments[1] - moments[unequalMoment];
           // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
           T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
-          T phi1 = 0;
-          T phi2 = acos(clamp<T>(sqrt(s), -1, 1));
+          // set phi3 to zero for repeated moments (eq 5.23)
           T phi3 = 0;
+          // phi = +- acos(sqrt(s))
+          // start with just the positive value
+          // also clamp the input to acos to prevent NaN's
+          T phi2 = acos(clamp<T>(sqrt(s), -1, 1));
 
+          // g1, g2 defined in equations 5.24, 5.25
           Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
           Vector2<T> g2(momentsDiff3 * s, 0);
 
-          math::Angle phi11a(Angle2(g1) - Angle2(f1));
-          math::Angle phi11b(Angle2(-g1) - Angle2(f1));
+          // The paper discusses how to choose the value of phi1
+          // and the sign of phi2.
+          // In this case of repeated moments,
+          // there is only one value for phi12
+          // and two values of phi11 (one for each sign of phi2).
+          // It describes how to choose based on the length
+          // of the f1 and f2 vectors.
+          // * When |f1| != 0 and |f2| != 0, then one should choose the
+          //   value of phi2 so that phi11 = phi12
+          // * When |f1| == 0 and f2 != 0, then phi1 = phi12
+          //   and phi11 can be ignored
+          // * The case of |f2| == 0 can be ignored at this point in the code
+          //   since having a repeated moment when |f2| == 0 implies that
+          //   the matrix is diagonal. But this function returns a unit
+          //   quaternion for diagonal matrices, so we can assume |f2| != 0
+          //   See MassMatrix3.ipynb for a more complete discussion.
           math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
-          phi11a.Normalize();
-          phi11b.Normalize();
           phi12.Normalize();
+          T phi1 = phi12.Radian();
 
           bool f1small = f1.SquaredLength() < std::pow(tol, 2);
-          if (f1small)
+          if (!f1small)
           {
-            phi1 = phi12.Radian();
-          }
-          else
-          {
-            phi1 = phi12.Radian();
+            // phi11a uses phi2 >= 0
+            // phi11b uses phi2 <= 0
+            math::Angle phi11a(Angle2(g1) - Angle2(f1));
+            math::Angle phi11b(Angle2(-g1) - Angle2(f1));
+            phi11a.Normalize();
+            phi11b.Normalize();
+            // use the difference between sin and cos to account for
+            // PI, -PI that should be considered close
             T erra = std::pow(sin(phi1) - sin(phi11a.Radian()), 2)
                    + std::pow(cos(phi1) - cos(phi11a.Radian()), 2);
             T errb = std::pow(sin(phi1) - sin(phi11b.Radian()), 2)
@@ -457,6 +477,7 @@ namespace ignition
               phi2 *= -1;
             }
           }
+          // I determined these arguments using trial and error
           return Quaternion<T>(-phi1, -phi2, phi3).Inverse();
         }
 
