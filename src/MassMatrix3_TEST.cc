@@ -494,6 +494,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, 1)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Non-diagonal inertia matrix with f1 = 0
@@ -503,6 +504,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Non-diagonal inertia matrix with f2 = 0
@@ -512,6 +514,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 1, 0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Non-diagonal inertia matrix with f2 = 0
@@ -521,6 +524,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, -1, 0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Non-diagonal inertia matrix with f2 = 0
@@ -530,6 +534,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, -1, 0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Non-diagonal inertia matrix with f2 = 0
@@ -539,6 +544,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, 1, 0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Similar non-diagonal inertia matrix with f2 != 0
@@ -548,6 +554,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 1, 1)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Nontrivial inertia matrix, expect non-unit quaternion
@@ -557,6 +564,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Nontrivial inertia matrix, expect non-unit quaternion
@@ -566,6 +574,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 
   // Nontrivial inertia matrix, expect non-unit quaternion
@@ -575,5 +584,6 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0.5, -1.0)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
   }
 }

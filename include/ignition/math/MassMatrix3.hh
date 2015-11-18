@@ -478,7 +478,7 @@ namespace ignition
             }
           }
           // I determined these arguments using trial and error
-          return Quaternion<T>(-phi1, -phi2, phi3).Inverse();
+          return Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
         }
 
         // No repeated principal moments
@@ -492,30 +492,263 @@ namespace ignition
         T phi2 = acos(clamp<T>(sqrt(v), -1, 1));
         T phi3 = acos(clamp<T>(sqrt(w), -1, 1));
 
+        // compute g1, g2 for phi2,phi3 >= 0
+        // equations 5.7, 5.8
         Vector2<T> g1(
           0.5* (moments[0]-moments[1])*sqrt(v)*sin(2*phi3),
           0.5*((moments[0]-moments[1])*w + moments[1]-moments[2])*sin(2*phi2));
         Vector2<T> g2(
           (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
           (moments[0]-moments[1])*sin(phi2)*sin(2*phi3));
-        // phi2      <= 0
-        Vector2<T> g1a = Vector2<T>(1, -1) * g1;
-        Vector2<T> g2a = Vector2<T>(1, -1) * g2;
-        // phi3      <= 0
-        Vector2<T> g1b = Vector2<T>(-1,  1) * g1;
-        Vector2<T> g2b = g2a;
-        // phi2,phi3 <= 0
-        Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
-        Vector2<T> g2c = g2;
 
-        math::Angle phi11a(Angle2(g1) - Angle2(f1));
-        math::Angle phi11b(Angle2(-g1) - Angle2(f1));
-        math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
-        phi11a.Normalize();
-        phi11b.Normalize();
-        phi12.Normalize();
+        bool f1small = f1.SquaredLength() < std::pow(tol, 2);
+        bool f2small = f2.SquaredLength() < std::pow(tol, 2);
+        if (f1small && f2small)
+        {
+          // this should never happen
+          // f1small && f2small implies a repeated moment
+          // return invalid quaternion
+          return Quaternion<T>(0, 0, 0, 0);
+        }
+        else if (f1small)
+        {
+          // use phi12
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi12.Normalize();
+          phi1 = phi12.Radian();
 
-        return Quaternion<T>(0.5, 0.5, 0.5, 0.5);
+          // {
+          //   // phi2      <= 0
+          //   Vector2<T> g1a = Vector2<T>(1, -1) * g1;
+          //   Vector2<T> g2a = Vector2<T>(1, -1) * g2;
+          //   // phi3      <= 0
+          //   Vector2<T> g1b = Vector2<T>(-1,  1) * g1;
+          //   Vector2<T> g2b = g2a;
+          //   // phi2,phi3 <= 0
+          //   Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
+          //   Vector2<T> g2c = g2;
+
+          //   math::Angle phi12a(0.5*(Angle2(g2a) - Angle2(f2)));
+          //   phi12a.Normalize();
+          //   math::Angle phi12b(0.5*(Angle2(g2b) - Angle2(f2)));
+          //   phi12b.Normalize();
+          //   math::Angle phi12c(0.5*(Angle2(g2c) - Angle2(f2)));
+          //   phi12c.Normalize();
+
+          //   std::cout << "non-repeated f1small"
+          //             << " Q_phi12 "
+          //             << Quaternion<T>(-phi12.Radian(), -phi2, phi3).Inverse()
+          //             << " Q_phi12a "
+          //             << Quaternion<T>(-phi12a.Radian(), phi2, phi3).Inverse()
+          //             << " Q_phi12b "
+          //             << Quaternion<T>(-phi12b.Radian(), -phi2, -phi3).Inverse()
+          //             << " Q_phi12c "
+          //             << Quaternion<T>(-phi12c.Radian(), phi2, -phi3).Inverse()
+          //             << std::endl;
+          //   // std::cout << "non-repeated f1small"
+          //   //           << " phi12 " << phi12.Radian()
+          //   //           << " phi12a " << phi12a.Radian()
+          //   //           << " phi12b " << phi12b.Radian()
+          //   //           << " phi12c " << phi12c.Radian()
+          //   //           << std::endl;
+          //   if (0)
+          //   {
+          //     phi1 = phi12a.Radian();
+          //     phi2 *= -1;
+          //   }
+          //   else if (0)
+          //   {
+          //     phi1 = phi12b.Radian();
+          //     phi3 *= -1;
+          //   }
+          //   else
+          //   {
+          //     phi1 = phi12c.Radian();
+          //     phi2 *= -1;
+          //     phi3 *= -1;
+          //   }
+          // }
+        }
+        else if (f2small)
+        {
+          // use use phi11
+          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          phi11.Normalize();
+          phi1 = phi11.Radian();
+
+          // {
+          //   // phi2      <= 0
+          //   Vector2<T> g1a = Vector2<T>(1, -1) * g1;
+          //   Vector2<T> g2a = Vector2<T>(1, -1) * g2;
+          //   // phi3      <= 0
+          //   Vector2<T> g1b = Vector2<T>(-1,  1) * g1;
+          //   Vector2<T> g2b = g2a;
+          //   // phi2,phi3 <= 0
+          //   Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
+          //   Vector2<T> g2c = g2;
+
+          // math::Angle phi11(Angle2(g1) - Angle2(f1));
+          // phi11.Normalize();
+          // math::Angle phi11a(Angle2(g1a) - Angle2(f1));
+          // phi11a.Normalize();
+          // math::Angle phi11b(Angle2(g1b) - Angle2(f1));
+          // phi11b.Normalize();
+          // math::Angle phi11c(Angle2(g1c) - Angle2(f1));
+          // phi11c.Normalize();
+
+          //   std::cout << "non-repeated f1small"
+          //             << " Q_phi11 "
+          //             << Quaternion<T>(-phi11.Radian(), -phi2, phi3).Inverse()
+          //             << " Q_phi11a "
+          //             << Quaternion<T>(-phi11a.Radian(), phi2, phi3).Inverse()
+          //             << " Q_phi11b "
+          //             << Quaternion<T>(-phi11b.Radian(), -phi2, -phi3).Inverse()
+          //             << " Q_phi11c "
+          //             << Quaternion<T>(-phi11c.Radian(), phi2, -phi3).Inverse()
+          //             << std::endl;
+          //   // std::cout << "non-repeated f1small"
+          //   //           << " phi11 " << phi11.Radian()
+          //   //           << " phi11a " << phi11a.Radian()
+          //   //           << " phi11b " << phi11b.Radian()
+          //   //           << " phi11c " << phi11c.Radian()
+          //   //           << std::endl;
+          //   if (0)
+          //   {
+          //     phi1 = phi11a.Radian();
+          //     phi2 *= -1;
+          //   }
+          //   else if (0)
+          //   {
+          //     phi1 = phi11b.Radian();
+          //     phi3 *= -1;
+          //   }
+          //   else
+          //   {
+          //     phi1 = phi11c.Radian();
+          //     phi2 *= -1;
+          //     phi3 *= -1;
+          //   }
+          // }
+        }
+        else
+        {
+          // check for when phi11 == phi12
+          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi11.Normalize();
+          phi12.Normalize();
+          T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
+                 + std::pow(cos(phi11.Radian()) - cos(phi12.Radian()), 2);
+          phi1 = phi11.Radian();
+          math::Vector2<T> signsPhi23(1, 1);
+          // phi2      <= 0
+          {
+            Vector2<T> g1a = Vector2<T>(1, -1) * g1;
+            Vector2<T> g2a = Vector2<T>(1, -1) * g2;
+            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
+            math::Angle phi12a(0.5*(Angle2(g2a) - Angle2(f2)));
+            phi11a.Normalize();
+            phi12a.Normalize();
+            T erra = std::pow(sin(phi11a.Radian()) - sin(phi12a.Radian()), 2)
+                   + std::pow(cos(phi11a.Radian()) - cos(phi12a.Radian()), 2);
+            if (erra < err)
+            {
+              err = erra;
+              phi1 = phi11a.Radian();
+              signsPhi23.Set(-1, 1);
+            }
+          }
+          // phi3      <= 0
+          {
+            Vector2<T> g1b = Vector2<T>(-1, 1) * g1;
+            Vector2<T> g2b = Vector2<T>(1, -1) * g2;
+            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
+            math::Angle phi12b(0.5*(Angle2(g2b) - Angle2(f2)));
+            phi11b.Normalize();
+            phi12b.Normalize();
+            T errb = std::pow(sin(phi11b.Radian()) - sin(phi12b.Radian()), 2)
+                   + std::pow(cos(phi11b.Radian()) - cos(phi12b.Radian()), 2);
+            if (errb < err)
+            {
+              err = errb;
+              phi1 = phi11b.Radian();
+              signsPhi23.Set(1, -1);
+            }
+          }
+          // phi2,phi3 <= 0
+          {
+            Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
+            Vector2<T> g2c = g2;
+            math::Angle phi11c(Angle2(g1c) - Angle2(f1));
+            math::Angle phi12c(0.5*(Angle2(g2c) - Angle2(f2)));
+            phi11c.Normalize();
+            phi12c.Normalize();
+            T errc = std::pow(sin(phi11c.Radian()) - sin(phi12c.Radian()), 2)
+                   + std::pow(cos(phi11c.Radian()) - cos(phi12c.Radian()), 2);
+            if (errc < err)
+            {
+              err = errc;
+              phi1 = phi11c.Radian();
+              signsPhi23.Set(-1, -1);
+            }
+          }
+          phi2 *= signsPhi23[0];
+          phi3 *= signsPhi23[1];
+
+          std::cout << "non-repeated "
+                    << " moments " << moments
+                    << " |f1| " << f1.Length()
+                    << " |f2| " << f2.Length()
+                    << " err " << err
+                    << " phi1 " << phi1
+                    << " phi2 " << phi2
+                    << " phi3 " << phi3
+                    // << " erra " << erra
+                    // << " errb " << errb
+                    // << " errc " << errc
+                    // << " phi11  " << phi11.Radian()
+                    // << " phi12  " << phi12.Radian()
+                    // << " phi11a " << phi11a.Radian()
+                    // << " phi12a " << phi12a.Radian()
+                    // << " phi11b " << phi11b.Radian()
+                    // << " phi12b " << phi12b.Radian()
+                    // << " phi11c " << phi11c.Radian()
+                    // << " phi12c " << phi12c.Radian()
+                    << std::endl;
+        }
+
+        std::cout << "reconstruct MOI " << std::endl
+          << this->MOI() << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi1, -phi2, phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi1, phi2, phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi1, phi2, -phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi1, -phi2, phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi1, -phi2, -phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi1, phi2, phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi1, phi2, -phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi1, -phi2, phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi1, -phi2, -phi3).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi3, phi2, phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi3, phi2, -phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi3, -phi2, phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(phi3, -phi2, -phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi3, phi2, phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi3, phi2, -phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi3, -phi2, phi1).Inverse()) << std::endl
+          << ReconstructMOI(Quaternion<T>(-phi3, -phi2, -phi1).Inverse()) << std::endl
+          << std::endl;
+
+        // I determined these arguments using trial and error
+        return Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
+      }
+      private: Matrix3<T> ReconstructMOI(Quaternion<T> _q) const
+      {
+        auto R = Matrix3<T>(_q);
+        auto moments = this->PrincipalMoments();
+        math::Matrix3d L(moments[0], 0, 0,
+                         0, moments[1], 0,
+                         0, 0, moments[2]);
+        return R * L * R.Transpose();
       }
 
       /// \brief Get dimensions and rotation offset of uniform box
