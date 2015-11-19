@@ -30,7 +30,7 @@ namespace ignition
     template<typename T>
     class Quaternion
     {
-      /// \brief math::Quaternion(1, 0, 0, 1)
+      /// \brief math::Quaternion(1, 0, 0, 0)
       public: static const Quaternion Identity;
 
       /// \brief Default Constructor
