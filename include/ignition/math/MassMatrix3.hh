@@ -308,11 +308,22 @@ namespace ignition
       /// the triangle inequality.
       public: bool IsValid() const
       {
-        Vector3<T> moments = this->PrincipalMoments();
-        return this->IsPositive() &&
-          moments[0] + moments[1] > moments[2] &&
-          moments[1] + moments[2] > moments[0] &&
-          moments[2] + moments[0] > moments[1];
+        return this->IsPositive() && ValidMoments(this->PrincipalMoments());
+      }
+
+      /// \brief Verify that principal moments are positive
+      /// and satisfy the triangle inequality.
+      /// \param[in] _moments Principal moments of inertia.
+      /// \return True if IsPositive and moment of inertia satisfies
+      /// the triangle inequality.
+      public: static bool ValidMoments(const Vector3<T> &_moments)
+      {
+        return _moments[0] > 0 &&
+               _moments[1] > 0 &&
+               _moments[2] > 0 &&
+               _moments[0] + _moments[1] > _moments[2] &&
+               _moments[1] + _moments[2] > _moments[0] &&
+               _moments[2] + _moments[0] > _moments[1];
       }
 
       /// \brief Compute principal moments of inertia,
@@ -606,6 +617,25 @@ namespace ignition
       /// \return True if box properties were computed successfully.
       public: bool EquivalentBox(Vector3<T> &_size, Quaternion<T> &_rot) const
       {
+        if (!this->IsPositive())
+        {
+          // inertia is not positive, cannot compute equivalent box
+          return false;
+        }
+
+        Vector3<T> moments = this->PrincipalMoments();
+        if (!ValidMoments(moments))
+        {
+          // principal moments don't satisfy the triangle identity
+          return false;
+        }
+
+        _size.X(sqrt(6*(moments.Z() + moments.Y() - moments.X()) / this->mass));
+        _size.Y(sqrt(6*(moments.Z() + moments.X() - moments.Y()) / this->mass));
+        _size.Z(sqrt(6*(moments.X() + moments.Y() - moments.Z()) / this->mass));
+
+        _rot = this->PrincipalAxesOffset();
+
         return true;
       }
 

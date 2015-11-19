@@ -586,4 +586,45 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
   }
+
+  // Nontrivial inertia matrix, expect non-unit quaternion, small magnitude
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(1e-9*math::Vector3d(4.0, 5.0, 6.0)));
+    EXPECT_TRUE(m.OffDiagonalMoments(1e-9*math::Vector3d(-1.0, 0.5, -1.0)));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
 }
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, EquivalentBox)
+{
+  // default parameters
+  {
+    math::MassMatrix3d m;
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, sqrt(6) * math::Vector3d::One);
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+  }
+
+  // unit box with mass 1.0
+  {
+    double mass = 1.0;
+    const math::Vector3d size(1, 1, 1);
+    double Ixx = mass/12 * (std::pow(size.Y(), 2) + std::pow(size.Z(), 2));
+    double Iyy = mass/12 * (std::pow(size.Z(), 2) + std::pow(size.X(), 2));
+    double Izz = mass/12 * (std::pow(size.X(), 2) + std::pow(size.Y(), 2));
+    math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
+    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size2;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size2, rot));
+    EXPECT_EQ(size, size2);
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+  }
+}
+
