@@ -488,8 +488,24 @@ namespace ignition
               phi2 *= -1;
             }
           }
+
           // I determined these arguments using trial and error
-          return Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
+          Quaternion<T> result = Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
+
+          // Previous equations assume repeated moments are at the beginning
+          // of the moments vector (moments[0], moments[1]).
+          // We have the vectors sorted by size, so it's possible that the
+          // repeated moments are at the end (moments[1], moments[2]).
+          // In this case (unequalMoment == 0), we apply an extra
+          // rotation that exchanges moment[0] and moment[2]
+          // Rotation matrix = [0  0 -1]
+          //                   [0  1  0]
+          //                   [1  0  0]
+          // That is equivalent to a 90 degree pitch
+          if (unequalMoment == 0)
+            result *= Quaternion<T>(0, M_PI_2, 0);
+
+          return result;
         }
 
         // No repeated principal moments

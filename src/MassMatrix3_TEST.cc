@@ -328,6 +328,102 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
     VerifyPrincipalMomentsAndAxes(m);
   }
 
+  // Non-zero Ixy
+  // Principal moments [3, 5, 5]
+  // Rotated by [45, 0, 0] degrees
+  // 3456
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 4, 5)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 0, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero Ixz
+  // Principal moments [3, 5, 5]
+  // Rotated by [45, 0, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 5, 4)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, -1, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero Iyz
+  // Principal moments [3, 5, 5]
+  // Rotated by [45, 0, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5, 4, 4)));
+    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero off-diagonal terms
+  // Principal moments [4, 5, 5]
+  // Rotated by [45, 45, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25*math::Vector3d(-M_SQRT2, M_SQRT2, 1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero off-diagonal terms
+  // Principal moments [4, 5, 5]
+  // Rotated by [-45, 45, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25*math::Vector3d(M_SQRT2, M_SQRT2, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero off-diagonal terms
+  // Principal moments [4, 5, 5]
+  // Rotated by [45, -45, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25*math::Vector3d(M_SQRT2, -M_SQRT2, 1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
+  // Non-zero off-diagonal terms
+  // Principal moments [4, 5, 5]
+  // Rotated by [-45, -45, 0] degrees
+  {
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
+    EXPECT_TRUE(m.OffDiagonalMoments(
+      0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4, 5, 5));
+    EXPECT_TRUE(m.IsValid());
+    EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+    VerifyPrincipalMomentsAndAxes(m);
+  }
+
   // Non-zero off-diagonal terms
   // Principal moments [4, 4, 5]
   // Rotated by [45, 45, 45] degrees
