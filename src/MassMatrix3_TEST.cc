@@ -437,6 +437,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 5.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, 1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -447,6 +448,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 5.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -457,6 +459,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 1, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -467,6 +470,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, -1, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -477,6 +481,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, -1, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -487,6 +492,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, 1, 0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -497,6 +503,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 1, 1)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -507,6 +514,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
@@ -517,6 +525,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 5.0, 6.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(5-sqrt(3), 5, 5+sqrt(3)));
     EXPECT_TRUE(m.IsValid());
     EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
     VerifyPrincipalMomentsAndAxes(m);
