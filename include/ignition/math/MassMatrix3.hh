@@ -38,7 +38,7 @@ namespace ignition
     class MassMatrix3
     {
       /// \brief Default Constructor
-      public: MassMatrix3() : mass(1), Ixxyyzz(1, 1, 1), Ixyxzyz(0, 0, 0)
+      public: MassMatrix3() : mass(0)
       {}
 
       /// \brief Constructor.

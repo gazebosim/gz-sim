@@ -29,28 +29,28 @@ TEST(MassMatrix3dTest, Constructors)
   // Simple constructor, test default values
   {
     math::MassMatrix3d m;
-    EXPECT_DOUBLE_EQ(m.Mass(), 1.0);
-    EXPECT_DOUBLE_EQ(m.IXX(), 1.0);
-    EXPECT_DOUBLE_EQ(m.IYY(), 1.0);
-    EXPECT_DOUBLE_EQ(m.IZZ(), 1.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.IXX(), 0.0);
+    EXPECT_DOUBLE_EQ(m.IYY(), 0.0);
+    EXPECT_DOUBLE_EQ(m.IZZ(), 0.0);
     EXPECT_DOUBLE_EQ(m.IXY(), 0.0);
     EXPECT_DOUBLE_EQ(m.IXZ(), 0.0);
     EXPECT_DOUBLE_EQ(m.IYZ(), 0.0);
-    EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+    EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::Zero);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
-    EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
-    EXPECT_TRUE(m.IsPositive());
-    EXPECT_TRUE(m.IsValid());
+    EXPECT_EQ(m.MOI(), math::Matrix3d::Zero);
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
   }
 
   // Constructor with default arguments
   // Should match simple constructor and with copy constructor
   {
-    math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
+    math::MassMatrix3d m(0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_EQ(m, math::MassMatrix3d());
     EXPECT_EQ(m, math::MassMatrix3d(m));
-    EXPECT_TRUE(m.IsPositive());
-    EXPECT_TRUE(m.IsValid());
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
   }
 
   // Constructor with non-default arguments
@@ -96,9 +96,9 @@ TEST(MassMatrix3dTest, Setters)
 {
   // Simple constructor, test default values
   math::MassMatrix3d m;
-  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
+  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::Zero);
   EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
-  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
+  EXPECT_EQ(m.MOI(), math::Matrix3d::Zero);
 
   const double mass = 5.0;
   const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
