@@ -94,12 +94,6 @@ TEST(MassMatrix3dTest, Constructors)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, Setters)
 {
-  // Simple constructor, test default values
-  math::MassMatrix3d m;
-  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::Zero);
-  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
-  EXPECT_EQ(m.MOI(), math::Matrix3d::Zero);
-
   const double mass = 5.0;
   const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
   const math::Vector3d Ixyxzyz(0.2, 0.3, 0.4);
@@ -107,53 +101,128 @@ TEST(MassMatrix3dTest, Setters)
                            0.2, 3.0, 0.4,
                            0.3, 0.4, 4.0);
 
-  // Test scalar setters
-  EXPECT_TRUE(m.Mass(mass));
-  EXPECT_TRUE(m.IXX(Ixxyyzz[0]));
-  EXPECT_TRUE(m.IYY(Ixxyyzz[1]));
-  EXPECT_TRUE(m.IZZ(Ixxyyzz[2]));
-  EXPECT_TRUE(m.IXY(Ixyxzyz[0]));
-  EXPECT_TRUE(m.IXZ(Ixyxzyz[1]));
-  EXPECT_TRUE(m.IYZ(Ixyxzyz[2]));
-  EXPECT_DOUBLE_EQ(m.Mass(), mass);
-  EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-  EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-  EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-  EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-  EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-  EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
-  EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
-  EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-  EXPECT_EQ(m.MOI(), MOI);
-  EXPECT_TRUE(m.IsPositive());
-  EXPECT_TRUE(m.IsValid());
+  // Scalar setters with simple constructor
+  // MassMatrix3 won't be valid until enough properties are set
+  {
+    math::MassMatrix3d m;
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+
+    // Initially invalid
+    EXPECT_FALSE(m.Mass(mass));
+    EXPECT_FALSE(m.IXX(Ixxyyzz[0]));
+    EXPECT_FALSE(m.IYY(Ixxyyzz[1]));
+
+    // Valid once enough properties are set
+    EXPECT_TRUE(m.IZZ(Ixxyyzz[2]));
+    EXPECT_TRUE(m.IXY(Ixyxzyz[0]));
+    EXPECT_TRUE(m.IXZ(Ixyxzyz[1]));
+    EXPECT_TRUE(m.IYZ(Ixyxzyz[2]));
+
+    // Verify values
+    EXPECT_DOUBLE_EQ(m.Mass(), mass);
+    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
+    EXPECT_EQ(m.MOI(), MOI);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+
+    // Invalid again if an invalid inertia is set
+    EXPECT_FALSE(m.Mass(-1));
+  }
 
   // Test vector setters for moment of inertia
-  // reset to default values
-  EXPECT_TRUE(m.DiagonalMoments(math::Vector3d::One));
-  EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
-  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
-  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
-  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
-  EXPECT_TRUE(m.IsPositive());
-  EXPECT_TRUE(m.IsValid());
+  {
+    math::MassMatrix3d m;
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+
+    // Initially invalid
+    EXPECT_FALSE(m.Mass(mass));
+
+    // Valid once enough properties are set
+    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
+
+    // Verify values
+    EXPECT_DOUBLE_EQ(m.Mass(), mass);
+    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
+    EXPECT_EQ(m.MOI(), MOI);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+
+    // Invalid if an invalid inertia is set
+    EXPECT_FALSE(m.IXX(-1));
+  }
 
   // Test Matrix3 setter for moment of inertia
-  // set to specified values
-  EXPECT_TRUE(m.MOI(MOI));
-  EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
-  EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-  EXPECT_EQ(m.MOI(), MOI);
-  EXPECT_TRUE(m.IsPositive());
-  EXPECT_TRUE(m.IsValid());
+  {
+    math::MassMatrix3d m;
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
 
-  // Test atomic InertiaMatrix setter
-  // reset to default values
-  EXPECT_TRUE(m.InertiaMatrix(1, 1, 1, 0, 0, 0));
-  EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::One);
-  EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
-  EXPECT_EQ(m.MOI(), math::Matrix3d::Identity);
-  EXPECT_TRUE(m.IsPositive());
-  EXPECT_TRUE(m.IsValid());
+    // Initially invalid
+    EXPECT_FALSE(m.Mass(mass));
+
+    // Valid once enough properties are set
+    EXPECT_TRUE(m.MOI(MOI));
+
+    // Verify values
+    EXPECT_DOUBLE_EQ(m.Mass(), mass);
+    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
+    EXPECT_EQ(m.MOI(), MOI);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+
+    // Invalid if an excessive off-diagonal inertia is set
+    EXPECT_FALSE(m.IXY(1e3));
+  }
+
+  // // Test atomic InertiaMatrix setter
+  {
+    math::MassMatrix3d m;
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+
+    // Initially invalid
+    EXPECT_FALSE(m.Mass(mass));
+
+    // Valid once enough properties are set
+    EXPECT_TRUE(m.InertiaMatrix(2, 3, 4, 0.2, 0.3, 0.4));
+
+    // Verify values
+    EXPECT_DOUBLE_EQ(m.Mass(), mass);
+    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
+    EXPECT_EQ(m.MOI(), MOI);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+  }
 }
 

@@ -63,12 +63,11 @@ namespace ignition
 
       /// \brief Set the mass.
       /// \param[in] _m New mass value.
-      /// \return True if the mass was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool Mass(const T &_m)
       {
-        // Should we only accept positive values?
         this->mass = _m;
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Get the mass
@@ -85,15 +84,13 @@ namespace ignition
       /// \param[in] _ixy XY inertia.
       /// \param[in] _ixz XZ inertia.
       /// \param[in] _iyz YZ inertia.
-      /// \return True if the inertia matrix was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool InertiaMatrix(const T &_ixx, const T &_iyy, const T &_izz,
                                  const T &_ixy, const T &_ixz, const T &_iyz)
       {
-        // Should we validate the values?
-        // matrix must be positive definite
         this->Ixxyyzz.Set(_ixx, _iyy, _izz);
         this->Ixyxzyz.Set(_ixy, _ixz, _iyz);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Get the diagonal moments of inertia (Ixx, Iyy, Izz).
@@ -112,22 +109,20 @@ namespace ignition
 
       /// \brief Set the diagonal moments of inertia (Ixx, Iyy, Izz).
       /// \param[in] _ixxyyzz diagonal moments of inertia
-      /// \return True if the moments were set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool DiagonalMoments(const Vector3<T> &_ixxyyzz)
       {
-        // Should we validate?
         this->Ixxyyzz = _ixxyyzz;
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
       /// \param[in] _ixyxzyz off-diagonal moments of inertia
-      /// \return True if the moments were set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool OffDiagonalMoments(const Vector3<T> &_ixyxzyz)
       {
-        // Should we validate?
         this->Ixyxzyz = _ixyxzyz;
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Get IXX
@@ -174,62 +169,56 @@ namespace ignition
 
       /// \brief Set IXX
       /// \param[in] _v IXX value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IXX(const T &_v)
       {
-        // Should we validate?
         this->Ixxyyzz.X(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set IYY
       /// \param[in] _v IYY value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IYY(const T &_v)
       {
-        // Should we validate?
         this->Ixxyyzz.Y(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set IZZ
       /// \param[in] _v IZZ value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IZZ(const T &_v)
       {
-        // Should we validate?
         this->Ixxyyzz.Z(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set IXY
       /// \param[in] _v IXY value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IXY(const T &_v)
       {
-        // Should we validate?
         this->Ixyxzyz.X(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set IXZ
       /// \param[in] _v IXZ value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IXZ(const T &_v)
       {
-        // Should we validate?
         this->Ixyxzyz.Y(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Set IYZ
       /// \param[in] _v IYZ value
-      /// \return True if the value was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool IYZ(const T &_v)
       {
-        // Should we validate?
         this->Ixyxzyz.Z(_v);
-        return true;
+        return this->IsValid();
       }
 
       /// \brief returns Moments of Inertia as a Matrix3
@@ -246,16 +235,15 @@ namespace ignition
       /// Symmetric component of input matrix is used by averaging
       /// off-axis terms.
       /// \param[in] Moments of Inertia as a Matrix3
-      /// \return True if the inertia matrix was set successfully.
+      /// \return True if the MassMatrix3 is valid.
       public: bool MOI(const Matrix3<T> &_moi)
       {
-        // Should we validate?
         this->Ixxyyzz.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
         this->Ixyxzyz.Set(
           0.5*(_moi(0, 1) + _moi(1, 0)),
           0.5*(_moi(0, 2) + _moi(2, 0)),
           0.5*(_moi(1, 2) + _moi(2, 1)));
-        return true;
+        return this->IsValid();
       }
 
       /// \brief Equal operator.
@@ -314,8 +302,8 @@ namespace ignition
       /// \brief Verify that principal moments are positive
       /// and satisfy the triangle inequality.
       /// \param[in] _moments Principal moments of inertia.
-      /// \return True if IsPositive and moment of inertia satisfies
-      /// the triangle inequality.
+      /// \return True if moments of inertia are positive
+      /// and satisfy the triangle inequality.
       public: static bool ValidMoments(const Vector3<T> &_moments)
       {
         return _moments[0] > 0 &&
