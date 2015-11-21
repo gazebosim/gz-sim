@@ -537,10 +537,10 @@ TEST(Matrix4dTest, Determinant)
 TEST(Matrix4dTest, Transpose)
 {
   // Transpose of zero matrix is itself
-  EXPECT_EQ(math::Matrix4d::Zero, math::Matrix4d::Zero.Transpose());
+  EXPECT_EQ(math::Matrix4d::Zero, math::Matrix4d::Zero.Transposed());
 
   // Transpose of identity matrix is itself
-  EXPECT_EQ(math::Matrix4d::Identity, math::Matrix4d::Identity.Transpose());
+  EXPECT_EQ(math::Matrix4d::Identity, math::Matrix4d::Identity.Transposed());
 
   // Matrix and expected transpose
   math::Matrix4d m(-2, 4,  0, -3.5,
@@ -551,7 +551,11 @@ TEST(Matrix4dTest, Transpose)
                      4,   9,    1, 3,
                      0,  55,   26, -5,
                   -3.5, 1.2, 11.5, -0.1);
-  EXPECT_EQ(m.Transpose(), mT);
-  EXPECT_DOUBLE_EQ(m.Determinant(), m.Transpose().Determinant());
+  EXPECT_NE(m, mT);
+  EXPECT_EQ(m.Transposed(), mT);
+  EXPECT_DOUBLE_EQ(m.Determinant(), m.Transposed().Determinant());
+
+  mT.Transpose();
+  EXPECT_EQ(m, mT);
 }
 
