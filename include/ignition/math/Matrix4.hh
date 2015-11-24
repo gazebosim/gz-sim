@@ -17,6 +17,7 @@
 #ifndef _IGNITION_MATRIX4_HH_
 #define _IGNITION_MATRIX4_HH_
 
+#include <algorithm>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
@@ -512,6 +513,28 @@ namespace ignition
             v1*this->data[0][1] + v0*this->data[0][2]) * invDet;
 
         return r;
+      }
+
+      /// \brief Transpose this matrix.
+      public: void Transpose()
+      {
+        std::swap(this->data[0][1], this->data[1][0]);
+        std::swap(this->data[0][2], this->data[2][0]);
+        std::swap(this->data[0][3], this->data[3][0]);
+        std::swap(this->data[1][2], this->data[2][1]);
+        std::swap(this->data[1][3], this->data[3][1]);
+        std::swap(this->data[2][3], this->data[3][2]);
+      }
+
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix4<T> Transposed() const
+      {
+        return Matrix4<T>(
+        this->data[0][0], this->data[1][0], this->data[2][0], this->data[3][0],
+        this->data[0][1], this->data[1][1], this->data[2][1], this->data[3][1],
+        this->data[0][2], this->data[1][2], this->data[2][2], this->data[3][2],
+        this->data[0][3], this->data[1][3], this->data[2][3], this->data[3][3]);
       }
 
       /// \brief Equal operator. this = _mat

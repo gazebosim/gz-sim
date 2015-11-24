@@ -293,3 +293,28 @@ TEST(Matrix3dTest, Determinant)
   math::Matrix3d m(-2, 4, 0, 0.1, 9, 55, -7, 1, 26);
   EXPECT_DOUBLE_EQ(-1908.4, m.Determinant());
 }
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Transpose)
+{
+  // Transpose of zero matrix is itself
+  EXPECT_EQ(math::Matrix3d::Zero, math::Matrix3d::Zero.Transposed());
+
+  // Transpose of identity matrix is itself
+  EXPECT_EQ(math::Matrix3d::Identity, math::Matrix3d::Identity.Transposed());
+
+  // Matrix and expected transpose
+  math::Matrix3d m(-2, 4, 0,
+                  0.1, 9, 55,
+                   -7, 1, 26);
+  math::Matrix3d mT(-2, 0.1, -7,
+                     4,   9, 1,
+                     0,  55, 26);
+  EXPECT_NE(m, mT);
+  EXPECT_EQ(m.Transposed(), mT);
+  EXPECT_DOUBLE_EQ(m.Determinant(), m.Transposed().Determinant());
+
+  mT.Transpose();
+  EXPECT_EQ(m, mT);
+}
+

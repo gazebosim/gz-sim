@@ -18,6 +18,7 @@
 #ifndef _IGNITION_MATRIX3_HH_
 #define _IGNITION_MATRIX3_HH_
 
+#include <algorithm>
 #include <cstring>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -389,6 +390,24 @@ namespace ignition
              this->data[2][0] * this->data[0][1]),
           + (this->data[1][1] * this->data[0][0] -
              this->data[1][0] * this->data[0][1]));
+      }
+
+      /// \brief Transpose this matrix.
+      public: void Transpose()
+      {
+        std::swap(this->data[0][1], this->data[1][0]);
+        std::swap(this->data[0][2], this->data[2][0]);
+        std::swap(this->data[1][2], this->data[2][1]);
+      }
+
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix3<T> Transposed() const
+      {
+        return Matrix3<T>(
+          this->data[0][0], this->data[1][0], this->data[2][0],
+          this->data[0][1], this->data[1][1], this->data[2][1],
+          this->data[0][2], this->data[1][2], this->data[2][2]);
       }
 
       /// \brief Stream insertion operator
