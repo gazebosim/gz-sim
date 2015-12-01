@@ -18,6 +18,7 @@
 #ifndef _IGNITION_MATRIX3_HH_
 #define _IGNITION_MATRIX3_HH_
 
+#include <algorithm>
 #include <cstring>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -292,22 +293,30 @@ namespace ignition
             _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() + _m(2, 2)*_v.Z());
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _m the matrix to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the matrices are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Matrix3 &_m, const T &_tol) const
+      {
+        return equal<T>(this->data[0][0], _m(0, 0), _tol)
+            && equal<T>(this->data[0][1], _m(0, 1), _tol)
+            && equal<T>(this->data[0][2], _m(0, 2), _tol)
+            && equal<T>(this->data[1][0], _m(1, 0), _tol)
+            && equal<T>(this->data[1][1], _m(1, 1), _tol)
+            && equal<T>(this->data[1][2], _m(1, 2), _tol)
+            && equal<T>(this->data[2][0], _m(2, 0), _tol)
+            && equal<T>(this->data[2][1], _m(2, 1), _tol)
+            && equal<T>(this->data[2][2], _m(2, 2), _tol);
+      }
+
       /// \brief Equality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if equal (using the default tolerance of 1e-6)
       public: bool operator==(const Matrix3<T> &_m) const
       {
-        return math::equal(this->data[0][0], _m(0, 0)) &&
-               math::equal(this->data[0][1], _m(0, 1)) &&
-               math::equal(this->data[0][2], _m(0, 2)) &&
-
-               math::equal(this->data[1][0], _m(1, 0)) &&
-               math::equal(this->data[1][1], _m(1, 1)) &&
-               math::equal(this->data[1][2], _m(1, 2)) &&
-
-               math::equal(this->data[2][0], _m(2, 0)) &&
-               math::equal(this->data[2][1], _m(2, 1)) &&
-               math::equal(this->data[2][2], _m(2, 2));
+        return this->Equal(_m, static_cast<T>(1e-6));
       }
 
       /// \brief Inequality test operator
@@ -389,6 +398,24 @@ namespace ignition
              this->data[2][0] * this->data[0][1]),
           + (this->data[1][1] * this->data[0][0] -
              this->data[1][0] * this->data[0][1]));
+      }
+
+      /// \brief Transpose this matrix.
+      public: void Transpose()
+      {
+        std::swap(this->data[0][1], this->data[1][0]);
+        std::swap(this->data[0][2], this->data[2][0]);
+        std::swap(this->data[1][2], this->data[2][1]);
+      }
+
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix3<T> Transposed() const
+      {
+        return Matrix3<T>(
+          this->data[0][0], this->data[1][0], this->data[2][0],
+          this->data[0][1], this->data[1][1], this->data[2][1],
+          this->data[0][2], this->data[1][2], this->data[2][2]);
       }
 
       /// \brief Stream insertion operator

@@ -313,13 +313,24 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _v the vector to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the vectors are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Vector2 &_v, const T &_tol) const
+      {
+        return equal<T>(this->data[0], _v[0], _tol)
+            && equal<T>(this->data[1], _v[1], _tol);
+      }
+
       /// \brief Equal to operator
       /// \param[in] _v the vector to compare to
       /// \return true if the elements of the 2 vectors are equal within
       /// a tolerence (1e-6)
       public: bool operator==(const Vector2 &_v) const
       {
-        return equal(this->data[0], _v[0]) && equal(this->data[1], _v[1]);
+        return this->Equal(_v, static_cast<T>(1e-6));
       }
 
       /// \brief Not equal to operator
