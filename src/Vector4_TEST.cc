@@ -153,6 +153,17 @@ TEST(Vector4dTest, IndexException)
 }
 
 /////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Vector2Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-6));
+  EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-3));
+  EXPECT_FALSE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1e-1));
+  EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1));
+  EXPECT_TRUE(math::Vector4d::Zero.Equal(math::Vector4d::One, 1.1));
+}
+
+/////////////////////////////////////////////////
 TEST(Vector4dTest, Add)
 {
   math::Vector4d vec1(0.1, 0.2, 0.4, 0.8);
