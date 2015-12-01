@@ -314,10 +314,10 @@ namespace ignition
                _moments[2] + _moments[0] > _moments[1];
       }
 
-      /// \brief Mass the object. Default is 1.0.
+      /// \brief Mass the object. Default is 0.0.
       private: T mass;
 
-      /// \brief Principal moments of inertia. Default is (1.0 1.0 1.0)
+      /// \brief Principal moments of inertia. Default is (0.0 0.0 0.0)
       /// These Moments of Inertia are specified in the local frame.
       /// Where Ixxyyzz.x is Ixx, Ixxyyzz.y is Iyy and Ixxyyzz.z is Izz.
       private: Vector3<T> Ixxyyzz;
