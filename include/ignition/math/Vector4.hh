@@ -99,10 +99,13 @@ namespace ignition
       {
         T d = this->Length();
 
-        this->data[0] /= d;
-        this->data[1] /= d;
-        this->data[2] /= d;
-        this->data[3] /= d;
+        if (!equal<T>(d, static_cast<T>(0.0)))
+        {
+          this->data[0] /= d;
+          this->data[1] /= d;
+          this->data[2] /= d;
+          this->data[3] /= d;
+        }
       }
 
       /// \brief Set the contents of the vector
