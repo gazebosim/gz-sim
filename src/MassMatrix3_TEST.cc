@@ -226,3 +226,12 @@ TEST(MassMatrix3dTest, Setters)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, CoverageExtra)
+{
+  // getting full destructor coverage
+  math::MassMatrix3d *p = new math::MassMatrix3d;
+  EXPECT_TRUE(p != NULL);
+  delete p;
+}
+
