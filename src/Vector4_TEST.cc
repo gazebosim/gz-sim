@@ -291,3 +291,20 @@ TEST(Vector4Test, Multiply)
   EXPECT_EQ(v*v, math::Vector4d(0.01, 17.64, 123.21, 70.56));
 }
 
+/////////////////////////////////////////////////
+TEST(Vector4dTest, Length)
+{
+  // Zero vector
+  EXPECT_DOUBLE_EQ(math::Vector4d::Zero.Length(), 0.0);
+  EXPECT_DOUBLE_EQ(math::Vector4d::Zero.SquaredLength(), 0.0);
+
+  // One vector
+  EXPECT_DOUBLE_EQ(math::Vector4d::One.Length(), 2.0);
+  EXPECT_DOUBLE_EQ(math::Vector4d::One.SquaredLength(), 4.0);
+
+  // Arbitrary vector
+  math::Vector4d v(0.1, -4.2, 2.5, 1.0);
+  EXPECT_NEAR(v.Length(), 4.98998997995, 1e-10);
+  EXPECT_DOUBLE_EQ(v.SquaredLength(), 24.9);
+}
+
