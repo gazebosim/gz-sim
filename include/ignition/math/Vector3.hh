@@ -110,7 +110,7 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
-      /// \ return the length
+      /// \return the length
       public: T Length() const
       {
         return sqrt(this->SquaredLength());
