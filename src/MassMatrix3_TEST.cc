@@ -250,7 +250,7 @@ void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m)
   math::Matrix3d L(moments[0], 0, 0,
                    0, moments[1], 0,
                    0, 0, moments[2]);
-  EXPECT_EQ(_m.MOI(), R * L * R.Transpose());
+  EXPECT_EQ(_m.MOI(), R * L * R.Transposed());
 }
 
 /////////////////////////////////////////////////
