@@ -78,21 +78,20 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
+      /// \return The length
       public: T Length() const
       {
-        return sqrt(
-            this->data[0] * this->data[0] +
-            this->data[1] * this->data[1] +
-            this->data[2] * this->data[2] +
-            this->data[3] * this->data[3]);
+        return sqrt(this->SquaredLength());
       }
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the length
       public: T SquaredLength() const
       {
-        return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
-          this->data[2] * this->data[2] + this->data[3] * this->data[3];
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2)
+             + std::pow(this->data[2], 2)
+             + std::pow(this->data[3], 2);
       }
 
       /// \brief Normalize the vector length
@@ -100,10 +99,13 @@ namespace ignition
       {
         T d = this->Length();
 
-        this->data[0] /= d;
-        this->data[1] /= d;
-        this->data[2] /= d;
-        this->data[3] /= d;
+        if (!equal<T>(d, static_cast<T>(0.0)))
+        {
+          this->data[0] /= d;
+          this->data[1] /= d;
+          this->data[2] /= d;
+          this->data[3] /= d;
+        }
       }
 
       /// \brief Set the contents of the vector
