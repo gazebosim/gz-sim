@@ -350,11 +350,13 @@ namespace ignition
         // p = b^2 - 3c
         T p = std::pow(b, 2) - 3*c;
 
-        // p can also be expressed as a sum of squares (see eq 4.7)
-        // so it must be non-negative (p >= 0)
-        // Also, if p is zero (or close enough):
-        //  then the off-diagonal terms must be close to zero
-        //  and the three eigenvalues are equal
+        // At this point, it is important to check that p is not close
+        //  to zero, since its inverse is used to compute delta.
+        // In equation 4.7, p is expressed as a sum of squares
+        //  that is only zero if the matrix is diagonal
+        //  with identical principal moments.
+        // This check has no test coverage, since this function returns
+        //  immediately if a diagonal matrix is detected.
         if (p < std::pow(tol, 2))
           return b / 3.0 * Vector3<T>::One;
 
