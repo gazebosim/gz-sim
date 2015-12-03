@@ -238,9 +238,9 @@ TEST(MassMatrix3dTest, CoverageExtra)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, PrincipalMoments)
 {
-  // Expect default inertia moments (1, 1, 1)
+  // Diagonal inertia moments (1, 1, 1)
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
 
     // Minor perturbations of product moments
@@ -256,10 +256,9 @@ TEST(MassMatrix3dTest, PrincipalMoments)
 
   // Non-equal eigen-moments
   {
-    math::MassMatrix3d m;
     const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
 
     // Minor perturbation of product moments
@@ -279,12 +278,10 @@ TEST(MassMatrix3dTest, PrincipalMoments)
   // 2-sqrt(2) + 2 ~= 2.59
   // 2+sqrt(2) ~= 3.41
   {
-    math::MassMatrix3d m;
     const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
     const math::Vector3d Ieigen(2-M_SQRT2, 2, 2+M_SQRT2);
-    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
@@ -293,12 +290,10 @@ TEST(MassMatrix3dTest, PrincipalMoments)
   // Non-trivial off-diagonal product moments
   // variant of previous example that is valid inertia matrix
   {
-    math::MassMatrix3d m;
     const math::Vector3d Ixxyyzz(4.0, 4.0, 4.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
     const math::Vector3d Ieigen(4-M_SQRT2, 4, 4+M_SQRT2);
-    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -309,7 +304,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
 TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
 {
   // Identity inertia matrix, expect unit quaternion
-  math::MassMatrix3d m;
+  math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
   EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
 
   // Scale the diagonal terms
@@ -320,6 +315,10 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
 }
 
 /////////////////////////////////////////////////
+/// \brief Helper function for verifying principal moments
+/// and axes offset by reconstructing the moment of inertia matrix
+/// from the eigenvectors and diagonalized matrix.
+/// \param[in] _m mass matrix to verify
 void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m)
 {
   auto q = _m.PrincipalAxesOffset();
@@ -332,11 +331,17 @@ void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m)
 }
 
 /////////////////////////////////////////////////
+/// \brief Helper function for testing diagonal inertia matrices.
+/// Expect the following:
+/// * that principal moments match the diagonal values,
+/// * that mass matrix is valid,
+/// * that principal axes have no offset (identity quaternion)
+/// * that reconstructed moment of inertia matrix matches the original
+/// \param[in] _moments Diagonal/principal moments of inertia.
 void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
 {
-  math::MassMatrix3d m;
+  math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
   EXPECT_TRUE(m.DiagonalMoments(_moments));
-  EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
   EXPECT_EQ(m.PrincipalMoments(), m.DiagonalMoments());
   EXPECT_TRUE(m.IsValid());
   // Expect unit quaternion
@@ -365,13 +370,42 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetDiagonal)
 }
 
 /////////////////////////////////////////////////
+/// \brief Helper function for testing non-diagonal inertia matrices.
+/// Expect the following:
+/// * that principal moments match the supplied values,
+/// * that mass matrix is valid,
+/// * that principal axes have an offset (non-identity quaternion)
+/// * that reconstructed moment of inertia matrix matches the original
+/// \param[in] _principalMoments Expected principal moments of inertia
+/// \param[in] _Ixxyyzz Diagonal moments of inertia.
+/// \param[in] _Ixyxzyz Off-diagonal moments of inertia.
+void VerifyNondiagonalMomentsAndAxes(const math::Vector3d &_principalMoments,
+                                     const math::Vector3d &_Ixxyyzz,
+                                     const math::Vector3d &_Ixyxzyz,
+                                     const double _tolerance=1e-6)
+{
+  math::MassMatrix3d m(1.0, _Ixxyyzz, _Ixyxzyz);
+  // EXPECT_EQ with default tolerance of 1e-6
+  // this outputs more useful error messages
+  EXPECT_EQ(m.PrincipalMoments(), _principalMoments);
+  // also check equality with custom tolerance for small moments
+  EXPECT_TRUE(m.PrincipalMoments().Equal(_principalMoments, _tolerance));
+  EXPECT_TRUE(m.IsValid());
+  // Expect non-unit quaternion
+  EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
+  VerifyPrincipalMomentsAndAxes(m);
+}
+
+/////////////////////////////////////////////////
 TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
 {
   // Non-zero Ixy
-  // Principal moments [3, 3, 5]
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 3, 5),
+    math::Vector3d(4, 4, 3), math::Vector3d(-1, 0, 0));
+    
   // Rotated by [45, 0, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 4, 3)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 0, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 3, 5));
@@ -384,7 +418,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [3, 3, 5]
   // Rotated by [45, 0, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 3, 4)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, -1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 3, 5));
@@ -397,7 +431,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [3, 3, 5]
   // Rotated by [45, 0, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3, 4, 4)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 3, 5));
@@ -411,7 +445,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Rotated by [45, 0, 0] degrees
   // 3456
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 4, 5)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 0, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
@@ -424,7 +458,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [3, 5, 5]
   // Rotated by [45, 0, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4, 5, 4)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, -1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
@@ -437,7 +471,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [3, 5, 5]
   // Rotated by [45, 0, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5, 4, 4)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 5, 5));
@@ -450,7 +484,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 5, 5]
   // Rotated by [45, 45, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-M_SQRT2, M_SQRT2, 1)));
@@ -464,7 +498,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 5, 5]
   // Rotated by [-45, 45, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(M_SQRT2, M_SQRT2, -1)));
@@ -478,7 +512,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 5, 5]
   // Rotated by [45, -45, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(M_SQRT2, -M_SQRT2, 1)));
@@ -492,7 +526,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 5, 5]
   // Rotated by [-45, -45, 0] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.75, 4.75)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, -1)));
@@ -506,7 +540,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 5]
   // Rotated by [45, 45, 45] degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.25, 4.25)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-M_SQRT2, M_SQRT2, -1)));
@@ -520,7 +554,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 5]
   // different rotation
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.25, 4.25)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(M_SQRT2, M_SQRT2, 1)));
@@ -534,7 +568,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 5]
   // different rotation
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.25, 4.25)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, 1)));
@@ -548,7 +582,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 5]
   // different rotation
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.5, 4.25, 4.25)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(M_SQRT2, -M_SQRT2, -1)));
@@ -562,7 +596,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4e-9, 4e-9, 5e-9]
   // different rotation
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(1e-9*math::Vector3d(4.5, 4.25, 4.25)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25e-9*math::Vector3d(M_SQRT2, -M_SQRT2, -1)));
@@ -576,7 +610,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 6]
   // rotate by 30, 60, 0 degrees
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.5, 4.125, 4.375)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-sqrt(3), 3.0, -sqrt(3)/2)));
@@ -590,7 +624,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Principal moments [4, 4, 6]
   // different rotation
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.125, 5.5, 4.375)));
     EXPECT_TRUE(m.OffDiagonalMoments(
       0.25*math::Vector3d(-sqrt(3), -sqrt(3)/2, 3.0)));
@@ -608,7 +642,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f1 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 5.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, 1)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -619,7 +653,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f1 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(3.0, 5.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 0, -1)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -630,7 +664,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f2 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, 1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -641,7 +675,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f2 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, -1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -652,7 +686,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f2 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1, -1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -663,7 +697,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Non-diagonal inertia matrix with f2 = 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(5.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(1, 1, 0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -674,7 +708,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Similar non-diagonal inertia matrix with f2 != 0
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 5.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(0, 1, 1)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(3, 4, 6));
@@ -685,7 +719,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Nontrivial inertia matrix, expect non-unit quaternion
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 4.0, 4.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2));
@@ -696,7 +730,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Nontrivial inertia matrix, expect non-unit quaternion
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 5.0, 6.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0, -1.0)));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d(5-sqrt(3), 5, 5+sqrt(3)));
@@ -707,7 +741,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Nontrivial inertia matrix, expect non-unit quaternion
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(math::Vector3d(4.0, 5.0, 6.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d(-1.0, 0.5, -1.0)));
     EXPECT_TRUE(m.IsValid());
@@ -717,7 +751,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 
   // Nontrivial inertia matrix, expect non-unit quaternion, small magnitude
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
     EXPECT_TRUE(m.DiagonalMoments(1e-9*math::Vector3d(4.0, 5.0, 6.0)));
     EXPECT_TRUE(m.OffDiagonalMoments(1e-9*math::Vector3d(-1.0, 0.5, -1.0)));
     EXPECT_TRUE(m.IsValid());
@@ -729,9 +763,9 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, EquivalentBox)
 {
-  // default parameters
+  // Identity inertia matrix
   {
-    math::MassMatrix3d m;
+    math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot));
