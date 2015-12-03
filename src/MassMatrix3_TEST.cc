@@ -521,23 +521,30 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 4, 6),
     math::Vector3d(4.0, 4.0, 5.0),
     math::Vector3d(0, 1, 1));
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 4, 6),
+    math::Vector3d(4.0, 4.0, 5.0),
+    math::Vector3d(0, -1, 1));
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 4, 6),
+    math::Vector3d(4.0, 4.0, 5.0),
+    math::Vector3d(0, 1, -1));
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 4, 6),
+    math::Vector3d(4.0, 4.0, 5.0),
+    math::Vector3d(0, -1, -1));
 
-  // Nontrivial inertia matrix, expect non-unit quaternion
+  // Tri-diagonal matrix with identical diagonal terms
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
     math::Vector3d(4.0, 4.0, 4.0),
     math::Vector3d(-1.0, 0, -1.0));
-
-  // Nontrivial inertia matrix, expect non-unit quaternion
-  VerifyNondiagonalMomentsAndAxes(math::Vector3d(5-sqrt(3), 5, 5+sqrt(3)),
-    math::Vector3d(4.0, 5.0, 6.0),
-    math::Vector3d(-1.0, 0, -1.0));
-
   // small magnitude, use tolerance of 1e-15
-  // Nontrivial inertia matrix, expect non-unit quaternion
   VerifyNondiagonalMomentsAndAxes(1e-9*math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
     1e-9 * math::Vector3d(4.0, 4.0, 4.0),
     1e-9 * math::Vector3d(-1.0, 0, -1.0), 1e-15);
-  // Nontrivial inertia matrix, expect non-unit quaternion
+
+  // Tri-diagonal matrix with unique diagonal terms
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(5-sqrt(3), 5, 5+sqrt(3)),
+    math::Vector3d(4.0, 5.0, 6.0),
+    math::Vector3d(-1.0, 0, -1.0));
+  // small magnitude, use tolerance of 1e-15
   VerifyNondiagonalMomentsAndAxes(1e-9*math::Vector3d(5-sqrt(3), 5, 5+sqrt(3)),
     1e-9 * math::Vector3d(4.0, 5.0, 6.0),
     1e-9 * math::Vector3d(-1.0, 0, -1.0), 1e-15);
