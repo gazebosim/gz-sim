@@ -483,9 +483,9 @@ namespace ignition
           Quaternion<T> result = Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
 
           // Previous equations assume repeated moments are at the beginning
-          // of the moments vector (moments[0], moments[1]).
+          // of the moments vector (moments[0] == moments[1]).
           // We have the vectors sorted by size, so it's possible that the
-          // repeated moments are at the end (moments[1], moments[2]).
+          // repeated moments are at the end (moments[1] == moments[2]).
           // In this case (unequalMoment == 0), we apply an extra
           // rotation that exchanges moment[0] and moment[2]
           // Rotation matrix = [0  0 -1]

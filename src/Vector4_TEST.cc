@@ -307,3 +307,4 @@ TEST(Vector4dTest, Length)
   EXPECT_NEAR(v.Length(), 4.98998997995, 1e-10);
   EXPECT_DOUBLE_EQ(v.SquaredLength(), 24.9);
 }
+
