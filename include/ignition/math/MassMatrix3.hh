@@ -636,11 +636,20 @@ namespace ignition
           return false;
         }
 
+        // Note that not satisfying the triangle inequality will generate
+        // an imaginary box size, due to taking the square root
+        // of a negative number.
         _size.X(sqrt(6*(moments.Z() + moments.Y() - moments.X()) / this->mass));
         _size.Y(sqrt(6*(moments.Z() + moments.X() - moments.Y()) / this->mass));
         _size.Z(sqrt(6*(moments.X() + moments.Y() - moments.Z()) / this->mass));
 
         _rot = this->PrincipalAxesOffset();
+
+        if (_rot == Quaternion<T>(0, 0, 0, 0))
+        {
+          // _rot is an invalid quaternion
+          return false;
+        }
 
         return true;
       }

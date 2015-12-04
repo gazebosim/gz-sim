@@ -558,7 +558,26 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, EquivalentBox)
 {
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_FALSE(m.EquivalentBox(size, rot));
+  }
+
+  // Moment of inertia matrix that doesn't satisfy triangle inequality
+  {
+    const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
+    const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_FALSE(m.EquivalentBox(size, rot));
+  }
+
   // Identity inertia matrix
+  // expect cube with side length sqrt(6)
   {
     math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
     math::Vector3d size;
@@ -570,7 +589,7 @@ TEST(MassMatrix3dTest, EquivalentBox)
 
   // unit box with mass 1.0
   {
-    double mass = 1.0;
+    const double mass = 1.0;
     const math::Vector3d size(1, 1, 1);
     double Ixx = mass/12 * (std::pow(size.Y(), 2) + std::pow(size.Z(), 2));
     double Iyy = mass/12 * (std::pow(size.Z(), 2) + std::pow(size.X(), 2));
@@ -581,6 +600,30 @@ TEST(MassMatrix3dTest, EquivalentBox)
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size2, rot));
     EXPECT_EQ(size, size2);
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+  }
+
+  // box 1x4x9
+  {
+    const double mass = 12.0;
+    const math::Vector3d Ixxyyzz(97, 82, 17);
+    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(1, 4, 9));
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+  }
+
+  // long slender box
+  {
+    const double mass = 12.0;
+    const math::Vector3d Ixxyyzz(1, 1, 2e-6);
+    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(1e-3, 1e-3, 1));
     EXPECT_EQ(rot, math::Quaterniond::Identity);
   }
 }
