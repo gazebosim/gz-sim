@@ -235,3 +235,72 @@ TEST(HelpersTest, Odd)
   EXPECT_FALSE(math::isOdd(u));
   EXPECT_FALSE(math::isOdd(ui));
 }
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, Sort)
+{
+  {
+    int a = 2;
+    int b = -1;
+    math::sort2(a, b);
+    EXPECT_LE(a, b);
+  }
+
+  {
+    int a = 2;
+    int b = -1;
+    int c = 0;
+    math::sort3(a, b, c);
+    EXPECT_LE(a, b);
+    EXPECT_LE(b, c);
+  }
+
+  {
+    unsigned int a = 2;
+    unsigned int b = 1;
+    math::sort2(a, b);
+    EXPECT_LE(a, b);
+  }
+
+  {
+    unsigned int a = 2;
+    unsigned int b = 1;
+    unsigned int c = 0;
+    math::sort3(a, b, c);
+    EXPECT_LE(a, b);
+    EXPECT_LE(b, c);
+  }
+
+  {
+    float a = 2.1;
+    float b = -1.1e-1;
+    math::sort2(a, b);
+    EXPECT_LE(a, b);
+  }
+
+  {
+    float a = 34.5;
+    float b = -1.34;
+    float c = 0.194;
+    math::sort3(a, b, c);
+    EXPECT_LE(a, b);
+    EXPECT_LE(b, c);
+  }
+
+  {
+    double a = 2.1;
+    double b = -1.1e-1;
+    math::sort2(a, b);
+    EXPECT_LE(a, b);
+  }
+
+  {
+    double a = 34.5;
+    double b = -1.34;
+    double c = 0.194;
+    math::sort3(a, b, c);
+    EXPECT_LE(a, b);
+    EXPECT_LE(b, c);
+  }
+}
+
