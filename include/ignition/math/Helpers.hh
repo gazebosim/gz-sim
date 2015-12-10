@@ -248,8 +248,9 @@ namespace ignition
     template<typename T>
     inline void sort2(T &_a, T &_b)
     {
-      if (_a > _b)
-        std::swap(_a, _b);
+      using std::swap;
+      if (_b < _a)
+        swap(_a, _b);
     }
 
     /// \brief Sort three numbers, such that _a <= _b <= _c
