@@ -272,16 +272,16 @@ TEST(HelpersTest, Sort)
   }
 
   {
-    float a = 2.1;
-    float b = -1.1e-1;
+    float a = 2.1f;
+    float b = -1.1e-1f;
     math::sort2(a, b);
     EXPECT_LE(a, b);
   }
 
   {
-    float a = 34.5;
-    float b = -1.34;
-    float c = 0.194;
+    float a = 34.5f;
+    float b = -1.34f;
+    float c = 0.194f;
     math::sort3(a, b, c);
     EXPECT_LE(a, b);
     EXPECT_LE(b, c);
