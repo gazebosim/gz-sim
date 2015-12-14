@@ -243,8 +243,8 @@ namespace ignition
     }
 
     /// \brief Sort two numbers, such that _a <= _b
-    /// \param _a the first number
-    /// \param _b the second number
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
     template<typename T>
     inline void sort2(T &_a, T &_b)
     {
@@ -254,9 +254,9 @@ namespace ignition
     }
 
     /// \brief Sort three numbers, such that _a <= _b <= _c
-    /// \param _a the first number
-    /// \param _b the second number
-    /// \param _c the third number
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
+    /// \param[out] _c the third number
     template<typename T>
     inline void sort3(T &_a, T &_b, T &_c)
     {
