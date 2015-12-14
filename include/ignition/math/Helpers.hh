@@ -242,6 +242,32 @@ namespace ignition
       return std::round(_a * pow(10, _precision)) / pow(10, _precision);
     }
 
+    /// \brief Sort two numbers, such that _a <= _b
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
+    template<typename T>
+    inline void sort2(T &_a, T &_b)
+    {
+      using std::swap;
+      if (_b < _a)
+        swap(_a, _b);
+    }
+
+    /// \brief Sort three numbers, such that _a <= _b <= _c
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
+    /// \param[out] _c the third number
+    template<typename T>
+    inline void sort3(T &_a, T &_b, T &_c)
+    {
+      // _a <= _b
+      sort2(_a, _b);
+      // _a <= _c, _b <= _c
+      sort2(_b, _c);
+      // _a <= _b <= _c
+      sort2(_a, _b);
+    }
+
     /// \brief Is this a power of 2?
     /// \param[in] _x the number
     /// \return true if _x is a power of 2, false otherwise

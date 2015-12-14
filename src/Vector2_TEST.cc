@@ -15,7 +15,11 @@
  *
 */
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Vector2.hh"
