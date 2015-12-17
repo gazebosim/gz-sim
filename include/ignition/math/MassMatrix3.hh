@@ -536,7 +536,7 @@ namespace ignition
         }
         else if (f2small)
         {
-          // use use phi11
+          // use phi11
           math::Angle phi11(Angle2(g1) - Angle2(f1));
           phi11.Normalize();
           phi1 = phi11.Radian();
