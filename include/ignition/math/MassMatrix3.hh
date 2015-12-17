@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "ignition/math/Helpers.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
@@ -368,12 +369,11 @@ namespace ignition
         T delta = acos(clamp<T>(0.5 * q / std::pow(p, 1.5), -1, 1));
 
         // sort the moments from smallest to largest
-        std::vector<T> moments(3, 0);
-        moments[0] = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
-        moments[1] = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
-        moments[2] = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
-        std::sort(moments.begin(), moments.end());
-        return Vector3<T>(moments[0], moments[1], moments[2]);
+        T moment0 = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
+        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
+        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
+        sort3(moment0, moment1, moment2);
+        return Vector3<T>(moment0, moment1, moment2);
       }
 
       /// \brief Compute rotational offset of principal axes.
