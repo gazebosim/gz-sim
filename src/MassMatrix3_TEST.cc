@@ -566,6 +566,16 @@ TEST(MassMatrix3dTest, EquivalentBox)
     math::MassMatrix3d m;
     math::Vector3d size;
     math::Quaterniond rot;
+
+    // size is all zeros, so SetFromBox should fail
+    EXPECT_FALSE(m.SetFromBox(0.0, size, rot));
+    EXPECT_FALSE(m.SetFromBox(size, rot));
+
+    // even if mass is valid, it should not be set if size is invalid
+    EXPECT_FALSE(m.SetFromBox(1.0, size, rot));
+    EXPECT_EQ(m.Mass(), 0.0);
+
+    // equivalent box should not be findable
     EXPECT_FALSE(m.EquivalentBox(size, rot));
   }
 
@@ -582,12 +592,22 @@ TEST(MassMatrix3dTest, EquivalentBox)
   // Identity inertia matrix
   // expect cube with side length sqrt(6)
   {
-    math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
+    const double mass = 1.0;
+    math::MassMatrix3d m(mass, math::Vector3d::One, math::Vector3d::Zero);
     math::Vector3d size;
+    math::Vector3d sizeTrue(sqrt(6) * math::Vector3d::One);
     math::Quaterniond rot;
+    math::Quaterniond rotTrue(math::Quaterniond::Identity);
     EXPECT_TRUE(m.EquivalentBox(size, rot));
-    EXPECT_EQ(size, sqrt(6) * math::Vector3d::One);
-    EXPECT_EQ(rot, math::Quaterniond::Identity);
+    EXPECT_EQ(size, sizeTrue);
+    EXPECT_EQ(rot, rotTrue);
+
+    // create new MassMatrix3d
+    // it initially has zero mass, so SetFromBox(size, rot) will fail
+    math::MassMatrix3d m2;
+    EXPECT_FALSE(m2.SetFromBox(sizeTrue, rotTrue));
+    EXPECT_TRUE(m2.SetFromBox(mass, sizeTrue, rotTrue));
+    EXPECT_EQ(m, m2);
   }
 
   // unit box with mass 1.0
@@ -604,6 +624,10 @@ TEST(MassMatrix3dTest, EquivalentBox)
     EXPECT_TRUE(m.EquivalentBox(size2, rot));
     EXPECT_EQ(size, size2);
     EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
   }
 
   // box 1x4x9
@@ -616,6 +640,10 @@ TEST(MassMatrix3dTest, EquivalentBox)
     EXPECT_TRUE(m.EquivalentBox(size, rot));
     EXPECT_EQ(size, math::Vector3d(1, 4, 9));
     EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
   }
 
   // long slender box
@@ -628,6 +656,10 @@ TEST(MassMatrix3dTest, EquivalentBox)
     EXPECT_TRUE(m.EquivalentBox(size, rot));
     EXPECT_EQ(size, math::Vector3d(1e-3, 1e-3, 1));
     EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
   }
 }
 

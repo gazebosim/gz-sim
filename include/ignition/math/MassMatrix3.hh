@@ -654,6 +654,50 @@ namespace ignition
         return true;
       }
 
+      /// \brief Set inertial properties based on mass and equivalent box.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const T &_mass,
+                              const Vector3<T> &_size,
+                              const Quaternion<T> &_rot)
+      {
+        // Check that _mass is strictly positive
+        if (_mass <= 0 || _size.Min() <= 0)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromBox(_size, _rot);
+      }
+
+      /// \brief Set inertial properties based on equivalent box
+      /// using the current mass value.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const Vector3<T> &_size,
+                              const Quaternion<T> &_rot)
+      {
+        // Check that _mass and _size are strictly positive
+        if (_size.Min() <= 0)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        Matrix3<T> L;
+        T x2 = std::pow(_size.X(), 2);
+        T y2 = std::pow(_size.Y(), 2);
+        T z2 = std::pow(_size.Z(), 2);
+        L(0, 0) = this->mass / 12.0 * (y2 + z2);
+        L(1, 1) = this->mass / 12.0 * (z2 + x2);
+        L(2, 2) = this->mass / 12.0 * (x2 + y2);
+        Matrix3<T> R(_rot);
+        return this->MOI(R * L * R.Transposed());
+      }
+
       /// \brief Angle formed by direction of a Vector2.
       /// \return Angle formed between vector and X axis,
       /// or zero if vector has length less than 1e-6.
