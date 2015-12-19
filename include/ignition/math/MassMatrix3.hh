@@ -426,13 +426,14 @@ namespace ignition
           // momentsDiff3 = lambda - lambda3
           T momentsDiff3 = moments[1] - moments[unequalMoment];
           // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
+          // s >= 0 since A11 is in range [lambda, lambda3]
           T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
           // set phi3 to zero for repeated moments (eq 5.23)
           T phi3 = 0;
           // phi = +- acos(sqrt(s))
           // start with just the positive value
           // also clamp the input to acos to prevent NaN's
-          T phi2 = acos(clamp<T>(sqrt(s), -1, 1));
+          T phi2 = acos(clamp<T>(ClampedSqrt(s), -1, 1));
 
           // g1, g2 defined in equations 5.24, 5.25
           Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
@@ -506,13 +507,13 @@ namespace ignition
         T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
             / ((moments[0] - moments[1]) * v);
         T phi1 = 0;
-        T phi2 = acos(clamp<T>(sqrt(v), -1, 1));
-        T phi3 = acos(clamp<T>(sqrt(w), -1, 1));
+        T phi2 = acos(clamp<T>(ClampedSqrt(v), -1, 1));
+        T phi3 = acos(clamp<T>(ClampedSqrt(w), -1, 1));
 
         // compute g1, g2 for phi2,phi3 >= 0
         // equations 5.7, 5.8
         Vector2<T> g1(
-          0.5* (moments[0]-moments[1])*sqrt(v)*sin(2*phi3),
+          0.5* (moments[0]-moments[1])*ClampedSqrt(v)*sin(2*phi3),
           0.5*((moments[0]-moments[1])*w + moments[1]-moments[2])*sin(2*phi2));
         Vector2<T> g2(
           (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
@@ -696,6 +697,16 @@ namespace ignition
         L(2, 2) = this->mass / 12.0 * (x2 + y2);
         Matrix3<T> R(_rot);
         return this->MOI(R * L * R.Transposed());
+      }
+
+      /// \brief Square root of positive numbers, otherwise zero.
+      /// \param[in] _x Number to be square rooted.
+      /// \return sqrt(_x) if _x > 0, otherwise 0
+      private: static inline T ClampedSqrt(const T &_x)
+      {
+        if (_x <= 0)
+          return 0;
+        return sqrt(_x);
       }
 
       /// \brief Angle formed by direction of a Vector2.

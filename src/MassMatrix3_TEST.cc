@@ -556,6 +556,12 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(10, 12, 14),
     math::Vector3d(13, 11.75, 11.25),
     math::Vector3d(-0.5*sqrt(3), 1.5, 0.25*sqrt(3)));
+
+  // Nonzero values for all off-axis terms
+  VerifyNondiagonalMomentsAndAxes(
+    math::Vector3d(6.6116, 8.2393186767, 13.983881323),
+    math::Vector3d(11.6116, 8.6116, 8.6116),
+    math::Vector3d(2, 2, 2));
 }
 
 /////////////////////////////////////////////////
