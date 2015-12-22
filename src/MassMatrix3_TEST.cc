@@ -301,5 +301,31 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
   }
+
+  // Degenerate matrix with eigenvalue of 0
+  // not positive definite
+  {
+    const math::Vector3d Ixxyyzz(1.0, 1.0, 1.0);
+    const math::Vector3d Ixyxzyz(1.0, 0, 0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(0, 1, 2);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
+
+  // Matrix with large condition number
+  // barely positive definite
+  // invalid inertia matrix since it doesn't satisfy triangle inequality
+  // 5e-6 + 1.0 < 2+5e-6
+  {
+    const math::Vector3d Ixxyyzz(1.0, 1.00001, 1.0);
+    const math::Vector3d Ixyxzyz(1.0, 0, 0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(5e-6, 1.0, 2 + 5e-6);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
 }
 
