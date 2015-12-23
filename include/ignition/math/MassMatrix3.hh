@@ -376,6 +376,264 @@ namespace ignition
         return Vector3<T>(moment0, moment1, moment2);
       }
 
+      /// \brief Compute rotational offset of principal axes.
+      /// \param[in] _tol Relative tolerance.
+      /// \return Quaternion representing rotational offset of principal axes.
+      /// With a rotation matrix constructed from this quaternion R(q)
+      /// and a diagonal matrix L with principal moments on the diagonal,
+      /// the original moment of inertia matrix MOI can be reconstructed
+      /// with MOI = R(q).Transpose() * L * R(q)
+      public: Quaternion<T> PrincipalAxesOffset(const T _tol = 1e-6) const
+      {
+        // Compute tolerance relative to maximum value of inertia diagonal
+        T tol = _tol * this->Ixxyyzz.Max();
+        Vector3<T> moments = this->PrincipalMoments();
+        if (moments.Equal(this->Ixxyyzz, tol))
+        {
+          // matrix is already aligned with principal axes
+          // this includes case when all three moments are
+          // approximately equal
+          // return identity rotation
+          return Quaternion<T>();
+        }
+
+        // Algorithm based on http://arxiv.org/abs/1306.6291v4
+        // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
+        // Matrix, by Maarten Kronenburg
+
+        // f1, f2 defined in equations 5.5, 5.6
+        Vector2<T> f1(this->Ixyxzyz[0], -this->Ixyxzyz[1]);
+        Vector2<T> f2(this->Ixxyyzz[1] - this->Ixxyyzz[2],
+                   -2*this->Ixyxzyz[2]);
+
+        // Check if two moments are equal.
+        // The moments vector is already sorted,
+        // so just check adjacent values.
+        Vector2<T> momentsDiff(moments[0] - moments[1],
+                               moments[1] - moments[2]);
+
+        // index of unequal moment
+        int unequalMoment = -1;
+        if (equal<T>(momentsDiff[0], 0, tol))
+          unequalMoment = 2;
+        else if (equal<T>(momentsDiff[1], 0, tol))
+          unequalMoment = 0;
+
+        if (unequalMoment >= 0)
+        {
+          // moments[1] is the repeated value
+          // it is not equal to moments[unequalMoment]
+          // momentsDiff3 = lambda - lambda3
+          T momentsDiff3 = moments[1] - moments[unequalMoment];
+          // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
+          // s >= 0 since A11 is in range [lambda, lambda3]
+          T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
+          // set phi3 to zero for repeated moments (eq 5.23)
+          T phi3 = 0;
+          // phi = +- acos(sqrt(s))
+          // start with just the positive value
+          // also clamp the input to acos to prevent NaN's
+          T phi2 = acos(clamp<T>(ClampedSqrt(s), -1, 1));
+
+          // g1, g2 defined in equations 5.24, 5.25
+          Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
+          Vector2<T> g2(momentsDiff3 * s, 0);
+
+          // The paper discusses how to choose the value of phi1
+          // and the sign of phi2.
+          // In this case of repeated moments,
+          // there is only one value for phi12
+          // and two values of phi11 (one for each sign of phi2).
+          // It describes how to choose based on the length
+          // of the f1 and f2 vectors.
+          // * When |f1| != 0 and |f2| != 0, then one should choose the
+          //   value of phi2 so that phi11 = phi12
+          // * When |f1| == 0 and f2 != 0, then phi1 = phi12
+          //   and phi11 can be ignored
+          // * The case of |f2| == 0 can be ignored at this point in the code
+          //   since having a repeated moment when |f2| == 0 implies that
+          //   the matrix is diagonal. But this function returns a unit
+          //   quaternion for diagonal matrices, so we can assume |f2| != 0
+          //   See MassMatrix3.ipynb for a more complete discussion.
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi12.Normalize();
+          T phi1 = phi12.Radian();
+
+          bool f1small = f1.SquaredLength() < std::pow(tol, 2);
+          if (!f1small)
+          {
+            // phi11a uses phi2 >= 0
+            // phi11b uses phi2 <= 0
+            math::Angle phi11a(Angle2(g1) - Angle2(f1));
+            math::Angle phi11b(Angle2(-g1) - Angle2(f1));
+            phi11a.Normalize();
+            phi11b.Normalize();
+            // use the difference between sin and cos to account for
+            // PI, -PI that should be considered close
+            T erra = std::pow(sin(phi1) - sin(phi11a.Radian()), 2)
+                   + std::pow(cos(phi1) - cos(phi11a.Radian()), 2);
+            T errb = std::pow(sin(phi1) - sin(phi11b.Radian()), 2)
+                   + std::pow(cos(phi1) - cos(phi11b.Radian()), 2);
+            if (errb < erra)
+            {
+              phi2 *= -1;
+            }
+          }
+
+          // I determined these arguments using trial and error
+          Quaternion<T> result = Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
+
+          // Previous equations assume repeated moments are at the beginning
+          // of the moments vector (moments[0] == moments[1]).
+          // We have the vectors sorted by size, so it's possible that the
+          // repeated moments are at the end (moments[1] == moments[2]).
+          // In this case (unequalMoment == 0), we apply an extra
+          // rotation that exchanges moment[0] and moment[2]
+          // Rotation matrix = [0  0 -1]
+          //                   [0  1  0]
+          //                   [1  0  0]
+          // That is equivalent to a 90 degree pitch
+          if (unequalMoment == 0)
+            result *= Quaternion<T>(0, M_PI_2, 0);
+
+          return result;
+        }
+
+        // No repeated principal moments
+        T v = (std::pow(this->Ixyxzyz[0], 2) + std::pow(this->Ixyxzyz[1], 2)
+              +(this->Ixxyyzz[0] - moments[2])
+              *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
+            / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
+        T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
+            / ((moments[0] - moments[1]) * v);
+        T phi1 = 0;
+        T phi2 = acos(clamp<T>(ClampedSqrt(v), -1, 1));
+        T phi3 = acos(clamp<T>(ClampedSqrt(w), -1, 1));
+
+        // compute g1, g2 for phi2,phi3 >= 0
+        // equations 5.7, 5.8
+        Vector2<T> g1(
+          0.5* (moments[0]-moments[1])*ClampedSqrt(v)*sin(2*phi3),
+          0.5*((moments[0]-moments[1])*w + moments[1]-moments[2])*sin(2*phi2));
+        Vector2<T> g2(
+          (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
+          (moments[0]-moments[1])*sin(phi2)*sin(2*phi3));
+
+        bool f1small = f1.SquaredLength() < std::pow(tol, 2);
+        bool f2small = f2.SquaredLength() < std::pow(tol, 2);
+        if (f1small && f2small)
+        {
+          // this should never happen
+          // f1small && f2small implies a repeated moment
+          // return invalid quaternion
+          return Quaternion<T>(0, 0, 0, 0);
+        }
+        else if (f1small)
+        {
+          // use phi12
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi12.Normalize();
+          phi1 = phi12.Radian();
+        }
+        else if (f2small)
+        {
+          // use phi11
+          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          phi11.Normalize();
+          phi1 = phi11.Radian();
+        }
+        else
+        {
+          // check for when phi11 == phi12
+          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi11.Normalize();
+          phi12.Normalize();
+          T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
+                 + std::pow(cos(phi11.Radian()) - cos(phi12.Radian()), 2);
+          phi1 = phi11.Radian();
+          math::Vector2<T> signsPhi23(1, 1);
+          // phi2      <= 0
+          {
+            Vector2<T> g1a = Vector2<T>(1, -1) * g1;
+            Vector2<T> g2a = Vector2<T>(1, -1) * g2;
+            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
+            math::Angle phi12a(0.5*(Angle2(g2a) - Angle2(f2)));
+            phi11a.Normalize();
+            phi12a.Normalize();
+            T erra = std::pow(sin(phi11a.Radian()) - sin(phi12a.Radian()), 2)
+                   + std::pow(cos(phi11a.Radian()) - cos(phi12a.Radian()), 2);
+            if (erra < err)
+            {
+              err = erra;
+              phi1 = phi11a.Radian();
+              signsPhi23.Set(-1, 1);
+            }
+          }
+          // phi3      <= 0
+          {
+            Vector2<T> g1b = Vector2<T>(-1, 1) * g1;
+            Vector2<T> g2b = Vector2<T>(1, -1) * g2;
+            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
+            math::Angle phi12b(0.5*(Angle2(g2b) - Angle2(f2)));
+            phi11b.Normalize();
+            phi12b.Normalize();
+            T errb = std::pow(sin(phi11b.Radian()) - sin(phi12b.Radian()), 2)
+                   + std::pow(cos(phi11b.Radian()) - cos(phi12b.Radian()), 2);
+            if (errb < err)
+            {
+              err = errb;
+              phi1 = phi11b.Radian();
+              signsPhi23.Set(1, -1);
+            }
+          }
+          // phi2,phi3 <= 0
+          {
+            Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
+            Vector2<T> g2c = g2;
+            math::Angle phi11c(Angle2(g1c) - Angle2(f1));
+            math::Angle phi12c(0.5*(Angle2(g2c) - Angle2(f2)));
+            phi11c.Normalize();
+            phi12c.Normalize();
+            T errc = std::pow(sin(phi11c.Radian()) - sin(phi12c.Radian()), 2)
+                   + std::pow(cos(phi11c.Radian()) - cos(phi12c.Radian()), 2);
+            if (errc < err)
+            {
+              err = errc;
+              phi1 = phi11c.Radian();
+              signsPhi23.Set(-1, -1);
+            }
+          }
+
+          // apply sign changes
+          phi2 *= signsPhi23[0];
+          phi3 *= signsPhi23[1];
+        }
+
+        // I determined these arguments using trial and error
+        return Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
+      }
+
+      /// \brief Square root of positive numbers, otherwise zero.
+      /// \param[in] _x Number to be square rooted.
+      /// \return sqrt(_x) if _x > 0, otherwise 0
+      private: static inline T ClampedSqrt(const T &_x)
+      {
+        if (_x <= 0)
+          return 0;
+        return sqrt(_x);
+      }
+
+      /// \brief Angle formed by direction of a Vector2.
+      /// \return Angle formed between vector and X axis,
+      /// or zero if vector has length less than 1e-6.
+      private: static T Angle2(const Vector2<T> &_v, const T _tol = 1e-12)
+      {
+        if (_v.SquaredLength() < _tol)
+          return 0;
+        return atan2(_v[1], _v[0]);
+      }
+
       /// \brief Mass the object. Default is 0.0.
       private: T mass;
 
