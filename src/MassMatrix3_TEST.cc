@@ -15,8 +15,11 @@
  *
 */
 
-#define _USE_MATH_DEFINES
+#ifndef _USE_MATH_DEFINES
+# define _USE_MATH_DEFINES
+#endif
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/MassMatrix3.hh"
@@ -233,5 +236,96 @@ TEST(MassMatrix3dTest, CoverageExtra)
   math::MassMatrix3d *p = new math::MassMatrix3d;
   EXPECT_TRUE(p != NULL);
   delete p;
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, PrincipalMoments)
+{
+  // Diagonal inertia moments (1, 1, 1)
+  {
+    math::MassMatrix3d m(1.0, math::Vector3d::One, math::Vector3d::Zero);
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
+
+    // Minor perturbations of product moments
+    // shouldn't affect PrincipalMoments, given the tolerance
+    // of the Vector3 equality operator
+    EXPECT_TRUE(m.IXY(1e-10));
+    EXPECT_TRUE(m.IXZ(2e-10));
+    EXPECT_TRUE(m.IYZ(3e-10));
+    EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+  }
+
+  // Non-equal eigen-moments
+  {
+    const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, math::Vector3d::Zero);
+    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
+
+    // Minor perturbation of product moments
+    EXPECT_TRUE(m.IXY(1e-10));
+    EXPECT_TRUE(m.IXZ(2e-10));
+    EXPECT_TRUE(m.IYZ(3e-10));
+    EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+  }
+
+  // Non-trivial off-diagonal product moments
+  // Symmetric positive definite matrix from
+  // Strang's Intro to Linear Algebra textbook
+  // This isn't actually a valid inertia matrix though,
+  // since it doesn't satisfy the triangle inequality
+  // 2-sqrt(2) + 2 ~= 2.59
+  // 2+sqrt(2) ~= 3.41
+  {
+    const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
+    const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(2-M_SQRT2, 2, 2+M_SQRT2);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
+
+  // Non-trivial off-diagonal product moments
+  // variant of previous example that is valid inertia matrix
+  {
+    const math::Vector3d Ixxyyzz(4.0, 4.0, 4.0);
+    const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(4-M_SQRT2, 4, 4+M_SQRT2);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+  }
+
+  // Degenerate matrix with eigenvalue of 0
+  // not positive definite
+  {
+    const math::Vector3d Ixxyyzz(1.0, 1.0, 1.0);
+    const math::Vector3d Ixyxzyz(1.0, 0, 0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(0, 1, 2);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_FALSE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
+
+  // Matrix with large condition number
+  // barely positive definite
+  // invalid inertia matrix since it doesn't satisfy triangle inequality
+  // 5e-6 + 1.0 < 2+5e-6
+  {
+    const math::Vector3d Ixxyyzz(1.0, 1.00001, 1.0);
+    const math::Vector3d Ixyxzyz(1.0, 0, 0);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(5e-6, 1.0, 2 + 5e-6);
+    EXPECT_EQ(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
 }
 

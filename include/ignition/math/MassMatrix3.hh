@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "ignition/math/Helpers.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
@@ -296,7 +297,7 @@ namespace ignition
       /// the triangle inequality.
       public: bool IsValid() const
       {
-        return this->IsPositive() && ValidMoments(this->Ixxyyzz);
+        return this->IsPositive() && ValidMoments(this->PrincipalMoments());
       }
 
       /// \brief Verify that principal moments are positive
@@ -312,6 +313,67 @@ namespace ignition
                _moments[0] + _moments[1] > _moments[2] &&
                _moments[1] + _moments[2] > _moments[0] &&
                _moments[2] + _moments[0] > _moments[1];
+      }
+
+      /// \brief Compute principal moments of inertia,
+      /// which are the eigenvalues of the moment of inertia matrix.
+      /// \param[in] _tol Relative tolerance.
+      /// \return Principal moments of inertia. If the matrix is
+      /// already diagonal, they are returned in the existing order.
+      /// Otherwise, the moments are sorted from smallest to largest.
+      public: Vector3<T> PrincipalMoments(const T _tol = 1e-6) const
+      {
+        // Compute tolerance relative to maximum value of inertia diagonal
+        T tol = _tol * this->Ixxyyzz.Max();
+        if (this->Ixyxzyz.Equal(Vector3<T>::Zero, tol))
+        {
+          // Matrix is already diagonalized, return diagonal moments
+          return this->Ixxyyzz;
+        }
+
+        // Algorithm based on http://arxiv.org/abs/1306.6291v4
+        // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
+        // Matrix, by Maarten Kronenburg
+        Vector3<T> Id(this->Ixxyyzz);
+        Vector3<T> Ip(this->Ixyxzyz);
+        // b = Ixx + Iyy + Izz
+        T b = Id.Sum();
+        // c = Ixx*Iyy - Ixy^2  +  Ixx*Izz - Ixz^2  +  Iyy*Izz - Iyz^2
+        T c = Id[0]*Id[1] - std::pow(Ip[0], 2)
+            + Id[0]*Id[2] - std::pow(Ip[1], 2)
+            + Id[1]*Id[2] - std::pow(Ip[2], 2);
+        // d = Ixx*Iyz^2 + Iyy*Ixz^2 + Izz*Ixy^2 - Ixx*Iyy*Izz - 2*Ixy*Ixz*Iyz
+        T d = Id[0]*std::pow(Ip[2], 2)
+            + Id[1]*std::pow(Ip[1], 2)
+            + Id[2]*std::pow(Ip[0], 2)
+            - Id[0]*Id[1]*Id[2]
+            - 2*Ip[0]*Ip[1]*Ip[2];
+        // p = b^2 - 3c
+        T p = std::pow(b, 2) - 3*c;
+
+        // At this point, it is important to check that p is not close
+        //  to zero, since its inverse is used to compute delta.
+        // In equation 4.7, p is expressed as a sum of squares
+        //  that is only zero if the matrix is diagonal
+        //  with identical principal moments.
+        // This check has no test coverage, since this function returns
+        //  immediately if a diagonal matrix is detected.
+        if (p < std::pow(tol, 2))
+          return b / 3.0 * Vector3<T>::One;
+
+        // q = 2b^3 - 9bc - 27d
+        T q = 2*std::pow(b, 3) - 9*b*c - 27*d;
+
+        // delta = acos(q / (2 * p^(1.5)))
+        // additionally clamp the argument to [-1,1]
+        T delta = acos(clamp<T>(0.5 * q / std::pow(p, 1.5), -1, 1));
+
+        // sort the moments from smallest to largest
+        T moment0 = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
+        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
+        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
+        sort3(moment0, moment1, moment2);
+        return Vector3<T>(moment0, moment1, moment2);
       }
 
       /// \brief Mass the object. Default is 0.0.
