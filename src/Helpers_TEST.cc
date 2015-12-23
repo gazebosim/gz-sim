@@ -34,10 +34,10 @@ TEST(HelpersTest, Helpers)
   EXPECT_EQ(math::NAN_I, math::parseInt("?"));
   EXPECT_EQ(math::NAN_I, math::parseInt("23ab67"));
 
-  EXPECT_FLOAT_EQ(12.345f, math::parseFloat("12.345"));
-  EXPECT_FLOAT_EQ(-12.345f, math::parseFloat("-12.345"));
-  EXPECT_FLOAT_EQ(-12.345f, math::parseFloat("    -12.345"));
-  EXPECT_FLOAT_EQ(0.0f, math::parseFloat("    "));
+  EXPECT_DOUBLE_EQ(12.345, math::parseFloat("12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("-12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("    -12.345"));
+  EXPECT_DOUBLE_EQ(0.0, math::parseFloat("    "));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+002"), 1e-2));
