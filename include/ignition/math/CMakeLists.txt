@@ -11,6 +11,7 @@ set (headers
   Kmeans.hh
   Line2.hh
   Line3.hh
+  MassMatrix3.hh
   Matrix3.hh
   Matrix4.hh
   Plane.hh
