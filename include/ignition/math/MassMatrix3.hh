@@ -400,6 +400,15 @@ namespace ignition
         // Algorithm based on http://arxiv.org/abs/1306.6291v4
         // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
         // Matrix, by Maarten Kronenburg
+        // A real, symmetric matrix can be diagonalized by an orthogonal matrix
+        // (due to the finite-dimensional spectral theorem [wikipedia]),
+        // and another name for orthogonal matrix is rotation matrix.
+        // Section 5 of the paper shows how to compute Euler angles
+        // phi1, phi2, and phi3 that map to a rotation matrix.
+        // In some cases, there are multiple possible values for a given angle,
+        // such as phi1, that are denoted as phi11, phi12, phi11a, phi12a, etc.
+        // Similar variable names are used to the paper so that the paper
+        // can be used as an additional reference.
 
         // f1, f2 defined in equations 5.5, 5.6
         Vector2<T> f1(this->Ixyxzyz[0], -this->Ixyxzyz[1]);
@@ -425,26 +434,28 @@ namespace ignition
           // it is not equal to moments[unequalMoment]
           // momentsDiff3 = lambda - lambda3
           T momentsDiff3 = moments[1] - moments[unequalMoment];
-          // s = cos(phi2)^2 = (A11 - lambda3) / (lambda - lambda3)
-          // s >= 0 since A11 is in range [lambda, lambda3]
+          // eq 5.21:
+          // s = cos(phi2)^2 = (A_11 - lambda3) / (lambda - lambda3)
+          // s >= 0 since A_11 is in range [lambda, lambda3]
           T s = (this->Ixxyyzz[0] - moments[unequalMoment]) / momentsDiff3;
           // set phi3 to zero for repeated moments (eq 5.23)
           T phi3 = 0;
-          // phi = +- acos(sqrt(s))
+          // phi2 = +- acos(sqrt(s))
           // start with just the positive value
-          // also clamp the input to acos to prevent NaN's
+          // also clamp the acos argument to prevent NaN's
           T phi2 = acos(clamp<T>(ClampedSqrt(s), -1, 1));
 
-          // g1, g2 defined in equations 5.24, 5.25
-          Vector2<T> g1(0, 0.5*momentsDiff3 * sin(2*phi2));
+          // The paper defines variables phi11 and phi12
+          // which are candidate values of angle phi1.
+          // phi12 is straightforward to compute as a function of f2 and g2.
+          // eq 5.25:
           Vector2<T> g2(momentsDiff3 * s, 0);
+          // eq 5.14:
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          phi12.Normalize();
 
-          // The paper discusses how to choose the value of phi1
-          // and the sign of phi2.
-          // In this case of repeated moments,
-          // there is only one value for phi12
-          // and two values of phi11 (one for each sign of phi2).
-          // It describes how to choose based on the length
+          // The paragraph prior to equation 5.16 describes how to choose
+          // the candidate value of phi1 based on the length
           // of the f1 and f2 vectors.
           // * When |f1| != 0 and |f2| != 0, then one should choose the
           //   value of phi2 so that phi11 = phi12
@@ -455,21 +466,34 @@ namespace ignition
           //   the matrix is diagonal. But this function returns a unit
           //   quaternion for diagonal matrices, so we can assume |f2| != 0
           //   See MassMatrix3.ipynb for a more complete discussion.
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
-          phi12.Normalize();
+          //
+          // Since |f2| != 0, we only need to consider |f1|
+          // * |f1| == 0: phi1 = phi12
+          // * |f1| != 0: choose phi2 so that phi11 == phi12
+          // In either case, phi1 = phi12,
+          // and the sign of phi2 must be chosen to make phi11 == phi12
           T phi1 = phi12.Radian();
 
           bool f1small = f1.SquaredLength() < std::pow(tol, 2);
           if (!f1small)
           {
-            // phi11a uses phi2 >= 0
-            // phi11b uses phi2 <= 0
-            math::Angle phi11a(Angle2(g1) - Angle2(f1));
-            math::Angle phi11b(Angle2(-g1) - Angle2(f1));
+            // a: phi2 > 0
+            // eq. 5.24
+            Vector2<T> g1a(0, 0.5*momentsDiff3 * sin(2*phi2));
+            // eq. 5.13
+            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
             phi11a.Normalize();
+
+            // b: phi2 < 0
+            // eq. 5.24
+            Vector2<T> g1b(0, 0.5*momentsDiff3 * sin(-2*phi2));
+            // eq. 5.13
+            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
             phi11b.Normalize();
-            // use the difference between sin and cos to account for
-            // PI, -PI that should be considered close
+
+            // choose sign of phi2
+            // based on whether phi11a or phi11b is closer to phi12
+            // use sin and cos to account for angle wrapping
             T erra = std::pow(sin(phi1) - sin(phi11a.Radian()), 2)
                    + std::pow(cos(phi1) - cos(phi11a.Radian()), 2);
             T errb = std::pow(sin(phi1) - sin(phi11b.Radian()), 2)
