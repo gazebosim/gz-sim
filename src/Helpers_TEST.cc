@@ -34,10 +34,10 @@ TEST(HelpersTest, Helpers)
   EXPECT_EQ(math::NAN_I, math::parseInt("?"));
   EXPECT_EQ(math::NAN_I, math::parseInt("23ab67"));
 
-  EXPECT_FLOAT_EQ(12.345, math::parseFloat("12.345"));
-  EXPECT_FLOAT_EQ(-12.345, math::parseFloat("-12.345"));
-  EXPECT_FLOAT_EQ(-12.345, math::parseFloat("    -12.345"));
-  EXPECT_FLOAT_EQ(0.0, math::parseFloat("    "));
+  EXPECT_DOUBLE_EQ(12.345, math::parseFloat("12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("-12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("    -12.345"));
+  EXPECT_DOUBLE_EQ(0.0, math::parseFloat("    "));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+002"), 1e-2));
@@ -125,14 +125,10 @@ TEST(HelpersTest, Even)
   i = -1;
   s = -1;
   si = -1;
-  u = -1;
-  ui = -1;
 
   EXPECT_FALSE(math::isEven(i));
   EXPECT_FALSE(math::isEven(s));
   EXPECT_FALSE(math::isEven(si));
-  EXPECT_FALSE(math::isEven(u));
-  EXPECT_FALSE(math::isEven(ui));
 
   i = 4;
   s = 4;
@@ -149,14 +145,10 @@ TEST(HelpersTest, Even)
   i = -2;
   s = -2;
   si = -2;
-  u = -2;
-  ui = -2;
 
   EXPECT_TRUE(math::isEven(i));
   EXPECT_TRUE(math::isEven(s));
   EXPECT_TRUE(math::isEven(si));
-  EXPECT_TRUE(math::isEven(u));
-  EXPECT_TRUE(math::isEven(ui));
 
   i = 0;
   s = 0;
@@ -190,14 +182,10 @@ TEST(HelpersTest, Odd)
   i = -1;
   s = -1;
   si = -1;
-  u = -1;
-  ui = -1;
 
   EXPECT_TRUE(math::isOdd(i));
   EXPECT_TRUE(math::isOdd(s));
   EXPECT_TRUE(math::isOdd(si));
-  EXPECT_TRUE(math::isOdd(u));
-  EXPECT_TRUE(math::isOdd(ui));
 
   i = 4;
   s = 4;
@@ -214,14 +202,10 @@ TEST(HelpersTest, Odd)
   i = -2;
   s = -2;
   si = -2;
-  u = -2;
-  ui = -2;
 
   EXPECT_FALSE(math::isOdd(i));
   EXPECT_FALSE(math::isOdd(s));
   EXPECT_FALSE(math::isOdd(si));
-  EXPECT_FALSE(math::isOdd(u));
-  EXPECT_FALSE(math::isOdd(ui));
 
   i = 0;
   s = 0;
@@ -248,7 +232,7 @@ TEST(HelpersTest, Sort)
 
   {
     int a = 0;
-    int b = 0.01;
+    int b = 1;
     math::sort2(a, b);
     EXPECT_LE(a, b);
   }
@@ -278,9 +262,9 @@ TEST(HelpersTest, Sort)
     EXPECT_LE(b, c);
   }
   {
-    unsigned int a = -2;
-    unsigned int b = -1;
-    unsigned int c = 0;
+    unsigned int a = 0;
+    unsigned int b = 1;
+    unsigned int c = 2;
     math::sort3(a, b, c);
     EXPECT_LE(a, b);
     EXPECT_LE(b, c);
