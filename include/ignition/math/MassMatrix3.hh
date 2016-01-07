@@ -415,9 +415,8 @@ namespace ignition
         Vector2<T> f2(this->Ixxyyzz[1] - this->Ixxyyzz[2],
                    -2*this->Ixyxzyz[2]);
 
-        // Check if two moments are equal.
-        // The moments vector is already sorted,
-        // so just check adjacent values.
+        // Check if two moments are equal, since different equations are used
+        // The moments vector is already sorted, so just check adjacent values.
         Vector2<T> momentsDiff(moments[0] - moments[1],
                                moments[1] - moments[2]);
 
@@ -460,7 +459,7 @@ namespace ignition
           // * When |f1| != 0 and |f2| != 0, then one should choose the
           //   value of phi2 so that phi11 = phi12
           // * When |f1| == 0 and f2 != 0, then phi1 = phi12
-          //   and phi11 can be ignored
+          //   phi11 can be ignored, and either sign of phi2 can be used
           // * The case of |f2| == 0 can be ignored at this point in the code
           //   since having a repeated moment when |f2| == 0 implies that
           //   the matrix is diagonal. But this function returns a unit
@@ -524,14 +523,19 @@ namespace ignition
         }
 
         // No repeated principal moments
+        // eq 5.1:
         T v = (std::pow(this->Ixyxzyz[0], 2) + std::pow(this->Ixyxzyz[1], 2)
               +(this->Ixxyyzz[0] - moments[2])
               *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
             / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
+        // eq 5.2:
         T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
             / ((moments[0] - moments[1]) * v);
+        // initialize values of angle phi1, phi2, phi3
         T phi1 = 0;
+        // eq 5.3: start with positive value
         T phi2 = acos(clamp<T>(ClampedSqrt(v), -1, 1));
+        // eq 5.4: start with positive value
         T phi3 = acos(clamp<T>(ClampedSqrt(w), -1, 1));
 
         // compute g1, g2 for phi2,phi3 >= 0
@@ -543,6 +547,17 @@ namespace ignition
           (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
           (moments[0]-moments[1])*sin(phi2)*sin(2*phi3));
 
+        // The paragraph prior to equation 5.16 describes how to choose
+        // the candidate value of phi1 based on the length
+        // of the f1 and f2 vectors.
+        // * The case of |f1| == |f2| == 0 implies a repeated moment,
+        //   which should not be possible at this point in the code
+        // * When |f1| != 0 and |f2| != 0, then one should choose the
+        //   value of phi2 so that phi11 = phi12
+        // * When |f1| == 0 and f2 != 0, then phi1 = phi12
+        //   phi11 can be ignored, and either sign of phi2, phi3 can be used
+        // * When |f2| == 0 and f1 != 0, then phi1 = phi11
+        //   phi12 can be ignored, and either sign of phi2, phi3 can be used
         bool f1small = f1.SquaredLength() < std::pow(tol, 2);
         bool f2small = f2.SquaredLength() < std::pow(tol, 2);
         if (f1small && f2small)
@@ -554,14 +569,14 @@ namespace ignition
         }
         else if (f1small)
         {
-          // use phi12
+          // use phi12 (equation 5.14)
           math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
           phi12.Normalize();
           phi1 = phi12.Radian();
         }
         else if (f2small)
         {
-          // use phi11
+          // use phi11 (equation 5.13)
           math::Angle phi11(Angle2(g1) - Angle2(f1));
           phi11.Normalize();
           phi1 = phi11.Radian();
@@ -569,15 +584,17 @@ namespace ignition
         else
         {
           // check for when phi11 == phi12
+          // eq 5.13:
           math::Angle phi11(Angle2(g1) - Angle2(f1));
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
           phi11.Normalize();
+          // eq 5.14:
+          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
           phi12.Normalize();
           T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
                  + std::pow(cos(phi11.Radian()) - cos(phi12.Radian()), 2);
           phi1 = phi11.Radian();
           math::Vector2<T> signsPhi23(1, 1);
-          // phi2      <= 0
+          // case a: phi2 <= 0
           {
             Vector2<T> g1a = Vector2<T>(1, -1) * g1;
             Vector2<T> g2a = Vector2<T>(1, -1) * g2;
@@ -594,7 +611,7 @@ namespace ignition
               signsPhi23.Set(-1, 1);
             }
           }
-          // phi3      <= 0
+          // case b: phi3 <= 0
           {
             Vector2<T> g1b = Vector2<T>(-1, 1) * g1;
             Vector2<T> g2b = Vector2<T>(1, -1) * g2;
@@ -611,7 +628,7 @@ namespace ignition
               signsPhi23.Set(1, -1);
             }
           }
-          // phi2,phi3 <= 0
+          // case c: phi2,phi3 <= 0
           {
             Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
             Vector2<T> g2c = g2;
