@@ -394,7 +394,7 @@ namespace ignition
           // this includes case when all three moments are
           // approximately equal
           // return identity rotation
-          return Quaternion<T>();
+          return Quaternion<T>::Identity;
         }
 
         // Algorithm based on http://arxiv.org/abs/1306.6291v4
@@ -442,7 +442,7 @@ namespace ignition
           // phi2 = +- acos(sqrt(s))
           // start with just the positive value
           // also clamp the acos argument to prevent NaN's
-          T phi2 = acos(clamp<T>(ClampedSqrt(s), -1, 1));
+          T phi2 = acos(clamp<T>(this->ClampedSqrt(s), -1, 1));
 
           // The paper defines variables phi11 and phi12
           // which are candidate values of angle phi1.
@@ -534,14 +534,14 @@ namespace ignition
         // initialize values of angle phi1, phi2, phi3
         T phi1 = 0;
         // eq 5.3: start with positive value
-        T phi2 = acos(clamp<T>(ClampedSqrt(v), -1, 1));
+        T phi2 = acos(clamp<T>(this->ClampedSqrt(v), -1, 1));
         // eq 5.4: start with positive value
-        T phi3 = acos(clamp<T>(ClampedSqrt(w), -1, 1));
+        T phi3 = acos(clamp<T>(this->ClampedSqrt(w), -1, 1));
 
         // compute g1, g2 for phi2,phi3 >= 0
         // equations 5.7, 5.8
         Vector2<T> g1(
-          0.5* (moments[0]-moments[1])*ClampedSqrt(v)*sin(2*phi3),
+          0.5* (moments[0]-moments[1])*this->ClampedSqrt(v)*sin(2*phi3),
           0.5*((moments[0]-moments[1])*w + moments[1]-moments[2])*sin(2*phi2));
         Vector2<T> g2(
           (moments[0]-moments[1])*(1 + (v-2)*w) + (moments[1]-moments[2])*v,
@@ -565,7 +565,7 @@ namespace ignition
           // this should never happen
           // f1small && f2small implies a repeated moment
           // return invalid quaternion
-          return Quaternion<T>(0, 0, 0, 0);
+          return Quaternion<T>::Zero;
         }
         else if (f1small)
         {
