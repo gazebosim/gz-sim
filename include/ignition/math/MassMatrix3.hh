@@ -394,7 +394,7 @@ namespace ignition
           // this includes case when all three moments are
           // approximately equal
           // return identity rotation
-          return Quaternion<T>();
+          return Quaternion<T>::Identity;
         }
 
         // Algorithm based on http://arxiv.org/abs/1306.6291v4
@@ -565,7 +565,7 @@ namespace ignition
           // this should never happen
           // f1small && f2small implies a repeated moment
           // return invalid quaternion
-          return Quaternion<T>(0, 0, 0, 0);
+          return Quaternion<T>::Zero;
         }
         else if (f1small)
         {

@@ -340,7 +340,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
   EXPECT_TRUE(m.DiagonalMoments(3.5 * math::Vector3d::One));
   EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
   EXPECT_TRUE(m.IsValid());
-  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
 }
 
 /////////////////////////////////////////////////
@@ -374,7 +374,7 @@ void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
   EXPECT_EQ(m.PrincipalMoments(), m.DiagonalMoments());
   EXPECT_TRUE(m.IsValid());
   // Expect unit quaternion
-  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
   VerifyPrincipalMomentsAndAxes(m);
 }
 
