@@ -662,8 +662,11 @@ namespace ignition
       /// of the principal axes are returned.
       /// \param[in] _size Dimensions of box aligned with principal axes.
       /// \param[in] _rot Rotational offset of principal axes.
+      /// \param[in] _tol Relative tolerance.
       /// \return True if box properties were computed successfully.
-      public: bool EquivalentBox(Vector3<T> &_size, Quaternion<T> &_rot) const
+      public: bool EquivalentBox(Vector3<T> &_size,
+                                 Quaternion<T> &_rot,
+                                 const T _tol = 1e-6) const
       {
         if (!this->IsPositive())
         {
@@ -671,7 +674,7 @@ namespace ignition
           return false;
         }
 
-        Vector3<T> moments = this->PrincipalMoments();
+        Vector3<T> moments = this->PrincipalMoments(_tol);
         if (!ValidMoments(moments))
         {
           // principal moments don't satisfy the triangle identity
@@ -685,7 +688,7 @@ namespace ignition
         _size.Y(sqrt(6*(moments.Z() + moments.X() - moments.Y()) / this->mass));
         _size.Z(sqrt(6*(moments.X() + moments.Y() - moments.Z()) / this->mass));
 
-        _rot = this->PrincipalAxesOffset();
+        _rot = this->PrincipalAxesOffset(_tol);
 
         if (_rot == Quaternion<T>(0, 0, 0, 0))
         {
@@ -723,7 +726,7 @@ namespace ignition
                               const Quaternion<T> &_rot)
       {
         // Check that _mass and _size are strictly positive
-        if (_size.Min() <= 0)
+        if (this->Mass() <= 0 || _size.Min() <= 0)
         {
           return false;
         }
