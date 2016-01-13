@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
 
 using namespace ignition;
@@ -304,3 +305,17 @@ TEST(HelpersTest, Sort)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(HelpersTest, Volume)
+{
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(1.0), 4.0*IGN_PI*std::pow(1, 3)/3.0);
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(0.1), 4.0*IGN_PI*std::pow(.1, 3)/3.0);
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(-1.1), 4.0*IGN_PI*std::pow(-1.1, 3)/3.0);
+
+  EXPECT_DOUBLE_EQ(IGN_CYLINDER_VOLUME(0.5, 2.0), 2 * IGN_PI * std::pow(.5, 2));
+  EXPECT_DOUBLE_EQ(IGN_CYLINDER_VOLUME(1, -1), -1 * IGN_PI * std::pow(1, 2));
+
+  EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(1, 2, 3), 1 * 2 * 3);
+  EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(.1, .2, .3),
+                   IGN_BOX_VOLUME_V(math::Vector3d(0.1, 0.2, 0.3)));
+}
