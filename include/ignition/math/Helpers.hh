@@ -81,6 +81,25 @@
 #define IGN_PI_4 0.78539816339744830962
 #endif
 
+/// \brief Compute sphere volume
+/// \param[in] _radius Sphere radius
+#define IGN_SPHERE_VOLUME(_radius) (4.0*IGN_PI*std::pow(_radius, 3)/3.0)
+
+/// \brief Compute cylinder volume
+/// \param[in] _r Cylinder base radius
+/// \param[in] _l Cylinder length
+#define IGN_CYLINDER_VOLUME(_r, _l) (_l * IGN_PI * std::pow(_r, 2))
+
+/// \brief Compute cube volume
+/// \param[in] _x X length
+/// \param[in] _y Y length
+/// \param[in] _z Z length
+#define IGN_BOX_VOLUME(_x, _y, _z) (_x *_y * _z)
+
+/// \brief Compute cube volume from a vector
+/// \param[in] _v Vector3d that contains the cube's dimensions.
+#define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
+
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
