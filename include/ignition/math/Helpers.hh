@@ -27,6 +27,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <tuple>
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 #define IGN_DBL_MAX std::numeric_limits<double>::max()
@@ -49,6 +50,26 @@
 /// \brief Float lowest value, equivalent to -IGN_FLT_MAX
 #define IGN_FLT_LOW std::numeric_limits<float>::lowest()
 
+/// \brief 16bit unsigned integer maximum value
+#define IGN_UINT16_MAX std::numeric_limits<uint16_t>::max()
+
+/// \brief 16bit unsigned integer minimum value
+#define IGN_UINT16_MIN std::numeric_limits<uint16_t>::min()
+
+/// \brief 16bit unsigned integer lowest value. This is equivalent to
+/// IGN_UINT16_MIN, and is defined here for completeness.
+#define IGN_UINT16_LOW std::numeric_limits<uint16_t>::lowest()
+
+/// \brief 16bit integer maximum value
+#define IGN_INT16_MAX std::numeric_limits<int16_t>::max()
+
+/// \brief 16bit integer minimum value
+#define IGN_INT16_MIN std::numeric_limits<int16_t>::min()
+
+/// \brief 16bit integer minimum value. This is equivalent to IGN_INT16_MIN,
+/// and is defined here for completeness.
+#define IGN_INT16_LOW std::numeric_limits<int16_t>::lowest()
+
 /// \brief 32bit unsigned integer maximum value
 #define IGN_UINT32_MAX std::numeric_limits<uint32_t>::max()
 
@@ -68,6 +89,26 @@
 /// \brief 32bit integer minimum value. This is equivalent to IGN_INT32_MIN,
 /// and is defined here for completeness.
 #define IGN_INT32_LOW std::numeric_limits<int32_t>::lowest()
+
+/// \brief 64bit unsigned integer maximum value
+#define IGN_UINT64_MAX std::numeric_limits<uint64_t>::max()
+
+/// \brief 64bit unsigned integer minimum value
+#define IGN_UINT64_MIN std::numeric_limits<uint64_t>::min()
+
+/// \brief 64bit unsigned integer lowest value. This is equivalent to
+/// IGN_UINT64_MIN, and is defined here for completeness.
+#define IGN_UINT64_LOW std::numeric_limits<uint64_t>::lowest()
+
+/// \brief 64bit integer maximum value
+#define IGN_INT64_MAX std::numeric_limits<int64_t>::max()
+
+/// \brief 64bit integer minimum value
+#define IGN_INT64_MIN std::numeric_limits<int64_t>::min()
+
+/// \brief 64bit integer minimum value. This is equivalent to IGN_INT64_MIN,
+/// and is defined here for completeness.
+#define IGN_INT64_LOW std::numeric_limits<int64_t>::lowest()
 
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
@@ -99,6 +140,39 @@
 /// \brief Compute box volume from a vector
 /// \param[in] _v Vector3d that contains the box's dimensions.
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
+
+/** \def IGNITION_VISIBLE
+ * Use to represent "symbol visible" if supported
+ */
+
+/** \def IGNITION_HIDDEN
+ * Use to represent "symbol hidden" if supported
+ */
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef BUILDING_DLL
+    #ifdef __GNUC__
+      #define IGNITION_VISIBLE __attribute__ ((dllexport))
+    #else
+      #define IGNITION_VISIBLE __declspec(dllexport)
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define IGNITION_VISIBLE __attribute__ ((dllimport))
+    #else
+      #define IGNITION_VISIBLE __declspec(dllimport)
+    #endif
+  #endif
+  #define IGNITION_HIDDEN
+#else
+  #if __GNUC__ >= 4
+    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
+    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
+  #else
+    #define IGNITION_VISIBLE
+    #define IGNITION_HIDDEN
+  #endif
+#endif
 
 namespace ignition
 {
@@ -410,40 +484,25 @@ namespace ignition
       }
       return s * acc;
     }
+
+    /// \brief A pairing function that maps two values to a unique third
+    /// value. This is an implement of Szudzik's function.
+    /// \param[in] _a First value, must be a non-negative integer
+    /// \param[in] _b Second value, must be a non-negative integer
+    /// \return A unique non-negative integer value
+    /// \sa Unpair
+    uint64_t IGNITION_VISIBLE Pair(const uint32_t _a, const uint32_t _b);
+
+    /// \brief The reverse of the Pair function. Accepts a key, produced
+    /// from the Pair function, and returns a tuple consisting of the two
+    /// non-negative integer values used to create the _key.
+    /// \param[in] _key A non-negative integer generated from the Pair
+    /// function.
+    /// \return A tuple that consists of the two non-negative integers that
+    /// will generate _key when used with the Pair function.
+    /// \sa Pair
+    std::tuple<uint32_t, uint32_t> IGNITION_VISIBLE Unpair(const uint64_t _key);
   }
 }
-
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
-    #define IGNITION_HIDDEN
-  #endif
-#endif
 
 #endif

@@ -4,8 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/math/Rand.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
 
@@ -318,4 +318,88 @@ TEST(HelpersTest, Volume)
   EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(1, 2, 3), 1 * 2 * 3);
   EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(.1, .2, .3),
                    IGN_BOX_VOLUME_V(math::Vector3d(0.1, 0.2, 0.3)));
+}
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, Pair)
+{
+  uint32_t maxA = IGN_UINT32_MAX;
+  uint32_t maxB = IGN_UINT32_MAX;
+  uint32_t maxC, maxD;
+
+  // Maximum parameters should generate a maximum key
+  uint64_t maxKey = math::Pair(maxA, maxB);
+  EXPECT_EQ(maxKey, IGN_UINT64_MAX);
+
+  std::tie(maxC, maxD) = math::Unpair(maxKey);
+  EXPECT_EQ(maxC, maxA);
+  EXPECT_EQ(maxD, maxB);
+
+  uint32_t minA = IGN_UINT32_MIN;
+  uint32_t minB = IGN_UINT32_MIN;
+  uint32_t minC, minD;
+
+  // Minimum parameters should generate a minimum key
+  uint64_t minKey = math::Pair(minA, minB);
+  EXPECT_EQ(minKey, IGN_UINT64_MIN);
+
+  std::tie(minC, minD) = math::Unpair(minKey);
+  EXPECT_EQ(minC, minA);
+  EXPECT_EQ(minD, minB);
+
+  // Max key != min key
+  EXPECT_TRUE(minKey != maxKey);
+
+  // Just a simple test case
+  {
+    int a = 10;
+    int b = 20;
+    uint32_t c, d;
+
+    auto key = math::Pair(a, b);
+    EXPECT_EQ(key, 410);
+    EXPECT_TRUE(key != maxKey);
+    EXPECT_TRUE(key != minKey);
+
+    std::tie(c, d) = math::Unpair(key);
+    EXPECT_EQ(c, a);
+    EXPECT_EQ(d, b);
+  }
+
+  {
+    uint32_t c, d;
+    std::set<uint64_t> set;
+
+    // Iterate of range of pairs, and check for unique keys.
+    for (uint32_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 100;
+         a+=math::Rand::IntUniform(50, 100))
+    {
+      for (uint32_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 100;
+         b += math::Rand::IntUniform(50, 100))
+      {
+        uint64_t key = math::Pair(a, b);
+        std::tie(c, d) = math::Unpair(key);
+        EXPECT_EQ(a, c);
+        EXPECT_EQ(b, d);
+        EXPECT_TRUE(set.find(key) == set.end());
+        EXPECT_TRUE(key != maxKey);
+        set.insert(key);
+      }
+    }
+
+    // Iterate over large numbers, and check for unique keys.
+    for (uint32_t a = IGN_UINT32_MAX-5000; a < IGN_UINT32_MAX; a++)
+    {
+      for (uint32_t b = IGN_UINT32_MAX-5000; b < IGN_UINT32_MAX; b++)
+      {
+        uint64_t key = math::Pair(a, b);
+        std::tie(c, d) = math::Unpair(key);
+        EXPECT_EQ(a, c);
+        EXPECT_EQ(b, d);
+        EXPECT_TRUE(set.find(key) == set.end());
+        EXPECT_TRUE(key != minKey);
+        set.insert(key);
+      }
+    }
+  }
 }
