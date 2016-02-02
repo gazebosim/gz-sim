@@ -12,7 +12,6 @@ build_script:
   - cmake .. 
   - cmake --build . --config %CONFIGURATION%
   
-tests aren't yet working
 test_script:
   - cmake --build . --config %CONFIGURATION% --target RUN_TESTS
 
