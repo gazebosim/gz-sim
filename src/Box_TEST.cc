@@ -288,3 +288,96 @@ TEST(BoxTest, OperatorStreamOut)
   stream << b;
   EXPECT_EQ(stream.str(), "Min[0.1 1.2 2.3] Max[1.1 2.2 4.3]");
 }
+
+/////////////////////////////////////////////////
+TEST(BoxTest, Intersect)
+{
+  math::Box b(0, 0, 0, 1, 1, 1);
+
+  bool intersect = false;
+  double dist = 0;
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(-1, 0, 0),
+                                          math::Vector3d(1, 0, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 1);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(1, 0, 0),
+                                          math::Vector3d(-1, 0, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 0);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 2, 0),
+                                          math::Vector3d(-1, -1, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 1);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(-1, -2, 0),
+                                          math::Vector3d(1, 1, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 2);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 1, 0),
+                                          math::Vector3d(-1, -1, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 1);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.5, 0.5, 2),
+                                          math::Vector3d(0, 0, -1), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 1);
+
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.5, 0.5, 2),
+                                          math::Vector3d(0, 0, 1), 0, 1000);
+  EXPECT_FALSE(intersect);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(-1, -1, 1),
+                                          math::Vector3d(0, 0, -1), 0, 1000);
+  EXPECT_FALSE(intersect);
+
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 2, 0),
+                                          math::Vector3d(1, 1, 0), 0, 1000);
+  EXPECT_FALSE(intersect);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 2, 0),
+                                          math::Vector3d(0, 1, 0), 0, 1000);
+  EXPECT_FALSE(intersect);
+
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.1, 0.1, 200),
+                                          math::Vector3d(0, 0, -1), 0, 100);
+  EXPECT_FALSE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 199);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.1, 0.1, 1),
+                                          math::Vector3d(0, 0, -1), 1, 1000);
+  EXPECT_FALSE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 0);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0, 0, 1),
+                                          math::Vector3d(0, 0, -1), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 0);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0, 0, 0),
+                                          math::Vector3d(1, 0, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 0);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0, 0, 0),
+                                          math::Vector3d(0, 1, 0), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_DOUBLE_EQ(dist, 0);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.5, 0.5, 0.5),
+      math::Vector3d(-.707107, 0, -0.707107), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_NEAR(dist, 0.707107, 1e-5);
+
+  std::tie(intersect, dist) = b.Intersects(math::Vector3d(1.2, 0, 0.5),
+      math::Vector3d(-0.707107, 0, -0.707107), 0, 1000);
+  EXPECT_TRUE(intersect);
+  EXPECT_NEAR(dist, 0.28284, 1e-5);
+}

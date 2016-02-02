@@ -152,6 +152,19 @@ namespace ignition
       /// \return True if the point is inside the box.
       public: bool Contains(const Vector3d &_p) const;
 
+      /// \brief Check if a ray (origin, direction) intersects the box.
+      /// \param[in] _origin Origin of the ray.
+      /// \param[in] _dir Normalized direction of the ray.
+      /// \param[in] _min Minimum allowed distance.
+      /// \param[in] _max Maximum allowd distance.
+      /// \return A boolean and double tuple. The boolean value is true if
+      /// the ray intersects the box. The double is the distance from
+      /// _origin to the intersection point. The double value is undefined
+      /// when the boolean value is false.
+      public: std::tuple<bool, double> Intersects(
+                  const Vector3d &_origin, const Vector3d &_dir,
+                  const double _min = 0, const double _max = IGN_DBL_MAX) const;
+
       /// \brief Private data pointer
       private: BoxPrivate *dataPtr;
     };

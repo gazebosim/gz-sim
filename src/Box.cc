@@ -239,3 +239,71 @@ bool Box::Contains(const Vector3d &_p) const
          _p.Y() >= this->dataPtr->min.Y() && _p.Y() <= this->dataPtr->max.Y() &&
          _p.Z() >= this->dataPtr->min.Z() && _p.Z() <= this->dataPtr->max.Z();
 }
+
+/////////////////////////////////////////////////
+std::tuple<bool, double> Box::Intersects(
+    const Vector3d &_origin, const Vector3d &_dir,
+    const double _min, const double _max) const
+{
+  double tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+  // Check the X plane
+  double div = 1.0 / _dir.X();
+  if (div >= 0)
+  {
+    tmin = (this->dataPtr->min.X() - _origin.X()) * div;
+    tmax = (this->dataPtr->max.X() - _origin.X()) * div;
+  }
+  else
+  {
+    tmin = (this->dataPtr->max.X() - _origin.X()) * div;
+    tmax = (this->dataPtr->min.X() - _origin.X()) * div;
+  }
+
+  // Check the Y plane
+  div = 1.0 / _dir.Y();
+  if (div >= 0)
+  {
+    tymin = (this->dataPtr->min.Y() - _origin.Y()) * div;
+    tymax = (this->dataPtr->max.Y() - _origin.Y()) * div;
+  }
+  else
+  {
+    tymin = (this->dataPtr->max.Y() - _origin.Y()) * div;
+    tymax = (this->dataPtr->min.Y() - _origin.Y()) * div;
+  }
+
+  // Short circuit in case ray doesn't intersect.
+  if (tmin > tymax || tymin > tmax)
+    return std::make_tuple(false, 0);
+
+  if (tymin > tmin || !std::isfinite(tmin))
+    tmin = tymin;
+
+  if (tymax < tmax || !std::isfinite(tmax))
+    tmax = tymax;
+
+  // Check the Z plane
+  div = 1.0 / _dir.Z();
+  if (div >= 0)
+  {
+    tzmin = (this->dataPtr->min.Z() - _origin.Z()) * div;
+    tzmax = (this->dataPtr->max.Z() - _origin.Z()) * div;
+  }
+  else
+  {
+    tzmin = (this->dataPtr->max.Z() - _origin.Z()) * div;
+    tzmax = (this->dataPtr->min.Z() - _origin.Z()) * div;
+  }
+
+  if (tmin > tzmax || tzmin > tmax)
+    return std::make_tuple(false, 0);
+
+  if (tzmin > tmin || !std::isfinite(tmin))
+    tmin = tzmin;
+
+  if (tzmax < tmax || !std::isfinite(tmax))
+    tmax = tzmax;
+
+  return std::make_tuple((tmin < _max && tmax > _min), std::abs(tmin));
+}
