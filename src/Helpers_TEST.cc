@@ -372,11 +372,11 @@ TEST(HelpersTest, Pair)
     std::set<uint64_t> set;
 
     // Iterate of range of pairs, and check for unique keys.
-    for (uint32_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 100;
-         a+=math::Rand::IntUniform(50, 100))
+    for (uint32_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 200;
+         a+=math::Rand::IntUniform(50, 200))
     {
-      for (uint32_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 100;
-         b += math::Rand::IntUniform(50, 100))
+      for (uint32_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 200;
+         b += math::Rand::IntUniform(50, 200))
       {
         uint64_t key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);
