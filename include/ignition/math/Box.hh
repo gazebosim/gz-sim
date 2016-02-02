@@ -160,8 +160,8 @@ namespace ignition
       /// \param[in] _max Maximum allowd distance.
       /// \return A boolean and double tuple. The boolean value is true if
       /// the ray intersects the box. The double is the distance from
-      /// _origin to the closest intersection point on the box. The double value is undefined
-      /// when the boolean value is false.
+      /// _origin to the closest intersection point on the box.
+      /// The double value is undefined when the boolean value is false.
       public: std::tuple<bool, double> Intersects(
                   const Vector3d &_origin, const Vector3d &_dir,
                   const double _min = 0, const double _max = IGN_DBL_MAX) const;
