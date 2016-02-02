@@ -28,6 +28,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <cstdint>
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 #define IGN_DBL_MAX std::numeric_limits<double>::max()
