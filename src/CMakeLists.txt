@@ -46,5 +46,3 @@ set (gtest_sources
 ign_add_library(ignition-math${PROJECT_MAJOR_VERSION} ${sources})
 ign_build_tests(${gtest_sources})
 ign_install_library(ignition-math${PROJECT_MAJOR_VERSION})
-
-set_tests_properties(UNIT_Helpers_TEST PROPERTIES TIMEOUT 500)
