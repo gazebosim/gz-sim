@@ -31,7 +31,8 @@ uint64_t ignition::math::Pair(const uint32_t _a, const uint32_t _b)
 std::tuple<uint32_t, uint32_t> ignition::math::Unpair(const uint64_t _key)
 {
   // Must explicityly cast so that the _key is not auto cast to a double
-  uint64_t sqrt = std::floor(std::sqrt(static_cast<long double>(_key)));
+  uint64_t sqrt = static_cast<uint64_t>(
+      std::floor(std::sqrt(static_cast<long double>(_key))));
   uint64_t sq = sqrt * sqrt;
 
   return ((_key - sq) >= sqrt) ?
