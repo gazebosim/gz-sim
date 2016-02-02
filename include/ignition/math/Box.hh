@@ -18,6 +18,7 @@
 #define _IGNITION_BOX_HH_
 
 #include <iostream>
+#include <tuple>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 
