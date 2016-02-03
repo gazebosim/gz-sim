@@ -17,27 +17,27 @@
 #include "ignition/math/Helpers.hh"
 
 /////////////////////////////////////////////
-uint32_t ignition::math::Pair(const uint16_t _a, const uint16_t _b)
+uint64_t ignition::math::Pair(const uint32_t _a, const uint32_t _b)
 {
-  // Store in 32bit local variable so that we don't overflow.
-  uint32_t a = _a;
-  uint32_t b = _b;
+  // Store in 64bit local variable so that we don't overflow.
+  uint64_t a = _a;
+  uint64_t b = _b;
 
   // Szudzik's function
   return _a >= _b ?  a * a + a + b : a + b * b;
 }
 
 /////////////////////////////////////////////
-std::tuple<uint16_t, uint16_t> ignition::math::Unpair(const uint32_t _key)
+std::tuple<uint32_t, uint32_t> ignition::math::Unpair(const uint64_t _key)
 {
   // Must explicitly cast so that the _key is not auto cast to a double
-  uint32_t sqrt = static_cast<uint32_t>(
+  uint64_t sqrt = static_cast<uint64_t>(
       std::floor(std::sqrt(static_cast<long double>(_key))));
-  uint32_t sq = sqrt * sqrt;
+  uint64_t sq = sqrt * sqrt;
 
   return ((_key - sq) >= sqrt) ?
-    std::make_tuple(static_cast<uint16_t>(sqrt),
-                    static_cast<uint16_t>(_key - sq - sqrt)) :
-    std::make_tuple(static_cast<uint16_t>(_key - sq),
-                    static_cast<uint16_t>(sqrt));
+    std::make_tuple(static_cast<uint32_t>(sqrt),
+                    static_cast<uint32_t>(_key - sq - sqrt)) :
+    std::make_tuple(static_cast<uint32_t>(_key - sq),
+                    static_cast<uint32_t>(sqrt));
 }

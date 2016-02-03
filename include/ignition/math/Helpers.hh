@@ -492,7 +492,7 @@ namespace ignition
     /// \param[in] _b Second value, must be a non-negative integer
     /// \return A unique non-negative integer value
     /// \sa Unpair
-    uint32_t IGNITION_VISIBLE Pair(const uint16_t _a, const uint16_t _b);
+    uint64_t IGNITION_VISIBLE Pair(const uint32_t _a, const uint32_t _b);
 
     /// \brief The reverse of the Pair function. Accepts a key, produced
     /// from the Pair function, and returns a tuple consisting of the two
@@ -502,7 +502,7 @@ namespace ignition
     /// \return A tuple that consists of the two non-negative integers that
     /// will generate _key when used with the Pair function.
     /// \sa Pair
-    std::tuple<uint16_t, uint16_t> IGNITION_VISIBLE Unpair(const uint32_t _key);
+    std::tuple<uint32_t, uint32_t> IGNITION_VISIBLE Unpair(const uint64_t _key);
   }
 }
 
