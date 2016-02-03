@@ -88,6 +88,9 @@ TEST(HelpersTest, PowerOfTwo)
 
 // MSVC report errors on division by zero
 #ifndef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4723)
+#endif
 /////////////////////////////////////////////////
 // Test Helpers::fixnan functions
 TEST(HelpersTest, FixNaN)
@@ -106,6 +109,8 @@ TEST(HelpersTest, FixNaN)
   EXPECT_FLOAT_EQ(math::fixnan(42.0f), 42.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);
 }
+#ifndef _MSC_VER
+#pragma warning(pop)
 #endif
 
 /////////////////////////////////////////////////
@@ -372,11 +377,11 @@ TEST(HelpersTest, Pair)
     std::set<uint64_t> set;
 
     // Iterate of range of pairs, and check for unique keys.
-    for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 200;
-         a += static_cast<uint16_t>(math::Rand::IntUniform(50, 200)))
+    for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 500;
+         a += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
     {
-      for (uint16_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 200;
-         b += static_cast<uint16_t>(math::Rand::IntUniform(50, 200)))
+      for (uint16_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 500;
+         b += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
       {
         uint64_t key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);
