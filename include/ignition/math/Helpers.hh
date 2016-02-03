@@ -67,7 +67,7 @@
 /// \brief 16bit integer minimum value
 #define IGN_INT16_MIN std::numeric_limits<int16_t>::min()
 
-/// \brief 16bit integer minimum value. This is equivalent to IGN_INT16_MIN,
+/// \brief 16bit integer lowest value. This is equivalent to IGN_INT16_MIN,
 /// and is defined here for completeness.
 #define IGN_INT16_LOW std::numeric_limits<int16_t>::lowest()
 
@@ -107,7 +107,7 @@
 /// \brief 64bit integer minimum value
 #define IGN_INT64_MIN std::numeric_limits<int64_t>::min()
 
-/// \brief 64bit integer minimum value. This is equivalent to IGN_INT64_MIN,
+/// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
 /// and is defined here for completeness.
 #define IGN_INT64_LOW std::numeric_limits<int64_t>::lowest()
 

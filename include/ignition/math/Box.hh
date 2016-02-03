@@ -157,7 +157,7 @@ namespace ignition
       /// \param[in] _origin Origin of the ray.
       /// \param[in] _dir Normalized direction of the ray.
       /// \param[in] _min Minimum allowed distance.
-      /// \param[in] _max Maximum allowd distance.
+      /// \param[in] _max Maximum allowed distance.
       /// \return A boolean and double tuple. The boolean value is true if
       /// the ray intersects the box. The double is the distance from
       /// _origin to the closest intersection point on the box.
