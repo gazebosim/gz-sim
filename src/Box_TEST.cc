@@ -308,19 +308,22 @@ TEST(BoxTest, Intersect)
   EXPECT_DOUBLE_EQ(dist, 0);
 
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 2, 0),
-                                          math::Vector3d(-1, -1, 0), 0, 1000);
+                                         math::Vector3d(-1, -1, 0).Normalize(),
+                                         0, 1000);
   EXPECT_TRUE(intersect);
-  EXPECT_DOUBLE_EQ(dist, 1);
+  EXPECT_DOUBLE_EQ(dist, M_SQRT2);
 
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(-1, -2, 0),
-                                          math::Vector3d(1, 1, 0), 0, 1000);
+                                           math::Vector3d(1, 1, 0).Normalize(),
+                                           0, 1000);
   EXPECT_TRUE(intersect);
-  EXPECT_DOUBLE_EQ(dist, 2);
+  EXPECT_DOUBLE_EQ(dist, 2*M_SQRT2);
 
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(2, 1, 0),
-                                          math::Vector3d(-1, -1, 0), 0, 1000);
+                                         math::Vector3d(-1, -1, 0).Normalize(),
+                                         0, 1000);
   EXPECT_TRUE(intersect);
-  EXPECT_DOUBLE_EQ(dist, 1);
+  EXPECT_DOUBLE_EQ(dist, M_SQRT2);
 
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.5, 0.5, 2),
                                           math::Vector3d(0, 0, -1), 0, 1000);
