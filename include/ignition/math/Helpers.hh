@@ -486,23 +486,41 @@ namespace ignition
       return s * acc;
     }
 
+
+    // Degrade precision on Windows, which cannot handle 'long double'
+    // values properly. See the implementation of Unpair.
+#ifdef _MSC_VER
+    using PairInput = uint16_t;
+    using PairOutput = uint32_t;
+#else
+    using PairInput = uint32_t;
+    using PairOutput = uint64_t;
+#endif
+
     /// \brief A pairing function that maps two values to a unique third
     /// value. This is an implement of Szudzik's function.
-    /// \param[in] _a First value, must be a non-negative integer
-    /// \param[in] _b Second value, must be a non-negative integer
-    /// \return A unique non-negative integer value
+    /// \param[in] _a First value, must be a non-negative integer. On
+    /// Windows this value is uint16_t. On Linux/OSX this value is uint32_t.
+    /// \param[in] _b Second value, must be a non-negative integer. On
+    /// Windows this value is uint16_t. On Linux/OSX this value is uint32_t.
+    /// \return A unique non-negative integer value. On Windows the return
+    /// value is uint32_t. On Linux/OSX the return value is uint64_t
     /// \sa Unpair
-    uint64_t IGNITION_VISIBLE Pair(const uint32_t _a, const uint32_t _b);
+    PairOutput IGNITION_VISIBLE Pair(const PairInput _a, const PairInput _b);
 
     /// \brief The reverse of the Pair function. Accepts a key, produced
     /// from the Pair function, and returns a tuple consisting of the two
     /// non-negative integer values used to create the _key.
     /// \param[in] _key A non-negative integer generated from the Pair
-    /// function.
+    /// function. On Windows this value is uint32_t. On Linux/OSX, this
+    /// value is uint64_t.
     /// \return A tuple that consists of the two non-negative integers that
-    /// will generate _key when used with the Pair function.
+    /// will generate _key when used with the Pair function. On Windows the
+    /// tuple contains two uint16_t values. On Linux/OSX the tuple contains
+    /// two uint32_t values.
     /// \sa Pair
-    std::tuple<uint32_t, uint32_t> IGNITION_VISIBLE Unpair(const uint64_t _key);
+    std::tuple<PairInput, PairInput> IGNITION_VISIBLE Unpair(
+        const PairOutput _key);
   }
 }
 

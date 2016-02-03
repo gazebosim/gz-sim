@@ -115,7 +115,6 @@ endmacro()
 #################################################
 macro (ign_setup_windows)
   add_definitions("/EHsc")
-  add_definitions("/Qlong-double")
 endmacro()
 
 #################################################
