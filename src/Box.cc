@@ -305,5 +305,5 @@ std::tuple<bool, double> Box::Intersects(
   if (tzmax < tmax || !std::isfinite(tmax))
     tmax = tzmax;
 
-  return std::make_tuple((tmin < _max && tmax > _min), std::abs(tmin));
+  return std::make_tuple((tmin < _max && tmax >= _min), std::abs(tmin) + _min);
 }
