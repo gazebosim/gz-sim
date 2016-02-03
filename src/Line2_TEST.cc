@@ -58,13 +58,13 @@ TEST(Line2Test, Slope)
 
   {
 // MSVC report errors on division by zero
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4723)
 #endif
     math::Line2d line(0, 0, 0, 10);
     EXPECT_TRUE(math::isnan(line.Slope()));
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
   }

@@ -88,9 +88,6 @@ TEST(HelpersTest, PowerOfTwo)
 
 // MSVC report errors on division by zero
 #ifndef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4723)
-#endif
 /////////////////////////////////////////////////
 // Test Helpers::fixnan functions
 TEST(HelpersTest, FixNaN)
@@ -109,8 +106,6 @@ TEST(HelpersTest, FixNaN)
   EXPECT_FLOAT_EQ(math::fixnan(42.0f), 42.0f);
   EXPECT_FLOAT_EQ(math::fixnan(-42.0f), -42.0f);
 }
-#ifndef _MSC_VER
-#pragma warning(pop)
 #endif
 
 /////////////////////////////////////////////////
