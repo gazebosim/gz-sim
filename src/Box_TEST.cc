@@ -296,7 +296,7 @@ TEST(BoxTest, Intersect)
 
   bool intersect = false;
   double dist = 0;
-/*
+
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(-1, 0, 0),
       math::Vector3d(1, 0, 0), 0, 1000);
   EXPECT_TRUE(intersect);
@@ -355,7 +355,6 @@ TEST(BoxTest, Intersect)
       math::Vector3d(0, 0, -1), 0, 100);
   EXPECT_FALSE(intersect);
   EXPECT_DOUBLE_EQ(dist, 199);
-  */
 
   std::tie(intersect, dist) = b.Intersects(math::Vector3d(0.1, 0.1, 1),
       math::Vector3d(0, 0, -1), 1.0, 1000);
