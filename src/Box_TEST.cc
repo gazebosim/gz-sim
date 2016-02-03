@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-
+#include <cmath>
 #include <gtest/gtest.h>
 
 #include "ignition/math/Box.hh"
