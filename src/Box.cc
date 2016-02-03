@@ -240,70 +240,76 @@ bool Box::Contains(const Vector3d &_p) const
          _p.Z() >= this->dataPtr->min.Z() && _p.Z() <= this->dataPtr->max.Z();
 }
 
+//////////////////////////////////////////////////
+bool Box::ClipLine(const int _d, const Line3d &_line,
+                   double &_low, double &_high) const
+{
+  // dimLow and dimHigh are the results we're calculating for this
+  // current dimension.
+  double dimLow, dimHigh;
+
+  // Find the point of intersection in this dimension only as a fraction of
+  // the total vector http://youtu.be/USjbg5QXk3g?t=3m12s
+  dimLow = (this->dataPtr->min[_d] - _line[0][_d]) /
+    (_line[1][_d] - _line[0][_d]);
+
+  dimHigh = (this->dataPtr->max[_d] - _line[0][_d]) /
+    (_line[1][_d] - _line[0][_d]);
+
+  // Make sure low is less than high
+  if (dimHigh < dimLow)
+    std::swap(dimHigh, dimLow);
+
+  // If this dimension's high is less than the low we got then we definitely
+  // missed. http://youtu.be/USjbg5QXk3g?t=7m16s
+  if (dimHigh < _low)
+    return false;
+
+  // Likewise if the low is less than the high.
+  if (dimLow > _high)
+    return false;
+
+  // Add the clip from this dimension to the previous results
+  // http://youtu.be/USjbg5QXk3g?t=5m32s
+  if (std::isfinite(dimLow))
+    _low = std::max(dimLow, _low);
+
+  if (std::isfinite(dimHigh))
+    _high = std::min(dimHigh, _high);
+
+  return true;
+}
+
 /////////////////////////////////////////////////
-std::tuple<bool, double> Box::Intersects(
+std::tuple<bool, double, Vector3d>  Box::Intersects(
     const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
-  double tmin, tmax, tymin, tymax, tzmin, tzmax;
+  Vector3d dir = _dir.Normalize();
+  return this->Intersects(Line3d(_origin + dir * _min, _origin + dir * _max));
+}
 
-  // Check the X plane
-  double div = 1.0 / _dir.X();
-  if (div >= 0)
-  {
-    tmin = (this->dataPtr->min.X() - _origin.X()) * div;
-    tmax = (this->dataPtr->max.X() - _origin.X()) * div;
-  }
-  else
-  {
-    tmin = (this->dataPtr->max.X() - _origin.X()) * div;
-    tmax = (this->dataPtr->min.X() - _origin.X()) * div;
-  }
+/////////////////////////////////////////////////
+// Find the intersection of a line from v0 to v1 and an
+// axis-aligned bounding box http://www.youtube.com/watch?v=USjbg5QXk3g
+std::tuple<bool, double, Vector3d> Box::Intersects(const Line3d &_line) const
+{
+  // low and high are the results from all clipping so far.
+  // We'll write our results back out to those parameters.
+  double low = 0;
+  double high = 1;
 
-  // Check the Y plane
-  div = 1.0 / _dir.Y();
-  if (div >= 0)
-  {
-    tymin = (this->dataPtr->min.Y() - _origin.Y()) * div;
-    tymax = (this->dataPtr->max.Y() - _origin.Y()) * div;
-  }
-  else
-  {
-    tymin = (this->dataPtr->max.Y() - _origin.Y()) * div;
-    tymax = (this->dataPtr->min.Y() - _origin.Y()) * div;
-  }
+  if (!this->ClipLine(0, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
 
-  // Short circuit in case ray doesn't intersect.
-  if (tmin > tymax || tymin > tmax)
-    return std::make_tuple(false, 0);
+  if (!this->ClipLine(1, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
 
-  if (tymin > tmin || !std::isfinite(tmin))
-    tmin = tymin;
+  if (!this->ClipLine(2, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
 
-  if (tymax < tmax || !std::isfinite(tmax))
-    tmax = tymax;
+  // The formula for I: http://youtu.be/USjbg5QXk3g?t=6m24s
+  Vector3d intersection = _line[0] + ((_line[1] - _line[0]) * low);
 
-  // Check the Z plane
-  div = 1.0 / _dir.Z();
-  if (div >= 0)
-  {
-    tzmin = (this->dataPtr->min.Z() - _origin.Z()) * div;
-    tzmax = (this->dataPtr->max.Z() - _origin.Z()) * div;
-  }
-  else
-  {
-    tzmin = (this->dataPtr->max.Z() - _origin.Z()) * div;
-    tzmax = (this->dataPtr->min.Z() - _origin.Z()) * div;
-  }
-
-  if (tmin > tzmax || tzmin > tmax)
-    return std::make_tuple(false, 0);
-
-  if (tzmin > tmin || !std::isfinite(tmin))
-    tmin = tzmin;
-
-  if (tzmax < tmax || !std::isfinite(tmax))
-    tmax = tzmax;
-
-  return std::make_tuple((tmin < _max && tmax > _min), std::abs(tmin));
+  return std::make_tuple(true, _line[0].Distance(intersection), intersection);
 }
