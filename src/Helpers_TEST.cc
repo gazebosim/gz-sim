@@ -373,10 +373,10 @@ TEST(HelpersTest, Pair)
 
     // Iterate of range of pairs, and check for unique keys.
     for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 200;
-         a+=math::Rand::IntUniform(50, 200))
+         a += static_cast<uint16_t>(math::Rand::IntUniform(50, 200)))
     {
       for (uint16_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 200;
-         b += math::Rand::IntUniform(50, 200))
+         b += static_cast<uint16_t>(math::Rand::IntUniform(50, 200)))
       {
         uint64_t key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);
