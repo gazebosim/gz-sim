@@ -40,8 +40,8 @@ ignition::math::Unpair(const ignition::math::PairOutput _key)
   uint64_t sq = sqrt * sqrt;
 
   return ((_key - sq) >= sqrt) ?
-    std::make_tuple(static_cast<uint32_t>(sqrt),
-                    static_cast<uint32_t>(_key - sq - sqrt)) :
-    std::make_tuple(static_cast<uint32_t>(_key - sq),
-                    static_cast<uint32_t>(sqrt));
+    std::make_tuple(static_cast<PairInput>(sqrt),
+                    static_cast<PairInput>(_key - sq - sqrt)) :
+    std::make_tuple(static_cast<PairInput>(_key - sq),
+                    static_cast<PairInput>(sqrt));
 }
