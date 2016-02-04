@@ -281,19 +281,35 @@ bool Box::ClipLine(const int _d, const Line3d &_line,
 }
 
 /////////////////////////////////////////////////
-std::tuple<bool, double, Vector3d>  Box::Intersects(
+bool Box::IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
+    const double _min, const double _max) const
+{
+  return std::get<0>(this->Intersect(_origin, _dir, _min, _max));
+}
+
+/////////////////////////////////////////////////
+std::tuple<bool, double> Box::IntersectDist(const Vector3d &_origin,
+    const Vector3d &_dir, const double _min, const double _max) const
+{
+  return std::make_tuple(
+      std::get<0>(this->Intersect(_origin, _dir, _min, _max)),
+      std::get<1>(this->Intersect(_origin, _dir, _min, _max)));
+}
+
+/////////////////////////////////////////////////
+std::tuple<bool, double, Vector3d>  Box::Intersect(
     const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
   Vector3d dir = _dir;
   dir.Normalize();
-  return this->Intersects(Line3d(_origin + dir * _min, _origin + dir * _max));
+  return this->Intersect(Line3d(_origin + dir * _min, _origin + dir * _max));
 }
 
 /////////////////////////////////////////////////
 // Find the intersection of a line from v0 to v1 and an
 // axis-aligned bounding box http://www.youtube.com/watch?v=USjbg5QXk3g
-std::tuple<bool, double, Vector3d> Box::Intersects(const Line3d &_line) const
+std::tuple<bool, double, Vector3d> Box::Intersect(const Line3d &_line) const
 {
   // low and high are the results from all clipping so far.
   // We'll write our results back out to those parameters.
