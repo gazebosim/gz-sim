@@ -160,8 +160,14 @@ namespace ignition
       /// \param[in] _min Minimum allowed distance.
       /// \param[in] _max Maximum allowed distance.
       /// \return A boolean, double, Vector3d tuple. The boolean value is true
-      /// if the line intersects the box. The double is the distance from
-      /// the line's start to the closest intersection point on the box.
+      /// if the line intersects the box.
+      ///
+      /// The double is the distance from
+      /// the ray's start  to the closest intersection point on the box,
+      /// minus the _min distance. For example, if _min == 0.5 and the
+      /// intersection happens at a distance of 2.0 from _origin then returned
+      /// distance is 1.5.
+      ///
       /// The double value is zero when the boolean value is false. The
       /// Vector3d is the intersection point on the box. The Vector3d value
       /// is zero if the boolean value is false.

@@ -285,7 +285,8 @@ std::tuple<bool, double, Vector3d>  Box::Intersects(
     const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
-  Vector3d dir = _dir.Normalize();
+  Vector3d dir = _dir;
+  dir.Normalize();
   return this->Intersects(Line3d(_origin + dir * _min, _origin + dir * _max));
 }
 
