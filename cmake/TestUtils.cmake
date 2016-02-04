@@ -36,7 +36,7 @@ macro (ign_build_tests)
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
 	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
-    set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 400)
+    set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
     if(PYTHONINTERP_FOUND)
       # Check that the test produced a result and create a failure if it didn't.

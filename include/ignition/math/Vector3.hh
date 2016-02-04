@@ -143,7 +143,7 @@ namespace ignition
 
       /// \brief Return a normalized vector
       /// \return unit length vector
-      public: Vector3 Normalize() const
+      public: Vector3 Normalized() const
       {
         Vector3<T> result = *this;
         result.Normalize();
