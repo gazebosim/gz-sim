@@ -16,30 +16,9 @@
 */
 #include "ignition/math/Helpers.hh"
 
-/////////////////////////////////////////////
-ignition::math::PairOutput ignition::math::Pair(
-    const ignition::math::PairInput _a, const ignition::math::PairInput _b)
+namespace ignition
 {
-  // Store in 64bit local variable so that we don't overflow.
-  uint64_t a = _a;
-  uint64_t b = _b;
-
-  // Szudzik's function
-  return _a >= _b ?  a * a + a + b : a + b * b;
-}
-
-/////////////////////////////////////////////
-std::tuple<ignition::math::PairInput, ignition::math::PairInput>
-ignition::math::Unpair(const ignition::math::PairOutput _key)
-{
-  // Must explicitly cast so that the _key is not auto cast to a double
-  uint64_t sqrt = static_cast<uint64_t>(
-      std::floor(std::sqrt(static_cast<long double>(_key))));
-  uint64_t sq = sqrt * sqrt;
-
-  return ((_key - sq) >= sqrt) ?
-    std::make_tuple(static_cast<uint32_t>(sqrt),
-                    static_cast<uint32_t>(_key - sq - sqrt)) :
-    std::make_tuple(static_cast<uint32_t>(_key - sq),
-                    static_cast<uint32_t>(sqrt));
+  namespace math
+  {
+  }
 }

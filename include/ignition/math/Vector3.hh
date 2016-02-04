@@ -127,15 +127,6 @@ namespace ignition
 
       /// \brief Normalize the vector length
       /// \return unit length vector
-      public: Vector3 Normalize() const
-      {
-        Vector3<T> result = *this;
-        result.Normalize();
-        return result;
-      }
-
-      /// \brief Normalize the vector length
-      /// \return unit length vector
       public: Vector3 Normalize()
       {
         T d = this->Length();

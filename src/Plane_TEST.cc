@@ -44,11 +44,8 @@ TEST(PlaneTest, Distance)
   EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.2),
               Vector3d(0, 0, 1)), -0.1, 1e-6);
 
-// MSVC report warning about division by zero
-#ifndef _MSC_VER
   EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.1),
               Vector3d(1, 0, 0)), 0, 1e-6);
-#endif
 }
 
 /////////////////////////////////////////////////
