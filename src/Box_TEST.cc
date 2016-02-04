@@ -18,8 +18,8 @@
 # define _USE_MATH_DEFINES
 #endif
 
-#include <cmath>
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "ignition/math/Box.hh"
 
