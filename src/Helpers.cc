@@ -25,7 +25,9 @@ ignition::math::PairOutput ignition::math::Pair(
   uint64_t b = _b;
 
   // Szudzik's function
-  return _a >= _b ?  a * a + a + b : a + b * b;
+  return _a >= _b ?
+          static_cast<PairOutput>(a * a + a + b) :
+          static_cast<PairOutput>(a + b * b);
 }
 
 /////////////////////////////////////////////

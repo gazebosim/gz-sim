@@ -9,7 +9,7 @@ configuration:
 build_script:
   - md build
   - cd build
-  - cmake ..
+  - cmake .. -DEXTRA_CMAKE_CXX_FLAGS="-WX"
   - cmake --build . --config %CONFIGURATION%
 
 test_script:
