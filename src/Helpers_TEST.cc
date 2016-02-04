@@ -391,7 +391,7 @@ TEST(HelpersTest, Pair)
     math::PairInput c, d;
     std::set<math::PairOutput> set;
 
-    // Iterate of range of pairs, and check for unique keys.
+    // Iterate over range of pairs, and check for unique keys.
     for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 500;
          a += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
     {
