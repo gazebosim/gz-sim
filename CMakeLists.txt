@@ -7,8 +7,8 @@ string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 set (PROJECT_MAJOR_VERSION 2)
-set (PROJECT_MINOR_VERSION 2)
-set (PROJECT_PATCH_VERSION 3)
+set (PROJECT_MINOR_VERSION 3)
+set (PROJECT_PATCH_VERSION 0)
 
 set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
 set (PROJECT_VERSION_FULL
@@ -180,6 +180,9 @@ filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
   -Wmissing-include-dirs -pedantic)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
+if (DEFINED EXTRA_CMAKE_CXX_FLAGS)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CMAKE_CXX_FLAGS}")
+endif()
 
 #################################################
 # OS Specific initialization

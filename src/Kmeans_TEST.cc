@@ -43,7 +43,7 @@ TEST(KmeansTest, Kmeans)
   // ::GetObservations()
   std::vector<math::Vector3d> obsCopy;
   obsCopy = kmeans.Observations();
-  for (auto i = 0; i < obsCopy.size(); ++i)
+  for (size_t i = 0; i < obsCopy.size(); ++i)
     EXPECT_EQ(obsCopy[i], obs[i]);
 
   // ::SetObservations()
@@ -53,7 +53,7 @@ TEST(KmeansTest, Kmeans)
   EXPECT_TRUE(kmeans.Observations(obsCopy));
 
   obsCopy = kmeans.Observations();
-  for (auto i = 0; i < obsCopy.size(); ++i)
+  for (size_t i = 0; i < obsCopy.size(); ++i)
     EXPECT_EQ(obsCopy[i], obs[i] + math::Vector3d(0.1, 0.2, 0.0));
   EXPECT_TRUE(kmeans.Observations(obs));
 
@@ -133,7 +133,7 @@ TEST(KmeansTest, Append)
   std::vector<math::Vector3d> obsCopy;
   obsCopy = kmeans.Observations();
 
-  for (auto i = 0; i < obsCopy.size(); ++i)
+  for (size_t i = 0; i < obsCopy.size(); ++i)
     EXPECT_EQ(obsTotal[i], obsCopy[i]);
 
   // Append an empty vector.
