@@ -171,6 +171,10 @@ TEST(Vector3dTest, Normalize)
   vec3 = vec2.Normalize();
   EXPECT_EQ(vec3, vec2);
   EXPECT_EQ(vec2, math::Vector3d(0.267261, 0.534522, 0.801784));
+
+  const math::Vector3d vecConst(1, 2, 3);
+  EXPECT_EQ(vecConst.Normalized(), vec3);
+  EXPECT_EQ(vecConst, math::Vector3d(1, 2, 3));
 }
 
 /////////////////////////////////////////////////

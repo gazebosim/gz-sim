@@ -57,8 +57,11 @@ TEST(Line2Test, Slope)
   }
 
   {
+// MSVC report warnings about division by zero
+#ifndef _MSC_VER
     math::Line2d line(0, 0, 0, 10);
     EXPECT_TRUE(math::isnan(line.Slope()));
+#endif
   }
 
   {
