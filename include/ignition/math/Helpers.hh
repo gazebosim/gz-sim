@@ -333,8 +333,8 @@ namespace ignition
     template<typename T>
     inline T precision(const T &_a, const unsigned int &_precision)
     {
-      return static_cast<T>(std::round(_a * std::pow(10, _precision))
-                           / std::pow(10, _precision));
+      auto p = std::pow(10, _precision);
+      return static_cast<T>(std::round(_a * p) / p);
     }
 
     /// \brief Sort two numbers, such that _a <= _b
