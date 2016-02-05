@@ -40,6 +40,7 @@ TEST(RandTest, Rand)
 
   i = math::Rand::IntNormal(2, 3);
 
+#ifndef _MSC_VER
   {
     // Test setting the random number seed
     math::Rand::Seed(1001);
@@ -53,6 +54,7 @@ TEST(RandTest, Rand)
     EXPECT_NEAR(d, 3.00618, 1e-5);
 #endif
   }
+#endif
 }
 
 //////////////////////////////////////////////////

@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/math/Vector3.hh"
 #include "ignition/math/Helpers.hh"
 
 using namespace ignition;
@@ -34,10 +35,10 @@ TEST(HelpersTest, Helpers)
   EXPECT_EQ(math::NAN_I, math::parseInt("?"));
   EXPECT_EQ(math::NAN_I, math::parseInt("23ab67"));
 
-  EXPECT_FLOAT_EQ(12.345, math::parseFloat("12.345"));
-  EXPECT_FLOAT_EQ(-12.345, math::parseFloat("-12.345"));
-  EXPECT_FLOAT_EQ(-12.345, math::parseFloat("    -12.345"));
-  EXPECT_FLOAT_EQ(0.0, math::parseFloat("    "));
+  EXPECT_DOUBLE_EQ(12.345, math::parseFloat("12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("-12.345"));
+  EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("    -12.345"));
+  EXPECT_DOUBLE_EQ(0.0, math::parseFloat("    "));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+2"), 1e-2));
   EXPECT_TRUE(math::equal(123.45, math::parseFloat("1.2345e+002"), 1e-2));
@@ -125,14 +126,10 @@ TEST(HelpersTest, Even)
   i = -1;
   s = -1;
   si = -1;
-  u = -1;
-  ui = -1;
 
   EXPECT_FALSE(math::isEven(i));
   EXPECT_FALSE(math::isEven(s));
   EXPECT_FALSE(math::isEven(si));
-  EXPECT_FALSE(math::isEven(u));
-  EXPECT_FALSE(math::isEven(ui));
 
   i = 4;
   s = 4;
@@ -149,14 +146,10 @@ TEST(HelpersTest, Even)
   i = -2;
   s = -2;
   si = -2;
-  u = -2;
-  ui = -2;
 
   EXPECT_TRUE(math::isEven(i));
   EXPECT_TRUE(math::isEven(s));
   EXPECT_TRUE(math::isEven(si));
-  EXPECT_TRUE(math::isEven(u));
-  EXPECT_TRUE(math::isEven(ui));
 
   i = 0;
   s = 0;
@@ -190,14 +183,10 @@ TEST(HelpersTest, Odd)
   i = -1;
   s = -1;
   si = -1;
-  u = -1;
-  ui = -1;
 
   EXPECT_TRUE(math::isOdd(i));
   EXPECT_TRUE(math::isOdd(s));
   EXPECT_TRUE(math::isOdd(si));
-  EXPECT_TRUE(math::isOdd(u));
-  EXPECT_TRUE(math::isOdd(ui));
 
   i = 4;
   s = 4;
@@ -214,14 +203,10 @@ TEST(HelpersTest, Odd)
   i = -2;
   s = -2;
   si = -2;
-  u = -2;
-  ui = -2;
 
   EXPECT_FALSE(math::isOdd(i));
   EXPECT_FALSE(math::isOdd(s));
   EXPECT_FALSE(math::isOdd(si));
-  EXPECT_FALSE(math::isOdd(u));
-  EXPECT_FALSE(math::isOdd(ui));
 
   i = 0;
   s = 0;
@@ -248,7 +233,7 @@ TEST(HelpersTest, Sort)
 
   {
     int a = 0;
-    int b = 0.01;
+    int b = 1;
     math::sort2(a, b);
     EXPECT_LE(a, b);
   }
@@ -278,9 +263,9 @@ TEST(HelpersTest, Sort)
     EXPECT_LE(b, c);
   }
   {
-    unsigned int a = -2;
-    unsigned int b = -1;
-    unsigned int c = 0;
+    unsigned int a = 0;
+    unsigned int b = 1;
+    unsigned int c = 2;
     math::sort3(a, b, c);
     EXPECT_LE(a, b);
     EXPECT_LE(b, c);
@@ -320,3 +305,17 @@ TEST(HelpersTest, Sort)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(HelpersTest, Volume)
+{
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(1.0), 4.0*IGN_PI*std::pow(1, 3)/3.0);
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(0.1), 4.0*IGN_PI*std::pow(.1, 3)/3.0);
+  EXPECT_DOUBLE_EQ(IGN_SPHERE_VOLUME(-1.1), 4.0*IGN_PI*std::pow(-1.1, 3)/3.0);
+
+  EXPECT_DOUBLE_EQ(IGN_CYLINDER_VOLUME(0.5, 2.0), 2 * IGN_PI * std::pow(.5, 2));
+  EXPECT_DOUBLE_EQ(IGN_CYLINDER_VOLUME(1, -1), -1 * IGN_PI * std::pow(1, 2));
+
+  EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(1, 2, 3), 1 * 2 * 3);
+  EXPECT_DOUBLE_EQ(IGN_BOX_VOLUME(.1, .2, .3),
+                   IGN_BOX_VOLUME_V(math::Vector3d(0.1, 0.2, 0.3)));
+}
