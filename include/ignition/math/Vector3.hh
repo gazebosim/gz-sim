@@ -141,6 +141,15 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Return a normalized vector
+      /// \return unit length vector
+      public: Vector3 Normalized() const
+      {
+        Vector3<T> result = *this;
+        result.Normalize();
+        return result;
+      }
+
       /// \brief Round to near whole number, return the result.
       /// \return the result
       public: Vector3 Round()
