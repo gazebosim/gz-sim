@@ -426,30 +426,37 @@ namespace ignition
       void Matrix(const Matrix3<T> &_mat)
       {
         const T trace = _mat(0, 0) + _mat(1, 1) + _mat(2, 2);
-        if (trace > 0.0000001) {
+        if (trace > 0.0000001)
+        {
           qw = sqrt(1 + trace) / 2;
-          const T s = 1.0 / (4*qw);
+          const T s = 1.0 / (4 * qw);
           qx = (_mat(2, 1) - _mat(1, 2)) * s;
           qy = (_mat(0, 2) - _mat(2, 0)) * s;
           qz = (_mat(1, 0) - _mat(0, 1)) * s;
-        } else if (_mat(0,0) > _mat(1,1) && _mat(0,0) > _mat(2,2)) {
-          qx = sqrt(1.0 + _mat(0,0) - _mat(1,1) - _mat(2,2)) / 2;
-          const T s = 1.0 / (4*qx);
-          qw = (_mat(2,1) - _mat(1,2)) * s;
-          qy = (_mat(1,0) + _mat(0,1)) * s;
-          qz = (_mat(0,2) + _mat(2,0)) * s;
-        } else if (_mat(1,1) > _mat(2,2)) {
+        }
+        else if (_mat(0, 0) > _mat(1, 1) && _mat(0, 0) > _mat(2, 2))
+        {
+          qx = sqrt(1.0 + _mat(0, 0) - _mat(1, 1) - _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qx);
+          qw = (_mat(2, 1) - _mat(1, 2)) * s;
+          qy = (_mat(1, 0) + _mat(0, 1)) * s;
+          qz = (_mat(0, 2) + _mat(2, 0)) * s;
+        }
+        else if (_mat(1, 1) > _mat(2, 2))
+        {
           qy = sqrt(1.0 - _mat(0, 0) + _mat(1, 1) - _mat(2, 2)) / 2;
-          const T s = 1.0 / (4*qy);
-          qw = (_mat(0,2) - _mat(2,0)) * s;
-          qx = (_mat(0,1) + _mat(1,0)) * s;
-          qz = (_mat(1,2) + _mat(2,1)) * s;
-        } else {
+          const T s = 1.0 / (4 * qy);
+          qw = (_mat(0, 2) - _mat(2, 0)) * s;
+          qx = (_mat(0, 1) + _mat(1, 0)) * s;
+          qz = (_mat(1, 2) + _mat(2, 1)) * s;
+        }
+        else
+        {
           qz = sqrt(1.0 - _mat(0, 0) - _mat(1, 1) + _mat(2, 2)) / 2;
           const T s = 1.0 / (4 * qz);
-          qw = (_mat(1,0) - _mat(0,1)) * s;
-          qx = (_mat(0,2) + _mat(2,0)) * s;
-          qy = (_mat(1,2) + _mat(2,1)) * s;
+          qw = (_mat(1, 0) - _mat(0, 1)) * s;
+          qx = (_mat(0, 2) + _mat(2, 0)) * s;
+          qy = (_mat(1, 2) + _mat(2, 1)) * s;
         }
       }
 
@@ -480,21 +487,31 @@ namespace ignition
         const T kCosTheta = _v1.Dot(_v2);
         const T k = sqrt(_v1.SquaredLength() * _v2.SquaredLength());
 
-        if (fabs(kCosTheta/k + 1) < 1e-6) {
+        if (fabs(kCosTheta/k + 1) < 1e-6)
+        {
           // the vectors are opposite
-          Vector3<T> other; // any vector orthogonal to _v1
+          Vector3<T> other;  // any vector orthogonal to _v1
           {
             const Vector3<T> _v1Abs(_v1.Abs());
-            if (_v1Abs.X() < _v1Abs.Y()) {
-              if (_v1Abs.X() < _v1Abs.Z()) {
+            if (_v1Abs.X() < _v1Abs.Y())
+            {
+              if (_v1Abs.X() < _v1Abs.Z())
+              {
                 other = (1, 0, 0);
-              } else {
+              }
+              else
+              {
                 other = (0, 0, 1);
               }
-            } else {
-              if (_v1Abs.Y() < _v1Abs.Z()) {
+            }
+            else
+            {
+              if (_v1Abs.Y() < _v1Abs.Z())
+              {
                 other = (0, 1, 0);
-              } else {
+              }
+              else
+              {
                 other = (0, 0, 1);
               }
             }
@@ -506,7 +523,9 @@ namespace ignition
           qx = axis.X();
           qy = axis.Y();
           qz = axis.Z();
-        } else {
+        }
+        else
+        {
           // the vectors are in general position
           const Vector3<T> axis(_v1.Cross(_v2));
           qw = kCosTheta + k;
