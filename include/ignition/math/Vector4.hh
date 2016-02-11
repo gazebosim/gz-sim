@@ -45,7 +45,8 @@ namespace ignition
       /// \param[in] _y value along y axis
       /// \param[in] _z value along z axis
       /// \param[in] _w value along w axis
-      public: explicit Vector4(const T &_x, const T &_y, const T &_z, const T &_w)
+      public: explicit Vector4(
+                  const T &_x, const T &_y, const T &_z, const T &_w)
       {
         this->data[0] = _x;
         this->data[1] = _y;
