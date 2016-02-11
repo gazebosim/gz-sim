@@ -29,15 +29,15 @@ TEST(RandTest, Rand)
   int i;
   // TODO: implement a proper random number generator test
 
-  d = ignition::math::Rand::DblUniform(1, 2);
-  EXPECT_LE(d, 2);
+  d = math::Rand::DblUniform(1, 2);
   EXPECT_GE(d, 1);
+  EXPECT_LE(d, 2);
+
+  i = math::Rand::IntUniform(1, 2);
+  EXPECT_GE(i, 1);
+  EXPECT_LE(i, 2);
 
   d = math::Rand::DblNormal(2, 3);
-  i = math::Rand::IntUniform(1, 2);
-  EXPECT_LE(i, 2);
-  EXPECT_GE(i, 1);
-
   i = math::Rand::IntNormal(2, 3);
 
 #ifndef _MSC_VER
