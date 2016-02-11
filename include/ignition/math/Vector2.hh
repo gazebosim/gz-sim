@@ -44,7 +44,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _x value along x
       /// \param[in] _y value along y
-      public: Vector2(const T &_x, const T &_y)
+      public: explicit Vector2(const T &_x, const T &_y)
       {
         this->data[0] = _x;
         this->data[1] = _y;
