@@ -114,7 +114,9 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
-  add_definitions("/EHsc")
+  if(MSVC)
+    add_definitions("/EHsc")
+  endif()
 endmacro()
 
 #################################################
