@@ -167,6 +167,14 @@ bool Angle::operator>=(const Angle &angle) const
 }
 
 //////////////////////////////////////////////////
+Angle &Angle::operator=(const Angle &_angle)
+{
+  this->value = _angle.value;
+
+  return *this;
+}
+
+//////////////////////////////////////////////////
 double Angle::operator()() const
 {
   return this->value;

@@ -169,6 +169,15 @@ namespace ignition
         this->data[2][_c] = _v.Z();
       }
 
+      /// \brief Equal operator. this = _mat
+      /// \param _mat Incoming matrix
+      /// \return itself
+      public: const Matrix3<T> &operator=(const Matrix3<T> &_mat)
+      {
+        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
+        return *this;
+      }
+
       /// \brief returns the element wise difference of two matrices
       public: Matrix3<T> operator-(const Matrix3<T> &_m) const
       {
