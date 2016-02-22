@@ -91,7 +91,7 @@ namespace ignition
       /// \brief Assignment operator. Set this angle to the parameter
       /// \param[in]  _angle Angle to copy
       /// \return The new angle.
-	  public: Angle &operator=(const Angle& _angle);
+      public: Angle &operator=(const Angle& _angle);
 
       /// \brief Return the angle's radian value
       /// \return double containing the angle's radian value
