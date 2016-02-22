@@ -45,7 +45,7 @@ TEST(RotationSplineTest, RotationSpline)
                math::IndexException);
   s.UpdatePoint(1, math::Quaterniond(.2, .2, .2));
   s.AutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
+  s.UpdatePoint(0, math::Quaterniond(-.1, -.1, -.1));
   s.AutoCalculate(true);
 
   // ::Interpolate

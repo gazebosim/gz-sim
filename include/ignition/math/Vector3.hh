@@ -63,7 +63,7 @@ namespace ignition
       /// \param[in] _x value along x
       /// \param[in] _y value along y
       /// \param[in] _z value along z
-      public: Vector3(const T &_x, const T &_y, const T &_z)
+      public: explicit Vector3(const T &_x, const T &_y, const T &_z)
       {
         this->data[0] = _x;
         this->data[1] = _y;
