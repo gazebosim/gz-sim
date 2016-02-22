@@ -62,13 +62,14 @@ SUPPRESS=/tmp/cpp_check.suppress
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
 SUPPRESS=/tmp/gazebo_cpp_check.suppress
-echo "*:gazebo/common/STLLoader.cc:94" > $SUPPRESS
-echo "*:gazebo/common/STLLoader.cc:105" >> $SUPPRESS
+# false positives related to explicit constructors where there is no
+# constructor declared
 echo "*:include/ignition/math/Vector2.hh:230" > $SUPPRESS
 echo "*:include/ignition/math/Vector3.hh:372" >> $SUPPRESS
 echo "*:include/ignition/math/Vector3.hh:433" >> $SUPPRESS
 echo "*:include/ignition/math/Vector3.hh:536" >> $SUPPRESS
 echo "*:include/ignition/math/Vector4.hh:257" >> $SUPPRESS
+echo "*:include/ignition/math/Vector4.hh:258" >> $SUPPRESS	
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
