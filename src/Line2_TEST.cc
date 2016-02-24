@@ -49,8 +49,9 @@ TEST(Line2Test, Length)
 }
 
 #ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4723 )          // C4723: potential divide by 0
+#pragma warning(push)
+// C4723: potential divide by 0
+#pragma warning(disable : 4723)
 #endif
 /////////////////////////////////////////////////
 TEST(Line2Test, Slope)
@@ -71,7 +72,7 @@ TEST(Line2Test, Slope)
   }
 }
 #ifdef _MSC_VER
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 
 /////////////////////////////////////////////////
