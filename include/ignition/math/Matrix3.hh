@@ -183,7 +183,7 @@ namespace ignition
         const T dot = _v1.Dot(_v2) / sqrt(_v1LengthSquared * _v2LengthSquared);
         if (fabs(dot - 1.0) <= 1e-6)
         {
-          // the vectors are perpendicular
+          // the vectors are parallel
           Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
           return;
         }

@@ -499,27 +499,30 @@ namespace ignition
             {
               if (_v1Abs.X() < _v1Abs.Z())
               {
-                other = (1, 0, 0);
+                other = {1, 0, 0};
               }
               else
               {
-                other = (0, 0, 1);
+                other = {0, 0, 1};
               }
             }
             else
             {
               if (_v1Abs.Y() < _v1Abs.Z())
               {
-                other = (0, 1, 0);
+                other = {0, 1, 0};
               }
               else
               {
-                other = (0, 0, 1);
+                other = {0, 0, 1};
               }
             }
           }
 
           const Vector3<T> axis(_v1.Cross(other).Normalize());
+          std::cout << other << std::endl;
+          std::cout << _v1 << std::endl;
+          std::cout << axis << std::endl;
 
           qw = 0;
           qx = axis.X();
