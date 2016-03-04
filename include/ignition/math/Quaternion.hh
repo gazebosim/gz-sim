@@ -463,7 +463,7 @@ namespace ignition
       }
 
       /// \brief Set this quaternion to represent rotation from vector _v1 to
-      /// vector _v2
+      /// vector _v2 so that _v2 = this * _v1 holds.
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
       ///
