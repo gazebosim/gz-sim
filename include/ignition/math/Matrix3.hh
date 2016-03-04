@@ -159,7 +159,7 @@ namespace ignition
       }
 
       /// \brief Set the matrix to represent rotation from vector
-      /// _v1 to vector _v2
+      /// _v1 to vector _v2, so that _v2 = this * _v1 holds.
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
       public: void From2Axes(const Vector3<T>& _v1, const Vector3<T>& _v2)
