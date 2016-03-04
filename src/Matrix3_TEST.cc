@@ -354,7 +354,7 @@ TEST(Matrix3dTest, From2Axes)
   EXPECT_EQ(v2, m1 * v1);
   EXPECT_EQ(v1, m2 * v2);
 
-  // rotaion about 45 degrees
+  // rotation about 45 degrees
   v1.Set(1.0, 0.0, 0.0);
   v2.Set(1.0, 1.0, 0.0);
   m2.From2Axes(v1, v2);
