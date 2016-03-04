@@ -520,9 +520,6 @@ namespace ignition
           }
 
           const Vector3<T> axis(_v1.Cross(other).Normalize());
-          std::cout << other << std::endl;
-          std::cout << _v1 << std::endl;
-          std::cout << axis << std::endl;
 
           qw = 0;
           qx = axis.X();
