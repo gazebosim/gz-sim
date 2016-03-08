@@ -158,8 +158,10 @@ namespace ignition
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
-      /// \brief Set the matrix to represent rotation from vector
-      /// _v1 to vector _v2, so that _v2 = this * _v1 holds.
+      /// \brief Set the matrix to represent rotation from 
+      /// vector _v1 to vector _v2, so that 
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
       public: void From2Axes(const Vector3<T>& _v1, const Vector3<T>& _v2)
