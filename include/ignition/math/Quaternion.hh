@@ -462,8 +462,8 @@ namespace ignition
         }
       }
 
-      /// \brief Set this quaternion to represent rotation from 
-      /// vector _v1 to vector _v2, so that 
+      /// \brief Set this quaternion to represent rotation from
+      /// vector _v1 to vector _v2, so that
       /// _v2.Normalize() == this * _v1.Normalize() holds.
       ///
       /// \param[in] _v1 The first vector
