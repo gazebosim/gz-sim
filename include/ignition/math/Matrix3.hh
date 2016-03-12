@@ -158,8 +158,8 @@ namespace ignition
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
-      /// \brief Set the matrix to represent rotation from 
-      /// vector _v1 to vector _v2, so that 
+      /// \brief Set the matrix to represent rotation from
+      /// vector _v1 to vector _v2, so that
       /// _v2.Normalize() == this * _v1.Normalize() holds.
       ///
       /// \param[in] _v1 The first vector
