@@ -80,7 +80,7 @@ namespace ignition
       /// \brief Construct from rotation matrix.
       /// \param[in] _mat rotation matrix (must be orthogonal, the function
       ///                 doesn't check it)
-      public: Quaternion(const Matrix3<T> &_mat)
+      public: explicit Quaternion(const Matrix3<T> &_mat)
       {
         this->Matrix(_mat);
       }
