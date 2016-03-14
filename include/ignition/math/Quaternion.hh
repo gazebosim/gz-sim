@@ -20,11 +20,14 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/Matrix3.hh>
 
 namespace ignition
 {
   namespace math
   {
+    template <typename T> class Matrix3;
+
     /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
     /// \brief A quaternion class
     template<typename T>
@@ -72,6 +75,14 @@ namespace ignition
       public: Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
+      }
+
+      /// \brief Construct from rotation matrix.
+      /// \param[in] _mat rotation matrix (must be orthogonal, the function
+      ///                 doesn't check it)
+      public: explicit Quaternion(const Matrix3<T> &_mat)
+      {
+        this->Matrix(_mat);
       }
 
       /// \brief Copy constructor
@@ -404,6 +415,128 @@ namespace ignition
           _angle = 2.0 * acos(this->qw);
           T invLen =  1.0 / sqrt(len);
           _axis.Set(this->qx*invLen, this->qy*invLen, this->qz*invLen);
+        }
+      }
+
+      /// \brief Set from a rotation matrix.
+      /// \param[in] _mat rotation matrix (must be orthogonal, the function
+      ///                 doesn't check it)
+      ///
+      /// Implementation inspired by
+      /// http://www.euclideanspace.com/maths/geometry/rotations/
+      /// conversions/matrixToQuaternion/
+      void Matrix(const Matrix3<T> &_mat)
+      {
+        const T trace = _mat(0, 0) + _mat(1, 1) + _mat(2, 2);
+        if (trace > 0.0000001)
+        {
+          qw = sqrt(1 + trace) / 2;
+          const T s = 1.0 / (4 * qw);
+          qx = (_mat(2, 1) - _mat(1, 2)) * s;
+          qy = (_mat(0, 2) - _mat(2, 0)) * s;
+          qz = (_mat(1, 0) - _mat(0, 1)) * s;
+        }
+        else if (_mat(0, 0) > _mat(1, 1) && _mat(0, 0) > _mat(2, 2))
+        {
+          qx = sqrt(1.0 + _mat(0, 0) - _mat(1, 1) - _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qx);
+          qw = (_mat(2, 1) - _mat(1, 2)) * s;
+          qy = (_mat(1, 0) + _mat(0, 1)) * s;
+          qz = (_mat(0, 2) + _mat(2, 0)) * s;
+        }
+        else if (_mat(1, 1) > _mat(2, 2))
+        {
+          qy = sqrt(1.0 - _mat(0, 0) + _mat(1, 1) - _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qy);
+          qw = (_mat(0, 2) - _mat(2, 0)) * s;
+          qx = (_mat(0, 1) + _mat(1, 0)) * s;
+          qz = (_mat(1, 2) + _mat(2, 1)) * s;
+        }
+        else
+        {
+          qz = sqrt(1.0 - _mat(0, 0) - _mat(1, 1) + _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qz);
+          qw = (_mat(1, 0) - _mat(0, 1)) * s;
+          qx = (_mat(0, 2) + _mat(2, 0)) * s;
+          qy = (_mat(1, 2) + _mat(2, 1)) * s;
+        }
+      }
+
+      /// \brief Set this quaternion to represent rotation from
+      /// vector _v1 to vector _v2, so that
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
+      /// \param[in] _v1 The first vector
+      /// \param[in] _v2 The second vector
+      ///
+      /// Implementation inspired by
+      /// http://stackoverflow.com/a/11741520/1076564
+      public: void From2Axes(const Vector3<T>& _v1, const Vector3<T>& _v2)
+      {
+        // generally, we utilize the fact that a quat (w, x, y, z) represents
+        // rotation of angle 2*w about axis (x, y, z)
+        //
+        // so we want to take get a vector half-way between no rotation and the
+        // double rotation, which is
+        // [ (1, (0, 0, 0)) + (_v1 dot _v2, _v1 x _v2) ] / 2
+        // if _v1 and _v2 are unit quaternions
+        //
+        // since we normalize the result anyway, we can omit the division,
+        // getting the result:
+        // [ (1, (0, 0, 0)) + (_v1 dot _v2, _v1 x _v2) ].Normalized()
+        //
+        // if _v1 and _v2 are not normalized, the magnitude (1 + _v1 dot _v2)
+        // is multiplied by k = norm(_v1)*norm(_v2)
+
+        const T kCosTheta = _v1.Dot(_v2);
+        const T k = sqrt(_v1.SquaredLength() * _v2.SquaredLength());
+
+        if (fabs(kCosTheta/k + 1) < 1e-6)
+        {
+          // the vectors are opposite
+          Vector3<T> other;  // any vector orthogonal to _v1
+          {
+            const Vector3<T> _v1Abs(_v1.Abs());
+            if (_v1Abs.X() < _v1Abs.Y())
+            {
+              if (_v1Abs.X() < _v1Abs.Z())
+              {
+                other = {1, 0, 0};
+              }
+              else
+              {
+                other = {0, 0, 1};
+              }
+            }
+            else
+            {
+              if (_v1Abs.Y() < _v1Abs.Z())
+              {
+                other = {0, 1, 0};
+              }
+              else
+              {
+                other = {0, 0, 1};
+              }
+            }
+          }
+
+          const Vector3<T> axis(_v1.Cross(other).Normalize());
+
+          qw = 0;
+          qx = axis.X();
+          qy = axis.Y();
+          qz = axis.Z();
+        }
+        else
+        {
+          // the vectors are in general position
+          const Vector3<T> axis(_v1.Cross(_v2));
+          qw = kCosTheta + k;
+          qx = axis.X();
+          qy = axis.Y();
+          qz = axis.Z();
+          this->Normalize();
         }
       }
 
