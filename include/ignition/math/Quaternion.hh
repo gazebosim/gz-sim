@@ -471,7 +471,7 @@ namespace ignition
       ///
       /// Implementation inspired by
       /// http://stackoverflow.com/a/11741520/1076564
-      public: void From2Axes(const Vector3<T>& _v1, const Vector3<T>& _v2)
+      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
       {
         // generally, we utilize the fact that a quat (w, x, y, z) represents
         // rotation of angle 2*w about axis (x, y, z)
@@ -494,7 +494,8 @@ namespace ignition
         if (fabs(kCosTheta/k + 1) < 1e-6)
         {
           // the vectors are opposite
-          Vector3<T> other;  // any vector orthogonal to _v1
+          // any vector orthogonal to _v1
+          Vector3<T> other;
           {
             const Vector3<T> _v1Abs(_v1.Abs());
             if (_v1Abs.X() < _v1Abs.Y())

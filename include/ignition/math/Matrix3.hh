@@ -164,13 +164,13 @@ namespace ignition
       ///
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
-      public: void From2Axes(const Vector3<T>& _v1, const Vector3<T>& _v2)
+      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
       {
         const T _v1LengthSquared = _v1.SquaredLength();
         if (_v1LengthSquared <= 0.0)
         {
           // zero vector - we can't handle this
-          Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
           return;
         }
 
@@ -178,7 +178,7 @@ namespace ignition
         if (_v2LengthSquared <= 0.0)
         {
           // zero vector - we can't handle this
-          Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
           return;
         }
 
@@ -186,19 +186,19 @@ namespace ignition
         if (fabs(dot - 1.0) <= 1e-6)
         {
           // the vectors are parallel
-          Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
           return;
         }
         else if (fabs(dot + 1.0) <= 1e-6)
         {
           // the vectors are opposite
-          Set(-1, 0, 0, 0, -1, 0, 0, 0, -1);
+          this->Set(-1, 0, 0, 0, -1, 0, 0, 0, -1);
           return;
         }
 
         const Vector3<T> cross = _v1.Cross(_v2).Normalize();
 
-        Axis(cross, acos(dot));
+        this->Axis(cross, acos(dot));
       }
 
       /// \brief Set a column
