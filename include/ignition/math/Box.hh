@@ -18,8 +18,10 @@
 #define _IGNITION_BOX_HH_
 
 #include <iostream>
+#include <tuple>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/Line3.hh>
 
 namespace ignition
 {
@@ -151,6 +153,75 @@ namespace ignition
       /// \param[in] _p Point to check.
       /// \return True if the point is inside the box.
       public: bool Contains(const Vector3d &_p) const;
+
+      /// \brief Check if a ray (origin, direction) intersects the box.
+      /// \param[in] _origin Origin of the ray.
+      /// \param[in] _dir Direction of the ray. This ray will be normalized.
+      /// \param[in] _min Minimum allowed distance.
+      /// \param[in] _max Maximum allowed distance.
+      /// \return A boolean
+      public: bool IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
+                  const double _min, const double _max) const;
+
+      /// \brief Check if a ray (origin, direction) intersects the box.
+      /// \param[in] _origin Origin of the ray.
+      /// \param[in] _dir Direction of the ray. This ray will be normalized.
+      /// \param[in] _min Minimum allowed distance.
+      /// \param[in] _max Maximum allowed distance.
+      /// \return A boolean and double tuple. The boolean value is true
+      /// if the line intersects the box.
+      ///
+      /// The double is the distance from
+      /// the ray's start  to the closest intersection point on the box,
+      /// minus the _min distance. For example, if _min == 0.5 and the
+      /// intersection happens at a distance of 2.0 from _origin then returned
+      /// distance is 1.5.
+      ///
+      /// The double value is zero when the boolean value is false.
+      public: std::tuple<bool, double> IntersectDist(
+                  const Vector3d &_origin, const Vector3d &_dir,
+                  const double _min, const double _max) const;
+
+      /// \brief Check if a ray (origin, direction) intersects the box.
+      /// \param[in] _origin Origin of the ray.
+      /// \param[in] _dir Direction of the ray. This ray will be normalized.
+      /// \param[in] _min Minimum allowed distance.
+      /// \param[in] _max Maximum allowed distance.
+      /// \return A boolean, double, Vector3d tuple. The boolean value is true
+      /// if the line intersects the box.
+      ///
+      /// The double is the distance from the ray's start to the closest
+      /// intersection point on the box,
+      /// minus the _min distance. For example, if _min == 0.5 and the
+      /// intersection happens at a distance of 2.0 from _origin then returned
+      /// distance is 1.5.
+      /// The double value is zero when the boolean value is false. The
+      ///
+      /// Vector3d is the intersection point on the box. The Vector3d value
+      /// is zero if the boolean value is false.
+      public: std::tuple<bool, double, Vector3d> Intersect(
+                  const Vector3d &_origin, const Vector3d &_dir,
+                  const double _min, const double _max) const;
+
+      /// \brief Check if a line intersects the box.
+      /// \param[in] _line The line to check against this box.
+      /// \return A boolean, double, Vector3d tuple. The boolean value is true
+      /// if the line intersects the box. The double is the distance from
+      /// the line's start to the closest intersection point on the box.
+      /// The double value is zero when the boolean value is false. The
+      /// Vector3d is the intersection point on the box. The Vector3d value
+      /// is zero if the boolean value is false.
+      public: std::tuple<bool, double, Vector3d> Intersect(
+                  const Line3d &_line) const;
+
+      /// \brief Clip a line to a dimension of the box.
+      /// This is a helper function to Intersects
+      /// \param[in] _d Dimension of the box(0, 1, or 2).
+      /// \param[in] _line Line to clip
+      /// \param[in,out] _low Close distance
+      /// \param[in,out] _high Far distance
+      private: bool ClipLine(const int _d, const Line3d &_line,
+                   double &_low, double &_high) const;
 
       /// \brief Private data pointer
       private: BoxPrivate *dataPtr;
