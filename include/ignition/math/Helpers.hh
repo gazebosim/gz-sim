@@ -51,6 +51,9 @@
 /// \brief Float lowest value, equivalent to -IGN_FLT_MAX
 #define IGN_FLT_LOW std::numeric_limits<float>::lowest()
 
+/// \brief Float positive infinite value
+#define IGN_FLT_INF std::numeric_limits<float>::infinity()
+
 /// \brief 16bit unsigned integer maximum value
 #define IGN_UINT16_MAX std::numeric_limits<uint16_t>::max()
 
@@ -60,6 +63,9 @@
 /// \brief 16bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT16_MIN, and is defined here for completeness.
 #define IGN_UINT16_LOW std::numeric_limits<uint16_t>::lowest()
+
+/// \brief 16-bit unsigned integer positive infinite value
+#define IGN_UINT16_INF std::numeric_limits<uint16_t>::infinity()
 
 /// \brief 16bit integer maximum value
 #define IGN_INT16_MAX std::numeric_limits<int16_t>::max()
@@ -71,6 +77,9 @@
 /// and is defined here for completeness.
 #define IGN_INT16_LOW std::numeric_limits<int16_t>::lowest()
 
+/// \brief 16-bit integer positive infinite value
+#define IGN_INT16_INF std::numeric_limits<int16_t>::infinity()
+
 /// \brief 32bit unsigned integer maximum value
 #define IGN_UINT32_MAX std::numeric_limits<uint32_t>::max()
 
@@ -80,6 +89,9 @@
 /// \brief 32bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT32_MIN, and is defined here for completeness.
 #define IGN_UINT32_LOW std::numeric_limits<uint32_t>::lowest()
+
+/// \brief 32-bit unsigned integer positive infinite value
+#define IGN_UINT32_INF std::numeric_limits<uint32_t>::infinity()
 
 /// \brief 32bit integer maximum value
 #define IGN_INT32_MAX std::numeric_limits<int32_t>::max()
@@ -91,6 +103,9 @@
 /// and is defined here for completeness.
 #define IGN_INT32_LOW std::numeric_limits<int32_t>::lowest()
 
+/// \brief 32-bit integer positive infinite value
+#define IGN_INT32_INF std::numeric_limits<int32_t>::infinity()
+
 /// \brief 64bit unsigned integer maximum value
 #define IGN_UINT64_MAX std::numeric_limits<uint64_t>::max()
 
@@ -101,6 +116,9 @@
 /// IGN_UINT64_MIN, and is defined here for completeness.
 #define IGN_UINT64_LOW std::numeric_limits<uint64_t>::lowest()
 
+/// \brief 64-bit unsigned integer positive infinite value
+#define IGN_UINT64_INF std::numeric_limits<uint64_t>::infinity()
+
 /// \brief 64bit integer maximum value
 #define IGN_INT64_MAX std::numeric_limits<int64_t>::max()
 
@@ -110,6 +128,9 @@
 /// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
 /// and is defined here for completeness.
 #define IGN_INT64_LOW std::numeric_limits<int64_t>::lowest()
+
+/// \brief 64-bit integer positive infinite value
+#define IGN_INT64_INF std::numeric_limits<int64_t>::infinity()
 
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
