@@ -39,11 +39,9 @@ namespace ignition
 
       /// \brief Clone the SignalStatisticPrivate object. Used for implementing
       /// copy semantics.
-      public: std::unique_ptr<SignalStatisticPrivate> Clone() const
+      public: SignalStatisticPrivate *Clone() const
       {
-        std::unique_ptr<SignalStatisticPrivate> dataPtr(
-            new SignalStatisticPrivate(*this));
-        return dataPtr;
+        return new SignalStatisticPrivate(*this);
       }
     };
 
@@ -65,14 +63,11 @@ namespace ignition
 
       /// \brief Clone the SignalStatsPrivate object. Used for implementing
       /// copy semantics.
-      public: std::unique_ptr<SignalStatsPrivate> Clone() const
+      public: SignalStatsPrivate *Clone() const
       {
-        std::unique_ptr<SignalStatsPrivate> dataPtr(
-            new SignalStatsPrivate(*this));
-        return dataPtr;
+        return new SignalStatsPrivate(*this);
       }
     };
   }
 }
 #endif
-
