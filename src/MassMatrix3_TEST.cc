@@ -340,6 +340,21 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     // the accuracy is slightly larger than 2e-2
     EXPECT_TRUE(m.PrincipalMoments().Equal(Ieigen, 2.1e-2));
     EXPECT_FALSE(m.PrincipalMoments().Equal(Ieigen, 2.0e-2));
+    std::cerr << "Ieigen "
+              << Ieigen[0] << " "
+              << Ieigen[1] << " "
+              << Ieigen[2] << " "
+              << std::endl;
+    std::cerr << "PriMom "
+              << m.PrincipalMoments()[0] << " "
+              << m.PrincipalMoments()[1] << " "
+              << m.PrincipalMoments()[2] << " "
+              << std::endl;
+    std::cerr << "diff "
+              << Ieigen[0] - m.PrincipalMoments()[0] << " "
+              << Ieigen[1] - m.PrincipalMoments()[1] << " "
+              << Ieigen[2] - m.PrincipalMoments()[2] << " "
+              << std::endl;
     // the default tolerance for == is 1e-6
     // so this should resolve as not equal
     EXPECT_NE(m.PrincipalMoments(), Ieigen);
