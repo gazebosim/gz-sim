@@ -327,6 +327,25 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
   }
+
+  // Another matrix with large condition number
+  // invalid inertia matrix since it doesn't satisfy triangle inequality
+  // 0.98 + 1e8-1e3 < 1e8+1e3
+  // 0.98 < 2e3
+  {
+    const math::Vector3d Ixxyyzz(1e8, 1e8, 1);
+    const math::Vector3d Ixyxzyz(1e3, 1e3, 1e3);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(0.98, 1e8-1e3, 1e8+1e3);
+    // the accuracy is slightly larger than 2e-2
+    EXPECT_TRUE(m.PrincipalMoments().Equal(Ieigen, 2.1e-2));
+    EXPECT_FALSE(m.PrincipalMoments().Equal(Ieigen, 2.0e-2));
+    // the default tolerance for == is 1e-6
+    // so this should resolve as not equal
+    EXPECT_NE(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
 }
 
 /////////////////////////////////////////////////
