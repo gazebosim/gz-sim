@@ -239,3 +239,94 @@ bool Box::Contains(const Vector3d &_p) const
          _p.Y() >= this->dataPtr->min.Y() && _p.Y() <= this->dataPtr->max.Y() &&
          _p.Z() >= this->dataPtr->min.Z() && _p.Z() <= this->dataPtr->max.Z();
 }
+
+//////////////////////////////////////////////////
+bool Box::ClipLine(const int _d, const Line3d &_line,
+                   double &_low, double &_high) const
+{
+  // dimLow and dimHigh are the results we're calculating for this
+  // current dimension.
+  double dimLow, dimHigh;
+
+  // Find the point of intersection in this dimension only as a fraction of
+  // the total vector http://youtu.be/USjbg5QXk3g?t=3m12s
+  dimLow = (this->dataPtr->min[_d] - _line[0][_d]) /
+    (_line[1][_d] - _line[0][_d]);
+
+  dimHigh = (this->dataPtr->max[_d] - _line[0][_d]) /
+    (_line[1][_d] - _line[0][_d]);
+
+  // Make sure low is less than high
+  if (dimHigh < dimLow)
+    std::swap(dimHigh, dimLow);
+
+  // If this dimension's high is less than the low we got then we definitely
+  // missed. http://youtu.be/USjbg5QXk3g?t=7m16s
+  if (dimHigh < _low)
+    return false;
+
+  // Likewise if the low is less than the high.
+  if (dimLow > _high)
+    return false;
+
+  // Add the clip from this dimension to the previous results
+  // http://youtu.be/USjbg5QXk3g?t=5m32s
+  if (std::isfinite(dimLow))
+    _low = std::max(dimLow, _low);
+
+  if (std::isfinite(dimHigh))
+    _high = std::min(dimHigh, _high);
+
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool Box::IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
+    const double _min, const double _max) const
+{
+  return std::get<0>(this->Intersect(_origin, _dir, _min, _max));
+}
+
+/////////////////////////////////////////////////
+std::tuple<bool, double> Box::IntersectDist(const Vector3d &_origin,
+    const Vector3d &_dir, const double _min, const double _max) const
+{
+  return std::make_tuple(
+      std::get<0>(this->Intersect(_origin, _dir, _min, _max)),
+      std::get<1>(this->Intersect(_origin, _dir, _min, _max)));
+}
+
+/////////////////////////////////////////////////
+std::tuple<bool, double, Vector3d>  Box::Intersect(
+    const Vector3d &_origin, const Vector3d &_dir,
+    const double _min, const double _max) const
+{
+  Vector3d dir = _dir;
+  dir.Normalize();
+  return this->Intersect(Line3d(_origin + dir * _min, _origin + dir * _max));
+}
+
+/////////////////////////////////////////////////
+// Find the intersection of a line from v0 to v1 and an
+// axis-aligned bounding box http://www.youtube.com/watch?v=USjbg5QXk3g
+std::tuple<bool, double, Vector3d> Box::Intersect(const Line3d &_line) const
+{
+  // low and high are the results from all clipping so far.
+  // We'll write our results back out to those parameters.
+  double low = 0;
+  double high = 1;
+
+  if (!this->ClipLine(0, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
+
+  if (!this->ClipLine(1, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
+
+  if (!this->ClipLine(2, _line, low, high))
+    return std::make_tuple(false, 0, Vector3d::Zero);
+
+  // The formula for I: http://youtu.be/USjbg5QXk3g?t=6m24s
+  Vector3d intersection = _line[0] + ((_line[1] - _line[0]) * low);
+
+  return std::make_tuple(true, _line[0].Distance(intersection), intersection);
+}

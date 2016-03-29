@@ -419,6 +419,33 @@ TEST(QuaternionTest, Math)
                 0.707544, 0.705561, -0.0395554, 0,
                 -0.344106, 0.392882, 0.85278, 0,
                 0, 0, 0, 1));
+
+    math::Matrix3d matFromQuat(q);
+
+    math::Quaterniond quatFromMat(matFromQuat);
+    math::Quaterniond quatFromMat2; quatFromMat2.Matrix(matFromQuat);
+
+    EXPECT_TRUE(q == quatFromMat);
+    EXPECT_TRUE(q == quatFromMat2);
+
+    // test the cases where matrix trace is negative (requires special handling)
+    q = math::Quaterniond(0, 0, 0, 1);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                -1,  0, 0,
+                 0, -1, 0,
+                 0,  0, 1)));
+
+    q = math::Quaterniond(0, 0, 1, 0);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                -1,  0,  0,
+                 0,  1,  0,
+                 0,  0, -1)));
+
+    q = math::Quaterniond(0, 1, 0, 0);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                1,  0,  0,
+                0, -1,  0,
+                0,  0, -1)));
   }
 }
 
@@ -440,3 +467,79 @@ TEST(QuaternionTest, Slerp)
   math::Quaterniond q3 = math::Quaterniond::Slerp(1.0, q1, q2, true);
   EXPECT_EQ(q3, math::Quaterniond(0.554528, -0.717339, 0.32579, 0.267925));
 }
+
+/////////////////////////////////////////////////
+TEST(QuaterniondTest, From2Axes)
+{
+  math::Vector3d v1(1.0, 0.0, 0.0);
+  math::Vector3d v2(0.0, 1.0, 0.0);
+
+  math::Quaterniond q1;
+  q1.From2Axes(v1, v2);
+
+  math::Quaterniond q2;
+  q2.From2Axes(v2, v1);
+
+  math::Quaterniond q1Correct(sqrt(2)/2, 0, 0, sqrt(2)/2);
+  math::Quaterniond q2Correct(sqrt(2)/2, 0, 0, -sqrt(2)/2);
+
+  EXPECT_NE(q1, q2);
+  EXPECT_EQ(q1Correct, q1);
+  EXPECT_EQ(q2Correct, q2);
+  EXPECT_EQ(math::Quaterniond::Identity, q1 * q2);
+  EXPECT_EQ(v2, q1 * v1);
+  EXPECT_EQ(v1, q2 * v2);
+
+  // still the same rotation, but with non-unit vectors
+  v1.Set(0.5, 0.5, 0);
+  v2.Set(-0.5, 0.5, 0);
+
+  q1.From2Axes(v1, v2);
+  q2.From2Axes(v2, v1);
+
+  EXPECT_NE(q1, q2);
+  EXPECT_EQ(q1Correct, q1);
+  EXPECT_EQ(q2Correct, q2);
+  EXPECT_EQ(math::Quaterniond::Identity, q1 * q2);
+  EXPECT_EQ(v2, q1 * v1);
+  EXPECT_EQ(v1, q2 * v2);
+
+  // Test various settings of opposite vectors (which need special care)
+
+  v1.Set(1, 0, 0);
+  v2.Set(-1, 0, 0);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 1, 0);
+  v2.Set(0, -1, 0);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 0, 1);
+  v2.Set(0, 0, -1);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 1, 1);
+  v2.Set(0, -1, -1);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+}
+
