@@ -35,7 +35,6 @@ TEST(RandTest, Rand)
   EXPECT_GE(i, 1);
   EXPECT_LE(i, 2);
 
-
 #ifndef _MSC_VER
   {
     // Test setting the random number seed
