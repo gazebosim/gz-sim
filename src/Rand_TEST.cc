@@ -40,9 +40,10 @@ TEST(RandTest, Rand)
     // Test setting the random number seed
     math::Rand::Seed(1001);
 
-    d = math::Rand::DblNormal(2, 3);
     int i = math::Rand::IntNormal(10, 5);
     EXPECT_EQ(i, 9);
+
+    d = math::Rand::DblNormal(2, 3);
 
     // \todo OSX seems to produce different results. See issue #14.
 #ifdef __APPLE__
