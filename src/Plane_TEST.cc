@@ -32,8 +32,9 @@ TEST(PlaneTest, PlaneConstructor)
 }
 
 #ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4723 )          // C4723: potential divide by 0
+#pragma warning(push)
+// C4723: potential divide by 0
+#pragma warning(disable : 4723)
 #endif
 /////////////////////////////////////////////////
 TEST(PlaneTest, Distance)
@@ -51,7 +52,7 @@ TEST(PlaneTest, Distance)
               Vector3d(1, 0, 0)), 0, 1e-6);
 }
 #ifdef _MSC_VER
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 
 /////////////////////////////////////////////////
