@@ -18,6 +18,7 @@
 #define _IGNITION_SIGNAL_STATS_HH_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <ignition/math/Helpers.hh>
 
@@ -62,7 +63,7 @@ namespace ignition
       public: virtual void Reset();
 
       /// \brief Pointer to private data.
-      protected: SignalStatisticPrivate *dataPtr;
+      protected: std::unique_ptr<SignalStatisticPrivate> dataPtr;
     };
     /// \}
 
@@ -225,7 +226,7 @@ namespace ignition
       public: void Reset();
 
       /// \brief Pointer to private data.
-      protected: SignalStatsPrivate *dataPtr;
+      protected: std::unique_ptr<SignalStatsPrivate> dataPtr;
     };
     /// \}
   }
