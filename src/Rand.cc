@@ -35,7 +35,7 @@ using namespace math;
 // and gui simultaneously).
 uint32_t Rand::seed = std::random_device {}();
 
-GeneratorType *Rand::randGenerator = new GeneratorType(seed);
+std::unique_ptr<GeneratorType> Rand::randGenerator(new GeneratorType(seed));
 
 //////////////////////////////////////////////////
 void Rand::Seed(unsigned int _seed)
