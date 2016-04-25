@@ -41,7 +41,7 @@ namespace ignition
 
       /// \brief When set to EXTENT_NULL (in the default constructor)
       /// the min and max are not valid positions
-      public: Extent extent;
+      public: Extent extent = EXTENT_FINITE;
     };
   }
 }

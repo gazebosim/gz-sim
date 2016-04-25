@@ -432,7 +432,7 @@ namespace ignition
         p++;
       }
 
-      double acc = 0;
+      int acc = 0;
       while (*p >= '0' && *p <= '9')
         acc = acc * 10 + *p++ - '0';
 
