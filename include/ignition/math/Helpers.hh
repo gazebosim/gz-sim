@@ -442,7 +442,7 @@ namespace ignition
         return NAN_I;
       }
 
-      return static_cast<int>(s * acc);
+      return s * acc;
     }
 
     /// \brief parse string into float
