@@ -32,6 +32,7 @@ TEST(TemperatureTest, Constructor)
 
   Temperature temp3(temp2);
   EXPECT_NEAR(temp3.Kelvin(), 1.1, 1e-6);
+  EXPECT_NEAR(temp3.Celsius(), -272.05, 1e-6);
 
   EXPECT_TRUE(temp2 == temp3);
   EXPECT_TRUE(temp2 == 1.1);
@@ -125,6 +126,11 @@ TEST(TemperatureTest, Operators)
   EXPECT_NEAR(temp.Kelvin(), 120, 1e-6);
   temp /= 4.0;
   EXPECT_NEAR(temp.Kelvin(), 30, 1e-6);
+
+  Temperature temp3;
+  temp3 = temp;
+  EXPECT_TRUE(temp3 == temp);
+  EXPECT_TRUE(temp3 == temp2);
 }
 
 /////////////////////////////////////////////////
