@@ -3,7 +3,6 @@ include (${project_cmake_dir}/Utils.cmake)
 set (sources
   Angle.cc
   Box.cc
-  BoxPrivate.cc
   Frustum.cc
   Helpers.cc
   IndexException.cc
