@@ -33,7 +33,7 @@ namespace ignition
       /// \param[in] _temp Temperature in Kelvin
       public: TemperaturePrivate(const double _temp) : kelvin(_temp) {}
 
-      /// \brief Temeperate value in Kelvin.
+      /// \brief Temperature value in Kelvin.
       public: double kelvin;
     };
   }
