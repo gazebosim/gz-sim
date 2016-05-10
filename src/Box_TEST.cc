@@ -14,10 +14,6 @@
  * limitations under the License.
  *
 */
-#ifndef _USE_MATH_DEFINES
-# define _USE_MATH_DEFINES
-#endif
-
 #include <gtest/gtest.h>
 #include <cmath>
 
@@ -327,7 +323,7 @@ TEST(BoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(math::Vector3d(2, 2, 0),
       math::Vector3d(-1, -1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, M_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, IGN_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(math::Vector3d(2, 2, 0),
       math::Vector3d(-1, -1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, math::Vector3d(1, 1, 0));
@@ -347,7 +343,7 @@ TEST(BoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(math::Vector3d(-1, -2, 0),
       math::Vector3d(1, 1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, 2*M_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, 2*IGN_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(math::Vector3d(-1, -2, 0),
       math::Vector3d(1, 1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, math::Vector3d(1, 0, 0));
@@ -357,7 +353,7 @@ TEST(BoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(math::Vector3d(2, 1, 0),
       math::Vector3d(-1, -1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, M_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, IGN_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(math::Vector3d(2, 1, 0),
       math::Vector3d(-1, -1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, math::Vector3d(1, 0, 0));
