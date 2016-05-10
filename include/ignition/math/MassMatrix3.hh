@@ -450,7 +450,7 @@ namespace ignition
           // eq 5.25:
           Vector2<T> g2(momentsDiff3 * s, 0);
           // eq 5.14:
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
 
           // The paragraph prior to equation 5.16 describes how to choose
@@ -480,14 +480,14 @@ namespace ignition
             // eq. 5.24
             Vector2<T> g1a(0, 0.5*momentsDiff3 * sin(2*phi2));
             // eq. 5.13
-            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
+            math::Angle phi11a(Angle2(g1a, tol) - Angle2(f1, tol));
             phi11a.Normalize();
 
             // b: phi2 < 0
             // eq. 5.24
             Vector2<T> g1b(0, 0.5*momentsDiff3 * sin(-2*phi2));
             // eq. 5.13
-            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
+            math::Angle phi11b(Angle2(g1b, tol) - Angle2(f1, tol));
             phi11b.Normalize();
 
             // choose sign of phi2
@@ -570,14 +570,14 @@ namespace ignition
         else if (f1small)
         {
           // use phi12 (equation 5.14)
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           phi1 = phi12.Radian();
         }
         else if (f2small)
         {
           // use phi11 (equation 5.13)
-          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
           phi1 = phi11.Radian();
         }
@@ -585,10 +585,10 @@ namespace ignition
         {
           // check for when phi11 == phi12
           // eq 5.13:
-          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
           // eq 5.14:
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
                  + std::pow(cos(phi11.Radian()) - cos(phi12.Radian()), 2);
@@ -598,8 +598,8 @@ namespace ignition
           {
             Vector2<T> g1a = Vector2<T>(1, -1) * g1;
             Vector2<T> g2a = Vector2<T>(1, -1) * g2;
-            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
-            math::Angle phi12a(0.5*(Angle2(g2a) - Angle2(f2)));
+            math::Angle phi11a(Angle2(g1a, tol) - Angle2(f1, tol));
+            math::Angle phi12a(0.5*(Angle2(g2a, tol) - Angle2(f2, tol)));
             phi11a.Normalize();
             phi12a.Normalize();
             T erra = std::pow(sin(phi11a.Radian()) - sin(phi12a.Radian()), 2)
@@ -615,8 +615,8 @@ namespace ignition
           {
             Vector2<T> g1b = Vector2<T>(-1, 1) * g1;
             Vector2<T> g2b = Vector2<T>(1, -1) * g2;
-            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
-            math::Angle phi12b(0.5*(Angle2(g2b) - Angle2(f2)));
+            math::Angle phi11b(Angle2(g1b, tol) - Angle2(f1, tol));
+            math::Angle phi12b(0.5*(Angle2(g2b, tol) - Angle2(f2, tol)));
             phi11b.Normalize();
             phi12b.Normalize();
             T errb = std::pow(sin(phi11b.Radian()) - sin(phi12b.Radian()), 2)
@@ -632,8 +632,8 @@ namespace ignition
           {
             Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
             Vector2<T> g2c = g2;
-            math::Angle phi11c(Angle2(g1c) - Angle2(f1));
-            math::Angle phi12c(0.5*(Angle2(g2c) - Angle2(f2)));
+            math::Angle phi11c(Angle2(g1c, tol) - Angle2(f1, tol));
+            math::Angle phi12c(0.5*(Angle2(g2c, tol) - Angle2(f2, tol)));
             phi11c.Normalize();
             phi12c.Normalize();
             T errc = std::pow(sin(phi11c.Radian()) - sin(phi12c.Radian()), 2)
@@ -666,11 +666,13 @@ namespace ignition
       }
 
       /// \brief Angle formed by direction of a Vector2.
+      /// \param[in] _v Vector whose direction is to be computed.
+      /// \param[in] _eps Minimum length of vector required for computing angle.
       /// \return Angle formed between vector and X axis,
       /// or zero if vector has length less than 1e-6.
-      private: static T Angle2(const Vector2<T> &_v, const T _tol = 1e-12)
+      private: static T Angle2(const Vector2<T> &_v, const T _eps = 1e-6)
       {
-        if (_v.SquaredLength() < _tol)
+        if (_v.SquaredLength() < std::pow(_eps, 2))
           return 0;
         return atan2(_v[1], _v[0]);
       }

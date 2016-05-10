@@ -470,56 +470,56 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Rotated by [45, 45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(-M_SQRT2, M_SQRT2, 1));
+    0.25*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, 1));
   // Rotated by [-45, 45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(M_SQRT2, M_SQRT2, -1));
+    0.25*math::Vector3d(IGN_SQRT2, IGN_SQRT2, -1));
   // Rotated by [45, -45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(M_SQRT2, -M_SQRT2, 1));
+    0.25*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, 1));
   // Rotated by [-45, -45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, -1));
+    0.25*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, -1));
 
   // Principal moments: [4, 4, 5]
   // Rotated by [45, 45, 45] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(-M_SQRT2, M_SQRT2, -1));
+    0.25*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, -1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(M_SQRT2, M_SQRT2, 1));
+    0.25*math::Vector3d(IGN_SQRT2, IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, 1));
+    0.25*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(M_SQRT2, -M_SQRT2, -1));
+    0.25*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, -1));
 
   // Principal moments [4e-9, 4e-9, 5e-9]
   // Rotated by [45, 45, 45] degrees
   // use tolerance of 1e-15
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(-M_SQRT2, M_SQRT2, -1), 1e-15);
+    0.25e-9*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, -1), 1e-15);
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(M_SQRT2, M_SQRT2, 1));
+    0.25e-9*math::Vector3d(IGN_SQRT2, IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(-M_SQRT2, -M_SQRT2, 1));
+    0.25e-9*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(M_SQRT2, -M_SQRT2, -1), 1e-15);
+    0.25e-9*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, -1), 1e-15);
 
   // Principal moments [4, 4, 6]
   // rotate by 30, 60, 0 degrees
@@ -577,11 +577,12 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::Vector3d(0, -1, -1));
 
   // Tri-diagonal matrix with identical diagonal terms
-  VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
     math::Vector3d(4.0, 4.0, 4.0),
     math::Vector3d(-1.0, 0, -1.0));
   // small magnitude, use tolerance of 1e-15
-  VerifyNondiagonalMomentsAndAxes(1e-9*math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
+  VerifyNondiagonalMomentsAndAxes(
+    1e-9 * math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
     1e-9 * math::Vector3d(4.0, 4.0, 4.0),
     1e-9 * math::Vector3d(-1.0, 0, -1.0), 1e-15);
 
