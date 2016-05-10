@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Open Source Robotics Foundation
+ * Copyright (C) 2015-2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,9 +512,9 @@ namespace ignition
           // repeated moments are at the end (moments[1] == moments[2]).
           // In this case (unequalMoment == 0), we apply an extra
           // rotation that exchanges moment[0] and moment[2]
-          // Rotation matrix = [0  0 -1]
-          //                   [0  1  0]
-          //                   [1  0  0]
+          // Rotation matrix = [ 0  0  1]
+          //                   [ 0  1  0]
+          //                   [-1  0  0]
           // That is equivalent to a 90 degree pitch
           if (unequalMoment == 0)
             result *= Quaternion<T>(0, IGN_PI_2, 0);
