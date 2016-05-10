@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_LINE3_HH_
-#define _IGNITION_LINE3_HH_
+#ifndef IGNITION_MATH_LINE3_HH_
+#define IGNITION_MATH_LINE3_HH_
 
 #include <algorithm>
 #include <ignition/math/Vector3.hh>

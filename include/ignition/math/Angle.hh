@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_ANGLE_HH_
-#define _IGNITION_ANGLE_HH_
+#ifndef IGNITION_MATH_ANGLE_HH_
+#define IGNITION_MATH_ANGLE_HH_
 
 #include <iostream>
 #include <ignition/math/Helpers.hh>

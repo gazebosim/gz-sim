@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_SIGNAL_STATS_HH_
-#define _IGNITION_SIGNAL_STATS_HH_
+#ifndef IGNITION_MATH_SIGNAL_STATS_HH_
+#define IGNITION_MATH_SIGNAL_STATS_HH_
 
 #include <map>
 #include <memory>

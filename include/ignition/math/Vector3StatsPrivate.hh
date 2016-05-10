@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR3_STATS_PRIVATE_HH_
-#define _IGNITION_VECTOR3_STATS_PRIVATE_HH_
+#ifndef IGNITION_MATH_VECTOR3_STATS_PRIVATE_HH_
+#define IGNITION_MATH_VECTOR3_STATS_PRIVATE_HH_
 
 #include <ignition/math/SignalStats.hh>
 

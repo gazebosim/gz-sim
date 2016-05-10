@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGNITION_MATRIX3_HH_
-#define _IGNITION_MATRIX3_HH_
+#ifndef IGNITION_MATH_MATRIX3_HH_
+#define IGNITION_MATH_MATRIX3_HH_
 
 #include <algorithm>
 #include <cstring>

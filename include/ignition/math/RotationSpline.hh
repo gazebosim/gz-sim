@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_ROTATIONSPLINE_HH_
-#define _IGNITION_ROTATIONSPLINE_HH_
+#ifndef IGNITION_MATH_ROTATIONSPLINE_HH_
+#define IGNITION_MATH_ROTATIONSPLINE_HH_
 
 #include <ignition/math/IndexException.hh>
 #include <ignition/math/Quaternion.hh>

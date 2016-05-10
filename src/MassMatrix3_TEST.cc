@@ -15,9 +15,6 @@
  *
 */
 
-#ifndef _USE_MATH_DEFINES
-# define _USE_MATH_DEFINES
-#endif
 #include <gtest/gtest.h>
 #include <cmath>
 
@@ -284,7 +281,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
-    const math::Vector3d Ieigen(2-M_SQRT2, 2, 2+M_SQRT2);
+    const math::Vector3d Ieigen(2-IGN_SQRT2, 2, 2+IGN_SQRT2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
@@ -296,7 +293,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     const math::Vector3d Ixxyyzz(4.0, 4.0, 4.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
-    const math::Vector3d Ieigen(4-M_SQRT2, 4, 4+M_SQRT2);
+    const math::Vector3d Ieigen(4-IGN_SQRT2, 4, 4+IGN_SQRT2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
