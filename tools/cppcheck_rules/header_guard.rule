@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<rule version="1">
+  <tokenlist>define</tokenlist>
+  <pattern>#define _[A-Z]</pattern>
+  <message>
+    <id>_AZdefine</id>
+    <severity>warning</severity>
+    <summary>Definitions should not start with underscore and then a capital letter.</summary>
+  </message>
+</rule>
