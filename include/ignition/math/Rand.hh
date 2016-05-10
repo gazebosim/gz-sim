@@ -20,6 +20,7 @@
 #include <random>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 #include <ignition/math/Helpers.hh>
 
 namespace ignition
@@ -73,8 +74,17 @@ namespace ignition
       /// \param[in] _sigma Sigma value for the distribution
       public: static int32_t IntNormal(int _mean, int _sigma);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief The random number generator.
-      private: static GeneratorType *randGenerator;
+      private: static std::unique_ptr<GeneratorType> randGenerator;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
       /// \brief Random number seed.
       private: static uint32_t seed;
