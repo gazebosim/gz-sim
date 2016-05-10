@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MASSMATRIX3_HH_
-#define IGNITION_MASSMATRIX3_HH_
+#ifndef IGNITION_MATH_MASSMATRIX3_HH_
+#define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
 #include <string>

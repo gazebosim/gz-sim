@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGNITION_FILTER_HH_
-#define _IGNITION_FILTER_HH_
+#ifndef IGNITION_MATH_FILTER_HH_
+#define IGNITION_MATH_FILTER_HH_
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
