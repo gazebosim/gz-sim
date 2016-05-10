@@ -16,8 +16,8 @@
 */
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
-#ifndef _IGNITION_SPLINE_HH_
-#define _IGNITION_SPLINE_HH_
+#ifndef IGNITION_MATH_SPLINE_HH_
+#define IGNITION_MATH_SPLINE_HH_
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>

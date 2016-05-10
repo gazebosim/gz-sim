@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MATRIX4_HH_
-#define _IGNITION_MATRIX4_HH_
+#ifndef IGNITION_MATH_MATRIX4_HH_
+#define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
 #include <ignition/math/Helpers.hh>
