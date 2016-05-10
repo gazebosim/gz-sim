@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
@@ -120,7 +119,7 @@ TEST(FrustumTest, PyramidXAxisNeg)
       // Aspect ratio
       320.0/240.0,
       // Pose
-      Pose3d(0, 0, 0, 0, 0, M_PI));
+      Pose3d(0, 0, 0, 0, 0, IGN_PI));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(-0.5, 0, 0)));
@@ -148,7 +147,7 @@ TEST(FrustumTest, PyramidYAxis)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, 0, M_PI*0.5));
+      Pose3d(0, 0, 0, 0, 0, IGN_PI*0.5));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(1, 0, 0)));
@@ -176,7 +175,7 @@ TEST(FrustumTest, PyramidZAxis)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, -0.9)));
@@ -205,7 +204,7 @@ TEST(FrustumTest, NearFar)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
   EXPECT_DOUBLE_EQ(frustum.Near(), 1.0);
   EXPECT_DOUBLE_EQ(frustum.Far(), 10.0);
@@ -230,7 +229,7 @@ TEST(FrustumTest, FOV)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
   EXPECT_EQ(frustum.FOV(), math::Angle(IGN_DTOR(45)));
 
@@ -252,7 +251,7 @@ TEST(FrustumTest, AspectRatio)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
   EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 320.0/320.0);
 
@@ -274,13 +273,13 @@ TEST(FrustumTest, Pose)
       // Aspect ratio
       320.0/320.0,
       // Pose
-      Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
-  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, M_PI*0.5, 0));
+  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
 
-  frustum.SetPose(Pose3d(1, 2, 3, M_PI, 0, 0));
+  frustum.SetPose(Pose3d(1, 2, 3, IGN_PI, 0, 0));
 
-  EXPECT_EQ(frustum.Pose(), Pose3d(1, 2, 3, M_PI, 0, 0));
+  EXPECT_EQ(frustum.Pose(), Pose3d(1, 2, 3, IGN_PI, 0, 0));
 }
 
 /////////////////////////////////////////////////
@@ -296,7 +295,7 @@ TEST(FrustumTest, PoseContains)
       // Aspect ratio
       1920.0/1080.0,
       // Pose
-      Pose3d(0, -5, 0, 0, 0, M_PI*0.5));
+      Pose3d(0, -5, 0, 0, 0, IGN_PI*0.5));
 
   // Test the near clip boundary
   EXPECT_FALSE(frustum.Contains(Vector3d(0, -4.01, 0)));
@@ -422,7 +421,7 @@ TEST(FrustumTest, PoseContains)
   EXPECT_FALSE(frustum.Contains(farBottomRightBad));
 
   // Adjust to 45 degrees rotation
-  frustum.SetPose(Pose3d(1, 1, 0, 0, 0, -M_PI*0.25));
+  frustum.SetPose(Pose3d(1, 1, 0, 0, 0, -IGN_PI*0.25));
   EXPECT_TRUE(frustum.Contains(Vector3d(2, -1, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(1, 1, 0)));

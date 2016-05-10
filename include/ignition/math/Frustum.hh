@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_FRUSTUM_HH_
-#define _IGNITION_FRUSTUM_HH_
+#ifndef IGNITION_MATH_FRUSTUM_HH_
+#define IGNITION_MATH_FRUSTUM_HH_
 
 #include <ignition/math/Plane.hh>
 #include <ignition/math/Angle.hh>

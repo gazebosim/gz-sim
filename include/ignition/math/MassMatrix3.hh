@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MASSMATRIX3_HH_
-#define _IGNITION_MASSMATRIX3_HH_
+#ifndef IGNITION_MATH_MASSMATRIX3_HH_
+#define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
 #include <string>
@@ -370,8 +370,8 @@ namespace ignition
 
         // sort the moments from smallest to largest
         T moment0 = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
-        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
-        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
+        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*IGN_PI)/3.0)) / 3.0;
+        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*IGN_PI)/3.0)) / 3.0;
         sort3(moment0, moment1, moment2);
         return Vector3<T>(moment0, moment1, moment2);
       }

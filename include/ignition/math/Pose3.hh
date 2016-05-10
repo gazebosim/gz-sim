@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_POSE_HH_
-#define _IGNITION_POSE_HH_
+#ifndef IGNITION_MATH_POSE_HH_
+#define IGNITION_MATH_POSE_HH_
 
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>

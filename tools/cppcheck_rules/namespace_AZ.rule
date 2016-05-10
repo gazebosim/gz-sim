@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<rule version="1">
+  <pattern>:: _[A-Z]</pattern>
+  <message>
+    <id>_AZnaming</id>
+    <severity>warning</severity>
+    <summary>Identifier that starts with underscore and then a capital letter is reserved.</summary>
+  </message>
+</rule>

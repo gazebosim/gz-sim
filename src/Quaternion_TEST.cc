@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -185,7 +184,7 @@ TEST(QuaternionTest, Integrate)
   // expect no change.
   {
     const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
-    const double fourPi = 4 * M_PI;
+    const double fourPi = 4 * IGN_PI;
     math::Quaterniond qX = q.Integrate(math::Vector3d::UnitX, fourPi);
     math::Quaterniond qY = q.Integrate(math::Vector3d::UnitY, fourPi);
     math::Quaterniond qZ = q.Integrate(math::Vector3d::UnitZ, fourPi);
@@ -346,7 +345,7 @@ TEST(QuaternionTest, Math)
   // Test RPY fixed-body-frame convention:
   // Rotate each unit vector in roll and pitch
   {
-    q = math::Quaterniond(M_PI/2.0, M_PI/2.0, 0);
+    q = math::Quaterniond(IGN_PI/2.0, IGN_PI/2.0, 0);
     math::Vector3d v1(1, 0, 0);
     math::Vector3d r1 = q.RotateVector(v1);
     // 90 degrees about X does nothing,
