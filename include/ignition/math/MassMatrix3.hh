@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MASSMATRIX3_HH_
-#define _IGNITION_MASSMATRIX3_HH_
+#ifndef IGNITION_MASSMATRIX3_HH_
+#define IGNITION_MASSMATRIX3_HH_
 
 #include <algorithm>
 #include <string>
@@ -44,11 +44,11 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _mass Mass value in kg if using metric.
-      /// \param[in] _Ixxyyzz Diagonal moments of inertia.
-      /// \param[in] _Ixyxzyz Off-diagonal moments of inertia
+      /// \param[in] _ixxyyzz Diagonal moments of inertia.
+      /// \param[in] _ixyxzyz Off-diagonal moments of inertia
       public: MassMatrix3(const T &_mass,
                           const Vector3<T> &_ixxyyzz,
-                          const Vector3<T> &_ixyxzyz )
+                          const Vector3<T> &_ixyxzyz)
       : mass(_mass), Ixxyyzz(_ixxyyzz), Ixyxzyz(_ixyxzyz)
       {}
 

@@ -425,14 +425,14 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetDiagonal)
 /// * that principal axes have an offset (non-identity quaternion)
 /// * that reconstructed moment of inertia matrix matches the original
 /// \param[in] _principalMoments Expected principal moments of inertia
-/// \param[in] _Ixxyyzz Diagonal moments of inertia.
-/// \param[in] _Ixyxzyz Off-diagonal moments of inertia.
+/// \param[in] _ixxyyzz Diagonal moments of inertia.
+/// \param[in] _ixyxzyz Off-diagonal moments of inertia.
 void VerifyNondiagonalMomentsAndAxes(const math::Vector3d &_principalMoments,
-                                     const math::Vector3d &_Ixxyyzz,
-                                     const math::Vector3d &_Ixyxzyz,
+                                     const math::Vector3d &_ixxyyzz,
+                                     const math::Vector3d &_ixyxzyz,
                                      const double _tolerance = 1e-6)
 {
-  math::MassMatrix3d m(1.0, _Ixxyyzz, _Ixyxzyz);
+  math::MassMatrix3d m(1.0, _ixxyyzz, _ixyxzyz);
   // EXPECT_EQ with default tolerance of 1e-6
   // this outputs more useful error messages
   EXPECT_EQ(m.PrincipalMoments(), _principalMoments);
