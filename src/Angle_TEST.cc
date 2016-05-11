@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include <cmath>
@@ -108,4 +107,13 @@ TEST(AngleTest, StreamExtraction)
 
   stream >> angle;
   EXPECT_NEAR(*angle, 1.25, 1e-2);
+}
+
+/////////////////////////////////////////////////
+TEST(AngleTest, OperatorStreamOut)
+{
+  math::Angle a(0.1);
+  std::ostringstream stream;
+  stream << a;
+  EXPECT_EQ(stream.str(), "0.1");
 }

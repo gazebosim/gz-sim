@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
@@ -329,3 +328,73 @@ TEST(Matrix3dTest, Transpose)
   EXPECT_EQ(m, mT);
 }
 
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, From2Axes)
+{
+  math::Vector3d v1(1.0, 0.0, 0.0);
+  math::Vector3d v2(0.0, 1.0, 0.0);
+
+  math::Matrix3d m1;
+  m1.From2Axes(v1, v2);
+
+  math::Matrix3d m2;
+  m2.From2Axes(v2, v1);
+
+  math::Matrix3d m1Correct(0, -1, 0,
+                           1, 0, 0,
+                           0, 0, 1);
+  math::Matrix3d m2Correct(m1Correct);
+  m2Correct.Transpose();
+
+  EXPECT_NE(m1, m2);
+  EXPECT_EQ(m1Correct, m1);
+  EXPECT_EQ(m2Correct, m2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1 * m2);
+  EXPECT_EQ(v2, m1 * v1);
+  EXPECT_EQ(v1, m2 * v2);
+
+  // rotation about 45 degrees
+  v1.Set(1.0, 0.0, 0.0);
+  v2.Set(1.0, 1.0, 0.0);
+  m2.From2Axes(v1, v2);
+  // m1 is 90 degrees rotation
+  EXPECT_EQ(m1, m2*m2);
+
+  // with non-unit vectors
+  v1.Set(0.5, 0.5, 0);
+  v2.Set(-0.5, 0.5, 0);
+
+  m1.From2Axes(v1, v2);
+  m2.From2Axes(v2, v1);
+
+  EXPECT_NE(m1, m2);
+  EXPECT_EQ(m1Correct, m1);
+  EXPECT_EQ(m2Correct, m2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1 * m2);
+  EXPECT_EQ(v2, m1 * v1);
+  EXPECT_EQ(v1, m2 * v2);
+
+  // For zero-length vectors, a unit matrix is returned
+  v1.Set(0, 0, 0);
+  v2.Set(-0.5, 0.5, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // For zero-length vectors, a unit matrix is returned
+  v1.Set(-0.5, 0.5, 0);
+  v2.Set(0, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // Parallel vectors
+  v1.Set(1, 0, 0);
+  v2.Set(2, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // Opposite vectors
+  v1.Set(1, 0, 0);
+  v2.Set(-2, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Zero - math::Matrix3d::Identity, m1);
+}

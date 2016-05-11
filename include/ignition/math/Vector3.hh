@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR3_HH_
-#define _IGNITION_VECTOR3_HH_
+#ifndef IGNITION_MATH_VECTOR3_HH_
+#define IGNITION_MATH_VECTOR3_HH_
 
 #include <iostream>
 #include <fstream>
@@ -139,6 +139,15 @@ namespace ignition
         }
 
         return *this;
+      }
+
+      /// \brief Return a normalized vector
+      /// \return unit length vector
+      public: Vector3 Normalized() const
+      {
+        Vector3<T> result = *this;
+        result.Normalize();
+        return result;
       }
 
       /// \brief Round to near whole number, return the result.

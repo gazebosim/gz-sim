@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGNITION_MATRIX3_HH_
-#define _IGNITION_MATRIX3_HH_
+#ifndef IGNITION_MATH_MATRIX3_HH_
+#define IGNITION_MATH_MATRIX3_HH_
 
 #include <algorithm>
 #include <cstring>
@@ -27,6 +27,8 @@ namespace ignition
 {
   namespace math
   {
+    template <typename T> class Quaternion;
+
     /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
     /// \brief A 3x3 matrix class
     template<typename T>
@@ -154,6 +156,49 @@ namespace ignition
         this->data[2][0] = _axis.Z()*_axis.X()*C - _axis.Y()*s;
         this->data[2][1] = _axis.Z()*_axis.Y()*C + _axis.X()*s;
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
+      }
+
+      /// \brief Set the matrix to represent rotation from
+      /// vector _v1 to vector _v2, so that
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
+      /// \param[in] _v1 The first vector
+      /// \param[in] _v2 The second vector
+      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
+      {
+        const T _v1LengthSquared = _v1.SquaredLength();
+        if (_v1LengthSquared <= 0.0)
+        {
+          // zero vector - we can't handle this
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+
+        const T _v2LengthSquared = _v2.SquaredLength();
+        if (_v2LengthSquared <= 0.0)
+        {
+          // zero vector - we can't handle this
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+
+        const T dot = _v1.Dot(_v2) / sqrt(_v1LengthSquared * _v2LengthSquared);
+        if (fabs(dot - 1.0) <= 1e-6)
+        {
+          // the vectors are parallel
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+        else if (fabs(dot + 1.0) <= 1e-6)
+        {
+          // the vectors are opposite
+          this->Set(-1, 0, 0, 0, -1, 0, 0, 0, -1);
+          return;
+        }
+
+        const Vector3<T> cross = _v1.Cross(_v2).Normalize();
+
+        this->Axis(cross, acos(dot));
       }
 
       /// \brief Set a column

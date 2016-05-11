@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_SPLINE_PRIVATE_HH_
-#define _IGNITION_SPLINE_PRIVATE_HH_
+#ifndef IGNITION_MATH_SPLINE_PRIVATE_HH_
+#define IGNITION_MATH_SPLINE_PRIVATE_HH_
 
 #include <vector>
 #include <ignition/math/Vector3.hh>

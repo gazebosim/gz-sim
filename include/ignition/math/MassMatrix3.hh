@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Open Source Robotics Foundation
+ * Copyright (C) 2015-2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MASSMATRIX3_HH_
-#define _IGNITION_MASSMATRIX3_HH_
+#ifndef IGNITION_MATH_MASSMATRIX3_HH_
+#define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
 #include <string>
@@ -44,11 +44,11 @@ namespace ignition
 
       /// \brief Constructor.
       /// \param[in] _mass Mass value in kg if using metric.
-      /// \param[in] _Ixxyyzz Diagonal moments of inertia.
-      /// \param[in] _Ixyxzyz Off-diagonal moments of inertia
+      /// \param[in] _ixxyyzz Diagonal moments of inertia.
+      /// \param[in] _ixyxzyz Off-diagonal moments of inertia
       public: MassMatrix3(const T &_mass,
                           const Vector3<T> &_ixxyyzz,
-                          const Vector3<T> &_ixyxzyz )
+                          const Vector3<T> &_ixyxzyz)
       : mass(_mass), Ixxyyzz(_ixxyyzz), Ixyxzyz(_ixyxzyz)
       {}
 
@@ -370,8 +370,8 @@ namespace ignition
 
         // sort the moments from smallest to largest
         T moment0 = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
-        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*M_PI)/3.0)) / 3.0;
-        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*M_PI)/3.0)) / 3.0;
+        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*IGN_PI)/3.0)) / 3.0;
+        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*IGN_PI)/3.0)) / 3.0;
         sort3(moment0, moment1, moment2);
         return Vector3<T>(moment0, moment1, moment2);
       }
@@ -394,14 +394,16 @@ namespace ignition
           // this includes case when all three moments are
           // approximately equal
           // return identity rotation
-          return Quaternion<T>();
+          return Quaternion<T>::Identity;
         }
 
         // Algorithm based on http://arxiv.org/abs/1306.6291v4
         // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
         // Matrix, by Maarten Kronenburg
         // A real, symmetric matrix can be diagonalized by an orthogonal matrix
-        // (due to the finite-dimensional spectral theorem [wikipedia]),
+        // (due to the finite-dimensional spectral theorem
+        // https://en.wikipedia.org/wiki/Spectral_theorem
+        // #Hermitian_maps_and_Hermitian_matrices ),
         // and another name for orthogonal matrix is rotation matrix.
         // Section 5 of the paper shows how to compute Euler angles
         // phi1, phi2, and phi3 that map to a rotation matrix.
@@ -449,8 +451,9 @@ namespace ignition
           // phi12 is straightforward to compute as a function of f2 and g2.
           // eq 5.25:
           Vector2<T> g2(momentsDiff3 * s, 0);
-          // eq 5.14:
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          // combining eq 5.12 and 5.14, and subtracting psi2
+          // instead of multiplying by its rotation matrix:
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
 
           // The paragraph prior to equation 5.16 describes how to choose
@@ -479,15 +482,17 @@ namespace ignition
             // a: phi2 > 0
             // eq. 5.24
             Vector2<T> g1a(0, 0.5*momentsDiff3 * sin(2*phi2));
-            // eq. 5.13
-            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
+            // combining eq 5.11 and 5.13, and subtracting psi1
+            // instead of multiplying by its rotation matrix:
+            math::Angle phi11a(Angle2(g1a, tol) - Angle2(f1, tol));
             phi11a.Normalize();
 
             // b: phi2 < 0
             // eq. 5.24
             Vector2<T> g1b(0, 0.5*momentsDiff3 * sin(-2*phi2));
-            // eq. 5.13
-            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
+            // combining eq 5.11 and 5.13, and subtracting psi1
+            // instead of multiplying by its rotation matrix:
+            math::Angle phi11b(Angle2(g1b, tol) - Angle2(f1, tol));
             phi11b.Normalize();
 
             // choose sign of phi2
@@ -512,12 +517,12 @@ namespace ignition
           // repeated moments are at the end (moments[1] == moments[2]).
           // In this case (unequalMoment == 0), we apply an extra
           // rotation that exchanges moment[0] and moment[2]
-          // Rotation matrix = [0  0 -1]
-          //                   [0  1  0]
-          //                   [1  0  0]
+          // Rotation matrix = [ 0  0  1]
+          //                   [ 0  1  0]
+          //                   [-1  0  0]
           // That is equivalent to a 90 degree pitch
           if (unequalMoment == 0)
-            result *= Quaternion<T>(0, M_PI_2, 0);
+            result *= Quaternion<T>(0, IGN_PI_2, 0);
 
           return result;
         }
@@ -565,30 +570,30 @@ namespace ignition
           // this should never happen
           // f1small && f2small implies a repeated moment
           // return invalid quaternion
-          return Quaternion<T>(0, 0, 0, 0);
+          return Quaternion<T>::Zero;
         }
         else if (f1small)
         {
-          // use phi12 (equation 5.14)
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          // use phi12 (equations 5.12, 5.14)
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           phi1 = phi12.Radian();
         }
         else if (f2small)
         {
-          // use phi11 (equation 5.13)
-          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          // use phi11 (equations 5.11, 5.13)
+          math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
           phi1 = phi11.Radian();
         }
         else
         {
           // check for when phi11 == phi12
-          // eq 5.13:
-          math::Angle phi11(Angle2(g1) - Angle2(f1));
+          // eqs 5.11, 5.13:
+          math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
-          // eq 5.14:
-          math::Angle phi12(0.5*(Angle2(g2) - Angle2(f2)));
+          // eqs 5.12, 5.14:
+          math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
                  + std::pow(cos(phi11.Radian()) - cos(phi12.Radian()), 2);
@@ -598,8 +603,8 @@ namespace ignition
           {
             Vector2<T> g1a = Vector2<T>(1, -1) * g1;
             Vector2<T> g2a = Vector2<T>(1, -1) * g2;
-            math::Angle phi11a(Angle2(g1a) - Angle2(f1));
-            math::Angle phi12a(0.5*(Angle2(g2a) - Angle2(f2)));
+            math::Angle phi11a(Angle2(g1a, tol) - Angle2(f1, tol));
+            math::Angle phi12a(0.5*(Angle2(g2a, tol) - Angle2(f2, tol)));
             phi11a.Normalize();
             phi12a.Normalize();
             T erra = std::pow(sin(phi11a.Radian()) - sin(phi12a.Radian()), 2)
@@ -615,8 +620,8 @@ namespace ignition
           {
             Vector2<T> g1b = Vector2<T>(-1, 1) * g1;
             Vector2<T> g2b = Vector2<T>(1, -1) * g2;
-            math::Angle phi11b(Angle2(g1b) - Angle2(f1));
-            math::Angle phi12b(0.5*(Angle2(g2b) - Angle2(f2)));
+            math::Angle phi11b(Angle2(g1b, tol) - Angle2(f1, tol));
+            math::Angle phi12b(0.5*(Angle2(g2b, tol) - Angle2(f2, tol)));
             phi11b.Normalize();
             phi12b.Normalize();
             T errb = std::pow(sin(phi11b.Radian()) - sin(phi12b.Radian()), 2)
@@ -632,8 +637,8 @@ namespace ignition
           {
             Vector2<T> g1c = Vector2<T>(-1, -1) * g1;
             Vector2<T> g2c = g2;
-            math::Angle phi11c(Angle2(g1c) - Angle2(f1));
-            math::Angle phi12c(0.5*(Angle2(g2c) - Angle2(f2)));
+            math::Angle phi11c(Angle2(g1c, tol) - Angle2(f1, tol));
+            math::Angle phi12c(0.5*(Angle2(g2c, tol) - Angle2(f2, tol)));
             phi11c.Normalize();
             phi12c.Normalize();
             T errc = std::pow(sin(phi11c.Radian()) - sin(phi12c.Radian()), 2)
@@ -754,11 +759,13 @@ namespace ignition
       }
 
       /// \brief Angle formed by direction of a Vector2.
+      /// \param[in] _v Vector whose direction is to be computed.
+      /// \param[in] _eps Minimum length of vector required for computing angle.
       /// \return Angle formed between vector and X axis,
       /// or zero if vector has length less than 1e-6.
-      private: static T Angle2(const Vector2<T> &_v, const T _tol = 1e-12)
+      private: static T Angle2(const Vector2<T> &_v, const T _eps = 1e-6)
       {
-        if (_v.SquaredLength() < _tol)
+        if (_v.SquaredLength() < std::pow(_eps, 2))
           return 0;
         return atan2(_v[1], _v[0]);
       }

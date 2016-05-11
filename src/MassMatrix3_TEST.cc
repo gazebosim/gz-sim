@@ -15,9 +15,6 @@
  *
 */
 
-#ifndef _USE_MATH_DEFINES
-# define _USE_MATH_DEFINES
-#endif
 #include <gtest/gtest.h>
 #include <cmath>
 
@@ -284,7 +281,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
-    const math::Vector3d Ieigen(2-M_SQRT2, 2, 2+M_SQRT2);
+    const math::Vector3d Ieigen(2-IGN_SQRT2, 2, 2+IGN_SQRT2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
@@ -296,7 +293,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     const math::Vector3d Ixxyyzz(4.0, 4.0, 4.0);
     const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
-    const math::Vector3d Ieigen(4-M_SQRT2, 4, 4+M_SQRT2);
+    const math::Vector3d Ieigen(4-IGN_SQRT2, 4, 4+IGN_SQRT2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -327,6 +324,25 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
   }
+
+  // Another matrix with large condition number
+  // invalid inertia matrix since it doesn't satisfy triangle inequality
+  // 0.98 + 1e8-1e3 < 1e8+1e3
+  // 0.98 < 2e3
+  {
+    const math::Vector3d Ixxyyzz(1e8, 1e8, 1);
+    const math::Vector3d Ixyxzyz(1e3, 1e3, 1e3);
+    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d Ieigen(0.98, 1e8-1e3, 1e8+1e3);
+    // the accuracy is approximately 2e-2
+    EXPECT_TRUE(m.PrincipalMoments().Equal(Ieigen, 2.5e-2));
+    EXPECT_FALSE(m.PrincipalMoments().Equal(Ieigen, 1.5e-2));
+    // the default tolerance for == is 1e-6
+    // so this should resolve as not equal
+    EXPECT_NE(m.PrincipalMoments(), Ieigen);
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_FALSE(m.IsValid());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -340,7 +356,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
   EXPECT_TRUE(m.DiagonalMoments(3.5 * math::Vector3d::One));
   EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
   EXPECT_TRUE(m.IsValid());
-  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
 }
 
 /////////////////////////////////////////////////
@@ -374,7 +390,7 @@ void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
   EXPECT_EQ(m.PrincipalMoments(), m.DiagonalMoments());
   EXPECT_TRUE(m.IsValid());
   // Expect unit quaternion
-  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
+  EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
   VerifyPrincipalMomentsAndAxes(m);
 }
 
@@ -406,14 +422,15 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetDiagonal)
 /// * that principal axes have an offset (non-identity quaternion)
 /// * that reconstructed moment of inertia matrix matches the original
 /// \param[in] _principalMoments Expected principal moments of inertia
-/// \param[in] _Ixxyyzz Diagonal moments of inertia.
-/// \param[in] _Ixyxzyz Off-diagonal moments of inertia.
+/// \param[in] _ixxyyzz Diagonal moments of inertia.
+/// \param[in] _ixyxzyz Off-diagonal moments of inertia.
+/// \param[in] _tolerance Absolute tolerance for eigenvalue expectation.
 void VerifyNondiagonalMomentsAndAxes(const math::Vector3d &_principalMoments,
-                                     const math::Vector3d &_Ixxyyzz,
-                                     const math::Vector3d &_Ixyxzyz,
+                                     const math::Vector3d &_ixxyyzz,
+                                     const math::Vector3d &_ixyxzyz,
                                      const double _tolerance = 1e-6)
 {
-  math::MassMatrix3d m(1.0, _Ixxyyzz, _Ixyxzyz);
+  math::MassMatrix3d m(1.0, _ixxyyzz, _ixyxzyz);
   // EXPECT_EQ with default tolerance of 1e-6
   // this outputs more useful error messages
   EXPECT_EQ(m.PrincipalMoments(), _principalMoments);
@@ -454,56 +471,56 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetRepeat)
   // Rotated by [45, 45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(-M_SQRT2, M_SQRT2, 1));
+    0.25*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, 1));
   // Rotated by [-45, 45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(M_SQRT2, M_SQRT2, -1));
+    0.25*math::Vector3d(IGN_SQRT2, IGN_SQRT2, -1));
   // Rotated by [45, -45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(M_SQRT2, -M_SQRT2, 1));
+    0.25*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, 1));
   // Rotated by [-45, -45, 0] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 5, 5),
     math::Vector3d(4.5, 4.75, 4.75),
-    0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, -1));
+    0.25*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, -1));
 
   // Principal moments: [4, 4, 5]
   // Rotated by [45, 45, 45] degrees
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(-M_SQRT2, M_SQRT2, -1));
+    0.25*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, -1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(M_SQRT2, M_SQRT2, 1));
+    0.25*math::Vector3d(IGN_SQRT2, IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(-M_SQRT2, -M_SQRT2, 1));
+    0.25*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4, 4, 5),
     math::Vector3d(4.5, 4.25, 4.25),
-    0.25*math::Vector3d(M_SQRT2, -M_SQRT2, -1));
+    0.25*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, -1));
 
   // Principal moments [4e-9, 4e-9, 5e-9]
   // Rotated by [45, 45, 45] degrees
   // use tolerance of 1e-15
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(-M_SQRT2, M_SQRT2, -1), 1e-15);
+    0.25e-9*math::Vector3d(-IGN_SQRT2, IGN_SQRT2, -1), 1e-15);
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(M_SQRT2, M_SQRT2, 1));
+    0.25e-9*math::Vector3d(IGN_SQRT2, IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(-M_SQRT2, -M_SQRT2, 1));
+    0.25e-9*math::Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1));
   // different rotation
   VerifyNondiagonalMomentsAndAxes(1e-9 * math::Vector3d(4, 4, 5),
     1e-9 * math::Vector3d(4.5, 4.25, 4.25),
-    0.25e-9*math::Vector3d(M_SQRT2, -M_SQRT2, -1), 1e-15);
+    0.25e-9*math::Vector3d(IGN_SQRT2, -IGN_SQRT2, -1), 1e-15);
 
   // Principal moments [4, 4, 6]
   // rotate by 30, 60, 0 degrees
@@ -561,11 +578,12 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::Vector3d(0, -1, -1));
 
   // Tri-diagonal matrix with identical diagonal terms
-  VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
     math::Vector3d(4.0, 4.0, 4.0),
     math::Vector3d(-1.0, 0, -1.0));
   // small magnitude, use tolerance of 1e-15
-  VerifyNondiagonalMomentsAndAxes(1e-9*math::Vector3d(4-M_SQRT2, 4, 4+M_SQRT2),
+  VerifyNondiagonalMomentsAndAxes(
+    1e-9 * math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
     1e-9 * math::Vector3d(4.0, 4.0, 4.0),
     1e-9 * math::Vector3d(-1.0, 0, -1.0), 1e-15);
 

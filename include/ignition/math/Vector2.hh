@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR2_HH_
-#define _IGNITION_VECTOR2_HH_
+#ifndef IGNITION_MATH_VECTOR2_HH_
+#define IGNITION_MATH_VECTOR2_HH_
 
 #include <ignition/math/IndexException.hh>
 

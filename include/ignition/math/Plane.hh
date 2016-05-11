@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef _IGNITION_PLANE_HH_
-#define _IGNITION_PLANE_HH_
+#ifndef IGNITION_MATH_PLANE_HH_
+#define IGNITION_MATH_PLANE_HH_
 
 #include <ignition/math/Box.hh>
 #include <ignition/math/Vector3.hh>
