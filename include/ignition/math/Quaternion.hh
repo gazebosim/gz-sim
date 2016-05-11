@@ -36,6 +36,9 @@ namespace ignition
       /// \brief math::Quaternion(1, 0, 0, 0)
       public: static const Quaternion Identity;
 
+      /// \brief math::Quaternion(0, 0, 0, 0)
+      public: static const Quaternion Zero;
+
       /// \brief Default Constructor
       public: Quaternion()
       : qw(1), qx(0), qy(0), qz(0)
@@ -1035,6 +1038,9 @@ namespace ignition
 
     template<typename T> const Quaternion<T>
       Quaternion<T>::Identity(1, 0, 0, 0);
+
+    template<typename T> const Quaternion<T>
+      Quaternion<T>::Zero(0, 0, 0, 0);
 
     typedef Quaternion<double> Quaterniond;
     typedef Quaternion<float> Quaternionf;
