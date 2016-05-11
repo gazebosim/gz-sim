@@ -451,7 +451,8 @@ namespace ignition
           // phi12 is straightforward to compute as a function of f2 and g2.
           // eq 5.25:
           Vector2<T> g2(momentsDiff3 * s, 0);
-          // eq 5.14:
+          // combining eq 5.12 and 5.14, and subtracting psi2
+          // instead of multiplying by its rotation matrix:
           math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
 
@@ -481,14 +482,16 @@ namespace ignition
             // a: phi2 > 0
             // eq. 5.24
             Vector2<T> g1a(0, 0.5*momentsDiff3 * sin(2*phi2));
-            // eq. 5.13
+            // combining eq 5.11 and 5.13, and subtracting psi1
+            // instead of multiplying by its rotation matrix:
             math::Angle phi11a(Angle2(g1a, tol) - Angle2(f1, tol));
             phi11a.Normalize();
 
             // b: phi2 < 0
             // eq. 5.24
             Vector2<T> g1b(0, 0.5*momentsDiff3 * sin(-2*phi2));
-            // eq. 5.13
+            // combining eq 5.11 and 5.13, and subtracting psi1
+            // instead of multiplying by its rotation matrix:
             math::Angle phi11b(Angle2(g1b, tol) - Angle2(f1, tol));
             phi11b.Normalize();
 
@@ -571,14 +574,14 @@ namespace ignition
         }
         else if (f1small)
         {
-          // use phi12 (equation 5.14)
+          // use phi12 (equations 5.12, 5.14)
           math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           phi1 = phi12.Radian();
         }
         else if (f2small)
         {
-          // use phi11 (equation 5.13)
+          // use phi11 (equations 5.11, 5.13)
           math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
           phi1 = phi11.Radian();
@@ -586,10 +589,10 @@ namespace ignition
         else
         {
           // check for when phi11 == phi12
-          // eq 5.13:
+          // eqs 5.11, 5.13:
           math::Angle phi11(Angle2(g1, tol) - Angle2(f1, tol));
           phi11.Normalize();
-          // eq 5.14:
+          // eqs 5.12, 5.14:
           math::Angle phi12(0.5*(Angle2(g2, tol) - Angle2(f2, tol)));
           phi12.Normalize();
           T err  = std::pow(sin(phi11.Radian()) - sin(phi12.Radian()), 2)
