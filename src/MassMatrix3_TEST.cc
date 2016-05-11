@@ -424,6 +424,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetDiagonal)
 /// \param[in] _principalMoments Expected principal moments of inertia
 /// \param[in] _ixxyyzz Diagonal moments of inertia.
 /// \param[in] _ixyxzyz Off-diagonal moments of inertia.
+/// \param[in] _tolerance Absolute tolerance for eigenvalue expectation.
 void VerifyNondiagonalMomentsAndAxes(const math::Vector3d &_principalMoments,
                                      const math::Vector3d &_ixxyyzz,
                                      const math::Vector3d &_ixyxzyz,
