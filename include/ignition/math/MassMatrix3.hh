@@ -401,7 +401,9 @@ namespace ignition
         // A Method for Fast Diagonalization of a 2x2 or 3x3 Real Symmetric
         // Matrix, by Maarten Kronenburg
         // A real, symmetric matrix can be diagonalized by an orthogonal matrix
-        // (due to the finite-dimensional spectral theorem [wikipedia]),
+        // (due to the finite-dimensional spectral theorem
+        // https://en.wikipedia.org/wiki/Spectral_theorem
+        // #Hermitian_maps_and_Hermitian_matrices ),
         // and another name for orthogonal matrix is rotation matrix.
         // Section 5 of the paper shows how to compute Euler angles
         // phi1, phi2, and phi3 that map to a rotation matrix.
