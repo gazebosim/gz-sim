@@ -723,6 +723,39 @@ TEST(MassMatrix3dTest, EquivalentBox)
     EXPECT_EQ(m, m2);
   }
 
+  // box 1x4x9 rotated by 90 degrees around Z
+  {
+    const double mass = 12.0;
+    const math::Vector3d Ixxyyzz(82, 17, 97);
+    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot, -1e-6));
+    EXPECT_EQ(size, math::Vector3d(9, 4, 1));
+    EXPECT_EQ(rot, math::Quaterniond(0, 0, IGN_PI/2));
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
+  // box 1x4x9 rotated by 45 degrees around Z
+  {
+    const double mass = 12.0;
+    const math::Vector3d Ixxyyzz(49.5, 49.5, 97);
+    const math::Vector3d Ixyxzyz(-32.5, 0.0, 0.0);
+    math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(9, 4, 1));
+    EXPECT_EQ(rot, math::Quaterniond(0, 0, IGN_PI/4));
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
   // long slender box
   {
     const double mass = 12.0;
