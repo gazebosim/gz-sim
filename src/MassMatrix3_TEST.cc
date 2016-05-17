@@ -773,3 +773,39 @@ TEST(MassMatrix3dTest, EquivalentBox)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, EquivalentSphere)
+{
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+
+    // input is all zeros, so SetFromSphere should fail
+    EXPECT_FALSE(m.SetFromSphere(0.0, 0.0));
+    EXPECT_FALSE(m.SetFromSphere(0.0));
+
+    // even if mass is valid, it should not be set if radius is invalid
+    EXPECT_FALSE(m.SetFromSphere(1.0, 0.0));
+    EXPECT_EQ(m.Mass(), 0.0);
+  }
+
+  // unit sphere with mass 1.0
+  {
+    const double mass = 1.0;
+    const double radius = 0.5;
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.SetFromSphere(mass, radius));
+
+    double Ixx = 0.4 * mass * std::pow(radius, 2);
+    double Iyy = 0.4 * mass * std::pow(radius, 2);
+    double Izz = 0.4 * mass * std::pow(radius, 2);
+    const math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
+
+    // double the radius
+    EXPECT_TRUE(m.SetFromSphere(mass, 2*radius));
+    EXPECT_EQ(m.DiagonalMoments(), 4*Ixxyyzz);
+  }
+}
+

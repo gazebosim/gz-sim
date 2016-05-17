@@ -768,6 +768,42 @@ namespace ignition
         return this->MOI(R * L * R.Transposed());
       }
 
+      /// \brief Set inertial properties based on mass and equivalent sphere.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const T _mass, const T _radius)
+      {
+        // Check that _mass and _radius are strictly positive
+        if (_mass <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromSphere(_radius);
+      }
+
+      /// \brief Set inertial properties based on equivalent sphere
+      /// using the current mass value.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const T _radius)
+      {
+        // Check that _mass and _size are strictly positive
+        if (this->Mass() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        T radius2 = std::pow(_radius, 2);
+        Matrix3<T> L;
+        L(0, 0) = 0.4 * this->mass * radius2;
+        L(1, 1) = 0.4 * this->mass * radius2;
+        L(2, 2) = 0.4 * this->mass * radius2;
+        return this->MOI(L);
+      }
+
       /// \brief Square root of positive numbers, otherwise zero.
       /// \param[in] _x Number to be square rooted.
       /// \return sqrt(_x) if _x > 0, otherwise 0
