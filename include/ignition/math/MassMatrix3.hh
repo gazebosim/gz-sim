@@ -533,9 +533,20 @@ namespace ignition
               +(this->Ixxyyzz[0] - moments[2])
               *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
             / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
-        // eq 5.2:
-        T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
-            / ((moments[0] - moments[1]) * v);
+        // value of w depends on v
+        T w;
+        if (v < std::abs(tol))
+        {
+          // first sentence after eq 5.4:
+          // "In the case that v = 0, then w = 1."
+          w = 1;
+        }
+        else
+        {
+          // eq 5.2:
+          w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
+              / ((moments[0] - moments[1]) * v);
+        }
         // initialize values of angle phi1, phi2, phi3
         T phi1 = 0;
         // eq 5.3: start with positive value
