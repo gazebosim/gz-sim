@@ -729,11 +729,11 @@ namespace ignition
       /// \param[in] _size Size of equivalent box.
       /// \param[in] _rot Rotational offset of equivalent box.
       /// \return True if inertial properties were set successfully.
-      public: bool SetFromBox(const T &_mass,
+      public: bool SetFromBox(const T _mass,
                               const Vector3<T> &_size,
                               const Quaternion<T> &_rot)
       {
-        // Check that _mass is strictly positive
+        // Check that _mass and _size are strictly positive
         if (_mass <= 0 || _size.Min() <= 0)
         {
           return false;
