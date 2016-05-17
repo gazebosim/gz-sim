@@ -577,6 +577,11 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::Vector3d(4.0, 4.0, 5.0),
     math::Vector3d(0, -1, -1));
 
+  // Test case for v = 0
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(2.5, 3.5, 4.0),
+    math::Vector3d(4.0, 3.0, 3.0),
+    math::Vector3d(0.0, 0, -0.5));
+
   // Tri-diagonal matrix with identical diagonal terms
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
     math::Vector3d(4.0, 4.0, 4.0),
