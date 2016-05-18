@@ -749,7 +749,9 @@ TEST(MassMatrix3dTest, EquivalentBox)
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot));
     EXPECT_EQ(size, math::Vector3d(9, 4, 1));
-    EXPECT_EQ(rot, math::Quaterniond(0, 0, IGN_PI/4));
+    // There are multiple correct rotations due to box symmetry
+    EXPECT_TRUE(rot == math::Quaterniond(0, 0, IGN_PI/4) ||
+                rot == math::Quaterniond(IGN_PI, 0, IGN_PI/4));
 
     math::MassMatrix3d m2;
     EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
