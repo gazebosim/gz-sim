@@ -6,6 +6,9 @@ configuration:
   - Debug
   - Release
 
+environment:
+  CTEST_OUTPUT_ON_FAILURE: 1
+
 build_script:
   - md build
   - cd build
