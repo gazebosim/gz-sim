@@ -216,6 +216,11 @@ namespace ignition
       /// \brief Forget all previous data.
       public: void Reset();
 
+      /// \brief Assignment operator
+      /// \param[in] _v A SignalStats to copy
+      /// \return this
+      public: SignalStats &operator=(const SignalStats &_s);
+
       /// \brief Pointer to private data.
       protected: SignalStatsPrivate *dataPtr;
     };
