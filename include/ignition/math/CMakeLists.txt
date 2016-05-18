@@ -20,6 +20,7 @@ set (headers
   Rand.hh
   RotationSpline.hh
   SignalStats.hh
+  SphericalCoordinates.hh
   Spline.hh
   Triangle.hh
   Vector2.hh
