@@ -768,6 +768,53 @@ namespace ignition
         return this->MOI(R * L * R.Transposed());
       }
 
+      /// \brief Set inertial properties based on mass and equivalent cylinder
+      /// aligned with Z axis.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const T _mass,
+                                    const T _length,
+                                    const T _radius,
+                                    const Quaternion<T> &_rot)
+      {
+        // Check that _mass, _radius and _length are strictly positive
+        if (_mass <= 0 || _length <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromCylinderZ(_length, _radius, _rot);
+      }
+
+      /// \brief Set inertial properties based on equivalent cylinder
+      /// aligned with Z axis using the current mass value.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const T _length,
+                                    const T _radius,
+                                    const Quaternion<T> &_rot)
+      {
+        // Check that _mass and _size are strictly positive
+        if (this->Mass() <= 0 || _length <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        T radius2 = std::pow(_radius, 2);
+        Matrix3<T> L;
+        L(0, 0) = this->mass / 12.0 * (3*radius2 + std::pow(_length, 2));
+        L(1, 1) = L(0, 0);
+        L(2, 2) = this->mass / 2.0 * radius2;
+        Matrix3<T> R(_rot);
+        return this->MOI(R * L * R.Transposed());
+      }
+
       /// \brief Set inertial properties based on mass and equivalent sphere.
       /// \param[in] _mass Mass to set.
       /// \param[in] _radius Radius of equivalent, uniform sphere.

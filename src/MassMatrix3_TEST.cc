@@ -776,7 +776,49 @@ TEST(MassMatrix3dTest, EquivalentBox)
 }
 
 /////////////////////////////////////////////////
-TEST(MassMatrix3dTest, EquivalentSphere)
+TEST(MassMatrix3dTest, SetFromCylinderZ)
+{
+  const math::Quaterniond q0 = math::Quaterniond::Identity;
+
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+
+    // input is all zeros, so SetFromCylinderZ should fail
+    EXPECT_FALSE(m.SetFromCylinderZ(0, 0, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(0, 0, q0));
+
+    // even if some parameters are valid, none should be set if they
+    // are not all valid
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 1, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 1, q0));
+    EXPECT_EQ(m.Mass(), 0.0);
+  }
+
+  // unit cylinder with mass 1.0
+  {
+    const double mass = 1.0;
+    const double length = 1.0;
+    const double radius = 0.5;
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.SetFromCylinderZ(mass, length, radius, q0));
+
+    double Ixx = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
+    double Iyy = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
+    double Izz = mass / 2.0 * std::pow(radius, 2);
+    const math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
+    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
+
+    // double the length and radius
+    EXPECT_TRUE(m.SetFromCylinderZ(mass, 2*length, 2*radius, q0));
+    EXPECT_EQ(m.DiagonalMoments(), 4*Ixxyyzz);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, SetFromSphere)
 {
   // Default mass matrix with non-positive inertia
   {
