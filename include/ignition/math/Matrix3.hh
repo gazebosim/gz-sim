@@ -364,6 +364,22 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
+      public: Matrix3<T> operator=(const Quaternion<T> &_q)
+      {
+        Quaternion<T> qt = _q;
+        qt.Normalize();
+        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
+                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
+                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
+                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
+                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
+                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
+                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
+                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
+                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y());
+        return *this;
+      }
+
       /// \brief Inequality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if not equal (using the default tolerance of 1e-6)
