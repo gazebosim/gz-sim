@@ -702,7 +702,7 @@ namespace ignition
         return atan2(_v[1], _v[0]);
       }
 
-      /// \brief Mass the object. Default is 0.0.
+      /// \brief Mass of the object. Default is 0.0.
       private: T mass;
 
       /// \brief Principal moments of inertia. Default is (0.0 0.0 0.0)
