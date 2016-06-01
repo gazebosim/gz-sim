@@ -22,6 +22,7 @@ set (gtest_sources
   Filter_TEST.cc
   Frustum_TEST.cc
   Helpers_TEST.cc
+  Inertial_TEST.cc
   Kmeans_TEST.cc
   Line2_TEST.cc
   Line3_TEST.cc

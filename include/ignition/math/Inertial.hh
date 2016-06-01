@@ -58,7 +58,7 @@ namespace ignition
       public: bool MassMatrix(const MassMatrix3<T> &_m)
       {
         this->massMatrix = _m;
-        return this->massMatrix->IsValid();
+        return this->massMatrix.IsValid();
       }
 
       /// \brief Get the mass and inertia matrix.
@@ -74,7 +74,7 @@ namespace ignition
       public: bool Pose(const Pose3<T> &_pose)
       {
         this->pose = _pose;
-        return this->massMatrix->IsValid();
+        return this->massMatrix.IsValid();
       }
 
       /// \brief Get the pose of center of mass reference frame.
