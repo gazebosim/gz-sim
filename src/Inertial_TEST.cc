@@ -24,7 +24,7 @@ using namespace ignition;
 
 /////////////////////////////////////////////////
 // Simple constructor, test default values
-TEST(Inertial_d_Test, DefaultConstructor)
+TEST(Inertial_d_Test, Constructor)
 {
   math::Inertial_d inertial;
   EXPECT_EQ(inertial.Pose(), math::Pose3d::Zero);
@@ -34,7 +34,7 @@ TEST(Inertial_d_Test, DefaultConstructor)
 /////////////////////////////////////////////////
 // Constructor with default arguments
 // Should match simple constructor and with copy constructor
-TEST(Inertial_d_Test, DefaultValues)
+TEST(Inertial_d_Test, ConstructorDefaultValues)
 {
   math::Inertial_d inertial(math::MassMatrix3d(), math::Pose3d::Zero);
   EXPECT_EQ(inertial, math::Inertial_d());
@@ -43,7 +43,7 @@ TEST(Inertial_d_Test, DefaultValues)
 
 /////////////////////////////////////////////////
 // Constructor with non-default arguments
-TEST(Inertial_d_Test, NonDefaultValues)
+TEST(Inertial_d_Test, ConstructorNonDefaultValues)
 {
   const double mass = 5.0;
   const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
