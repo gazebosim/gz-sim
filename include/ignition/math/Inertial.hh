@@ -84,6 +84,15 @@ namespace ignition
         return this->pose;
       }
 
+      /// \brief Get the moment of inertia matrix expressed in the
+      /// base coordinate frame.
+      /// \return Rotated moment of inertia matrix.
+      public: Matrix3<T> MOI() const
+      {
+        auto R = Matrix3<T>(this->pose.Rot());
+        return R * this->massMatrix.MOI() * R.Transposed();
+      }
+
       /// \brief Equal operator.
       /// \param[in] _inertial Inertial to copy.
       /// \return Reference to this object.

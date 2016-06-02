@@ -29,6 +29,7 @@ TEST(Inertial_d_Test, Constructor)
   math::Inertial_d inertial;
   EXPECT_EQ(inertial.Pose(), math::Pose3d::Zero);
   EXPECT_EQ(inertial.MassMatrix(), math::MassMatrix3d());
+  EXPECT_EQ(inertial.MOI(), math::Matrix3d::Zero);
 }
 
 /////////////////////////////////////////////////
@@ -107,4 +108,65 @@ TEST(Inertial_d_Test, Setters)
   // Invalid again if an invalid inertia is set
   math::MassMatrix3d mInvalid(-1, Ixxyyzz, Ixyxzyz);
   EXPECT_FALSE(inertial.MassMatrix(mInvalid));
+}
+
+/////////////////////////////////////////////////
+TEST(Inertial_d_Test, MOI_Diagonal)
+{
+  const double mass = 12.0;
+  const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
+  const math::Vector3d Ixyxzyz(0, 0, 0);
+  const math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
+  EXPECT_TRUE(m.IsPositive());
+  EXPECT_TRUE(m.IsValid());
+
+  // no rotation, expect MOI's to match
+  {
+    const math::Pose3d pose(0, 0, 0, 0, 0, 0);
+    math::Inertial_d inertial(m, pose);
+    EXPECT_EQ(inertial.MOI(), m.MOI());
+  }
+
+  // 90 deg rotation about X axis, expect different MOI
+  {
+    const math::Pose3d pose(0, 0, 0, IGN_PI_2, 0, 0);
+    const math::Matrix3d expectedMOI(2, 0, 0, 0, 4, 0, 0, 0, 3);
+    math::Inertial_d inertial(m, pose);
+    EXPECT_NE(inertial.MOI(), m.MOI());
+    EXPECT_EQ(inertial.MOI(), expectedMOI);
+  }
+
+  // 90 deg rotation about Y axis, expect different MOI
+  {
+    const math::Pose3d pose(0, 0, 0, 0, IGN_PI_2, 0);
+    const math::Matrix3d expectedMOI(4, 0, 0, 0, 3, 0, 0, 0, 2);
+    math::Inertial_d inertial(m, pose);
+    EXPECT_NE(inertial.MOI(), m.MOI());
+    EXPECT_EQ(inertial.MOI(), expectedMOI);
+  }
+
+  // 90 deg rotation about Z axis, expect different MOI
+  {
+    const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_2);
+    const math::Matrix3d expectedMOI(3, 0, 0, 0, 2, 0, 0, 0, 4);
+    math::Inertial_d inertial(m, pose);
+    EXPECT_NE(inertial.MOI(), m.MOI());
+    EXPECT_EQ(inertial.MOI(), expectedMOI);
+  }
+
+  // 45 deg rotation about Z axis, expect different MOI
+  {
+    const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_4);
+    const math::Matrix3d expectedMOI(2.5, -0.5, 0, -0.5, 2.5, 0, 0, 0, 4);
+    math::Inertial_d inertial(m, pose);
+    EXPECT_NE(inertial.MOI(), m.MOI());
+    EXPECT_EQ(inertial.MOI(), expectedMOI);
+
+    // double check with a second MassMatrix3 instance
+    math::MassMatrix3d m2;
+    EXPECT_FALSE(m2.Mass(mass));
+    EXPECT_TRUE(m2.MOI(expectedMOI));
+    EXPECT_EQ(inertial.MOI(), m2.MOI());
+    EXPECT_EQ(pose.Rot(), m2.PrincipalAxesOffset());
+  }
 }
