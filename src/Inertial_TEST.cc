@@ -167,6 +167,9 @@ TEST(Inertial_d_Test, MOI_Diagonal)
     EXPECT_FALSE(m2.Mass(mass));
     EXPECT_TRUE(m2.MOI(expectedMOI));
     EXPECT_EQ(inertial.MOI(), m2.MOI());
-    EXPECT_EQ(pose.Rot(), m2.PrincipalAxesOffset());
+    // There are multiple correct rotations due to symmetry
+    const auto rot2 = math::Quaterniond(IGN_PI, 0, IGN_PI_4);
+    EXPECT_TRUE(m2.PrincipalAxesOffset() == pose.Rot() ||
+                m2.PrincipalAxesOffset() == rot2);
   }
 }
