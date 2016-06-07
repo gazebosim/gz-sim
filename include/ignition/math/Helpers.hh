@@ -138,10 +138,12 @@
 #define IGN_PI M_PI
 #define IGN_PI_2 M_PI_2
 #define IGN_PI_4 M_PI_4
+#define IGN_SQRT2 M_SQRT2
 #else
 #define IGN_PI   3.14159265358979323846
 #define IGN_PI_2 1.57079632679489661923
 #define IGN_PI_4 0.78539816339744830962
+#define IGN_SQRT2 1.41421356237309504880
 #endif
 
 /// \brief Compute sphere volume
