@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_QUATERNION_HH_
-#define _IGNITION_QUATERNION_HH_
+#ifndef IGNITION_MATH_QUATERNION_HH_
+#define IGNITION_MATH_QUATERNION_HH_
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Angle.hh>
@@ -72,7 +72,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      public: Quaternion(const Vector3<T> &_rpy)
+      public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
       }

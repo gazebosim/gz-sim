@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR2_HH_
-#define _IGNITION_VECTOR2_HH_
+#ifndef IGNITION_MATH_VECTOR2_HH_
+#define IGNITION_MATH_VECTOR2_HH_
 
 #include <ignition/math/IndexException.hh>
 
@@ -216,8 +216,7 @@ namespace ignition
       /// \return difference vector
       public: inline Vector2<T> operator-(const T _s) const
       {
-        return Vector2<T>(this->data[0] - _s,
-                          this->data[1] - _s);
+        return {this->data[0] - _s, this->data[1] - _s};
       }
 
       /// \brief Subtraction operators
@@ -227,7 +226,7 @@ namespace ignition
       public: friend inline Vector2<T> operator-(const T _s,
                                                  const Vector2<T> &_v)
       {
-        return Vector2<T>(_s - _v.X(), _s - _v.Y());
+        return {_s - _v.X(), _s - _v.Y()};
       }
 
       /// \brief Subtraction assignment operator
@@ -247,7 +246,7 @@ namespace ignition
       /// \result a result
       public: const Vector2 operator/(const Vector2 &_v) const
       {
-        return Vector2(this->data[0] / _v[0], this->data[1] / _v[1]);
+        return {this->data[0] / _v[0], this->data[1] / _v[1]};
       }
 
       /// \brief Division operator
@@ -267,7 +266,7 @@ namespace ignition
       /// \return a vector
       public: const Vector2 operator/(T _v) const
       {
-        return Vector2(this->data[0] / _v, this->data[1] / _v);
+        return {this->data[0] / _v, this->data[1] / _v};
       }
 
       /// \brief Division operator

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_KMEANS_HH_
-#define _IGNITION_KMEANS_HH_
+#ifndef IGNITION_MATH_KMEANS_HH_
+#define IGNITION_MATH_KMEANS_HH_
 
 #include <vector>
 #include <ignition/math/Vector3.hh>
@@ -37,7 +37,7 @@ namespace ignition
     {
       /// \brief constructor
       /// \param[in] _obs Set of observations to cluster.
-      public: Kmeans(const std::vector<Vector3d> &_obs);
+      public: explicit Kmeans(const std::vector<Vector3d> &_obs);
 
       /// \brief Destructor.
       public: virtual ~Kmeans();

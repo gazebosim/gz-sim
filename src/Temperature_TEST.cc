@@ -93,6 +93,7 @@ TEST(TemperatureTest, Operators)
   EXPECT_NEAR(temp(), 30, 1e-6);
 
   Temperature temp2 = temp;
+  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(temp == temp2);
 
   EXPECT_NEAR((temp + temp2).Kelvin(), 60, 1e-6);
@@ -149,6 +150,24 @@ TEST(TemperatureTest, OperatorStreamIn)
   std::istringstream stream("23.4");
   stream >> temp;
   EXPECT_NEAR(temp.Kelvin(), 23.4, 1e-6);
+}
+
+/////////////////////////////////////////////////
+TEST(TemperatureTest, Negative)
+{
+  Temperature temp(235.0);
+
+  Temperature temp2 = 103.0 - temp;
+  EXPECT_NEAR(temp2.Kelvin(), -132.0, 1e-6);
+
+  Temperature temp3 = 133.0 + temp2;
+  EXPECT_NEAR(temp3.Kelvin(), 1.0, 1e-6);
+
+  Temperature temp4 = 4.0 * temp3;
+  EXPECT_NEAR(temp4.Kelvin(), 4.0, 1e-6);
+
+  Temperature temp5 = 2.0 / temp3;
+  EXPECT_NEAR(temp5.Kelvin(), 2.0, 1e-6);
 }
 
 /////////////////////////////////////////////////

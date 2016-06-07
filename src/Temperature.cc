@@ -16,28 +16,22 @@
 */
 #include "ignition/math/Temperature.hh"
 
+/// \brief Private data for the Temperature class.
+class ignition::math::TemperaturePrivate
+{
+  /// \brief Default constructor
+  public: TemperaturePrivate() : kelvin(0.0) {}
+
+  /// \brief Constructor
+  /// \param[in] _temp Temperature in Kelvin
+  public: explicit TemperaturePrivate(const double _temp) : kelvin(_temp) {}
+
+  /// \brief Temperature value in Kelvin.
+  public: double kelvin;
+};
+
 using namespace ignition;
 using namespace math;
-
-namespace ignition
-{
-  namespace math
-  {
-    /// \brief Private data for the Temperature class.
-    class TemperaturePrivate
-    {
-      /// \brief Default constructor
-      public: TemperaturePrivate() : kelvin(0.0) {}
-
-      /// \brief Constructor
-      /// \param[in] _temp Temperature in Kelvin
-      public: TemperaturePrivate(const double _temp) : kelvin(_temp) {}
-
-      /// \brief Temperature value in Kelvin.
-      public: double kelvin;
-    };
-  }
-}
 
 /////////////////////////////////////////////////
 Temperature::Temperature()
@@ -83,7 +77,7 @@ double Temperature::CelsiusToFahrenheit(const double _temp)
 /////////////////////////////////////////////////
 double Temperature::CelsiusToKelvin(const double _temp)
 {
-  return std::max(_temp + 273.15, 0.0);
+  return _temp + 273.15;
 }
 
 /////////////////////////////////////////////////
@@ -95,13 +89,13 @@ double Temperature::FahrenheitToCelsius(const double _temp)
 /////////////////////////////////////////////////
 double Temperature::FahrenheitToKelvin(const double _temp)
 {
-  return std::max((_temp + 459.67) / 1.8, 0.0);
+  return (_temp + 459.67) / 1.8;
 }
 
 /////////////////////////////////////////////////
 void Temperature::SetKelvin(const double _temp)
 {
-  this->dataPtr->kelvin = std::max(_temp, 0.0);
+  this->dataPtr->kelvin = _temp;
 }
 
 /////////////////////////////////////////////////
@@ -157,24 +151,24 @@ Temperature &Temperature::operator=(const Temperature &_temp)
 /////////////////////////////////////////////////
 Temperature Temperature::operator+(const double _temp)
 {
-  return Temperature(this->dataPtr->kelvin + _temp);
+  return this->dataPtr->kelvin + _temp;
 }
 
 /////////////////////////////////////////////////
 Temperature Temperature::operator+(const Temperature &_temp)
 {
-  return Temperature(this->dataPtr->kelvin + _temp.Kelvin());
+  return this->dataPtr->kelvin + _temp;
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator+=(const double _temp)
+const Temperature &Temperature::operator+=(const double _temp)
 {
   this->dataPtr->kelvin += _temp;
   return *this;
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator+=(const Temperature &_temp)
+const Temperature &Temperature::operator+=(const Temperature &_temp)
 {
   this->dataPtr->kelvin += _temp.Kelvin();
   return *this;
@@ -183,24 +177,24 @@ Temperature &Temperature::operator+=(const Temperature &_temp)
 /////////////////////////////////////////////////
 Temperature Temperature::operator-(const double _temp)
 {
-  return Temperature(this->dataPtr->kelvin - _temp);
+  return this->dataPtr->kelvin - _temp;
 }
 
 /////////////////////////////////////////////////
 Temperature Temperature::operator-(const Temperature &_temp)
 {
-  return Temperature(this->dataPtr->kelvin - _temp.Kelvin());
+  return this->dataPtr->kelvin - _temp.Kelvin();
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator-=(const double _temp)
+const Temperature &Temperature::operator-=(const double _temp)
 {
   this->dataPtr->kelvin -= _temp;
   return *this;
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator-=(const Temperature &_temp)
+const Temperature &Temperature::operator-=(const Temperature &_temp)
 {
   this->dataPtr->kelvin -= _temp.Kelvin();
   return *this;
@@ -219,14 +213,14 @@ Temperature Temperature::operator*(const Temperature &_temp)
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator*=(const double _temp)
+const Temperature &Temperature::operator*=(const double _temp)
 {
   this->dataPtr->kelvin *= _temp;
   return *this;
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator*=(const Temperature &_temp)
+const Temperature &Temperature::operator*=(const Temperature &_temp)
 {
   this->dataPtr->kelvin *= _temp.Kelvin();
   return *this;
@@ -245,14 +239,14 @@ Temperature Temperature::operator/(const Temperature &_temp)
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator/=(const double _temp)
+const Temperature &Temperature::operator/=(const double _temp)
 {
   this->dataPtr->kelvin /= _temp;
   return *this;
 }
 
 /////////////////////////////////////////////////
-Temperature &Temperature::operator/=(const Temperature &_temp)
+const Temperature &Temperature::operator/=(const Temperature &_temp)
 {
   this->dataPtr->kelvin /= _temp.Kelvin();
   return *this;

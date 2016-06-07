@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR3_HH_
-#define _IGNITION_VECTOR3_HH_
+#ifndef IGNITION_MATH_VECTOR3_HH_
+#define IGNITION_MATH_VECTOR3_HH_
 
 #include <iostream>
 #include <fstream>
@@ -357,9 +357,7 @@ namespace ignition
       /// \return sum vector
       public: inline Vector3<T> operator+(const T _s) const
       {
-        return Vector3<T>(this->data[0] + _s,
-                          this->data[1] + _s,
-                          this->data[2] + _s);
+        return {this->data[0] + _s, this->data[1] + _s, this->data[2] + _s};
       }
 
       /// \brief Addition operators
@@ -369,7 +367,7 @@ namespace ignition
       public: friend inline Vector3<T> operator+(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+        return {_v.X() + _s, _v.Y() + _s, _v.Z() + _s};
       }
 
       /// \brief Addition assignment operator
@@ -430,7 +428,7 @@ namespace ignition
       public: friend inline Vector3<T> operator-(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+        return {_s - _v.X(), _s - _v.Y(), _s - _v.Z()};
       }
 
       /// \brief Subtraction assignment operator
@@ -522,9 +520,7 @@ namespace ignition
       /// \return a scaled vector
       public: inline Vector3<T> operator*(T _s) const
       {
-        return Vector3<T>(this->data[0] * _s,
-                          this->data[1] * _s,
-                          this->data[2] * _s);
+        return {this->data[0] * _s, this->data[1] * _s, this->data[2] * _s};
       }
 
       /// \brief Multiplication operators
@@ -533,7 +529,7 @@ namespace ignition
       /// \return a scaled vector
       public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() * _s, _v.Y() * _s, _v.Z() * _s);
+        return {_v.X() * _s, _v.Y() * _s, _v.Z() * _s};
       }
 
       /// \brief Multiplication operator

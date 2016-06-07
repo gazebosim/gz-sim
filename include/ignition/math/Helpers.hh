@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MATH_FUNCTIONS_HH_
-#define _IGNITION_MATH_FUNCTIONS_HH_
+#ifndef IGNITION_MATH_FUNCTIONS_HH_
+#define IGNITION_MATH_FUNCTIONS_HH_
 
 #ifndef _USE_MATH_DEFINES
 # define _USE_MATH_DEFINES

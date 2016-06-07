@@ -68,6 +68,7 @@ namespace ignition
 
       /// \brief Kelvin value constructor
       /// \param[in] _temp Temperature in Kelvin
+      // cppcheck-suppress noExplicitConstructor
       public: Temperature(const double _temp);
 
       /// \brief Copy constructor
@@ -148,83 +149,119 @@ namespace ignition
 
       /// \brief Addition operator
       /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator+(const double _temp);
 
       /// \brief Addition operator
       /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator+(const Temperature &_temp);
+
+      /// \brief Addition operator for double type.
+      /// \param[in] _t Temperature in kelvin
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: friend Temperature operator+(double _t, const Temperature &_temp)
+      {
+        return _t + _temp.Kelvin();
+      }
 
       /// \brief Addition assignment operator
       /// \param[in] _temp Temperature in Kelvin
       /// \return Reference to this instance
-      public: Temperature &operator+=(const double _temp);
+      public: const Temperature &operator+=(const double _temp);
 
       /// \brief Addition assignment operator
       /// \param[in] _temp Temperature object
       /// \return Reference to this instance
-      public: Temperature &operator+=(const Temperature &_temp);
+      public: const Temperature &operator+=(const Temperature &_temp);
 
       /// \brief Subtraction operator
       /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator-(const double _temp);
 
       /// \brief Subtraction operator
       /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator-(const Temperature &_temp);
+
+      /// \brief Subtraction operator for double type.
+      /// \param[in] _t Temperature in kelvin
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: friend Temperature operator-(double _t, const Temperature &_temp)
+      {
+        return _t - _temp.Kelvin();
+      }
 
       /// \brief Subtraction assignment operator
       /// \param[in] _temp Temperature in Kelvin
       /// \return Reference to this instance
-      public: Temperature &operator-=(const double _temp);
+      public: const Temperature &operator-=(const double _temp);
 
       /// \brief Subtraction assignment operator
       /// \param[in] _temp Temperature object
       /// \return Reference to this instance
-      public: Temperature &operator-=(const Temperature &_temp);
+      public: const Temperature &operator-=(const Temperature &_temp);
 
       /// \brief Multiplication operator
       /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator*(const double _temp);
 
       /// \brief Multiplication operator
       /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator*(const Temperature &_temp);
+
+      /// \brief Multiplication operator for double type.
+      /// \param[in] _t Temperature in kelvin
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: friend Temperature operator*(double _t, const Temperature &_temp)
+      {
+        return _t * _temp.Kelvin();
+      }
 
       /// \brief Multiplication assignment operator
       /// \param[in] _temp Temperature in Kelvin
       /// \return Reference to this instance
-      public: Temperature &operator*=(const double _temp);
+      public: const Temperature &operator*=(const double _temp);
 
       /// \brief Multiplication assignment operator
       /// \param[in] _temp Temperature object
       /// \return Reference to this instance
-      public: Temperature &operator*=(const Temperature &_temp);
+      public: const Temperature &operator*=(const Temperature &_temp);
 
       /// \brief Division operator
       /// \param[in] _temp Temperature in Kelvin
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator/(const double _temp);
 
       /// \brief Division operator
       /// \param[in] _temp Temperature object
-      /// \return Reference to this instance
+      /// \return Resulting temperature
       public: Temperature operator/(const Temperature &_temp);
+
+      /// \brief Division operator for double type.
+      /// \param[in] _t Temperature in kelvin
+      /// \param[in] _temp Temperature object
+      /// \return Resulting temperature
+      public: friend Temperature operator/(double _t, const Temperature &_temp)
+      {
+        return _t / _temp.Kelvin();
+      }
 
       /// \brief Division assignment operator
       /// \param[in] _temp Temperature in Kelvin
       /// \return Reference to this instance
-      public: Temperature &operator/=(const double _temp);
+      public: const Temperature &operator/=(const double _temp);
 
       /// \brief Division assignment operator
       /// \param[in] _temp Temperature object
       /// \return Reference to this instance
-      public: Temperature &operator/=(const Temperature &_temp);
+      public: const Temperature &operator/=(const Temperature &_temp);
 
       /// \brief Equal to operator
       /// \param[in] _temp The temperature to compare

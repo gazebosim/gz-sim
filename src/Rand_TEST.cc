@@ -38,6 +38,7 @@ TEST(RandTest, Rand)
   EXPECT_LE(i, 2);
   EXPECT_GE(i, 1);
 
+  // cppcheck-suppress unreadVariable
   i = math::Rand::IntNormal(2, 3);
 
 #ifndef _MSC_VER

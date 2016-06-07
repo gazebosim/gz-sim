@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_BOX_HH_
-#define _IGNITION_BOX_HH_
+#ifndef IGNITION_MATH_BOX_HH_
+#define IGNITION_MATH_BOX_HH_
 
 #include <iostream>
 #include <tuple>

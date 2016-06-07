@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef _IGNITION_PLANE_HH_
-#define _IGNITION_PLANE_HH_
+#ifndef IGNITION_MATH_PLANE_HH_
+#define IGNITION_MATH_PLANE_HH_
 
 #include <ignition/math/Box.hh>
 #include <ignition/math/Vector3.hh>
@@ -61,9 +60,8 @@ namespace ignition
       /// \param[in] _normal The plane normal
       /// \param[in] _offset Offset along the normal
       public: Plane(const Vector3<T> &_normal, T _offset = 0.0)
+              : normal(_normal), d(_offset)
       {
-        this->normal = _normal;
-        this->d = _offset;
       }
 
       /// \brief Constructor

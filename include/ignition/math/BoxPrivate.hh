@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_BOX_PRIVATE_HH_
-#define _IGNITION_BOX_PRIVATE_HH_
+#ifndef IGNITION_MATH_BOXPRIVATE_HH_
+#define IGNITION_MATH_BOXPRIVATE_HH_
 
 #include <ignition/math/Vector3.hh>
 

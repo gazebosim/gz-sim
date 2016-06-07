@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_ANGLE_HH_
-#define _IGNITION_ANGLE_HH_
+#ifndef IGNITION_MATH_ANGLE_HH_
+#define IGNITION_MATH_ANGLE_HH_
 
 #include <iostream>
 #include <ignition/math/Helpers.hh>
@@ -58,9 +58,10 @@ namespace ignition
       /// \brief Constructor
       public: Angle();
 
-      /// \brief Copy Constructor
+      /// \brief Conversion Constructor
       /// \param[in] _radian Radians
-      public: Angle(double _radian);
+      // cppcheck-suppress noExplicitConstructor
+      public: Angle(const double _radian);
 
       /// \brief Copy constructor
       /// \param[in] _angle Angle to copy

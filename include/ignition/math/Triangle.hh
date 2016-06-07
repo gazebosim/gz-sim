@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef _IGNITION_TRIANGLE_HH_
-#define _IGNITION_TRIANGLE_HH_
+#ifndef IGNITION_MATH_TRIANGLE_HH_
+#define IGNITION_MATH_TRIANGLE_HH_
 
 #include <set>
 #include <ignition/math/Line2.hh>

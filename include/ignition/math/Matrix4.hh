@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MATRIX4_HH_
-#define _IGNITION_MATRIX4_HH_
+#ifndef IGNITION_MATH_MATRIX4_HH_
+#define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
 #include <ignition/math/Helpers.hh>
@@ -82,7 +82,7 @@ namespace ignition
 
       /// \brief Construct Matrix4 from a quaternion.
       /// \param[in] _q Quaternion.
-      public: Matrix4(const Quaternion<T> &_q)
+      public: explicit Matrix4(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
@@ -106,7 +106,7 @@ namespace ignition
 
       /// \brief Construct Matrix4 from a math::Pose3
       /// \param[in] _pose Pose.
-      public: Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
+      public: explicit Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
       {
         this->Translate(_pose.Pos());
       }
