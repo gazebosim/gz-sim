@@ -1,3 +1,10 @@
+## Igniton Math 3.x
+
+### Ignition Math 3.x.x
+
+1. Added `operator=(const Quaternion<T> &_q)` to `Matrix3`.
+    * [Pull request 111](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/111)
+
 ## Igniton Math 2.x
 
 ### Ignition Math 2.3.0
