@@ -413,6 +413,13 @@ TEST(QuaternionTest, Math)
                 0.707544, 0.705561, -0.0395554,
                 -0.344106, 0.392882, 0.85278));
 
+    math::Matrix3d matFromQ;
+    matFromQ = q;
+    EXPECT_TRUE(matFromQ == math::Matrix3d(
+                0.617229, -0.589769, 0.52077,
+                0.707544, 0.705561, -0.0395554,
+                -0.344106, 0.392882, 0.85278));
+
     EXPECT_TRUE(math::Matrix4d(q) == math::Matrix4d(
                 0.617229, -0.589769, 0.52077, 0,
                 0.707544, 0.705561, -0.0395554, 0,

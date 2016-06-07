@@ -373,7 +373,10 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
-      public: Matrix3<T> operator=(const Quaternion<T> &_q)
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
