@@ -142,6 +142,15 @@
 #define IGN_SQRT2 1.41421356237309504880
 #endif
 
+/// \brief Define IGN_FP_VOLATILE for FP equality comparisons
+/// Use volatile parameters when checking floating point equality on
+/// the 387 math coprocessor to work around bugs from the 387 extra precision
+#if defined __FLT_EVAL_METHOD__  &&  __FLT_EVAL_METHOD__ == 2
+#define IGN_FP_VOLATILE volatile
+#else
+#define IGN_FP_VOLATILE
+#endif
+
 /// \brief Compute sphere volume
 /// \param[in] _radius Sphere radius
 #define IGN_SPHERE_VOLUME(_radius) (4.0*IGN_PI*std::pow(_radius, 3)/3.0)
@@ -342,7 +351,8 @@ namespace ignition
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = 1e-6)
     {
-      return std::abs(_a - _b) <= _epsilon;
+      IGN_FP_VOLATILE T diff = std::abs(_a - _b);
+      return diff <= _epsilon;
     }
 
     /// \brief get value at a specified precision

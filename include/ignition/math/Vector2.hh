@@ -44,7 +44,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _x value along x
       /// \param[in] _y value along y
-      public: Vector2(const T &_x, const T &_y)
+      public: explicit Vector2(const T &_x, const T &_y)
       {
         this->data[0] = _x;
         this->data[1] = _y;
@@ -438,7 +438,7 @@ namespace ignition
 
       /// \brief Less than operator.
       /// \param[in] _pt Vector to compare.
-      /// \return True if this vector2 first or second value is less than
+      /// \return True if this vector's first or second value is less than
       /// the given vector's first or second value.
       public: bool operator<(const Vector2<T> &_pt) const
       {

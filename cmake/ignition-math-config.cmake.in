@@ -3,9 +3,11 @@ if (@PKG_NAME@_CONFIG_INCLUDED)
 endif()
 set(@PKG_NAME@_CONFIG_INCLUDED TRUE)
 
-list(APPEND @PKG_NAME@_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@/ignition/@IGN_PROJECT_NAME@@PROJECT_MAJOR_VERSION@")
+@PACKAGE_INIT@
 
-list(APPEND @PKG_NAME@_LIBRARY_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
+if(NOT TARGET @PROJECT_LIBRARY_TARGET_NAME@)
+  include("${CMAKE_CURRENT_LIST_DIR}/@cmake_targets_file@")
+endif()
 
 list(APPEND @PKG_NAME@_CXX_FLAGS -std=c++11)
 if ("${CMAKE_CXX_COMPILER_ID} " MATCHES "Clang ")
@@ -18,24 +20,8 @@ if (WIN32)
  set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
 endif()
 
-foreach(lib @PKG_LIBRARIES@)
-  set(onelib "${lib}-NOTFOUND")
-  find_library(onelib ${lib}
-    PATHS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
-    NO_DEFAULT_PATH
-    )
-  if(NOT onelib)
-    message(FATAL_ERROR "Library '${lib}' in package @PKG_NAME@ is not installed properly")
-  endif()
-  list(APPEND @PKG_NAME@_LIBRARIES ${onelib})
-endforeach()
-
-foreach(dep @PKG_DEPENDS@)
-  if(NOT ${dep}_FOUND)
-    find_package(${dep} REQUIRED)
-  endif()
-  list(APPEND @PKG_NAME@_INCLUDE_DIRS "${${dep}_INCLUDE_DIRS}")
-  list(APPEND @PKG_NAME@_LIBRARIES "${${dep_lib}_LIBRARIES}")
-endforeach()
-
-list(APPEND @PKG_NAME@_LDFLAGS "-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
+# Compatibility
+set(@PKG_NAME@_LIBRARIES @PROJECT_LIBRARY_TARGET_NAME@)
+set(@PKG_NAME@_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR_FULL@")
+set(@PKG_NAME@_LIBRARY_DIRS "@PACKAGE_LIB_INSTALL_DIR@")
+set(@PKG_NAME@_LDFLAGS      "-L@PACKAGE_LIB_INSTALL_DIR@")

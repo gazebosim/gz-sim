@@ -31,6 +31,12 @@ TEST(SignalStatsTest, SignalMaximumConstructor)
   EXPECT_EQ(max.Count(), 0u);
   EXPECT_EQ(max.ShortName(), std::string("max"));
 
+  math::SignalMaximum maxCopy(max);
+
+  EXPECT_DOUBLE_EQ(max.Value(), maxCopy.Value());
+  EXPECT_EQ(max.Count(), maxCopy.Count());
+  EXPECT_EQ(max.ShortName(), maxCopy.ShortName());
+
   // Reset
   max.Reset();
   EXPECT_DOUBLE_EQ(max.Value(), 0.0);

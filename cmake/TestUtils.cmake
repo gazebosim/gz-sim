@@ -28,7 +28,7 @@ macro (ign_build_tests)
       target_link_libraries(${BINARY_NAME}
          gtest.lib
          gtest_main.lib
-         ignition-math${PROJECT_MAJOR_VERSION}.lib)
+         ignition-math${PROJECT_MAJOR_VERSION})
     else()
        message(FATAL_ERROR "Unsupported platform")
     endif()
