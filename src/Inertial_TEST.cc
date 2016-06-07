@@ -96,10 +96,10 @@ TEST(Inertial_d_Test, Setters)
   math::Inertial_d inertial;
 
   // Initially invalid
-  EXPECT_FALSE(inertial.Pose(pose));
+  EXPECT_FALSE(inertial.SetPose(pose));
 
   // Valid once valid mass matrix is set
-  EXPECT_TRUE(inertial.MassMatrix(m));
+  EXPECT_TRUE(inertial.SetMassMatrix(m));
 
   // Verify values
   EXPECT_EQ(inertial.MassMatrix(), m);
@@ -107,7 +107,7 @@ TEST(Inertial_d_Test, Setters)
 
   // Invalid again if an invalid inertia is set
   math::MassMatrix3d mInvalid(-1, Ixxyyzz, Ixyxzyz);
-  EXPECT_FALSE(inertial.MassMatrix(mInvalid));
+  EXPECT_FALSE(inertial.SetMassMatrix(mInvalid));
 }
 
 /////////////////////////////////////////////////

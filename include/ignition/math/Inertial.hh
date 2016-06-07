@@ -55,7 +55,7 @@ namespace ignition
       /// \brief Set the mass and inertia matrix.
       /// \param[in] _m New MassMatrix3 object.
       /// \return True if the MassMatrix3 is valid.
-      public: bool MassMatrix(const MassMatrix3<T> &_m)
+      public: bool SetMassMatrix(const MassMatrix3<T> &_m)
       {
         this->massMatrix = _m;
         return this->massMatrix.IsValid();
@@ -71,7 +71,7 @@ namespace ignition
       /// \brief Set the pose of center of mass reference frame.
       /// \param[in] _pose New pose.
       /// \return True if the MassMatrix3 is valid.
-      public: bool Pose(const Pose3<T> &_pose)
+      public: bool SetPose(const Pose3<T> &_pose)
       {
         this->pose = _pose;
         return this->massMatrix.IsValid();
