@@ -144,6 +144,193 @@ namespace ignition
         return this->pts[0].Distance(this->pts[1]);
       }
 
+      /// \brief Get the shortest line between this line and the
+      /// provided line.
+      ///
+      /// In the case when the two lines are parallel, we choose the first
+      /// point of this line and the closest point in the provided line.
+      /// \param[in] _line Line to compare against this.
+      /// \param[out] _result The shortest line between _line and this.
+      /// \return True if a solution was found. False if a solution is not
+      /// possible.
+      public: bool Distance(const Line3<T> &_line, Line3<T> &_result,
+                            const double _epsilon = 1e-6) const
+      {
+        Vector3<T> p13 = this->pts[0] - _line[0];
+        Vector3<T> p43 = _line[1] - _line[0];
+
+        if (std::abs(p43.X()) < _epsilon && std::abs(p43.Y()) < _epsilon &&
+            std::abs(p43.Z()) < _epsilon)
+        {
+          return false;
+        }
+
+        Vector3<T> p21 = this->pts[1] - this->pts[0];
+
+        if (std::abs(p21.X()) < _epsilon && std::abs(p21.Y()) < _epsilon &&
+            std::abs(p21.Z()) < _epsilon)
+        {
+          return false;
+        }
+
+        double d1343 = p13.Dot(p43);
+        double d4321 = p43.Dot(p21);
+        double d1321 = p13.Dot(p21);
+        double d4343 = p43.Dot(p43);
+        double d2121 = p21.Dot(p21);
+
+        double denom = d2121 * d4343 - d4321 * d4321;
+
+        // In this case, we choose the first point in this line,
+        // and the closest point in the provided line.
+        if (std::abs(denom) < _epsilon)
+        {
+          double d1 = this->pts[0].Distance(_line[0]);
+          double d2 = this->pts[0].Distance(_line[1]);
+
+          double d3 = this->pts[1].Distance(_line[0]);
+          double d4 = this->pts[1].Distance(_line[1]);
+
+          if (d1 <= d2 && d1 <= d3 && d1 <= d4)
+          {
+            _result.SetA(this->pts[0]);
+            _result.SetB(_line[0]);
+          }
+          else if (d2 <= d3 && d2 <= d4)
+          {
+            _result.SetA(this->pts[0]);
+            _result.SetB(_line[1]);
+          }
+          else if (d3 <= d4)
+          {
+            _result.SetA(this->pts[1]);
+            _result.SetB(_line[0]);
+          }
+          else
+          {
+            _result.SetA(this->pts[1]);
+            _result.SetB(_line[1]);
+          }
+
+          return true;
+        }
+
+        double numer = d1343 * d4321 - d1321 * d4343;
+
+        double mua = clamp(numer / denom, 0.0, 1.0);
+        double mub = clamp((d1343 + d4321 * mua) / d4343, 0.0, 1.0);
+
+        _result.Set(this->pts[0] + (p21 * mua), _line[0] + (p43 * mub));
+
+        return true;
+      }
+
+      /// \brief Check if this line intersects the given line segment.
+      /// \param[in] _line The line to check for intersection.
+      /// \param[in] _epsilon The error bounds within which the intersection
+      /// check will return true.
+      /// \return True if an intersection was found.
+      public: bool Intersect(const Line3<T> &_line,
+                             double _epsilon = 1e-6) const
+      {
+        static math::Vector3<T> ignore;
+        return this->Intersect(_line, ignore, _epsilon);
+      }
+
+      /// \brief Test if this line and the given line are coplanar.
+      /// \param[in] _line Line to check against.
+      /// \param[in] _epsilon The error bounds within which the
+      /// check will return true.
+      /// \return True if the two lines are coplanar.
+      public: bool Coplanar(const Line3<T> &_line,
+                            const double _epsilon = 1e-6) const
+      {
+        return std::abs((_line[0] - this->pts[0]).Dot(
+              (this->pts[1] - this->pts[0]).Cross(_line[1] - _line[0])))
+          <= _epsilon;
+      }
+
+      /// \brief Test if this line and the given line are parallel.
+      /// \param[in] _line Line to check against.
+      /// \param[in] _epsilon The error bounds within which the
+      /// check will return true.
+      /// \return True if the two lines are parallel.
+      public: bool Parallel(const Line3<T> &_line,
+                            const double _epsilon = 1e-6) const
+      {
+        return (this->pts[1] - this->pts[0]).Cross(
+            _line[1] - _line[0]).Length() <= _epsilon;
+      }
+
+      /// \brief Check if this line intersects the given line segment. The
+      /// point of intersection is returned in the _pt parameter.
+      /// \param[in] _line The line to check for intersection.
+      /// \param[out] _pt The point of intersection. This value is only
+      /// valid if the return value is true.
+      /// \param[in] _epsilon The error bounds within which the intersection
+      /// check will return true.
+      /// \return True if an intersection was found.
+      public: bool Intersect(const Line3<T> &_line, math::Vector3<T> &_pt,
+                             double _epsilon = 1e-6) const
+      {
+        // Handle special case when lines are parallel
+        if (this->Parallel(_line, _epsilon))
+        {
+          // Check if _line's starting point is on the line.
+          if (this->Within(_line[0], _epsilon))
+          {
+            _pt = _line[0];
+            return true;
+          }
+          // Check if _line's ending point is on the line.
+          else if (this->Within(_line[1], _epsilon))
+          {
+            _pt = _line[1];
+            return true;
+          }
+          // Otherwise return false.
+          else
+            return false;
+        }
+
+        // Get the line that is the shortest distance between this and _line
+        math::Line3<T> distLine;
+        this->Distance(_line, distLine, _epsilon);
+
+        // If the length of the line is less than epsilon, then they
+        // intersect.
+        if (distLine.Length() < _epsilon)
+        {
+          _pt = distLine[0];
+          return true;
+        }
+
+        return false;
+      }
+
+      /// \brief Check if the given point is between the start and end
+      /// points of the line segment.
+      /// \param[in] _pt Point to check.
+      /// \param[in] _epsilon The error bounds within which the within
+      /// check will return true.
+      /// \return True if the point is on the segement.
+      public: bool Within(const math::Vector3<T> &_pt,
+                          double _epsilon = 1e-6) const
+      {
+        return _pt.X() <= std::max(this->pts[0].X(),
+                                   this->pts[1].X()) + _epsilon &&
+               _pt.X() >= std::min(this->pts[0].X(),
+                                   this->pts[1].X()) - _epsilon &&
+               _pt.Y() <= std::max(this->pts[0].Y(),
+                                   this->pts[1].Y()) + _epsilon &&
+               _pt.Y() >= std::min(this->pts[0].Y(),
+                                   this->pts[1].Y()) - _epsilon &&
+               _pt.Z() <= std::max(this->pts[0].Z(),
+                                   this->pts[1].Z()) + _epsilon &&
+               _pt.Z() >= std::min(this->pts[0].Z(),
+                                   this->pts[1].Z()) - _epsilon;
+      }
+
       /// \brief Equality operator.
       /// \param[in] _line Line to compare for equality.
       /// \return True if the given line is equal to this line

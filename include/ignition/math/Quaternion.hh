@@ -75,7 +75,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      public: Quaternion(const Vector3<T> &_rpy)
+      public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
       }
@@ -505,22 +505,22 @@ namespace ignition
             {
               if (_v1Abs.X() < _v1Abs.Z())
               {
-                other = {1, 0, 0};
+                other.Set(1, 0, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
             else
             {
               if (_v1Abs.Y() < _v1Abs.Z())
               {
-                other = {0, 1, 0};
+                other.Set(0, 1, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
           }

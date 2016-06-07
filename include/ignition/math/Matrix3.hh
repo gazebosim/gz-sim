@@ -80,7 +80,7 @@ namespace ignition
 
       /// \brief Construct Matrix3 from a quaternion.
       /// \param[in] _q Quaternion.
-      public: Matrix3(const Quaternion<T> &_q)
+      public: explicit Matrix3(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
@@ -212,6 +212,15 @@ namespace ignition
         this->data[0][_c] = _v.X();
         this->data[1][_c] = _v.Y();
         this->data[2][_c] = _v.Z();
+      }
+
+      /// \brief Equal operator. this = _mat
+      /// \param _mat Incoming matrix
+      /// \return itself
+      public: Matrix3<T> &operator=(const Matrix3<T> &_mat)
+      {
+        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
+        return *this;
       }
 
       /// \brief returns the element wise difference of two matrices
