@@ -63,7 +63,7 @@ namespace ignition
 
       /// \brief Get the mass and inertia matrix.
       /// \return The MassMatrix3 object.
-      public: MassMatrix3<T> MassMatrix() const
+      public: const MassMatrix3<T> &MassMatrix() const
       {
         return this->massMatrix;
       }
@@ -79,7 +79,7 @@ namespace ignition
 
       /// \brief Get the pose of center of mass reference frame.
       /// \return The pose of center of mass reference frame.
-      public: Pose3<T> Pose() const
+      public: const Pose3<T> &Pose() const
       {
         return this->pose;
       }
