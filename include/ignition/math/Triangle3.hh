@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef _IGNITION_TRIANGLE3_HH_
-#define _IGNITION_TRIANGLE3_HH_
+#ifndef IGNITION_MATH_TRIANGLE3_HH_
+#define IGNITION_MATH_TRIANGLE3_HH_
 
 #include <ignition/math/Line3.hh>
 #include <ignition/math/Plane.hh>

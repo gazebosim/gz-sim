@@ -350,10 +350,3 @@ void SignalStats::Reset()
     statistic->Reset();
   }
 }
-
-//////////////////////////////////////////////////
-SignalStats &SignalStats::operator=(const SignalStats &_s)
-{
-  this->dataPtr = _s.dataPtr->Clone();
-  return *this;
-}
