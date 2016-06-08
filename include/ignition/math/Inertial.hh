@@ -131,8 +131,8 @@ namespace ignition
       private: Pose3<T> pose;
     };
 
-    typedef Inertial<double> Inertial_d;
-    typedef Inertial<float> Inertial_f;
+    typedef Inertial<double> Inertiald;
+    typedef Inertial<float> Inertialf;
   }
 }
 #endif
