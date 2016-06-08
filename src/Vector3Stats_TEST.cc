@@ -187,4 +187,3 @@ TEST_F(Vector3StatsTest, Vector3Stats)
     EXPECT_NEAR(this->Mag(name), 1.0, 1e-10);
   }
 }
-
