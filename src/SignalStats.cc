@@ -350,4 +350,3 @@ void SignalStats::Reset()
     statistic->Reset();
   }
 }
-

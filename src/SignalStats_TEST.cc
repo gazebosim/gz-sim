@@ -481,6 +481,9 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_TRUE(stats.Map().empty());
     EXPECT_EQ(stats.Count(), 0u);
 
+    const math::SignalStats &stats2 = stats;
+    EXPECT_EQ(stats.Count(), stats2.Count());
+
     // Reset
     stats.Reset();
     EXPECT_TRUE(stats.Map().empty());
@@ -529,6 +532,18 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_EQ(map.count("rms"), 1u);
     EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
+
+    math::SignalStats stats2(stats);
+    std::map<std::string, double> map2 = stats2.Map();
+    EXPECT_FALSE(map2.empty());
+    EXPECT_EQ(map.size(), map2.size());
+    EXPECT_EQ(map.count("max"), map2.count("max"));
+    EXPECT_EQ(map.count("maxAbs"), map2.count("maxAbs"));
+    EXPECT_EQ(map.count("mean"), map2.count("mean"));
+    EXPECT_EQ(map.count("min"), map2.count("min"));
+    EXPECT_EQ(map.count("rms"), map2.count("rms"));
+    EXPECT_EQ(map.count("var"), map2.count("var"));
+    EXPECT_EQ(map.count("FakeStatistic"), map2.count("FakeStatistic"));
   }
 
   {

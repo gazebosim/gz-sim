@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef IGNITION_MATH_MATRIX3_HH_
 #define IGNITION_MATH_MATRIX3_HH_
 

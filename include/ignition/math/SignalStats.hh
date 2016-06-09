@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_HH_
-#define IGNITION_MATH_SIGNAL_STATS_HH_
+#ifndef IGNITION_MATH_SIGNALSTATS_HH_
+#define IGNITION_MATH_SIGNALSTATS_HH_
 
 #include <map>
 #include <memory>
@@ -241,7 +241,7 @@ namespace ignition
 #pragma warning(disable: 4251)
 #endif
       /// \brief Pointer to private data.
-      protected: std::unique_ptr<SignalStatsPrivate> dataPtr;
+      private: std::unique_ptr<SignalStatsPrivate> dataPtr;
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

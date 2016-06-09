@@ -1,4 +1,11 @@
-## Igniton Math 2.x
+## Ignition Math 3.x
+
+### Ignition Math 3.x.x
+
+1. Fix xenial cppcheck
+    * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
+
+## Ignition Math 2.x
 
 ### Ignition Math 2.3.0
 

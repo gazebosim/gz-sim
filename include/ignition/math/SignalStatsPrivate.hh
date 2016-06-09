@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
-#define IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
+#ifndef IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
+#define IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
 
 #include <memory>
 #include <vector>

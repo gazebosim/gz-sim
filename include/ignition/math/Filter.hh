@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef IGNITION_MATH_FILTER_HH_
 #define IGNITION_MATH_FILTER_HH_
 
