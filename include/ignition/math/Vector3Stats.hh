@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_VECTOR3_STATS_HH_
-#define IGNITION_MATH_VECTOR3_STATS_HH_
+#ifndef IGNITION_MATH_VECTOR3STATS_HH_
+#define IGNITION_MATH_VECTOR3STATS_HH_
 
 #include <string>
 #include <ignition/math/Helpers.hh>
@@ -68,19 +68,19 @@ namespace ignition
 
       /// \brief Get statistics for x component of signal.
       /// \return Statistics for x component of signal.
-      public: SignalStats X() const;
+      public: const SignalStats &X() const;
 
       /// \brief Get statistics for y component of signal.
       /// \return Statistics for y component of signal.
-      public: SignalStats Y() const;
+      public: const SignalStats &Y() const;
 
       /// \brief Get statistics for z component of signal.
       /// \return Statistics for z component of signal.
-      public: SignalStats Z() const;
+      public: const SignalStats &Z() const;
 
       /// \brief Get statistics for magnitude component of signal.
       /// \return Statistics for magnitude component of signal.
-      public: SignalStats Mag() const;
+      public: const SignalStats &Mag() const;
 
       /// \brief Get mutable reference to statistics for x component of signal.
       /// \return Statistics for x component of signal.

@@ -61,11 +61,18 @@ SUPPRESS=/tmp/cpp_check.suppress
 # The follow suppression is useful when checking for missing includes.
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
-#echo "missingIncludeSystem" >> $SUPPRESS
-echo "" >> $SUPPRESS
+SUPPRESS=/tmp/gazebo_cpp_check.suppress
+# false positives related to explicit constructors where there is no
+# constructor declared
+echo "*:include/ignition/math/Vector2.hh:230" > $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:372" >> $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:433" >> $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:536" >> $SUPPRESS
+echo "*:include/ignition/math/Vector4.hh:257" >> $SUPPRESS
+echo "*:include/ignition/math/Vector4.hh:258" >> $SUPPRESS	
 
 #cppcheck
-CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
+CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS --inline-suppr"
 if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"

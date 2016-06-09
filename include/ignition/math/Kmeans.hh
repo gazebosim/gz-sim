@@ -37,7 +37,7 @@ namespace ignition
     {
       /// \brief constructor
       /// \param[in] _obs Set of observations to cluster.
-      public: Kmeans(const std::vector<Vector3d> &_obs);
+      public: explicit Kmeans(const std::vector<Vector3d> &_obs);
 
       /// \brief Destructor.
       public: virtual ~Kmeans();

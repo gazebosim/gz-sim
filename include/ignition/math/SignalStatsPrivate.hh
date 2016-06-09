@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
-#define IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
+#ifndef IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
+#define IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
 
 #include <memory>
 #include <vector>
@@ -36,6 +36,15 @@ namespace ignition
 
       /// \brief Count of data values in mean.
       public: unsigned int count;
+
+      /// \brief Clone the SignalStatisticPrivate object. Used for implementing
+      /// copy semantics.
+      public: std::unique_ptr<SignalStatisticPrivate> Clone() const
+      {
+        std::unique_ptr<SignalStatisticPrivate> dataPtr(
+            new SignalStatisticPrivate(*this));
+        return dataPtr;
+      }
     };
 
     class SignalStatistic;
@@ -53,8 +62,16 @@ namespace ignition
     {
       /// \brief Vector of `SignalStatistic`s.
       public: SignalStatistic_V stats;
+
+      /// \brief Clone the SignalStatsPrivate object. Used for implementing
+      /// copy semantics.
+      public: std::unique_ptr<SignalStatsPrivate> Clone() const
+      {
+        std::unique_ptr<SignalStatsPrivate> dataPtr(
+            new SignalStatsPrivate(*this));
+        return dataPtr;
+      }
     };
   }
 }
 #endif
-

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_AFFINE_EXCEPTION_HH_
-#define IGNITION_MATH_AFFINE_EXCEPTION_HH_
+#ifndef IGNITION_MATH_AFFINEEXCEPTION_HH_
+#define IGNITION_MATH_AFFINEEXCEPTION_HH_
 
 #include <stdexcept>
 #include <ignition/math/Helpers.hh>
