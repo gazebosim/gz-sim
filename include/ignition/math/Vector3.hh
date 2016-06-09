@@ -369,7 +369,7 @@ namespace ignition
       public: friend inline Vector3<T> operator+(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return {_v.X() + _s, _v.Y() + _s, _v.Z() + _s};
+        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
       }
 
       /// \brief Addition assignment operator
