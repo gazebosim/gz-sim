@@ -533,7 +533,7 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
 
-    const math::SignalStats &stats2 = stats;
+    math::SignalStats stats2(stats);
     std::map<std::string, double> map2 = stats2.Map();
     EXPECT_FALSE(map2.empty());
     EXPECT_EQ(map.size(), map2.size());
