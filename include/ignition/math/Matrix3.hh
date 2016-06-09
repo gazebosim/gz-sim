@@ -372,6 +372,14 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
+      {
+        return *this = Matrix3<T>(_q);
+      }
+
       /// \brief Inequality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if not equal (using the default tolerance of 1e-6)

@@ -2,6 +2,9 @@
 
 ### Ignition Math 3.x.x
 
+1. Added `operator=(const Quaternion<T> &_q)` to `Matrix3`.
+    * [Pull request 111](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/111)
+
 1. Fix xenial cppcheck
     * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
 
