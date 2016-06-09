@@ -216,7 +216,7 @@ namespace ignition
       /// \return difference vector
       public: inline Vector2<T> operator-(const T _s) const
       {
-        return {this->data[0] - _s, this->data[1] - _s};
+        return Vector2<T>(this->data[0] - _s, this->data[1] - _s);
       }
 
       /// \brief Subtraction operators
@@ -246,7 +246,7 @@ namespace ignition
       /// \result a result
       public: const Vector2 operator/(const Vector2 &_v) const
       {
-        return {this->data[0] / _v[0], this->data[1] / _v[1]};
+        return Vector2<T>(this->data[0] / _v[0], this->data[1] / _v[1]);
       }
 
       /// \brief Division operator
@@ -266,7 +266,7 @@ namespace ignition
       /// \return a vector
       public: const Vector2 operator/(T _v) const
       {
-        return {this->data[0] / _v, this->data[1] / _v};
+        return Vector2<T>(this->data[0] / _v, this->data[1] / _v);
       }
 
       /// \brief Division operator

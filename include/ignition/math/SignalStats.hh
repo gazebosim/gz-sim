@@ -234,8 +234,6 @@ namespace ignition
       /// \brief Forget all previous data.
       public: void Reset();
 
-      public: SignalStats &operator=(const SignalStats &_stats);
-
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
