@@ -1,10 +1,11 @@
+## Ignition Math 3.x
+
+### Ignition Math 3.x.x
+
+1. Fix xenial cppcheck
+    * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
+
 ## Ignition Math 2.x
-
-### Ignition Math 2.4.0
-
-1. Added Temperature class
-    * A contribution from Shintaro Noda
-    * [Pull request 104](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/104)
 
 ### Ignition Math 2.3.0
 
