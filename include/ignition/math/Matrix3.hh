@@ -372,20 +372,12 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
-      public: Matrix3<T> operator=(const Quaternion<T> &_q)
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
       {
-        Quaternion<T> qt = _q;
-        qt.Normalize();
-        this->Set(1 - 2*qt.Y()*qt.Y() - 2 *qt.Z()*qt.Z(),
-                  2 * qt.X()*qt.Y() - 2*qt.Z()*qt.W(),
-                  2 * qt.X() * qt.Z() + 2 * qt.Y() * qt.W(),
-                  2 * qt.X() * qt.Y() + 2 * qt.Z() * qt.W(),
-                  1 - 2*qt.X()*qt.X() - 2 * qt.Z()*qt.Z(),
-                  2 * qt.Y() * qt.Z() - 2 * qt.X() * qt.W(),
-                  2 * qt.X() * qt.Z() - 2 * qt.Y() * qt.W(),
-                  2 * qt.Y() * qt.Z() + 2 * qt.X() * qt.W(),
-                  1 - 2 * qt.X()*qt.X() - 2 * qt.Y()*qt.Y());
-        return *this;
+        return *this = Matrix3<T>(_q);
       }
 
       /// \brief Inequality test operator
