@@ -317,9 +317,14 @@ namespace ignition
 
       /// \brief Compute principal moments of inertia,
       /// which are the eigenvalues of the moment of inertia matrix.
-      /// \param[in] _tol Relative tolerance.
-      /// \return Principal moments of inertia. If the matrix is
-      /// already diagonal, they are returned in the existing order.
+      /// \param[in] _tol Relative tolerance given by absolute value
+      /// of _tol.
+      /// Negative values of _tol are interpreted as a flag that
+      /// causes principal moments to always be sorted from smallest
+      /// to largest.
+      /// \return Principal moments of inertia.
+      /// If the matrix is already diagonal and _tol is positive,
+      /// they are returned in the existing order.
       /// Otherwise, the moments are sorted from smallest to largest.
       public: Vector3<T> PrincipalMoments(const T _tol = 1e-6) const
       {
@@ -377,7 +382,11 @@ namespace ignition
       }
 
       /// \brief Compute rotational offset of principal axes.
-      /// \param[in] _tol Relative tolerance.
+      /// \param[in] _tol Relative tolerance given by absolute value
+      /// of _tol.
+      /// Negative values of _tol are interpreted as a flag that
+      /// causes principal moments to always be sorted from smallest
+      /// to largest.
       /// \return Quaternion representing rotational offset of principal axes.
       /// With a rotation matrix constructed from this quaternion R(q)
       /// and a diagonal matrix L with principal moments on the diagonal,
@@ -387,7 +396,7 @@ namespace ignition
       {
         // Compute tolerance relative to maximum value of inertia diagonal
         T tol = _tol * this->Ixxyyzz.Max();
-        Vector3<T> moments = this->PrincipalMoments();
+        Vector3<T> moments = this->PrincipalMoments(tol);
         if (moments.Equal(this->Ixxyyzz, tol))
         {
           // matrix is already aligned with principal axes
@@ -424,9 +433,9 @@ namespace ignition
 
         // index of unequal moment
         int unequalMoment = -1;
-        if (equal<T>(momentsDiff[0], 0, tol))
+        if (equal<T>(momentsDiff[0], 0, std::abs(tol)))
           unequalMoment = 2;
-        else if (equal<T>(momentsDiff[1], 0, tol))
+        else if (equal<T>(momentsDiff[1], 0, std::abs(tol)))
           unequalMoment = 0;
 
         if (unequalMoment >= 0)
@@ -533,9 +542,20 @@ namespace ignition
               +(this->Ixxyyzz[0] - moments[2])
               *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
             / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
-        // eq 5.2:
-        T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
-            / ((moments[0] - moments[1]) * v);
+        // value of w depends on v
+        T w;
+        if (v < std::abs(tol))
+        {
+          // first sentence after eq 5.4:
+          // "In the case that v = 0, then w = 1."
+          w = 1;
+        }
+        else
+        {
+          // eq 5.2:
+          w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
+              / ((moments[0] - moments[1]) * v);
+        }
         // initialize values of angle phi1, phi2, phi3
         T phi1 = 0;
         // eq 5.3: start with positive value
@@ -682,7 +702,7 @@ namespace ignition
         return atan2(_v[1], _v[0]);
       }
 
-      /// \brief Mass the object. Default is 0.0.
+      /// \brief Mass of the object. Default is 0.0.
       private: T mass;
 
       /// \brief Principal moments of inertia. Default is (0.0 0.0 0.0)

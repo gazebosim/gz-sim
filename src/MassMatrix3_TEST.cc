@@ -364,11 +364,14 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
 /// and axes offset by reconstructing the moment of inertia matrix
 /// from the eigenvectors and diagonalized matrix.
 /// \param[in] _m mass matrix to verify
-void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m)
+/// \param[in] _tolerance relative tolerance to use
+void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m,
+                                   const double _tolerance = 1e-6)
 {
-  auto q = _m.PrincipalAxesOffset();
+  auto q = _m.PrincipalAxesOffset(_tolerance);
   auto R = math::Matrix3d(q);
-  auto moments = _m.PrincipalMoments();
+  EXPECT_FALSE(q.W() == 0.0 && q.X() == 0.0 && q.Y() == 0.0 && q.Z() == 0.0);
+  auto moments = _m.PrincipalMoments(_tolerance);
   math::Matrix3d L(moments[0], 0, 0,
                    0, moments[1], 0,
                    0, 0, moments[2]);
@@ -392,6 +395,19 @@ void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
   // Expect unit quaternion
   EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
   VerifyPrincipalMomentsAndAxes(m);
+
+  // Try with negative tolerance, expect sorted principal moments
+  math::Vector3d sortedMoments;
+  {
+    double m0 = _moments[0];
+    double m1 = _moments[1];
+    double m2 = _moments[2];
+    math::sort3(m0, m1, m2);
+    sortedMoments.Set(m0, m1, m2);
+  }
+  const double tolerance = -1e-6;
+  EXPECT_EQ(m.PrincipalMoments(tolerance), sortedMoments);
+  VerifyPrincipalMomentsAndAxes(m, tolerance);
 }
 
 /////////////////////////////////////////////////
@@ -433,13 +449,19 @@ void VerifyNondiagonalMomentsAndAxes(const math::Vector3d &_principalMoments,
   math::MassMatrix3d m(1.0, _ixxyyzz, _ixyxzyz);
   // EXPECT_EQ with default tolerance of 1e-6
   // this outputs more useful error messages
-  EXPECT_EQ(m.PrincipalMoments(), _principalMoments);
+  EXPECT_EQ(m.PrincipalMoments(_tolerance), _principalMoments);
   // also check equality with custom tolerance for small moments
-  EXPECT_TRUE(m.PrincipalMoments().Equal(_principalMoments, _tolerance));
+  EXPECT_TRUE(
+    m.PrincipalMoments(_tolerance).Equal(_principalMoments, _tolerance));
   EXPECT_TRUE(m.IsValid());
   // Expect non-unit quaternion
-  EXPECT_NE(m.PrincipalAxesOffset(), math::Quaterniond());
-  VerifyPrincipalMomentsAndAxes(m);
+  EXPECT_NE(m.PrincipalAxesOffset(_tolerance), math::Quaterniond());
+  VerifyPrincipalMomentsAndAxes(m, _tolerance);
+
+  // Try also with negated tolerance
+  EXPECT_TRUE(
+    m.PrincipalMoments(-_tolerance).Equal(_principalMoments, _tolerance));
+  VerifyPrincipalMomentsAndAxes(m, -_tolerance);
 }
 
 /////////////////////////////////////////////////
@@ -576,6 +598,11 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(3, 4, 6),
     math::Vector3d(4.0, 4.0, 5.0),
     math::Vector3d(0, -1, -1));
+
+  // Test case for v = 0
+  VerifyNondiagonalMomentsAndAxes(math::Vector3d(2.5, 3.5, 4.0),
+    math::Vector3d(4.0, 3.0, 3.0),
+    math::Vector3d(0.0, 0, -0.5));
 
   // Tri-diagonal matrix with identical diagonal terms
   VerifyNondiagonalMomentsAndAxes(math::Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
