@@ -634,3 +634,222 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
     math::Vector3d(11.6116, 8.6116, 8.6116),
     math::Vector3d(2, 2, 2));
 }
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, EquivalentBox)
+{
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+    math::Vector3d size;
+    math::Quaterniond rot;
+
+    // size is all zeros, so SetFromBox should fail
+    EXPECT_FALSE(m.SetFromBox(0.0, size, rot));
+    EXPECT_FALSE(m.SetFromBox(size, rot));
+
+    // even if mass is valid, it should not be set if size is invalid
+    EXPECT_FALSE(m.SetFromBox(1.0, size, rot));
+    EXPECT_EQ(m.Mass(), 0.0);
+
+    // equivalent box should not be findable
+    EXPECT_FALSE(m.EquivalentBox(size, rot));
+  }
+
+  // Moment of inertia matrix that doesn't satisfy triangle inequality
+  {
+    const math::Vector3d ixxyyzz(2.0, 2.0, 2.0);
+    const math::Vector3d ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, ixxyyzz, ixyxzyz);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_FALSE(m.EquivalentBox(size, rot));
+  }
+
+  // Identity inertia matrix
+  // expect cube with side length sqrt(6)
+  {
+    const double mass = 1.0;
+    math::MassMatrix3d m(mass, math::Vector3d::One, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Vector3d sizeTrue(sqrt(6) * math::Vector3d::One);
+    math::Quaterniond rot;
+    math::Quaterniond rotTrue(math::Quaterniond::Identity);
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, sizeTrue);
+    EXPECT_EQ(rot, rotTrue);
+
+    // create new MassMatrix3d
+    // it initially has zero mass, so SetFromBox(size, rot) will fail
+    math::MassMatrix3d m2;
+    EXPECT_FALSE(m2.SetFromBox(sizeTrue, rotTrue));
+    EXPECT_TRUE(m2.SetFromBox(mass, sizeTrue, rotTrue));
+    EXPECT_EQ(m, m2);
+  }
+
+  // unit box with mass 1.0
+  {
+    const double mass = 1.0;
+    const math::Vector3d size(1, 1, 1);
+    double ixx = mass/12 * (std::pow(size.Y(), 2) + std::pow(size.Z(), 2));
+    double iyy = mass/12 * (std::pow(size.Z(), 2) + std::pow(size.X(), 2));
+    double izz = mass/12 * (std::pow(size.X(), 2) + std::pow(size.Y(), 2));
+    math::Vector3d ixxyyzz(ixx, iyy, izz);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size2;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size2, rot));
+    EXPECT_EQ(size, size2);
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
+  // box 1x4x9
+  {
+    const double mass = 12.0;
+    const math::Vector3d ixxyyzz(97, 82, 17);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(1, 4, 9));
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
+  // box 1x4x9 rotated by 90 degrees around Z
+  {
+    const double mass = 12.0;
+    const math::Vector3d ixxyyzz(82, 17, 97);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot, -1e-6));
+    EXPECT_EQ(size, math::Vector3d(9, 4, 1));
+    EXPECT_EQ(rot, math::Quaterniond(0, 0, IGN_PI/2));
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
+  // box 1x4x9 rotated by 45 degrees around Z
+  {
+    const double mass = 12.0;
+    const math::Vector3d ixxyyzz(49.5, 49.5, 97);
+    const math::Vector3d ixyxzyz(-32.5, 0.0, 0.0);
+    math::MassMatrix3d m(mass, ixxyyzz, ixyxzyz);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(9, 4, 1));
+    // There are multiple correct rotations due to box symmetry
+    EXPECT_TRUE(rot == math::Quaterniond(0, 0, IGN_PI/4) ||
+                rot == math::Quaterniond(IGN_PI, 0, IGN_PI/4));
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+
+  // long slender box
+  {
+    const double mass = 12.0;
+    const math::Vector3d ixxyyzz(1, 1, 2e-6);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
+    math::Vector3d size;
+    math::Quaterniond rot;
+    EXPECT_TRUE(m.EquivalentBox(size, rot));
+    EXPECT_EQ(size, math::Vector3d(1e-3, 1e-3, 1));
+    EXPECT_EQ(rot, math::Quaterniond::Identity);
+
+    math::MassMatrix3d m2;
+    EXPECT_TRUE(m2.SetFromBox(mass, size, rot));
+    EXPECT_EQ(m, m2);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, SetFromCylinderZ)
+{
+  const math::Quaterniond q0 = math::Quaterniond::Identity;
+
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+
+    // input is all zeros, so SetFromCylinderZ should fail
+    EXPECT_FALSE(m.SetFromCylinderZ(0, 0, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(0, 0, q0));
+
+    // even if some parameters are valid, none should be set if they
+    // are not all valid
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 1, 0, q0));
+    EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 1, q0));
+    EXPECT_EQ(m.Mass(), 0.0);
+  }
+
+  // unit cylinder with mass 1.0
+  {
+    const double mass = 1.0;
+    const double length = 1.0;
+    const double radius = 0.5;
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.SetFromCylinderZ(mass, length, radius, q0));
+
+    double ixx = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
+    double iyy = ixx;
+    double izz = mass / 2.0 * std::pow(radius, 2);
+    const math::Vector3d ixxyyzz(ixx, iyy, izz);
+    EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
+
+    // double the length and radius
+    EXPECT_TRUE(m.SetFromCylinderZ(mass, 2*length, 2*radius, q0));
+    EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, SetFromSphere)
+{
+  // Default mass matrix with non-positive inertia
+  {
+    math::MassMatrix3d m;
+
+    // input is all zeros, so SetFromSphere should fail
+    EXPECT_FALSE(m.SetFromSphere(0.0, 0.0));
+    EXPECT_FALSE(m.SetFromSphere(0.0));
+
+    // even if mass is valid, it should not be set if radius is invalid
+    EXPECT_FALSE(m.SetFromSphere(1.0, 0.0));
+    EXPECT_EQ(m.Mass(), 0.0);
+  }
+
+  // unit sphere with mass 1.0
+  {
+    const double mass = 1.0;
+    const double radius = 0.5;
+    math::MassMatrix3d m;
+    EXPECT_TRUE(m.SetFromSphere(mass, radius));
+
+    double ixx = 0.4 * mass * std::pow(radius, 2);
+    double iyy = ixx;
+    double izz = ixx;
+    const math::Vector3d ixxyyzz(ixx, iyy, izz);
+    EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
+    EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
+
+    // double the radius
+    EXPECT_TRUE(m.SetFromSphere(mass, 2*radius));
+    EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
+  }
+}
+
