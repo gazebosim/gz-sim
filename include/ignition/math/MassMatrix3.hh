@@ -836,7 +836,7 @@ namespace ignition
       /// \return True if inertial properties were set successfully.
       public: bool SetFromSphere(const T _radius)
       {
-        // Check that _mass and _size are strictly positive
+        // Check that _mass and _radius are strictly positive
         if (this->Mass() <= 0 || _radius <= 0)
         {
           return false;
