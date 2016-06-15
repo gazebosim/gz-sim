@@ -706,10 +706,12 @@ namespace ignition
           return false;
         }
 
-        // Note that not satisfying the triangle inequality will generate
-        // an imaginary box size, due to taking the square root
-        // of a negative number.
-        _size.X(sqrt(6*(moments.Z() + moments.Y() - moments.X()) / this->mass));
+        // The reason for checking that the principal moments satisfy
+        // the triangle inequality
+        // I1 + I2 - I3 >= 0
+        // is to ensure that the arguments to sqrt in these equations
+        // are positive and the box size is real.
+        _size.X(sqrt(6*(moments.Y() + moments.Z() - moments.X()) / this->mass));
         _size.Y(sqrt(6*(moments.Z() + moments.X() - moments.Y()) / this->mass));
         _size.Z(sqrt(6*(moments.X() + moments.Y() - moments.Z()) / this->mass));
 
