@@ -715,7 +715,7 @@ namespace ignition
 
         _rot = this->PrincipalAxesOffset(_tol);
 
-        if (_rot == Quaternion<T>(0, 0, 0, 0))
+        if (_rot == Quaternion<T>::Zero)
         {
           // _rot is an invalid quaternion
           return false;
@@ -734,7 +734,8 @@ namespace ignition
                               const Quaternion<T> &_rot)
       {
         // Check that _mass and _size are strictly positive
-        if (_mass <= 0 || _size.Min() <= 0)
+        // and that quatenion is valid
+        if (_mass <= 0 || _size.Min() <= 0 || _rot == Quaternion<T>::Zero)
         {
           return false;
         }
@@ -751,7 +752,9 @@ namespace ignition
                               const Quaternion<T> &_rot)
       {
         // Check that _mass and _size are strictly positive
-        if (this->Mass() <= 0 || _size.Min() <= 0)
+        // and that quatenion is valid
+        if (this->Mass() <= 0 || _size.Min() <= 0 ||
+            _rot == Quaternion<T>::Zero)
         {
           return false;
         }
@@ -781,7 +784,9 @@ namespace ignition
                                     const Quaternion<T> &_rot)
       {
         // Check that _mass, _radius and _length are strictly positive
-        if (_mass <= 0 || _length <= 0 || _radius <= 0)
+        // and that quatenion is valid
+        if (_mass <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
         {
           return false;
         }
@@ -800,7 +805,9 @@ namespace ignition
                                     const Quaternion<T> &_rot)
       {
         // Check that _mass and _size are strictly positive
-        if (this->Mass() <= 0 || _length <= 0 || _radius <= 0)
+        // and that quatenion is valid
+        if (this->Mass() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
         {
           return false;
         }
