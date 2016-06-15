@@ -658,9 +658,9 @@ TEST(MassMatrix3dTest, EquivalentBox)
 
   // Moment of inertia matrix that doesn't satisfy triangle inequality
   {
-    const math::Vector3d Ixxyyzz(2.0, 2.0, 2.0);
-    const math::Vector3d Ixyxzyz(-1.0, 0, -1.0);
-    math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d ixxyyzz(2.0, 2.0, 2.0);
+    const math::Vector3d ixyxzyz(-1.0, 0, -1.0);
+    math::MassMatrix3d m(1.0, ixxyyzz, ixyxzyz);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_FALSE(m.EquivalentBox(size, rot));
@@ -691,11 +691,11 @@ TEST(MassMatrix3dTest, EquivalentBox)
   {
     const double mass = 1.0;
     const math::Vector3d size(1, 1, 1);
-    double Ixx = mass/12 * (std::pow(size.Y(), 2) + std::pow(size.Z(), 2));
-    double Iyy = mass/12 * (std::pow(size.Z(), 2) + std::pow(size.X(), 2));
-    double Izz = mass/12 * (std::pow(size.X(), 2) + std::pow(size.Y(), 2));
-    math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
-    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    double ixx = mass/12 * (std::pow(size.Y(), 2) + std::pow(size.Z(), 2));
+    double iyy = mass/12 * (std::pow(size.Z(), 2) + std::pow(size.X(), 2));
+    double izz = mass/12 * (std::pow(size.X(), 2) + std::pow(size.Y(), 2));
+    math::Vector3d ixxyyzz(ixx, iyy, izz);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
     math::Vector3d size2;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size2, rot));
@@ -710,8 +710,8 @@ TEST(MassMatrix3dTest, EquivalentBox)
   // box 1x4x9
   {
     const double mass = 12.0;
-    const math::Vector3d Ixxyyzz(97, 82, 17);
-    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    const math::Vector3d ixxyyzz(97, 82, 17);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot));
@@ -726,8 +726,8 @@ TEST(MassMatrix3dTest, EquivalentBox)
   // box 1x4x9 rotated by 90 degrees around Z
   {
     const double mass = 12.0;
-    const math::Vector3d Ixxyyzz(82, 17, 97);
-    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    const math::Vector3d ixxyyzz(82, 17, 97);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot, -1e-6));
@@ -742,9 +742,9 @@ TEST(MassMatrix3dTest, EquivalentBox)
   // box 1x4x9 rotated by 45 degrees around Z
   {
     const double mass = 12.0;
-    const math::Vector3d Ixxyyzz(49.5, 49.5, 97);
-    const math::Vector3d Ixyxzyz(-32.5, 0.0, 0.0);
-    math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
+    const math::Vector3d ixxyyzz(49.5, 49.5, 97);
+    const math::Vector3d ixyxzyz(-32.5, 0.0, 0.0);
+    math::MassMatrix3d m(mass, ixxyyzz, ixyxzyz);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot));
@@ -761,8 +761,8 @@ TEST(MassMatrix3dTest, EquivalentBox)
   // long slender box
   {
     const double mass = 12.0;
-    const math::Vector3d Ixxyyzz(1, 1, 2e-6);
-    math::MassMatrix3d m(mass, Ixxyyzz, math::Vector3d::Zero);
+    const math::Vector3d ixxyyzz(1, 1, 2e-6);
+    math::MassMatrix3d m(mass, ixxyyzz, math::Vector3d::Zero);
     math::Vector3d size;
     math::Quaterniond rot;
     EXPECT_TRUE(m.EquivalentBox(size, rot));
@@ -804,16 +804,16 @@ TEST(MassMatrix3dTest, SetFromCylinderZ)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.SetFromCylinderZ(mass, length, radius, q0));
 
-    double Ixx = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
-    double Iyy = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
-    double Izz = mass / 2.0 * std::pow(radius, 2);
-    const math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
-    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    double ixx = mass / 12.0 * (3*std::pow(radius, 2) + std::pow(length, 2));
+    double iyy = ixx;
+    double izz = mass / 2.0 * std::pow(radius, 2);
+    const math::Vector3d ixxyyzz(ixx, iyy, izz);
+    EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
 
     // double the length and radius
     EXPECT_TRUE(m.SetFromCylinderZ(mass, 2*length, 2*radius, q0));
-    EXPECT_EQ(m.DiagonalMoments(), 4*Ixxyyzz);
+    EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
   }
 }
 
@@ -840,16 +840,16 @@ TEST(MassMatrix3dTest, SetFromSphere)
     math::MassMatrix3d m;
     EXPECT_TRUE(m.SetFromSphere(mass, radius));
 
-    double Ixx = 0.4 * mass * std::pow(radius, 2);
-    double Iyy = 0.4 * mass * std::pow(radius, 2);
-    double Izz = 0.4 * mass * std::pow(radius, 2);
-    const math::Vector3d Ixxyyzz(Ixx, Iyy, Izz);
-    EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
+    double ixx = 0.4 * mass * std::pow(radius, 2);
+    double iyy = ixx;
+    double izz = ixx;
+    const math::Vector3d ixxyyzz(ixx, iyy, izz);
+    EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
 
     // double the radius
     EXPECT_TRUE(m.SetFromSphere(mass, 2*radius));
-    EXPECT_EQ(m.DiagonalMoments(), 4*Ixxyyzz);
+    EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
   }
 }
 
