@@ -332,5 +332,4 @@ TEST(SphericalCoordinatesTest, BadCoordinateType)
       math::SphericalCoordinates::ECEF,
       static_cast<math::SphericalCoordinates::CoordinateType>(5));
   EXPECT_EQ(result, pos);
-
 }
