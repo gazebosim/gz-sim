@@ -91,12 +91,13 @@ namespace ignition
 
       /// \brief Convert a Cartesian velocity vector in the local frame
       ///        to a global Cartesian frame with components East, North, Up.
-      /// \param[in] _xyz Cartesian vector in the world frame.
+      /// \param[in] _xyz Cartesian velocity vector in the world frame.
       /// \return Rotated vector with components (x,y,z): (East, North, Up).
       public: ignition::math::Vector3d GlobalFromLocal(
                   const ignition::math::Vector3d &_xyz) const;
 
       /// \brief Convert a string to a SurfaceType.
+      /// Allowed values: ["EARTH_WGS84"].
       /// \param[in] _str String to convert.
       /// \return Conversion to SurfaceType.
       public: static SurfaceType Convert(const std::string &_str);
@@ -159,7 +160,7 @@ namespace ignition
 
       /// \brief Convert a geodetic position vector to Cartesian coordinates.
       /// \param[in] _xyz Geodetic position in the planetary frame of reference
-      /// \return Cartesian vector in the world frame
+      /// \return Cartesian position vector in the world frame
       public: ignition::math::Vector3d LocalFromSpherical(
                   const ignition::math::Vector3d &_xyz) const;
 
@@ -183,7 +184,7 @@ namespace ignition
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       /// \brief Convert between velocity in SPHERICAL/ECEF/LOCAL/GLOBAL frame
-      /// \param[in] _pos Velocity vector in frame defined by parameter _in
+      /// \param[in] _vel Velocity vector in frame defined by parameter _in
       /// \param[in] _in  CoordinateType for input
       /// \param[in] _out CoordinateType for output
       /// \return Transformed velocity vector
