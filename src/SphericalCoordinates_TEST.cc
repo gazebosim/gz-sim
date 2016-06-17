@@ -70,6 +70,9 @@ TEST(SphericalCoordinatesTest, Convert)
     math::SphericalCoordinates::EARTH_WGS84;
 
   EXPECT_EQ(math::SphericalCoordinates::Convert("EARTH_WGS84"), st);
+
+  EXPECT_EQ(math::SphericalCoordinates::EARTH_WGS84,
+            math::SphericalCoordinates::Convert("OTHER-COORD"));
 }
 
 //////////////////////////////////////////////////
@@ -260,4 +263,74 @@ TEST(SphericalCoordinatesTest, Distance)
   double d = math::SphericalCoordinates::Distance(latA, longA, latB, longB);
 
   EXPECT_NEAR(14002, d, 20);
+}
+
+//////////////////////////////////////////////////
+TEST(SphericalCoordinatesTest, BadSetSurface)
+{
+  math::SphericalCoordinates sc;
+  sc.SetSurface(static_cast<math::SphericalCoordinates::SurfaceType>(2));
+  EXPECT_EQ(sc.Surface(), 2);
+}
+
+//////////////////////////////////////////////////
+TEST(SphericalCoordinatesTest, Transform)
+{
+  math::SphericalCoordinates sc;
+  math::Vector3d vel(1, 2, -4);
+  math::Vector3d result = sc.VelocityTransform(vel,
+      math::SphericalCoordinates::ECEF,
+      math::SphericalCoordinates::ECEF);
+
+  EXPECT_EQ(result, vel);
+
+  math::Vector3d pos(-1510.88, 2, -4);
+  result = sc.PositionTransform(pos,
+      math::SphericalCoordinates::ECEF,
+      math::SphericalCoordinates::GLOBAL);
+
+  EXPECT_NEAR(result.X(), 2, 1e-6);
+  EXPECT_NEAR(result.Y(), -4, 1e-6);
+  EXPECT_NEAR(result.Z(), -6379647.8799999999, 1e-6);
+
+  std::cout << "NEW POS[" << result << "]\n";
+}
+
+//////////////////////////////////////////////////
+TEST(SphericalCoordinatesTest, BadCoordinateType)
+{
+  math::SphericalCoordinates sc;
+  math::Vector3d pos(1, 2, -4);
+  math::Vector3d result = sc.PositionTransform(pos,
+      static_cast<math::SphericalCoordinates::CoordinateType>(5),
+      static_cast<math::SphericalCoordinates::CoordinateType>(6));
+
+  EXPECT_EQ(result, pos);
+
+  result = sc.PositionTransform(pos,
+      static_cast<math::SphericalCoordinates::CoordinateType>(4),
+      static_cast<math::SphericalCoordinates::CoordinateType>(6));
+
+  EXPECT_EQ(result, pos);
+
+  result = sc.VelocityTransform(pos,
+      math::SphericalCoordinates::SPHERICAL,
+      math::SphericalCoordinates::ECEF);
+  EXPECT_EQ(result, pos);
+
+  result = sc.VelocityTransform(pos,
+      math::SphericalCoordinates::ECEF,
+      math::SphericalCoordinates::SPHERICAL);
+  EXPECT_EQ(result, pos);
+
+  result = sc.VelocityTransform(pos,
+      static_cast<math::SphericalCoordinates::CoordinateType>(5),
+      math::SphericalCoordinates::ECEF);
+  EXPECT_EQ(result, pos);
+
+  result = sc.VelocityTransform(pos,
+      math::SphericalCoordinates::ECEF,
+      static_cast<math::SphericalCoordinates::CoordinateType>(5));
+  EXPECT_EQ(result, pos);
+
 }
