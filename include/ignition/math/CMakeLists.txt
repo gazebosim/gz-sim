@@ -22,6 +22,7 @@ set (headers
   SignalStats.hh
   SphericalCoordinates.hh
   Spline.hh
+  Temperature.hh
   Triangle.hh
   Vector2.hh
   Vector3.hh
