@@ -21,6 +21,7 @@ set (headers
   RotationSpline.hh
   SignalStats.hh
   Spline.hh
+  Temperature.hh
   Triangle.hh
   Vector2.hh
   Vector3.hh
