@@ -2,6 +2,10 @@
 
 ### Ignition Math 2.4.0
 
+1. New MassMatrix3 class
+    * [Pull request 112](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/112)
+1. MassMatrix3 helper functions
+    * [Pull request 110](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/110)
 1. Added Temperature class
     * A contribution from Shintaro Noda
     * [Pull request 104](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/104)
