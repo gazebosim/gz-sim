@@ -8,6 +8,7 @@ set (headers
   Frustum.hh
   Helpers.hh
   IndexException.hh
+  Inertial.hh
   Kmeans.hh
   Line2.hh
   Line3.hh
