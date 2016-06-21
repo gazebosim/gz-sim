@@ -733,7 +733,7 @@ namespace ignition
       /// \return True if inertial properties were set successfully.
       public: bool SetFromBox(const T _mass,
                               const Vector3<T> &_size,
-                              const Quaternion<T> &_rot=Quaternion<T>::Identity)
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass and _size are strictly positive
         // and that quatenion is valid
@@ -751,7 +751,7 @@ namespace ignition
       /// \param[in] _rot Rotational offset of equivalent box.
       /// \return True if inertial properties were set successfully.
       public: bool SetFromBox(const Vector3<T> &_size,
-                              const Quaternion<T> &_rot=Quaternion<T>::Identity)
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass and _size are strictly positive
         // and that quatenion is valid
@@ -783,7 +783,7 @@ namespace ignition
       public: bool SetFromCylinderZ(const T _mass,
                                     const T _length,
                                     const T _radius,
-                              const Quaternion<T> &_rot=Quaternion<T>::Identity)
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
       {
         // Check that _mass, _radius and _length are strictly positive
         // and that quatenion is valid
