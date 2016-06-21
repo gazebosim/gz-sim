@@ -182,12 +182,10 @@ TEST(Inertiald_Test, Addition)
     const double mass = 12.0;
     const math::Vector3d size(1, 1, 1);
     math::MassMatrix3d cubeMM3;
-    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size, math::Quaterniond::Identity));
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
     const math::Inertiald cube(cubeMM3, math::Pose3d::Zero);
     math::MassMatrix3d half;
-    half.SetFromBox(0.5*mass,
-                    math::Vector3d(0.5, 1, 1),
-                    math::Quaterniond::Identity);
+    EXPECT_TRUE(half.SetFromBox(0.5*mass, math::Vector3d(0.5, 1, 1)));
     math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, 0, 0, 0));
     math::Inertiald right(half, math::Pose3d(0.25, 0, 0, 0, 0, 0));
     EXPECT_EQ(cube, left + right);
@@ -209,7 +207,7 @@ TEST(Inertiald_Test, Addition)
     const double mass = 12.0;
     const math::Vector3d size(1, 1, 1);
     math::MassMatrix3d cubeMM3;
-    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size, math::Quaterniond::Identity));
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
     const math::Inertiald addedCube =
       math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
       math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, 0, 0, 0)) +
@@ -221,8 +219,7 @@ TEST(Inertiald_Test, Addition)
       math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
 
     math::MassMatrix3d trueCubeMM3;
-    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size,
-      math::Quaterniond::Identity));
+    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
     EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
   }
 }
