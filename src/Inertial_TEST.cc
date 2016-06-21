@@ -222,4 +222,25 @@ TEST(Inertiald_Test, Addition)
     EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
     EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
   }
+
+  // Add eight rotated cubes together into larger cube
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    const math::Inertiald addedCube =
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, IGN_PI_2, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, IGN_PI_2, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, IGN_PI_2)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, IGN_PI, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, IGN_PI, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, IGN_PI)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
+
+    math::MassMatrix3d trueCubeMM3;
+    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
+    EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
+  }
 }
