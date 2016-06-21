@@ -317,9 +317,14 @@ namespace ignition
 
       /// \brief Compute principal moments of inertia,
       /// which are the eigenvalues of the moment of inertia matrix.
-      /// \param[in] _tol Relative tolerance.
-      /// \return Principal moments of inertia. If the matrix is
-      /// already diagonal, they are returned in the existing order.
+      /// \param[in] _tol Relative tolerance given by absolute value
+      /// of _tol.
+      /// Negative values of _tol are interpreted as a flag that
+      /// causes principal moments to always be sorted from smallest
+      /// to largest.
+      /// \return Principal moments of inertia.
+      /// If the matrix is already diagonal and _tol is positive,
+      /// they are returned in the existing order.
       /// Otherwise, the moments are sorted from smallest to largest.
       public: Vector3<T> PrincipalMoments(const T _tol = 1e-6) const
       {
@@ -377,7 +382,11 @@ namespace ignition
       }
 
       /// \brief Compute rotational offset of principal axes.
-      /// \param[in] _tol Relative tolerance.
+      /// \param[in] _tol Relative tolerance given by absolute value
+      /// of _tol.
+      /// Negative values of _tol are interpreted as a flag that
+      /// causes principal moments to always be sorted from smallest
+      /// to largest.
       /// \return Quaternion representing rotational offset of principal axes.
       /// With a rotation matrix constructed from this quaternion R(q)
       /// and a diagonal matrix L with principal moments on the diagonal,
@@ -387,7 +396,7 @@ namespace ignition
       {
         // Compute tolerance relative to maximum value of inertia diagonal
         T tol = _tol * this->Ixxyyzz.Max();
-        Vector3<T> moments = this->PrincipalMoments();
+        Vector3<T> moments = this->PrincipalMoments(tol);
         if (moments.Equal(this->Ixxyyzz, tol))
         {
           // matrix is already aligned with principal axes
@@ -424,9 +433,9 @@ namespace ignition
 
         // index of unequal moment
         int unequalMoment = -1;
-        if (equal<T>(momentsDiff[0], 0, tol))
+        if (equal<T>(momentsDiff[0], 0, std::abs(tol)))
           unequalMoment = 2;
-        else if (equal<T>(momentsDiff[1], 0, tol))
+        else if (equal<T>(momentsDiff[1], 0, std::abs(tol)))
           unequalMoment = 0;
 
         if (unequalMoment >= 0)
@@ -533,9 +542,20 @@ namespace ignition
               +(this->Ixxyyzz[0] - moments[2])
               *(this->Ixxyyzz[0] + moments[2] - moments[0] - moments[1]))
             / ((moments[1] - moments[2]) * (moments[2] - moments[0]));
-        // eq 5.2:
-        T w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
-            / ((moments[0] - moments[1]) * v);
+        // value of w depends on v
+        T w;
+        if (v < std::abs(tol))
+        {
+          // first sentence after eq 5.4:
+          // "In the case that v = 0, then w = 1."
+          w = 1;
+        }
+        else
+        {
+          // eq 5.2:
+          w = (this->Ixxyyzz[0] - moments[2] + (moments[2] - moments[1])*v)
+              / ((moments[0] - moments[1]) * v);
+        }
         // initialize values of angle phi1, phi2, phi3
         T phi1 = 0;
         // eq 5.3: start with positive value
@@ -660,6 +680,186 @@ namespace ignition
         return Quaternion<T>(-phi1, -phi2, -phi3).Inverse();
       }
 
+      /// \brief Get dimensions and rotation offset of uniform box
+      /// with equivalent mass and moment of inertia.
+      /// To compute this, the Matrix3 is diagonalized.
+      /// The eigenvalues on the diagonal and the rotation offset
+      /// of the principal axes are returned.
+      /// \param[in] _size Dimensions of box aligned with principal axes.
+      /// \param[in] _rot Rotational offset of principal axes.
+      /// \param[in] _tol Relative tolerance.
+      /// \return True if box properties were computed successfully.
+      public: bool EquivalentBox(Vector3<T> &_size,
+                                 Quaternion<T> &_rot,
+                                 const T _tol = 1e-6) const
+      {
+        if (!this->IsPositive())
+        {
+          // inertia is not positive, cannot compute equivalent box
+          return false;
+        }
+
+        Vector3<T> moments = this->PrincipalMoments(_tol);
+        if (!ValidMoments(moments))
+        {
+          // principal moments don't satisfy the triangle identity
+          return false;
+        }
+
+        // The reason for checking that the principal moments satisfy
+        // the triangle inequality
+        // I1 + I2 - I3 >= 0
+        // is to ensure that the arguments to sqrt in these equations
+        // are positive and the box size is real.
+        _size.X(sqrt(6*(moments.Y() + moments.Z() - moments.X()) / this->mass));
+        _size.Y(sqrt(6*(moments.Z() + moments.X() - moments.Y()) / this->mass));
+        _size.Z(sqrt(6*(moments.X() + moments.Y() - moments.Z()) / this->mass));
+
+        _rot = this->PrincipalAxesOffset(_tol);
+
+        if (_rot == Quaternion<T>::Zero)
+        {
+          // _rot is an invalid quaternion
+          return false;
+        }
+
+        return true;
+      }
+
+      /// \brief Set inertial properties based on mass and equivalent box.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const T _mass,
+                              const Vector3<T> &_size,
+                              const Quaternion<T> &_rot)
+      {
+        // Check that _mass and _size are strictly positive
+        // and that quatenion is valid
+        if (_mass <= 0 || _size.Min() <= 0 || _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromBox(_size, _rot);
+      }
+
+      /// \brief Set inertial properties based on equivalent box
+      /// using the current mass value.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const Vector3<T> &_size,
+                              const Quaternion<T> &_rot)
+      {
+        // Check that _mass and _size are strictly positive
+        // and that quatenion is valid
+        if (this->Mass() <= 0 || _size.Min() <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        Matrix3<T> L;
+        T x2 = std::pow(_size.X(), 2);
+        T y2 = std::pow(_size.Y(), 2);
+        T z2 = std::pow(_size.Z(), 2);
+        L(0, 0) = this->mass / 12.0 * (y2 + z2);
+        L(1, 1) = this->mass / 12.0 * (z2 + x2);
+        L(2, 2) = this->mass / 12.0 * (x2 + y2);
+        Matrix3<T> R(_rot);
+        return this->MOI(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on mass and equivalent cylinder
+      /// aligned with Z axis.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const T _mass,
+                                    const T _length,
+                                    const T _radius,
+                                    const Quaternion<T> &_rot)
+      {
+        // Check that _mass, _radius and _length are strictly positive
+        // and that quatenion is valid
+        if (_mass <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromCylinderZ(_length, _radius, _rot);
+      }
+
+      /// \brief Set inertial properties based on equivalent cylinder
+      /// aligned with Z axis using the current mass value.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const T _length,
+                                    const T _radius,
+                                    const Quaternion<T> &_rot)
+      {
+        // Check that _mass and _size are strictly positive
+        // and that quatenion is valid
+        if (this->Mass() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        T radius2 = std::pow(_radius, 2);
+        Matrix3<T> L;
+        L(0, 0) = this->mass / 12.0 * (3*radius2 + std::pow(_length, 2));
+        L(1, 1) = L(0, 0);
+        L(2, 2) = this->mass / 2.0 * radius2;
+        Matrix3<T> R(_rot);
+        return this->MOI(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on mass and equivalent sphere.
+      /// \param[in] _mass Mass to set.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const T _mass, const T _radius)
+      {
+        // Check that _mass and _radius are strictly positive
+        if (_mass <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+        this->Mass(_mass);
+        return this->SetFromSphere(_radius);
+      }
+
+      /// \brief Set inertial properties based on equivalent sphere
+      /// using the current mass value.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const T _radius)
+      {
+        // Check that _mass and _radius are strictly positive
+        if (this->Mass() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        // Diagonal matrix L with principal moments
+        T radius2 = std::pow(_radius, 2);
+        Matrix3<T> L;
+        L(0, 0) = 0.4 * this->mass * radius2;
+        L(1, 1) = 0.4 * this->mass * radius2;
+        L(2, 2) = 0.4 * this->mass * radius2;
+        return this->MOI(L);
+      }
+
       /// \brief Square root of positive numbers, otherwise zero.
       /// \param[in] _x Number to be square rooted.
       /// \return sqrt(_x) if _x > 0, otherwise 0
@@ -682,7 +882,7 @@ namespace ignition
         return atan2(_v[1], _v[0]);
       }
 
-      /// \brief Mass the object. Default is 0.0.
+      /// \brief Mass of the object. Default is 0.0.
       private: T mass;
 
       /// \brief Principal moments of inertia. Default is (0.0 0.0 0.0)

@@ -55,7 +55,7 @@ namespace ignition
       /// \brief Set the mass and inertia matrix.
       /// \param[in] _m New MassMatrix3 object.
       /// \return True if the MassMatrix3 is valid.
-      public: bool MassMatrix(const MassMatrix3<T> &_m)
+      public: bool SetMassMatrix(const MassMatrix3<T> &_m)
       {
         this->massMatrix = _m;
         return this->massMatrix.IsValid();
@@ -63,7 +63,7 @@ namespace ignition
 
       /// \brief Get the mass and inertia matrix.
       /// \return The MassMatrix3 object.
-      public: MassMatrix3<T> MassMatrix() const
+      public: const MassMatrix3<T> &MassMatrix() const
       {
         return this->massMatrix;
       }
@@ -71,7 +71,7 @@ namespace ignition
       /// \brief Set the pose of center of mass reference frame.
       /// \param[in] _pose New pose.
       /// \return True if the MassMatrix3 is valid.
-      public: bool Pose(const Pose3<T> &_pose)
+      public: bool SetPose(const Pose3<T> &_pose)
       {
         this->pose = _pose;
         return this->massMatrix.IsValid();
@@ -79,7 +79,7 @@ namespace ignition
 
       /// \brief Get the pose of center of mass reference frame.
       /// \return The pose of center of mass reference frame.
-      public: Pose3<T> Pose() const
+      public: const Pose3<T> &Pose() const
       {
         return this->pose;
       }
@@ -199,8 +199,8 @@ namespace ignition
       private: Pose3<T> pose;
     };
 
-    typedef Inertial<double> Inertial_d;
-    typedef Inertial<float> Inertial_f;
+    typedef Inertial<double> Inertiald;
+    typedef Inertial<float> Inertialf;
   }
 }
 #endif
