@@ -130,7 +130,7 @@ namespace ignition
       public: Inertial<T> &operator+=(const Inertial<T> &_inertial)
       {
         T m1 = this->massMatrix.Mass();
-        T m2 = _inertial.Mass();
+        T m2 = _inertial.MassMatrix().Mass();
 
         // Total mass
         T mass = m1 + m2;
@@ -141,7 +141,7 @@ namespace ignition
           return *this;
         }
 
-        auto com1 = this->massMatrix.Pose().Pos();
+        auto com1 = this->Pose().Pos();
         auto com2 = _inertial.Pose().Pos();
         // New center of mass location in base frame
         auto com = (m1*com1 + m2*com2) / mass;
@@ -158,21 +158,21 @@ namespace ignition
         // Then account for parallel axis theorem
         {
           auto dc = com1 - com;
-          Ixxyyzz[0] += m1 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
-          Ixxyyzz[1] += m1 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
-          Ixxyyzz[2] += m1 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
-          Ixxyyzz[0] -= m1 * dc[0] * dc[1];
-          Ixxyyzz[1] -= m1 * dc[0] * dc[2];
-          Ixxyyzz[2] -= m1 * dc[1] * dc[2];
+          Ixxyyzz.X() += m1 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
+          Ixxyyzz.Y() += m1 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
+          Ixxyyzz.Z() += m1 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
+          Ixxyyzz.X() -= m1 * dc[0] * dc[1];
+          Ixxyyzz.Y() -= m1 * dc[0] * dc[2];
+          Ixxyyzz.Z() -= m1 * dc[1] * dc[2];
         }
         {
           auto dc = com2 - com;
-          Ixxyyzz[0] += m2 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
-          Ixxyyzz[1] += m2 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
-          Ixxyyzz[2] += m2 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
-          Ixxyyzz[0] -= m2 * dc[0] * dc[1];
-          Ixxyyzz[1] -= m2 * dc[0] * dc[2];
-          Ixxyyzz[2] -= m2 * dc[1] * dc[2];
+          Ixxyyzz.X() += m2 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
+          Ixxyyzz.Y() += m2 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
+          Ixxyyzz.Z() += m2 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
+          Ixxyyzz.X() -= m2 * dc[0] * dc[1];
+          Ixxyyzz.Y() -= m2 * dc[0] * dc[2];
+          Ixxyyzz.Z() -= m2 * dc[1] * dc[2];
         }
         this->massMatrix = MassMatrix3<T>(mass, Ixxyyzz, Ixyxzyz);
         this->pose = Pose3<T>(com, Quaternion<T>::Identity);

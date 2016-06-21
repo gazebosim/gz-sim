@@ -173,3 +173,34 @@ TEST(Inertiald_Test, MOI_Diagonal)
                 m2.PrincipalAxesOffset() == rot2);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, Addition)
+{
+  // Add two half-cubes together
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size, math::Quaterniond::Identity));
+    const math::Inertiald cube(cubeMM3, math::Pose3d::Zero);
+    math::MassMatrix3d half;
+    half.SetFromBox(0.5*mass,
+                    math::Vector3d(0.5, 1, 1),
+                    math::Quaterniond::Identity);
+    math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, 0, 0, 0));
+    math::Inertiald right(half, math::Pose3d(0.25, 0, 0, 0, 0, 0));
+    EXPECT_EQ(cube, left + right);
+    EXPECT_EQ(cube, right + left);
+    {
+      math::Inertiald tmp = left;
+      tmp += right;
+      EXPECT_EQ(cube, tmp);
+    }
+    {
+      math::Inertiald tmp = right;
+      tmp += left;
+      EXPECT_EQ(cube, tmp);
+    }
+  }
+}
