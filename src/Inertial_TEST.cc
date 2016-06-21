@@ -203,4 +203,26 @@ TEST(Inertiald_Test, Addition)
       EXPECT_EQ(cube, tmp);
     }
   }
+
+  // Add eight cubes together into larger cube
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size, math::Quaterniond::Identity));
+    const math::Inertiald addedCube =
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
+
+    math::MassMatrix3d trueCubeMM3;
+    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size,
+      math::Quaterniond::Identity));
+    EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
+  }
 }
