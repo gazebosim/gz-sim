@@ -190,6 +190,7 @@ TEST(Inertiald_Test, Addition)
     math::Inertiald right(half, math::Pose3d(0.25, 0, 0, 0, 0, 0));
     EXPECT_EQ(cube, left + right);
     EXPECT_EQ(cube, right + left);
+    // test += operator
     {
       math::Inertiald tmp = left;
       tmp += right;
@@ -199,6 +200,21 @@ TEST(Inertiald_Test, Addition)
       math::Inertiald tmp = right;
       tmp += left;
       EXPECT_EQ(cube, tmp);
+    }
+    // Test EquivalentBox
+    {
+      math::Vector3d size2;
+      math::Quaterniond rot2;
+      EXPECT_TRUE((left + right).MassMatrix().EquivalentBox(size2, rot2));
+      EXPECT_EQ(size, size2);
+      EXPECT_EQ(rot2, math::Quaterniond::Identity);
+    }
+    {
+      math::Vector3d size2;
+      math::Quaterniond rot2;
+      EXPECT_TRUE((right + left).MassMatrix().EquivalentBox(size2, rot2));
+      EXPECT_EQ(size, size2);
+      EXPECT_EQ(rot2, math::Quaterniond::Identity);
     }
   }
 
