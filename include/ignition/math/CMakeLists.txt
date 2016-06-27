@@ -8,6 +8,7 @@ set (headers
   Frustum.hh
   Helpers.hh
   IndexException.hh
+  Inertial.hh
   Kmeans.hh
   Line2.hh
   Line3.hh
@@ -21,6 +22,7 @@ set (headers
   RotationSpline.hh
   SignalStats.hh
   Spline.hh
+  Temperature.hh
   Triangle.hh
   Triangle3.hh
   Vector2.hh
