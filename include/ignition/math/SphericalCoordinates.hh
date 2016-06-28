@@ -76,7 +76,7 @@ namespace ignition
       public: SphericalCoordinates(const SurfaceType _type,
                                    const ignition::math::Angle &_latitude,
                                    const ignition::math::Angle &_longitude,
-                                   double _elevation,
+                                   const double _elevation,
                                    const ignition::math::Angle &_heading);
 
       /// \brief Destructor.
@@ -164,7 +164,7 @@ namespace ignition
       public: ignition::math::Vector3d LocalFromSpherical(
                   const ignition::math::Vector3d &_xyz) const;
 
-      /// \brief Convert a Cartesian vector with components East,
+      /// \brief Convert a Cartesian velocity vector with components East,
       /// North, Up to a local cartesian frame vector XYZ.
       /// \param[in] Vector with components (x,y,z): (East, North, Up).
       /// \return Cartesian vector in the world frame.

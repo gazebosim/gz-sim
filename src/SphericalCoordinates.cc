@@ -119,7 +119,7 @@ SphericalCoordinates::SphericalCoordinates(const SurfaceType _type)
 SphericalCoordinates::SphericalCoordinates(const SurfaceType _type,
     const ignition::math::Angle &_latitude,
     const ignition::math::Angle &_longitude,
-    double _elevation,
+    const double _elevation,
     const ignition::math::Angle &_heading)
 : dataPtr(new SphericalCoordinatesPrivate)
 {
