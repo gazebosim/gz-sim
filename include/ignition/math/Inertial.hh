@@ -122,6 +122,74 @@ namespace ignition
         return !(*this == _inertial);
       }
 
+      /// \brief Adds inertial properties to current object.
+      /// The mass, center of mass location, and inertia matrix are updated
+      /// as long as the total mass is positive.
+      /// \param[in] _inertial Inertial to add.
+      /// \return Reference to this object.
+      public: Inertial<T> &operator+=(const Inertial<T> &_inertial)
+      {
+        T m1 = this->massMatrix.Mass();
+        T m2 = _inertial.MassMatrix().Mass();
+
+        // Total mass
+        T mass = m1 + m2;
+
+        // Only continue if total mass is positive
+        if (mass <= 0)
+        {
+          return *this;
+        }
+
+        auto com1 = this->Pose().Pos();
+        auto com2 = _inertial.Pose().Pos();
+        // New center of mass location in base frame
+        auto com = (m1*com1 + m2*com2) / mass;
+
+        // Components of new moment of inertia matrix
+        Vector3<T> ixxyyzz;
+        Vector3<T> ixyxzyz;
+        // First add matrices in base frame
+        {
+          auto moi = this->MOI() + _inertial.MOI();
+          ixxyyzz = Vector3<T>(moi(0, 0), moi(1, 1), moi(2, 2));
+          ixyxzyz = Vector3<T>(moi(0, 1), moi(0, 2), moi(1, 2));
+        }
+        // Then account for parallel axis theorem
+        {
+          auto dc = com1 - com;
+          ixxyyzz.X() += m1 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
+          ixxyyzz.Y() += m1 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
+          ixxyyzz.Z() += m1 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
+          ixxyyzz.X() -= m1 * dc[0] * dc[1];
+          ixxyyzz.Y() -= m1 * dc[0] * dc[2];
+          ixxyyzz.Z() -= m1 * dc[1] * dc[2];
+        }
+        {
+          auto dc = com2 - com;
+          ixxyyzz.X() += m2 * (std::pow(dc[1], 2) + std::pow(dc[2], 2));
+          ixxyyzz.Y() += m2 * (std::pow(dc[2], 2) + std::pow(dc[0], 2));
+          ixxyyzz.Z() += m2 * (std::pow(dc[0], 2) + std::pow(dc[1], 2));
+          ixxyyzz.X() -= m2 * dc[0] * dc[1];
+          ixxyyzz.Y() -= m2 * dc[0] * dc[2];
+          ixxyyzz.Z() -= m2 * dc[1] * dc[2];
+        }
+        this->massMatrix = MassMatrix3<T>(mass, ixxyyzz, ixyxzyz);
+        this->pose = Pose3<T>(com, Quaternion<T>::Identity);
+
+        return *this;
+      }
+
+      /// \brief Adds inertial properties to current object.
+      /// The mass, center of mass location, and inertia matrix are updated
+      /// as long as the total mass is positive.
+      /// \param[in] _inertial Inertial to add.
+      /// \return Sum of inertials as new object.
+      public: const Inertial<T> operator+(const Inertial<T> &_inertial) const
+      {
+        return Inertial<T>(*this) += _inertial;
+      }
+
       /// \brief Mass and inertia matrix of the object expressed in the
       /// center of mass reference frame.
       private: MassMatrix3<T> massMatrix;
