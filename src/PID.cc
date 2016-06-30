@@ -128,13 +128,11 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   // Limit iTerm so that the limit is meaningful in the output
   if (iTerm > this->iMax)
   {
-    std::cout << "A\n";
     iTerm = this->iMax;
     this->iErr = iTerm / this->iGain;
   }
   else if (iTerm < this->iMin)
   {
-    std::cout << "B\n";
     iTerm = this->iMin;
     this->iErr = iTerm / this->iGain;
   }
