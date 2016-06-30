@@ -35,7 +35,7 @@ namespace ignition
       /// initialize Pid-gains and integral term limits:[iMax:iMin]-[I1:I2].
       ///
       /// Disable command clamping by setting _cmdMin to a value larger
-      /// than _cmdMax.
+      /// than _cmdMax. Command clamping is disabled by default.
       ///
       /// \param[in] _p  The proportional gain.
       /// \param[in] _i  The integral gain.
@@ -55,7 +55,7 @@ namespace ignition
       ///        limits:[iMax:iMin]-[I1:I2].
       ///
       /// Disable command clamping by setting _cmdMin to a value larger
-      /// than _cmdMax.
+      /// than _cmdMax. Command clamping is disabled by default.
       ///
       /// \param[in] _p  The proportional gain.
       /// \param[in] _i  The integral gain.
