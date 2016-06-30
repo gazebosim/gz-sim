@@ -1,5 +1,10 @@
 ## Ignition Math 2.x
 
+### Ignition Math 2.x.0
+
+1. Added PID class
+    * [Pull request 117](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/117)
+
 ### Ignition Math 2.4.0
 
 1. New MassMatrix3 class
