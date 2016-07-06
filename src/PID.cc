@@ -149,7 +149,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   this->cmd = -pTerm - iTerm - dTerm;
 
   // Check the command limits
-  if (!(this->cmdMax < this->cmdMin))
+  if (this->cmdMax >= this->cmdMin)
       this->cmd = clamp(this->cmd, this->cmdMin, this->cmdMax);
 
   return this->cmd;
