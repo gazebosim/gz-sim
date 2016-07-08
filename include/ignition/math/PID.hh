@@ -150,26 +150,7 @@ namespace ignition
       /// \brief Assignment operator
       /// \param[in] _p a reference to a PID to assign values from
       /// \return reference to this instance
-      public: PID &operator=(const PID &_p)
-              {
-                if (this == &_p)
-                  return *this;
-
-                this->pGain = _p.pGain;
-                this->iGain = _p.iGain;
-                this->dGain = _p.dGain;
-                this->iMax = _p.iMax;
-                this->iMin = _p.iMin;
-                this->cmdMax = _p.cmdMax;
-                this->cmdMin = _p.cmdMin;
-                this->pErrLast = _p.pErrLast;
-                this->pErr = _p.pErr;
-                this->iErr = _p.iErr;
-                this->dErr = _p.dErr;
-                this->cmd = _p.cmd;
-
-                return *this;
-              }
+      public: PID &operator=(const PID &_p);
 
       /// \brief Reset the errors and command.
       public: void Reset();

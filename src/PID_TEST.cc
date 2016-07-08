@@ -43,6 +43,15 @@ TEST(PidTest, ConstructorDefault)
 }
 
 /////////////////////////////////////////////////
+TEST(PidTest, CoverageExtra)
+{
+  // getting full destructor coverage
+  math::PID *p = new math::PID;
+  EXPECT_TRUE(p != NULL);
+  delete p;
+}
+
+/////////////////////////////////////////////////
 TEST(PidTest, SetValues)
 {
   const math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
@@ -80,7 +89,8 @@ TEST(PidTest, SetValues)
 
   // Assignment operator
   {
-    math::PID pid = pid2;
+    math::PID pid;
+    pid = pid2;
     EXPECT_DOUBLE_EQ(pid.PGain(), pid2.PGain());
     EXPECT_DOUBLE_EQ(pid.IGain(), pid2.IGain());
     EXPECT_DOUBLE_EQ(pid.DGain(), pid2.DGain());
@@ -96,25 +106,25 @@ TEST(PidTest, SetValues)
 TEST(PidTest, EqualOperatorCornerCase)
 {
   math::PID pid(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
-  EXPECT_NEAR(pid.PGain(), 1.0, 1e-6);
-  EXPECT_NEAR(pid.IGain(), 2.1, 1e-6);
-  EXPECT_NEAR(pid.DGain(), -4.5, 1e-6);
-  EXPECT_NEAR(pid.IMax(), 10.5, 1e-6);
-  EXPECT_NEAR(pid.IMin(), 1.4, 1e-6);
-  EXPECT_NEAR(pid.CmdMax(), 45.0, 1e-6);
-  EXPECT_NEAR(pid.CmdMin(), -35.0, 1e-6);
-  EXPECT_NEAR(pid.Cmd(), 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(pid.PGain(), 1.0);
+  EXPECT_DOUBLE_EQ(pid.IGain(), 2.1);
+  EXPECT_DOUBLE_EQ(pid.DGain(), -4.5);
+  EXPECT_DOUBLE_EQ(pid.IMax(), 10.5);
+  EXPECT_DOUBLE_EQ(pid.IMin(), 1.4);
+  EXPECT_DOUBLE_EQ(pid.CmdMax(), 45.0);
+  EXPECT_DOUBLE_EQ(pid.CmdMin(), -35.0);
+  EXPECT_DOUBLE_EQ(pid.Cmd(), 0.0);
 
   pid = pid;
 
-  EXPECT_NEAR(pid.PGain(), 1.0, 1e-6);
-  EXPECT_NEAR(pid.IGain(), 2.1, 1e-6);
-  EXPECT_NEAR(pid.DGain(), -4.5, 1e-6);
-  EXPECT_NEAR(pid.IMax(), 10.5, 1e-6);
-  EXPECT_NEAR(pid.IMin(), 1.4, 1e-6);
-  EXPECT_NEAR(pid.CmdMax(), 45.0, 1e-6);
-  EXPECT_NEAR(pid.CmdMin(), -35.0, 1e-6);
-  EXPECT_NEAR(pid.Cmd(), 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(pid.PGain(), 1.0);
+  EXPECT_DOUBLE_EQ(pid.IGain(), 2.1);
+  EXPECT_DOUBLE_EQ(pid.DGain(), -4.5);
+  EXPECT_DOUBLE_EQ(pid.IMax(), 10.5);
+  EXPECT_DOUBLE_EQ(pid.IMin(), 1.4);
+  EXPECT_DOUBLE_EQ(pid.CmdMax(), 45.0);
+  EXPECT_DOUBLE_EQ(pid.CmdMin(), -35.0);
+  EXPECT_DOUBLE_EQ(pid.Cmd(), 0.0);
 }
 
 /////////////////////////////////////////////////
