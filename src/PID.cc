@@ -146,7 +146,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   // If enabled, this will limit iTerm so that the limit is meaningful
   // in the output
   if (this->iMax >= this->iMin)
-      iTerm = clamp(iTerm, this->iMin, this->iMax);
+    iTerm = clamp(iTerm, this->iMin, this->iMax);
   this->iErr = iTerm / this->iGain;
 
   // Calculate the derivative error
