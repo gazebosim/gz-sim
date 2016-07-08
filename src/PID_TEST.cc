@@ -156,3 +156,35 @@ TEST(PidTest, Update)
   EXPECT_NEAR(ie, 140, 1e-6);
   EXPECT_NEAR(de, 0.0, 1e-6);
 }
+
+/////////////////////////////////////////////////
+TEST(PidTest, ZeroGains)
+{
+  // controller with zero gains, no command limits
+  // should output only zero
+  math::PID pid;
+  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(-1)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(-1)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(-1)));
+
+  // CmdMax defaults to -1.0
+  // setting CmdMin to -10.0, means output should now be -1.0
+  // when time is non-zero
+  pid.SetCmdMin(-10.0);
+  EXPECT_DOUBLE_EQ(-10.0, pid.CmdMin());
+  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(0)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(0,  std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(1,  std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(-1, std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(0,  std::chrono::duration<double>(-1)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(1,  std::chrono::duration<double>(-1)));
+  EXPECT_DOUBLE_EQ(-1, pid.Update(-1, std::chrono::duration<double>(-1)));
+}
