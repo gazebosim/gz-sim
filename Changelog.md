@@ -1,6 +1,14 @@
 ## Ignition Math 2.x
 
-### Ignition Math 2.4.0
+### Ignition Math 2.4
+
+#### Ignition Math 2.4.1
+
+1. Combine inertial properties of different objects, returning the equivalent
+   inertial properties as if the objects were welded together.
+    * [Pull request 115](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/115)
+
+#### Ignition Math 2.4.0
 
 1. New MassMatrix3 class
     * [Pull request 112](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/112)
