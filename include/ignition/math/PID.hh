@@ -139,13 +139,13 @@ namespace ignition
 
       /// \brief Return current command for this PID controller.
       /// \return the command value
-      public: double Cmd();
+      public: double Cmd() const;
 
       /// \brief Return PID error terms for the controller.
       /// \param[in] _pe  The proportional error.
       /// \param[in] _ie  The integral error.
       /// \param[in] _de  The derivative error.
-      public: void Errors(double &_pe, double &_ie, double &_de);
+      public: void Errors(double &_pe, double &_ie, double &_de) const;
 
       /// \brief Assignment operator
       /// \param[in] _p a reference to a PID to assign values from

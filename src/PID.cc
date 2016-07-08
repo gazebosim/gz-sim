@@ -162,13 +162,13 @@ void PID::SetCmd(double _cmd)
 }
 
 /////////////////////////////////////////////////
-double PID::Cmd()
+double PID::Cmd() const
 {
   return this->cmd;
 }
 
 /////////////////////////////////////////////////
-void PID::Errors(double &_pe, double &_ie, double &_de)
+void PID::Errors(double &_pe, double &_ie, double &_de) const
 {
   _pe = this->pErr;
   _ie = this->iErr;
