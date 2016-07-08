@@ -33,11 +33,6 @@ PID::PID(double _p, double _i, double _d, double _imax, double _imin,
 }
 
 /////////////////////////////////////////////////
-PID::~PID()
-{
-}
-
-/////////////////////////////////////////////////
 void PID::Init(double _p, double _i, double _d, double _imax, double _imin,
          double _cmdMax, double _cmdMin)
 {

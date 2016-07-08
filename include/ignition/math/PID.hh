@@ -49,7 +49,7 @@ namespace ignition
                   double _cmdMax = -1.0, double _cmdMin = 0.0);
 
       /// \brief Destructor
-      public: virtual ~PID();
+      public: ~PID() = default;
 
       /// \brief Initialize PID-gains and integral term
       ///        limits:[iMax:iMin]-[I1:I2].
