@@ -23,62 +23,73 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(PidTest, PID)
+TEST(PidTest, ConstructorDefault)
 {
-  math::PID pid;
-  EXPECT_NEAR(pid.PGain(), 0, 1e-6);
-  EXPECT_NEAR(pid.IGain(), 0, 1e-6);
-  EXPECT_NEAR(pid.DGain(), 0, 1e-6);
-  EXPECT_NEAR(pid.IMax(), 0, 1e-6);
-  EXPECT_NEAR(pid.IMin(), 0, 1e-6);
-  EXPECT_NEAR(pid.CmdMax(), -1.0, 1e-6);
-  EXPECT_NEAR(pid.CmdMin(), 0, 1e-6);
-  EXPECT_NEAR(pid.Cmd(), 0, 1e-6);
-
-  math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
-  EXPECT_NEAR(pid2.PGain(), 1.0, 1e-6);
-  EXPECT_NEAR(pid2.IGain(), 2.1, 1e-6);
-  EXPECT_NEAR(pid2.DGain(), -4.5, 1e-6);
-  EXPECT_NEAR(pid2.IMax(), 10.5, 1e-6);
-  EXPECT_NEAR(pid2.IMin(), 1.4, 1e-6);
-  EXPECT_NEAR(pid2.CmdMax(), 45.0, 1e-6);
-  EXPECT_NEAR(pid2.CmdMin(), -35.0, 1e-6);
-  EXPECT_NEAR(pid2.Cmd(), 0.0, 1e-6);
-
-  pid.SetPGain(pid2.PGain());
-  pid.SetIGain(pid2.IGain());
-  pid.SetDGain(pid2.DGain());
-  pid.SetIMax(pid2.IMax());
-  pid.SetIMin(pid2.IMin());
-  pid.SetCmdMax(pid2.CmdMax());
-  pid.SetCmdMin(pid2.CmdMin());
-  pid.SetCmd(10.4);
-
-  EXPECT_NEAR(pid.PGain(), pid2.PGain(), 1e-6);
-  EXPECT_NEAR(pid.IGain(), pid2.IGain(), 1e-6);
-  EXPECT_NEAR(pid.DGain(), pid2.DGain(), 1e-6);
-  EXPECT_NEAR(pid.IMax(), pid2.IMax(), 1e-6);
-  EXPECT_NEAR(pid.IMin(), pid2.IMin(), 1e-6);
-  EXPECT_NEAR(pid.CmdMax(), pid2.CmdMax(), 1e-6);
-  EXPECT_NEAR(pid.CmdMin(), pid2.CmdMin(), 1e-6);
-  EXPECT_NEAR(pid.Cmd(), 10.4, 1e-6);
-
-  math::PID pid3;
-  pid3 = pid;
-  EXPECT_NEAR(pid.PGain(), pid3.PGain(), 1e-6);
-  EXPECT_NEAR(pid.IGain(), pid3.IGain(), 1e-6);
-  EXPECT_NEAR(pid.DGain(), pid3.DGain(), 1e-6);
-  EXPECT_NEAR(pid.IMax(), pid3.IMax(), 1e-6);
-  EXPECT_NEAR(pid.IMin(), pid3.IMin(), 1e-6);
-  EXPECT_NEAR(pid.CmdMax(), pid3.CmdMax(), 1e-6);
-  EXPECT_NEAR(pid.CmdMin(), pid3.CmdMin(), 1e-6);
-  EXPECT_NEAR(pid.Cmd(), pid3.Cmd(), 1e-6);
+  const math::PID pid;
+  EXPECT_DOUBLE_EQ(0.0, pid.PGain());
+  EXPECT_DOUBLE_EQ(0.0, pid.IGain());
+  EXPECT_DOUBLE_EQ(0.0, pid.DGain());
+  EXPECT_DOUBLE_EQ(0.0, pid.IMax());
+  EXPECT_DOUBLE_EQ(0.0, pid.IMin());
+  EXPECT_DOUBLE_EQ(-1.0, pid.CmdMax());
+  EXPECT_DOUBLE_EQ(0.0, pid.CmdMin());
+  EXPECT_DOUBLE_EQ(0.0, pid.Cmd());
 
   double pe, ie, de;
   pid.Errors(pe, ie, de);
-  EXPECT_NEAR(pe, 0.0, 1e-6);
-  EXPECT_NEAR(ie, 0.0, 1e-6);
-  EXPECT_NEAR(de, 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(pe, 0.0);
+  EXPECT_DOUBLE_EQ(ie, 0.0);
+  EXPECT_DOUBLE_EQ(de, 0.0);
+}
+
+/////////////////////////////////////////////////
+TEST(PidTest, SetValues)
+{
+  const math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
+  EXPECT_DOUBLE_EQ(1.0,  pid2.PGain());
+  EXPECT_DOUBLE_EQ(2.1,  pid2.IGain());
+  EXPECT_DOUBLE_EQ(-4.5, pid2.DGain());
+  EXPECT_DOUBLE_EQ(10.5, pid2.IMax());
+  EXPECT_DOUBLE_EQ(1.4,  pid2.IMin());
+  EXPECT_DOUBLE_EQ(45,   pid2.CmdMax());
+  EXPECT_DOUBLE_EQ(-35,  pid2.CmdMin());
+  EXPECT_DOUBLE_EQ(0.0,  pid2.Cmd());
+
+  // Test Set*() functions
+  {
+    const double cmd = 10.4;
+    math::PID pid;
+    pid.SetPGain(pid2.PGain());
+    pid.SetIGain(pid2.IGain());
+    pid.SetDGain(pid2.DGain());
+    pid.SetIMax(pid2.IMax());
+    pid.SetIMin(pid2.IMin());
+    pid.SetCmdMax(pid2.CmdMax());
+    pid.SetCmdMin(pid2.CmdMin());
+    pid.SetCmd(cmd);
+
+    EXPECT_DOUBLE_EQ(pid.PGain(), pid2.PGain());
+    EXPECT_DOUBLE_EQ(pid.IGain(), pid2.IGain());
+    EXPECT_DOUBLE_EQ(pid.DGain(), pid2.DGain());
+    EXPECT_DOUBLE_EQ(pid.IMax(), pid2.IMax());
+    EXPECT_DOUBLE_EQ(pid.IMin(), pid2.IMin());
+    EXPECT_DOUBLE_EQ(pid.CmdMax(), pid2.CmdMax());
+    EXPECT_DOUBLE_EQ(pid.CmdMin(), pid2.CmdMin());
+    EXPECT_DOUBLE_EQ(pid.Cmd(), cmd);
+  }
+
+  // Assignment operator
+  {
+    math::PID pid = pid2;
+    EXPECT_DOUBLE_EQ(pid.PGain(), pid2.PGain());
+    EXPECT_DOUBLE_EQ(pid.IGain(), pid2.IGain());
+    EXPECT_DOUBLE_EQ(pid.DGain(), pid2.DGain());
+    EXPECT_DOUBLE_EQ(pid.IMax(), pid2.IMax());
+    EXPECT_DOUBLE_EQ(pid.IMin(), pid2.IMin());
+    EXPECT_DOUBLE_EQ(pid.CmdMax(), pid2.CmdMax());
+    EXPECT_DOUBLE_EQ(pid.CmdMin(), pid2.CmdMin());
+    EXPECT_DOUBLE_EQ(pid.Cmd(), pid2.Cmd());
+  }
 }
 
 /////////////////////////////////////////////////
