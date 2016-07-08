@@ -37,6 +37,9 @@ namespace ignition
       /// Disable command clamping by setting _cmdMin to a value larger
       /// than _cmdMax. Command clamping is disabled by default.
       ///
+      /// Disable integral clamping by setting _iMin to a value larger
+      /// than _iMax. Integral clamping is disabled by default.
+      ///
       /// \param[in] _p  The proportional gain.
       /// \param[in] _i  The integral gain.
       /// \param[in] _d  The derivative gain.
@@ -45,7 +48,7 @@ namespace ignition
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
       public: PID(double _p = 0.0, double _i = 0.0, double _d = 0.0,
-                  double _imax = 0.0, double _imin = 0.0,
+                  double _imax = -1.0, double _imin = 0.0,
                   double _cmdMax = -1.0, double _cmdMin = 0.0);
 
       /// \brief Destructor
@@ -57,6 +60,9 @@ namespace ignition
       /// Disable command clamping by setting _cmdMin to a value larger
       /// than _cmdMax. Command clamping is disabled by default.
       ///
+      /// Disable integral clamping by setting _iMin to a value larger
+      /// than _iMax. Integral clamping is disabled by default.
+      ///
       /// \param[in] _p  The proportional gain.
       /// \param[in] _i  The integral gain.
       /// \param[in] _d  The derivative gain.
@@ -65,7 +71,7 @@ namespace ignition
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
       public: void Init(double _p = 0.0, double _i = 0.0, double _d = 0.0,
-                        double _imax = 0.0, double _imin = 0.0,
+                        double _imax = -1.0, double _imin = 0.0,
                         double _cmdMax = -1.0, double _cmdMin = 0.0);
 
       /// \brief Set the proportional Gain.
@@ -177,7 +183,7 @@ namespace ignition
       private: double dGain = 0.0;
 
       /// \brief Maximum clamping value for integral term.
-      private: double iMax = 0.0;
+      private: double iMax = -1.0;
 
       /// \brief Minim clamping value for integral term.
       private: double iMin = 0.0;
