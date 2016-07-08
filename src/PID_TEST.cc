@@ -43,6 +43,15 @@ TEST(PidTest, ConstructorDefault)
 }
 
 /////////////////////////////////////////////////
+TEST(PidTest, CoverageExtra)
+{
+  // getting full destructor coverage
+  math::PID *p = new math::PID;
+  EXPECT_TRUE(p != NULL);
+  delete p;
+}
+
+/////////////////////////////////////////////////
 TEST(PidTest, SetValues)
 {
   const math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
@@ -80,7 +89,8 @@ TEST(PidTest, SetValues)
 
   // Assignment operator
   {
-    math::PID pid = pid2;
+    math::PID pid;
+    pid = pid2;
     EXPECT_DOUBLE_EQ(pid.PGain(), pid2.PGain());
     EXPECT_DOUBLE_EQ(pid.IGain(), pid2.IGain());
     EXPECT_DOUBLE_EQ(pid.DGain(), pid2.DGain());
