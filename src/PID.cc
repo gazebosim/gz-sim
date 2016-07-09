@@ -124,14 +124,14 @@ void PID::Reset()
 /////////////////////////////////////////////////
 double PID::Update(double _error, std::chrono::duration<double> _dt)
 {
-  double pTerm, dTerm, iTerm;
-  this->pErr = _error;
-
   if (_dt == std::chrono::duration<double>(0) ||
       ignition::math::isnan(_error) || std::isinf(_error))
   {
     return 0.0;
   }
+
+  double pTerm, dTerm, iTerm;
+  this->pErr = _error;
 
   // Calculate proportional contribution to command
   pTerm = this->pGain * this->pErr;
@@ -147,7 +147,8 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   // in the output
   if (this->iMax >= this->iMin)
     iTerm = clamp(iTerm, this->iMin, this->iMax);
-  this->iErr = iTerm / this->iGain;
+  if (this->iGain != 0)
+    this->iErr = iTerm / this->iGain;
 
   // Calculate the derivative error
   if (_dt != std::chrono::duration<double>(0))

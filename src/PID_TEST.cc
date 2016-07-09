@@ -29,7 +29,7 @@ TEST(PidTest, ConstructorDefault)
   EXPECT_DOUBLE_EQ(0.0, pid.PGain());
   EXPECT_DOUBLE_EQ(0.0, pid.IGain());
   EXPECT_DOUBLE_EQ(0.0, pid.DGain());
-  EXPECT_DOUBLE_EQ(0.0, pid.IMax());
+  EXPECT_DOUBLE_EQ(-1.0, pid.IMax());
   EXPECT_DOUBLE_EQ(0.0, pid.IMin());
   EXPECT_DOUBLE_EQ(-1.0, pid.CmdMax());
   EXPECT_DOUBLE_EQ(0.0, pid.CmdMin());
@@ -168,33 +168,93 @@ TEST(PidTest, Update)
 }
 
 /////////////////////////////////////////////////
+/// \brief Helper function for testing PID::Update
+/// \param[in] _pid PID object.
+/// \param[in] _result Expected PID output.
+/// \param[in] _error Error input to Update.
+/// \param[in] _dt Time interval.
+/// \param[in] _pErr Expected proptional error.
+/// \param[in] _iErr Expected integral error.
+/// \param[in] _dErr Expected derivative error.
+void UpdateTest(math::PID &_pid, const double _result, const double _error,
+                const std::chrono::duration<double> &_dt,
+                const double _pErr, const double _iErr, const double _dErr)
+{
+  EXPECT_DOUBLE_EQ(_result, _pid.Update(_error, _dt));
+  double pErr, iErr, dErr;
+  _pid.Errors(pErr, iErr, dErr);
+  EXPECT_DOUBLE_EQ(pErr, _pErr);
+  EXPECT_DOUBLE_EQ(iErr, _iErr);
+  EXPECT_DOUBLE_EQ(dErr, _dErr);
+}
+
+/////////////////////////////////////////////////
 TEST(PidTest, ZeroGains)
 {
   // controller with zero gains, no command limits
-  // should output only zero
   math::PID pid;
-  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(-1)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(-1)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(-1)));
 
+  std::cerr << "zero inputs, expect zero outputs" << std::endl;
+  // repeat once to test derivative and integral error
+  UpdateTest(pid, 0, 0, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, 0, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "dt = 0, no change since previous state" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "dt > 0, but gains still zero" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 1, 1);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 2, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(1), -1, 1, -2);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(1), -1, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 1, 2);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 2, 0);
+
+  std::cerr << "dt = 0, no change since previous state" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
+
+  std::cerr << "dt < 0, but gains still zero" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 1, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 1, 2);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 1, -2);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, 0);
+
+  std::cerr << "Reset" << std::endl;
+  pid.Reset();
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "unclamp Cmd values" << std::endl;
   // CmdMax defaults to -1.0
   // setting CmdMin to -10.0, means output should now be -1.0
   // when time is non-zero
   pid.SetCmdMin(-10.0);
   EXPECT_DOUBLE_EQ(-10.0, pid.CmdMin());
-  EXPECT_DOUBLE_EQ(0, pid.Update(0,  std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(1,  std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(0, pid.Update(-1, std::chrono::duration<double>(0)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(0,  std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(1,  std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(-1, std::chrono::duration<double>(1)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(0,  std::chrono::duration<double>(-1)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(1,  std::chrono::duration<double>(-1)));
-  EXPECT_DOUBLE_EQ(-1, pid.Update(-1, std::chrono::duration<double>(-1)));
+
+  std::cerr << "dt = 0, still report cmd = 0" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "dt > 0, report clamped value" << std::endl;
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 1, 1);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 2, 0);
+  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, 1, -2);
+  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, 0, 0);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 1, 2);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 2, 0);
 }
