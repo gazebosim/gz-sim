@@ -299,14 +299,15 @@ TEST(PidTest, Pcontrol)
 {
   math::PID pid(1);
   std::chrono::duration<double> dt(1);
-  for (int i = 0; i < 5; ++i)
+  const int N = 5;
+  for (int i = 0; i < N; ++i)
   {
     double d = static_cast<double>(i);
     EXPECT_DOUBLE_EQ(-d, pid.Update(d, std::chrono::duration<double>(1)));
   }
 
   pid.SetPGain(2);
-  for (int i = 0; i < 5; ++i)
+  for (int i = 0; i < N; ++i)
   {
     double d = static_cast<double>(i);
     EXPECT_DOUBLE_EQ(-2*d, pid.Update(d, std::chrono::duration<double>(1)));
@@ -344,3 +345,26 @@ TEST(PidTest, Icontrol)
     EXPECT_DOUBLE_EQ(-I0-2*d, pid.Update(1, std::chrono::duration<double>(1)));
   }
 }
+
+/////////////////////////////////////////////////
+TEST(PidTest, Dcontrol)
+{
+  math::PID pid(0, 0, 1);
+  std::chrono::duration<double> dt(1);
+  EXPECT_DOUBLE_EQ(1, pid.Update(-1, std::chrono::duration<double>(1)));
+  const int N = 5;
+  for (int i = 0; i < N; ++i)
+  {
+    double d = static_cast<double>(i);
+    EXPECT_DOUBLE_EQ(-1, pid.Update(d, std::chrono::duration<double>(1)));
+  }
+
+  pid.SetDGain(2);
+  EXPECT_DOUBLE_EQ(10, pid.Update(-1, std::chrono::duration<double>(1)));
+  for (int i = 0; i < N; ++i)
+  {
+    double d = static_cast<double>(i);
+    EXPECT_DOUBLE_EQ(-2, pid.Update(d, std::chrono::duration<double>(1)));
+  }
+}
+
