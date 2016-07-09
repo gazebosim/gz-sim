@@ -130,7 +130,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
     return 0.0;
   }
 
-  double pTerm, dTerm, iTerm;
+  double pTerm, dTerm;
   this->pErr = _error;
 
   // Calculate proportional contribution to command
@@ -140,7 +140,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   this->iErr = this->iErr + this->iGain * _dt.count() * this->pErr;
 
   // Check the integral limits
-  // If enabled, this will limit iTerm so that the limit is meaningful
+  // If enabled, this will limit iErr so that the limit is meaningful
   // in the output
   if (this->iMax >= this->iMin)
     this->iErr = clamp(this->iErr, this->iMin, this->iMax);
