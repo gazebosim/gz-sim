@@ -134,37 +134,37 @@ TEST(PidTest, Update)
   pid.Init(1.0, 0.1, 0.5, 10, 0, 20, -20);
 
   double result = pid.Update(5.0, std::chrono::duration<double>(0.0));
-  EXPECT_NEAR(result, 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(result, 0.0);
 
   result = pid.Update(5.0, std::chrono::duration<double>(10.0));
-  EXPECT_NEAR(result, -10.25, 1e-6);
+  EXPECT_DOUBLE_EQ(result, -10.25);
 
   double pe, ie, de;
   pid.Errors(pe, ie, de);
-  EXPECT_NEAR(pe, 5, 1e-6);
-  EXPECT_NEAR(ie, 50, 1e-6);
-  EXPECT_NEAR(de, 0.5, 1e-6);
+  EXPECT_DOUBLE_EQ(pe, 5);
+  EXPECT_DOUBLE_EQ(ie, 5);
+  EXPECT_DOUBLE_EQ(de, 0.5);
 
   // Test max integral term
   pid.SetIMax(0.2);
   pid.SetIGain(10.0);
   result = pid.Update(5.0, std::chrono::duration<double>(10.0));
-  EXPECT_NEAR(result, -5.2, 1e-6);
+  EXPECT_DOUBLE_EQ(result, -5.2);
   pid.Errors(pe, ie, de);
-  EXPECT_NEAR(pe, 5, 1e-6);
-  EXPECT_NEAR(ie, 0.02, 1e-6);
-  EXPECT_NEAR(de, 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(pe, 5);
+  EXPECT_DOUBLE_EQ(ie, 0.2);
+  EXPECT_DOUBLE_EQ(de, 0.0);
 
   // Test min integral term
   pid.SetIMax(20);
   pid.SetIMin(1.4);
   pid.SetIGain(0.01);
   result = pid.Update(5.0, std::chrono::duration<double>(10.0));
-  EXPECT_NEAR(result, -6.4, 1e-6);
+  EXPECT_DOUBLE_EQ(result, -6.4);
   pid.Errors(pe, ie, de);
-  EXPECT_NEAR(pe, 5, 1e-6);
-  EXPECT_NEAR(ie, 140, 1e-6);
-  EXPECT_NEAR(de, 0.0, 1e-6);
+  EXPECT_DOUBLE_EQ(pe, 5);
+  EXPECT_DOUBLE_EQ(ie, 1.4);
+  EXPECT_DOUBLE_EQ(de, 0.0);
 }
 
 /////////////////////////////////////////////////
@@ -208,27 +208,27 @@ TEST(PidTest, ZeroGains)
   UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
 
   std::cerr << "dt > 0, but gains still zero" << std::endl;
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 1, 1);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 2, 0);
-  UpdateTest(pid, 0, -1, std::chrono::duration<double>(1), -1, 1, -2);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 0, 1);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(1), -1, 0, -2);
   UpdateTest(pid, 0, -1, std::chrono::duration<double>(1), -1, 0, 0);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 1, 2);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 0, 2);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(1),  1, 0, 0);
 
   std::cerr << "dt = 0, no change since previous state" << std::endl;
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
-  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 2, 0);
-  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 2, 0);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 2, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 1, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 1, 0, 0);
 
   std::cerr << "dt < 0, but gains still zero" << std::endl;
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 1, 0);
   UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, 0);
-  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 1, 2);
-  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 2, 0);
-  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 1, -2);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 0, 2);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(-1), -1, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, -2);
   UpdateTest(pid, 0,  1, std::chrono::duration<double>(-1),  1, 0, 0);
 
   std::cerr << "Reset" << std::endl;
@@ -241,6 +241,8 @@ TEST(PidTest, ZeroGains)
   // when time is non-zero
   pid.SetCmdMin(-10.0);
   EXPECT_DOUBLE_EQ(-10.0, pid.CmdMin());
+  // command hasn't been updated yet
+  EXPECT_DOUBLE_EQ(0.0, pid.Cmd());
 
   std::cerr << "dt = 0, still report cmd = 0" << std::endl;
   UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
@@ -251,10 +253,83 @@ TEST(PidTest, ZeroGains)
   UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
 
   std::cerr << "dt > 0, report clamped value" << std::endl;
-  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 1, 1);
-  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 2, 0);
-  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, 1, -2);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 0, 1);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 0, 0);
+  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, 0, -2);
   UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, 0, 0);
-  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 1, 2);
-  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 2, 0);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 0, 2);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, 0, 0);
+
+  std::cerr << "Reset" << std::endl;
+  pid.Reset();
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "unclamp iErr values" << std::endl;
+  // IMax defaults to -1.0
+  // setting IMin to -10.0, means output should now be -1.0
+  // when time is non-zero
+  pid.SetIMin(-10.0);
+  EXPECT_DOUBLE_EQ(-10.0, pid.IMin());
+  // iErr hasn't been updated yet
+  {
+    double pErr, iErr, dErr;
+    pid.Errors(pErr, iErr, dErr);
+    EXPECT_DOUBLE_EQ(0.0, iErr);
+  }
+
+  std::cerr << "dt = 0, still report iErr = 0" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "dt > 0, report clamped value" << std::endl;
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 1);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 0);
+  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, -1, -2);
+  UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, -1, 0);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 2);
+  UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 0);
+}
+
+/////////////////////////////////////////////////
+TEST(PidTest, Pcontrol)
+{
+  math::PID pid(1);
+  std::chrono::duration<double> dt(1);
+  for (int i = 0; i < 5; ++i)
+  {
+    double d = static_cast<double>(i);
+    EXPECT_DOUBLE_EQ(-d, pid.Update(d, std::chrono::duration<double>(1)));
+  }
+
+  pid.SetPGain(2);
+  for (int i = 0; i < 5; ++i)
+  {
+    double d = static_cast<double>(i);
+    EXPECT_DOUBLE_EQ(-2*d, pid.Update(d, std::chrono::duration<double>(1)));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(PidTest, Icontrol)
+{
+  math::PID pid(0, 1);
+  std::chrono::duration<double> dt(1);
+  for (int i = 0; i < 5; ++i)
+  {
+    double d = static_cast<double>(i+1);
+    EXPECT_DOUBLE_EQ(-d, pid.Update(1, std::chrono::duration<double>(1)));
+  }
+
+  pid.Reset();
+
+  pid.SetIGain(2);
+  for (int i = 0; i < 5; ++i)
+  {
+    double d = static_cast<double>(i+1);
+    EXPECT_DOUBLE_EQ(-2*d, pid.Update(1, std::chrono::duration<double>(1)));
+  }
 }

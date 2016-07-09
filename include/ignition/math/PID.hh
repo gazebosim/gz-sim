@@ -149,7 +149,7 @@ namespace ignition
 
       /// \brief Return PID error terms for the controller.
       /// \param[in] _pe  The proportional error.
-      /// \param[in] _ie  The integral error.
+      /// \param[in] _ie  The integral of gain times error.
       /// \param[in] _de  The derivative error.
       public: void Errors(double &_pe, double &_ie, double &_de) const;
 
@@ -167,7 +167,7 @@ namespace ignition
       /// \brief Current error.
       private: double pErr = 0.0;
 
-      /// \brief Integral error.
+      /// \brief Integral of gain times error.
       private: double iErr = 0.0;
 
       /// \brief Derivative error.

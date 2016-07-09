@@ -137,18 +137,13 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
   pTerm = this->pGain * this->pErr;
 
   // Calculate the integral error
-  this->iErr = this->iErr + _dt.count() * this->pErr;
-
-  // Calculate integral contribution to command
-  iTerm = this->iGain * this->iErr;
+  this->iErr = this->iErr + this->iGain * _dt.count() * this->pErr;
 
   // Check the integral limits
   // If enabled, this will limit iTerm so that the limit is meaningful
   // in the output
   if (this->iMax >= this->iMin)
-    iTerm = clamp(iTerm, this->iMin, this->iMax);
-  if (this->iGain != 0)
-    this->iErr = iTerm / this->iGain;
+    this->iErr = clamp(this->iErr, this->iMin, this->iMax);
 
   // Calculate the derivative error
   if (_dt != std::chrono::duration<double>(0))
@@ -159,7 +154,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
 
   // Calculate derivative contribution to command
   dTerm = this->dGain * this->dErr;
-  this->cmd = -pTerm - iTerm - dTerm;
+  this->cmd = -pTerm - this->iErr - dTerm;
 
   // Check the command limits
   if (this->cmdMax >= this->cmdMin)
