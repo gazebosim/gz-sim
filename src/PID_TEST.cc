@@ -318,18 +318,29 @@ TEST(PidTest, Icontrol)
 {
   math::PID pid(0, 1);
   std::chrono::duration<double> dt(1);
-  for (int i = 0; i < 5; ++i)
+  const int N = 5;
+  for (int i = 0; i < N; ++i)
   {
     double d = static_cast<double>(i+1);
     EXPECT_DOUBLE_EQ(-d, pid.Update(1, std::chrono::duration<double>(1)));
   }
 
-  pid.Reset();
-
   pid.SetIGain(2);
-  for (int i = 0; i < 5; ++i)
+  double I0;
+  {
+    double pErr, iErr, dErr;
+    pid.Errors(pErr, iErr, dErr);
+    EXPECT_DOUBLE_EQ(N, iErr);
+    I0 = iErr;
+  }
+
+  // confirm that changing gain doesn't cause jumps in integral control
+  EXPECT_DOUBLE_EQ(-I0, pid.Update(0, std::chrono::duration<double>(1)));
+  EXPECT_DOUBLE_EQ(-I0, pid.Update(0, std::chrono::duration<double>(1)));
+
+  for (int i = 0; i < N; ++i)
   {
     double d = static_cast<double>(i+1);
-    EXPECT_DOUBLE_EQ(-2*d, pid.Update(1, std::chrono::duration<double>(1)));
+    EXPECT_DOUBLE_EQ(-I0-2*d, pid.Update(1, std::chrono::duration<double>(1)));
   }
 }
