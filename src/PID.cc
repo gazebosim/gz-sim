@@ -24,17 +24,19 @@ using namespace ignition;
 using namespace math;
 
 /////////////////////////////////////////////////
-PID::PID(double _p, double _i, double _d, double _imax, double _imin,
-         double _cmdMax, double _cmdMin)
-  : pGain(_p), iGain(_i), dGain(_d), iMax(_imax), iMin(_imin),
-    cmdMax(_cmdMax), cmdMin(_cmdMin)
+PID::PID(const double _p, const double _i, const double _d,
+         const double _imax, const double _imin, const double _cmdMax,
+         const double _cmdMin)
+: pGain(_p), iGain(_i), dGain(_d), iMax(_imax), iMin(_imin),
+  cmdMax(_cmdMax), cmdMin(_cmdMin)
 {
   this->Reset();
 }
 
 /////////////////////////////////////////////////
-void PID::Init(double _p, double _i, double _d, double _imax, double _imin,
-         double _cmdMax, double _cmdMin)
+void PID::Init(const double _p, const double _i, const double _d,
+               const double _imax, const double _imin, const double _cmdMax,
+               const double _cmdMin)
 {
   this->pGain = _p;
   this->iGain = _i;
@@ -70,43 +72,43 @@ PID &PID::operator=(const PID &_p)
 }
 
 /////////////////////////////////////////////////
-void PID::SetPGain(double _p)
+void PID::SetPGain(const double _p)
 {
   this->pGain = _p;
 }
 
 /////////////////////////////////////////////////
-void PID::SetIGain(double _i)
+void PID::SetIGain(const double _i)
 {
   this->iGain = _i;
 }
 
 /////////////////////////////////////////////////
-void PID::SetDGain(double _d)
+void PID::SetDGain(const double _d)
 {
   this->dGain = _d;
 }
 
 /////////////////////////////////////////////////
-void PID::SetIMax(double _i)
+void PID::SetIMax(const double _i)
 {
   this->iMax = _i;
 }
 
 /////////////////////////////////////////////////
-void PID::SetIMin(double _i)
+void PID::SetIMin(const double _i)
 {
   this->iMin = _i;
 }
 
 /////////////////////////////////////////////////
-void PID::SetCmdMax(double _c)
+void PID::SetCmdMax(const double _c)
 {
   this->cmdMax = _c;
 }
 
 /////////////////////////////////////////////////
-void PID::SetCmdMin(double _c)
+void PID::SetCmdMin(const double _c)
 {
   this->cmdMin = _c;
 }
@@ -122,7 +124,8 @@ void PID::Reset()
 }
 
 /////////////////////////////////////////////////
-double PID::Update(double _error, std::chrono::duration<double> _dt)
+double PID::Update(const double _error,
+                   const std::chrono::duration<double> &_dt)
 {
   if (_dt == std::chrono::duration<double>(0) ||
       ignition::math::isnan(_error) || std::isinf(_error))
@@ -130,7 +133,7 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
     return 0.0;
   }
 
-  double pTerm, dTerm;
+  double pTerm, dTerm, iTerm = 0.0;
   this->pErr = _error;
 
   // Calculate proportional contribution to command
@@ -158,13 +161,13 @@ double PID::Update(double _error, std::chrono::duration<double> _dt)
 
   // Check the command limits
   if (this->cmdMax >= this->cmdMin)
-      this->cmd = clamp(this->cmd, this->cmdMin, this->cmdMax);
+    this->cmd = clamp(this->cmd, this->cmdMin, this->cmdMax);
 
   return this->cmd;
 }
 
 /////////////////////////////////////////////////
-void PID::SetCmd(double _cmd)
+void PID::SetCmd(const double _cmd)
 {
   this->cmd = _cmd;
 }

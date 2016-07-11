@@ -47,9 +47,13 @@ namespace ignition
       /// \param[in] _imin The integral lower limit.
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
-      public: PID(double _p = 0.0, double _i = 0.0, double _d = 0.0,
-                  double _imax = -1.0, double _imin = 0.0,
-                  double _cmdMax = -1.0, double _cmdMin = 0.0);
+      public: PID(const double _p = 0.0,
+                  const double _i = 0.0,
+                  const double _d = 0.0,
+                  const double _imax = -1.0,
+                  const double _imin = 0.0,
+                  const double _cmdMax = -1.0,
+                  const double _cmdMin = 0.0);
 
       /// \brief Destructor
       public: ~PID() = default;
@@ -70,37 +74,41 @@ namespace ignition
       /// \param[in] _imin The integral lower limit.
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
-      public: void Init(double _p = 0.0, double _i = 0.0, double _d = 0.0,
-                        double _imax = -1.0, double _imin = 0.0,
-                        double _cmdMax = -1.0, double _cmdMin = 0.0);
+      public: void Init(const double _p = 0.0,
+                        const double _i = 0.0,
+                        const double _d = 0.0,
+                        const double _imax = -1.0,
+                        const double _imin = 0.0,
+                        const double _cmdMax = -1.0,
+                        const double _cmdMin = 0.0);
 
       /// \brief Set the proportional Gain.
       /// \param[in] _p proportional gain value
-      public: void SetPGain(double _p);
+      public: void SetPGain(const double _p);
 
       /// \brief Set the integral Gain.
       /// \param[in] _p integral gain value
-      public: void SetIGain(double _i);
+      public: void SetIGain(const double _i);
 
       /// \brief Set the derivtive Gain.
       /// \param[in] _p dertivative gain value
-      public: void SetDGain(double _d);
+      public: void SetDGain(const double _d);
 
       /// \brief Set the integral upper limit.
       /// \param[in] _p integral upper limit value
-      public: void SetIMax(double _i);
+      public: void SetIMax(const double _i);
 
       /// \brief Set the integral lower limit.
       /// \param[in] _p integral lower limit value
-      public: void SetIMin(double _i);
+      public: void SetIMin(const double _i);
 
       /// \brief Set the maximum value for the command.
       /// \param[in] _c The maximum value
-      public: void SetCmdMax(double _c);
+      public: void SetCmdMax(const double _c);
 
       /// \brief Set the maximum value for the command.
       /// \param[in] _c The maximum value
-      public: void SetCmdMin(double _c);
+      public: void SetCmdMin(const double _c);
 
       /// \brief Get the proportional Gain.
       /// \return The proportional gain value
@@ -131,17 +139,18 @@ namespace ignition
       public: double CmdMin() const;
 
       /// \brief Update the Pid loop with nonuniform time step size.
-      /// \param[_in] _error  Error since last call (p_state - p_target).
-      /// \param[_in] _dt Change in time since last update call.
+      /// \param[in] _error  Error since last call (p_state - p_target).
+      /// \param[in] _dt Change in time since last update call.
       /// Normally, this is called at every time step,
       /// The return value is an updated command to be passed
       /// to the object being controlled.
       /// \return the command value
-      public: double Update(double _error, std::chrono::duration<double> _dt);
+      public: double Update(const double _error,
+                            const std::chrono::duration<double> &_dt);
 
       /// \brief Set current target command for this PID controller.
       /// \param[in] _cmd New command
-      public: void SetCmd(double _cmd);
+      public: void SetCmd(const double _cmd);
 
       /// \brief Return current command for this PID controller.
       /// \return the command value
