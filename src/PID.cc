@@ -133,7 +133,7 @@ double PID::Update(const double _error,
     return 0.0;
   }
 
-  double pTerm, dTerm, iTerm = 0.0;
+  double pTerm, dTerm;
   this->pErr = _error;
 
   // Calculate proportional contribution to command
