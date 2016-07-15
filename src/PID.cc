@@ -26,9 +26,9 @@ using namespace math;
 /////////////////////////////////////////////////
 PID::PID(const double _p, const double _i, const double _d,
          const double _imax, const double _imin, const double _cmdMax,
-         const double _cmdMin)
+         const double _cmdMin, const double _cmdOffset)
 : pGain(_p), iGain(_i), dGain(_d), iMax(_imax), iMin(_imin),
-  cmdMax(_cmdMax), cmdMin(_cmdMin)
+  cmdMax(_cmdMax), cmdMin(_cmdMin), cmdOffset(_cmdOffset)
 {
   this->Reset();
 }
@@ -36,7 +36,7 @@ PID::PID(const double _p, const double _i, const double _d,
 /////////////////////////////////////////////////
 void PID::Init(const double _p, const double _i, const double _d,
                const double _imax, const double _imin, const double _cmdMax,
-               const double _cmdMin)
+               const double _cmdMin, const double _cmdOffset)
 {
   this->pGain = _p;
   this->iGain = _i;
@@ -45,6 +45,7 @@ void PID::Init(const double _p, const double _i, const double _d,
   this->iMin = _imin;
   this->cmdMax = _cmdMax;
   this->cmdMin = _cmdMin;
+  this->cmdOffset = _cmdOffset;
 
   this->Reset();
 }
@@ -62,6 +63,7 @@ PID &PID::operator=(const PID &_p)
   this->iMin = _p.iMin;
   this->cmdMax = _p.cmdMax;
   this->cmdMin = _p.cmdMin;
+  this->cmdOffset = _p.cmdOffset;
   this->pErrLast = _p.pErrLast;
   this->pErr = _p.pErr;
   this->iErr = _p.iErr;
@@ -114,6 +116,12 @@ void PID::SetCmdMin(const double _c)
 }
 
 /////////////////////////////////////////////////
+void PID::SetCmdOffset(const double _c)
+{
+  this->cmdOffset = _c;
+}
+
+/////////////////////////////////////////////////
 void PID::Reset()
 {
   this->pErrLast = 0.0;
@@ -157,7 +165,7 @@ double PID::Update(const double _error,
 
   // Calculate derivative contribution to command
   dTerm = this->dGain * this->dErr;
-  this->cmd = -pTerm - this->iErr - dTerm;
+  this->cmd = this->cmdOffset -pTerm - this->iErr - dTerm;
 
   // Check the command limits
   if (this->cmdMax >= this->cmdMin)
@@ -226,4 +234,10 @@ double PID::CmdMax() const
 double PID::CmdMin() const
 {
   return this->cmdMin;
+}
+
+/////////////////////////////////////////////////
+double PID::CmdOffset() const
+{
+  return this->cmdOffset;
 }

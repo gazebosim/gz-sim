@@ -26,9 +26,10 @@ namespace ignition
   {
     /// \class PID PID.hh ignition/math/PID.hh
     /// \brief Generic PID controller class.
-    /// Generic proportiolnal-integral-derivative controller class that
+    /// Generic proportional-integral-derivative controller class that
     /// keeps track of PID-error states and control inputs given
     /// the state of a system and a user specified target state.
+    /// It includes a user-adjustable command offset term (feed-forward).
     class IGNITION_VISIBLE PID
     {
       /// \brief Constructor, zeros out Pid values when created and
@@ -47,13 +48,15 @@ namespace ignition
       /// \param[in] _imin The integral lower limit.
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
+      /// \param[in] _cmdOffset Command offset (feed-forward).
       public: PID(const double _p = 0.0,
                   const double _i = 0.0,
                   const double _d = 0.0,
                   const double _imax = -1.0,
                   const double _imin = 0.0,
                   const double _cmdMax = -1.0,
-                  const double _cmdMin = 0.0);
+                  const double _cmdMin = 0.0,
+                  const double _cmdOffset = 0.0);
 
       /// \brief Destructor
       public: ~PID() = default;
@@ -74,13 +77,15 @@ namespace ignition
       /// \param[in] _imin The integral lower limit.
       /// \param[in] _cmdMax Output max value.
       /// \param[in] _cmdMin Output min value.
+      /// \param[in] _cmdOffset Command offset (feed-forward).
       public: void Init(const double _p = 0.0,
                         const double _i = 0.0,
                         const double _d = 0.0,
                         const double _imax = -1.0,
                         const double _imin = 0.0,
                         const double _cmdMax = -1.0,
-                        const double _cmdMin = 0.0);
+                        const double _cmdMin = 0.0,
+                        const double _cmdOffset = 0.0);
 
       /// \brief Set the proportional Gain.
       /// \param[in] _p proportional gain value
@@ -110,6 +115,11 @@ namespace ignition
       /// \param[in] _c The maximum value
       public: void SetCmdMin(const double _c);
 
+      /// \brief Set the offset value for the command,
+      /// which is added to the result of the PID controller.
+      /// \param[in] _c The offset value
+      public: void SetCmdOffset(const double _c);
+
       /// \brief Get the proportional Gain.
       /// \return The proportional gain value
       public: double PGain() const;
@@ -137,6 +147,10 @@ namespace ignition
       /// \brief Get the maximum value for the command.
       /// \return The maximum value
       public: double CmdMin() const;
+
+      /// \brief Get the offset value for the command.
+      /// \return The offset value
+      public: double CmdOffset() const;
 
       /// \brief Update the Pid loop with nonuniform time step size.
       /// \param[in] _error  Error since last call (p_state - p_target).
@@ -205,6 +219,9 @@ namespace ignition
 
       /// \brief Min command clamping value.
       private: double cmdMin = 0.0;
+
+      /// \brief Command offset.
+      private: double cmdOffset = 0.0;
     };
   }
 }
