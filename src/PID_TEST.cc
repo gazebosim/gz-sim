@@ -173,7 +173,7 @@ TEST(PidTest, Update)
 /// \param[in] _result Expected PID output.
 /// \param[in] _error Error input to Update.
 /// \param[in] _dt Time interval.
-/// \param[in] _pErr Expected proptional error.
+/// \param[in] _pErr Expected proportional error.
 /// \param[in] _iErr Expected integral error.
 /// \param[in] _dErr Expected derivative error.
 void UpdateTest(math::PID &_pid, const double _result, const double _error,
@@ -367,4 +367,3 @@ TEST(PidTest, Dcontrol)
     EXPECT_DOUBLE_EQ(-2, pid.Update(d, std::chrono::duration<double>(1)));
   }
 }
-
