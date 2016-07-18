@@ -173,3 +173,177 @@ TEST(Inertiald_Test, MOI_Diagonal)
                 m2.PrincipalAxesOffset() == rot2);
   }
 }
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, Addition)
+{
+  // Add two half-cubes together
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    const math::Inertiald cube(cubeMM3, math::Pose3d::Zero);
+    math::MassMatrix3d half;
+    EXPECT_TRUE(half.SetFromBox(0.5*mass, math::Vector3d(0.5, 1, 1)));
+    math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, 0, 0, 0));
+    math::Inertiald right(half, math::Pose3d(0.25, 0, 0, 0, 0, 0));
+    EXPECT_EQ(cube, left + right);
+    EXPECT_EQ(cube, right + left);
+    // test += operator
+    {
+      math::Inertiald tmp = left;
+      tmp += right;
+      EXPECT_EQ(cube, tmp);
+    }
+    {
+      math::Inertiald tmp = right;
+      tmp += left;
+      EXPECT_EQ(cube, tmp);
+    }
+    // Test EquivalentBox
+    {
+      math::Vector3d size2;
+      math::Quaterniond rot2;
+      EXPECT_TRUE((left + right).MassMatrix().EquivalentBox(size2, rot2));
+      EXPECT_EQ(size, size2);
+      EXPECT_EQ(rot2, math::Quaterniond::Identity);
+    }
+    {
+      math::Vector3d size2;
+      math::Quaterniond rot2;
+      EXPECT_TRUE((right + left).MassMatrix().EquivalentBox(size2, rot2));
+      EXPECT_EQ(size, size2);
+      EXPECT_EQ(rot2, math::Quaterniond::Identity);
+    }
+  }
+
+  // Add two rotated half-cubes together
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    const math::Inertiald cube(cubeMM3, math::Pose3d(0, 0, 0, IGN_PI_4, 0, 0));
+
+    math::MassMatrix3d half;
+    EXPECT_TRUE(half.SetFromBox(0.5*mass, math::Vector3d(0.5, 1, 1)));
+    math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, IGN_PI_4, 0, 0));
+    math::Inertiald right(half, math::Pose3d(0.25, 0, 0, IGN_PI_4, 0, 0));
+
+    // objects won't match exactly
+    // since inertia matrices will all be in base frame
+    // but mass, center of mass, and base-frame MOI should match
+    EXPECT_NE(cube, left + right);
+    EXPECT_NE(cube, right + left);
+    EXPECT_DOUBLE_EQ(cubeMM3.Mass(), (left + right).MassMatrix().Mass());
+    EXPECT_DOUBLE_EQ(cubeMM3.Mass(), (right + left).MassMatrix().Mass());
+    EXPECT_EQ(cube.Pose().Pos(), (left + right).Pose().Pos());
+    EXPECT_EQ(cube.Pose().Pos(), (right + left).Pose().Pos());
+    EXPECT_EQ(cube.MOI(), (left + right).MOI());
+    EXPECT_EQ(cube.MOI(), (right + left).MOI());
+  }
+
+  // Add eight cubes together into larger cube
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    const math::Inertiald addedCube =
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
+
+    math::MassMatrix3d trueCubeMM3;
+    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
+    EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
+  }
+
+  // Add eight rotated cubes together into larger cube
+  {
+    const double mass = 12.0;
+    const math::Vector3d size(1, 1, 1);
+    math::MassMatrix3d cubeMM3;
+    EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
+    const math::Inertiald addedCube =
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, IGN_PI_2, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, IGN_PI_2, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, IGN_PI_2)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, IGN_PI, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, IGN_PI, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, IGN_PI)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
+
+    math::MassMatrix3d trueCubeMM3;
+    EXPECT_TRUE(trueCubeMM3.SetFromBox(8*mass, 2*size));
+    EXPECT_EQ(addedCube, math::Inertiald(trueCubeMM3, math::Pose3d::Zero));
+  }
+}
+
+/////////////////////////////////////////////////
+// Addition operator has different behavior if mass is non-positive
+TEST(Inertiald_Test, AdditionInvalid)
+{
+  // inertias all zero
+  const math::MassMatrix3d m0(0.0, math::Vector3d::Zero, math::Vector3d::Zero);
+  EXPECT_FALSE(m0.IsPositive());
+  EXPECT_FALSE(m0.IsValid());
+
+  // both inertials with zero mass
+  {
+    math::Inertiald left(m0, math::Pose3d(-1, 0, 0, 0, 0, 0));
+    math::Inertiald right(m0, math::Pose3d(1, 0, 0, 0, 0, 0));
+
+    // expect sum to equal left argument
+    EXPECT_EQ(left, left + right);
+    EXPECT_EQ(right, right + left);
+    {
+      math::Inertiald tmp = left;
+      tmp += right;
+      EXPECT_EQ(tmp, left);
+    }
+    {
+      math::Inertiald tmp = right;
+      tmp += left;
+      EXPECT_EQ(tmp, right);
+    }
+  }
+
+  // one inertial with zero inertias should not affect the sum
+  {
+    math::MassMatrix3d m(12.0,
+      math::Vector3d(2, 3, 4),
+      math::Vector3d(0.1, 0.2, 0.3));
+    EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsValid());
+
+    math::Inertiald i(m, math::Pose3d(-1, 0, 0, 0, 0, 0));
+    math::Inertiald i0(m0, math::Pose3d(1, 0, 0, 0, 0, 0));
+
+    // expect i0 to not affect the sum
+    EXPECT_EQ(i, i + i0);
+    EXPECT_EQ(i, i0 + i);
+    {
+      math::Inertiald tmp = i;
+      tmp += i0;
+      EXPECT_EQ(tmp, i);
+    }
+    {
+      math::Inertiald tmp = i0;
+      tmp += i;
+      EXPECT_EQ(tmp, i);
+    }
+
+    EXPECT_TRUE((i + i0).MassMatrix().IsPositive());
+    EXPECT_TRUE((i0 + i).MassMatrix().IsPositive());
+    EXPECT_TRUE((i + i0).MassMatrix().IsValid());
+    EXPECT_TRUE((i0 + i).MassMatrix().IsValid());
+  }
+}
