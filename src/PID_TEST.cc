@@ -33,6 +33,7 @@ TEST(PidTest, ConstructorDefault)
   EXPECT_DOUBLE_EQ(0.0, pid.IMin());
   EXPECT_DOUBLE_EQ(-1.0, pid.CmdMax());
   EXPECT_DOUBLE_EQ(0.0, pid.CmdMin());
+  EXPECT_DOUBLE_EQ(0.0, pid.CmdOffset());
   EXPECT_DOUBLE_EQ(0.0, pid.Cmd());
 
   double pe, ie, de;
@@ -54,7 +55,7 @@ TEST(PidTest, CoverageExtra)
 /////////////////////////////////////////////////
 TEST(PidTest, SetValues)
 {
-  const math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
+  const math::PID pid2(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35, 1.3);
   EXPECT_DOUBLE_EQ(1.0,  pid2.PGain());
   EXPECT_DOUBLE_EQ(2.1,  pid2.IGain());
   EXPECT_DOUBLE_EQ(-4.5, pid2.DGain());
@@ -62,6 +63,7 @@ TEST(PidTest, SetValues)
   EXPECT_DOUBLE_EQ(1.4,  pid2.IMin());
   EXPECT_DOUBLE_EQ(45,   pid2.CmdMax());
   EXPECT_DOUBLE_EQ(-35,  pid2.CmdMin());
+  EXPECT_DOUBLE_EQ(1.3,  pid2.CmdOffset());
   EXPECT_DOUBLE_EQ(0.0,  pid2.Cmd());
 
   // Test Set*() functions
@@ -75,6 +77,7 @@ TEST(PidTest, SetValues)
     pid.SetIMin(pid2.IMin());
     pid.SetCmdMax(pid2.CmdMax());
     pid.SetCmdMin(pid2.CmdMin());
+    pid.SetCmdOffset(pid2.CmdOffset());
     pid.SetCmd(cmd);
 
     EXPECT_DOUBLE_EQ(pid.PGain(), pid2.PGain());
@@ -84,6 +87,7 @@ TEST(PidTest, SetValues)
     EXPECT_DOUBLE_EQ(pid.IMin(), pid2.IMin());
     EXPECT_DOUBLE_EQ(pid.CmdMax(), pid2.CmdMax());
     EXPECT_DOUBLE_EQ(pid.CmdMin(), pid2.CmdMin());
+    EXPECT_DOUBLE_EQ(pid.CmdOffset(), pid2.CmdOffset());
     EXPECT_DOUBLE_EQ(pid.Cmd(), cmd);
   }
 
@@ -98,6 +102,7 @@ TEST(PidTest, SetValues)
     EXPECT_DOUBLE_EQ(pid.IMin(), pid2.IMin());
     EXPECT_DOUBLE_EQ(pid.CmdMax(), pid2.CmdMax());
     EXPECT_DOUBLE_EQ(pid.CmdMin(), pid2.CmdMin());
+    EXPECT_DOUBLE_EQ(pid.CmdOffset(), pid2.CmdOffset());
     EXPECT_DOUBLE_EQ(pid.Cmd(), pid2.Cmd());
   }
 }
@@ -105,7 +110,7 @@ TEST(PidTest, SetValues)
 /////////////////////////////////////////////////
 TEST(PidTest, EqualOperatorCornerCase)
 {
-  math::PID pid(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35);
+  math::PID pid(1.0, 2.1, -4.5, 10.5, 1.4, 45, -35, 1.23);
   EXPECT_DOUBLE_EQ(pid.PGain(), 1.0);
   EXPECT_DOUBLE_EQ(pid.IGain(), 2.1);
   EXPECT_DOUBLE_EQ(pid.DGain(), -4.5);
@@ -113,6 +118,7 @@ TEST(PidTest, EqualOperatorCornerCase)
   EXPECT_DOUBLE_EQ(pid.IMin(), 1.4);
   EXPECT_DOUBLE_EQ(pid.CmdMax(), 45.0);
   EXPECT_DOUBLE_EQ(pid.CmdMin(), -35.0);
+  EXPECT_DOUBLE_EQ(pid.CmdOffset(), 1.23);
   EXPECT_DOUBLE_EQ(pid.Cmd(), 0.0);
 
   pid = pid;
@@ -124,6 +130,7 @@ TEST(PidTest, EqualOperatorCornerCase)
   EXPECT_DOUBLE_EQ(pid.IMin(), 1.4);
   EXPECT_DOUBLE_EQ(pid.CmdMax(), 45.0);
   EXPECT_DOUBLE_EQ(pid.CmdMin(), -35.0);
+  EXPECT_DOUBLE_EQ(pid.CmdOffset(), 1.23);
   EXPECT_DOUBLE_EQ(pid.Cmd(), 0.0);
 }
 
@@ -292,6 +299,32 @@ TEST(PidTest, ZeroGains)
   UpdateTest(pid, -1, -1, std::chrono::duration<double>(1), -1, -1, 0);
   UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 2);
   UpdateTest(pid, -1,  1, std::chrono::duration<double>(1),  1, -1, 0);
+
+  std::cerr << "Reset" << std::endl;
+  pid.Reset();
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "set Cmd Offset" << std::endl;
+  pid.SetCmdOffset(-20.0);
+  EXPECT_DOUBLE_EQ(-20.0, pid.CmdOffset());
+  // Cmd hasn't been updated yet
+  EXPECT_DOUBLE_EQ(0.0, pid.Cmd());
+
+  std::cerr << "dt = 0, still return 0" << std::endl;
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0, -1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+  UpdateTest(pid, 0,  1, std::chrono::duration<double>(0), 0, 0, 0);
+
+  std::cerr << "dt > 0, report negative min value" << std::endl;
+  UpdateTest(pid, -10,  1, std::chrono::duration<double>(1),  1, -1, 1);
+  UpdateTest(pid, -10,  1, std::chrono::duration<double>(1),  1, -1, 0);
+  UpdateTest(pid, -10, -1, std::chrono::duration<double>(1), -1, -1, -2);
+  UpdateTest(pid, -10, -1, std::chrono::duration<double>(1), -1, -1, 0);
+  UpdateTest(pid, -10,  1, std::chrono::duration<double>(1),  1, -1, 2);
+  UpdateTest(pid, -10,  1, std::chrono::duration<double>(1),  1, -1, 0);
 }
 
 /////////////////////////////////////////////////
