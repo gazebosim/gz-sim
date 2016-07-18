@@ -26,7 +26,7 @@ namespace ignition
   {
     /// \class PID PID.hh ignition/math/PID.hh
     /// \brief Generic PID controller class.
-    /// Generic proportiolnal-integral-derivative controller class that
+    /// Generic proportional-integral-derivative controller class that
     /// keeps track of PID-error states and control inputs given
     /// the state of a system and a user specified target state.
     class IGNITION_VISIBLE PID
@@ -87,27 +87,27 @@ namespace ignition
       public: void SetPGain(const double _p);
 
       /// \brief Set the integral Gain.
-      /// \param[in] _p integral gain value
+      /// \param[in] _i integral gain value
       public: void SetIGain(const double _i);
 
       /// \brief Set the derivtive Gain.
-      /// \param[in] _p dertivative gain value
+      /// \param[in] _d derivative gain value
       public: void SetDGain(const double _d);
 
       /// \brief Set the integral upper limit.
-      /// \param[in] _p integral upper limit value
+      /// \param[in] _i integral upper limit value
       public: void SetIMax(const double _i);
 
       /// \brief Set the integral lower limit.
-      /// \param[in] _p integral lower limit value
+      /// \param[in] _i integral lower limit value
       public: void SetIMin(const double _i);
 
       /// \brief Set the maximum value for the command.
       /// \param[in] _c The maximum value
       public: void SetCmdMax(const double _c);
 
-      /// \brief Set the maximum value for the command.
-      /// \param[in] _c The maximum value
+      /// \brief Set the minimum value for the command.
+      /// \param[in] _c The minimum value
       public: void SetCmdMin(const double _c);
 
       /// \brief Get the proportional Gain.
