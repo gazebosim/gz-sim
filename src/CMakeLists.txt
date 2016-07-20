@@ -7,6 +7,7 @@ set (sources
   Helpers.cc
   IndexException.cc
   Kmeans.cc
+  PID.cc
   Rand.cc
   RotationSpline.cc
   RotationSplinePrivate.cc
@@ -29,6 +30,7 @@ set (gtest_sources
   MassMatrix3_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
+  PID_TEST.cc
   Plane_TEST.cc
   Pose_TEST.cc
   Quaternion_TEST.cc
