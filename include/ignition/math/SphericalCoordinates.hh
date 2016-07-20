@@ -86,14 +86,14 @@ namespace ignition
       /// \param[in] _xyz Cartesian position vector in the world frame.
       /// \return Cooordinates: geodetic latitude (deg), longitude (deg),
       ///         altitude above sea level (m).
-      public: ignition::math::Vector3d SphericalFromLocal(
+      public: ignition::math::Vector3d SphericalFromLocalPosition(
                   const ignition::math::Vector3d &_xyz) const;
 
       /// \brief Convert a Cartesian velocity vector in the local frame
       ///        to a global Cartesian frame with components East, North, Up.
       /// \param[in] _xyz Cartesian velocity vector in the world frame.
       /// \return Rotated vector with components (x,y,z): (East, North, Up).
-      public: ignition::math::Vector3d GlobalFromLocal(
+      public: ignition::math::Vector3d GlobalFromLocalVelocity(
                   const ignition::math::Vector3d &_xyz) const;
 
       /// \brief Convert a string to a SurfaceType.
@@ -152,7 +152,7 @@ namespace ignition
 
       /// \brief Set reference elevation above sea level in meters.
       /// \param[in] _elevation Reference elevation.
-      public: void SetElevationReference(double _elevation);
+      public: void SetElevationReference(const double _elevation);
 
       /// \brief Set heading angle offset for the frame.
       /// \param[in] _angle Heading offset for the frame.
@@ -161,14 +161,14 @@ namespace ignition
       /// \brief Convert a geodetic position vector to Cartesian coordinates.
       /// \param[in] _xyz Geodetic position in the planetary frame of reference
       /// \return Cartesian position vector in the world frame
-      public: ignition::math::Vector3d LocalFromSpherical(
+      public: ignition::math::Vector3d LocalFromSphericalPosition(
                   const ignition::math::Vector3d &_xyz) const;
 
       /// \brief Convert a Cartesian velocity vector with components East,
       /// North, Up to a local cartesian frame vector XYZ.
       /// \param[in] Vector with components (x,y,z): (East, North, Up).
       /// \return Cartesian vector in the world frame.
-      public: ignition::math::Vector3d LocalFromGlobal(
+      public: ignition::math::Vector3d LocalFromGlobalVelocity(
                   const ignition::math::Vector3d &_xyz) const;
 
       /// \brief Update coordinate transformation matrix with reference location

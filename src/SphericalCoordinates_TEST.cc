@@ -131,28 +131,28 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
       ignition::math::Vector3d enu;
 
       xyz.Set(1, 0, 0);
-      enu = sc.GlobalFromLocal(xyz);
+      enu = sc.GlobalFromLocalVelocity(xyz);
       EXPECT_NEAR(enu.Y(), xyz.X(), 1e-6);
       EXPECT_NEAR(enu.X(), -xyz.Y(), 1e-6);
-      EXPECT_EQ(xyz, sc.LocalFromGlobal(enu));
+      EXPECT_EQ(xyz, sc.LocalFromGlobalVelocity(enu));
 
       xyz.Set(0, 1, 0);
-      enu = sc.GlobalFromLocal(xyz);
+      enu = sc.GlobalFromLocalVelocity(xyz);
       EXPECT_NEAR(enu.Y(), xyz.X(), 1e-6);
       EXPECT_NEAR(enu.X(), -xyz.Y(), 1e-6);
-      EXPECT_EQ(xyz, sc.LocalFromGlobal(enu));
+      EXPECT_EQ(xyz, sc.LocalFromGlobalVelocity(enu));
 
       xyz.Set(1, -1, 0);
-      enu = sc.GlobalFromLocal(xyz);
+      enu = sc.GlobalFromLocalVelocity(xyz);
       EXPECT_NEAR(enu.Y(), xyz.X(), 1e-6);
       EXPECT_NEAR(enu.X(), -xyz.Y(), 1e-6);
-      EXPECT_EQ(xyz, sc.LocalFromGlobal(enu));
+      EXPECT_EQ(xyz, sc.LocalFromGlobalVelocity(enu));
 
       xyz.Set(2243.52334, 556.35, 435.6553);
-      enu = sc.GlobalFromLocal(xyz);
+      enu = sc.GlobalFromLocalVelocity(xyz);
       EXPECT_NEAR(enu.Y(), xyz.X(), 1e-6);
       EXPECT_NEAR(enu.X(), -xyz.Y(), 1e-6);
-      EXPECT_EQ(xyz, sc.LocalFromGlobal(enu));
+      EXPECT_EQ(xyz, sc.LocalFromGlobalVelocity(enu));
     }
 
     // Check SphericalFromLocal
@@ -164,7 +164,7 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
 
       // No offset
       xyz.Set(0, 0, 0);
-      sph = sc.SphericalFromLocal(xyz);
+      sph = sc.SphericalFromLocalPosition(xyz);
       // latitude
       EXPECT_NEAR(sph.X(), lat.Degree(), 1e-6);
       // longitude
@@ -177,13 +177,13 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
       // a plane (not along the curvature of Earth). This will result in
       // a large height offset.
       xyz.Set(2e5, 0, 0);
-      sph = sc.SphericalFromLocal(xyz);
+      sph = sc.SphericalFromLocalPosition(xyz);
       // increase in latitude about 1.8 degrees
       EXPECT_NEAR(sph.X(), lat.Degree() + 1.8, 0.008);
       // no change in longitude
       EXPECT_NEAR(sph.Z(), 3507.024791, 1e-6);
 
-      ignition::math::Vector3d xyz2 = sc.LocalFromSpherical(sph);
+      ignition::math::Vector3d xyz2 = sc.LocalFromSphericalPosition(sph);
       EXPECT_EQ(xyz, xyz2);
     }
 
@@ -237,13 +237,13 @@ TEST(SphericalCoordinatesTest, CoordinateTransforms)
       EXPECT_NEAR(tmp.Z(), osrf_s.Z(), 1e-2);
 
       // Check that SPHERICAL -> LOCAL works
-      tmp = sc2.LocalFromSpherical(goog_s);
+      tmp = sc2.LocalFromSphericalPosition(goog_s);
       EXPECT_NEAR(tmp.X(), vec.X(), 8e-2);
       EXPECT_NEAR(tmp.Y(), vec.Y(), 8e-2);
       EXPECT_NEAR(tmp.Z(), vec.Z(), 1e-2);
 
       // Check that SPHERICAL -> LOCAL -> SPHERICAL works
-      tmp = sc2.SphericalFromLocal(tmp);
+      tmp = sc2.SphericalFromLocalPosition(tmp);
       EXPECT_NEAR(tmp.X(), goog_s.X(), 8e-2);
       EXPECT_NEAR(tmp.Y(), goog_s.Y(), 8e-2);
       EXPECT_NEAR(tmp.Z(), goog_s.Z(), 1e-2);

@@ -228,7 +228,7 @@ void SphericalCoordinates::SetLongitudeReference(
 }
 
 //////////////////////////////////////////////////
-void SphericalCoordinates::SetElevationReference(double _elevation)
+void SphericalCoordinates::SetElevationReference(const double _elevation)
 {
   this->dataPtr->elevationReference = _elevation;
   this->UpdateTransformationMatrix();
@@ -242,7 +242,7 @@ void SphericalCoordinates::SetHeadingOffset(const ignition::math::Angle &_angle)
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::SphericalFromLocal(
+ignition::math::Vector3d SphericalCoordinates::SphericalFromLocalPosition(
     const ignition::math::Vector3d &_xyz) const
 {
   ignition::math::Vector3d result =
@@ -253,7 +253,7 @@ ignition::math::Vector3d SphericalCoordinates::SphericalFromLocal(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::LocalFromSpherical(
+ignition::math::Vector3d SphericalCoordinates::LocalFromSphericalPosition(
     const ignition::math::Vector3d &_xyz) const
 {
   ignition::math::Vector3d result = _xyz;
@@ -263,14 +263,14 @@ ignition::math::Vector3d SphericalCoordinates::LocalFromSpherical(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::GlobalFromLocal(
+ignition::math::Vector3d SphericalCoordinates::GlobalFromLocalVelocity(
     const ignition::math::Vector3d &_xyz) const
 {
   return this->VelocityTransform(_xyz, LOCAL, GLOBAL);
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::LocalFromGlobal(
+ignition::math::Vector3d SphericalCoordinates::LocalFromGlobalVelocity(
     const ignition::math::Vector3d &_xyz) const
 {
   return this->VelocityTransform(_xyz, GLOBAL, LOCAL);
