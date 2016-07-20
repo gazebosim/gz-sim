@@ -416,31 +416,27 @@ namespace ignition
     /// \return an integer, 0 or 0 and a message in the error stream
     inline int parseInt(const std::string &_input)
     {
-      const char *p = _input.c_str();
-      if (!*p || *p == '?')
-        return NAN_I;
-
-      int s = 1;
-      while (*p == ' ')
-        p++;
-
-      if (*p == '-')
+      // Return NAN_I if it is empty
+      if (_input.empty())
       {
-        s = -1;
-        p++;
-      }
-
-      int acc = 0;
-      while (*p >= '0' && *p <= '9')
-        acc = acc * 10 + *p++ - '0';
-
-      if (*p)
-      {
-        std::cerr << "Invalid int numeric format[" << _input << "]\n";
         return NAN_I;
       }
+      // Return 0 if it is all spaces
+      else if (_input.find_first_not_of(' ') == std::string::npos)
+      {
+        return 0;
+      }
 
-      return s * acc;
+      // Otherwise try standard library
+      try
+      {
+        return std::stoi(_input);
+      }
+      // if that fails, return NAN_I
+      catch(...)
+      {
+        return NAN_I;
+      }
     }
 
     /// \brief parse string into float
@@ -449,60 +445,27 @@ namespace ignition
     /// error stream
     inline double parseFloat(const std::string &_input)
     {
-      const char *p = _input.c_str();
-      if (!*p || *p == '?')
-        return NAN_D;
-      int s = 1;
-      while (*p == ' ')
-        p++;
-
-      if (*p == '-')
+      // Return NAN_D if it is empty
+      if (_input.empty())
       {
-        s = -1;
-        p++;
-      }
-
-      double acc = 0;
-      while (*p >= '0' && *p <= '9')
-        acc = acc * 10 + *p++ - '0';
-
-      if (*p == '.')
-      {
-        double k = 0.1;
-        p++;
-        while (*p >= '0' && *p <= '9')
-        {
-          acc += (*p++ - '0') * k;
-          k *= 0.1;
-        }
-      }
-      if (*p == 'e')
-      {
-        int es = 1;
-        int f = 0;
-        p++;
-        if (*p == '-')
-        {
-          es = -1;
-          p++;
-        }
-        else if (*p == '+')
-        {
-          es = 1;
-          p++;
-        }
-        while (*p >= '0' && *p <= '9')
-          f = f * 10 + *p++ - '0';
-
-        acc *= pow(10, f*es);
-      }
-
-      if (*p)
-      {
-        std::cerr << "Invalid double numeric format[" << _input << "]\n";
         return NAN_D;
       }
-      return s * acc;
+      // Return 0 if it is all spaces
+      else if (_input.find_first_not_of(' ') == std::string::npos)
+      {
+        return 0;
+      }
+
+      // Otherwise try standard library
+      try
+      {
+        return std::stod(_input);
+      }
+      // if that fails, return NAN_D
+      catch(...)
+      {
+        return NAN_D;
+      }
     }
 
 
