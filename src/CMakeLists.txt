@@ -12,6 +12,7 @@ set (sources
   RotationSpline.cc
   RotationSplinePrivate.cc
   SignalStats.cc
+  SphericalCoordinates.cc
   Spline.cc
   Temperature.cc
   Vector3Stats.cc
@@ -37,6 +38,7 @@ set (gtest_sources
   Rand_TEST.cc
   RotationSpline_TEST.cc
   SignalStats_TEST.cc
+  SphericalCoordinates_TEST.cc
   Spline_TEST.cc
   Temperature_TEST.cc
   Triangle_TEST.cc
