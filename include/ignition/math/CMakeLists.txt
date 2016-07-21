@@ -22,6 +22,7 @@ set (headers
   Rand.hh
   RotationSpline.hh
   SignalStats.hh
+  SphericalCoordinates.hh
   Spline.hh
   Temperature.hh
   Triangle.hh
