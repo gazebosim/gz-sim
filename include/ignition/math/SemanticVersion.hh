@@ -15,27 +15,26 @@
  *
 */
 
-#ifndef GAZEBO_COMMON_SEMANTICVERSION_HH_
-#define GAZEBO_COMMON_SEMANTICVERSION_HH_
+#ifndef IGNITION_MATH_SEMANTICVERSION_HH_
+#define IGNITION_MATH_SEMANTICVERSION_HH_
 
-#include <string>
 #include <memory>
-#include "gazebo/util/system.hh"
+#include <string>
+#include <ignition/math/Helpers.hh>
 
-namespace gazebo
+namespace ignition
 {
-  namespace common
+  namespace math
   {
     // Forward declare private data class
     class SemanticVersionPrivate;
 
-    /// \addtogroup gazebo_common
-    /// \{
-
+    /// \class SemanticVersion SemanticVersion.hh
+    ///        ignition/math/SemanticVersion.hh
     /// \brief Version comparison class based on Semantic Versioning 2.0.0
     /// http://semver.org/
     /// Compares versions and converts versions from string.
-    class GZ_COMMON_VISIBLE SemanticVersion
+    class IGNITION_VISIBLE SemanticVersion
     {
       /// \brief Default constructor. Use the Parse function to populate
       /// an instance with version information.

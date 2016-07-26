@@ -15,19 +15,15 @@
  *
 */
 
-#include <sys/time.h>
 #include <gtest/gtest.h>
 
-#include "gazebo/common/SemanticVersion.hh"
-#include "test/util.hh"
+#include "ignition/math/SemanticVersion.hh"
 
-using namespace gazebo;
-using namespace common;
-
-class SemVerTest : public gazebo::testing::AutoLogFixture { };
+using namespace ignition;
+using namespace math;
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, Prerelease)
+TEST(SemVerTest, Prerelease)
 {
   SemanticVersion a("0.1.0");
   SemanticVersion b("0.1.0-pr2");
@@ -46,7 +42,7 @@ TEST_F(SemVerTest, Prerelease)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, Build)
+TEST(SemVerTest, Build)
 {
   SemanticVersion a("0.1.0");
   SemanticVersion b("0.1.0+012345");
@@ -65,7 +61,7 @@ TEST_F(SemVerTest, Build)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, PrereleaseBuild)
+TEST(SemVerTest, PrereleaseBuild)
 {
   SemanticVersion a("0.1.0");
   SemanticVersion b("0.1.0-pr2");
@@ -103,7 +99,7 @@ TEST_F(SemVerTest, PrereleaseBuild)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, OperatorStreamOut)
+TEST(SemVerTest, OperatorStreamOut)
 {
   SemanticVersion a("0.1.0");
   SemanticVersion b("0.1.0-pr2");
@@ -136,7 +132,7 @@ TEST_F(SemVerTest, OperatorStreamOut)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, Operators)
+TEST(SemVerTest, Operators)
 {
   SemanticVersion a("0.1.0");
   SemanticVersion b("1.0.0");
@@ -168,7 +164,7 @@ TEST_F(SemVerTest, Operators)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SemVerTest, AssignCopy)
+TEST(SemVerTest, AssignCopy)
 {
   SemanticVersion a("0.1+pr2");
   SemanticVersion b("0.2");

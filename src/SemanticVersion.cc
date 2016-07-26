@@ -20,14 +20,14 @@
 #include <sstream>
 #include <algorithm>
 
-#include "SemanticVersion.hh"
+#include "ignition/math/SemanticVersion.hh"
 
-using namespace gazebo;
-using namespace common;
+using namespace ignition;
+using namespace math;
 
-namespace gazebo
+namespace ignition
 {
-  namespace common
+  namespace math
   {
     class SemanticVersionPrivate
     {
