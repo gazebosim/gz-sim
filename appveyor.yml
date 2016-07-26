@@ -23,6 +23,8 @@ test_script:
   # Build the examples to make sure that find_package(ignition-math* REQUIRED) works
   - cd ../examples
   - md build 
+  - cd build
   - cmake ..
   - cmake --build . --config %CONFIGURATION% 
+  - cd ..
   
