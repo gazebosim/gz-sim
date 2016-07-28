@@ -298,6 +298,55 @@ TEST(Inertiald_Test, SetRotationNonuniqueNondiagonal)
 }
 
 /////////////////////////////////////////////////
+// test for diagonalizing MassMatrix
+// verify MOI is conserved
+// and that off-diagonal terms are zero
+void Diagonalize(
+    const double _mass,
+    const math::Vector3d &_ixxyyzz,
+    const math::Vector3d &_ixyxzyz)
+{
+  const math::MassMatrix3d m(_mass, _ixxyyzz, _ixyxzyz);
+  EXPECT_TRUE(m.IsPositive());
+  EXPECT_TRUE(m.IsValid());
+
+  math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
+  math::Inertiald inertial(m, pose);
+  const auto moi = inertial.MOI();
+
+  EXPECT_TRUE(inertial.SetMassMatrixRotation(math::Quaterniond::Identity));
+  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, Diagonalize)
+{
+  Diagonalize(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
+  Diagonalize(12, math::Vector3d(2, 2, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 4, 3), math::Vector3d(-1, 0, 0));
+  Diagonalize(12, math::Vector3d(4, 3, 4), math::Vector3d(0, -1, 0));
+  Diagonalize(12, math::Vector3d(3, 4, 4), math::Vector3d(0, 0, -1));
+  Diagonalize(12, math::Vector3d(4, 4, 5), math::Vector3d(-1, 0, 0));
+  Diagonalize(12, math::Vector3d(5, 4, 4), math::Vector3d(0, 0, -1));
+  Diagonalize(12, math::Vector3d(5.5, 4.125, 4.375),
+                               0.25*math::Vector3d(-sqrt(3), 3.0, -sqrt(3)/2));
+  Diagonalize(12, math::Vector3d(4.125, 5.5, 4.375),
+                      0.25*math::Vector3d(-sqrt(3), -sqrt(3)/2, 3.0));
+}
+/////////////////////////////////////////////////
 TEST(Inertiald_Test, Addition)
 {
   // Add two half-cubes together
