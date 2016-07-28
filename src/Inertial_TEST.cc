@@ -187,9 +187,10 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
 /////////////////////////////////////////////////
 // Base frame MOI should be invariant
-void SetRotations(const double _mass,
+void SetRotation(const double _mass,
     const math::Vector3d &_ixxyyzz,
-    const math::Vector3d &_ixyxzyz)
+    const math::Vector3d &_ixyxzyz,
+    const bool _unique = true)
 {
   const math::MassMatrix3d m(_mass, _ixxyyzz, _ixyxzyz);
   EXPECT_TRUE(m.IsPositive());
@@ -199,7 +200,7 @@ void SetRotations(const double _mass,
   const math::Inertiald inertialRef(m, pose);
   const auto moi = inertialRef.MOI();
 
-  std::vector<math::Quaterniond> rotations = {
+  const std::vector<math::Quaterniond> rotations = {
     math::Quaterniond::Identity,
     math::Quaterniond(IGN_PI, 0, 0),
     math::Quaterniond(0, IGN_PI, 0),
@@ -225,7 +226,10 @@ void SetRotations(const double _mass,
       const double tol  = -1e-6;
       EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
       EXPECT_EQ(moi, inertial.MOI());
-      CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      if (_unique)
+      {
+        CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      }
 
       EXPECT_TRUE(inertial.SetInertialRotation(rot));
       EXPECT_EQ(rot, inertial.Pose().Rot());
@@ -242,26 +246,55 @@ void SetRotations(const double _mass,
       const double tol = -1e-6;
       EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
       EXPECT_EQ(moi, inertial.MOI());
-      CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      if (_unique)
+      {
+        CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      }
     }
   }
 }
 
 /////////////////////////////////////////////////
-TEST(Inertiald_Test, SetRotationsUniqueDiagonal)
+TEST(Inertiald_Test, SetRotationUniqueDiagonal)
 {
-  SetRotations(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
-  SetRotations(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
-  SetRotations(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
-  SetRotations(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
-  SetRotations(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
-  SetRotations(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
 }
 
 /////////////////////////////////////////////////
-TEST(Inertiald_Test, SetRotationsNondiagonal)
+TEST(Inertiald_Test, SetRotationUniqueNondiagonal)
 {
-  SetRotations(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
+  SetRotation(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationNonuniqueDiagonal)
+{
+  SetRotation(12, math::Vector3d(2, 2, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 2, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 3, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 2, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 3, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 2, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 3, 2), math::Vector3d::Zero, false);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationNonuniqueNondiagonal)
+{
+  SetRotation(12, math::Vector3d(4, 4, 3), math::Vector3d(-1, 0, 0), false);
+  SetRotation(12, math::Vector3d(4, 3, 4), math::Vector3d(0, -1, 0), false);
+  SetRotation(12, math::Vector3d(3, 4, 4), math::Vector3d(0, 0, -1), false);
+  SetRotation(12, math::Vector3d(4, 4, 5), math::Vector3d(-1, 0, 0), false);
+  SetRotation(12, math::Vector3d(5, 4, 4), math::Vector3d(0, 0, -1), false);
+  SetRotation(12, math::Vector3d(5.5, 4.125, 4.375),
+             0.25*math::Vector3d(-sqrt(3), 3.0, -sqrt(3)/2), false);
+  SetRotation(12, math::Vector3d(4.125, 5.5, 4.375),
+                      0.25*math::Vector3d(-sqrt(3), -sqrt(3)/2, 3.0), false);
 }
 
 /////////////////////////////////////////////////
