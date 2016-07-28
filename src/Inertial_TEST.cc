@@ -177,18 +177,17 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
 /////////////////////////////////////////////////
 // Base frame MOI should be invariant
-TEST(Inertiald_Test, SetRotations)
+void SetRotations(const double _mass,
+    const math::Vector3d &_ixxyyzz,
+    const math::Vector3d &_ixyxzyz)
 {
-  const double mass = 12.0;
-  const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
-  const math::Vector3d Ixyxzyz(0, 0, 0);
-  const math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
+  const math::MassMatrix3d m(_mass, _ixxyyzz, _ixyxzyz);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
 
   math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
-  math::Inertiald inertial(m, pose);
-  const auto moi = inertial.MOI();
+  const math::Inertiald inertialRef(m, pose);
+  const auto moi = inertialRef.MOI();
 
   std::vector<math::Quaterniond> rotations = {
     math::Quaterniond::Identity,
@@ -207,10 +206,24 @@ TEST(Inertiald_Test, SetRotations)
     math::Quaterniond(-0.1, 0.7, -0.7)};
   for (const auto rot : rotations)
   {
-    inertial.SetInertialRotation(rot);
+    auto inertial = inertialRef;
+
+    EXPECT_TRUE(inertial.SetInertialRotation(rot));
     EXPECT_EQ(rot, inertial.Pose().Rot());
     EXPECT_EQ(moi, inertial.MOI());
   }
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationsDiagonal)
+{
+  SetRotations(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationsNondiagonal)
+{
+  SetRotations(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
 }
 
 /////////////////////////////////////////////////
