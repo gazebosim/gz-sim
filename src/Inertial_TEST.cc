@@ -317,6 +317,12 @@ void Diagonalize(
   EXPECT_TRUE(inertial.SetMassMatrixRotation(math::Quaterniond::Identity));
   EXPECT_EQ(moi, inertial.MOI());
   EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
+
+  // try again with negative tolerance
+  EXPECT_TRUE(
+    inertial.SetMassMatrixRotation(math::Quaterniond::Identity, -1e-6));
+  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
 }
 
 /////////////////////////////////////////////////
