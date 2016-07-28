@@ -29,9 +29,9 @@ void CompareModuloPi(const math::Quaterniond &_q1,
                      const double _tol = 1e-6)
 {
   const auto rotErrorEuler = (_q1.Inverse() * _q2).Euler();
-  EXPECT_NEAR(sin(rotErrorEuler.X()), 0.0, 1e-6);
-  EXPECT_NEAR(sin(rotErrorEuler.Y()), 0.0, 1e-6);
-  EXPECT_NEAR(sin(rotErrorEuler.Z()), 0.0, 1e-6);
+  EXPECT_NEAR(sin(rotErrorEuler.X()), 0.0, _tol);
+  EXPECT_NEAR(sin(rotErrorEuler.Y()), 0.0, _tol);
+  EXPECT_NEAR(sin(rotErrorEuler.Z()), 0.0, _tol);
 }
 
 /////////////////////////////////////////////////
