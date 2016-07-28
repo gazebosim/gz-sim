@@ -23,6 +23,18 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+/// \brief Compare quaternions, but allow rotations of PI about any axis.
+void CompareModuloPi(const math::Quaterniond &_q1,
+                     const math::Quaterniond &_q2,
+                     const double _tol = 1e-6)
+{
+  const auto rotErrorEuler = (_q1.Inverse() * _q2).Euler();
+  EXPECT_NEAR(sin(rotErrorEuler.X()), 0.0, 1e-6);
+  EXPECT_NEAR(sin(rotErrorEuler.Y()), 0.0, 1e-6);
+  EXPECT_NEAR(sin(rotErrorEuler.Z()), 0.0, 1e-6);
+}
+
+/////////////////////////////////////////////////
 // Simple constructor, test default values
 TEST(Inertiald_Test, Constructor)
 {
@@ -169,9 +181,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
     EXPECT_TRUE(m2.MOI(expectedMOI));
     EXPECT_EQ(inertial.MOI(), m2.MOI());
     // There are multiple correct rotations due to symmetry
-    const auto rot2 = math::Quaterniond(IGN_PI, 0, IGN_PI_4);
-    EXPECT_TRUE(m2.PrincipalAxesOffset() == pose.Rot() ||
-                m2.PrincipalAxesOffset() == rot2);
+    CompareModuloPi(m2.PrincipalAxesOffset(), pose.Rot());
   }
 }
 
