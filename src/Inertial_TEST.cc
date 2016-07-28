@@ -163,6 +163,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
     EXPECT_EQ(inertial.MOI(), expectedMOI);
 
     // double check with a second MassMatrix3 instance
+    // that has the same base frame MOI but no pose rotation
     math::MassMatrix3d m2;
     EXPECT_FALSE(m2.Mass(mass));
     EXPECT_TRUE(m2.MOI(expectedMOI));
@@ -171,6 +172,44 @@ TEST(Inertiald_Test, MOI_Diagonal)
     const auto rot2 = math::Quaterniond(IGN_PI, 0, IGN_PI_4);
     EXPECT_TRUE(m2.PrincipalAxesOffset() == pose.Rot() ||
                 m2.PrincipalAxesOffset() == rot2);
+  }
+}
+
+/////////////////////////////////////////////////
+// Base frame MOI should be invariant
+TEST(Inertiald_Test, SetRotations)
+{
+  const double mass = 12.0;
+  const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
+  const math::Vector3d Ixyxzyz(0, 0, 0);
+  const math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
+  EXPECT_TRUE(m.IsPositive());
+  EXPECT_TRUE(m.IsValid());
+
+  math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
+  math::Inertiald inertial(m, pose);
+  const auto moi = inertial.MOI();
+
+  std::vector<math::Quaterniond> rotations = {
+    math::Quaterniond::Identity,
+    math::Quaterniond(IGN_PI, 0, 0),
+    math::Quaterniond(0, IGN_PI, 0),
+    math::Quaterniond(0, 0, IGN_PI),
+    math::Quaterniond(IGN_PI_2, 0, 0),
+    math::Quaterniond(0, IGN_PI_2, 0),
+    math::Quaterniond(0, 0, IGN_PI_2),
+    math::Quaterniond(IGN_PI_4, 0, 0),
+    math::Quaterniond(0, IGN_PI_4, 0),
+    math::Quaterniond(0, 0, IGN_PI_4),
+    math::Quaterniond(0.1, 0.2, 0.3),
+    math::Quaterniond(-0.1, 0.2, -0.3),
+    math::Quaterniond(0.4, 0.2, 0.5),
+    math::Quaterniond(-0.1, 0.7, -0.7)};
+  for (const auto rot : rotations)
+  {
+    inertial.SetInertialRotation(rot);
+    EXPECT_EQ(rot, inertial.Pose().Rot());
+    EXPECT_EQ(moi, inertial.MOI());
   }
 }
 

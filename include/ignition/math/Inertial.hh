@@ -93,6 +93,18 @@ namespace ignition
         return R * this->massMatrix.MOI() * R.Transposed();
       }
 
+      /// \brief Set the inertial pose rotation without affecting the
+      /// MOI in the base coordinate frame.
+      /// \param[in] _q New rotation for inertial pose.
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetInertialRotation(const Quaternion<T> &_q)
+      {
+        auto moi = this->MOI();
+        this->pose.Rot() = _q;
+        auto R = Matrix3<T>(_q);
+        return this->massMatrix.MOI(R.Transposed() * moi * R);
+      }
+
       /// \brief Equal operator.
       /// \param[in] _inertial Inertial to copy.
       /// \return Reference to this object.
