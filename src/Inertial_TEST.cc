@@ -219,11 +219,31 @@ void SetRotations(const double _mass,
     math::Quaterniond(-0.1, 0.7, -0.7)};
   for (const auto rot : rotations)
   {
-    auto inertial = inertialRef;
+    {
+      auto inertial = inertialRef;
 
-    EXPECT_TRUE(inertial.SetInertialRotation(rot));
-    EXPECT_EQ(rot, inertial.Pose().Rot());
-    EXPECT_EQ(moi, inertial.MOI());
+      const double tol  = -1e-6;
+      EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
+      EXPECT_EQ(moi, inertial.MOI());
+      CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+
+      EXPECT_TRUE(inertial.SetInertialRotation(rot));
+      EXPECT_EQ(rot, inertial.Pose().Rot());
+      EXPECT_EQ(moi, inertial.MOI());
+    }
+
+    {
+      auto inertial = inertialRef;
+
+      EXPECT_TRUE(inertial.SetInertialRotation(rot));
+      EXPECT_EQ(rot, inertial.Pose().Rot());
+      EXPECT_EQ(moi, inertial.MOI());
+
+      const double tol = -1e-6;
+      EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
+      EXPECT_EQ(moi, inertial.MOI());
+      CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+    }
   }
 }
 

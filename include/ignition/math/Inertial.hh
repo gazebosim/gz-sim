@@ -105,6 +105,32 @@ namespace ignition
         return this->massMatrix.MOI(R.Transposed() * moi * R);
       }
 
+      /// \brief Set the MassMatrix rotation (eigenvectors of inertia matrix)
+      /// without affecting the MOI in the base coordinate frame.
+      /// Note that symmetries in inertia matrix may prevent the output of
+      /// MassMatrix3::PrincipalAxesOffset to match this function's input _q,
+      /// but it is guaranteed that the MOI in the base frame will not change.
+      /// A negative value of _tol (such as -1e-6) can be passed to ensure
+      /// that diagonal values are always sorted.
+      /// \param[in] _pose New pose.
+      /// \param[in] _tol Relative tolerance given by absolute value
+      /// of _tol. This is passed to the MassMatrix3
+      /// PrincipalMoments and PrincipalAxesOffset functions.
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetMassMatrixRotation(const Quaternion<T> &_q,
+                                         const T _tol = 1e-6)
+      {
+        this->pose.Rot() *= this->MassMatrix().PrincipalAxesOffset(_tol) *
+                            _q.Inverse();
+        const auto moments = this->MassMatrix().PrincipalMoments(_tol);
+        const auto diag = Matrix3<T>(
+            moments[0], 0, 0,
+            0, moments[1], 0,
+            0, 0, moments[2]);
+        const auto R = Matrix3<T>(_q);
+        return this->massMatrix.MOI(R * diag * R.Transposed());
+      }
+
       /// \brief Equal operator.
       /// \param[in] _inertial Inertial to copy.
       /// \return Reference to this object.
