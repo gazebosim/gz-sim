@@ -210,6 +210,9 @@ void SetRotations(const double _mass,
     math::Quaterniond(IGN_PI_4, 0, 0),
     math::Quaterniond(0, IGN_PI_4, 0),
     math::Quaterniond(0, 0, IGN_PI_4),
+    math::Quaterniond(IGN_PI/6, 0, 0),
+    math::Quaterniond(0, IGN_PI/6, 0),
+    math::Quaterniond(0, 0, IGN_PI/6),
     math::Quaterniond(0.1, 0.2, 0.3),
     math::Quaterniond(-0.1, 0.2, -0.3),
     math::Quaterniond(0.4, 0.2, 0.5),
@@ -225,9 +228,14 @@ void SetRotations(const double _mass,
 }
 
 /////////////////////////////////////////////////
-TEST(Inertiald_Test, SetRotationsDiagonal)
+TEST(Inertiald_Test, SetRotationsUniqueDiagonal)
 {
   SetRotations(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+  SetRotations(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
+  SetRotations(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
+  SetRotations(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
+  SetRotations(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
+  SetRotations(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
 }
 
 /////////////////////////////////////////////////
