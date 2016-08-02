@@ -138,6 +138,7 @@ TEST(SemVerTest, Operators)
   SemanticVersion b("1.0.0");
   SemanticVersion c("1.0.0");
   SemanticVersion c2("1.0.2");
+  SemanticVersion d("0.2.0");
 
   // check that the short form is the same as the long one
   SemanticVersion aa("0.1");
@@ -146,6 +147,11 @@ TEST(SemVerTest, Operators)
   // check second constructor
   SemanticVersion c2b(1, 0, 2);
   EXPECT_TRUE(c2 == c2b);
+
+  EXPECT_FALSE(a < a);
+  EXPECT_FALSE(b < a);
+  EXPECT_TRUE(a < d);
+  EXPECT_FALSE(d < a);
 
   EXPECT_TRUE(a < b);
   EXPECT_TRUE(a <= b);
@@ -160,6 +166,7 @@ TEST(SemVerTest, Operators)
   EXPECT_TRUE(b <= c);
   EXPECT_TRUE(b >= c);
   EXPECT_TRUE(c2 > c);
+  EXPECT_FALSE(c2 < c);
   EXPECT_TRUE(b == b);
 }
 
@@ -181,6 +188,25 @@ TEST(SemVerTest, AssignCopy)
   EXPECT_TRUE(a != aaa);
 }
 
+/////////////////////////////////////////////////
+TEST(SemVerTest, Parse)
+{
+  SemanticVersion a;
+  EXPECT_FALSE(a.Parse(""));
+  EXPECT_FALSE(a.Parse("0.1.2+1-1"));
+}
+
+/////////////////////////////////////////////////
+TEST(SemVerTest, Constructor)
+{
+  SemanticVersion a;
+
+  EXPECT_EQ(a.Major(), 0u);
+  EXPECT_EQ(a.Minor(), 0u);
+  EXPECT_EQ(a.Patch(), 0u);
+  EXPECT_TRUE(a.Prerelease().empty());
+  EXPECT_TRUE(a.Build().empty());
+}
 
 /////////////////////////////////////////////////
 int main(int argc, char **argv)

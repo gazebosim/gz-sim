@@ -15,10 +15,7 @@
  *
 */
 
-#include <iostream>
-#include <string>
 #include <sstream>
-#include <algorithm>
 
 #include "ignition/math/SemanticVersion.hh"
 
@@ -295,4 +292,3 @@ bool SemanticVersion::Parse(const std::string &_versionStr)
   }
   return true;
 }
-
