@@ -12,6 +12,7 @@ set (sources
   Rand.cc
   RotationSpline.cc
   RotationSplinePrivate.cc
+  SemanticVersion.cc
   SignalStats.cc
   SphericalCoordinates.cc
   Spline.cc
@@ -38,6 +39,7 @@ set (gtest_sources
   Quaternion_TEST.cc
   Rand_TEST.cc
   RotationSpline_TEST.cc
+  SemanticVersion_TEST.cc
   SignalStats_TEST.cc
   SphericalCoordinates_TEST.cc
   Spline_TEST.cc

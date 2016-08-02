@@ -21,6 +21,7 @@ set (headers
   Quaternion.hh
   Rand.hh
   RotationSpline.hh
+  SemanticVersion.hh
   SignalStats.hh
   SphericalCoordinates.hh
   Spline.hh
