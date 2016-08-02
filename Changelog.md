@@ -1,5 +1,8 @@
 ## Ignition Math 2.x
 
+1. Added SemanticVersion class
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+
 ### Ignition Math 2.5
 
 ### Ignition Math 2.5.0
