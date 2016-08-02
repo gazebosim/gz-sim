@@ -109,7 +109,7 @@ namespace ignition
 
       /// \brief Less than or equal comparison operator
       /// \param[in] _other The other version to compare to
-      /// \return True if _other version is older or equal
+      /// \return True if _other version is newer or equal
       public: bool operator<=(const SemanticVersion &_other) const;
 
       /// \brief Greater than comparison operator
@@ -119,7 +119,7 @@ namespace ignition
 
       /// \brief Greater than or equal comparison operator
       /// \param[in] _other The other version to compare to
-      /// \return True if _other version is newer or the same
+      /// \return True if _other version is older or the same
       public: bool operator>=(const SemanticVersion &_other) const;
 
       /// \brief Equality comparison operator
