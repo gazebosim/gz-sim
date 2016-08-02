@@ -112,7 +112,7 @@ namespace ignition
       /// but it is guaranteed that the MOI in the base frame will not change.
       /// A negative value of _tol (such as -1e-6) can be passed to ensure
       /// that diagonal values are always sorted.
-      /// \param[in] _pose New pose.
+      /// \param[in] _q New rotation.
       /// \param[in] _tol Relative tolerance given by absolute value
       /// of _tol. This is passed to the MassMatrix3
       /// PrincipalMoments and PrincipalAxesOffset functions.
