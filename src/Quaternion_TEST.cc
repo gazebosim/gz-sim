@@ -69,11 +69,13 @@ TEST(QuaternionTest, ConstructEuler)
   EXPECT_TRUE(q == math::Quaterniond(math::Vector3d(0, 1, 2)));
 
   // Make sure that singularities are being handled properly.
-  // There is an infinite number of equivalent Euler angle
+  // There are an infinite number of equivalent Euler angle
   // representations when pitch = PI/2, so rather than comparing Euler
   // angles, we will compare quaternions.
-  for (double roll = 0; roll < 2 * IGN_PI + 0.1; roll += IGN_PI_4) {
-    for (double yaw = 0; yaw < 2 * IGN_PI + 0.1; yaw += IGN_PI_4) {
+  for (double roll = 0; roll < 2 * IGN_PI + 0.1; roll += IGN_PI_4)
+  {
+    for (double yaw = 0; yaw < 2 * IGN_PI + 0.1; yaw += IGN_PI_4)
+    {
       math::Quaterniond q_orig(roll, IGN_PI_2, yaw);
       math::Quaterniond q_derived(q_orig.Euler());
       EXPECT_EQ(q_orig, q_derived);
