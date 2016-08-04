@@ -32,6 +32,63 @@ namespace ignition
       /// \brief math::Pose3<T>(0, 0, 0, 0, 0, 0)
       public: static const Pose3<T> Zero;
 
+      /// \brief Get a pose which turns the positive X axis towards _target
+      /// while keeping the positive Z axis the same, if possible.
+      ///
+      /// The direction to look towards is given by _direction, and its
+      /// magnitude is the distance from _target.
+      ///
+      /// For example, we have coordinate frame XY (upper case):
+      ///
+      ///  X|3
+      ///   |
+      ///   |2
+      ///   |
+      ///   |1
+      ///   |
+      ///   |____1____2____3_
+      ///                    Y
+      ///
+      /// We want to find the pose of frame xy (lower case), which respects
+      /// the following conditions:
+      /// 1. Positive x axis will pass through point X = 0, Y = 1, Z = 0 (this
+      /// is our _target).
+      /// 2. Positive x axis to be parallel to, and in the same direction as,
+      /// negative X (so our _direction, normalized has to be [-1, 0, 0]).
+      /// 3. The distance between the origin of xy and _target is 2 (this is
+      /// the magnitude of _direction, so it becomes [-2, 0, 0])
+      ///
+      ///  X|3
+      ///   |
+      ///   |2    ___y
+      ///   |    |
+      ///   |1   |x
+      ///   |
+      ///   |____1____2____3_
+      ///                    Y
+      ///
+      /// So we call:
+      ///     `LookAt(Vector3<T>(0, 1, 0), Vector3<T>(-2, 0, 0))`
+      ///
+      /// \param[in] _target A point which the positive x axis passes through.
+      /// \param[in] _direction The direction to be parallel to. This vector's
+      /// magnitude is the distance from _target.
+      public: static Pose3<T> LookAt(const Vector3<T> &_target,
+          const Vector3<T> &_direction)
+      {
+        auto pos = _target - _direction;
+
+        double roll= 0;
+        double pitch = -std::atan2(_direction.Z(),
+            std::sqrt(std::pow(_direction.X(), 2) +
+                      std::pow(_direction.Y(), 2)));
+        double yaw = std::atan2(_direction.Y(), _direction.X());
+
+        auto quat = Quaternion<T>(roll, pitch, yaw);
+
+        return Pose3<T>(pos, quat);
+      }
+
       /// \brief Default constructors
       public: Pose3() : p(0, 0, 0), q(1, 0, 0, 0)
       {
