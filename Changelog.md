@@ -10,12 +10,18 @@
 
 ## Ignition Math 2.x
 
+1. Added SemanticVersion class
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+
 ### Ignition Math 2.5
 
 ### Ignition Math 2.5.0
 
 1. Added PID class
     * [Pull request 117](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/117)
+
+1. Added SphericalCoordinate class
+    * [Pull request 108](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/108)
 
 ### Ignition Math 2.4
 
