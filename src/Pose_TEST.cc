@@ -163,10 +163,10 @@ TEST(PoseTest, LookAt)
                                  math::Vector3d(1, 0, 0)),
             math::Pose3d(-1, 0, 0, 0, 0, 0));
 
-  // Look at [0, 1, 0] towards -X, distance = 2
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d(0, 1, 0),
-                                 math::Vector3d(-2, 0, 0)),
-            math::Pose3d(2, 1, 0, 0, 0, IGN_PI));
+  // Look at [0, 2, 0] towards -X, distance = 3
+  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d(0, 2, 0),
+                                 math::Vector3d(-3, 0, 0)),
+            math::Pose3d(3, 2, 0, 0, 0, IGN_PI));
 
   // Look at [1, 1, 1] towards -Y, distance = 5
   EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d::One,

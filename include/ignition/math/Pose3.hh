@@ -40,35 +40,35 @@ namespace ignition
       ///
       /// For example, we have coordinate frame XY (upper case):
       ///
-      ///  X|3
+      ///  Y|3
       ///   |
       ///   |2
       ///   |
       ///   |1
       ///   |
       ///   |____1____2____3_
-      ///                    Y
+      ///                    X
       ///
       /// We want to find the pose of frame xy (lower case), which respects
       /// the following conditions:
-      /// 1. Positive x axis will pass through point X = 0, Y = 1, Z = 0 (this
+      /// 1. Positive x axis will pass through point X = 0, Y = 2, Z = 0 (this
       /// is our _target).
       /// 2. Positive x axis is parallel to, and in the same direction as,
       /// negative X (so our _direction, normalized has to be [-1, 0, 0]).
-      /// 3. The distance between the origin of xy and _target is 2 (this is
-      /// the magnitude of _direction, so it becomes [-2, 0, 0])
+      /// 3. The distance between the origin of xy and _target is 3 (this is
+      /// the magnitude of _direction, so it becomes [-3, 0, 0])
       ///
-      ///  X|3
+      ///  Y|3
       ///   |
-      ///   |2    ___y
-      ///   |    |
-      ///   |1   |x
+      ///   |2         x___
+      ///   |              |
+      ///   |1             |y
       ///   |
       ///   |____1____2____3_
-      ///                    Y
+      ///                    X
       ///
       /// So we call:
-      ///     `LookAt(Vector3<T>(0, 1, 0), Vector3<T>(-2, 0, 0))`
+      ///     `LookAt(Vector3<T>(0, 2, 0), Vector3<T>(-3, 0, 0))`
       ///
       /// \param[in] _target A point which the positive x axis passes through.
       /// \param[in] _direction The direction to be parallel to. This vector's
