@@ -53,7 +53,7 @@ namespace ignition
       /// the following conditions:
       /// 1. Positive x axis will pass through point X = 0, Y = 1, Z = 0 (this
       /// is our _target).
-      /// 2. Positive x axis to be parallel to, and in the same direction as,
+      /// 2. Positive x axis is parallel to, and in the same direction as,
       /// negative X (so our _direction, normalized has to be [-1, 0, 0]).
       /// 3. The distance between the origin of xy and _target is 2 (this is
       /// the magnitude of _direction, so it becomes [-2, 0, 0])
