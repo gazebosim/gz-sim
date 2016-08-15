@@ -18,7 +18,6 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
-#include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
@@ -779,6 +778,56 @@ namespace ignition
                d[8], d[9], d[10], d[11],
                d[12], d[13], d[14], d[15]);
         return _in;
+      }
+
+      /// \brief Get transform where the translation is _eye, and the rotation
+      /// is such that the X axis gets rotated towards _target, while keeping
+      /// _up towards the Z axis, if possible.
+      /// \param[in] _eye Position of eye (the resulting matrix's translation).
+      /// \param[in] _target Point to look at.
+      /// \paran[in] _up Direction of the up vector (Z).
+      /// \return Transformation matrix which translates to _eye and faces
+      /// _target.
+      public: static Matrix4<T> LookAt(const Vector3<T> &_eye,
+          const Vector3<T> &_target, const Vector3<T> &_up = Vector3<T>::UnitZ)
+      {
+        // Most important constraint: direction to point X axis at
+        auto front = _target - _eye;
+
+        // Case when _eye == _target
+        if (front == Vector3<T>::Zero)
+          front = Vector3<T>::UnitX;
+        front.Normalize();
+
+        // Desired direction to point Z axis at
+        auto up = _up;
+
+        // Case when _up == Zero
+        if (up == Vector3<T>::Zero)
+          up = Vector3<T>::UnitZ;
+        up.Normalize();
+
+        // Case when _up == +X
+        if (up == Vector3<T>::UnitX)
+          up = Vector3<T>::UnitZ;
+
+        // Find direction to point Y axis at
+        auto left = up.Cross(front);
+
+        // Case when front // up
+        if (left == Vector3<T>::Zero)
+          left = Vector3<T>::UnitY;
+        left.Normalize();
+
+        // Fix up direction so it's perpendicular to XY
+        up = (front.Cross(left)).Normalize();
+
+        return Matrix4<T>(
+            front.X(), left.X(), up.X(), _eye.X(),
+            front.Y(), left.Y(), up.Y(), _eye.Y(),
+            front.Z(), left.Z(), up.Z(), _eye.Z(),
+                  0,      0,         0,        1
+            );
       }
 
       /// \brief The 4x4 matrix

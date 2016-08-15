@@ -155,38 +155,3 @@ TEST(PoseTest, OperatorStreamOut)
   EXPECT_EQ(stream.str(), "0.1 1.2 2.3 0 0.1 1");
 }
 
-/////////////////////////////////////////////////
-TEST(PoseTest, LookAt)
-{
-  // Look at [0, 0, 0] towards +X, distance = 1
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d::Zero,
-                                 math::Vector3d(1, 0, 0)),
-            math::Pose3d(-1, 0, 0, 0, 0, 0));
-
-  // Look at [0, 2, 0] towards -X, distance = 3
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d(0, 2, 0),
-                                 math::Vector3d(-3, 0, 0)),
-            math::Pose3d(3, 2, 0, 0, 0, IGN_PI));
-
-  // Look at [1, 1, 1] towards -Y, distance = 5
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d::One,
-                                 math::Vector3d(0, -5, 0)),
-            math::Pose3d(1, 6, 1, 0, 0, -IGN_PI_2));
-
-  // Look at [0, 0, 0] towards XY, distance = 2
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d::Zero,
-                                 math::Vector3d(1, 1, 0)),
-            math::Pose3d(-1, -1, 0, 0, 0, IGN_PI_4));
-
-  // Look at [-1, 0, 0] towards -Z, distance = 10
-  // Note: Not possible to keep Z in the vertical
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d(-1, 0, 0),
-                                 math::Vector3d(0, 0, -10)),
-            math::Pose3d(-1, 0, 10, 0, IGN_PI_2, 0));
-
-  // Check that zero direction is the same as keeping the current direction
-  // (+X).
-  EXPECT_EQ(math::Pose3d::LookAt(math::Vector3d(-1, -1, -1),
-                                 math::Vector3d::Zero),
-            math::Pose3d(-1, -1, -1, 0, 0, 0));
-}
