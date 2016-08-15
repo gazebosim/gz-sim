@@ -3,7 +3,7 @@
 1. Added SemanticVersion class
     * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
-1. Added Pose3<T>::LookAt
+1. Added Matrix4<T>::LookAt
     * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
 
 ### Ignition Math 2.5

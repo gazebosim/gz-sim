@@ -826,8 +826,7 @@ namespace ignition
             front.X(), left.X(), up.X(), _eye.X(),
             front.Y(), left.Y(), up.Y(), _eye.Y(),
             front.Z(), left.Z(), up.Z(), _eye.Z(),
-                  0,      0,         0,        1
-            );
+                  0,      0,         0,        1);
       }
 
       /// \brief The 4x4 matrix
