@@ -61,9 +61,6 @@
     * [Pull request 71](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/71)
 1. Add Determinant method for Matrix[34]
     * [Pull request 72](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/72)
-1. Fix logic of installation of CMake configuration files in Windows.
-   Contribution from Silvio Traversaro.
-    * [Pull request 63](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/63)
 1. Fixes for compiling and running tests on Windows 7/Visual Studio 2013
    Contribution from Silvio Traversaro.
     * [Pull request 62](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/62)
