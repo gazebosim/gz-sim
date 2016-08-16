@@ -52,9 +52,6 @@
     * [Pull request 77](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/77)
 1. Add Transpose methods for Matrix3,4 with test
     * [Pull request 74](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/74)
-1. Migrate to relocatable CMake package.
-   Contribution from Silvio Traversaro.
-    * [Pull request 67](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/67)
 1. Multiplication improvements for Vector/Matrix classes
     * [Pull request 69](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/69)
 1. Scalar +,- operators for Vector[234]
