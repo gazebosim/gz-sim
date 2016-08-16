@@ -118,6 +118,15 @@ TEST(Matrix4dTest, ConstructFromPose3d)
 }
 
 /////////////////////////////////////////////////
+TEST(Matrix4dTest, CoverageExtra)
+{
+  // getting full destructor coverage
+  math::Matrix4d *p = new math::Matrix4d;
+  EXPECT_TRUE(p != NULL);
+  delete p;
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix4dTest, Scale)
 {
   math::Matrix4d mat, mat2;
