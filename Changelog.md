@@ -46,8 +46,6 @@
     * [Pull request 73](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/73)
 1. Add Equal function with numerical tolerance argument
     * [Pull request 75](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/75)
-1. Require cmake 2.8.12
-    * [Pull request 76](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/76)
 1. First part of MassMatrix3 class, mostly accessors and modifiers
     * [Pull request 77](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/77)
 1. Add Transpose methods for Matrix3,4 with test
