@@ -36,7 +36,7 @@
     * [Pull request 110](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/110)
 1. Added Temperature class
     * A contribution from Shintaro Noda
-    * [Pull request 104](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/104)
+    * [Pull request 113](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/113)
 
 ### Ignition Math 2.3.0
 
