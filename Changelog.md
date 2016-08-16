@@ -6,6 +6,10 @@
 1. Added triangle3 class, and helper functions in other classes
     * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
 
+1. Change equality helper to work with 387 fp unit.
+   Contribution from Rich Mattes.
+    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+
 ### Ignition Math 2.5
 
 ### Ignition Math 2.5.0
@@ -63,6 +67,3 @@
 1. Fixes for compiling and running tests on Windows 7/Visual Studio 2013
    Contribution from Silvio Traversaro.
     * [Pull request 62](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/62)
-1. Change equality helper to work with 387 fp unit.
-   Contribution from Rich Mattes.
-    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
