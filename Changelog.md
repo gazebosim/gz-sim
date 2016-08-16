@@ -3,6 +3,9 @@
 1. Added SemanticVersion class
     * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
+1. Added triangle3 class, and helper functions in other classes
+    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
+
 ### Ignition Math 2.5
 
 ### Ignition Math 2.5.0
@@ -41,7 +44,7 @@
     * [Pull request 75](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/75)
 1. Require cmake 2.8.12
     * [Pull request 76](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/76)
-1. First part of MassMatrix3 class, mostly accessors and modifiers 
+1. First part of MassMatrix3 class, mostly accessors and modifiers
     * [Pull request 77](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/77)
 1. Add Transpose methods for Matrix3,4 with test
     * [Pull request 74](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/74)
@@ -63,5 +66,3 @@
 1. Change equality helper to work with 387 fp unit.
    Contribution from Rich Mattes.
     * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
-1. Added triangle3 class, and helper functions in other classes
-    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
