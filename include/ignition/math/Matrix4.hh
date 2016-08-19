@@ -780,14 +780,15 @@ namespace ignition
         return _in;
       }
 
-      /// \brief Get transform where the translation is _eye, and the rotation
-      /// is such that the X axis gets rotated towards _target, while keeping
-      /// the Z axis towards _up, if possible.
-      /// \param[in] _eye Position of eye (the resulting matrix's translation).
-      /// \param[in] _target Point to look at.
-      /// \paran[in] _up Direction of the up vector (Z).
-      /// \return Transformation matrix which translates to _eye and faces
-      /// _target.
+      /// \brief Get transform which translates to _eye and rotates the X axis
+      /// so it faces the _target. The rotation is such that Z axis is in the
+      /// _up direction, if possible.
+      /// \param[in] _eye Coordinate frame translation.
+      /// \param[in] _target Point which the X axis should face. If _target is
+      /// equal to _eye, the X axis won't be rotated.
+      /// \param[in] _up Direction in which the Z axis should point. If _up is
+      /// zero or parallel to X, it will be set to +Z.
+      /// \return Transformation matrix.
       public: static Matrix4<T> LookAt(const Vector3<T> &_eye,
           const Vector3<T> &_target, const Vector3<T> &_up = Vector3<T>::UnitZ)
       {
