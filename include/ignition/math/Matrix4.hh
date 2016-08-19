@@ -782,7 +782,7 @@ namespace ignition
 
       /// \brief Get transform where the translation is _eye, and the rotation
       /// is such that the X axis gets rotated towards _target, while keeping
-      /// _up towards the Z axis, if possible.
+      /// the Z axis towards _up, if possible.
       /// \param[in] _eye Position of eye (the resulting matrix's translation).
       /// \param[in] _target Point to look at.
       /// \paran[in] _up Direction of the up vector (Z).
@@ -805,7 +805,8 @@ namespace ignition
         // Case when _up == Zero
         if (up == Vector3<T>::Zero)
           up = Vector3<T>::UnitZ;
-        up.Normalize();
+        else
+          up.Normalize();
 
         // Case when _up == +X
         if (up == Vector3<T>::UnitX)
@@ -817,7 +818,8 @@ namespace ignition
         // Case when front // up
         if (left == Vector3<T>::Zero)
           left = Vector3<T>::UnitY;
-        left.Normalize();
+        else
+          left.Normalize();
 
         // Fix up direction so it's perpendicular to XY
         up = (front.Cross(left)).Normalize();
