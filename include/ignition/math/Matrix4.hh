@@ -808,8 +808,8 @@ namespace ignition
         else
           up.Normalize();
 
-        // Case when _up == +X
-        if (up == Vector3<T>::UnitX)
+        // Case when _up is parallel to X
+        if (up.Cross(Vector3<T>::UnitX) == Vector3<T>::Zero)
           up = Vector3<T>::UnitZ;
 
         // Find direction to point Y axis at

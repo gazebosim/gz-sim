@@ -612,6 +612,20 @@ TEST(Matrix4dTest, LookAt)
             math::Matrix4d::LookAt(math::Vector3d(1.23, 456, 0.7),
                                    math::Vector3d(0, 8.9, -10)));
 
+  // up == +X, default up = +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0.25, 9, -5),
+                                   math::Vector3d(-6, 0, 0.4),
+                                   math::Vector3d::UnitX),
+            math::Matrix4d::LookAt(math::Vector3d(0.25, 9, -5),
+                                   math::Vector3d(-6, 0, 0.4)));
+
+  // up == -X, default up = +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0, 0, 0.2),
+                                   math::Vector3d(-8, 0, -6),
+                                   -math::Vector3d::UnitX),
+            math::Matrix4d::LookAt(math::Vector3d(0, 0, 0.2),
+                                   math::Vector3d(-8, 0, -6)));
+
   // eye == target, default direction = +X
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
                                    math::Vector3d::One),
