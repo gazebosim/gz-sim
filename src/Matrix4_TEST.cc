@@ -122,7 +122,7 @@ TEST(Matrix4dTest, CoverageExtra)
 {
   // getting full destructor coverage
   math::Matrix4d *p = new math::Matrix4d;
-  EXPECT_TRUE(p != NULL);
+  EXPECT_NE(p, nullptr);
   delete p;
 }
 
