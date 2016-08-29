@@ -782,7 +782,7 @@ namespace ignition
 
       /// \brief Get transform which translates to _eye and rotates the X axis
       /// so it faces the _target. The rotation is such that Z axis is in the
-      /// _up direction, if possible.
+      /// _up direction, if possible. The coordinate system is right-handed,
       /// \param[in] _eye Coordinate frame translation.
       /// \param[in] _target Point which the X axis should face. If _target is
       /// equal to _eye, the X axis won't be rotated.
@@ -816,7 +816,7 @@ namespace ignition
         // Find direction to point Y axis at
         auto left = up.Cross(front);
 
-        // Case when front // up
+        // Case when front is parallel to up
         if (left == Vector3<T>::Zero)
           left = Vector3<T>::UnitY;
         else

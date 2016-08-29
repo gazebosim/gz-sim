@@ -632,10 +632,12 @@ TEST(Matrix4dTest, LookAt)
             math::Matrix4d::LookAt(math::Vector3d::One,
                                    math::Vector3d(1.0001, 1, 1)));
 
-  // Not possible to keep Z in the vertical
+  // Not possible to keep _up on +Z
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(-1, 0, 10),
-                                   math::Vector3d(-1, 0, 0)).Pose(),
-            math::Pose3d(-1, 0, 10, 0, IGN_PI_2, 0));
+                                   math::Vector3d(-1, 0, 0)),
+            math::Matrix4d::LookAt(math::Vector3d(-1, 0, 10),
+                                   math::Vector3d(-1, 0, 0),
+                                   -math::Vector3d::UnitX));
 
   // Different ups
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
@@ -647,12 +649,5 @@ TEST(Matrix4dTest, LookAt)
                                    math::Vector3d(0, 1, 1),
                                    math::Vector3d(0, 1, 1)).Pose(),
             math::Pose3d(1, 1, 1, IGN_PI_4, 0, IGN_PI));
-
-  // up == +X goes to default up
-  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::Zero,
-                                   math::Vector3d::UnitY,
-                                   math::Vector3d::UnitX),
-            math::Matrix4d::LookAt(math::Vector3d::Zero,
-                                   math::Vector3d::UnitY));
 }
 
