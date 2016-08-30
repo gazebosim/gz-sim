@@ -18,7 +18,6 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
-#include <ignition/math/Helpers.hh>
 #include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
@@ -779,6 +778,58 @@ namespace ignition
                d[8], d[9], d[10], d[11],
                d[12], d[13], d[14], d[15]);
         return _in;
+      }
+
+      /// \brief Get transform which translates to _eye and rotates the X axis
+      /// so it faces the _target. The rotation is such that Z axis is in the
+      /// _up direction, if possible. The coordinate system is right-handed,
+      /// \param[in] _eye Coordinate frame translation.
+      /// \param[in] _target Point which the X axis should face. If _target is
+      /// equal to _eye, the X axis won't be rotated.
+      /// \param[in] _up Direction in which the Z axis should point. If _up is
+      /// zero or parallel to X, it will be set to +Z.
+      /// \return Transformation matrix.
+      public: static Matrix4<T> LookAt(const Vector3<T> &_eye,
+          const Vector3<T> &_target, const Vector3<T> &_up = Vector3<T>::UnitZ)
+      {
+        // Most important constraint: direction to point X axis at
+        auto front = _target - _eye;
+
+        // Case when _eye == _target
+        if (front == Vector3<T>::Zero)
+          front = Vector3<T>::UnitX;
+        front.Normalize();
+
+        // Desired direction to point Z axis at
+        auto up = _up;
+
+        // Case when _up == Zero
+        if (up == Vector3<T>::Zero)
+          up = Vector3<T>::UnitZ;
+        else
+          up.Normalize();
+
+        // Case when _up is parallel to X
+        if (up.Cross(Vector3<T>::UnitX) == Vector3<T>::Zero)
+          up = Vector3<T>::UnitZ;
+
+        // Find direction to point Y axis at
+        auto left = up.Cross(front);
+
+        // Case when front is parallel to up
+        if (left == Vector3<T>::Zero)
+          left = Vector3<T>::UnitY;
+        else
+          left.Normalize();
+
+        // Fix up direction so it's perpendicular to XY
+        up = (front.Cross(left)).Normalize();
+
+        return Matrix4<T>(
+            front.X(), left.X(), up.X(), _eye.X(),
+            front.Y(), left.Y(), up.Y(), _eye.Y(),
+            front.Z(), left.Z(), up.Z(), _eye.Z(),
+                  0,      0,         0,        1);
       }
 
       /// \brief The 4x4 matrix
