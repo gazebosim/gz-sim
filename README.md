@@ -1,5 +1,6 @@
 # Ignition Math 
 
+
 **Math classes and functions for robot applications.**
 
 Ignition Math is a component in the Ignition framework, a set of libraries
@@ -11,9 +12,9 @@ classes and functions used in other Ignition libraries and programs.
 ## Continuous integration
 
 Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign_math).
+job](https://drone.io/bitbucket.org/ignitionrobotics/ign-math).
 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign_math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign_math/latest)
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/latest)
 
 ## Installation
 

@@ -78,17 +78,18 @@ endmacro ()
 
 #################################################
 macro (ign_install_includes _subdir)
-  install(FILES ${ARGN} DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
+  install(FILES ${ARGN}
+    DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
 endmacro()
 
 #################################################
-macro (ign_install_library _name)
+macro (ign_install_library _name _exportName)
   set_target_properties(${_name} PROPERTIES SOVERSION ${PROJECT_MAJOR_VERSION} VERSION ${PROJECT_VERSION_FULL})
-  install (TARGETS ${_name} DESTINATION ${LIB_INSTALL_DIR} COMPONENT shlib)
+  install (TARGETS ${_name} EXPORT ${_exportName} DESTINATION ${LIB_INSTALL_DIR} COMPONENT shlib)
 endmacro ()
 
 #################################################
-macro (ign_install_executable _name)
+macro (ign_install_executable _name )
   set_target_properties(${_name} PROPERTIES VERSION ${PROJECT_VERSION_FULL})
   install (TARGETS ${_name} DESTINATION ${BIN_INSTALL_DIR})
   manpage(${_name} 1)
@@ -97,7 +98,7 @@ endmacro ()
 #################################################
 macro (ign_setup_unix)
   # USE_HOST_CFLAGS (default TRUE)
-  # Will check building host machine for proper cflags 
+  # Will check building host machine for proper cflags
   if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
     message(STATUS "Enable host CFlags")
     include (${project_cmake_dir}/HostCFlags.cmake)
@@ -113,6 +114,9 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
+  if(MSVC)
+    add_definitions("/EHsc")
+  endif()
 endmacro()
 
 #################################################
@@ -151,7 +155,7 @@ if (NOT DEFINED ENABLE_TESTS_COMPILATION)
   set (ENABLE_TESTS_COMPILATION True)
 endif()
 
-# Define testing macros as empty and redefine them if support is found and 
+# Define testing macros as empty and redefine them if support is found and
 # ENABLE_TESTS_COMPILATION is set to true
 macro (ign_build_tests)
 endmacro()
@@ -162,10 +166,10 @@ endif()
 
 #################################################
 # Macro to setup supported compiler warnings
-# Based on work of Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST. 
+# Based on work of Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST.
 include(CheckCXXCompilerFlag)
 
-macro(filter_valid_compiler_warnings) 
+macro(filter_valid_compiler_warnings)
   foreach(flag ${ARGN})
     CHECK_CXX_COMPILER_FLAG(${flag} R${flag})
     if(${R${flag}})

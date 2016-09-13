@@ -16,20 +16,20 @@
 */
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
-#ifndef _IGNITION_SPLINE_HH_
-#define _IGNITION_SPLINE_HH_
-
-#include <vector>
+#ifndef IGNITION_MATH_SPLINE_HH_
+#define IGNITION_MATH_SPLINE_HH_
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/IndexException.hh>
-#include <ignition/math/Matrix4.hh>
 #include <ignition/math/Vector3.hh>
 
 namespace ignition
 {
   namespace math
   {
+    // Forward declare private data class
+    class SplinePrivate;
+
     /// \class Spline Spline.hh ignition/math/Spline.hh
     /// \brief Splines
     class IGNITION_VISIBLE Spline
@@ -62,7 +62,7 @@ namespace ignition
 
       /// \brief  Gets the number of control points in the spline.
       /// \return the count
-      public: unsigned int PointCount() const;
+      public: size_t PointCount() const;
 
       /// \brief Get the tangent value for a point
       /// \param[in] _index the control point index
@@ -115,21 +115,9 @@ namespace ignition
       ///          after completing your updates to the spline points.
       public: void RecalcTangents();
 
-      /// \brief when true, the tangents are recalculated when the control
-      /// point change
-      protected: bool autoCalc;
-
-      /// \brief control points
-      protected: std::vector<Vector3d> points;
-
-      /// \brief tangents
-      protected: std::vector<Vector3d> tangents;
-
-      /// Matrix of coefficients
-      protected: Matrix4d coeffs;
-
-      /// Tension of 0 = Catmull-Rom spline, otherwise a Cardinal spline
-      protected: double tension;
+      /// \internal
+      /// \brief Private data pointer
+      private: SplinePrivate *dataPtr;
     };
   }
 }

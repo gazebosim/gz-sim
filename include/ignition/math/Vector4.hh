@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR4_HH_
-#define _IGNITION_VECTOR4_HH_
+#ifndef IGNITION_MATH_VECTOR4_HH_
+#define IGNITION_MATH_VECTOR4_HH_
 
 #include <ignition/math/Matrix4.hh>
 
@@ -28,10 +28,10 @@ namespace ignition
     template<typename T>
     class Vector4
     {
-      /// \brief math::Vector3(0, 0, 0)
+      /// \brief math::Vector4(0, 0, 0, 0)
       public: static const Vector4<T> Zero;
 
-      /// \brief math::Vector3(1, 1, 1)
+      /// \brief math::Vector4(1, 1, 1, 1)
       public: static const Vector4<T> One;
 
       /// \brief Constructor
@@ -78,21 +78,20 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
+      /// \return The length
       public: T Length() const
       {
-        return sqrt(
-            this->data[0] * this->data[0] +
-            this->data[1] * this->data[1] +
-            this->data[2] * this->data[2] +
-            this->data[3] * this->data[3]);
+        return sqrt(this->SquaredLength());
       }
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the length
       public: T SquaredLength() const
       {
-        return this->data[0] * this->data[0] + this->data[1] * this->data[1] +
-          this->data[2] * this->data[2] + this->data[3] * this->data[3];
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2)
+             + std::pow(this->data[2], 2)
+             + std::pow(this->data[3], 2);
       }
 
       /// \brief Normalize the vector length
@@ -100,10 +99,13 @@ namespace ignition
       {
         T d = this->Length();
 
-        this->data[0] /= d;
-        this->data[1] /= d;
-        this->data[2] /= d;
-        this->data[3] /= d;
+        if (!equal<T>(d, static_cast<T>(0.0)))
+        {
+          this->data[0] /= d;
+          this->data[1] /= d;
+          this->data[2] /= d;
+          this->data[3] /= d;
+        }
       }
 
       /// \brief Set the contents of the vector
@@ -168,6 +170,48 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector4<T> operator+(const T _s) const
+      {
+        return Vector4<T>(this->data[0] + _s,
+                          this->data[1] + _s,
+                          this->data[2] + _s,
+                          this->data[3] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector4<T> operator+(const T _s,
+                                                 const Vector4<T> &_v)
+      {
+        return _v + _s;
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector4<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+        this->data[2] += _s;
+        this->data[3] += _s;
+
+        return *this;
+      }
+
+      /// \brief Negation operator
+      /// \return negative of this vector
+      public: inline Vector4 operator-() const
+      {
+        return Vector4(-this->data[0], -this->data[1],
+                       -this->data[2], -this->data[3]);
+      }
+
       /// \brief Subtraction operator
       /// \param[in] _v the vector to substract
       /// \return a vector
@@ -188,6 +232,40 @@ namespace ignition
         this->data[1] -= _v[1];
         this->data[2] -= _v[2];
         this->data[3] -= _v[3];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector4<T> operator-(const T _s) const
+      {
+        return Vector4<T>(this->data[0] - _s,
+                          this->data[1] - _s,
+                          this->data[2] - _s,
+                          this->data[3] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector4<T> operator-(const T _s,
+                                                 const Vector4<T> &_v)
+      {
+        return Vector4<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector4<T> &operator-=(const T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
+        this->data[2] -= _s;
+        this->data[3] -= _s;
 
         return *this;
       }
@@ -297,6 +375,16 @@ namespace ignition
             this->data[2] * _v, this->data[3] * _v);
       }
 
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector4 operator*(const T _s,
+                                                    const Vector4 &_v)
+      {
+        return Vector4(_v * _s);
+      }
+
       /// \brief Multiplication assignment operator
       /// \param[in] _v scaling factor
       /// \return this
@@ -310,20 +398,32 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _v the vector to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the vectors are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Vector4 &_v, const T &_tol) const
+      {
+        return equal<T>(this->data[0], _v[0], _tol)
+            && equal<T>(this->data[1], _v[1], _tol)
+            && equal<T>(this->data[2], _v[2], _tol)
+            && equal<T>(this->data[3], _v[3], _tol);
+      }
+
       /// \brief Equal to operator
       /// \param[in] _v the other vector
-      /// \return true if each component is equal withing a
+      /// \return true if each component is equal within a
       /// default tolerence (1e-6), false otherwise
       public: bool operator==(const Vector4<T> &_v) const
       {
-        return equal(this->data[0], _v[0]) && equal(this->data[1], _v[1]) &&
-               equal(this->data[2], _v[2]) && equal(this->data[3], _v[3]);
+        return this->Equal(_v, static_cast<T>(1e-6));
       }
 
       /// \brief Not equal to operator
       /// \param[in] _pt the other vector
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-6), true otherwise
       public: bool operator!=(const Vector4<T> &_pt) const
       {
         return !(*this == _pt);

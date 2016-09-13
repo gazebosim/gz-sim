@@ -61,17 +61,26 @@ SUPPRESS=/tmp/cpp_check.suppress
 # The follow suppression is useful when checking for missing includes.
 # It's disable for now because checking for missing includes is very
 # time consuming. See CPPCHECK_CMD3.
-#echo "missingIncludeSystem" >> $SUPPRESS
-echo "" >> $SUPPRESS
+SUPPRESS=/tmp/gazebo_cpp_check.suppress
+# false positives related to explicit constructors where there is no
+# constructor declared
+echo "*:include/ignition/math/Vector2.hh:230" > $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:372" >> $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:433" >> $SUPPRESS
+echo "*:include/ignition/math/Vector3.hh:536" >> $SUPPRESS
+echo "*:include/ignition/math/Vector4.hh:257" >> $SUPPRESS
+echo "*:include/ignition/math/Vector4.hh:258" >> $SUPPRESS	
 
 #cppcheck
-CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS"
+CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS --inline-suppr"
 if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
-CPPCHECK_INCLUDES="-I . -I $builddir -I test -I ./include/ignition/math"
-CPPCHECK_RULES="-DIGNITION_VISIBLE"
+CPPCHECK_INCLUDES="-I ./include -I $builddir -I test -I ./include/ignition/math"
+CPPCHECK_RULES="-DIGNITION_VISIBLE"\
+" --rule-file=./tools/cppcheck_rules/header_guard.rule"\
+" --rule-file=./tools/cppcheck_rules/namespace_AZ.rule"
 CPPCHECK_CMD1A="-j 4 --enable=style,performance,portability,information"
 CPPCHECK_CMD1B="$CPPCHECK_RULES $CPPCHECK_FILES"
 CPPCHECK_CMD1="$CPPCHECK_CMD1A $CPPCHECK_CMD1B"
@@ -134,8 +143,8 @@ fi
 
 # cpplint
 if [ $xmlout -eq 1 ]; then
-  (echo $CPPLINT_FILES | xargs python tools/cpplint.py 2>&1) \
+  (echo $CPPLINT_FILES | xargs python tools/cpplint.p --extensions=cc,hhy 2>&1) \
     | python tools/cpplint_to_cppcheckxml.py 2> $xmldir/cpplint.xml
 elif [ $QUICK_CHECK -eq 0 ]; then
-  echo $CPPLINT_FILES | xargs python tools/cpplint.py 2>&1
+  echo $CPPLINT_FILES | xargs python tools/cpplint.py --extensions=cc,hh 2>&1
 fi

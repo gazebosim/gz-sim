@@ -1,0 +1,22 @@
+os:
+  - Visual Studio 2013
+  - Visual Studio 2015
+
+configuration:
+  - Debug
+  - Release
+
+environment:
+  CTEST_OUTPUT_ON_FAILURE: 1
+
+build_script:
+  - md build
+  - cd build
+  - cmake .. -DEXTRA_CMAKE_CXX_FLAGS="-WX"
+  - cmake --build . --config %CONFIGURATION%
+
+test_script:
+  - cmake --build . --config %CONFIGURATION% --target RUN_TESTS
+
+after_build:
+  - cmake --build . --config %CONFIGURATION% --target INSTALL

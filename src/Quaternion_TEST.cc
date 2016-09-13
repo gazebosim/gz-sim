@@ -15,10 +15,9 @@
  *
 */
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <gtest/gtest.h>
+
+#include <cmath>
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Quaternion.hh"
@@ -93,6 +92,108 @@ TEST(QuaternionTest, Identity)
   EXPECT_TRUE(math::equal(q.Z(), 0.0));
 }
 
+//////////////////////////////////////////////////
+TEST(QuaternionTest, Integrate)
+{
+  // Integrate by zero, expect no change
+  {
+    const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::Zero, 1.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitX, 0.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitY, 0.0));
+    EXPECT_EQ(q, q.Integrate(math::Vector3d::UnitZ, 0.0));
+  }
+
+  // Integrate along single axes,
+  // expect linear change in roll, pitch, yaw
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    math::Quaterniond qRoll  = q.Integrate(math::Vector3d::UnitX, 1.0);
+    math::Quaterniond qPitch = q.Integrate(math::Vector3d::UnitY, 1.0);
+    math::Quaterniond qYaw   = q.Integrate(math::Vector3d::UnitZ, 1.0);
+    EXPECT_EQ(qRoll.Euler(),  math::Vector3d::UnitX);
+    EXPECT_EQ(qPitch.Euler(), math::Vector3d::UnitY);
+    EXPECT_EQ(qYaw.Euler(),   math::Vector3d::UnitZ);
+  }
+
+  // Integrate sequentially along single axes in order XYZ,
+  // expect rotations to match Euler Angles
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXY  = qX.Integrate(math::Vector3d::UnitY, angle);
+    EXPECT_EQ(qXY.Euler(), angle*math::Vector3d(1, 1, 0));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXZ  = qX.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qXZ.Euler(), angle*math::Vector3d(1, 0, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qY   = q.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qYZ  = qY.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qYZ.Euler(), angle*math::Vector3d(0, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qX   = q.Integrate(math::Vector3d::UnitX, angle);
+    math::Quaterniond qXY  = qX.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qXYZ = qXY.Integrate(math::Vector3d::UnitZ, angle);
+    EXPECT_EQ(qXYZ.Euler(), angle*math::Vector3d::One);
+  }
+
+  // Integrate sequentially along single axes in order ZYX,
+  // expect rotations to not match Euler Angles
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZY  = qZ.Integrate(math::Vector3d::UnitY, angle);
+    EXPECT_NE(qZY.Euler(), angle*math::Vector3d(0, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZX  = qZ.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qZX.Euler(), angle*math::Vector3d(1, 0, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qZ   = q.Integrate(math::Vector3d::UnitZ, angle);
+    math::Quaterniond qZY  = qZ.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qZYX = qZY.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qZYX.Euler(), angle*math::Vector3d(1, 1, 1));
+  }
+  {
+    const math::Quaterniond q(1, 0, 0, 0);
+    const double angle = 0.5;
+    math::Quaterniond qY   = q.Integrate(math::Vector3d::UnitY, angle);
+    math::Quaterniond qYX  = qY.Integrate(math::Vector3d::UnitX, angle);
+    EXPECT_NE(qYX.Euler(), angle*math::Vector3d(1, 1, 0));
+  }
+
+  // Integrate a full rotation about different axes,
+  // expect no change.
+  {
+    const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
+    const double fourPi = 4 * IGN_PI;
+    math::Quaterniond qX = q.Integrate(math::Vector3d::UnitX, fourPi);
+    math::Quaterniond qY = q.Integrate(math::Vector3d::UnitY, fourPi);
+    math::Quaterniond qZ = q.Integrate(math::Vector3d::UnitZ, fourPi);
+    EXPECT_EQ(q, qX);
+    EXPECT_EQ(q, qY);
+    EXPECT_EQ(q, qZ);
+  }
+}
+
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Math)
 {
@@ -137,7 +238,7 @@ TEST(QuaternionTest, Math)
 
   EXPECT_TRUE(math::equal(q.Roll(), 1.4289, 1e-3));
   EXPECT_TRUE(math::equal(q.Pitch(), -0.339837, 1e-3));
-  EXPECT_TRUE(math::equal(q.YaW(), 2.35619, 1e-3));
+  EXPECT_TRUE(math::equal(q.Yaw(), 2.35619, 1e-3));
 
   math::Vector3d axis;
   double angle;
@@ -241,6 +342,29 @@ TEST(QuaternionTest, Math)
     EXPECT_TRUE(q.Inverse().ZAxis() == math::Vector3d(0, 0, 1));
   }
 
+  // Test RPY fixed-body-frame convention:
+  // Rotate each unit vector in roll and pitch
+  {
+    q = math::Quaterniond(IGN_PI/2.0, IGN_PI/2.0, 0);
+    math::Vector3d v1(1, 0, 0);
+    math::Vector3d r1 = q.RotateVector(v1);
+    // 90 degrees about X does nothing,
+    // 90 degrees about Y sends point down to -Z
+    EXPECT_EQ(r1, math::Vector3d(0, 0, -1));
+
+    math::Vector3d v2(0, 1, 0);
+    math::Vector3d r2 = q.RotateVector(v2);
+    // 90 degrees about X sends point to +Z
+    // 90 degrees about Y sends point to +X
+    EXPECT_EQ(r2, math::Vector3d(1, 0, 0));
+
+    math::Vector3d v3(0, 0, 1);
+    math::Vector3d r3 = q.RotateVector(v3);
+    // 90 degrees about X sends point to -Y
+    // 90 degrees about Y does nothing
+    EXPECT_EQ(r3, math::Vector3d(0, -1, 0));
+  }
+
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
@@ -289,11 +413,45 @@ TEST(QuaternionTest, Math)
                 0.707544, 0.705561, -0.0395554,
                 -0.344106, 0.392882, 0.85278));
 
+    math::Matrix3d matFromQ;
+    matFromQ = q;
+    EXPECT_TRUE(matFromQ == math::Matrix3d(
+                0.617229, -0.589769, 0.52077,
+                0.707544, 0.705561, -0.0395554,
+                -0.344106, 0.392882, 0.85278));
+
     EXPECT_TRUE(math::Matrix4d(q) == math::Matrix4d(
                 0.617229, -0.589769, 0.52077, 0,
                 0.707544, 0.705561, -0.0395554, 0,
                 -0.344106, 0.392882, 0.85278, 0,
                 0, 0, 0, 1));
+
+    math::Matrix3d matFromQuat(q);
+
+    math::Quaterniond quatFromMat(matFromQuat);
+    math::Quaterniond quatFromMat2; quatFromMat2.Matrix(matFromQuat);
+
+    EXPECT_TRUE(q == quatFromMat);
+    EXPECT_TRUE(q == quatFromMat2);
+
+    // test the cases where matrix trace is negative (requires special handling)
+    q = math::Quaterniond(0, 0, 0, 1);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                -1,  0, 0,
+                 0, -1, 0,
+                 0,  0, 1)));
+
+    q = math::Quaterniond(0, 0, 1, 0);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                -1,  0,  0,
+                 0,  1,  0,
+                 0,  0, -1)));
+
+    q = math::Quaterniond(0, 1, 0, 0);
+    EXPECT_TRUE(q == math::Quaterniond(math::Matrix3d(
+                1,  0,  0,
+                0, -1,  0,
+                0,  0, -1)));
   }
 }
 
@@ -315,3 +473,79 @@ TEST(QuaternionTest, Slerp)
   math::Quaterniond q3 = math::Quaterniond::Slerp(1.0, q1, q2, true);
   EXPECT_EQ(q3, math::Quaterniond(0.554528, -0.717339, 0.32579, 0.267925));
 }
+
+/////////////////////////////////////////////////
+TEST(QuaterniondTest, From2Axes)
+{
+  math::Vector3d v1(1.0, 0.0, 0.0);
+  math::Vector3d v2(0.0, 1.0, 0.0);
+
+  math::Quaterniond q1;
+  q1.From2Axes(v1, v2);
+
+  math::Quaterniond q2;
+  q2.From2Axes(v2, v1);
+
+  math::Quaterniond q1Correct(sqrt(2)/2, 0, 0, sqrt(2)/2);
+  math::Quaterniond q2Correct(sqrt(2)/2, 0, 0, -sqrt(2)/2);
+
+  EXPECT_NE(q1, q2);
+  EXPECT_EQ(q1Correct, q1);
+  EXPECT_EQ(q2Correct, q2);
+  EXPECT_EQ(math::Quaterniond::Identity, q1 * q2);
+  EXPECT_EQ(v2, q1 * v1);
+  EXPECT_EQ(v1, q2 * v2);
+
+  // still the same rotation, but with non-unit vectors
+  v1.Set(0.5, 0.5, 0);
+  v2.Set(-0.5, 0.5, 0);
+
+  q1.From2Axes(v1, v2);
+  q2.From2Axes(v2, v1);
+
+  EXPECT_NE(q1, q2);
+  EXPECT_EQ(q1Correct, q1);
+  EXPECT_EQ(q2Correct, q2);
+  EXPECT_EQ(math::Quaterniond::Identity, q1 * q2);
+  EXPECT_EQ(v2, q1 * v1);
+  EXPECT_EQ(v1, q2 * v2);
+
+  // Test various settings of opposite vectors (which need special care)
+
+  v1.Set(1, 0, 0);
+  v2.Set(-1, 0, 0);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 1, 0);
+  v2.Set(0, -1, 0);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 0, 1);
+  v2.Set(0, 0, -1);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+
+  v1.Set(0, 1, 1);
+  v2.Set(0, -1, -1);
+  q1.From2Axes(v1, v2);
+  q2 = q1 * q1;
+  EXPECT_TRUE(math::equal(q2.W(), 1.0) || math::equal(q2.W(), -1.0));
+  EXPECT_TRUE(math::equal(q2.X(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Y(), 0.0));
+  EXPECT_TRUE(math::equal(q2.Z(), 0.0));
+}
+

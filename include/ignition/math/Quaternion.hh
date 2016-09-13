@@ -14,24 +14,30 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_QUATERNION_HH_
-#define _IGNITION_QUATERNION_HH_
+#ifndef IGNITION_MATH_QUATERNION_HH_
+#define IGNITION_MATH_QUATERNION_HH_
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/Matrix3.hh>
 
 namespace ignition
 {
   namespace math
   {
+    template <typename T> class Matrix3;
+
     /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
     /// \brief A quaternion class
     template<typename T>
     class Quaternion
     {
-      /// \brief math::Quaternion(1, 0, 0, 1)
+      /// \brief math::Quaternion(1, 0, 0, 0)
       public: static const Quaternion Identity;
+
+      /// \brief math::Quaternion(0, 0, 0, 0)
+      public: static const Quaternion Zero;
 
       /// \brief Default Constructor
       public: Quaternion()
@@ -69,13 +75,21 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      public: Quaternion(const Vector3<T> &_rpy)
+      public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
       }
 
+      /// \brief Construct from rotation matrix.
+      /// \param[in] _mat rotation matrix (must be orthogonal, the function
+      ///                 doesn't check it)
+      public: explicit Quaternion(const Matrix3<T> &_mat)
+      {
+        this->Matrix(_mat);
+      }
+
       /// \brief Copy constructor
-      /// \param qt Quaternion<T> to copy
+      /// \param[in] _qt Quaternion<T> to copy
       public: Quaternion(const Quaternion<T> &_qt)
       {
         this->qw = _qt.qw;
@@ -110,7 +124,7 @@ namespace ignition
       }
 
       /// \brief Get the inverse of this quaternion
-      /// \return Inverse quarenion
+      /// \return Inverse quaternion
       public: inline Quaternion<T> Inverse() const
               {
                 T s = 0;
@@ -279,8 +293,10 @@ namespace ignition
       }
 
       /// \brief Set the quaternion from Euler angles. The order of operations
-      /// are roll, pitch, yaw.
-      /// \param[in] vec  Euler angle
+      /// is roll, pitch, yaw around a fixed body frame axis
+      /// (the original frame of the object before rotation is applied).
+      /// Roll is a rotation about x, pitch is about y, yaw is about z.
+      /// \param[in] _vec Euler angle
       public: void Euler(const Vector3<T> &_vec)
       {
         this->Euler(_vec.X(), _vec.Y(), _vec.Z());
@@ -288,8 +304,8 @@ namespace ignition
 
       /// \brief Set the quaternion from Euler angles.
       /// \param[in] _roll Roll angle (radians).
-      /// \param[in] _pitch Roll angle (radians).
-      /// \param[in] _yaw Roll angle (radians).
+      /// \param[in] _pitch Pitch angle (radians).
+      /// \param[in] _yaw Yaw angle (radians).
       public: void Euler(T _roll, T _pitch, T _yaw)
       {
         T phi, the, psi;
@@ -346,7 +362,8 @@ namespace ignition
       }
 
       /// \brief Convert euler angles to quatern.
-      /// \param[in]
+      /// \param[in] _vec The vector of angles to convert.
+      /// \return The converted quaternion.
       public: static Quaternion<T> EulerToQuaternion(const Vector3<T> &_vec)
       {
         Quaternion<T> result;
@@ -358,28 +375,29 @@ namespace ignition
       /// \param[in] _x rotation along x
       /// \param[in] _y rotation along y
       /// \param[in] _z rotation along z
+      /// \return The converted quaternion.
       public: static Quaternion<T> EulerToQuaternion(T _x, T _y, T _z)
       {
         return EulerToQuaternion(Vector3<T>(_x, _y, _z));
       }
 
       /// \brief Get the Euler roll angle in radians
-      /// \return the roll
-      public: T Roll()
+      /// \return the roll component
+      public: T Roll() const
       {
         return this->Euler().X();
       }
 
       /// \brief Get the Euler pitch angle in radians
-      /// \return the pitch
-      public: T Pitch()
+      /// \return the pitch component
+      public: T Pitch() const
       {
         return this->Euler().Y();
       }
 
       /// \brief Get the Euler yaw angle in radians
-      /// \return the yaw
-      public: T YaW()
+      /// \return the yaw component
+      public: T Yaw() const
       {
         return this->Euler().Z();
       }
@@ -400,6 +418,129 @@ namespace ignition
           _angle = 2.0 * acos(this->qw);
           T invLen =  1.0 / sqrt(len);
           _axis.Set(this->qx*invLen, this->qy*invLen, this->qz*invLen);
+        }
+      }
+
+      /// \brief Set from a rotation matrix.
+      /// \param[in] _mat rotation matrix (must be orthogonal, the function
+      ///                 doesn't check it)
+      ///
+      /// Implementation inspired by
+      /// http://www.euclideanspace.com/maths/geometry/rotations/
+      /// conversions/matrixToQuaternion/
+      void Matrix(const Matrix3<T> &_mat)
+      {
+        const T trace = _mat(0, 0) + _mat(1, 1) + _mat(2, 2);
+        if (trace > 0.0000001)
+        {
+          qw = sqrt(1 + trace) / 2;
+          const T s = 1.0 / (4 * qw);
+          qx = (_mat(2, 1) - _mat(1, 2)) * s;
+          qy = (_mat(0, 2) - _mat(2, 0)) * s;
+          qz = (_mat(1, 0) - _mat(0, 1)) * s;
+        }
+        else if (_mat(0, 0) > _mat(1, 1) && _mat(0, 0) > _mat(2, 2))
+        {
+          qx = sqrt(1.0 + _mat(0, 0) - _mat(1, 1) - _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qx);
+          qw = (_mat(2, 1) - _mat(1, 2)) * s;
+          qy = (_mat(1, 0) + _mat(0, 1)) * s;
+          qz = (_mat(0, 2) + _mat(2, 0)) * s;
+        }
+        else if (_mat(1, 1) > _mat(2, 2))
+        {
+          qy = sqrt(1.0 - _mat(0, 0) + _mat(1, 1) - _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qy);
+          qw = (_mat(0, 2) - _mat(2, 0)) * s;
+          qx = (_mat(0, 1) + _mat(1, 0)) * s;
+          qz = (_mat(1, 2) + _mat(2, 1)) * s;
+        }
+        else
+        {
+          qz = sqrt(1.0 - _mat(0, 0) - _mat(1, 1) + _mat(2, 2)) / 2;
+          const T s = 1.0 / (4 * qz);
+          qw = (_mat(1, 0) - _mat(0, 1)) * s;
+          qx = (_mat(0, 2) + _mat(2, 0)) * s;
+          qy = (_mat(1, 2) + _mat(2, 1)) * s;
+        }
+      }
+
+      /// \brief Set this quaternion to represent rotation from
+      /// vector _v1 to vector _v2, so that
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
+      /// \param[in] _v1 The first vector
+      /// \param[in] _v2 The second vector
+      ///
+      /// Implementation inspired by
+      /// http://stackoverflow.com/a/11741520/1076564
+      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
+      {
+        // generally, we utilize the fact that a quat (w, x, y, z) represents
+        // rotation of angle 2*w about axis (x, y, z)
+        //
+        // so we want to take get a vector half-way between no rotation and the
+        // double rotation, which is
+        // [ (1, (0, 0, 0)) + (_v1 dot _v2, _v1 x _v2) ] / 2
+        // if _v1 and _v2 are unit quaternions
+        //
+        // since we normalize the result anyway, we can omit the division,
+        // getting the result:
+        // [ (1, (0, 0, 0)) + (_v1 dot _v2, _v1 x _v2) ].Normalized()
+        //
+        // if _v1 and _v2 are not normalized, the magnitude (1 + _v1 dot _v2)
+        // is multiplied by k = norm(_v1)*norm(_v2)
+
+        const T kCosTheta = _v1.Dot(_v2);
+        const T k = sqrt(_v1.SquaredLength() * _v2.SquaredLength());
+
+        if (fabs(kCosTheta/k + 1) < 1e-6)
+        {
+          // the vectors are opposite
+          // any vector orthogonal to _v1
+          Vector3<T> other;
+          {
+            const Vector3<T> _v1Abs(_v1.Abs());
+            if (_v1Abs.X() < _v1Abs.Y())
+            {
+              if (_v1Abs.X() < _v1Abs.Z())
+              {
+                other.Set(1, 0, 0);
+              }
+              else
+              {
+                other.Set(0, 0, 1);
+              }
+            }
+            else
+            {
+              if (_v1Abs.Y() < _v1Abs.Z())
+              {
+                other.Set(0, 1, 0);
+              }
+              else
+              {
+                other.Set(0, 0, 1);
+              }
+            }
+          }
+
+          const Vector3<T> axis(_v1.Cross(other).Normalize());
+
+          qw = 0;
+          qx = axis.X();
+          qy = axis.Y();
+          qz = axis.Z();
+        }
+        else
+        {
+          // the vectors are in general position
+          const Vector3<T> axis(_v1.Cross(_v2));
+          qw = kCosTheta + k;
+          qx = axis.X();
+          qy = axis.Y();
+          qz = axis.Z();
+          this->Normalize();
         }
       }
 
@@ -438,8 +579,8 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Substraction operator
-      /// \param[in] _qt quaternion to substract
+      /// \brief Subtraction operator
+      /// \param[in] _qt quaternion to subtract
       /// \return this quaternion - _qt
       public: Quaternion<T> operator-(const Quaternion<T> &_qt) const
       {
@@ -448,9 +589,9 @@ namespace ignition
         return result;
       }
 
-      /// \brief Substraction operator
-      /// \param[in] _qt Quaternion<T> for substraction
-      /// \return This quatern - qt
+      /// \brief Subtraction operator
+      /// \param[in] _qt Quaternion<T> for subtraction
+      /// \return This quaternion - qt
       public: Quaternion<T> operator-=(const Quaternion<T> &_qt)
       {
         *this = *this - _qt;
@@ -458,7 +599,7 @@ namespace ignition
       }
 
       /// \brief Multiplication operator
-      /// \param[in] _qt Quaternion<T> for multiplication
+      /// \param[in] _q Quaternion<T> for multiplication
       /// \return This quaternion multiplied by the parameter
       public: inline Quaternion<T> operator*(const Quaternion<T> &_q) const
               {
@@ -469,9 +610,9 @@ namespace ignition
                   this->qw*_q.qz+this->qx*_q.qy-this->qy*_q.qx+this->qz*_q.qw);
               }
 
-      /// \brief Multiplication operator
+      /// \brief Multiplication operator by a scalar.
       /// \param[in] _f factor
-      /// \return quaternion multiplied by _f
+      /// \return quaternion multiplied by the scalar
       public: Quaternion<T> operator*(const T &_f) const
       {
         return Quaternion<T>(this->qw*_f, this->qx*_f,
@@ -480,7 +621,7 @@ namespace ignition
 
       /// \brief Multiplication operator
       /// \param[in] _qt Quaternion<T> for multiplication
-      /// \return This quatern multiplied by the parameter
+      /// \return This quaternion multiplied by the parameter
       public: Quaternion<T> operator*=(const Quaternion<T> &qt)
       {
         *this = *this * qt;
@@ -489,6 +630,7 @@ namespace ignition
 
       /// \brief Vector3 multiplication operator
       /// \param[in] _v vector to multiply
+      /// \return The result of the vector multiplication
       public: Vector3<T> operator*(const Vector3<T> &_v) const
       {
         Vector3<T> uv, uuv;
@@ -543,7 +685,7 @@ namespace ignition
 
       /// \brief Do the reverse rotation of a vector by this quaternion
       /// \param[in] _vec the vector
-      /// \return the
+      /// \return the reversed vector
       public: Vector3<T> RotateVectorReverse(Vector3<T> _vec) const
       {
         Quaternion<T> tmp(0.0, _vec.X(), _vec.Y(), _vec.Z());
@@ -553,8 +695,8 @@ namespace ignition
         return Vector3<T>(tmp.qx, tmp.qy, tmp.qz);
       }
 
-      /// \brief See if a quatern is finite (e.g., not nan)
-      /// \return True if quatern is finite
+      /// \brief See if a quaternion is finite (e.g., not nan)
+      /// \return True if quaternion is finite
       public: bool IsFinite() const
       {
         // std::isfinite works with floating point values, need to explicit
@@ -565,7 +707,7 @@ namespace ignition
                std::isfinite(static_cast<double>(this->qz));
       }
 
-      /// \brief Correct any nan
+      /// \brief Correct any nan values in this quaternion
       public: inline void Correct()
       {
         // std::isfinite works with floating point values, need to explicit
@@ -589,7 +731,7 @@ namespace ignition
       }
 
       /// \brief Return the X axis
-      /// \return the vector
+      /// \return the X axis of the vector
       public: Vector3<T> XAxis() const
       {
         T fTy  = 2.0f*this->qy;
@@ -606,7 +748,7 @@ namespace ignition
       }
 
       /// \brief Return the Y axis
-      /// \return the vector
+      /// \return the Y axis of the vector
       public: Vector3<T> YAxis() const
       {
         T fTx  = 2.0f*this->qx;
@@ -623,7 +765,7 @@ namespace ignition
       }
 
       /// \brief Return the Z axis
-      /// \return the vector
+      /// \return the Z axis of the vector
       public: Vector3<T> ZAxis() const
       {
         T fTx  = 2.0f*this->qx;
@@ -667,6 +809,7 @@ namespace ignition
       /// \param[in] _rkQ the end quaternion
       /// \param[in] _shortestPath when true, the rotation may be inverted to
       /// get to minimize rotation
+      /// \return The result of the quadratic interpolation
       public: static Quaternion<T> Squad(T _fT,
                   const Quaternion<T> &_rkP, const Quaternion<T> &_rkA,
                   const Quaternion<T> &_rkB, const Quaternion<T> &_rkQ,
@@ -685,6 +828,7 @@ namespace ignition
       /// \param[in] _rkQ the end quaternion
       /// \param[in] _shortestPath when true, the rotation may be inverted to
       /// get to minimize rotation
+      /// \return The result of the linear interpolation
       public: static Quaternion<T> Slerp(T _fT,
                   const Quaternion<T> &_rkP, const Quaternion<T> &_rkQ,
                   bool _shortestPath = false)
@@ -729,6 +873,38 @@ namespace ignition
           t.Normalize();
           return t;
         }
+      }
+
+      /// \brief Integrate quaternion for constant angular velocity vector
+      /// along specified interval `_deltaT`.
+      /// Implementation based on:
+      /// http://physicsforgames.blogspot.com/2010/02/quaternions.html
+      /// \param[in] _angularVelocity Angular velocity vector, specified in
+      /// same reference frame as base of this quaternion.
+      /// \param[in] _deltaT Time interval in seconds to integrate over.
+      /// \return Quaternion at integrated configuration.
+      public: Quaternion<T> Integrate(const Vector3<T> &_angularVelocity,
+                                      const T _deltaT) const
+      {
+        Quaternion<T> deltaQ;
+        Vector3<T> theta = _angularVelocity * _deltaT * 0.5;
+        T thetaMagSq = theta.SquaredLength();
+        T s;
+        if (thetaMagSq * thetaMagSq / 24.0 < IGN_DBL_MIN)
+        {
+          deltaQ.W() = 1.0 - thetaMagSq / 2.0;
+          s = 1.0 - thetaMagSq / 6.0;
+        }
+        else
+        {
+          double thetaMag = sqrt(thetaMagSq);
+          deltaQ.W() = cos(thetaMag);
+          s = sin(thetaMag) / thetaMag;
+        }
+        deltaQ.X() = theta.X() * s;
+        deltaQ.Y() = theta.Y() * s;
+        deltaQ.Z() = theta.Z() * s;
+        return deltaQ * (*this);
       }
 
       /// \brief Get the w component.
@@ -847,21 +1023,24 @@ namespace ignition
         return _in;
       }
 
-      /// \brief Attributes of the quaternion
+      /// \brief w value of the quaternion
       private: T qw;
 
-      /// \brief Attributes of the quaternion
+      /// \brief x value of the quaternion
       private: T qx;
 
-      /// \brief Attributes of the quaternion
+      /// \brief y value of the quaternion
       private: T qy;
 
-      /// \brief Attributes of the quaternion
+      /// \brief z value of the quaternion
       private: T qz;
     };
 
     template<typename T> const Quaternion<T>
       Quaternion<T>::Identity(1, 0, 0, 0);
+
+    template<typename T> const Quaternion<T>
+      Quaternion<T>::Zero(0, 0, 0, 0);
 
     typedef Quaternion<double> Quaterniond;
     typedef Quaternion<float> Quaternionf;

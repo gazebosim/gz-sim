@@ -134,6 +134,31 @@ TEST(Vector3dTest, SquaredLength)
 }
 
 /////////////////////////////////////////////////
+TEST(Vector3dTest, Length)
+{
+  // Zero vector
+  EXPECT_DOUBLE_EQ(math::Vector3d::Zero.Length(), 0.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::Zero.SquaredLength(), 0.0);
+
+  // UnitXYZ vectors
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitX.Length(), 1.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitY.Length(), 1.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitZ.Length(), 1.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitX.SquaredLength(), 1.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitY.SquaredLength(), 1.0);
+  EXPECT_DOUBLE_EQ(math::Vector3d::UnitZ.SquaredLength(), 1.0);
+
+  // One vector
+  EXPECT_NEAR(math::Vector3d::One.Length(), sqrt(3.0), 1e-10);
+  EXPECT_DOUBLE_EQ(math::Vector3d::One.SquaredLength(), 3.0);
+
+  // Arbitrary vector
+  math::Vector3d v(0.1, -4.2, 2.5);
+  EXPECT_NEAR(v.Length(), 4.88876262463, 1e-10);
+  EXPECT_DOUBLE_EQ(v.SquaredLength(), 23.9);
+}
+
+/////////////////////////////////////////////////
 TEST(Vector3dTest, Normalize)
 {
   math::Vector3d vec1(0, 0, 0);
@@ -146,6 +171,10 @@ TEST(Vector3dTest, Normalize)
   vec3 = vec2.Normalize();
   EXPECT_EQ(vec3, vec2);
   EXPECT_EQ(vec2, math::Vector3d(0.267261, 0.534522, 0.801784));
+
+  const math::Vector3d vecConst(1, 2, 3);
+  EXPECT_EQ(vecConst.Normalized(), vec3);
+  EXPECT_EQ(vecConst, math::Vector3d(1, 2, 3));
 }
 
 /////////////////////////////////////////////////
@@ -216,6 +245,34 @@ TEST(Vector3dTest, Add)
 
   EXPECT_EQ(vec1 + vec2, math::Vector3d(1.2, 2.4, 3.8));
   EXPECT_EQ(vec3, math::Vector3d(1.2, 2.4, 3.8));
+
+  // Add zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 + vec1, vec1);
+    EXPECT_EQ(vec1 + 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector3d::Zero + vec1, vec1);
+    EXPECT_EQ(vec1 + math::Vector3d::Zero, vec1);
+
+    // Addition assignment
+    math::Vector3d vec4(vec1);
+    vec4 += 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 += math::Vector3d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Add non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 + vec1, math::Vector3d(2.6, 2.7, 2.9));
+    EXPECT_EQ(vec1 + 2.5, math::Vector3d(2.6, 2.7, 2.9));
+
+    math::Vector3d vec4(vec1);
+    vec4 += 2.5;
+    EXPECT_EQ(vec4, math::Vector3d(2.6, 2.7, 2.9));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -229,6 +286,34 @@ TEST(Vector3dTest, Sub)
 
   EXPECT_EQ(vec2 - vec1, math::Vector3d(1.0, 2.0, 3.0));
   EXPECT_EQ(vec3, math::Vector3d(1.0, 2.0, 3.0));
+
+  // Subtraction with zeros
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 - vec1, -vec1);
+    EXPECT_EQ(vec1 - 0, vec1);
+
+    // Vector left and right
+    EXPECT_EQ(math::Vector3d::Zero - vec1, -vec1);
+    EXPECT_EQ(vec1 - math::Vector3d::Zero, vec1);
+
+    // Subtraction assignment
+    math::Vector3d vec4(vec1);
+    vec4 -= 0;
+    EXPECT_EQ(vec4, vec1);
+    vec4 -= math::Vector3d::Zero;
+    EXPECT_EQ(vec4, vec1);
+  }
+
+  // Subtract non-trivial scalar values left and right
+  {
+    EXPECT_EQ(2.5 - vec1, math::Vector3d(2.4, 2.3, 2.1));
+    EXPECT_EQ(vec1 - 2.5, -math::Vector3d(2.4, 2.3, 2.1));
+
+    math::Vector3d vec4(vec1);
+    vec4 -= 2.5;
+    EXPECT_EQ(vec4, -math::Vector3d(2.4, 2.3, 2.1));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -246,13 +331,44 @@ TEST(Vector3dTest, Divide)
 /////////////////////////////////////////////////
 TEST(Vector3dTest, Multiply)
 {
-  math::Vector3d vec1(0.1, 0.2, 0.3);
+  math::Vector3d v(0.1, 0.2, 0.3);
 
-  math::Vector3d vec3 = vec1 * 2.0;
+  math::Vector3d vec3 = v * 2.0;
   EXPECT_EQ(vec3, math::Vector3d(0.2, 0.4, 0.6));
 
   vec3 *= 4.0;
   EXPECT_EQ(vec3, math::Vector3d(0.8, 1.6, 2.4));
+
+  // Multiply by zero
+  {
+    // Scalar left and right
+    EXPECT_EQ(0 * v, math::Vector3d::Zero);
+    EXPECT_EQ(v * 0, math::Vector3d::Zero);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector3d::Zero, math::Vector3d::Zero);
+  }
+
+  // Multiply by one
+  {
+    // Scalar left and right
+    EXPECT_EQ(1 * v, v);
+    EXPECT_EQ(v * 1, v);
+
+    // Element-wise vector multiplication
+    EXPECT_EQ(v * math::Vector3d::One, v);
+  }
+
+  // Multiply by non-trivial scalar value
+  {
+    const double scalar = 2.5;
+    math::Vector3d expect(0.25, 0.5, 0.75);
+    EXPECT_EQ(scalar * v, expect);
+    EXPECT_EQ(v * scalar, expect);
+  }
+
+  // Multiply by itself element-wise
+  EXPECT_EQ(v*v, math::Vector3d(0.01, 0.04, 0.09));
 }
 
 /////////////////////////////////////////////////
@@ -264,6 +380,17 @@ TEST(Vector3dTest, NotEqual)
 
   EXPECT_TRUE(vec1 != vec2);
   EXPECT_FALSE(vec1 != vec3);
+}
+
+/////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Vector2Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-6));
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-3));
+  EXPECT_FALSE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1e-1));
+  EXPECT_TRUE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1));
+  EXPECT_TRUE(math::Vector3d::Zero.Equal(math::Vector3d::One, 1.1));
 }
 
 /////////////////////////////////////////////////
@@ -284,3 +411,4 @@ TEST(Vector3dTest, IndexException)
 
   EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
 }
+

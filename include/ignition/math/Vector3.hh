@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR3_HH_
-#define _IGNITION_VECTOR3_HH_
+#ifndef IGNITION_MATH_VECTOR3_HH_
+#define IGNITION_MATH_VECTOR3_HH_
 
 #include <iostream>
 #include <fstream>
@@ -110,30 +110,26 @@ namespace ignition
       }
 
       /// \brief Returns the length (magnitude) of the vector
-      /// \ return the length
+      /// \return the length
       public: T Length() const
       {
-        return sqrt(this->data[0] * this->data[0] +
-                    this->data[1] * this->data[1] +
-                    this->data[2] * this->data[2]);
+        return sqrt(this->SquaredLength());
       }
 
       /// \brief Return the square of the length (magnitude) of the vector
       /// \return the squared length
       public: T SquaredLength() const
       {
-        return this->data[0] * this->data[0] +
-               this->data[1] * this->data[1] +
-               this->data[2] * this->data[2];
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2)
+             + std::pow(this->data[2], 2);
       }
 
       /// \brief Normalize the vector length
       /// \return unit length vector
       public: Vector3 Normalize()
       {
-        T d = sqrt(this->data[0] * this->data[0] +
-                             this->data[1] * this->data[1] +
-                             this->data[2] * this->data[2]);
+        T d = this->Length();
 
         if (!equal<T>(d, static_cast<T>(0.0)))
         {
@@ -143,6 +139,15 @@ namespace ignition
         }
 
         return *this;
+      }
+
+      /// \brief Return a normalized vector
+      /// \return unit length vector
+      public: Vector3 Normalized() const
+      {
+        Vector3<T> result = *this;
+        result.Normalize();
+        return result;
       }
 
       /// \brief Round to near whole number, return the result.
@@ -175,22 +180,39 @@ namespace ignition
         this->data[2] = _z;
       }
 
-      /// \brief Return the cross product of this vector and pt
-      /// \return the product
-      public: Vector3 Cross(const Vector3<T> &_pt) const
+      /// \brief Return the cross product of this vector with another vector.
+      /// \param[in] _v a vector
+      /// \return the cross product
+      public: Vector3 Cross(const Vector3<T> &_v) const
       {
-        return Vector3(this->data[1] * _pt[2] - this->data[2] * _pt[1],
-                       this->data[2] * _pt[0] - this->data[0] * _pt[2],
-                       this->data[0] * _pt[1] - this->data[1] * _pt[0]);
+        return Vector3(this->data[1] * _v[2] - this->data[2] * _v[1],
+                       this->data[2] * _v[0] - this->data[0] * _v[2],
+                       this->data[0] * _v[1] - this->data[1] * _v[0]);
       }
 
-      /// \brief Return the dot product of this vector and pt
-      /// \return the product
-      public: T Dot(const Vector3<T> &_pt) const
+      /// \brief Return the dot product of this vector and another vector
+      /// \param[in] _v the vector
+      /// \return the dot product
+      public: T Dot(const Vector3<T> &_v) const
       {
-        return this->data[0] * _pt[0] +
-               this->data[1] * _pt[1] +
-               this->data[2] * _pt[2];
+        return this->data[0] * _v[0] +
+               this->data[1] * _v[1] +
+               this->data[2] * _v[2];
+      }
+
+      /// \brief Return the absolute dot product of this vector and
+      /// another vector. This is similar to the Dot function, except the
+      /// absolute value of each component of the vector is used.
+      ///
+      /// result = abs(x1 * x2) + abs(y1 * y2) + abs(z1 *z2)
+      ///
+      /// \param[in] _v the vector
+      /// \return The absolute dot product
+      public: T AbsDot(const Vector3<T> &_v) const
+      {
+        return std::abs(this->data[0] * _v[0]) +
+               std::abs(this->data[1] * _v[1]) +
+               std::abs(this->data[2] * _v[2]);
       }
 
       /// \brief Get the absolute value of the vector
@@ -198,8 +220,8 @@ namespace ignition
       public: Vector3 Abs() const
       {
         return Vector3(std::abs(this->data[0]),
-                           std::abs(this->data[1]),
-                           std::abs(this->data[2]));
+                       std::abs(this->data[1]),
+                       std::abs(this->data[2]));
       }
 
       /// \brief Return a vector that is perpendicular to this one.
@@ -230,7 +252,7 @@ namespace ignition
         Vector3<T> a = _v2 - _v1;
         Vector3<T> b = _v3 - _v1;
         Vector3<T> n = a.Cross(b);
-        return n;
+        return n.Normalize();
       }
 
       /// \brief Get distance to a line
@@ -320,11 +342,44 @@ namespace ignition
 
       /// \brief Addition assignment operator
       /// \param[in] _v vector to add
+      /// \return the sum vector
       public: const Vector3 &operator+=(const Vector3<T> &_v)
       {
         this->data[0] += _v[0];
         this->data[1] += _v[1];
         this->data[2] += _v[2];
+
+        return *this;
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector3<T> operator+(const T _s) const
+      {
+        return Vector3<T>(this->data[0] + _s,
+                          this->data[1] + _s,
+                          this->data[2] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector3<T> operator+(const T _s,
+                                                 const Vector3<T> &_v)
+      {
+        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector3<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+        this->data[2] += _s;
 
         return *this;
       }
@@ -338,7 +393,7 @@ namespace ignition
 
       /// \brief Subtraction operators
       /// \param[in] _pt a vector to substract
-      /// \return a vector
+      /// \return a vector after the substraction
       public: inline Vector3<T> operator-(const Vector3<T> &_pt) const
       {
         return Vector3(this->data[0] - _pt[0],
@@ -346,8 +401,9 @@ namespace ignition
                        this->data[2] - _pt[2]);
       }
 
-      /// \brief Subtraction operators
+      /// \brief Subtraction assignment operators
       /// \param[in] _pt subtrahend
+      /// \return a vector after the substraction
       public: const Vector3<T> &operator-=(const Vector3<T> &_pt)
       {
         this->data[0] -= _pt[0];
@@ -357,9 +413,41 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector3<T> operator-(const T _s) const
+      {
+        return Vector3<T>(this->data[0] - _s,
+                          this->data[1] - _s,
+                          this->data[2] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector3<T> operator-(const T _s,
+                                                 const Vector3<T> &_v)
+      {
+        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector3<T> &operator-=(const T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
+        this->data[2] -= _s;
+
+        return *this;
+      }
+
       /// \brief Division operator
-      /// \brief[in] _pt the vector divisor
       /// \remarks this is an element wise division
+      /// \param[in] _pt the vector divisor
       /// \return a vector
       public: const Vector3<T> operator/(const Vector3<T> &_pt) const
       {
@@ -369,8 +457,8 @@ namespace ignition
       }
 
       /// \brief Division assignment operator
-      /// \brief[in] _pt the vector divisor
       /// \remarks this is an element wise division
+      /// \param[in] _pt the vector divisor
       /// \return a vector
       public: const Vector3<T> &operator/=(const Vector3<T> &_pt)
       {
@@ -383,6 +471,7 @@ namespace ignition
 
       /// \brief Division operator
       /// \remarks this is an element wise division
+      /// \param[in] _v the divisor
       /// \return a vector
       public: const Vector3<T> operator/(T _v) const
       {
@@ -391,8 +480,9 @@ namespace ignition
                        this->data[2] / _v);
       }
 
-      /// \brief Division operator
+      /// \brief Division assignment operator
       /// \remarks this is an element wise division
+      /// \param[in] _v the divisor
       /// \return this
       public: const Vector3<T> &operator/=(T _v)
       {
@@ -405,7 +495,8 @@ namespace ignition
 
       /// \brief Multiplication operator
       /// \remarks this is an element wise multiplication, not a cross product
-      /// \param[in] _v
+      /// \param[in] _p multiplier operator
+      /// \return a vector
       public: Vector3<T> operator*(const Vector3<T> &_p) const
       {
         return Vector3(this->data[0] * _p[0],
@@ -413,7 +504,7 @@ namespace ignition
                        this->data[2] * _p[2]);
       }
 
-      /// \brief Multiplication operators
+      /// \brief Multiplication assignment operators
       /// \remarks this is an element wise multiplication, not a cross product
       /// \param[in] _v a vector
       /// \return this
@@ -457,27 +548,38 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Equal to operator
-      /// \param[in] _pt The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
-      public: bool operator==(const Vector3<T> &_pt) const
+      /// \brief Equality test with tolerance.
+      /// \param[in] _v the vector to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the vectors are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Vector3 &_v, const T &_tol) const
       {
-        return equal<T>(this->data[0], _pt[0], static_cast<T>(0.001)) &&
-               equal<T>(this->data[1], _pt[1], static_cast<T>(0.001)) &&
-               equal<T>(this->data[2], _pt[2], static_cast<T>(0.001));
+        return equal<T>(this->data[0], _v[0], _tol)
+            && equal<T>(this->data[1], _v[1], _tol)
+            && equal<T>(this->data[2], _v[2], _tol);
+      }
+
+      /// \brief Equal to operator
+      /// \param[in] _v The vector to compare against
+      /// \return true if each component is equal within a
+      /// default tolerence (1e-3), false otherwise
+      public: bool operator==(const Vector3<T> &_v) const
+      {
+        return this->Equal(_v, static_cast<T>(1e-3));
       }
 
       /// \brief Not equal to operator
       /// \param[in] _v The vector to compare against
-      /// \return true if each component is equal withing a
-      /// default tolerence (1e-6), false otherwise
+      /// \return false if each component is equal within a
+      /// default tolerence (1e-3), true otherwise
       public: bool operator!=(const Vector3<T> &_v) const
       {
         return !(*this == _v);
       }
 
       /// \brief See if a point is finite (e.g., not nan)
+      /// \return true if is finite or false otherwise
       public: bool IsFinite() const
       {
         // std::isfinite works with floating point values,
@@ -593,6 +695,16 @@ namespace ignition
       public: inline void Z(const T &_v)
       {
         this->data[2] = _v;
+      }
+
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector's X(), Y(), or Z() value is less
+      /// than the given vector's corresponding values.
+      public: bool operator<(const Vector3<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
+               this->data[2] < _pt[2];
       }
 
       /// \brief Stream insertion operator

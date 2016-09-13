@@ -14,28 +14,67 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_MATH_FUNCTIONS_HH_
-#define _IGNITION_MATH_FUNCTIONS_HH_
+#ifndef IGNITION_MATH_FUNCTIONS_HH_
+#define IGNITION_MATH_FUNCTIONS_HH_
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
 #include <limits>
 #include <string>
 #include <iostream>
 #include <vector>
+#include <tuple>
+#include <cstdint>
 
-/// \brief Double maximum value
+/// \brief Double maximum value. This value will be similar to 1.79769e+308
 #define IGN_DBL_MAX std::numeric_limits<double>::max()
 
-/// \brief Double min value
+/// \brief Double min value. This value will be similar to 2.22507e-308
 #define IGN_DBL_MIN std::numeric_limits<double>::min()
 
-/// \brief Float maximum value
+/// \brief Double low value, equivalent to -IGN_DBL_MAX
+#define IGN_DBL_LOW std::numeric_limits<double>::lowest()
+
+/// \brief Double positive infinite value
+#define IGN_DBL_INF std::numeric_limits<double>::infinity()
+
+/// \brief Float maximum value. This value will be similar to 3.40282e+38
 #define IGN_FLT_MAX std::numeric_limits<float>::max()
 
-/// \brief Float minimum value
+/// \brief Float minimum value. This value will be similar to 1.17549e-38
 #define IGN_FLT_MIN std::numeric_limits<float>::min()
+
+/// \brief Float lowest value, equivalent to -IGN_FLT_MAX
+#define IGN_FLT_LOW std::numeric_limits<float>::lowest()
+
+/// \brief Float positive infinite value
+#define IGN_FLT_INF std::numeric_limits<float>::infinity()
+
+/// \brief 16bit unsigned integer maximum value
+#define IGN_UINT16_MAX std::numeric_limits<uint16_t>::max()
+
+/// \brief 16bit unsigned integer minimum value
+#define IGN_UINT16_MIN std::numeric_limits<uint16_t>::min()
+
+/// \brief 16bit unsigned integer lowest value. This is equivalent to
+/// IGN_UINT16_MIN, and is defined here for completeness.
+#define IGN_UINT16_LOW std::numeric_limits<uint16_t>::lowest()
+
+/// \brief 16-bit unsigned integer positive infinite value
+#define IGN_UINT16_INF std::numeric_limits<uint16_t>::infinity()
+
+/// \brief 16bit integer maximum value
+#define IGN_INT16_MAX std::numeric_limits<int16_t>::max()
+
+/// \brief 16bit integer minimum value
+#define IGN_INT16_MIN std::numeric_limits<int16_t>::min()
+
+/// \brief 16bit integer lowest value. This is equivalent to IGN_INT16_MIN,
+/// and is defined here for completeness.
+#define IGN_INT16_LOW std::numeric_limits<int16_t>::lowest()
+
+/// \brief 16-bit integer positive infinite value
+#define IGN_INT16_INF std::numeric_limits<int16_t>::infinity()
 
 /// \brief 32bit unsigned integer maximum value
 #define IGN_UINT32_MAX std::numeric_limits<uint32_t>::max()
@@ -43,11 +82,51 @@
 /// \brief 32bit unsigned integer minimum value
 #define IGN_UINT32_MIN std::numeric_limits<uint32_t>::min()
 
+/// \brief 32bit unsigned integer lowest value. This is equivalent to
+/// IGN_UINT32_MIN, and is defined here for completeness.
+#define IGN_UINT32_LOW std::numeric_limits<uint32_t>::lowest()
+
+/// \brief 32-bit unsigned integer positive infinite value
+#define IGN_UINT32_INF std::numeric_limits<uint32_t>::infinity()
+
 /// \brief 32bit integer maximum value
 #define IGN_INT32_MAX std::numeric_limits<int32_t>::max()
 
 /// \brief 32bit integer minimum value
 #define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
+
+/// \brief 32bit integer minimum value. This is equivalent to IGN_INT32_MIN,
+/// and is defined here for completeness.
+#define IGN_INT32_LOW std::numeric_limits<int32_t>::lowest()
+
+/// \brief 32-bit integer positive infinite value
+#define IGN_INT32_INF std::numeric_limits<int32_t>::infinity()
+
+/// \brief 64bit unsigned integer maximum value
+#define IGN_UINT64_MAX std::numeric_limits<uint64_t>::max()
+
+/// \brief 64bit unsigned integer minimum value
+#define IGN_UINT64_MIN std::numeric_limits<uint64_t>::min()
+
+/// \brief 64bit unsigned integer lowest value. This is equivalent to
+/// IGN_UINT64_MIN, and is defined here for completeness.
+#define IGN_UINT64_LOW std::numeric_limits<uint64_t>::lowest()
+
+/// \brief 64-bit unsigned integer positive infinite value
+#define IGN_UINT64_INF std::numeric_limits<uint64_t>::infinity()
+
+/// \brief 64bit integer maximum value
+#define IGN_INT64_MAX std::numeric_limits<int64_t>::max()
+
+/// \brief 64bit integer minimum value
+#define IGN_INT64_MIN std::numeric_limits<int64_t>::min()
+
+/// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
+/// and is defined here for completeness.
+#define IGN_INT64_LOW std::numeric_limits<int64_t>::lowest()
+
+/// \brief 64-bit integer positive infinite value
+#define IGN_INT64_INF std::numeric_limits<int64_t>::infinity()
 
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
@@ -55,10 +134,73 @@
 #define IGN_PI M_PI
 #define IGN_PI_2 M_PI_2
 #define IGN_PI_4 M_PI_4
+#define IGN_SQRT2 M_SQRT2
 #else
 #define IGN_PI   3.14159265358979323846
 #define IGN_PI_2 1.57079632679489661923
 #define IGN_PI_4 0.78539816339744830962
+#define IGN_SQRT2 1.41421356237309504880
+#endif
+
+/// \brief Define IGN_FP_VOLATILE for FP equality comparisons
+/// Use volatile parameters when checking floating point equality on
+/// the 387 math coprocessor to work around bugs from the 387 extra precision
+#if defined __FLT_EVAL_METHOD__  &&  __FLT_EVAL_METHOD__ == 2
+#define IGN_FP_VOLATILE volatile
+#else
+#define IGN_FP_VOLATILE
+#endif
+
+/// \brief Compute sphere volume
+/// \param[in] _radius Sphere radius
+#define IGN_SPHERE_VOLUME(_radius) (4.0*IGN_PI*std::pow(_radius, 3)/3.0)
+
+/// \brief Compute cylinder volume
+/// \param[in] _r Cylinder base radius
+/// \param[in] _l Cylinder length
+#define IGN_CYLINDER_VOLUME(_r, _l) (_l * IGN_PI * std::pow(_r, 2))
+
+/// \brief Compute box volume
+/// \param[in] _x X length
+/// \param[in] _y Y length
+/// \param[in] _z Z length
+#define IGN_BOX_VOLUME(_x, _y, _z) (_x *_y * _z)
+
+/// \brief Compute box volume from a vector
+/// \param[in] _v Vector3d that contains the box's dimensions.
+#define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
+
+/** \def IGNITION_VISIBLE
+ * Use to represent "symbol visible" if supported
+ */
+
+/** \def IGNITION_HIDDEN
+ * Use to represent "symbol hidden" if supported
+ */
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef BUILDING_DLL
+    #ifdef __GNUC__
+      #define IGNITION_VISIBLE __attribute__ ((dllexport))
+    #else
+      #define IGNITION_VISIBLE __declspec(dllexport)
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define IGNITION_VISIBLE __attribute__ ((dllimport))
+    #else
+      #define IGNITION_VISIBLE __declspec(dllimport)
+    #endif
+  #endif
+  #define IGNITION_HIDDEN
+#else
+  #if __GNUC__ >= 4
+    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
+    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
+  #else
+    #define IGNITION_VISIBLE
+    #define IGNITION_HIDDEN
+  #endif
 #endif
 
 namespace ignition
@@ -115,6 +257,38 @@ namespace ignition
     inline double fixnan(double _v)
     {
       return isnan(_v) || std::isinf(_v) ? 0.0 : _v;
+    }
+
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const int _v)
+    {
+      return !(_v % 2);
+    }
+
+    /// \brief Check if parameter is even.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is even.
+    inline bool isEven(const unsigned int _v)
+    {
+      return !(_v % 2);
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const int _v)
+    {
+      return (_v % 2) != 0;
+    }
+
+    /// \brief Check if parameter is odd.
+    /// \param[in] _v Value to check.
+    /// \return True if _v is odd.
+    inline bool isOdd(const unsigned int _v)
+    {
+      return (_v % 2) != 0;
     }
 
     /// \brief get mean of vector of values
@@ -177,7 +351,8 @@ namespace ignition
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = 1e-6)
     {
-      return std::abs(_a - _b) <= _epsilon;
+      IGN_FP_VOLATILE T diff = std::abs(_a - _b);
+      return diff <= _epsilon;
     }
 
     /// \brief get value at a specified precision
@@ -187,7 +362,34 @@ namespace ignition
     template<typename T>
     inline T precision(const T &_a, const unsigned int &_precision)
     {
-      return std::round(_a * pow(10, _precision)) / pow(10, _precision);
+      auto p = std::pow(10, _precision);
+      return static_cast<T>(std::round(_a * p) / p);
+    }
+
+    /// \brief Sort two numbers, such that _a <= _b
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
+    template<typename T>
+    inline void sort2(T &_a, T &_b)
+    {
+      using std::swap;
+      if (_b < _a)
+        swap(_a, _b);
+    }
+
+    /// \brief Sort three numbers, such that _a <= _b <= _c
+    /// \param[out] _a the first number
+    /// \param[out] _b the second number
+    /// \param[out] _c the third number
+    template<typename T>
+    inline void sort3(T &_a, T &_b, T &_c)
+    {
+      // _a <= _b
+      sort2(_a, _b);
+      // _a <= _c, _b <= _c
+      sort2(_b, _c);
+      // _a <= _b <= _c
+      sort2(_a, _b);
     }
 
     /// \brief Is this a power of 2?
@@ -238,7 +440,7 @@ namespace ignition
         p++;
       }
 
-      double acc = 0;
+      int acc = 0;
       while (*p >= '0' && *p <= '9')
         acc = acc * 10 + *p++ - '0';
 
@@ -248,7 +450,7 @@ namespace ignition
         return NAN_I;
       }
 
-      return static_cast<int>(s * acc);
+      return s * acc;
     }
 
     /// \brief parse string into float
@@ -312,40 +514,43 @@ namespace ignition
       }
       return s * acc;
     }
+
+
+    // Degrade precision on Windows, which cannot handle 'long double'
+    // values properly. See the implementation of Unpair.
+#ifdef _MSC_VER
+    using PairInput = uint16_t;
+    using PairOutput = uint32_t;
+#else
+    using PairInput = uint32_t;
+    using PairOutput = uint64_t;
+#endif
+
+    /// \brief A pairing function that maps two values to a unique third
+    /// value. This is an implement of Szudzik's function.
+    /// \param[in] _a First value, must be a non-negative integer. On
+    /// Windows this value is uint16_t. On Linux/OSX this value is uint32_t.
+    /// \param[in] _b Second value, must be a non-negative integer. On
+    /// Windows this value is uint16_t. On Linux/OSX this value is uint32_t.
+    /// \return A unique non-negative integer value. On Windows the return
+    /// value is uint32_t. On Linux/OSX the return value is uint64_t
+    /// \sa Unpair
+    PairOutput IGNITION_VISIBLE Pair(const PairInput _a, const PairInput _b);
+
+    /// \brief The reverse of the Pair function. Accepts a key, produced
+    /// from the Pair function, and returns a tuple consisting of the two
+    /// non-negative integer values used to create the _key.
+    /// \param[in] _key A non-negative integer generated from the Pair
+    /// function. On Windows this value is uint32_t. On Linux/OSX, this
+    /// value is uint64_t.
+    /// \return A tuple that consists of the two non-negative integers that
+    /// will generate _key when used with the Pair function. On Windows the
+    /// tuple contains two uint16_t values. On Linux/OSX the tuple contains
+    /// two uint32_t values.
+    /// \sa Pair
+    std::tuple<PairInput, PairInput> IGNITION_VISIBLE Unpair(
+        const PairOutput _key);
   }
 }
-
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
-    #define IGNITION_HIDDEN
-  #endif
-#endif
 
 #endif

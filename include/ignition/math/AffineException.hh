@@ -14,11 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_AFFINE_EXCEPTION_HH_
-#define _IGNITION_AFFINE_EXCEPTION_HH_
+#ifndef IGNITION_MATH_AFFINEEXCEPTION_HH_
+#define IGNITION_MATH_AFFINEEXCEPTION_HH_
 
 #include <stdexcept>
 #include <ignition/math/Helpers.hh>
+
+// Ignore warning C4275. It is okay to ignore this according to microsoft:
+// https://msdn.microsoft.com/en-us/library/3tdb471s.aspx
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4275)
+#endif
 
 namespace ignition
 {
@@ -34,4 +41,9 @@ namespace ignition
     };
   }
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #endif

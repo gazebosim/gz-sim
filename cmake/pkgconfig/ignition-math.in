@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@/ignition/@IGN_PROJECT_NAME@@PROJECT_MAJOR_VERSION@
+
+Name: Ignition Math
+Description: A set of math classes for robot applications
+Version: @PROJECT_VERSION_FULL@
+Requires:
+Libs: "-L${libdir}" -lignition-math@PROJECT_MAJOR_VERSION@
+CFlags: "-I${includedir}" -std=c++11

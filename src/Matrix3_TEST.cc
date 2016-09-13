@@ -15,7 +15,6 @@
  *
 */
 
-#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 
 #include "ignition/math/Helpers.hh"
@@ -188,6 +187,7 @@ TEST(Matrix3dTest, Vector3Multiplication)
 
     // Vector3::Zero
     EXPECT_EQ(math::Vector3d::Zero, matrix * math::Vector3d::Zero);
+    EXPECT_EQ(math::Vector3d::Zero, math::Vector3d::Zero * matrix);
     // left multiply with Vector3 not implemented
 
     // Matrix3::Zero
@@ -204,12 +204,20 @@ TEST(Matrix3dTest, Vector3Multiplication)
     EXPECT_EQ(matrix, 1.0 * matrix);
 
     // Vector3::Unit[X|Y|Z]
+    // right multiply
     EXPECT_EQ(math::Vector3d(matrix(0, 0), matrix(1, 0), matrix(2, 0)),
               matrix * math::Vector3d::UnitX);
     EXPECT_EQ(math::Vector3d(matrix(0, 1), matrix(1, 1), matrix(2, 1)),
               matrix * math::Vector3d::UnitY);
     EXPECT_EQ(math::Vector3d(matrix(0, 2), matrix(1, 2), matrix(2, 2)),
               matrix * math::Vector3d::UnitZ);
+    // left multiply
+    EXPECT_EQ(math::Vector3d(matrix(0, 0), matrix(0, 1), matrix(0, 2)),
+              math::Vector3d::UnitX * matrix);
+    EXPECT_EQ(math::Vector3d(matrix(1, 0), matrix(1, 1), matrix(1, 2)),
+              math::Vector3d::UnitY * matrix);
+    EXPECT_EQ(math::Vector3d(matrix(2, 0), matrix(2, 1), matrix(2, 2)),
+              math::Vector3d::UnitZ * matrix);
 
     // Matrix3::IDENTITY
     EXPECT_EQ(matrix, matrix * math::Matrix3d::Identity);
@@ -249,4 +257,144 @@ TEST(Matrix3dTest, NotEqual)
     matrix2(0, 0) = 1.000001;
     EXPECT_FALSE(matrix1 != matrix2);
   }
+}
+
+/////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Matrix3Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-6));
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-3));
+  EXPECT_FALSE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1e-1));
+  EXPECT_TRUE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1));
+  EXPECT_TRUE(math::Matrix3d::Zero.Equal(math::Matrix3d::Identity, 1.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Inverse)
+{
+  // Inverse of identity matrix is itself
+  EXPECT_EQ(math::Matrix3d::Identity, math::Matrix3d::Identity.Inverse());
+
+  // Matrix multiplied by its inverse results in the identity matrix
+  math::Matrix3d matrix1(-2, 4, 0, 0.1, 9, 55, -7, 1, 26);
+  math::Matrix3d matrix2 = matrix1.Inverse();
+  EXPECT_EQ(matrix1 * matrix2, math::Matrix3d::Identity);
+  EXPECT_EQ(matrix2 * matrix1, math::Matrix3d::Identity);
+
+  // Inverse of inverse results in the same matrix
+  EXPECT_EQ((matrix1.Inverse()).Inverse(), matrix1);
+
+  // Invert multiplication by scalar
+  double scalar = 2.5;
+  EXPECT_EQ((matrix1 * scalar).Inverse(), matrix1.Inverse() * (1.0/scalar));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Determinant)
+{
+  // |Zero matrix| = 0.0
+  EXPECT_DOUBLE_EQ(0.0, math::Matrix3d::Zero.Determinant());
+
+  // |Identity matrix| = 1.0
+  EXPECT_DOUBLE_EQ(1.0, math::Matrix3d::Identity.Determinant());
+
+  // Determinant of arbitrary matrix
+  math::Matrix3d m(-2, 4, 0, 0.1, 9, 55, -7, 1, 26);
+  EXPECT_DOUBLE_EQ(-1908.4, m.Determinant());
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, Transpose)
+{
+  // Transpose of zero matrix is itself
+  EXPECT_EQ(math::Matrix3d::Zero, math::Matrix3d::Zero.Transposed());
+
+  // Transpose of identity matrix is itself
+  EXPECT_EQ(math::Matrix3d::Identity, math::Matrix3d::Identity.Transposed());
+
+  // Matrix and expected transpose
+  math::Matrix3d m(-2, 4, 0,
+                  0.1, 9, 55,
+                   -7, 1, 26);
+  math::Matrix3d mT(-2, 0.1, -7,
+                     4,   9, 1,
+                     0,  55, 26);
+  EXPECT_NE(m, mT);
+  EXPECT_EQ(m.Transposed(), mT);
+  EXPECT_DOUBLE_EQ(m.Determinant(), m.Transposed().Determinant());
+
+  mT.Transpose();
+  EXPECT_EQ(m, mT);
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix3dTest, From2Axes)
+{
+  math::Vector3d v1(1.0, 0.0, 0.0);
+  math::Vector3d v2(0.0, 1.0, 0.0);
+
+  math::Matrix3d m1;
+  m1.From2Axes(v1, v2);
+
+  math::Matrix3d m2;
+  m2.From2Axes(v2, v1);
+
+  math::Matrix3d m1Correct(0, -1, 0,
+                           1, 0, 0,
+                           0, 0, 1);
+  math::Matrix3d m2Correct(m1Correct);
+  m2Correct.Transpose();
+
+  EXPECT_NE(m1, m2);
+  EXPECT_EQ(m1Correct, m1);
+  EXPECT_EQ(m2Correct, m2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1 * m2);
+  EXPECT_EQ(v2, m1 * v1);
+  EXPECT_EQ(v1, m2 * v2);
+
+  // rotation about 45 degrees
+  v1.Set(1.0, 0.0, 0.0);
+  v2.Set(1.0, 1.0, 0.0);
+  m2.From2Axes(v1, v2);
+  // m1 is 90 degrees rotation
+  EXPECT_EQ(m1, m2*m2);
+
+  // with non-unit vectors
+  v1.Set(0.5, 0.5, 0);
+  v2.Set(-0.5, 0.5, 0);
+
+  m1.From2Axes(v1, v2);
+  m2.From2Axes(v2, v1);
+
+  EXPECT_NE(m1, m2);
+  EXPECT_EQ(m1Correct, m1);
+  EXPECT_EQ(m2Correct, m2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1 * m2);
+  EXPECT_EQ(v2, m1 * v1);
+  EXPECT_EQ(v1, m2 * v2);
+
+  // For zero-length vectors, a unit matrix is returned
+  v1.Set(0, 0, 0);
+  v2.Set(-0.5, 0.5, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // For zero-length vectors, a unit matrix is returned
+  v1.Set(-0.5, 0.5, 0);
+  v2.Set(0, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // Parallel vectors
+  v1.Set(1, 0, 0);
+  v2.Set(2, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Identity, m1);
+
+  // Opposite vectors
+  v1.Set(1, 0, 0);
+  v2.Set(-2, 0, 0);
+  m1.From2Axes(v1, v2);
+  EXPECT_EQ(math::Matrix3d::Zero - math::Matrix3d::Identity, m1);
 }

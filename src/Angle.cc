@@ -32,7 +32,7 @@ Angle::Angle()
 }
 
 //////////////////////////////////////////////////
-Angle::Angle(double _radian)
+Angle::Angle(const double _radian)
 {
   this->value = _radian;
 }
@@ -166,4 +166,8 @@ bool Angle::operator>=(const Angle &angle) const
   return this->value > angle.value || math::equal(this->value, angle.value);
 }
 
-
+//////////////////////////////////////////////////
+double Angle::operator()() const
+{
+  return this->value;
+}

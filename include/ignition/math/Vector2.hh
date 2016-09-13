@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef _IGNITION_VECTOR2_HH_
-#define _IGNITION_VECTOR2_HH_
+#ifndef IGNITION_MATH_VECTOR2_HH_
+#define IGNITION_MATH_VECTOR2_HH_
 
 #include <ignition/math/IndexException.hh>
 
@@ -28,6 +28,12 @@ namespace ignition
     template<typename T>
     class Vector2
     {
+      /// \brief math::Vector2(0, 0)
+      public: static const Vector2<T> Zero;
+
+      /// \brief math::Vector2(1, 1)
+      public: static const Vector2<T> One;
+
       /// \brief Default Constructor
       public: Vector2()
       {
@@ -64,14 +70,31 @@ namespace ignition
                     (this->data[1]-_pt[1])*(this->data[1]-_pt[1]));
       }
 
-      /// \brief  Normalize the vector length
+      /// \brief Returns the length (magnitude) of the vector
+      /// \return The length
+      public: T Length() const
+      {
+        return sqrt(this->SquaredLength());
+      }
+
+      /// \brief Returns the square of the length (magnitude) of the vector
+      /// \return The squared length
+      public: T SquaredLength() const
+      {
+        return std::pow(this->data[0], 2)
+             + std::pow(this->data[1], 2);
+      }
+
+      /// \brief Normalize the vector length
       public: void Normalize()
       {
-        double d = sqrt(this->data[0] * this->data[0] +
-                        this->data[1] * this->data[1]);
+        double d = this->Length();
 
-        this->data[0] /= d;
-        this->data[1] /= d;
+        if (!equal<T>(d, static_cast<T>(0.0)))
+        {
+          this->data[0] /= d;
+          this->data[1] /= d;
+        }
       }
 
       /// \brief Set the contents of the vector
@@ -132,6 +155,43 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \return sum vector
+      public: inline Vector2<T> operator+(const T _s) const
+      {
+        return Vector2<T>(this->data[0] + _s,
+                          this->data[1] + _s);
+      }
+
+      /// \brief Addition operators
+      /// \param[in] _s the scalar addend
+      /// \param[in] _v input vector
+      /// \return sum vector
+      public: friend inline Vector2<T> operator+(const T _s,
+                                                 const Vector2<T> &_v)
+      {
+        return _v + _s;
+      }
+
+      /// \brief Addition assignment operator
+      /// \param[in] _s scalar addend
+      /// \return this
+      public: const Vector2<T> &operator+=(const T _s)
+      {
+        this->data[0] += _s;
+        this->data[1] += _s;
+
+        return *this;
+      }
+
+      /// \brief Negation operator
+      /// \return negative of this vector
+      public: inline Vector2 operator-() const
+      {
+        return Vector2(-this->data[0], -this->data[1]);
+      }
+
       /// \brief Subtraction operator
       /// \param[in] _v the vector to substract
       /// \return the subtracted vector
@@ -147,6 +207,36 @@ namespace ignition
       {
         this->data[0] -= _v[0];
         this->data[1] -= _v[1];
+
+        return *this;
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar subtrahend
+      /// \return difference vector
+      public: inline Vector2<T> operator-(const T _s) const
+      {
+        return Vector2<T>(this->data[0] - _s,
+                          this->data[1] - _s);
+      }
+
+      /// \brief Subtraction operators
+      /// \param[in] _s the scalar minuend
+      /// \param[in] _v vector subtrahend
+      /// \return difference vector
+      public: friend inline Vector2<T> operator-(const T _s,
+                                                 const Vector2<T> &_v)
+      {
+        return {_s - _v.X(), _s - _v.Y()};
+      }
+
+      /// \brief Subtraction assignment operator
+      /// \param[in] _s scalar subtrahend
+      /// \return this
+      public: const Vector2<T> &operator-=(T _s)
+      {
+        this->data[0] -= _s;
+        this->data[1] -= _s;
 
         return *this;
       }
@@ -219,6 +309,16 @@ namespace ignition
         return Vector2(this->data[0] * _v, this->data[1] * _v);
       }
 
+      /// \brief Scalar left multiplication operators
+      /// \param[in] _s the scaling factor
+      /// \param[in] _v the vector to scale
+      /// \return a scaled vector
+      public: friend inline const Vector2 operator*(const T _s,
+                                                    const Vector2 &_v)
+      {
+        return Vector2(_v * _s);
+      }
+
       /// \brief Multiplication assignment operator
       /// \param[in] _v the scaling factor
       /// \return a scaled vector
@@ -230,13 +330,24 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Equality test with tolerance.
+      /// \param[in] _v the vector to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the vectors are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Vector2 &_v, const T &_tol) const
+      {
+        return equal<T>(this->data[0], _v[0], _tol)
+            && equal<T>(this->data[1], _v[1], _tol);
+      }
+
       /// \brief Equal to operator
       /// \param[in] _v the vector to compare to
       /// \return true if the elements of the 2 vectors are equal within
       /// a tolerence (1e-6)
       public: bool operator==(const Vector2 &_v) const
       {
-        return equal(this->data[0], _v[0]) && equal(this->data[1], _v[1]);
+        return this->Equal(_v, static_cast<T>(1e-6));
       }
 
       /// \brief Not equal to operator
@@ -328,7 +439,7 @@ namespace ignition
 
       /// \brief Less than operator.
       /// \param[in] _pt Vector to compare.
-      /// \return True if this vector2 first or second value is less than
+      /// \return True if this vector's first or second value is less than
       /// the given vector's first or second value.
       public: bool operator<(const Vector2<T> &_pt) const
       {
@@ -354,6 +465,12 @@ namespace ignition
       /// \brief The x and y values.
       private: T data[2];
     };
+
+    template<typename T>
+    const Vector2<T> Vector2<T>::Zero(0, 0);
+
+    template<typename T>
+    const Vector2<T> Vector2<T>::One(1, 1);
 
     typedef Vector2<int> Vector2i;
     typedef Vector2<double> Vector2d;

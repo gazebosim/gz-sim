@@ -76,6 +76,48 @@ TEST(Matrix4dTest, Construct)
 }
 
 /////////////////////////////////////////////////
+TEST(Matrix4dTest, ConstructFromPose3d)
+{
+  {
+    math::Vector3d trans(1, 2, 3);
+    math::Quaterniond qt(0.1, 0.2, 0.3);
+    math::Pose3d pose(trans, qt);
+    math::Matrix4d mat(pose);
+
+    EXPECT_EQ(pose, mat.Pose());
+    EXPECT_EQ(trans, mat.Translation());
+    EXPECT_EQ(qt, mat.Rotation());
+    EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+  }
+
+  // Zero values
+  {
+    math::Vector3d trans(0, 0, 0);
+    math::Quaterniond qt(0, 0, 0);
+    math::Pose3d pose(trans, qt);
+    math::Matrix4d mat(pose);
+
+    EXPECT_EQ(pose, mat.Pose());
+    EXPECT_EQ(trans, mat.Translation());
+    EXPECT_EQ(qt, mat.Rotation());
+    EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+  }
+
+  // Rotate pitch by pi/2 so yaw coincides with roll causing a gimbal lock
+  {
+    math::Vector3d trans(3, 2, 1);
+    math::Quaterniond qt(0, IGN_PI/2, 0);
+    math::Pose3d pose(trans, qt);
+    math::Matrix4d mat(pose);
+
+    EXPECT_EQ(pose, mat.Pose());
+    EXPECT_EQ(trans, mat.Translation());
+    EXPECT_EQ(qt, mat.Rotation());
+    EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+  }
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix4dTest, Scale)
 {
   math::Matrix4d mat, mat2;
@@ -475,3 +517,56 @@ TEST(Matrix4dTest, NotEqual)
     EXPECT_FALSE(matrix1 != matrix2);
   }
 }
+
+/////////////////////////////////////////////////
+// Test Equal function with specified tolerance
+TEST(Matrix4Test, EqualTolerance)
+{
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-6));
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-3));
+  EXPECT_FALSE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1e-1));
+  EXPECT_TRUE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1));
+  EXPECT_TRUE(math::Matrix4d::Zero.Equal(math::Matrix4d::Identity, 1.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, Determinant)
+{
+  // |Zero matrix| = 0.0
+  EXPECT_DOUBLE_EQ(0.0, math::Matrix4d::Zero.Determinant());
+
+  // |Identity matrix| = 1.0
+  EXPECT_DOUBLE_EQ(1.0, math::Matrix4d::Identity.Determinant());
+
+  // Determinant of arbitrary matrix
+  math::Matrix4d m(2, 3, 0.1, -5, 1, 0, 3.2, 1,
+                   0, 2, -3, 2.1, 0, 2, 3.2, 1);
+  EXPECT_DOUBLE_EQ(129.82, m.Determinant());
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, Transpose)
+{
+  // Transpose of zero matrix is itself
+  EXPECT_EQ(math::Matrix4d::Zero, math::Matrix4d::Zero.Transposed());
+
+  // Transpose of identity matrix is itself
+  EXPECT_EQ(math::Matrix4d::Identity, math::Matrix4d::Identity.Transposed());
+
+  // Matrix and expected transpose
+  math::Matrix4d m(-2, 4,  0, -3.5,
+                  0.1, 9, 55,  1.2,
+                   -7, 1, 26, 11.5,
+                   .2, 3, -5, -0.1);
+  math::Matrix4d mT(-2, 0.1,   -7, .2,
+                     4,   9,    1, 3,
+                     0,  55,   26, -5,
+                  -3.5, 1.2, 11.5, -0.1);
+  EXPECT_NE(m, mT);
+  EXPECT_EQ(m.Transposed(), mT);
+  EXPECT_DOUBLE_EQ(m.Determinant(), m.Transposed().Determinant());
+
+  mT.Transpose();
+  EXPECT_EQ(m, mT);
+}
+

@@ -37,6 +37,7 @@
 # Check prereqs
 FIND_PROGRAM( GCOV_PATH gcov )
 FIND_PROGRAM( LCOV_PATH lcov )
+FIND_PROGRAM( GREP_PATH grep )
 FIND_PROGRAM( GENHTML_PATH genhtml )
 FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
 
@@ -94,6 +95,10 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 		MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
 	ENDIF() # NOT LCOV_PATH
 
+  IF(NOT GREP_PATH)
+    MESSAGE(FATAL_ERROR "grep not found! Run code coverage on linux or mac.")
+  ENDIF()
+
 	IF(NOT GENHTML_PATH)
 		MESSAGE(FATAL_ERROR "genhtml not found! Aborting...")
 	ENDIF() # NOT GENHTML_PATH
@@ -108,6 +113,8 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
       'test/*' '/usr/*' '*_TEST*' --output-file ${_outputname}.info.cleaned
 		COMMAND ${GENHTML_PATH} -q --legend -o ${_outputname}
       ${_outputname}.info.cleaned
+    COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "lines" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/lines.txt
+    COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "functions" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/functions.txt
     COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info
       ${_outputname}.info.cleaned
 		

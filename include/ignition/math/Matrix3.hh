@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_MATH_MATRIX3_HH_
+#define IGNITION_MATH_MATRIX3_HH_
 
-#ifndef _IGNITION_MATRIX3_HH_
-#define _IGNITION_MATRIX3_HH_
-
+#include <algorithm>
 #include <cstring>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -26,6 +26,8 @@ namespace ignition
 {
   namespace math
   {
+    template <typename T> class Quaternion;
+
     /// \class Matrix3 Matrix3.hh ignition/math/Matrix3.hh
     /// \brief A 3x3 matrix class
     template<typename T>
@@ -77,7 +79,7 @@ namespace ignition
 
       /// \brief Construct Matrix3 from a quaternion.
       /// \param[in] _q Quaternion.
-      public: Matrix3(const Quaternion<T> &_q)
+      public: explicit Matrix3(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
@@ -155,6 +157,49 @@ namespace ignition
         this->data[2][2] = _axis.Z()*_axis.Z()*C + c;
       }
 
+      /// \brief Set the matrix to represent rotation from
+      /// vector _v1 to vector _v2, so that
+      /// _v2.Normalize() == this * _v1.Normalize() holds.
+      ///
+      /// \param[in] _v1 The first vector
+      /// \param[in] _v2 The second vector
+      public: void From2Axes(const Vector3<T> &_v1, const Vector3<T> &_v2)
+      {
+        const T _v1LengthSquared = _v1.SquaredLength();
+        if (_v1LengthSquared <= 0.0)
+        {
+          // zero vector - we can't handle this
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+
+        const T _v2LengthSquared = _v2.SquaredLength();
+        if (_v2LengthSquared <= 0.0)
+        {
+          // zero vector - we can't handle this
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+
+        const T dot = _v1.Dot(_v2) / sqrt(_v1LengthSquared * _v2LengthSquared);
+        if (fabs(dot - 1.0) <= 1e-6)
+        {
+          // the vectors are parallel
+          this->Set(1, 0, 0, 0, 1, 0, 0, 0, 1);
+          return;
+        }
+        else if (fabs(dot + 1.0) <= 1e-6)
+        {
+          // the vectors are opposite
+          this->Set(-1, 0, 0, 0, -1, 0, 0, 0, -1);
+          return;
+        }
+
+        const Vector3<T> cross = _v1.Cross(_v2).Normalize();
+
+        this->Axis(cross, acos(dot));
+      }
+
       /// \brief Set a column
       /// \param[in] _c The colum index (0, 1, 2)
       /// \param[in] _v The value to set in each row of the column
@@ -166,6 +211,15 @@ namespace ignition
         this->data[0][_c] = _v.X();
         this->data[1][_c] = _v.Y();
         this->data[2][_c] = _v.Z();
+      }
+
+      /// \brief Equal operator. this = _mat
+      /// \param _mat Incoming matrix
+      /// \return itself
+      public: Matrix3<T> &operator=(const Matrix3<T> &_mat)
+      {
+        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
+        return *this;
       }
 
       /// \brief returns the element wise difference of two matrices
@@ -253,7 +307,8 @@ namespace ignition
             this->data[2][2]*_m(2, 2));
       }
 
-      /// \brief Multiplication operator
+      /// \brief Multiplication operator with Vector3 on the right
+      /// treated like a column vector.
       /// \param _vec Vector3
       /// \return Resulting vector from multiplication
       public: Vector3<T> operator*(const Vector3<T> &_vec) const
@@ -276,22 +331,53 @@ namespace ignition
         return _m * _s;
       }
 
+      /// \brief Matrix left multiplication operator for Vector3.
+      /// Treats the Vector3 like a row vector multiplying the matrix
+      /// from the left.
+      /// \param[in] _v Input vector.
+      /// \param[in] _m Input matrix.
+      /// \return The product vector.
+      public: friend inline Vector3<T> operator*(const Vector3<T> &_v,
+                                                 const Matrix3<T> &_m)
+      {
+        return Vector3<T>(
+            _m(0, 0)*_v.X() + _m(1, 0)*_v.Y() + _m(2, 0)*_v.Z(),
+            _m(0, 1)*_v.X() + _m(1, 1)*_v.Y() + _m(2, 1)*_v.Z(),
+            _m(0, 2)*_v.X() + _m(1, 2)*_v.Y() + _m(2, 2)*_v.Z());
+      }
+
+      /// \brief Equality test with tolerance.
+      /// \param[in] _m the matrix to compare to
+      /// \param[in] _tol equality tolerance.
+      /// \return true if the elements of the matrices are equal within
+      /// the tolerence specified by _tol.
+      public: bool Equal(const Matrix3 &_m, const T &_tol) const
+      {
+        return equal<T>(this->data[0][0], _m(0, 0), _tol)
+            && equal<T>(this->data[0][1], _m(0, 1), _tol)
+            && equal<T>(this->data[0][2], _m(0, 2), _tol)
+            && equal<T>(this->data[1][0], _m(1, 0), _tol)
+            && equal<T>(this->data[1][1], _m(1, 1), _tol)
+            && equal<T>(this->data[1][2], _m(1, 2), _tol)
+            && equal<T>(this->data[2][0], _m(2, 0), _tol)
+            && equal<T>(this->data[2][1], _m(2, 1), _tol)
+            && equal<T>(this->data[2][2], _m(2, 2), _tol);
+      }
+
       /// \brief Equality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if equal (using the default tolerance of 1e-6)
       public: bool operator==(const Matrix3<T> &_m) const
       {
-        return math::equal(this->data[0][0], _m(0, 0)) &&
-               math::equal(this->data[0][1], _m(0, 1)) &&
-               math::equal(this->data[0][2], _m(0, 2)) &&
+        return this->Equal(_m, static_cast<T>(1e-6));
+      }
 
-               math::equal(this->data[1][0], _m(1, 0)) &&
-               math::equal(this->data[1][1], _m(1, 1)) &&
-               math::equal(this->data[1][2], _m(1, 2)) &&
-
-               math::equal(this->data[2][0], _m(2, 0)) &&
-               math::equal(this->data[2][1], _m(2, 1)) &&
-               math::equal(this->data[2][2], _m(2, 2));
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
+      {
+        return *this = Matrix3<T>(_q);
       }
 
       /// \brief Inequality test operator
@@ -320,6 +406,77 @@ namespace ignition
         if (_row >= 3 || _col >=3)
           throw IndexException();
         return this->data[_row][_col];
+      }
+
+      /// \brief Return the determinant of the matrix
+      /// \return Determinant of this matrix.
+      public: T Determinant() const
+      {
+        T t0 = this->data[2][2]*this->data[1][1]
+             - this->data[2][1]*this->data[1][2];
+
+        T t1 = -(this->data[2][2]*this->data[1][0]
+                -this->data[2][0]*this->data[1][2]);
+
+        T t2 = this->data[2][1]*this->data[1][0]
+             - this->data[2][0]*this->data[1][1];
+
+        return t0 * this->data[0][0]
+             + t1 * this->data[0][1]
+             + t2 * this->data[0][2];
+      }
+
+      /// \brief Return the inverse matrix
+      /// \return Inverse of this matrix.
+      public: Matrix3<T> Inverse() const
+      {
+        T t0 = this->data[2][2]*this->data[1][1] -
+                    this->data[2][1]*this->data[1][2];
+
+        T t1 = -(this->data[2][2]*this->data[1][0] -
+                      this->data[2][0]*this->data[1][2]);
+
+        T t2 = this->data[2][1]*this->data[1][0] -
+                    this->data[2][0]*this->data[1][1];
+
+        T invDet = 1.0 / (t0 * this->data[0][0] +
+                               t1 * this->data[0][1] +
+                               t2 * this->data[0][2]);
+
+        return invDet * Matrix3<T>(
+          t0,
+          - (this->data[2][2] * this->data[0][1] -
+             this->data[2][1] * this->data[0][2]),
+          + (this->data[1][2] * this->data[0][1] -
+             this->data[1][1] * this->data[0][2]),
+          t1,
+          + (this->data[2][2] * this->data[0][0] -
+             this->data[2][0] * this->data[0][2]),
+          - (this->data[1][2] * this->data[0][0] -
+             this->data[1][0] * this->data[0][2]),
+          t2,
+          - (this->data[2][1] * this->data[0][0] -
+             this->data[2][0] * this->data[0][1]),
+          + (this->data[1][1] * this->data[0][0] -
+             this->data[1][0] * this->data[0][1]));
+      }
+
+      /// \brief Transpose this matrix.
+      public: void Transpose()
+      {
+        std::swap(this->data[0][1], this->data[1][0]);
+        std::swap(this->data[0][2], this->data[2][0]);
+        std::swap(this->data[1][2], this->data[2][1]);
+      }
+
+      /// \brief Return the transpose of this matrix
+      /// \return Transpose of this matrix.
+      public: Matrix3<T> Transposed() const
+      {
+        return Matrix3<T>(
+          this->data[0][0], this->data[1][0], this->data[2][0],
+          this->data[0][1], this->data[1][1], this->data[2][1],
+          this->data[0][2], this->data[1][2], this->data[2][2]);
       }
 
       /// \brief Stream insertion operator
