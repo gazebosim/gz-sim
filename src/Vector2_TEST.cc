@@ -130,7 +130,7 @@ TEST(Vector2Test, IndexException)
   EXPECT_NO_THROW(math::equal(v[0], 1.0));
   EXPECT_NO_THROW(math::equal(v[1], 2.0));
 
-  EXPECT_THROW(math::equal(v[2], 1.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(v[2], 1.0));
 }
 
 /////////////////////////////////////////////////

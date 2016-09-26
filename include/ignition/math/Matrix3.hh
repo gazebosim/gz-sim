@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <ignition/math/IndexException.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 

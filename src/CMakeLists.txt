@@ -1,5 +1,7 @@
 include (${project_cmake_dir}/Utils.cmake)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+  ${RUBY_INCLUDE_DIRS}
+  ${PYTHON_INCLUDE_PATH})
 
 set (sources
   Angle.cc
@@ -68,7 +70,28 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 ign_build_tests(${gtest_sources})
 ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
 
-set_source_files_properties(ign_math.i Angle.i Vector2.i Vector3.i PROPERTIES CPLUSPLUS ON)
-set_source_files_properties(ign_math.i Angle.i Vector2.i Vector3.i PROPERTIES SWIG_FLAGS "-includeall")
-SWIG_ADD_MODULE(ign_math python ign_math.i Angle.i Vector2.i Vector3.i Angle.cc Box.cc)
-SWIG_LINK_LIBRARIES(ign_math ${PYTHON_LIBRARIES})
+add_test(NAME Vector3_TEST COMMAND
+  ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/Vector3_TEST.rb
+	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/Vector3rb.xml)
+
+set(swig_files
+  Angle.i
+  Vector2.i
+  Vector3.i
+)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+#################################################
+# Create and install Ruby
+#
+# Example usage
+# $ export RUBYLIB=/home/nkoenig/local/lib/ruby
+# $ ruby -e "require 'ignition/math'; a = Ignition::Math::Angle.new(20); puts a.Degree()"
+set_source_files_properties(ruby.i ${swig_files} PROPERTIES CPLUSPLUS ON)
+set_source_files_properties(ruby.i ${swig_files}
+  PROPERTIES SWIG_FLAGS "-includeall")
+
+SWIG_ADD_MODULE(math ruby ruby.i ${swig_files} ${sources})
+SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
+install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)

@@ -1,8 +1,6 @@
 %module vector3
 %{
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/Box.hh>
-typedef ignition::math::Vector3<double> Vector3d;
 %} 
 
 namespace ignition
@@ -12,21 +10,28 @@ namespace ignition
     template<typename T>
     class Vector3
     {
+      public: static const Vector3 Zero;
+      public: static const Vector3 One;
+      public: static const Vector3 UnitX;
+      public: static const Vector3 UnitY;
+      public: static const Vector3 UnitZ;
       public: Vector3();
       public: Vector3(const T &_x, const T &_y, const T &_z);
       public: Vector3(const Vector3<T> &_v);
-      public: ~Vector3();
+      public: virtual ~Vector3();
       public: T Sum() const;
       public: T Distance(const Vector3<T> &_pt) const;
       public: T Distance(T _x, T _y, T _z) const;
       public: T Length() const;
       public: T SquaredLength() const;
       public: Vector3 Normalize();
+      public: Vector3 Normalized() const;
       public: Vector3 Round();
       public: Vector3 Rounded() const;
       public: inline void Set(T _x = 0, T _y = 0, T _z = 0);
-      public: Vector3 Cross(const Vector3<T> &_pt) const;
-      public: T Dot(const Vector3<T> &_pt) const;
+      public: Vector3 Cross(const Vector3<T> &_v) const;
+      public: T Dot(const Vector3<T> &_v) const;
+      public: T AbsDot(const Vector3<T> &_v) const;
       public: Vector3 Abs() const;
       public: Vector3 Perpendicular() const;
       public: static Vector3 Normal(const Vector3<T> &_v1,
@@ -36,11 +41,21 @@ namespace ignition
       public: void Min(const Vector3<T> &_v);
       public: T Max() const;
       public: T Min() const;
+      public: Vector3 &operator=(const Vector3<T> &_v);
+      public: Vector3 &operator=(T _v);
       public: Vector3 operator+(const Vector3<T> &_v) const;
       public: const Vector3 &operator+=(const Vector3<T> &_v);
+      public: inline Vector3<T> operator+(const T _s) const;
+      public: friend inline Vector3<T> operator+(const T _s,
+                                                 const Vector3<T> &_v);
+      public: const Vector3<T> &operator+=(const T _s);
       public: inline Vector3 operator-() const;
       public: inline Vector3<T> operator-(const Vector3<T> &_pt) const;
       public: const Vector3<T> &operator-=(const Vector3<T> &_pt);
+      public: inline Vector3<T> operator-(const T _s) const;
+      public: friend inline Vector3<T> operator-(const T _s,
+                                                 const Vector3<T> &_v);
+      public: const Vector3<T> &operator-=(const T _s);
       public: const Vector3<T> operator/(const Vector3<T> &_pt) const;
       public: const Vector3<T> &operator/=(const Vector3<T> &_pt);
       public: const Vector3<T> operator/(T _v) const;
@@ -48,29 +63,34 @@ namespace ignition
       public: Vector3<T> operator*(const Vector3<T> &_p) const;
       public: const Vector3<T> &operator*=(const Vector3<T> &_v);
       public: inline Vector3<T> operator*(T _s) const;
-      // public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v);
+      public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v);
       public: const Vector3<T> &operator*=(T _v);
-      public: bool operator==(const Vector3<T> &_pt) const;
+      public: bool Equal(const Vector3 &_v, const T &_tol) const;
+      public: bool operator==(const Vector3<T> &_v) const;
       public: bool operator!=(const Vector3<T> &_v) const;
       public: bool IsFinite() const;
       public: inline void Correct();
+      public: T operator[](size_t _index) const;
       public: void Round(int _precision);
       public: bool Equal(const Vector3<T> &_v) const;
       public: inline T X() const;
       public: inline T Y() const;
       public: inline T Z() const;
+      public: inline T &X();
+      public: inline T &Y();
+      public: inline T &Z();
       public: inline void X(const T &_v);
       public: inline void Y(const T &_v);
       public: inline void Z(const T &_v);
-    };
-    
-    %template(Vector3f) Vector3<float>;
-    
-    class Box
-    {
-      public: Box();
-      public: ignition::math::Vector3d Size() const;
+      public: bool operator<(const Vector3<T> &_pt) const;
+      public: friend std::ostream &operator<<(
+                  std::ostream &_out, const ignition::math::Vector3<T> &_pt);
+      public: friend std::istream &operator>>(
+                  std::istream &_in, ignition::math::Vector3<T> &_pt);
     };
 
+    %template(Vector3i) Vector3<int>;
+    %template(Vector3d) Vector3<double>;
+    %template(Vector3f) Vector3<float>;
   }
 }

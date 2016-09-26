@@ -23,7 +23,6 @@
 #include <algorithm>
 
 #include <ignition/math/Helpers.hh>
-#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {
@@ -604,14 +603,13 @@ namespace ignition
 
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z.
-      /// \return The value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 3.
+      /// The index is clamped to the range (0, 1).
+      /// \return The value at _index.
       public: T operator[](size_t _index) const
       {
-        if (_index > 2)
-          throw IndexException();
-        return this->data[_index];
+        static const size_t min = 0;
+        static const size_t max = 2;
+        return this->data[clamp(_index, min, max)];
       }
 
       /// \brief Round all values to _precision decimal places

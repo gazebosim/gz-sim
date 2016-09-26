@@ -13,17 +13,27 @@ message(STATUS "Building for arch: ${ARCH}")
 # Include swig
 find_package(SWIG QUIET)
 if (NOT SWIG_FOUND)
-  BUILD_ERROR("Swig is required.")
+  BUILD_ERROR("Swig is required: Install swig.")
   message (STATUS "Searching for swig - not found.")
 else()
   message (STATUS "Searching for swig - found.")
 endif()
 
 ########################################
+# Include ruby
+find_package(Ruby 1.9 QUIET)
+if (NOT RUBY_FOUND)
+  BUILD_ERROR("Ruby is required: Install ruby-dev.")
+  message (STATUS "Searching for Ruby - not found.")
+else()
+  message (STATUS "Searching for Ruby - found.")
+endif()
+
+########################################
 # Include pythonlibs
 find_package(PythonLibs QUIET)
 if (NOT PYTHONLIBS_FOUND)
-  BUILD_ERROR("PythonLibs is required.")
+  BUILD_ERROR("PythonLibs is required: Install python-dev.")
   message (STATUS "Searching for PythonLibs - not found.")
 else()
   message (STATUS "Searching for PythonLibs - found.")

@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_VECTOR2_HH_
 #define IGNITION_MATH_VECTOR2_HH_
 
-#include <ignition/math/IndexException.hh>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -368,15 +368,12 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _index the index
-      /// \return the value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 2.
+      /// \param[in] _index The index, where 0 == x, 1 == y.
+      /// The index is clamped to the range (0, 1).
+      /// \return The value at _index.
       public: inline T operator[](size_t _index) const
       {
-        if (_index > 1)
-          throw IndexException();
-        return this->data[_index];
+        return this->data[_index == 0 ? _index : 1];
       }
 
       /// \brief Return the x value.

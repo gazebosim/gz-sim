@@ -17,6 +17,7 @@
 #ifndef IGNITION_MATH_VECTOR4_HH_
 #define IGNITION_MATH_VECTOR4_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Matrix4.hh>
 
 namespace ignition
@@ -442,14 +443,13 @@ namespace ignition
       }
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
-      /// \return The value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 4.
+      /// The index is clamped to the range (0, 3).
+      /// \return The value.
       public: inline T operator[](size_t _index) const
       {
-        if (_index > 3)
-          throw IndexException();
-        return this->data[_index];
+        static const size_t min = 0;
+        static const size_t max = 2;
+        return this->data[math::clamp(_index, min, max)];
       }
 
       /// \brief Get the x value.

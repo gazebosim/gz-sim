@@ -247,7 +247,6 @@ else (build_errors)
   set(CMAKE_SWIG_FLAGS "")
 
   include_directories(
-    ${PYTHON_INCLUDE_PATH}
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR}/include
   )

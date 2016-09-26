@@ -409,6 +409,6 @@ TEST(Vector3dTest, IndexException)
   EXPECT_NO_THROW(math::equal(v[1], 2.0));
   EXPECT_NO_THROW(math::equal(v[2], 3.0));
 
-  EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(v[3], 4.0));
 }
 
