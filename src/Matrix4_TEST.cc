@@ -118,6 +118,15 @@ TEST(Matrix4dTest, ConstructFromPose3d)
 }
 
 /////////////////////////////////////////////////
+TEST(Matrix4dTest, CoverageExtra)
+{
+  // getting full destructor coverage
+  math::Matrix4d *p = new math::Matrix4d;
+  EXPECT_NE(p, nullptr);
+  delete p;
+}
+
+/////////////////////////////////////////////////
 TEST(Matrix4dTest, Scale)
 {
   math::Matrix4d mat, mat2;
@@ -568,5 +577,77 @@ TEST(Matrix4dTest, Transpose)
 
   mT.Transpose();
   EXPECT_EQ(m, mT);
+}
+
+/////////////////////////////////////////////////
+TEST(Matrix4dTest, LookAt)
+{
+  EXPECT_EQ(math::Matrix4d::LookAt(-math::Vector3d::UnitX,
+                                    math::Vector3d::Zero).Pose(),
+            math::Pose3d(-1, 0, 0, 0, 0, 0));
+
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(3, 2, 0),
+                                   math::Vector3d(0, 2, 0)).Pose(),
+            math::Pose3d(3, 2, 0, 0, 0, IGN_PI));
+
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(1, 6, 1),
+                                   math::Vector3d::One).Pose(),
+            math::Pose3d(1, 6, 1, 0, 0, -IGN_PI_2));
+
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(-1, -1, 0),
+                                   math::Vector3d(1, 1, 0)).Pose(),
+            math::Pose3d(-1, -1, 0, 0, 0, IGN_PI_4));
+
+  // Default up is Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0.1, -5, 222),
+                                   math::Vector3d(999, -0.6, 0)),
+            math::Matrix4d::LookAt(math::Vector3d(0.1, -5, 222),
+                                   math::Vector3d(999, -0.6, 0),
+                                   math::Vector3d::UnitZ));
+
+  // up == zero, default up = +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(1.23, 456, 0.7),
+                                   math::Vector3d(0, 8.9, -10),
+                                   math::Vector3d::Zero),
+            math::Matrix4d::LookAt(math::Vector3d(1.23, 456, 0.7),
+                                   math::Vector3d(0, 8.9, -10)));
+
+  // up == +X, default up = +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0.25, 9, -5),
+                                   math::Vector3d(-6, 0, 0.4),
+                                   math::Vector3d::UnitX),
+            math::Matrix4d::LookAt(math::Vector3d(0.25, 9, -5),
+                                   math::Vector3d(-6, 0, 0.4)));
+
+  // up == -X, default up = +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0, 0, 0.2),
+                                   math::Vector3d(-8, 0, -6),
+                                   -math::Vector3d::UnitX),
+            math::Matrix4d::LookAt(math::Vector3d(0, 0, 0.2),
+                                   math::Vector3d(-8, 0, -6)));
+
+  // eye == target, default direction = +X
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
+                                   math::Vector3d::One),
+            math::Matrix4d::LookAt(math::Vector3d::One,
+                                   math::Vector3d(1.0001, 1, 1)));
+
+  // Not possible to keep _up on +Z
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(-1, 0, 10),
+                                   math::Vector3d(-1, 0, 0)),
+            math::Matrix4d::LookAt(math::Vector3d(-1, 0, 10),
+                                   math::Vector3d(-1, 0, 0),
+                                   -math::Vector3d::UnitX));
+
+  // Different ups
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
+                                   math::Vector3d(0, 1, 1),
+                                   math::Vector3d::UnitY).Pose(),
+            math::Pose3d(1, 1, 1, IGN_PI_2, 0, IGN_PI));
+
+  EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
+                                   math::Vector3d(0, 1, 1),
+                                   math::Vector3d(0, 1, 1)).Pose(),
+            math::Pose3d(1, 1, 1, IGN_PI_4, 0, IGN_PI));
 }
 
