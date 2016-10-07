@@ -234,6 +234,11 @@ namespace ignition
       /// \brief Forget all previous data.
       public: void Reset();
 
+      /// \brief Assignment operator
+      /// \param[in] _v A SignalStats to copy
+      /// \return this
+      public: SignalStats &operator=(const SignalStats &_s);
+
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by
 // std::unique_ptr
