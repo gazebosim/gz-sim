@@ -8,14 +8,6 @@
 1. Fix xenial cppcheck
     * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
 
-## Ignition Math 2.x
-
-1. Added SemanticVersion class
-    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
-
-1. Added Matrix4<T>::LookAt
-    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
-
 1. Require cmake 2.8.12
     * [Pull request 76](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/76)
 
@@ -26,6 +18,21 @@
 1. Fix logic of installation of CMake configuration files in Windows.
    Contribution from Silvio Traversaro.
     * [Pull request 63](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/63)
+
+## Ignition Math 2.x
+
+1. Added SemanticVersion class
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+
+1. Added Matrix4<T>::LookAt
+    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
+
+1. Added triangle3 class, and helper functions in other classes
+    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
+
+1. Change equality helper to work with 387 fp unit.
+   Contribution from Rich Mattes.
+    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
 
 ### Ignition Math 2.5
 
@@ -53,7 +60,7 @@
     * [Pull request 110](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/110)
 1. Added Temperature class
     * A contribution from Shintaro Noda
-    * [Pull request 104](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/104)
+    * [Pull request 113](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/113)
 
 ### Ignition Math 2.3.0
 
@@ -76,4 +83,3 @@
 1. Fixes for compiling and running tests on Windows 7/Visual Studio 2013
    Contribution from Silvio Traversaro.
     * [Pull request 62](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/62)
-
