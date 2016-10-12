@@ -27,6 +27,7 @@ set (headers
   Spline.hh
   Temperature.hh
   Triangle.hh
+  Triangle3.hh
   Vector2.hh
   Vector3.hh
   Vector3Stats.hh
