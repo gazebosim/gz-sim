@@ -27,13 +27,6 @@
    Contribution from Silvio Traversaro.
     * [Pull request 63](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/63)
 
-1. Change equality helper to work with 387 fp unit.
-   Contribution from Rich Mattes.
-    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
-
-1. Added triangle3 class, and helper functions in other classes
-    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
-
 ### Ignition Math 2.5
 
 ### Ignition Math 2.5.0
