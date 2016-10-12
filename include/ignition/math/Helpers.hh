@@ -199,6 +199,36 @@ namespace ignition
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    /// \brief size_t type with a value of 0
+    static const size_t IGN_ZERO_SIZE_T  = 0;
+
+    /// \brief size_t type with a value of 1
+    static const size_t IGN_ONE_SIZE_T   = 1;
+
+    /// \brief size_t type with a value of 2
+    static const size_t IGN_TWO_SIZE_T   = 2;
+
+    /// \brief size_t type with a value of 3
+    static const size_t IGN_THREE_SIZE_T = 3;
+
+    /// \brief size_t type with a value of 4
+    static const size_t IGN_FOUR_SIZE_T  = 4;
+
+    /// \brief size_t type with a value of 5
+    static const size_t IGN_FIVE_SIZE_T  = 5;
+
+    /// \brief size_t type with a value of 6
+    static const size_t IGN_SIX_SIZE_T   = 6;
+
+    /// \brief size_t type with a value of 7
+    static const size_t IGN_SEVEN_SIZE_T = 7;
+
+    /// \brief size_t type with a value of 8
+    static const size_t IGN_EIGHT_SIZE_T = 8;
+
+    /// \brief size_t type with a value of 9
+    static const size_t IGN_NINE_SIZE_T  = 9;
+
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const double NAN_D = std::numeric_limits<double>::quiet_NaN();
 

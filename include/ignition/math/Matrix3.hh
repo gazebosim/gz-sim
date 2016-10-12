@@ -22,6 +22,7 @@
 #include <cstring>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
+#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {

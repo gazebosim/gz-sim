@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012-2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_VECTOR2_HH_
 #define IGNITION_MATH_VECTOR2_HH_
 
-#include <ignition/math/IndexException.hh>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -368,15 +368,11 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _index the index
-      /// \return the value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 2.
+      /// \param[in] _index The index, where 0 == x and 1 == y.
+      /// The index is clamped to the range (0,1).
       public: inline T operator[](size_t _index) const
       {
-        if (_index > 1)
-          throw IndexException();
-        return this->data[_index];
+        return this->data[_index == 0 ? _index : 1];
       }
 
       /// \brief Return the x value.
