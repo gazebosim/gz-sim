@@ -397,11 +397,12 @@ namespace ignition
         // Compute tolerance relative to maximum value of inertia diagonal
         T tol = _tol * this->Ixxyyzz.Max();
         Vector3<T> moments = this->PrincipalMoments(tol);
-        if (moments.Equal(this->Ixxyyzz, tol))
+        if (moments.Equal(this->Ixxyyzz, tol) ||
+            (math::equal<T>(moments[0], moments[1], std::abs(tol)) &&
+             math::equal<T>(moments[0], moments[2], std::abs(tol))))
         {
           // matrix is already aligned with principal axes
-          // this includes case when all three moments are
-          // approximately equal
+          // or all three moments are approximately equal
           // return identity rotation
           return Quaternion<T>::Identity;
         }
