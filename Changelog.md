@@ -1,5 +1,8 @@
 ## Ignition Math 2.x
 
+1. Fix Euler angle conversion of quaternions near singularities
+    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+
 1. Added SemanticVersion class
     * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
