@@ -78,9 +78,9 @@ TEST(QuaternionTest, ConstructEuler)
     {
       for (double yaw = 0; yaw < 2 * IGN_PI + 0.1; yaw += IGN_PI_4)
       {
-	math::Quaterniond q_orig(roll, pitch, yaw);
-	math::Quaterniond q_derived(q_orig.Euler());
-	EXPECT_TRUE(q_orig == q_derived || q_orig == -q_derived);
+        math::Quaterniond q_orig(roll, pitch, yaw);
+        math::Quaterniond q_derived(q_orig.Euler());
+        EXPECT_TRUE(q_orig == q_derived || q_orig == -q_derived);
       }
     }
   }
