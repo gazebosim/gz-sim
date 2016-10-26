@@ -18,7 +18,6 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
-#include <ignition/math/AffineException.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
@@ -390,7 +389,6 @@ namespace ignition
         }
         else
         {
-          ignMathSetError(IGN_AFFINE_EXCEPTION, "The matrix is not affine");
           return Vector3<T>();
         }
       }

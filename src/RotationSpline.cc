@@ -61,7 +61,7 @@ Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
 {
   // Bounds check
   if (_fromIndex >= this->dataPtr->points.size())
-      throw IndexException();
+    return Quaterniond::Zero;
 
   if ((_fromIndex + 1) == this->dataPtr->points.size())
   {
@@ -167,7 +167,7 @@ void RotationSpline::RecalcTangents()
 const Quaterniond &RotationSpline::Point(unsigned int _index) const
 {
   if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+    return Quaterniond::Zero;
 
   return this->dataPtr->points[_index];
 }
@@ -186,15 +186,17 @@ void RotationSpline::Clear()
 }
 
 /////////////////////////////////////////////////
-void RotationSpline::UpdatePoint(unsigned int _index,
+bool RotationSpline::UpdatePoint(unsigned int _index,
                                  const Quaterniond &_value)
 {
   if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+    return false;
 
   this->dataPtr->points[_index] = _value;
   if (this->dataPtr->autoCalc)
     this->RecalcTangents();
+
+  return true;
 }
 
 /////////////////////////////////////////////////

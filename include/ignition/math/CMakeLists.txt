@@ -1,13 +1,11 @@
 include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
-  AffineException.hh
   Angle.hh
   Box.hh
   Filter.hh
   Frustum.hh
   Helpers.hh
-  IndexException.hh
   Inertial.hh
   Kmeans.hh
   Line2.hh

@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {
@@ -161,13 +160,11 @@ namespace ignition
       }
 
       /// \brief Get the start or end point.
-      /// \param[in] _index 0 = start point, 1 = end point.
-      /// \throws IndexException if _index is > 1.
+      /// \param[in] _index 0 = start point, 1 = end point. The _index
+      /// parameter is clamped to the range (0, 1).
       public: math::Vector3<T> operator[](const size_t _index) const
       {
-        if (_index > 1)
-          throw IndexException();
-        return this->pts[_index];
+        return this->pts[_index <= 1 ? _index : 1];
       }
 
       /// \brief Stream extraction operator

@@ -22,7 +22,6 @@
 #include <cstring>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
-#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {
@@ -207,12 +206,11 @@ namespace ignition
       /// \param[in] _v The value to set in each row of the column
       public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
-        if (_c >= 3)
-          throw IndexException();
+        unsigned int c = _c <= 3 ? _c : 3;
 
-        this->data[0][_c] = _v.X();
-        this->data[1][_c] = _v.Y();
-        this->data[2][_c] = _v.Z();
+        this->data[0][c] = _v.X();
+        this->data[1][c] = _v.Y();
+        this->data[2][c] = _v.Z();
       }
 
       /// \brief returns the element wise difference of two matrices
@@ -378,9 +376,7 @@ namespace ignition
       /// \return a pointer to the row
       public: inline const T &operator()(size_t _row, size_t _col) const
       {
-        if (_row >= 3 || _col >= 3)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[_row <= 3 ? _row : 3][_col <= 3 ? _col : 3];
       }
 
       /// \brief Array subscript operator
@@ -388,9 +384,7 @@ namespace ignition
       /// \return a pointer to the row
       public: inline T &operator()(size_t _row, size_t _col)
       {
-        if (_row >= 3 || _col >=3)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[_row <= 3 ? _row : 3][_col <= 3 ? _col : 3];
       }
 
       /// \brief Return the determinant of the matrix

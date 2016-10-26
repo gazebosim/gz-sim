@@ -39,6 +39,9 @@ namespace ignition
       /// \brief math::Quaternion(0, 0, 0, 0)
       public: static const Quaternion Zero;
 
+      /// \brief math::Quaternion(INF, INF, INF, INF)
+      public: static const Quaternion Inf;
+
       /// \brief Default Constructor
       public: Quaternion()
       : qw(1), qx(0), qy(0), qz(0)

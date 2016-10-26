@@ -6,7 +6,6 @@ set (sources
   Box.cc
   Frustum.cc
   Helpers.cc
-  IndexException.cc
   Kmeans.cc
   PID.cc
   Rand.cc

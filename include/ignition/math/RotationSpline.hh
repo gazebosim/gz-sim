@@ -17,7 +17,6 @@
 #ifndef IGNITION_MATH_ROTATIONSPLINE_HH_
 #define IGNITION_MATH_ROTATIONSPLINE_HH_
 
-#include <ignition/math/IndexException.hh>
 #include <ignition/math/Quaternion.hh>
 
 namespace ignition
@@ -44,8 +43,8 @@ namespace ignition
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the index of the control point.
       /// \remarks This point must already exist in the spline.
-      /// \throws IndexException if _index >= PointCount()
-      /// \return a quaternion (out of bound index result in assertion)
+      /// \return A quaternion (out of bound index result in assertion),
+      /// or Quaterniond::Zero on error.
       public: const Quaterniond &Point(unsigned int _index) const;
 
       /// \brief Gets the number of control points in the spline.
@@ -59,8 +58,8 @@ namespace ignition
       /// \remarks This point must already exist in the spline.
       /// \param[in] _index index
       /// \param[in] _value the new control point value
-      /// \throws IndexException if _index >= PointCount()
-      public: void UpdatePoint(unsigned int _index, const Quaterniond &_value);
+      /// \return True on success.
+      public: bool UpdatePoint(unsigned int _index, const Quaterniond &_value);
 
       /// \brief Returns an interpolated point based on a parametric
       ///        value over the whole series.
@@ -80,8 +79,7 @@ namespace ignition
       /// \param[in] _t Parametric value
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///         shortest possible path
-      /// \throws IndexException if _fromIndex >= PointCount()
-      /// \return the rotation
+      /// \return the rotation, or [0, 0, 0, 0] on error.
       public: Quaterniond Interpolate(unsigned int _fromIndex, double _t,
           bool _useShortestPath = true);
 

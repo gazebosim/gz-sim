@@ -20,7 +20,6 @@
 #define IGNITION_MATH_SPLINE_HH_
 
 #include <ignition/math/Helpers.hh>
-#include <ignition/math/IndexException.hh>
 #include <ignition/math/Vector3.hh>
 
 namespace ignition
@@ -55,9 +54,8 @@ namespace ignition
 
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the control point index
-      /// \return the control point, or [0,0,0] and a message on the error
-      /// stream
-      /// \throws IndexException if _index >= PointCount()
+      /// \return the control point, or [INF, INF, INF] and a message on the
+      /// error stream.
       public: Vector3d Point(unsigned int _index) const;
 
       /// \brief  Gets the number of control points in the spline.
@@ -66,7 +64,7 @@ namespace ignition
 
       /// \brief Get the tangent value for a point
       /// \param[in] _index the control point index
-      /// \throws IndexException if _index >= PointCount()
+      /// \return The tangent value, or [INF, INF, INF] on error.
       public: Vector3d Tangent(unsigned int _index) const;
 
       /// \brief  Clears all the points in the spline.
@@ -77,8 +75,8 @@ namespace ignition
       /// out of bounds
       /// \param[in] _index the control point index
       /// \param[in] _value the new position
-      /// \throws IndexException if _index >= PointCount()
-      public: void UpdatePoint(unsigned int _index, const Vector3d &_value);
+      /// \return True on success.
+      public: bool UpdatePoint(unsigned int _index, const Vector3d &_value);
 
       /// \brief Returns an interpolated point based on a parametric value
       ///        over the whole series.
@@ -90,7 +88,8 @@ namespace ignition
       /// \param[in] _fromIndex The point index to treat as t = 0.
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t Parametric value
-      /// \throws IndexException if _fromIndex >= PointCount()
+      /// \return The interpolated point, or
+      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error.
       public: Vector3d Interpolate(unsigned int _fromIndex, double _t) const;
 
       /// \brief Tells the spline whether it should automatically

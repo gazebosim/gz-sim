@@ -104,7 +104,7 @@ Vector3d Spline::Interpolate(unsigned int _fromIndex, double _t) const
 {
   // Bounds check
   if (_fromIndex >= this->dataPtr->points.size())
-    throw IndexException();
+    return Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   if ((_fromIndex + 1) == this->dataPtr->points.size())
   {
@@ -230,7 +230,7 @@ void Spline::RecalcTangents()
 Vector3d Spline::Point(unsigned int _index) const
 {
   if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+    Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   return this->dataPtr->points[_index];
 }
@@ -239,7 +239,7 @@ Vector3d Spline::Point(unsigned int _index) const
 Vector3d Spline::Tangent(unsigned int _index) const
 {
   if (_index >= this->dataPtr->tangents.size())
-    throw IndexException();
+    Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   return this->dataPtr->tangents[_index];
 }
@@ -258,14 +258,15 @@ void Spline::Clear()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
+bool Spline::UpdatePoint(unsigned int _index, const Vector3d &_value)
 {
   if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+    return false;
 
   this->dataPtr->points[_index] = _value;
   if (this->dataPtr->autoCalc)
     this->RecalcTangents();
+  return true;
 }
 
 ///////////////////////////////////////////////////////////
