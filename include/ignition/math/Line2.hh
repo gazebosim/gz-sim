@@ -289,7 +289,7 @@ namespace ignition
       /// is clamped to the range (0, 1)
       public: math::Vector2<T> operator[](size_t _index) const
       {
-        return this->pts[_index <= 1 ? _index : 0];
+        return this->pts[_index <= 1 ? _index : 1];
       }
 
       /// \brief Stream extraction operator

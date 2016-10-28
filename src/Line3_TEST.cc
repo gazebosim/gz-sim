@@ -49,7 +49,8 @@ TEST(Line3Test, Constructor)
   EXPECT_DOUBLE_EQ(lineC[1].Y(), 10.0);
   EXPECT_DOUBLE_EQ(lineC[1].Z(), 6.0);
 
-  EXPECT_THROW(lineB[2].X(), math::IndexException);
+  EXPECT_NO_THROW(lineB[2].X());
+  EXPECT_EQ(lineB[2].X(), lineB[1].X());
   EXPECT_NO_THROW(lineA[0].X());
 }
 

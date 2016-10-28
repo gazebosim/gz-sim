@@ -202,11 +202,12 @@ namespace ignition
       }
 
       /// \brief Set a column
-      /// \param[in] _c The colum index (0, 1, 2)
+      /// \param[in] _c The colum index (0, 1, 2). _col is clamped to the
+      /// range (0, 2)
       /// \param[in] _v The value to set in each row of the column
       public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
-        unsigned int c = _c <= 3 ? _c : 3;
+        unsigned int c = _c <= 2 ? _c : 2;
 
         this->data[0][c] = _v.X();
         this->data[1][c] = _v.Y();
@@ -372,19 +373,21 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index
+      /// \param[in] _row row index. _row is clamped to the range (0,2)
+      /// \param[in] _col column index. _col is clamped to the range (0,2)
       /// \return a pointer to the row
       public: inline const T &operator()(size_t _row, size_t _col) const
       {
-        return this->data[_row <= 3 ? _row : 3][_col <= 3 ? _col : 3];
+        return this->data[_row <= 2 ? _row : 2][_col <= 2 ? _col : 2];
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index
+      /// \param[in] _row row index. _row is clamped to the range (0,2)
+      /// \param[in] _col column index. _col is clamped to the range (0,2)
       /// \return a pointer to the row
       public: inline T &operator()(size_t _row, size_t _col)
       {
-        return this->data[_row <= 3 ? _row : 3][_col <= 3 ? _col : 3];
+        return this->data[_row <= 2 ? _row : 2][_col <= 2 ? _col : 2];
       }
 
       /// \brief Return the determinant of the matrix

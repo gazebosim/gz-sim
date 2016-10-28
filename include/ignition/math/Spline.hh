@@ -54,8 +54,8 @@ namespace ignition
 
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the control point index
-      /// \return the control point, or [INF, INF, INF] and a message on the
-      /// error stream.
+      /// \return the control point, or [INF, INF, INF]. Use
+      /// Vector3d::IsFinite() to check for an error.
       public: Vector3d Point(unsigned int _index) const;
 
       /// \brief  Gets the number of control points in the spline.
@@ -65,6 +65,7 @@ namespace ignition
       /// \brief Get the tangent value for a point
       /// \param[in] _index the control point index
       /// \return The tangent value, or [INF, INF, INF] on error.
+      /// Use Vector3d::IsFinite() to check for an error.
       public: Vector3d Tangent(unsigned int _index) const;
 
       /// \brief  Clears all the points in the spline.
@@ -81,6 +82,9 @@ namespace ignition
       /// \brief Returns an interpolated point based on a parametric value
       ///        over the whole series.
       /// \param[in] _t parameter (range 0 to 1)
+      /// \return The interpolated point, or
+      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// Vector3d::IsFinte() to check for an error.
       public: Vector3d Interpolate(double _t) const;
 
       /// \brief Interpolates a single segment of the spline given a
@@ -89,7 +93,8 @@ namespace ignition
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t Parametric value
       /// \return The interpolated point, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error.
+      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// Vector3d::IsFinte() to check for an error.
       public: Vector3d Interpolate(unsigned int _fromIndex, double _t) const;
 
       /// \brief Tells the spline whether it should automatically

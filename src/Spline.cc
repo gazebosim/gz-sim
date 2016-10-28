@@ -230,7 +230,7 @@ void Spline::RecalcTangents()
 Vector3d Spline::Point(unsigned int _index) const
 {
   if (_index >= this->dataPtr->points.size())
-    Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
+    return Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   return this->dataPtr->points[_index];
 }
@@ -239,7 +239,7 @@ Vector3d Spline::Point(unsigned int _index) const
 Vector3d Spline::Tangent(unsigned int _index) const
 {
   if (_index >= this->dataPtr->tangents.size())
-    Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
+    return Vector3d(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   return this->dataPtr->tangents[_index];
 }

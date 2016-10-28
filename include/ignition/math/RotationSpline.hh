@@ -69,7 +69,7 @@ namespace ignition
       /// \param[in] _t Parametric value.
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///        shortest possible path
-      /// \return the rotation
+      /// \return the rotation, or [0, 0, 0, 0] on error.
       public: Quaterniond Interpolate(double _t, bool _useShortestPath = true);
 
       /// \brief Interpolates a single segment of the spline

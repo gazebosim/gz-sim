@@ -41,11 +41,12 @@ TEST(RotationSplineTest, RotationSpline)
   EXPECT_TRUE(s.Point(1) == math::Quaterniond(.1, .1, .1));
 
   // ::UpdatePoint
-  EXPECT_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)),
-               math::IndexException);
-  s.UpdatePoint(1, math::Quaterniond(.2, .2, .2));
+  EXPECT_NO_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)));
+  EXPECT_FALSE(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)));
+
+  EXPECT_TRUE(s.UpdatePoint(1, math::Quaterniond(.2, .2, .2)));
   s.AutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
+  EXPECT_TRUE(s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1)));
   s.AutoCalculate(true);
 
   // ::Interpolate
@@ -54,7 +55,9 @@ TEST(RotationSplineTest, RotationSpline)
 
   // ::Interpolate
   s.AddPoint(math::Quaterniond(.4, .4, .4));
-  EXPECT_THROW(s.Interpolate(4, 0.2), math::IndexException);
+  EXPECT_NO_THROW(s.Interpolate(4, 0.2));
+  EXPECT_EQ(s.Interpolate(4, 0.2), math::Quaterniond::Zero);
+
   EXPECT_EQ(s.Interpolate(s.PointCount()-1, 0.2),
             s.Point(s.PointCount()-1));
   EXPECT_TRUE(s.Interpolate(1, 0.2) ==
@@ -67,12 +70,15 @@ TEST(RotationSplineTest, RotationSpline)
 TEST(RotationSplineTest, GetPoint)
 {
   math::RotationSpline s;
-  EXPECT_THROW(s.Point(0), math::IndexException);
-  EXPECT_THROW(s.Point(1), math::IndexException);
+  EXPECT_NO_THROW(s.Point(0));
+  EXPECT_EQ(s.Point(0), math::Quaterniond::Zero);
+  EXPECT_NO_THROW(s.Point(1));
+  EXPECT_EQ(s.Point(1), math::Quaterniond::Zero);
 
   s.AddPoint(math::Quaterniond(0, 0, 0));
   EXPECT_NO_THROW(s.Point(0));
-  EXPECT_THROW(s.Point(1), math::IndexException);
+  EXPECT_NO_THROW(s.Point(1));
+  EXPECT_EQ(s.Point(1), math::Quaterniond::Zero);
 }
 
 /////////////////////////////////////////////////
