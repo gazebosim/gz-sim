@@ -373,10 +373,13 @@ namespace ignition
       }
 
       /// \brief Perform an affine transformation
-      /// \param _v Vector3 value for the transformation
+      /// \param [in] _v Vector3 value for the transformation
       /// \return The result of the transformation. A default constructed
-      /// Vector3<T> is returned on error.
+      /// Vector3<T> is returned if this matrix is not affine.
+      /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
+      /// Vector3<T> &_result) const;
       public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
+              IGN_DEPRECATED(4.0)
       {
         if (this->IsAffine())
         {
@@ -391,6 +394,26 @@ namespace ignition
         {
           return Vector3<T>();
         }
+      }
+
+      /// \brief Perform an affine transformation
+      /// \param [in] _v Vector3 value for the transformation
+      /// \param [out] _result  The result of the transformation. _result is
+      /// not changed if this matrix is not affine.
+      /// \return True if this matrix is affine, false otherwise.
+      public: bool TransformAffine(const Vector3<T> &_v,
+                                   Vector3<T> &_result) const
+      {
+        if (!this->IsAffine())
+          return false;
+
+        _result.Set(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
+                    this->data[0][2]*_v.Z() + this->data[0][3],
+                    this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
+                    this->data[1][2]*_v.Z() + this->data[1][3],
+                    this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
+                    this->data[2][2]*_v.Z() + this->data[2][3]);
+        return true;
       }
 
       /// \brief Return the determinant of the matrix
@@ -671,9 +694,9 @@ namespace ignition
 
       /// \brief Get the value at the specified row, column index
       /// \param[in] _col The column index. Index values are clamped to a
-      /// range of (0, 3).
+      /// range of [0, 3].
       /// \param[in] _row the row index. Index values are clamped to a
-      /// range of (0, 3).
+      /// range of [0, 3].
       /// \return The value at the specified index
       public: inline const T &operator()(const size_t _row,
                   const size_t _col) const
@@ -685,9 +708,9 @@ namespace ignition
       /// \brief Get a mutable version the value at the specified row,
       /// column index
       /// \param[in] _col The column index. Index values are clamped to a
-      /// range of (0, 3).
+      /// range of [0, 3].
       /// \param[in] _row the row index. Index values are clamped to a
-      /// range of (0, 3).
+      /// range of [0, 3].
       /// \return The value at the specified index
       public: inline T &operator()(const size_t _row, const size_t _col)
       {

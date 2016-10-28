@@ -603,13 +603,11 @@ namespace ignition
 
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z.
-      /// The index is clamped to the range (0,2).
+      /// The index is clamped to the range [0,2].
       /// \return The value.
-      public: T operator[](size_t _index) const
+      public: T operator[](const size_t _index) const
       {
-        static const size_t min = 0;
-        static const size_t max = 2;
-        return this->data[clamp(_index, min, max)];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// \brief Round all values to _precision decimal places

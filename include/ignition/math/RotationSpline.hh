@@ -41,11 +41,13 @@ namespace ignition
       public: void AddPoint(const Quaterniond &_p);
 
       /// \brief Gets the detail of one of the control points of the spline.
-      /// \param[in] _index the index of the control point.
+      /// \param[in] _index the index of the control point. _index is
+      /// clamped to [0, PointCount()].
       /// \remarks This point must already exist in the spline.
-      /// \return A quaternion (out of bound index result in assertion),
-      /// or Quaterniond::Zero on error.
-      public: const Quaterniond &Point(unsigned int _index) const;
+      /// \return The quaternion at the specified point.
+      /// If there are no points, then a Quaterniond with a value of
+      /// [INF, INF, INF, INF] is returned.
+      public: const Quaterniond &Point(const unsigned int _index) const;
 
       /// \brief Gets the number of control points in the spline.
       /// \return the count
@@ -58,8 +60,10 @@ namespace ignition
       /// \remarks This point must already exist in the spline.
       /// \param[in] _index index
       /// \param[in] _value the new control point value
-      /// \return True on success.
-      public: bool UpdatePoint(unsigned int _index, const Quaterniond &_value);
+      /// \return True on success, false if _index is larger than
+      /// PointCount().
+      public: bool UpdatePoint(const unsigned int _index,
+                               const Quaterniond &_value);
 
       /// \brief Returns an interpolated point based on a parametric
       ///        value over the whole series.
@@ -69,8 +73,10 @@ namespace ignition
       /// \param[in] _t Parametric value.
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///        shortest possible path
-      /// \return the rotation, or [0, 0, 0, 0] on error.
-      public: Quaterniond Interpolate(double _t, bool _useShortestPath = true);
+      /// \return The rotation, or [INF, INF, INF, INF] on error. Use
+      /// Quateriond::IsFinite() to check for an error
+      public: Quaterniond Interpolate(double _t,
+                                      const bool _useShortestPath = true);
 
       /// \brief Interpolates a single segment of the spline
       ///        given a parametric value.
@@ -79,9 +85,10 @@ namespace ignition
       /// \param[in] _t Parametric value
       /// \param[in] _useShortestPath Defines if rotation should take the
       ///         shortest possible path
-      /// \return the rotation, or [0, 0, 0, 0] on error.
-      public: Quaterniond Interpolate(unsigned int _fromIndex, double _t,
-          bool _useShortestPath = true);
+      /// \return the rotation, or [INF, INF, INF, INF] on error. Use
+      /// Quateriond::IsFinite() to check for an error
+      public: Quaterniond Interpolate(const unsigned int _fromIndex,
+                  const double _t, const bool _useShortestPath = true);
 
       /// \brief Tells the spline whether it should automatically calculate
       ///        tangents on demand as points are added.

@@ -56,7 +56,7 @@ namespace ignition
       /// \param[in] _index the control point index
       /// \return the control point, or [INF, INF, INF]. Use
       /// Vector3d::IsFinite() to check for an error.
-      public: Vector3d Point(unsigned int _index) const;
+      public: Vector3d Point(const unsigned int _index) const;
 
       /// \brief  Gets the number of control points in the spline.
       /// \return the count
@@ -66,7 +66,7 @@ namespace ignition
       /// \param[in] _index the control point index
       /// \return The tangent value, or [INF, INF, INF] on error.
       /// Use Vector3d::IsFinite() to check for an error.
-      public: Vector3d Tangent(unsigned int _index) const;
+      public: Vector3d Tangent(const unsigned int _index) const;
 
       /// \brief  Clears all the points in the spline.
       public: void Clear();
@@ -77,7 +77,8 @@ namespace ignition
       /// \param[in] _index the control point index
       /// \param[in] _value the new position
       /// \return True on success.
-      public: bool UpdatePoint(unsigned int _index, const Vector3d &_value);
+      public: bool UpdatePoint(const unsigned int _index,
+                               const Vector3d &_value);
 
       /// \brief Returns an interpolated point based on a parametric value
       ///        over the whole series.
@@ -95,7 +96,8 @@ namespace ignition
       /// \return The interpolated point, or
       /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
       /// Vector3d::IsFinte() to check for an error.
-      public: Vector3d Interpolate(unsigned int _fromIndex, double _t) const;
+      public: Vector3d Interpolate(const unsigned int _fromIndex,
+                                   const double _t) const;
 
       /// \brief Tells the spline whether it should automatically
       ///        calculate tangents on demand as points are added.

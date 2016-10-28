@@ -369,10 +369,10 @@ namespace ignition
 
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x and 1 == y.
-      /// The index is clamped to the range (0,1).
-      public: inline T operator[](size_t _index) const
+      /// The index is clamped to the range [0,1].
+      public: inline T operator[](const size_t _index) const
       {
-        return this->data[_index == 0 ? _index : 1];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
       }
 
       /// \brief Return the x value.

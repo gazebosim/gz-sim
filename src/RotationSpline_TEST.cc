@@ -56,7 +56,7 @@ TEST(RotationSplineTest, RotationSpline)
   // ::Interpolate
   s.AddPoint(math::Quaterniond(.4, .4, .4));
   EXPECT_NO_THROW(s.Interpolate(4, 0.2));
-  EXPECT_EQ(s.Interpolate(4, 0.2), math::Quaterniond::Zero);
+  EXPECT_FALSE(s.Interpolate(4, 0.2).IsFinite());
 
   EXPECT_EQ(s.Interpolate(s.PointCount()-1, 0.2),
             s.Point(s.PointCount()-1));
@@ -71,14 +71,14 @@ TEST(RotationSplineTest, GetPoint)
 {
   math::RotationSpline s;
   EXPECT_NO_THROW(s.Point(0));
-  EXPECT_EQ(s.Point(0), math::Quaterniond::Zero);
+  EXPECT_FALSE(s.Point(0).IsFinite());
   EXPECT_NO_THROW(s.Point(1));
-  EXPECT_EQ(s.Point(1), math::Quaterniond::Zero);
+  EXPECT_FALSE(s.Point(1).IsFinite());
 
   s.AddPoint(math::Quaterniond(0, 0, 0));
   EXPECT_NO_THROW(s.Point(0));
   EXPECT_NO_THROW(s.Point(1));
-  EXPECT_EQ(s.Point(1), math::Quaterniond::Zero);
+  EXPECT_TRUE(s.Point(1).IsFinite());
 }
 
 /////////////////////////////////////////////////
@@ -91,7 +91,6 @@ TEST(RotationSplineTest, RecalcTangents)
 
   s.RecalcTangents();
   math::Quaterniond q = s.Interpolate(0, 0.5);
-  std::cout << q.W() << " " << q.X() << " " << q.Y() << " " << q.Z() << "\n";
   EXPECT_EQ(s.Interpolate(0, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 

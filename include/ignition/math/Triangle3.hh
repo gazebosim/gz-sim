@@ -20,7 +20,6 @@
 #include <ignition/math/Line3.hh>
 #include <ignition/math/Plane.hh>
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {
@@ -55,15 +54,12 @@ namespace ignition
       /// is determined by the order of these vertices. Search
       /// the internet for "triangle winding" for more information.
       ///
-      /// \param[in] _index Index of the point to set.
+      /// \param[in] _index Index of the point to set. _index is clamped
+      /// to the range [0,2].
       /// \param[in] _pt Value of the point to set.
-      /// \throws IndexException if _index is > 2.
       public: void Set(const unsigned int _index, const Vector3<T> &_pt)
       {
-        if (_index > 2)
-          throw IndexException();
-        else
-          this->pts[_index] = _pt;
+        this->pts[clamp(_index, 0u, 2u)] = _pt;
       }
 
       /// \brief Set all vertices of the triangle.
@@ -100,14 +96,12 @@ namespace ignition
       /// \param[in] _index Index of the side to retrieve, where
       /// 0 == Line3(pt1, pt2),
       /// 1 == Line3(pt2, pt3),
-      /// 2 == Line3(pt3, pt1)
+      /// 2 == Line3(pt3, pt1).
+      /// _index is clamped to the range [0,2].
       /// \return Line segment of the requested side.
-      /// \throws IndexException if _index is > 2.
       public: Line3<T> Side(const unsigned int _index) const
       {
-        if (_index > 2)
-          throw IndexException();
-        else if (_index == 0)
+        if (_index == 0)
           return Line3<T>(this->pts[0], this->pts[1]);
         else if (_index == 1)
           return Line3<T>(this->pts[1], this->pts[2]);
@@ -258,13 +252,12 @@ namespace ignition
       }
 
       /// \brief Get one of points that define the triangle.
-      /// \param[in] _index: 0, 1, or 2.
-      /// \throws IndexException if _index is > 2.
-      public: Vector3<T> operator[](size_t _index) const
+      /// \param[in] _index: 0, 1, or 2. _index is clamped to the range
+      /// [0,2].
+      /// \return The triangle point at _index.
+      public: Vector3<T> operator[](const size_t _index) const
       {
-        if (_index > 2)
-          throw IndexException();
-        return this->pts[_index];
+        return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// The points of the triangle

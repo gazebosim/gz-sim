@@ -26,6 +26,8 @@
 #include <tuple>
 #include <cstdint>
 
+#include <ignition/math/System.hh>
+
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 #define IGN_DBL_MAX std::numeric_limits<double>::max()
 
@@ -169,39 +171,6 @@
 /// \brief Compute box volume from a vector
 /// \param[in] _v Vector3d that contains the box's dimensions.
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
-
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
-    #define IGNITION_HIDDEN
-  #endif
-#endif
 
 namespace ignition
 {

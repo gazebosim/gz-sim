@@ -444,11 +444,13 @@ TEST(Matrix4dTest, AffineTransform)
   math::Matrix4d mat = math::Matrix4d::Zero;
   math::Vector3d vec(1, 2, 3);
 
-  EXPECT_NO_THROW(mat.TransformAffine(vec));
-  EXPECT_EQ(mat.TransformAffine(vec), math::Vector3d::Zero);
+  math::Vector3d v;
+  EXPECT_NO_THROW(mat.TransformAffine(vec, v));
+  EXPECT_FALSE(mat.TransformAffine(vec, v));
 
   mat = math::Matrix4d::Identity;
-  EXPECT_NO_THROW(mat.TransformAffine(vec));
+  EXPECT_NO_THROW(mat.TransformAffine(vec, v));
+  EXPECT_TRUE(mat.TransformAffine(vec, v));
 }
 
 /////////////////////////////////////////////////

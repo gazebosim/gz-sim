@@ -348,10 +348,10 @@ namespace ignition
 
       /// \brief Get the start or end point.
       /// \param[in] _index 0 = start point, 1 = end point. The _index
-      /// parameter is clamped to the range (0, 1).
+      /// parameter is clamped to the range [0, 1].
       public: math::Vector3<T> operator[](const size_t _index) const
       {
-        return this->pts[_index <= 1 ? _index : 1];
+        return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
       }
 
       /// \brief Stream extraction operator

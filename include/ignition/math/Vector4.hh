@@ -445,11 +445,9 @@ namespace ignition
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
       /// The index is clamped to the range (0,3).
       /// \return The value.
-      public: inline T operator[](size_t _index) const
+      public: inline T operator[](const size_t _index) const
       {
-        static const size_t min = 0;
-        static const size_t max = 3;
-        return this->data[clamp(_index, min, max)];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
       }
 
       /// \brief Get the x value.

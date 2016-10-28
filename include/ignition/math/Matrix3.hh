@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 
@@ -200,13 +201,13 @@ namespace ignition
         this->Axis(cross, acos(dot));
       }
 
-      /// \brief Set a column
-      /// \param[in] _c The colum index (0, 1, 2). _col is clamped to the
-      /// range (0, 2)
-      /// \param[in] _v The value to set in each row of the column
+      /// \brief Set a column.
+      /// \param[in] _c The colum index [0, 1, 2]. _col is clamped to the
+      /// range [0, 2].
+      /// \param[in] _v The value to set in each row of the column.
       public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
-        unsigned int c = _c <= 2 ? _c : 2;
+        unsigned int c = clamp(_c, 0u, 2u);
 
         this->data[0][c] = _v.X();
         this->data[1][c] = _v.Y();
@@ -389,21 +390,23 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index. _row is clamped to the range (0,2)
-      /// \param[in] _col column index. _col is clamped to the range (0,2)
+      /// \param[in] _row row index. _row is clamped to the range [0,2]
+      /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
       public: inline const T &operator()(size_t _row, size_t _col) const
       {
-        return this->data[_row <= 2 ? _row : 2][_col <= 2 ? _col : 2];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index. _row is clamped to the range (0,2)
-      /// \param[in] _col column index. _col is clamped to the range (0,2)
+      /// \param[in] _row row index. _row is clamped to the range [0,2]
+      /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
       public: inline T &operator()(size_t _row, size_t _col)
       {
-        return this->data[_row <= 2 ? _row : 2][_col <= 2 ? _col : 2];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// \brief Return the determinant of the matrix

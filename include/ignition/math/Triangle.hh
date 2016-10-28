@@ -47,7 +47,7 @@ namespace ignition
       /// \brief Set one vertex of the triangle.
       /// \param[in] _index Index of the point to set, where
       /// 0 == first vertex, 1 == second vertex, and 2 == third vertex.
-      /// The index is clamped to the range (0, 2).
+      /// The index is clamped to the range [0, 2].
       /// \param[in] _pt Value of the point to set.
       public: void Set(const unsigned int _index, const math::Vector2<T> &_pt)
       {
@@ -84,7 +84,7 @@ namespace ignition
       /// 0 == Line2(pt1, pt2),
       /// 1 == Line2(pt2, pt3),
       /// 2 == Line2(pt3, pt1)
-      /// The index is clamped to the range (0, 2)
+      /// The index is clamped to the range [0, 2]
       /// \return Line segment of the requested side.
       public: Line2<T> Side(const unsigned int _index) const
       {
@@ -218,7 +218,7 @@ namespace ignition
       /// \param[in] _index The index, where 0 == first vertex,
       /// 1 == second vertex, and 2 == third vertex.
       /// The index is clamped to the range (0, 2)
-      public: math::Vector2<T> operator[](size_t _index) const
+      public: math::Vector2<T> operator[](const size_t _index) const
       {
         return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }

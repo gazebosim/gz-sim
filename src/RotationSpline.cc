@@ -43,7 +43,8 @@ void RotationSpline::AddPoint(const Quaterniond &_p)
 }
 
 /////////////////////////////////////////////////
-Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
+Quaterniond RotationSpline::Interpolate(double _t,
+                                        const bool _useShortestPath)
 {
   // Work out which segment this is in
   double fSeg = _t * (this->dataPtr->points.size() - 1);
@@ -56,12 +57,12 @@ Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
 }
 
 /////////////////////////////////////////////////
-Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
-                                        bool _useShortestPath)
+Quaterniond RotationSpline::Interpolate(const unsigned int _fromIndex,
+    const double _t, const bool _useShortestPath)
 {
   // Bounds check
   if (_fromIndex >= this->dataPtr->points.size())
-    return Quaterniond::Zero;
+    return Quaterniond(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
   if ((_fromIndex + 1) == this->dataPtr->points.size())
   {
@@ -164,12 +165,16 @@ void RotationSpline::RecalcTangents()
 }
 
 /////////////////////////////////////////////////
-const Quaterniond &RotationSpline::Point(unsigned int _index) const
+const Quaterniond &RotationSpline::Point(const unsigned int _index) const
 {
-  if (_index >= this->dataPtr->points.size())
-    return Quaterniond::Zero;
+  static Quaterniond inf(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
 
-  return this->dataPtr->points[_index];
+  if (this->dataPtr->points.empty())
+    return inf;
+
+  return this->dataPtr->points[
+    clamp(_index, 0u, static_cast<unsigned int>(
+          this->dataPtr->points.size()-1))];
 }
 
 /////////////////////////////////////////////////
@@ -186,7 +191,7 @@ void RotationSpline::Clear()
 }
 
 /////////////////////////////////////////////////
-bool RotationSpline::UpdatePoint(unsigned int _index,
+bool RotationSpline::UpdatePoint(const unsigned int _index,
                                  const Quaterniond &_value)
 {
   if (_index >= this->dataPtr->points.size())
