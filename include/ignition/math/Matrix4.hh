@@ -379,7 +379,7 @@ namespace ignition
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
       /// Vector3<T> &_result) const;
       public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
-              IGN_DEPRECATED(4.0)
+              IGN_DEPRECATED(3.0)
       {
         if (this->IsAffine())
         {
@@ -714,8 +714,8 @@ namespace ignition
       /// \return The value at the specified index
       public: inline T &operator()(const size_t _row, const size_t _col)
       {
-        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)][
-                          clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
       }
 
       /// \brief Equality test with tolerance.

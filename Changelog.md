@@ -2,6 +2,10 @@
 
 ### Ignition Math 3.x.x
 
+1. Removed exceptions. Return values should be evaluated to determine if
+   errors have occured.
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+
 1. Added `operator=(const Quaternion<T> &_q)` to `Matrix3`.
     * [Pull request 111](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/111)
 
