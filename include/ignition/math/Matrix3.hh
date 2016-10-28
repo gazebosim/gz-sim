@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #ifndef IGNITION_MATH_MATRIX3_HH_
 #define IGNITION_MATH_MATRIX3_HH_
 
@@ -80,7 +79,7 @@ namespace ignition
 
       /// \brief Construct Matrix3 from a quaternion.
       /// \param[in] _q Quaternion.
-      public: Matrix3(const Quaternion<T> &_q)
+      public: explicit Matrix3(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
@@ -212,6 +211,15 @@ namespace ignition
         this->data[0][c] = _v.X();
         this->data[1][c] = _v.Y();
         this->data[2][c] = _v.Z();
+      }
+
+      /// \brief Equal operator. this = _mat
+      /// \param _mat Incoming matrix
+      /// \return itself
+      public: Matrix3<T> &operator=(const Matrix3<T> &_mat)
+      {
+        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
+        return *this;
       }
 
       /// \brief returns the element wise difference of two matrices
@@ -362,6 +370,14 @@ namespace ignition
       public: bool operator==(const Matrix3<T> &_m) const
       {
         return this->Equal(_m, static_cast<T>(1e-6));
+      }
+
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
+      {
+        return *this = Matrix3<T>(_q);
       }
 
       /// \brief Inequality test operator

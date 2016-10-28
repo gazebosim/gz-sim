@@ -78,7 +78,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      public: Quaternion(const Vector3<T> &_rpy)
+      public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
       }
@@ -335,6 +335,8 @@ namespace ignition
       {
         Vector3<T> vec;
 
+        T tol = static_cast<T>(1e-15);
+
         Quaternion<T> copy = *this;
         T squ;
         T sqx;
@@ -348,18 +350,39 @@ namespace ignition
         sqy = copy.qy * copy.qy;
         sqz = copy.qz * copy.qz;
 
-        // Roll
-        vec.X(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
-              squ - sqx - sqy + sqz));
-
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
         vec.Y(sarg <= -1.0 ? -0.5*IGN_PI :
             (sarg >= 1.0 ? 0.5*IGN_PI : asin(sarg)));
 
-        // Yaw
-        vec.Z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
-              squ + sqx - sqy - sqz));
+        // If the pitch angle is PI/2 or -PI/2, we can only compute
+        // the sum roll + yaw.  However, any combination that gives
+        // the right sum will produce the correct orientation, so we
+        // set yaw = 0 and compute roll.
+        // pitch angle is PI/2
+        if (std::abs(sarg - 1) < tol)
+        {
+          vec.Z(0);
+          vec.X(atan2(2 * (copy.qx*copy.qy - copy.qz*copy.qw),
+                      squ - sqx + sqy - sqz));
+        }
+        // pitch angle is -PI/2
+        else if (std::abs(sarg + 1) < tol)
+        {
+          vec.Z(0);
+          vec.X(atan2(-2 * (copy.qx*copy.qy - copy.qz*copy.qw),
+                       squ - sqx + sqy - sqz));
+        }
+        else
+        {
+          // Roll
+          vec.X(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
+                      squ - sqx - sqy + sqz));
+
+          // Yaw
+          vec.Z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
+                      squ + sqx - sqy - sqz));
+        }
 
         return vec;
       }
@@ -508,22 +531,22 @@ namespace ignition
             {
               if (_v1Abs.X() < _v1Abs.Z())
               {
-                other = {1, 0, 0};
+                other.Set(1, 0, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
             else
             {
               if (_v1Abs.Y() < _v1Abs.Z())
               {
-                other = {0, 1, 0};
+                other.Set(0, 1, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
           }

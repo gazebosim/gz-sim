@@ -34,8 +34,12 @@ SignalStatistic::SignalStatistic()
 //////////////////////////////////////////////////
 SignalStatistic::~SignalStatistic()
 {
-  delete this->dataPtr;
-  this->dataPtr = 0;
+}
+
+//////////////////////////////////////////////////
+SignalStatistic::SignalStatistic(const SignalStatistic &_ss)
+  : dataPtr(_ss.dataPtr->Clone())
+{
 }
 
 //////////////////////////////////////////////////
@@ -208,6 +212,12 @@ SignalStats::SignalStats()
 
 //////////////////////////////////////////////////
 SignalStats::~SignalStats()
+{
+}
+
+//////////////////////////////////////////////////
+SignalStats::SignalStats(const SignalStats &_ss)
+  : dataPtr(_ss.dataPtr->Clone())
 {
 }
 

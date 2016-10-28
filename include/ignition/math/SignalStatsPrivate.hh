@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
-#define IGNITION_MATH_SIGNAL_STATS_PRIVATE_HH_
+#ifndef IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
+#define IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
 
 #include <memory>
 #include <vector>
@@ -39,9 +39,11 @@ namespace ignition
 
       /// \brief Clone the SignalStatisticPrivate object. Used for implementing
       /// copy semantics.
-      public: SignalStatisticPrivate *Clone() const
+      public: std::unique_ptr<SignalStatisticPrivate> Clone() const
       {
-        return new SignalStatisticPrivate(*this);
+        std::unique_ptr<SignalStatisticPrivate> dataPtr(
+            new SignalStatisticPrivate(*this));
+        return dataPtr;
       }
     };
 
@@ -63,12 +65,13 @@ namespace ignition
 
       /// \brief Clone the SignalStatsPrivate object. Used for implementing
       /// copy semantics.
-      public: SignalStatsPrivate *Clone() const
+      public: std::unique_ptr<SignalStatsPrivate> Clone() const
       {
-        return new SignalStatsPrivate(*this);
+        std::unique_ptr<SignalStatsPrivate> dataPtr(
+            new SignalStatsPrivate(*this));
+        return dataPtr;
       }
     };
   }
 }
 #endif
-

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_FRUSTUM_PRIVATE_HH_
-#define IGNITION_MATH_FRUSTUM_PRIVATE_HH_
+#ifndef IGNITION_MATH_FRUSTUMPRIVATE_HH_
+#define IGNITION_MATH_FRUSTUMPRIVATE_HH_
 
 #include <array>
 

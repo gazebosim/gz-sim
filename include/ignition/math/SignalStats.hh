@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_HH_
-#define IGNITION_MATH_SIGNAL_STATS_HH_
+#ifndef IGNITION_MATH_SIGNALSTATS_HH_
+#define IGNITION_MATH_SIGNALSTATS_HH_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <ignition/math/Helpers.hh>
 
@@ -38,6 +39,10 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~SignalStatistic();
 
+      /// \brief Copy constructor
+      /// \param[in] _ss SignalStatistic to copy
+      public: SignalStatistic(const SignalStatistic &_ss);
+
       /// \brief Get the current value of the statistical measure.
       /// \return Current value of the statistical measure.
       public: virtual double Value() const = 0;
@@ -57,8 +62,17 @@ namespace ignition
       /// \brief Forget all previous data.
       public: virtual void Reset();
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Pointer to private data.
-      protected: SignalStatisticPrivate *dataPtr;
+      protected: std::unique_ptr<SignalStatisticPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     /// \}
 
@@ -176,6 +190,10 @@ namespace ignition
       /// \brief Destructor
       public: ~SignalStats();
 
+      /// \brief Copy constructor
+      /// \param[in] _ss SignalStats to copy
+      public: SignalStats(const SignalStats &_ss);
+
       /// \brief Get number of data points in first statistic.
       /// Technically you can have different numbers of data points
       /// in each statistic if you call InsertStatistic after InsertData,
@@ -221,8 +239,17 @@ namespace ignition
       /// \return this
       public: SignalStats &operator=(const SignalStats &_s);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Pointer to private data.
-      protected: SignalStatsPrivate *dataPtr;
+      private: std::unique_ptr<SignalStatsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     /// \}
   }

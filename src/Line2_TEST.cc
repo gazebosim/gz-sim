@@ -49,6 +49,11 @@ TEST(Line2Test, Length)
   EXPECT_NEAR(lineA.Length(), sqrt(200), 1e-10);
 }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+// C4723: potential divide by 0
+#pragma warning(disable : 4723)
+#endif
 /////////////////////////////////////////////////
 TEST(Line2Test, Slope)
 {
@@ -58,11 +63,8 @@ TEST(Line2Test, Slope)
   }
 
   {
-// MSVC reports a warning about division by zero
-#ifndef _MSC_VER
     math::Line2d line(0, 0, 0, 10);
     EXPECT_TRUE(math::isnan(line.Slope()));
-#endif
   }
 
   {
@@ -70,6 +72,9 @@ TEST(Line2Test, Slope)
     EXPECT_EQ(line.Slope(), 0.0);
   }
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 /////////////////////////////////////////////////
 TEST(Line2Test, ParallelLine)

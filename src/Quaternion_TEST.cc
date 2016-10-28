@@ -67,6 +67,23 @@ TEST(QuaternionTest, ConstructEuler)
 {
   math::Quaterniond q(0, 1, 2);
   EXPECT_TRUE(q == math::Quaterniond(math::Vector3d(0, 1, 2)));
+
+  // Make sure that singularities are being handled properly.
+  // There are an infinite number of equivalent Euler angle
+  // representations when pitch = PI/2, so rather than comparing Euler
+  // angles, we will compare quaternions.
+  for (double pitch : { -IGN_PI_2, IGN_PI_2 })
+  {
+    for (double roll = 0; roll < 2 * IGN_PI + 0.1; roll += IGN_PI_4)
+    {
+      for (double yaw = 0; yaw < 2 * IGN_PI + 0.1; yaw += IGN_PI_4)
+      {
+        math::Quaterniond q_orig(roll, pitch, yaw);
+        math::Quaterniond q_derived(q_orig.Euler());
+        EXPECT_TRUE(q_orig == q_derived || q_orig == -q_derived);
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -409,6 +426,13 @@ TEST(QuaternionTest, Math)
                                        -0.242668, -0.364002));
 
     EXPECT_TRUE(math::Matrix3d(q) == math::Matrix3d(
+                0.617229, -0.589769, 0.52077,
+                0.707544, 0.705561, -0.0395554,
+                -0.344106, 0.392882, 0.85278));
+
+    math::Matrix3d matFromQ;
+    matFromQ = q;
+    EXPECT_TRUE(matFromQ == math::Matrix3d(
                 0.617229, -0.589769, 0.52077,
                 0.707544, 0.705561, -0.0395554,
                 -0.344106, 0.392882, 0.85278));

@@ -58,9 +58,10 @@ namespace ignition
       /// \brief Constructor
       public: Angle();
 
-      /// \brief Copy Constructor
+      /// \brief Conversion Constructor
       /// \param[in] _radian Radians
-      public: Angle(double _radian);
+      // cppcheck-suppress noExplicitConstructor
+      public: Angle(const double _radian);
 
       /// \brief Copy constructor
       /// \param[in] _angle Angle to copy
