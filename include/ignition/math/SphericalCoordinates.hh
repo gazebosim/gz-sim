@@ -79,6 +79,10 @@ namespace ignition
                                    const double _elevation,
                                    const ignition::math::Angle &_heading);
 
+      /// \brief Copy constructor.
+      /// \param[in] _sc Spherical coordinates to copy.
+      public: SphericalCoordinates(const SphericalCoordinates &_sc);
+
       /// \brief Destructor.
       public: ~SphericalCoordinates();
 
@@ -191,6 +195,23 @@ namespace ignition
       public: ignition::math::Vector3d VelocityTransform(
                   const ignition::math::Vector3d &_vel,
                   const CoordinateType &_in, const CoordinateType &_out) const;
+
+      /// \brief Equality operator, result = this == _sc
+      /// \param[in] _sc Spherical coordinates to check for equality
+      /// \return true if this == _sc
+      public: bool operator==(const SphericalCoordinates &_sc) const;
+
+      /// \brief Inequality
+      /// \param[in] _sc Spherical coordinates to check for inequality
+      /// \return true if this != _sc
+      public: bool operator!=(const SphericalCoordinates &_sc) const;
+
+      /// \brief Assignment operator
+      /// \param[in] _sc The sphericall coordinates to copy from.
+      /// \return this
+      public: SphericalCoordinates &operator=(
+        const SphericalCoordinates &_sc);
+
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

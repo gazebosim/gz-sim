@@ -137,6 +137,13 @@ SphericalCoordinates::SphericalCoordinates(const SurfaceType _type,
 }
 
 //////////////////////////////////////////////////
+SphericalCoordinates::SphericalCoordinates(const SphericalCoordinates &_sc)
+  : SphericalCoordinates()
+{
+  (*this) = _sc;
+}
+
+//////////////////////////////////////////////////
 SphericalCoordinates::~SphericalCoordinates()
 {
 }
@@ -515,4 +522,33 @@ ignition::math::Vector3d SphericalCoordinates::VelocityTransform(
   }
 
   return tmp;
+}
+
+//////////////////////////////////////////////////
+bool SphericalCoordinates::operator==(const SphericalCoordinates &_sc) const
+{
+  return this->Surface() == _sc.Surface() &&
+         this->LatitudeReference() == _sc.LatitudeReference() &&
+         this->LongitudeReference() == _sc.LongitudeReference() &&
+         this->ElevationReference() == _sc.ElevationReference() &&
+         this->HeadingOffset() == _sc.HeadingOffset();
+}
+
+//////////////////////////////////////////////////
+bool SphericalCoordinates::operator!=(const SphericalCoordinates &_sc) const
+{
+  return !(*this == _sc);
+}
+
+SphericalCoordinates &SphericalCoordinates::operator=(
+  const SphericalCoordinates &_sc)
+{
+  this->SetSurface(_sc.Surface());
+  this->SetLatitudeReference(_sc.LatitudeReference());
+  this->SetLongitudeReference(_sc.LongitudeReference());
+  this->SetElevationReference(_sc.ElevationReference());
+  this->SetHeadingOffset(_sc.HeadingOffset());
+
+  // Generate transformation matrix
+  this->UpdateTransformationMatrix();
 }
