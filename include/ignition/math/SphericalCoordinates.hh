@@ -207,7 +207,7 @@ namespace ignition
       public: bool operator!=(const SphericalCoordinates &_sc) const;
 
       /// \brief Assignment operator
-      /// \param[in] _sc The sphericall coordinates to copy from.
+      /// \param[in] _sc The spherical coordinates to copy from.
       /// \return this
       public: SphericalCoordinates &operator=(
         const SphericalCoordinates &_sc);
