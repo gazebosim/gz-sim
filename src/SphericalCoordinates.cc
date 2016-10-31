@@ -551,4 +551,6 @@ SphericalCoordinates &SphericalCoordinates::operator=(
 
   // Generate transformation matrix
   this->UpdateTransformationMatrix();
+
+  return *this;
 }
