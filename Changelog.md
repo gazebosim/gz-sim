@@ -18,7 +18,7 @@
 
 1. Added copy constructor, equality operators and assignment operators to
     SphericalCoordinates class.
-    * [Pull request 130](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/130)
+    * [Pull request 131](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/131)
 
 ### Ignition Math 2.5
 
