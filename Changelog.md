@@ -1,24 +1,3 @@
-## Ignition Math 3.x
-
-### Ignition Math 3.x.x
-
-1. Added `operator=(const Quaternion<T> &_q)` to `Matrix3`.
-    * [Pull request 111](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/111)
-
-1. Fix xenial cppcheck
-    * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
-
-1. Require cmake 2.8.12
-    * [Pull request 76](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/76)
-
-1. Migrate to relocatable CMake package.
-   Contribution from Silvio Traversaro.
-    * [Pull request 67](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/67)
-
-1. Fix logic of installation of CMake configuration files in Windows.
-   Contribution from Silvio Traversaro.
-    * [Pull request 63](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/63)
-
 ## Ignition Math 2.x
 
 1. Fix Euler angle conversion of quaternions near singularities
