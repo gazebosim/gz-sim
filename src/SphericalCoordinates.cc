@@ -540,6 +540,7 @@ bool SphericalCoordinates::operator!=(const SphericalCoordinates &_sc) const
   return !(*this == _sc);
 }
 
+//////////////////////////////////////////////////
 SphericalCoordinates &SphericalCoordinates::operator=(
   const SphericalCoordinates &_sc)
 {
