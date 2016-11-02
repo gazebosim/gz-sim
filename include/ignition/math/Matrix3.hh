@@ -207,7 +207,7 @@ namespace ignition
       /// \param[in] _v The value to set in each row of the column.
       public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
-        unsigned int c = clamp(_c, 0u, 2u);
+        unsigned int c = clamp(_c, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T);
 
         this->data[0][c] = _v.X();
         this->data[1][c] = _v.Y();

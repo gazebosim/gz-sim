@@ -178,34 +178,34 @@ namespace ignition
   namespace math
   {
     /// \brief size_t type with a value of 0
-    static const size_t IGN_ZERO_SIZE_T  = 0;
+    static const size_t IGN_ZERO_SIZE_T  = 0u;
 
     /// \brief size_t type with a value of 1
-    static const size_t IGN_ONE_SIZE_T   = 1;
+    static const size_t IGN_ONE_SIZE_T   = 1u;
 
     /// \brief size_t type with a value of 2
-    static const size_t IGN_TWO_SIZE_T   = 2;
+    static const size_t IGN_TWO_SIZE_T   = 2u;
 
     /// \brief size_t type with a value of 3
-    static const size_t IGN_THREE_SIZE_T = 3;
+    static const size_t IGN_THREE_SIZE_T = 3u;
 
     /// \brief size_t type with a value of 4
-    static const size_t IGN_FOUR_SIZE_T  = 4;
+    static const size_t IGN_FOUR_SIZE_T  = 4u;
 
     /// \brief size_t type with a value of 5
-    static const size_t IGN_FIVE_SIZE_T  = 5;
+    static const size_t IGN_FIVE_SIZE_T  = 5u;
 
     /// \brief size_t type with a value of 6
-    static const size_t IGN_SIX_SIZE_T   = 6;
+    static const size_t IGN_SIX_SIZE_T   = 6u;
 
     /// \brief size_t type with a value of 7
-    static const size_t IGN_SEVEN_SIZE_T = 7;
+    static const size_t IGN_SEVEN_SIZE_T = 7u;
 
     /// \brief size_t type with a value of 8
-    static const size_t IGN_EIGHT_SIZE_T = 8;
+    static const size_t IGN_EIGHT_SIZE_T = 8u;
 
     /// \brief size_t type with a value of 9
-    static const size_t IGN_NINE_SIZE_T  = 9;
+    static const size_t IGN_NINE_SIZE_T  = 9u;
 
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const double NAN_D = std::numeric_limits<double>::quiet_NaN();

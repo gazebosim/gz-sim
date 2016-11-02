@@ -18,6 +18,7 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
