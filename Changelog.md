@@ -21,6 +21,9 @@
 
 ## Ignition Math 2.x
 
+1. Fix Euler angle conversion of quaternions near singularities
+    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+
 1. Added SemanticVersion class
     * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
@@ -33,6 +36,10 @@
 1. Change equality helper to work with 387 fp unit.
    Contribution from Rich Mattes.
     * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+
+1. Added copy constructor, equality operators and assignment operators to
+    SphericalCoordinates class.
+    * [Pull request 131](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/131)
 
 ### Ignition Math 2.5
 

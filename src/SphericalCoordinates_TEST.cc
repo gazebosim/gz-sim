@@ -58,6 +58,10 @@ TEST(SphericalCoordinatesTest, Constructor)
     EXPECT_EQ(sc.LongitudeReference(), lon);
     EXPECT_EQ(sc.HeadingOffset(), heading);
     EXPECT_NEAR(sc.ElevationReference(), elev, 1e-6);
+
+    // Copy constructor
+    math::SphericalCoordinates sc2(sc);
+    EXPECT_EQ(sc, sc2);
   }
 }
 
@@ -332,4 +336,50 @@ TEST(SphericalCoordinatesTest, BadCoordinateType)
       math::SphericalCoordinates::ECEF,
       static_cast<math::SphericalCoordinates::CoordinateType>(5));
   EXPECT_EQ(result, pos);
+}
+
+//////////////////////////////////////////////////
+// Test [in]equality operators.
+TEST(SphericalCoordinatesTest, EqualityOps)
+{
+  // Default surface type
+  math::SphericalCoordinates::SurfaceType st =
+    math::SphericalCoordinates::EARTH_WGS84;
+  ignition::math::Angle lat(0.3), lon(-1.2), heading(0.5);
+  double elev = 354.1;
+  math::SphericalCoordinates sc1(st, lat, lon, elev, heading);
+
+  math::SphericalCoordinates sc2(st, lat, lon, elev, heading);
+  EXPECT_TRUE(sc1 == sc2);
+  EXPECT_FALSE(sc1 != sc2);
+  math::SphericalCoordinates sc3(st, ignition::math::Angle::Zero, lon, elev,
+    heading);
+  EXPECT_FALSE(sc1 == sc3);
+  EXPECT_TRUE(sc1 != sc3);
+  math::SphericalCoordinates sc4(st, lat, ignition::math::Angle::Zero, elev,
+    heading);
+  EXPECT_FALSE(sc1 == sc4);
+  EXPECT_TRUE(sc1 != sc4);
+  math::SphericalCoordinates sc5(st, lat, lon, elev + 1, heading);
+  EXPECT_FALSE(sc1 == sc5);
+  EXPECT_TRUE(sc1 != sc5);
+  math::SphericalCoordinates sc6(st, lat, lon, elev,
+    ignition::math::Angle::Zero);
+  EXPECT_FALSE(sc1 == sc6);
+  EXPECT_TRUE(sc1 != sc6);
+}
+
+//////////////////////////////////////////////////
+// Test assignment operator.
+TEST(SphericalCoordinatesTest, AssignmentOp)
+{
+  // Default surface type
+  math::SphericalCoordinates::SurfaceType st =
+    math::SphericalCoordinates::EARTH_WGS84;
+  ignition::math::Angle lat(0.3), lon(-1.2), heading(0.5);
+  double elev = 354.1;
+  math::SphericalCoordinates sc1(st, lat, lon, elev, heading);
+
+  math::SphericalCoordinates sc2 = sc1;
+  EXPECT_EQ(sc1, sc2);
 }
