@@ -60,7 +60,7 @@ namespace ignition
       /// \param[in] _pt Value of the point to set.
       public: void Set(const unsigned int _index, const Vector3<T> &_pt)
       {
-        this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)] = _pt;
+        this->pts[clamp(_index, 0u, 2u)] = _pt;
       }
 
       /// \brief Set all vertices of the triangle.
