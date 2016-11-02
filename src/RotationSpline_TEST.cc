@@ -46,7 +46,8 @@ TEST(RotationSplineTest, RotationSpline)
 
   EXPECT_TRUE(s.UpdatePoint(1, math::Quaterniond(.2, .2, .2)));
   s.AutoCalculate(false);
-  EXPECT_TRUE(s.UpdatePoint(0, math::Quaterniond(math::Vector3d(-.1, -.1, -.1))));
+  EXPECT_TRUE(s.UpdatePoint(0, math::Quaterniond(
+    math::Vector3d(-.1, -.1, -.1))));
   s.AutoCalculate(true);
 
   // ::Interpolate

@@ -18,6 +18,7 @@
 #define IGNITION_MATH_TRIANGLE_HH_
 
 #include <set>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Line2.hh>
 #include <ignition/math/Vector2.hh>
 
@@ -217,7 +218,7 @@ namespace ignition
       /// \brief Get one of points that define the triangle.
       /// \param[in] _index The index, where 0 == first vertex,
       /// 1 == second vertex, and 2 == third vertex.
-      /// The index is clamped to the range (0, 2)
+      /// The index is clamped to the range [0, 2]
       public: math::Vector2<T> operator[](const size_t _index) const
       {
         return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];

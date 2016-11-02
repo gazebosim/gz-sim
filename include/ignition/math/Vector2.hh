@@ -377,7 +377,6 @@ namespace ignition
 
       /// \brief Return the x value.
       /// \return Value of the X component.
-      /// \throws N/A.
       public: inline T X() const
       {
         return this->data[0];
@@ -385,7 +384,6 @@ namespace ignition
 
       /// \brief Return the y value.
       /// \return Value of the Y component.
-      /// \throws N/A.
       public: inline T Y() const
       {
         return this->data[1];
@@ -393,7 +391,6 @@ namespace ignition
 
       /// \brief Return a mutable x value.
       /// \return Value of the X component.
-      /// \throws N/A.
       public: inline T &X()
       {
         return this->data[0];
@@ -401,7 +398,6 @@ namespace ignition
 
       /// \brief Return a mutable y value.
       /// \return Value of the Y component.
-      /// \throws N/A.
       public: inline T &Y()
       {
         return this->data[1];
@@ -425,7 +421,6 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pt Vector2 to output
       /// \return The stream
-      /// \throws N/A.
       public: friend std::ostream
       &operator<<(std::ostream &_out, const Vector2<T> &_pt)
       {
@@ -446,7 +441,6 @@ namespace ignition
       /// \param[in] _in input stream
       /// \param[in] _pt Vector2 to read values into
       /// \return The stream
-      /// \throws N/A.
       public: friend std::istream
       &operator>>(std::istream &_in, Vector2<T> &_pt)
       {

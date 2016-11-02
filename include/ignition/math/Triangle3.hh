@@ -17,6 +17,7 @@
 #ifndef IGNITION_MATH_TRIANGLE3_HH_
 #define IGNITION_MATH_TRIANGLE3_HH_
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Line3.hh>
 #include <ignition/math/Plane.hh>
 #include <ignition/math/Vector3.hh>
