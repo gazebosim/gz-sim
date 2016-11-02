@@ -42,7 +42,7 @@ namespace ignition
 
       /// \brief Gets the detail of one of the control points of the spline.
       /// \param[in] _index the index of the control point. _index is
-      /// clamped to [0, PointCount()].
+      /// clamped to [0, PointCount()-1].
       /// \remarks This point must already exist in the spline.
       /// \return The quaternion at the specified point.
       /// If there are no points, then a Quaterniond with a value of
@@ -60,7 +60,7 @@ namespace ignition
       /// \remarks This point must already exist in the spline.
       /// \param[in] _index index
       /// \param[in] _value the new control point value
-      /// \return True on success, false if _index is larger than
+      /// \return True on success, false if _index is larger or equal than
       /// PointCount().
       public: bool UpdatePoint(const unsigned int _index,
                                const Quaterniond &_value);
