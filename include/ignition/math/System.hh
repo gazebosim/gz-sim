@@ -21,7 +21,7 @@
 #define IGN_DEPRECATED(version) __attribute__((deprecated))
 #define IGN_FORCEINLINE __attribute__((always_inline))
 #elif defined(MSVC)
-#define IGN_DEPRECATED(version) ()
+#define IGN_DEPRECATED(version)
 #define IGN_FORCEINLINE __forceinline
 #else
 #define IGN_DEPRECATED(version) ()
