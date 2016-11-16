@@ -219,6 +219,7 @@ namespace ignition
       /// \param[in] _index The index, where 0 == first vertex,
       /// 1 == second vertex, and 2 == third vertex.
       /// The index is clamped to the range [0, 2]
+      /// \return The point specified by _index.
       public: math::Vector2<T> operator[](const size_t _index) const
       {
         return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
