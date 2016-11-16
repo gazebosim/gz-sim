@@ -374,7 +374,7 @@ namespace ignition
       }
 
       /// \brief Perform an affine transformation
-      /// \param [in] _v Vector3 value for the transformation
+      /// \param[in] _v Vector3 value for the transformation
       /// \return The result of the transformation. A default constructed
       /// Vector3<T> is returned if this matrix is not affine.
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
@@ -398,8 +398,8 @@ namespace ignition
       }
 
       /// \brief Perform an affine transformation
-      /// \param [in] _v Vector3 value for the transformation
-      /// \param [out] _result  The result of the transformation. _result is
+      /// \param[in] _v Vector3 value for the transformation
+      /// \param[out] _result  The result of the transformation. _result is
       /// not changed if this matrix is not affine.
       /// \return True if this matrix is affine, false otherwise.
       public: bool TransformAffine(const Vector3<T> &_v,
