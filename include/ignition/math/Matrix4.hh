@@ -18,7 +18,7 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
-#include <ignition/math/AffineException.hh>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
@@ -374,20 +374,49 @@ namespace ignition
       }
 
       /// \brief Perform an affine transformation
-      /// \param _v Vector3 value for the transformation
-      /// \return The result of the transformation
-      /// \throws AffineException when matrix is not affine.
+      /// \param[in] _v Vector3 value for the transformation
+      /// \return The result of the transformation. A default constructed
+      /// Vector3<T> is returned if this matrix is not affine.
+      /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
+      /// Vector3<T> &_result) const;
       public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
+#ifndef _WIN32
+      IGN_DEPRECATED(3.0)
+#endif
+      {
+        if (this->IsAffine())
+        {
+          return Vector3<T>(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
+                            this->data[0][2]*_v.Z() + this->data[0][3],
+                            this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
+                            this->data[1][2]*_v.Z() + this->data[1][3],
+                            this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
+                            this->data[2][2]*_v.Z() + this->data[2][3]);
+        }
+        else
+        {
+          return Vector3<T>();
+        }
+      }
+
+      /// \brief Perform an affine transformation
+      /// \param[in] _v Vector3 value for the transformation
+      /// \param[out] _result  The result of the transformation. _result is
+      /// not changed if this matrix is not affine.
+      /// \return True if this matrix is affine, false otherwise.
+      public: bool TransformAffine(const Vector3<T> &_v,
+                                   Vector3<T> &_result) const
       {
         if (!this->IsAffine())
-          throw AffineException();
+          return false;
 
-        return Vector3<T>(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
-                           this->data[0][2]*_v.Z() + this->data[0][3],
-                           this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
-                           this->data[1][2]*_v.Z() + this->data[1][3],
-                           this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
-                           this->data[2][2]*_v.Z() + this->data[2][3]);
+        _result.Set(this->data[0][0]*_v.X() + this->data[0][1]*_v.Y() +
+                    this->data[0][2]*_v.Z() + this->data[0][3],
+                    this->data[1][0]*_v.X() + this->data[1][1]*_v.Y() +
+                    this->data[1][2]*_v.Z() + this->data[1][3],
+                    this->data[2][0]*_v.X() + this->data[2][1]*_v.Y() +
+                    this->data[2][2]*_v.Z() + this->data[2][3]);
+        return true;
       }
 
       /// \brief Return the determinant of the matrix
@@ -667,26 +696,29 @@ namespace ignition
       }
 
       /// \brief Get the value at the specified row, column index
-      /// \param[in] _col The column index
-      /// \param[in] _row the row index
+      /// \param[in] _col The column index. Index values are clamped to a
+      /// range of [0, 3].
+      /// \param[in] _row the row index. Index values are clamped to a
+      /// range of [0, 3].
       /// \return The value at the specified index
-      public: inline const T &operator()(size_t _row, size_t _col) const
+      public: inline const T &operator()(const size_t _row,
+                  const size_t _col) const
       {
-        if (_row >= 4 || _col >= 4)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)][
+                          clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
       }
 
       /// \brief Get a mutable version the value at the specified row,
       /// column index
-      /// \param[in] _col The column index
-      /// \param[in] _row The row index
+      /// \param[in] _col The column index. Index values are clamped to a
+      /// range of [0, 3].
+      /// \param[in] _row the row index. Index values are clamped to a
+      /// range of [0, 3].
       /// \return The value at the specified index
-      public: inline T &operator()(size_t _row, size_t _col)
+      public: inline T &operator()(const size_t _row, const size_t _col)
       {
-        if (_row >= 4 || _col >= 4)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
       }
 
       /// \brief Equality test with tolerance.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012-2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_VECTOR2_HH_
 #define IGNITION_MATH_VECTOR2_HH_
 
-#include <ignition/math/IndexException.hh>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -368,20 +368,15 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _index the index
-      /// \return the value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 2.
-      public: inline T operator[](size_t _index) const
+      /// \param[in] _index The index, where 0 == x and 1 == y.
+      /// The index is clamped to the range [0,1].
+      public: inline T operator[](const size_t _index) const
       {
-        if (_index > 1)
-          throw IndexException();
-        return this->data[_index];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
       }
 
       /// \brief Return the x value.
       /// \return Value of the X component.
-      /// \throws N/A.
       public: inline T X() const
       {
         return this->data[0];
@@ -389,7 +384,6 @@ namespace ignition
 
       /// \brief Return the y value.
       /// \return Value of the Y component.
-      /// \throws N/A.
       public: inline T Y() const
       {
         return this->data[1];
@@ -397,7 +391,6 @@ namespace ignition
 
       /// \brief Return a mutable x value.
       /// \return Value of the X component.
-      /// \throws N/A.
       public: inline T &X()
       {
         return this->data[0];
@@ -405,7 +398,6 @@ namespace ignition
 
       /// \brief Return a mutable y value.
       /// \return Value of the Y component.
-      /// \throws N/A.
       public: inline T &Y()
       {
         return this->data[1];
@@ -429,7 +421,6 @@ namespace ignition
       /// \param[in] _out output stream
       /// \param[in] _pt Vector2 to output
       /// \return The stream
-      /// \throws N/A.
       public: friend std::ostream
       &operator<<(std::ostream &_out, const Vector2<T> &_pt)
       {
@@ -450,7 +441,6 @@ namespace ignition
       /// \param[in] _in input stream
       /// \param[in] _pt Vector2 to read values into
       /// \return The stream
-      /// \throws N/A.
       public: friend std::istream
       &operator>>(std::istream &_in, Vector2<T> &_pt)
       {

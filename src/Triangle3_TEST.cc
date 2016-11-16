@@ -44,7 +44,8 @@ TEST(Triangle3Test, Constructor)
     EXPECT_EQ(tri[0], Vector3d(0, 0, 0));
     EXPECT_EQ(tri[1], Vector3d(0, 1, 0));
     EXPECT_EQ(tri[2], Vector3d(1, 0, 0));
-    EXPECT_THROW(tri[3], IndexException);
+    EXPECT_NO_THROW(tri[3]);
+    EXPECT_EQ(tri[3], tri[2]);
   }
 
   {
@@ -75,7 +76,8 @@ TEST(Triangle3Test, Set)
   EXPECT_EQ(tri[1], Vector3d(0.3, -0.4, 0.5));
   EXPECT_EQ(tri[2], Vector3d(1.5, -2.6, 3.7));
 
-  EXPECT_THROW(tri.Set(3, Vector3d(1.5, 2.6, 3.8)), IndexException);
+  EXPECT_NO_THROW(tri.Set(3, Vector3d(1.5, 2.6, 3.8)));
+  EXPECT_EQ(tri[3], Vector3d(1.5, 2.6, 3.8));
 }
 
 /////////////////////////////////////////////////
@@ -87,7 +89,8 @@ TEST(Triangle3Test, Side)
   EXPECT_TRUE(tri.Side(1) == Line3d(0, 1, 1, 1, 0, 2));
   EXPECT_TRUE(tri.Side(2) == Line3d(1, 0, 2, 0, 0, 0));
 
-  EXPECT_THROW(tri.Side(3), IndexException);
+  EXPECT_NO_THROW(tri.Side(3));
+  EXPECT_TRUE(tri.Side(3) == tri.Side(2));
 }
 
 /////////////////////////////////////////////////
