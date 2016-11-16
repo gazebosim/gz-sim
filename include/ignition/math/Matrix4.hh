@@ -380,7 +380,9 @@ namespace ignition
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
       /// Vector3<T> &_result) const;
       public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
-              IGN_DEPRECATED(3.0)
+#ifndef _WIN32
+      IGN_DEPRECATED(3.0)
+#endif
       {
         if (this->IsAffine())
         {
