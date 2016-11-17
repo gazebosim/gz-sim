@@ -363,7 +363,7 @@ namespace ignition
     inline bool lessOrEqual(const T &_a, const T &_b,
                             const T &_epsilon = 1e-6)
     {
-      return _a < _b || equal(_a, _b, _epsilon);
+      return _a < _b + _epsilon;
     }
 
     /// \brief inequality test, within a tolerance
@@ -374,9 +374,8 @@ namespace ignition
     inline bool greaterOrEqual(const T &_a, const T &_b,
                                const T &_epsilon = 1e-6)
     {
-      return _a > _b || equal(_a, _b, _epsilon);
+      return _a > _b - _epsilon;
     }
-
 
     /// \brief get value at a specified precision
     /// \param[in] _a the number
