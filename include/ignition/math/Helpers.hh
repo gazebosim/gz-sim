@@ -360,7 +360,7 @@ namespace ignition
     /// \param[in] _b the second value
     /// \param[in] _epsilon the tolerance
     template<typename T>
-    inline bool lessOrEqual(const T &_a, const T &_b,
+    inline bool lessOrNearEqual(const T &_a, const T &_b,
                             const T &_epsilon = 1e-6)
     {
       return _a < _b + _epsilon;
@@ -371,7 +371,7 @@ namespace ignition
     /// \param[in] _b the second value
     /// \param[in] _epsilon the tolerance
     template<typename T>
-    inline bool greaterOrEqual(const T &_a, const T &_b,
+    inline bool greaterOrNearEqual(const T &_a, const T &_b,
                                const T &_epsilon = 1e-6)
     {
       return _a > _b - _epsilon;
