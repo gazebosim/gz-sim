@@ -1,7 +1,5 @@
 include (${project_cmake_dir}/Utils.cmake)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-  ${RUBY_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_PATH})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set (sources
   Angle.cc
@@ -85,6 +83,8 @@ endif()
 # $ export RUBYLIB=/usr/local/lib/ruby
 # $ ruby -e "require 'ignition/math'; a = Ignition::Math::Angle.new(20); puts a.Degree()"
 if (RUBY_FOUND)
+  include_directories(${RUBY_INCLUDE_DIRS})
+
   set(ruby_tests
     Angle_TEST
     Vector3_TEST
