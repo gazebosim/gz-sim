@@ -69,33 +69,36 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 ign_build_tests(${gtest_sources})
 ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
 
-set(ruby_tests
-  Angle_TEST
-  Vector3_TEST
-)
-
-set(swig_files
-  Angle.i
-  Vector2.i
-  Vector3.i
-)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+if (SWIG_FOUND)
+  
+  set(swig_files
+    Angle.i
+    Vector2.i
+    Vector3.i)
+endif()
+
 #################################################
-# Create and install Ruby
-#
+# Create and install Ruby interfaces
 # Example usage
-# $ export RUBYLIB=/home/nkoenig/local/lib/ruby
+# $ export RUBYLIB=/usr/local/lib/ruby
 # $ ruby -e "require 'ignition/math'; a = Ignition::Math::Angle.new(20); puts a.Degree()"
-set_source_files_properties(ruby.i ${swig_files} PROPERTIES CPLUSPLUS ON)
+if (RUBY_FOUND)
+  set(ruby_tests
+    Angle_TEST
+    Vector3_TEST
+  )
 
-SWIG_ADD_MODULE(math ruby ruby.i ${swig_files} ${sources})
-SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
-install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)
-
-foreach (test ${ruby_tests})
-  add_test(NAME ${test} COMMAND
-    ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
-	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
-endforeach()
+  set_source_files_properties(ruby.i ${swig_files} PROPERTIES CPLUSPLUS ON)
+  
+  SWIG_ADD_MODULE(math ruby ruby.i ${swig_files} ${sources})
+  SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
+  install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)
+  
+  foreach (test ${ruby_tests})
+    add_test(NAME ${test} COMMAND
+      ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
+  	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
+  endforeach()
+endif()
