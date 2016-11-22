@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012-2016 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 #ifndef IGNITION_MATH_VECTOR4_HH_
 #define IGNITION_MATH_VECTOR4_HH_
 
-#include <ignition/math/Helpers.hh>
 #include <ignition/math/Matrix4.hh>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -443,13 +443,11 @@ namespace ignition
       }
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
-      /// The index is clamped to the range (0, 3).
+      /// The index is clamped to the range (0,3).
       /// \return The value.
-      public: inline T operator[](size_t _index) const
+      public: inline T operator[](const size_t _index) const
       {
-        static const size_t min = 0;
-        static const size_t max = 2;
-        return this->data[math::clamp(_index, min, max)];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
       }
 
       /// \brief Get the x value.

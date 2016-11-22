@@ -402,7 +402,7 @@ TEST(Vector3dTest, Finite)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3dTest, IndexException)
+TEST(Vector3dTest, NoException)
 {
   math::Vector3d v(1, 2, 3);
   EXPECT_NO_THROW(math::equal(v[0], 1.0));
@@ -410,5 +410,6 @@ TEST(Vector3dTest, IndexException)
   EXPECT_NO_THROW(math::equal(v[2], 3.0));
 
   EXPECT_NO_THROW(math::equal(v[3], 4.0));
+  EXPECT_DOUBLE_EQ(v[3], 3.0);
 }
 

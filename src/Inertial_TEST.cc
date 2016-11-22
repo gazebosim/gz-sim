@@ -23,6 +23,18 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+/// \brief Compare quaternions, but allow rotations of PI about any axis.
+void CompareModuloPi(const math::Quaterniond &_q1,
+                     const math::Quaterniond &_q2,
+                     const double _tol = 1e-6)
+{
+  const auto rotErrorEuler = (_q1.Inverse() * _q2).Euler();
+  EXPECT_NEAR(sin(rotErrorEuler.X()), 0.0, _tol);
+  EXPECT_NEAR(sin(rotErrorEuler.Y()), 0.0, _tol);
+  EXPECT_NEAR(sin(rotErrorEuler.Z()), 0.0, _tol);
+}
+
+/////////////////////////////////////////////////
 // Simple constructor, test default values
 TEST(Inertiald_Test, Constructor)
 {
@@ -163,17 +175,183 @@ TEST(Inertiald_Test, MOI_Diagonal)
     EXPECT_EQ(inertial.MOI(), expectedMOI);
 
     // double check with a second MassMatrix3 instance
+    // that has the same base frame MOI but no pose rotation
     math::MassMatrix3d m2;
     EXPECT_FALSE(m2.Mass(mass));
     EXPECT_TRUE(m2.MOI(expectedMOI));
     EXPECT_EQ(inertial.MOI(), m2.MOI());
     // There are multiple correct rotations due to symmetry
-    const auto rot2 = math::Quaterniond(IGN_PI, 0, IGN_PI_4);
-    EXPECT_TRUE(m2.PrincipalAxesOffset() == pose.Rot() ||
-                m2.PrincipalAxesOffset() == rot2);
+    CompareModuloPi(m2.PrincipalAxesOffset(), pose.Rot());
   }
 }
 
+/////////////////////////////////////////////////
+// Base frame MOI should be invariant
+void SetRotation(const double _mass,
+    const math::Vector3d &_ixxyyzz,
+    const math::Vector3d &_ixyxzyz,
+    const bool _unique = true)
+{
+  const math::MassMatrix3d m(_mass, _ixxyyzz, _ixyxzyz);
+  EXPECT_TRUE(m.IsPositive());
+  EXPECT_TRUE(m.IsValid());
+
+  math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
+  const math::Inertiald inertialRef(m, pose);
+  const auto moi = inertialRef.MOI();
+
+  const std::vector<math::Quaterniond> rotations = {
+    math::Quaterniond::Identity,
+    math::Quaterniond(IGN_PI, 0, 0),
+    math::Quaterniond(0, IGN_PI, 0),
+    math::Quaterniond(0, 0, IGN_PI),
+    math::Quaterniond(IGN_PI_2, 0, 0),
+    math::Quaterniond(0, IGN_PI_2, 0),
+    math::Quaterniond(0, 0, IGN_PI_2),
+    math::Quaterniond(IGN_PI_4, 0, 0),
+    math::Quaterniond(0, IGN_PI_4, 0),
+    math::Quaterniond(0, 0, IGN_PI_4),
+    math::Quaterniond(IGN_PI/6, 0, 0),
+    math::Quaterniond(0, IGN_PI/6, 0),
+    math::Quaterniond(0, 0, IGN_PI/6),
+    math::Quaterniond(0.1, 0.2, 0.3),
+    math::Quaterniond(-0.1, 0.2, -0.3),
+    math::Quaterniond(0.4, 0.2, 0.5),
+    math::Quaterniond(-0.1, 0.7, -0.7)};
+  for (const auto rot : rotations)
+  {
+    {
+      auto inertial = inertialRef;
+
+      const double tol  = -1e-6;
+      EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
+      EXPECT_EQ(moi, inertial.MOI());
+      if (_unique)
+      {
+        CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      }
+
+      EXPECT_TRUE(inertial.SetInertialRotation(rot));
+      EXPECT_EQ(rot, inertial.Pose().Rot());
+      EXPECT_EQ(moi, inertial.MOI());
+    }
+
+    {
+      auto inertial = inertialRef;
+
+      EXPECT_TRUE(inertial.SetInertialRotation(rot));
+      EXPECT_EQ(rot, inertial.Pose().Rot());
+      EXPECT_EQ(moi, inertial.MOI());
+
+      const double tol = -1e-6;
+      EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
+      EXPECT_EQ(moi, inertial.MOI());
+      if (_unique)
+      {
+        CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationUniqueDiagonal)
+{
+  SetRotation(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
+  SetRotation(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationUniqueNondiagonal)
+{
+  SetRotation(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationNonuniqueDiagonal)
+{
+  SetRotation(12, math::Vector3d(2, 2, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 2, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 3, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 2, 2), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(2, 3, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 2, 3), math::Vector3d::Zero, false);
+  SetRotation(12, math::Vector3d(3, 3, 2), math::Vector3d::Zero, false);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, SetRotationNonuniqueNondiagonal)
+{
+  SetRotation(12, math::Vector3d(4, 4, 3), math::Vector3d(-1, 0, 0), false);
+  SetRotation(12, math::Vector3d(4, 3, 4), math::Vector3d(0, -1, 0), false);
+  SetRotation(12, math::Vector3d(3, 4, 4), math::Vector3d(0, 0, -1), false);
+  SetRotation(12, math::Vector3d(4, 4, 5), math::Vector3d(-1, 0, 0), false);
+  SetRotation(12, math::Vector3d(5, 4, 4), math::Vector3d(0, 0, -1), false);
+  SetRotation(12, math::Vector3d(5.5, 4.125, 4.375),
+             0.25*math::Vector3d(-sqrt(3), 3.0, -sqrt(3)/2), false);
+  SetRotation(12, math::Vector3d(4.125, 5.5, 4.375),
+                      0.25*math::Vector3d(-sqrt(3), -sqrt(3)/2, 3.0), false);
+}
+
+/////////////////////////////////////////////////
+// test for diagonalizing MassMatrix
+// verify MOI is conserved
+// and that off-diagonal terms are zero
+void Diagonalize(
+    const double _mass,
+    const math::Vector3d &_ixxyyzz,
+    const math::Vector3d &_ixyxzyz)
+{
+  const math::MassMatrix3d m(_mass, _ixxyyzz, _ixyxzyz);
+  EXPECT_TRUE(m.IsPositive());
+  EXPECT_TRUE(m.IsValid());
+
+  math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
+  math::Inertiald inertial(m, pose);
+  const auto moi = inertial.MOI();
+
+  EXPECT_TRUE(inertial.SetMassMatrixRotation(math::Quaterniond::Identity));
+  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
+
+  // try again with negative tolerance
+  EXPECT_TRUE(
+    inertial.SetMassMatrixRotation(math::Quaterniond::Identity, -1e-6));
+  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
+}
+
+/////////////////////////////////////////////////
+TEST(Inertiald_Test, Diagonalize)
+{
+  Diagonalize(12, math::Vector3d(2, 3, 4), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 4), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 4, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 4, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 4), math::Vector3d(0.3, 0.2, 0.1));
+  Diagonalize(12, math::Vector3d(2, 2, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(2, 3, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 2, 3), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(3, 3, 2), math::Vector3d::Zero);
+  Diagonalize(12, math::Vector3d(4, 4, 3), math::Vector3d(-1, 0, 0));
+  Diagonalize(12, math::Vector3d(4, 3, 4), math::Vector3d(0, -1, 0));
+  Diagonalize(12, math::Vector3d(3, 4, 4), math::Vector3d(0, 0, -1));
+  Diagonalize(12, math::Vector3d(4, 4, 5), math::Vector3d(-1, 0, 0));
+  Diagonalize(12, math::Vector3d(5, 4, 4), math::Vector3d(0, 0, -1));
+  Diagonalize(12, math::Vector3d(5.5, 4.125, 4.375),
+                               0.25*math::Vector3d(-sqrt(3), 3.0, -sqrt(3)/2));
+  Diagonalize(12, math::Vector3d(4.125, 5.5, 4.375),
+                      0.25*math::Vector3d(-sqrt(3), -sqrt(3)/2, 3.0));
+}
 /////////////////////////////////////////////////
 TEST(Inertiald_Test, Addition)
 {

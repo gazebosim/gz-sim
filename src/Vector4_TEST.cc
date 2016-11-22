@@ -141,7 +141,7 @@ TEST(Vector4dTest, Vector4d)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector4dTest, IndexException)
+TEST(Vector4dTest, NoException)
 {
   math::Vector4d v(1, 2, 3, 4);
   EXPECT_NO_THROW(math::equal(v[0], 1.0));
@@ -150,6 +150,7 @@ TEST(Vector4dTest, IndexException)
   EXPECT_NO_THROW(math::equal(v[3], 4.0));
 
   EXPECT_NO_THROW(math::equal(v[4], 5.0));
+  EXPECT_DOUBLE_EQ(v[4], 4.0);
 }
 
 /////////////////////////////////////////////////

@@ -26,6 +26,8 @@
 #include <tuple>
 #include <cstdint>
 
+#include <ignition/math/System.hh>
+
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 #define IGN_DBL_MAX std::numeric_limits<double>::max()
 
@@ -170,44 +172,41 @@
 /// \param[in] _v Vector3d that contains the box's dimensions.
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
 
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
-    #define IGNITION_HIDDEN
-  #endif
-#endif
-
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    /// \brief size_t type with a value of 0
+    static const size_t IGN_ZERO_SIZE_T  = 0u;
+
+    /// \brief size_t type with a value of 1
+    static const size_t IGN_ONE_SIZE_T   = 1u;
+
+    /// \brief size_t type with a value of 2
+    static const size_t IGN_TWO_SIZE_T   = 2u;
+
+    /// \brief size_t type with a value of 3
+    static const size_t IGN_THREE_SIZE_T = 3u;
+
+    /// \brief size_t type with a value of 4
+    static const size_t IGN_FOUR_SIZE_T  = 4u;
+
+    /// \brief size_t type with a value of 5
+    static const size_t IGN_FIVE_SIZE_T  = 5u;
+
+    /// \brief size_t type with a value of 6
+    static const size_t IGN_SIX_SIZE_T   = 6u;
+
+    /// \brief size_t type with a value of 7
+    static const size_t IGN_SEVEN_SIZE_T = 7u;
+
+    /// \brief size_t type with a value of 8
+    static const size_t IGN_EIGHT_SIZE_T = 8u;
+
+    /// \brief size_t type with a value of 9
+    static const size_t IGN_NINE_SIZE_T  = 9u;
+
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const double NAN_D = std::numeric_limits<double>::quiet_NaN();
 

@@ -39,10 +39,11 @@ TEST(SplineTest, Spline)
   EXPECT_TRUE(s.Point(1) == math::Vector3d(1, 1, 1));
 
   // ::UpdatePoint
-  EXPECT_THROW(s.UpdatePoint(2, math::Vector3d(2, 2, 2)), math::IndexException);
-  s.UpdatePoint(1, math::Vector3d(2, 2, 2));
+  EXPECT_FALSE(s.UpdatePoint(2, math::Vector3d(2, 2, 2)));
+
+  EXPECT_TRUE(s.UpdatePoint(1, math::Vector3d(2, 2, 2)));
   s.AutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3d(-1, -1, -1));
+  EXPECT_TRUE(s.UpdatePoint(0, math::Vector3d(-1, -1, -1)));
   s.AutoCalculate(true);
 
   // ::Interpolate
@@ -66,7 +67,8 @@ TEST(SplineTest, Tension)
 TEST(SplineTest, Interpolate)
 {
   math::Spline s;
-  EXPECT_THROW(s.Interpolate(0, 0.1), math::IndexException);
+  EXPECT_NO_THROW(s.Interpolate(0, 0.1));
+  EXPECT_FALSE(s.Interpolate(0, 0.1).IsFinite());
 
   s.AddPoint(math::Vector3d(0, 0, 0));
   EXPECT_EQ(s.Interpolate(0, 0.1), math::Vector3d(0, 0, 0));
@@ -81,17 +83,21 @@ TEST(SplineTest, Interpolate)
 TEST(SplineTest, Point)
 {
   math::Spline s;
-  EXPECT_THROW(s.Point(0), math::IndexException);
+  EXPECT_NO_THROW(s.Point(0));
+  EXPECT_FALSE(s.Point(0).IsFinite());
 }
 
 /////////////////////////////////////////////////
 TEST(SplineTest, Tangent)
 {
   math::Spline s;
-  EXPECT_THROW(s.Tangent(0), math::IndexException);
+  EXPECT_NO_THROW(s.Tangent(0));
+  EXPECT_FALSE(s.Tangent(0).IsFinite());
 
   s.AddPoint(math::Vector3d(0, 0, 0));
-  EXPECT_THROW(s.Tangent(0), math::IndexException);
+  EXPECT_NO_THROW(s.Tangent(0));
+  EXPECT_FALSE(s.Tangent(0).IsFinite());
+
   s.AddPoint(math::Vector3d(1, 0, 0));
   EXPECT_EQ(s.Tangent(0), math::Vector3d(0.5, 0, 0));
 }
