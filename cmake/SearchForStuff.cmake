@@ -30,16 +30,6 @@ else()
 endif()
 
 ########################################
-# Include pythonlibs
-find_package(PythonLibs QUIET)
-if (NOT PYTHONLIBS_FOUND)
-  BUILD_ERROR("PythonLibs is required: Install python-dev.")
-  message (STATUS "Searching for PythonLibs - not found.")
-else()
-  message (STATUS "Searching for PythonLibs - found.")
-endif()
-
-########################################
 # Include man pages stuff
 include (${project_cmake_dir}/Ronn2Man.cmake)
 add_manpage_target()
