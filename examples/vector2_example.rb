@@ -1,3 +1,6 @@
+# This example will only work if the Ruby interface library was compiled and
+# installed.
+#
 # Modify the RUBYLIB environment variable to include the ignition math 
 # library install path. For example, if you install to /user:
 #

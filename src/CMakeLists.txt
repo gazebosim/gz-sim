@@ -1,5 +1,4 @@
 include (${project_cmake_dir}/Utils.cmake)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set (sources
   Angle.cc
