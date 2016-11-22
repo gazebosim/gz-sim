@@ -27,12 +27,7 @@ namespace ignition
       public: Angle operator+(const Angle &_angle) const;
       public: Angle operator*(const Angle &_angle) const;
       public: Angle operator/(const Angle &_angle) const;
-      public: Angle operator-=(const Angle &_angle);
-      public: Angle operator+=(const Angle &_angle);
-      public: Angle operator*=(const Angle &_angle);
-      public: Angle operator/=(const Angle &_angle);
       public: bool operator==(const Angle &_angle) const;
-      public: bool operator!=(const Angle &_angle) const;
       public: bool operator<(const Angle &_angle) const;
       public: bool operator<=(const Angle &_angle) const;
       public: bool operator>(const Angle &_angle) const;

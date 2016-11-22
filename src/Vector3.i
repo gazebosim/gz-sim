@@ -41,52 +41,28 @@ namespace ignition
       public: void Min(const Vector3<T> &_v);
       public: T Max() const;
       public: T Min() const;
-      public: Vector3 &operator=(const Vector3<T> &_v);
-      public: Vector3 &operator=(T _v);
       public: Vector3 operator+(const Vector3<T> &_v) const;
-      public: const Vector3 &operator+=(const Vector3<T> &_v);
       public: inline Vector3<T> operator+(const T _s) const;
-      public: friend inline Vector3<T> operator+(const T _s,
-                                                 const Vector3<T> &_v);
-      public: const Vector3<T> &operator+=(const T _s);
       public: inline Vector3 operator-() const;
       public: inline Vector3<T> operator-(const Vector3<T> &_pt) const;
-      public: const Vector3<T> &operator-=(const Vector3<T> &_pt);
       public: inline Vector3<T> operator-(const T _s) const;
-      public: friend inline Vector3<T> operator-(const T _s,
-                                                 const Vector3<T> &_v);
-      public: const Vector3<T> &operator-=(const T _s);
       public: const Vector3<T> operator/(const Vector3<T> &_pt) const;
-      public: const Vector3<T> &operator/=(const Vector3<T> &_pt);
       public: const Vector3<T> operator/(T _v) const;
-      public: const Vector3<T> &operator/=(T _v);
       public: Vector3<T> operator*(const Vector3<T> &_p) const;
-      public: const Vector3<T> &operator*=(const Vector3<T> &_v);
       public: inline Vector3<T> operator*(T _s) const;
-      public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v);
-      public: const Vector3<T> &operator*=(T _v);
       public: bool Equal(const Vector3 &_v, const T &_tol) const;
       public: bool operator==(const Vector3<T> &_v) const;
-      public: bool operator!=(const Vector3<T> &_v) const;
       public: bool IsFinite() const;
       public: inline void Correct();
-      public: T operator[](size_t _index) const;
       public: void Round(int _precision);
       public: bool Equal(const Vector3<T> &_v) const;
       public: inline T X() const;
       public: inline T Y() const;
       public: inline T Z() const;
-      public: inline T &X();
-      public: inline T &Y();
-      public: inline T &Z();
       public: inline void X(const T &_v);
       public: inline void Y(const T &_v);
       public: inline void Z(const T &_v);
       public: bool operator<(const Vector3<T> &_pt) const;
-      public: friend std::ostream &operator<<(
-                  std::ostream &_out, const ignition::math::Vector3<T> &_pt);
-      public: friend std::istream &operator>>(
-                  std::istream &_in, ignition::math::Vector3<T> &_pt);
     };
 
     %template(Vector3i) Vector3<int>;
