@@ -92,6 +92,7 @@ if (RUBY_FOUND)
 
   set(ruby_tests
     Angle_TEST
+    Vector2_TEST
     Vector3_TEST
   )
 

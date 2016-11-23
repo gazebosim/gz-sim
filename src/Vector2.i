@@ -27,6 +27,9 @@ namespace ignition
     template<typename T>
     class Vector2
     {
+      public: static const Vector2 Zero;
+      public: static const Vector2 One;
+
       public: Vector2();
       public: Vector2(const T &_x, const T &_y);
       public: Vector2(const Vector2<T> &_v);
@@ -36,7 +39,10 @@ namespace ignition
       public: void Set(T _x, T _y);
       public: T Dot(const Vector2<T> &_v) const;
       public: Vector2 operator+(const Vector2 &_v) const;
+      public: inline Vector2<T> operator+(const T _s) const;
+      public: inline Vector2 operator-() const;
       public: Vector2 operator-(const Vector2 &_v) const;
+      public: inline Vector2<T> operator-(const T _s) const;
       public: const Vector2 operator/(const Vector2 &_v) const;
       public: const Vector2 operator/(T _v) const;
       public: const Vector2 operator*(const Vector2 &_v) const;
@@ -47,6 +53,9 @@ namespace ignition
       public: inline T Y() const;
       public: inline void X(const T &_v);
       public: inline void Y(const T &_v);
+      public: bool Equal(const Vector2 &_v, const T &_tol) const;
+      public: T Length() const;
+      public: T SquaredLength() const;
     };
 
     %template(Vector2i) Vector2<int>;

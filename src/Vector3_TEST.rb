@@ -428,4 +428,3 @@ class Vector3_TEST < Test::Unit::TestCase
 end
 
 Test::Unit::UI::Console::TestRunner.run(Vector3_TEST)
-

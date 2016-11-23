@@ -29,10 +29,10 @@ namespace ignition
     class Vector2
     {
       /// \brief math::Vector2(0, 0)
-      public: static const Vector2<T> Zero;
+      public: static const Vector2 Zero;
 
       /// \brief math::Vector2(1, 1)
-      public: static const Vector2<T> One;
+      public: static const Vector2 One;
 
       /// \brief Default Constructor
       public: Vector2()
