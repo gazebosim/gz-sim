@@ -68,8 +68,14 @@ ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+#################################################
+# Setup swig
 if (SWIG_FOUND)
-  
+  include(${SWIG_USE_FILE})
+  set(CMAKE_SWIG_FLAGS "")
+
+  include_directories(${PROJECT_SOURCE_DIR}/include)
+
   set(swig_files
     Angle.i
     Vector2.i
