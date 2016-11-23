@@ -35,6 +35,8 @@ namespace ignition
       public: Vector2(const Vector2<T> &_v);
       public: virtual ~Vector2();
       public: double Distance(const Vector2 &_pt) const;
+      public: T Length() const;
+      public: T SquaredLength() const;
       public: void Normalize();
       public: void Set(T _x, T _y);
       public: T Dot(const Vector2<T> &_v) const;
@@ -54,8 +56,6 @@ namespace ignition
       public: inline void X(const T &_v);
       public: inline void Y(const T &_v);
       public: bool Equal(const Vector2 &_v, const T &_tol) const;
-      public: T Length() const;
-      public: T SquaredLength() const;
     };
 
     %template(Vector2i) Vector2<int>;
