@@ -355,6 +355,28 @@ namespace ignition
       return diff <= _epsilon;
     }
 
+    /// \brief inequality test, within a tolerance
+    /// \param[in] _a the first value
+    /// \param[in] _b the second value
+    /// \param[in] _epsilon the tolerance
+    template<typename T>
+    inline bool lessOrNearEqual(const T &_a, const T &_b,
+                            const T &_epsilon = 1e-6)
+    {
+      return _a < _b + _epsilon;
+    }
+
+    /// \brief inequality test, within a tolerance
+    /// \param[in] _a the first value
+    /// \param[in] _b the second value
+    /// \param[in] _epsilon the tolerance
+    template<typename T>
+    inline bool greaterOrNearEqual(const T &_a, const T &_b,
+                               const T &_epsilon = 1e-6)
+    {
+      return _a > _b - _epsilon;
+    }
+
     /// \brief get value at a specified precision
     /// \param[in] _a the number
     /// \param[in] _precision the precision
