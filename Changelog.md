@@ -2,6 +2,10 @@
 
 ### Ignition Math 3.x.x
 
+1. Deprecate many IGN_* macros in favor of static const variables in Helpers.hh
+    * [Pull request 138](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/138)
+    * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
+
 1. Removed exceptions. Return values should be evaluated to determine if
    errors have occured.
     * [Pull request 132](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/132)
@@ -26,7 +30,6 @@
 ## Ignition Math 2.x
 
 1. Add static const variables as alternative to macros in Helpers.hh
-   and deprecate many IGN_* macros in Helpers.hh
     * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
 
 1. Add new methods for floating numbers: lessOrEqual and greaterOrEqual
