@@ -913,7 +913,7 @@ namespace ignition
         Vector3<T> theta = _angularVelocity * _deltaT * 0.5;
         T thetaMagSq = theta.SquaredLength();
         T s;
-        if (thetaMagSq * thetaMagSq / 24.0 < IGN_DBL_MIN)
+        if (thetaMagSq * thetaMagSq / 24.0 < MIN_D)
         {
           deltaQ.W() = 1.0 - thetaMagSq / 2.0;
           s = 1.0 - thetaMagSq / 6.0;

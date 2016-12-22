@@ -27,106 +27,106 @@
 #include <cstdint>
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
-#define IGN_DBL_MAX std::numeric_limits<double>::max()
+#define IGN_DBL_MAX ignition::math::MAX_D
 
 /// \brief Double min value. This value will be similar to 2.22507e-308
-#define IGN_DBL_MIN std::numeric_limits<double>::min()
+#define IGN_DBL_MIN ignition::math::MIN_D
 
 /// \brief Double low value, equivalent to -IGN_DBL_MAX
-#define IGN_DBL_LOW std::numeric_limits<double>::lowest()
+#define IGN_DBL_LOW ignition::math::LOW_D
 
 /// \brief Double positive infinite value
-#define IGN_DBL_INF std::numeric_limits<double>::infinity()
+#define IGN_DBL_INF ignition::math::INF_D
 
 /// \brief Float maximum value. This value will be similar to 3.40282e+38
-#define IGN_FLT_MAX std::numeric_limits<float>::max()
+#define IGN_FLT_MAX ignition::math::MAX_F
 
 /// \brief Float minimum value. This value will be similar to 1.17549e-38
-#define IGN_FLT_MIN std::numeric_limits<float>::min()
+#define IGN_FLT_MIN ignition::math::MIN_F
 
 /// \brief Float lowest value, equivalent to -IGN_FLT_MAX
-#define IGN_FLT_LOW std::numeric_limits<float>::lowest()
+#define IGN_FLT_LOW ignition::math::LOW_F
 
 /// \brief Float positive infinite value
-#define IGN_FLT_INF std::numeric_limits<float>::infinity()
+#define IGN_FLT_INF ignition::math::INF_F
 
 /// \brief 16bit unsigned integer maximum value
-#define IGN_UINT16_MAX std::numeric_limits<uint16_t>::max()
+#define IGN_UINT16_MAX ignition::math::MAX_UI16
 
 /// \brief 16bit unsigned integer minimum value
-#define IGN_UINT16_MIN std::numeric_limits<uint16_t>::min()
+#define IGN_UINT16_MIN ignition::math::MIN_UI16
 
 /// \brief 16bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT16_MIN, and is defined here for completeness.
-#define IGN_UINT16_LOW std::numeric_limits<uint16_t>::lowest()
+#define IGN_UINT16_LOW ignition::math::LOW_UI16
 
 /// \brief 16-bit unsigned integer positive infinite value
-#define IGN_UINT16_INF std::numeric_limits<uint16_t>::infinity()
+#define IGN_UINT16_INF ignition::math::INF_UI16
 
 /// \brief 16bit integer maximum value
-#define IGN_INT16_MAX std::numeric_limits<int16_t>::max()
+#define IGN_INT16_MAX ignition::math::MAX_I16
 
 /// \brief 16bit integer minimum value
-#define IGN_INT16_MIN std::numeric_limits<int16_t>::min()
+#define IGN_INT16_MIN ignition::math::MIN_I16
 
 /// \brief 16bit integer lowest value. This is equivalent to IGN_INT16_MIN,
 /// and is defined here for completeness.
-#define IGN_INT16_LOW std::numeric_limits<int16_t>::lowest()
+#define IGN_INT16_LOW ignition::math::LOW_I16
 
 /// \brief 16-bit integer positive infinite value
-#define IGN_INT16_INF std::numeric_limits<int16_t>::infinity()
+#define IGN_INT16_INF ignition::math::INF_I16
 
 /// \brief 32bit unsigned integer maximum value
-#define IGN_UINT32_MAX std::numeric_limits<uint32_t>::max()
+#define IGN_UINT32_MAX ignition::math::MAX_UI32
 
 /// \brief 32bit unsigned integer minimum value
-#define IGN_UINT32_MIN std::numeric_limits<uint32_t>::min()
+#define IGN_UINT32_MIN ignition::math::MIN_UI32
 
 /// \brief 32bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT32_MIN, and is defined here for completeness.
-#define IGN_UINT32_LOW std::numeric_limits<uint32_t>::lowest()
+#define IGN_UINT32_LOW ignition::math::LOW_UI32
 
 /// \brief 32-bit unsigned integer positive infinite value
-#define IGN_UINT32_INF std::numeric_limits<uint32_t>::infinity()
+#define IGN_UINT32_INF ignition::math::INF_UI32
 
 /// \brief 32bit integer maximum value
-#define IGN_INT32_MAX std::numeric_limits<int32_t>::max()
+#define IGN_INT32_MAX ignition::math::MAX_I32
 
 /// \brief 32bit integer minimum value
-#define IGN_INT32_MIN std::numeric_limits<int32_t>::min()
+#define IGN_INT32_MIN ignition::math::MIN_I32
 
 /// \brief 32bit integer minimum value. This is equivalent to IGN_INT32_MIN,
 /// and is defined here for completeness.
-#define IGN_INT32_LOW std::numeric_limits<int32_t>::lowest()
+#define IGN_INT32_LOW ignition::math::LOW_I32
 
 /// \brief 32-bit integer positive infinite value
-#define IGN_INT32_INF std::numeric_limits<int32_t>::infinity()
+#define IGN_INT32_INF ignition::math::INF_I32
 
 /// \brief 64bit unsigned integer maximum value
-#define IGN_UINT64_MAX std::numeric_limits<uint64_t>::max()
+#define IGN_UINT64_MAX ignition::math::MAX_UI64
 
 /// \brief 64bit unsigned integer minimum value
-#define IGN_UINT64_MIN std::numeric_limits<uint64_t>::min()
+#define IGN_UINT64_MIN ignition::math::MIN_UI64
 
 /// \brief 64bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT64_MIN, and is defined here for completeness.
-#define IGN_UINT64_LOW std::numeric_limits<uint64_t>::lowest()
+#define IGN_UINT64_LOW ignition::math::LOW_UI64
 
 /// \brief 64-bit unsigned integer positive infinite value
-#define IGN_UINT64_INF std::numeric_limits<uint64_t>::infinity()
+#define IGN_UINT64_INF ignition::math::INF_UI64
 
 /// \brief 64bit integer maximum value
-#define IGN_INT64_MAX std::numeric_limits<int64_t>::max()
+#define IGN_INT64_MAX ignition::math::MAX_I64
 
 /// \brief 64bit integer minimum value
-#define IGN_INT64_MIN std::numeric_limits<int64_t>::min()
+#define IGN_INT64_MIN ignition::math::MIN_I64
 
 /// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
 /// and is defined here for completeness.
-#define IGN_INT64_LOW std::numeric_limits<int64_t>::lowest()
+#define IGN_INT64_LOW ignition::math::LOW_I64
 
 /// \brief 64-bit integer positive infinite value
-#define IGN_INT64_INF std::numeric_limits<int64_t>::infinity()
+#define IGN_INT64_INF ignition::math::INF_I64
 
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
@@ -208,11 +208,113 @@ namespace ignition
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    /// \brief Double maximum value. This value will be similar to 1.79769e+308
+    static const double MAX_D = std::numeric_limits<double>::max();
+
+    /// \brief Double min value. This value will be similar to 2.22507e-308
+    static const double MIN_D = std::numeric_limits<double>::min();
+
+    /// \brief Double low value, equivalent to -MAX_D
+    static const double LOW_D = std::numeric_limits<double>::lowest();
+
+    /// \brief Double positive infinite value
+    static const double INF_D = std::numeric_limits<double>::infinity();
+
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const double NAN_D = std::numeric_limits<double>::quiet_NaN();
 
+    /// \brief Float maximum value. This value will be similar to 3.40282e+38
+    static const float MAX_F = std::numeric_limits<float>::max();
+
+    /// \brief Float minimum value. This value will be similar to 1.17549e-38
+    static const float MIN_F = std::numeric_limits<float>::min();
+
+    /// \brief Float low value, equivalent to -MAX_F
+    static const float LOW_F = std::numeric_limits<float>::lowest();
+
+    /// \brief float positive infinite value
+    static const float INF_F = std::numeric_limits<float>::infinity();
+
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const float NAN_F = std::numeric_limits<float>::quiet_NaN();
+
+    /// \brief 16bit unsigned integer maximum value
+    static const uint16_t MAX_UI16 = std::numeric_limits<uint16_t>::max();
+
+    /// \brief 16bit unsigned integer minimum value
+    static const uint16_t MIN_UI16 = std::numeric_limits<uint16_t>::min();
+
+    /// \brief 16bit unsigned integer lowest value. This is equivalent to
+    /// IGN_UINT16_MIN, and is defined here for completeness.
+    static const uint16_t LOW_UI16 = std::numeric_limits<uint16_t>::lowest();
+
+    /// \brief 16-bit unsigned integer positive infinite value
+    static const uint16_t INF_UI16 = std::numeric_limits<uint16_t>::infinity();
+
+    /// \brief 16bit unsigned integer maximum value
+    static const int16_t MAX_I16 = std::numeric_limits<int16_t>::max();
+
+    /// \brief 16bit unsigned integer minimum value
+    static const int16_t MIN_I16 = std::numeric_limits<int16_t>::min();
+
+    /// \brief 16bit unsigned integer lowest value. This is equivalent to
+    /// IGN_INT16_MIN, and is defined here for completeness.
+    static const int16_t LOW_I16 = std::numeric_limits<int16_t>::lowest();
+
+    /// \brief 16-bit unsigned integer positive infinite value
+    static const int16_t INF_I16 = std::numeric_limits<int16_t>::infinity();
+
+    /// \brief 32bit unsigned integer maximum value
+    static const uint32_t MAX_UI32 = std::numeric_limits<uint32_t>::max();
+
+    /// \brief 32bit unsigned integer minimum value
+    static const uint32_t MIN_UI32 = std::numeric_limits<uint32_t>::min();
+
+    /// \brief 32bit unsigned integer lowest value. This is equivalent to
+    /// IGN_UINT32_MIN, and is defined here for completeness.
+    static const uint32_t LOW_UI32 = std::numeric_limits<uint32_t>::lowest();
+
+    /// \brief 32-bit unsigned integer positive infinite value
+    static const uint32_t INF_UI32 = std::numeric_limits<uint32_t>::infinity();
+
+    /// \brief 32bit unsigned integer maximum value
+    static const int32_t MAX_I32 = std::numeric_limits<int32_t>::max();
+
+    /// \brief 32bit unsigned integer minimum value
+    static const int32_t MIN_I32 = std::numeric_limits<int32_t>::min();
+
+    /// \brief 32bit unsigned integer lowest value. This is equivalent to
+    /// IGN_INT32_MIN, and is defined here for completeness.
+    static const int32_t LOW_I32 = std::numeric_limits<int32_t>::lowest();
+
+    /// \brief 32-bit unsigned integer positive infinite value
+    static const int32_t INF_I32 = std::numeric_limits<int32_t>::infinity();
+
+    /// \brief 64bit unsigned integer maximum value
+    static const uint64_t MAX_UI64 = std::numeric_limits<uint64_t>::max();
+
+    /// \brief 64bit unsigned integer minimum value
+    static const uint64_t MIN_UI64 = std::numeric_limits<uint64_t>::min();
+
+    /// \brief 64bit unsigned integer lowest value. This is equivalent to
+    /// IGN_UINT64_MIN, and is defined here for completeness.
+    static const uint64_t LOW_UI64 = std::numeric_limits<uint64_t>::lowest();
+
+    /// \brief 64-bit unsigned integer positive infinite value
+    static const uint64_t INF_UI64 = std::numeric_limits<uint64_t>::infinity();
+
+    /// \brief 64bit unsigned integer maximum value
+    static const int64_t MAX_I64 = std::numeric_limits<int64_t>::max();
+
+    /// \brief 64bit unsigned integer minimum value
+    static const int64_t MIN_I64 = std::numeric_limits<int64_t>::min();
+
+    /// \brief 64bit unsigned integer lowest value. This is equivalent to
+    /// IGN_INT64_MIN, and is defined here for completeness.
+    static const int64_t LOW_I64 = std::numeric_limits<int64_t>::lowest();
+
+    /// \brief 64-bit unsigned integer positive infinite value
+    static const int64_t INF_I64 = std::numeric_limits<int64_t>::infinity();
 
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
