@@ -331,11 +331,11 @@ TEST(HelpersTest, Volume)
 TEST(HelpersTest, Pair)
 {
 #ifdef _MSC_VER
-  math::PairInput maxA = math::MAX_UI16;
-  math::PairInput maxB = math::MAX_UI16;
+  math::PairInput maxA = IGN_UINT16_MAX;
+  math::PairInput maxB = IGN_UINT16_MAX;
 #else
-  math::PairInput maxA = math::MAX_UI32;
-  math::PairInput maxB = math::MAX_UI32;
+  math::PairInput maxA = IGN_UINT32_MAX;
+  math::PairInput maxB = IGN_UINT32_MAX;
 #endif
 
   math::PairInput maxC, maxD;
@@ -343,9 +343,9 @@ TEST(HelpersTest, Pair)
   // Maximum parameters should generate a maximum key
   math::PairOutput maxKey = math::Pair(maxA, maxB);
 #ifdef _MSC_VER
-  EXPECT_EQ(maxKey, math::MAX_UI32);
+  EXPECT_EQ(maxKey, IGN_UINT32_MAX);
 #else
-  EXPECT_EQ(maxKey, math::MAX_UI64);
+  EXPECT_EQ(maxKey, IGN_UINT64_MAX);
 #endif
 
   std::tie(maxC, maxD) = math::Unpair(maxKey);
@@ -353,20 +353,20 @@ TEST(HelpersTest, Pair)
   EXPECT_EQ(maxD, maxB);
 
 #ifdef _MSC_VER
-  math::PairInput minA = math::MIN_UI16;
-  math::PairInput minB = math::MIN_UI16;
+  math::PairInput minA = IGN_UINT16_MIN;
+  math::PairInput minB = IGN_UINT16_MIN;
 #else
-  math::PairInput minA = math::MIN_UI32;
-  math::PairInput minB = math::MIN_UI32;
+  math::PairInput minA = IGN_UINT32_MIN;
+  math::PairInput minB = IGN_UINT32_MIN;
 #endif
   math::PairInput minC, minD;
 
   // Minimum parameters should generate a minimum key
   math::PairOutput minKey = math::Pair(minA, minB);
 #ifdef _MSC_VER
-  EXPECT_EQ(minKey, math::MIN_UI32);
+  EXPECT_EQ(minKey, IGN_UINT32_MIN);
 #else
-  EXPECT_EQ(minKey, math::MIN_UI64);
+  EXPECT_EQ(minKey, IGN_UINT64_MIN);
 #endif
 
   std::tie(minC, minD) = math::Unpair(minKey);
@@ -398,10 +398,10 @@ TEST(HelpersTest, Pair)
     std::set<math::PairOutput> set;
 
     // Iterate over range of pairs, and check for unique keys.
-    for (uint16_t a = math::MIN_UI16; a < math::MAX_UI16 - 500;
+    for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 500;
          a += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
     {
-      for (uint16_t b = math::MIN_UI16; b < math::MAX_UI16 - 500;
+      for (uint16_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 500;
          b += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
       {
         math::PairOutput key = math::Pair(a, b);
@@ -416,9 +416,9 @@ TEST(HelpersTest, Pair)
 
 #ifndef _MSC_VER
     // Iterate over large numbers, and check for unique keys.
-    for (math::PairInput a = math::MAX_UI32-5000; a < math::MAX_UI32; a++)
+    for (math::PairInput a = IGN_UINT32_MAX-5000; a < IGN_UINT32_MAX; a++)
     {
-      for (math::PairInput b = math::MAX_UI32-5000; b < math::MAX_UI32; b++)
+      for (math::PairInput b = IGN_UINT32_MAX-5000; b < IGN_UINT32_MAX; b++)
       {
         math::PairOutput key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);

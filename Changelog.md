@@ -1,7 +1,6 @@
 ## Ignition Math 2.x
 
 1. Add static const variables as alternative to macros in Helpers.hh
-   and deprecate many IGN_* macros in Helpers.hh
     * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
 
 1. Add new methods for floating numbers: lessOrEqual and greaterOrEqual
