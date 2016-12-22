@@ -25,25 +25,37 @@
 
 ## Ignition Math 2.x
 
-1. Fix Euler angle conversion of quaternions near singularities
-    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+1. Add static const variables as alternative to macros in Helpers.hh
+    * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
 
-1. Added SemanticVersion class
-    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+1. Add new methods for floating numbers: lessOrEqual and greaterOrEqual
+    * [Pull request 134](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/134)
 
-1. Added Matrix4<T>::LookAt
-    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
+### Ignition Math 2.6
 
-1. Added triangle3 class, and helper functions in other classes
-    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
-
-1. Change equality helper to work with 387 fp unit.
-   Contribution from Rich Mattes.
-    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+### Ignition Math 2.6.0
 
 1. Added copy constructor, equality operators and assignment operators to
     SphericalCoordinates class.
     * [Pull request 131](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/131)
+
+1. Fix Euler angle conversion of quaternions near singularities
+    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+
+1. Backport triangle3, helper functions, equality helper to work with 387 fp unit
+   (Contribution from Rich Mattes).
+    * [Pull request 125](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/125)
+    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
+
+1. Added Matrix4<T>::LookAt
+    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
+
+1. Set Inertial Rotations
+    * [Pull request 121](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/121)
+
+1. Added SemanticVersion class
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
 ### Ignition Math 2.5
 
