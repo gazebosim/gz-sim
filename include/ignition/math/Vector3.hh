@@ -368,7 +368,7 @@ namespace ignition
       public: friend inline Vector3<T> operator+(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+        return {_v.X() + _s, _v.Y() + _s, _v.Z() + _s};
       }
 
       /// \brief Addition assignment operator
@@ -429,7 +429,7 @@ namespace ignition
       public: friend inline Vector3<T> operator-(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+        return {_s - _v.X(), _s - _v.Y(), _s - _v.Z()};
       }
 
       /// \brief Subtraction assignment operator
@@ -532,7 +532,7 @@ namespace ignition
       /// \return a scaled vector
       public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() * _s, _v.Y() * _s, _v.Z() * _s);
+        return {_v.X() * _s, _v.Y() * _s, _v.Z() * _s};
       }
 
       /// \brief Multiplication operator
