@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
-project (ignition-math2)
+project (ignition-math3)
 
 string (SUBSTRING ${PROJECT_NAME} 9 4 IGN_PROJECT_NAME)
 
 string (SUBSTRING ${PROJECT_NAME} 13 -1 PROJECT_MAJOR_VERSION)
-set (PROJECT_MINOR_VERSION 6)
+set (PROJECT_MINOR_VERSION 0)
 set (PROJECT_PATCH_VERSION 0)
 
 set(PROJECT_NAME_NO_VERSION "ignition-${IGN_PROJECT_NAME}")
