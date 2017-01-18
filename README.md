@@ -9,6 +9,16 @@ classes and functions used in other Ignition libraries and programs.
 
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
 
+## Continuous integration
+
+This project uses [appveyor](https://ci.appveyor.com/project/scpeters/ign-math/history)
+for testing on Windows.
+It has the following build status: 
+[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/latest)
+
+This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
+for testing with Linux.
+
 ## Installation
 
 Standard installation can be performed in UNIX systems using the following
