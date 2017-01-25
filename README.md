@@ -14,7 +14,7 @@ classes and functions used in other Ignition libraries and programs.
 This project uses [appveyor](https://ci.appveyor.com/project/scpeters/ign-math/history)
 for testing on Windows.
 It has the following build status: 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/latest)
+![appveyor badge](https://ci.appveyor.com/api/projects/status/bitbucket/ignitionrobotics/ign-math?svg=true)
 
 This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
 for testing with Linux.
