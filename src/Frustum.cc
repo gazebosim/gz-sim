@@ -239,3 +239,16 @@ void Frustum::ComputePlanes()
   norm = Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight);
   this->dataPtr->planes[FRUSTUM_PLANE_BOTTOM].Set(norm, bottomCenter.Dot(norm));
 }
+
+//////////////////////////////////////////////////
+Frustum &Frustum::operator =(const Frustum &_f)
+{
+  this->dataPtr->near = _f.dataPtr->near;
+  this->dataPtr->far = _f.dataPtr->far;
+  this->dataPtr->fov = _f.dataPtr->fov;
+  this->dataPtr->aspectRatio = _f.dataPtr->aspectRatio;
+  this->dataPtr->pose = _f.dataPtr->pose;
+  this->ComputePlanes();
+
+  return *this;
+}
