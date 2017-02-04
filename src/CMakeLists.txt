@@ -22,6 +22,7 @@ set (sources
 
 set (gtest_sources
   Angle_TEST.cc
+  ArbitraryBox_TEST.cc
   Box_TEST.cc
   Filter_TEST.cc
   Frustum_TEST.cc

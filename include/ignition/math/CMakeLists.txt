@@ -2,6 +2,7 @@ include (${project_cmake_dir}/Utils.cmake)
 
 set (headers
   AffineException.hh
+  ArbitraryBox.hh
   Angle.hh
   Box.hh
   Filter.hh
