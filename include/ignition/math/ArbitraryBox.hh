@@ -131,7 +131,7 @@ namespace ignition
         return *this;
       }
 
-      /// \brief Equality test operatoer
+      /// \brief Equality test operator
       /// \param[in] _b ArbitraryBox to test
       /// \return True if equal
       public: bool operator==(const ArbitraryBox<T> &_b) const
@@ -139,7 +139,7 @@ namespace ignition
         return this->size == _b.size && this->pose == _b.pose;
       }
 
-      /// \brief Inequality test operatoer
+      /// \brief Inequality test operator
       /// \param[in] _b ArbitraryBox to test
       /// \return True if not equal
       public: bool operator!=(const ArbitraryBox<T> &_b) const
