@@ -78,12 +78,12 @@ TEST(ArbitraryBoxTest, SizePoseConstructor)
 /////////////////////////////////////////////////
 TEST(ArbitraryBoxTest, CopyConstructor)
 {
-  ArbitraryBoxf box1(Vector3f(0.1, 0.2, 0.3),
-                     Pose3f(-0.1, -0.2, 0, 1.1, 1.2, 1.3));
+  ArbitraryBoxf box1(Vector3f(0.1f, 0.2f, 0.3f),
+                     Pose3f(-0.1f, -0.2f, 0.0f, 1.1f, 1.2f, 1.3f));
   ArbitraryBoxf box2(box1);
 
-  EXPECT_EQ(box2.Size(), Vector3f(0.1, 0.2, 0.3));
-  EXPECT_EQ(box2.Pose(), Pose3f(-0.1, -0.2, 0, 1.1, 1.2, 1.3));
+  EXPECT_EQ(box2.Size(), Vector3f(0.1f, 0.2f, 0.3f));
+  EXPECT_EQ(box2.Pose(), Pose3f(-0.1f, -0.2f, 0.0f, 1.1f, 1.2f, 1.3f));
 }
 
 /////////////////////////////////////////////////
