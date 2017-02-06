@@ -310,9 +310,9 @@ namespace ignition
       {
         T phi, the, psi;
 
-        phi = _roll / 2.0;
-        the = _pitch / 2.0;
-        psi = _yaw / 2.0;
+        phi = _roll / T(2.0);
+        the = _pitch / T(2.0);
+        psi = _yaw / T(2.0);
 
         this->qw = cos(phi) * cos(the) * cos(psi) +
           sin(phi) * sin(the) * sin(psi);

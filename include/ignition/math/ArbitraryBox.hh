@@ -51,7 +51,7 @@ namespace ignition
       /// \brief Constructor which takes only the size.
       /// \param[in] _size Box size, in its own coordinate frame. Its absolute
       /// value will be taken, so the size is non-negative.
-      public: ArbitraryBox(const Vector3<T> &_size)
+      public: explicit ArbitraryBox(const Vector3<T> &_size)
           : size(_size), pose(Pose3<T>::Zero)
       {
         // Enforce non-negative size
