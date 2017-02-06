@@ -1,6 +1,6 @@
 ## Ignition Math 2.x
 
-1. Added ArbitraryBox
+1. Added OrientedBox
     * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
 
 1. Added an assignment operator to the Frustum class.

@@ -22,7 +22,6 @@ set (sources
 
 set (gtest_sources
   Angle_TEST.cc
-  ArbitraryBox_TEST.cc
   Box_TEST.cc
   Filter_TEST.cc
   Frustum_TEST.cc
@@ -34,6 +33,7 @@ set (gtest_sources
   MassMatrix3_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
+  OrientedBox_TEST.cc
   PID_TEST.cc
   Plane_TEST.cc
   Pose_TEST.cc

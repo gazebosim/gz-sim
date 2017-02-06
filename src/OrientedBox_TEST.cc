@@ -18,7 +18,7 @@
 #include <cmath>
 
 #include "ignition/math/Angle.hh"
-#include "ignition/math/ArbitraryBox.hh"
+#include "ignition/math/OrientedBox.hh"
 
 using namespace ignition;
 using namespace math;
@@ -26,12 +26,12 @@ using namespace math;
 auto g_tolerance = 1e-6;
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, EmptyConstructorNew)
+TEST(OrientedBoxTest, EmptyConstructorNew)
 {
-  ArbitraryBoxd *box = nullptr;
+  OrientedBoxd *box = nullptr;
 
   {
-    box = new ArbitraryBoxd;
+    box = new OrientedBoxd;
     EXPECT_TRUE(box != nullptr);
   }
 
@@ -45,82 +45,82 @@ TEST(ArbitraryBoxTest, EmptyConstructorNew)
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, EmptyConstructor)
+TEST(OrientedBoxTest, EmptyConstructor)
 {
-  ArbitraryBoxd box;
+  OrientedBoxd box;
   EXPECT_TRUE(box.Size() == Vector3d::Zero);
   EXPECT_TRUE(box.Pose() == Pose3d::Zero);
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, SizeOnlyConstructor)
+TEST(OrientedBoxTest, SizeOnlyConstructor)
 {
-  ArbitraryBoxd box(Vector3d(1, 2, 3));
+  OrientedBoxd box(Vector3d(1, 2, 3));
   EXPECT_EQ(box.Size(), Vector3d(1, 2, 3));
   EXPECT_EQ(box.Pose(), Pose3d::Zero);
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, NegativeSizeConstructor)
+TEST(OrientedBoxTest, NegativeSizeConstructor)
 {
-  ArbitraryBoxd box(Vector3d(-1, 0, -3));
+  OrientedBoxd box(Vector3d(-1, 0, -3));
   EXPECT_EQ(box.Size(), Vector3d(1, 0, 3));
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, SizePoseConstructor)
+TEST(OrientedBoxTest, SizePoseConstructor)
 {
-  ArbitraryBoxi box(Vector3i(1, 2, 3), Pose3i(-1, -2, -3, 0, 1, 2));
+  OrientedBoxi box(Vector3i(1, 2, 3), Pose3i(-1, -2, -3, 0, 1, 2));
   EXPECT_EQ(box.Size(), Vector3i(1, 2, 3));
   EXPECT_EQ(box.Pose(), Pose3i(-1, -2, -3, 0, 1, 2));
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, CopyConstructor)
+TEST(OrientedBoxTest, CopyConstructor)
 {
-  ArbitraryBoxf box1(Vector3f(0.1f, 0.2f, 0.3f),
+  OrientedBoxf box1(Vector3f(0.1f, 0.2f, 0.3f),
                      Pose3f(-0.1f, -0.2f, 0.0f, 1.1f, 1.2f, 1.3f));
-  ArbitraryBoxf box2(box1);
+  OrientedBoxf box2(box1);
 
   EXPECT_EQ(box2.Size(), Vector3f(0.1f, 0.2f, 0.3f));
   EXPECT_EQ(box2.Pose(), Pose3f(-0.1f, -0.2f, 0.0f, 1.1f, 1.2f, 1.3f));
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, Length)
+TEST(OrientedBoxTest, Length)
 {
-  ArbitraryBoxd box(Vector3d(0.1, -2.1, 0.0));
+  OrientedBoxd box(Vector3d(0.1, -2.1, 0.0));
   EXPECT_DOUBLE_EQ(box.XLength(), 0.1);
   EXPECT_DOUBLE_EQ(box.YLength(), 2.1);
   EXPECT_DOUBLE_EQ(box.ZLength(), 0.0);
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, OperatorEqual)
+TEST(OrientedBoxTest, OperatorEqual)
 {
-  ArbitraryBoxd box = ArbitraryBoxd(Vector3d(1, 1, 1));
-  ArbitraryBoxd box2 = ArbitraryBoxd(Vector3d(1, 1, 1),
+  OrientedBoxd box = OrientedBoxd(Vector3d(1, 1, 1));
+  OrientedBoxd box2 = OrientedBoxd(Vector3d(1, 1, 1),
                                      Pose3d(1, 2, 3, 4, 5, 6));
-  ArbitraryBoxd box3 = ArbitraryBoxd(Vector3d(0, 0, 0),
+  OrientedBoxd box3 = OrientedBoxd(Vector3d(0, 0, 0),
                                      Pose3d(1, 2, 3, 4, 5, 6));
-  EXPECT_TRUE(box == ArbitraryBoxd(Vector3d(1, 1, 1)));
+  EXPECT_TRUE(box == OrientedBoxd(Vector3d(1, 1, 1)));
   EXPECT_FALSE(box == box2);
   EXPECT_FALSE(box3 == box);
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, ContainsZeroBox)
+TEST(OrientedBoxTest, ContainsZeroBox)
 {
-  ArbitraryBoxd box;
+  OrientedBoxd box;
 
   EXPECT_TRUE(box.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(box.Contains(Vector3d(0, 0, 0.0001)));
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, ContainsZeroPose)
+TEST(OrientedBoxTest, ContainsZeroPose)
 {
-  ArbitraryBoxd box(Vector3d(1, 2, 3));
+  OrientedBoxd box(Vector3d(1, 2, 3));
 
   // Vertices
   EXPECT_TRUE(box.Contains(Vector3d(-0.5, -1.0, -1.5)));
@@ -205,9 +205,9 @@ TEST(ArbitraryBoxTest, ContainsZeroPose)
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, ContainsArbitraryPosition)
+TEST(OrientedBoxTest, ContainsOrientedPosition)
 {
-  ArbitraryBoxd box(Vector3d(1, 2, 3),
+  OrientedBoxd box(Vector3d(1, 2, 3),
                     Pose3d(10, 20, 30, 0, 0, 0));
 
   // Vertices
@@ -253,10 +253,10 @@ TEST(ArbitraryBoxTest, ContainsArbitraryPosition)
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, ContainsArbitraryRotation)
+TEST(OrientedBoxTest, ContainsOrientedRotation)
 {
   // Rotate PI/2 about +x: swap Z and Y
-  ArbitraryBoxd box(Vector3d(1, 2, 3), Pose3d(0, 0, 0, IGN_PI*0.5, 0, 0));
+  OrientedBoxd box(Vector3d(1, 2, 3), Pose3d(0, 0, 0, IGN_PI*0.5, 0, 0));
 
   // Doesn't contain non-rotated vertices
   EXPECT_FALSE(box.Contains(Vector3d(-0.5, -1.0, -1.5)));
@@ -324,9 +324,9 @@ TEST(ArbitraryBoxTest, ContainsArbitraryRotation)
 }
 
 /////////////////////////////////////////////////
-TEST(ArbitraryBoxTest, OperatorStreamOut)
+TEST(OrientedBoxTest, OperatorStreamOut)
 {
-  ArbitraryBoxd b(Vector3d(0.1, 1.2, 2.3),
+  OrientedBoxd b(Vector3d(0.1, 1.2, 2.3),
                   Pose3d(3.4, 4.5, 5.6, 0.0, -0.1, 0.2));
   std::ostringstream stream;
   stream << b;

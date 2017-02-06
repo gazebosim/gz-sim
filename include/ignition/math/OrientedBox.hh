@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ARBITRARYBOX_HH_
-#define IGNITION_MATH_ARBITRARYBOX_HH_
+#ifndef IGNITION_MATH_ORIENTEDBOX_HH_
+#define IGNITION_MATH_ORIENTEDBOX_HH_
 
 #include <iostream>
 #include <ignition/math/Helpers.hh>
@@ -30,10 +30,10 @@ namespace ignition
     /// \brief Mathematical representation of a box which can be arbitrarily
     /// positioned and rotated.
     template<typename T>
-    class ArbitraryBox
+    class OrientedBox
     {
       /// \brief Default constructor
-      public: ArbitraryBox() : size(Vector3<T>::Zero), pose(Pose3<T>::Zero)
+      public: OrientedBox() : size(Vector3<T>::Zero), pose(Pose3<T>::Zero)
       {
       }
 
@@ -41,7 +41,7 @@ namespace ignition
       /// \param[in] _size Box size, in its own coordinate frame. Its absolute
       /// value will be taken, so the size is non-negative.
       /// \param[in] _pose Box pose.
-      public: ArbitraryBox(const Vector3<T> &_size, const Pose3<T> &_pose)
+      public: OrientedBox(const Vector3<T> &_size, const Pose3<T> &_pose)
           : size(_size), pose(_pose)
       {
         // Enforce non-negative size
@@ -51,7 +51,7 @@ namespace ignition
       /// \brief Constructor which takes only the size.
       /// \param[in] _size Box size, in its own coordinate frame. Its absolute
       /// value will be taken, so the size is non-negative.
-      public: explicit ArbitraryBox(const Vector3<T> &_size)
+      public: explicit OrientedBox(const Vector3<T> &_size)
           : size(_size), pose(Pose3<T>::Zero)
       {
         // Enforce non-negative size
@@ -59,14 +59,14 @@ namespace ignition
       }
 
       /// \brief Copy constructor.
-      /// \param[in] _b ArbitraryBox to copy.
-      public: ArbitraryBox(const ArbitraryBox<T> &_b)
+      /// \param[in] _b OrientedBox to copy.
+      public: OrientedBox(const OrientedBox<T> &_b)
           : size(_b.size), pose(_b.pose)
       {
       }
 
       /// \brief Destructor
-      public: virtual ~ArbitraryBox()
+      public: virtual ~OrientedBox()
       {
       }
 
@@ -122,9 +122,9 @@ namespace ignition
       }
 
       /// \brief Assignment operator. Set this box to the parameter
-      /// \param[in]  _b ArbitraryBox to copy
+      /// \param[in]  _b OrientedBox to copy
       /// \return The new box.
-      public: ArbitraryBox &operator=(const ArbitraryBox<T> &_b)
+      public: OrientedBox &operator=(const OrientedBox<T> &_b)
       {
         this->size = _b.size;
         this->pose = _b.pose;
@@ -132,27 +132,27 @@ namespace ignition
       }
 
       /// \brief Equality test operator
-      /// \param[in] _b ArbitraryBox to test
+      /// \param[in] _b OrientedBox to test
       /// \return True if equal
-      public: bool operator==(const ArbitraryBox<T> &_b) const
+      public: bool operator==(const OrientedBox<T> &_b) const
       {
         return this->size == _b.size && this->pose == _b.pose;
       }
 
       /// \brief Inequality test operator
-      /// \param[in] _b ArbitraryBox to test
+      /// \param[in] _b OrientedBox to test
       /// \return True if not equal
-      public: bool operator!=(const ArbitraryBox<T> &_b) const
+      public: bool operator!=(const OrientedBox<T> &_b) const
       {
         return this->size != _b.size || this->pose != _b.pose;
       }
 
       /// \brief Output operator
       /// \param[in] _out Output stream
-      /// \param[in] _b ArbitraryBox to output to the stream
+      /// \param[in] _b OrientedBox to output to the stream
       /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ArbitraryBox<T> &_b)
+                                              const OrientedBox<T> &_b)
       {
         _out << "Size[" << _b.Size() << "] Pose[" << _b.Pose() << "]";
         return _out;
@@ -179,9 +179,9 @@ namespace ignition
       private: Pose3<T> pose;
     };
 
-    typedef ArbitraryBox<int> ArbitraryBoxi;
-    typedef ArbitraryBox<double> ArbitraryBoxd;
-    typedef ArbitraryBox<float> ArbitraryBoxf;
+    typedef OrientedBox<int> OrientedBoxi;
+    typedef OrientedBox<double> OrientedBoxd;
+    typedef OrientedBox<float> OrientedBoxf;
   }
 }
 #endif
