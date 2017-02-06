@@ -349,8 +349,8 @@ namespace ignition
 
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
-        vec.Y(sarg <= -1.0 ? -0.5*IGN_PI :
-            (sarg >= 1.0 ? T(0.5*IGN_PI) : T(asin(sarg))));
+        vec.Y(sarg <= T(-1.0) ? T(-0.5*IGN_PI) :
+            (sarg >= T(1.0) ? T(0.5*IGN_PI) : T(asin(sarg))));
 
         // If the pitch angle is PI/2 or -PI/2, we can only compute
         // the sum roll + yaw.  However, any combination that gives
