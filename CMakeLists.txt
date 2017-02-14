@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
-project (ignition-math3)
+project (ignition-math4)
 
 string (SUBSTRING ${PROJECT_NAME} 9 4 IGN_PROJECT_NAME)
 
@@ -307,10 +307,10 @@ else (build_errors)
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
     DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
-    
+
   # Create *-targets.cmake file for build directory
   # TODO: keep this instruction until we depend on CMake 3
-  #       then change the first line from TARGETS ...  
+  #       then change the first line from TARGETS ...
   #       to EXPORT ... to match the format used in install(EXPORT
   export(TARGETS ${PROJECT_LIBRARY_TARGET_NAME}
          FILE  ${CMAKE_BINARY_DIR}/${cmake_targets_file})
@@ -319,7 +319,7 @@ else (build_errors)
   install(EXPORT ${PROJECT_EXPORT_NAME}
           DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
           FILE ${cmake_targets_file})
-          
+
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
