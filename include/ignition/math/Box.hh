@@ -100,12 +100,12 @@ namespace ignition
       /// \return This new box
       public: const Box &operator+=(const Box &_b);
 
-      /// \brief Equality test operatoer
+      /// \brief Equality test operator
       /// \param[in] _b Box to test
       /// \return True if equal
       public: bool operator==(const Box &_b) const;
 
-      /// \brief Inequality test operatoer
+      /// \brief Inequality test operator
       /// \param[in] _b Box to test
       /// \return True if not equal
       public: bool operator!=(const Box &_b) const;
