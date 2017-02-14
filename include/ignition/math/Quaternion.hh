@@ -221,15 +221,15 @@ namespace ignition
       {
         T s = 0;
 
-        s = sqrt(this->qw * this->qw + this->qx * this->qx +
-            this->qy * this->qy + this->qz * this->qz);
+        s = T(sqrt(this->qw * this->qw + this->qx * this->qx +
+            this->qy * this->qy + this->qz * this->qz));
 
         if (equal<T>(s, static_cast<T>(0)))
         {
-          this->qw = 1.0;
-          this->qx = 0.0;
-          this->qy = 0.0;
-          this->qz = 0.0;
+          this->qw = T(1.0);
+          this->qx = T(0.0);
+          this->qy = T(0.0);
+          this->qz = T(0.0);
         }
         else
         {
@@ -310,18 +310,18 @@ namespace ignition
       {
         T phi, the, psi;
 
-        phi = _roll / 2.0;
-        the = _pitch / 2.0;
-        psi = _yaw / 2.0;
+        phi = _roll / T(2.0);
+        the = _pitch / T(2.0);
+        psi = _yaw / T(2.0);
 
-        this->qw = cos(phi) * cos(the) * cos(psi) +
-          sin(phi) * sin(the) * sin(psi);
-        this->qx = sin(phi) * cos(the) * cos(psi) -
-          cos(phi) * sin(the) * sin(psi);
-        this->qy = cos(phi) * sin(the) * cos(psi) +
-          sin(phi) * cos(the) * sin(psi);
-        this->qz = cos(phi) * cos(the) * sin(psi) -
-          sin(phi) * sin(the) * cos(psi);
+        this->qw = T(cos(phi) * cos(the) * cos(psi) +
+          sin(phi) * sin(the) * sin(psi));
+        this->qx = T(sin(phi) * cos(the) * cos(psi) -
+          cos(phi) * sin(the) * sin(psi));
+        this->qy = T(cos(phi) * sin(the) * cos(psi) +
+          sin(phi) * cos(the) * sin(psi));
+        this->qz = T(cos(phi) * cos(the) * sin(psi) -
+          sin(phi) * sin(the) * cos(psi));
 
         this->Normalize();
       }
@@ -349,8 +349,8 @@ namespace ignition
 
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
-        vec.Y(sarg <= -1.0 ? -0.5*IGN_PI :
-            (sarg >= 1.0 ? 0.5*IGN_PI : asin(sarg)));
+        vec.Y(sarg <= T(-1.0) ? T(-0.5*IGN_PI) :
+            (sarg >= T(1.0) ? T(0.5*IGN_PI) : T(asin(sarg))));
 
         // If the pitch angle is PI/2 or -PI/2, we can only compute
         // the sum roll + yaw.  However, any combination that gives
@@ -360,25 +360,25 @@ namespace ignition
         if (std::abs(sarg - 1) < tol)
         {
           vec.Z(0);
-          vec.X(atan2(2 * (copy.qx*copy.qy - copy.qz*copy.qw),
-                      squ - sqx + sqy - sqz));
+          vec.X(T(atan2(2 * (copy.qx*copy.qy - copy.qz*copy.qw),
+                      squ - sqx + sqy - sqz)));
         }
         // pitch angle is -PI/2
         else if (std::abs(sarg + 1) < tol)
         {
           vec.Z(0);
-          vec.X(atan2(-2 * (copy.qx*copy.qy - copy.qz*copy.qw),
-                       squ - sqx + sqy - sqz));
+          vec.X(T(atan2(-2 * (copy.qx*copy.qy - copy.qz*copy.qw),
+                       squ - sqx + sqy - sqz)));
         }
         else
         {
           // Roll
-          vec.X(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
-                      squ - sqx - sqy + sqz));
+          vec.X(T(atan2(2 * (copy.qy*copy.qz + copy.qw*copy.qx),
+                      squ - sqx - sqy + sqz)));
 
           // Yaw
-          vec.Z(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
-                      squ + sqx - sqy - sqz));
+          vec.Z(T(atan2(2 * (copy.qx*copy.qy + copy.qw*copy.qz),
+                      squ + sqx - sqy - sqz)));
         }
 
         return vec;

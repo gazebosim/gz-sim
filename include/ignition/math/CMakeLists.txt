@@ -15,6 +15,7 @@ set (headers
   MassMatrix3.hh
   Matrix3.hh
   Matrix4.hh
+  OrientedBox.hh
   PID.hh
   Plane.hh
   Pose3.hh
