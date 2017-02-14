@@ -1,10 +1,18 @@
 ## Ignition Math 2.x
 
+### Ignition Math 2.8
+
+### Ignition Math 2.8.0
+
 1. Added OrientedBox
     * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
 
 1. Added an assignment operator to the Frustum class.
     * [Pull request 144](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/144)
+
+### Ignition Math 2.7
+
+### Ignition Math 2.7.0
 
 1. Add static const variables as alternative to macros in Helpers.hh
     * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
