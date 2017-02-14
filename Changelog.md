@@ -29,6 +29,9 @@
 
 ## Ignition Math 2.x
 
+1. Added an assignment operator to the Frustum class.
+    * [Pull request 144](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/144)
+
 1. Add static const variables as alternative to macros in Helpers.hh
     * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
 

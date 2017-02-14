@@ -79,6 +79,49 @@ TEST(FrustumTest, CopyConstructor)
 }
 
 /////////////////////////////////////////////////
+TEST(FrustumTest, AssignmentOperator)
+{
+  // Frustum pointing to the +X+Y diagonal
+  Frustum frustum(
+      // Near distance
+      1,
+      // Far distance
+      10,
+      // Field of view
+      Angle(IGN_DTOR(45)),
+      // Aspect ratio
+      320.0/240.0,
+      // Pose
+      Pose3d(0, 0, 0, 0, 0, IGN_DTOR(45)));
+
+  Frustum frustum2 = frustum;
+
+  EXPECT_EQ(frustum.FOV(), frustum2.FOV());
+  EXPECT_EQ(frustum.Near(), frustum2.Near());
+  EXPECT_EQ(frustum.Far(), frustum2.Far());
+  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_FAR).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_FAR).Normal());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_LEFT).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_LEFT).Normal());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_RIGHT).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_RIGHT).Normal());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_TOP).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_TOP).Normal());
+
+  EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_BOTTOM).Normal(),
+            frustum2.Plane(Frustum::FRUSTUM_PLANE_BOTTOM).Normal());
+}
+
+/////////////////////////////////////////////////
 TEST(FrustumTest, PyramidXAxisPos)
 {
   // Frustum pointing down the +x axis
