@@ -31,6 +31,7 @@ set (gtest_sources
   MassMatrix3_TEST.cc
   Matrix3_TEST.cc
   Matrix4_TEST.cc
+  OrientedBox_TEST.cc
   PID_TEST.cc
   Plane_TEST.cc
   Pose_TEST.cc
