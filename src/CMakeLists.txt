@@ -4,6 +4,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set (sources
   Angle.cc
   Box.cc
+  Color.cc
   Frustum.cc
   Helpers.cc
   IndexException.cc
@@ -23,6 +24,7 @@ set (sources
 set (gtest_sources
   Angle_TEST.cc
   Box_TEST.cc
+  Color_TEST.cc
   Filter_TEST.cc
   Frustum_TEST.cc
   Helpers_TEST.cc

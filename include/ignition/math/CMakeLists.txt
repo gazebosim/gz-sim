@@ -4,6 +4,7 @@ set (headers
   AffineException.hh
   Angle.hh
   Box.hh
+  Color.hh
   Filter.hh
   Frustum.hh
   Helpers.hh
