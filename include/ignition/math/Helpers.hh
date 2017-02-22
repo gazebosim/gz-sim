@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -516,7 +516,7 @@ namespace ignition
     /// \param[in] _epsilon the tolerance
     template<typename T>
     inline bool equal(const T &_a, const T &_b,
-                      const T &_epsilon = 1e-6)
+                      const T &_epsilon = T(1e-6))
     {
       IGN_FP_VOLATILE T diff = std::abs(_a - _b);
       return diff <= _epsilon;

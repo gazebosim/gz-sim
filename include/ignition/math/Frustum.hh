@@ -163,6 +163,11 @@ namespace ignition
       /// \sa Pose
       public: void SetPose(const Pose3d &_pose);
 
+      /// \brief Assignment operator. Set this frustum to the parameter.
+      /// \param[in]  _b Frustum to copy
+      /// \return The new frustum.
+      public: Frustum &operator=(const Frustum &_f);
+
       /// \brief Compute the planes of the frustum. This is called whenever
       /// a property of the frustum is changed.
       private: void ComputePlanes();
