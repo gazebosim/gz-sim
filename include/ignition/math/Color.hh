@@ -221,7 +221,7 @@ namespace ignition
       /// \brief Equality operator
       /// \param[in] _pt The color to check for equality
       /// \return True if the this color equals _pt
-      public: bool operator ==(const Color &_pt) const;
+      public: bool operator==(const Color &_pt) const;
 
       /// \brief Inequality operator
       /// \param[in] _pt The color to check for inequality

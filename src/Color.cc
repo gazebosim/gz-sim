@@ -429,7 +429,6 @@ const Color &Color::operator-=(const Color &_pt)
   return *this;
 }
 
-
 //////////////////////////////////////////////////
 const Color Color::operator/(const float &_i) const
 {
@@ -481,7 +480,6 @@ const Color &Color::operator*=(const Color &_pt)
 
   return *this;
 }
-
 
 //////////////////////////////////////////////////
 bool Color::operator==(const Color &_pt) const
