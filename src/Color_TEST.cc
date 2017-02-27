@@ -23,13 +23,59 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
+TEST(Color, ConstColors)
+{
+  EXPECT_FLOAT_EQ(1.0f, math::Color::White.R());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::White.G());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::White.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::White.A());
+
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Black.R());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Black.G());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Black.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Black.A());
+
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Red.R());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Red.G());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Red.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Red.A());
+
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Green.R());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Green.G());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Green.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Green.A());
+
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Blue.R());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Blue.G());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Blue.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Blue.A());
+
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Yellow.R());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Yellow.G());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Yellow.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Yellow.A());
+
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Magenta.R());
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Magenta.G());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Magenta.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Magenta.A());
+
+  EXPECT_FLOAT_EQ(0.0f, math::Color::Cyan.R());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Cyan.G());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Cyan.B());
+  EXPECT_FLOAT_EQ(1.0f, math::Color::Cyan.A());
+}
+
+/////////////////////////////////////////////////
 TEST(Color, Color)
 {
   math::Color clr0;
   EXPECT_FLOAT_EQ(0.0f, clr0.R());
   EXPECT_FLOAT_EQ(0.0f, clr0.G());
   EXPECT_FLOAT_EQ(0.0f, clr0.B());
-  EXPECT_FLOAT_EQ(0.0f, clr0.A());
+  EXPECT_FLOAT_EQ(1.0f, clr0.A());
+  EXPECT_EQ(clr0.AsRGBA(), 255);
+  clr0.A(0.0);
   EXPECT_EQ(clr0.AsRGBA(), 0);
 
   math::Color clr(.1f, .2f, .3f, 1.0f);
@@ -98,13 +144,13 @@ TEST(Color, Color)
   EXPECT_FLOAT_EQ(0.0f, clr.R());
   EXPECT_FLOAT_EQ(0.0f, clr.G());
   EXPECT_FLOAT_EQ(0.0f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   clr.SetFromHSV(0, 0.5, 1.0);
   EXPECT_FLOAT_EQ(1.0f, clr.R());
   EXPECT_FLOAT_EQ(0.5f, clr.G());
   EXPECT_FLOAT_EQ(0.5f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   EXPECT_TRUE(clr.HSV() == math::Vector3f(6, 0.5, 1));
 
@@ -112,31 +158,31 @@ TEST(Color, Color)
   EXPECT_FLOAT_EQ(1.0f, clr.R());
   EXPECT_FLOAT_EQ(1.0f, clr.G());
   EXPECT_FLOAT_EQ(1.0f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   clr.SetFromHSV(120, 0.5, 1.0);
   EXPECT_FLOAT_EQ(0.5f, clr.R());
   EXPECT_FLOAT_EQ(1.0f, clr.G());
   EXPECT_FLOAT_EQ(0.5f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   clr.SetFromHSV(180, 0.5, 1.0);
   EXPECT_FLOAT_EQ(0.5f, clr.R());
   EXPECT_FLOAT_EQ(1.0f, clr.G());
   EXPECT_FLOAT_EQ(1.0f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   clr.SetFromHSV(240, 0.5, 1.0);
   EXPECT_FLOAT_EQ(0.5f, clr.R());
   EXPECT_FLOAT_EQ(0.5f, clr.G());
   EXPECT_FLOAT_EQ(1.0f, clr.B());
-  EXPECT_FLOAT_EQ(0.0f, clr.A());
+  EXPECT_FLOAT_EQ(1.0f, clr.A());
 
   clr.SetFromHSV(300, 0.5, 1.0);
   EXPECT_FLOAT_EQ(1.0f, clr[0]);
   EXPECT_FLOAT_EQ(0.5f, clr[1]);
   EXPECT_FLOAT_EQ(1.0f, clr[2]);
-  EXPECT_FLOAT_EQ(0.0f, clr[3]);
+  EXPECT_FLOAT_EQ(1.0f, clr[3]);
   EXPECT_TRUE(std::isnan(clr[4]));
 
   clr.R() = 0.1f;

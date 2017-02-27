@@ -45,6 +45,8 @@ namespace ignition
       public: static const Color Yellow;
       /// \brief (1, 0, 1)
       public: static const Color Magenta;
+      /// \brief (0, 1, 1)
+      public: static const Color Cyan;
 
       /// \def RGBA
       /// \brief A RGBA packed value as an unsigned int
@@ -70,7 +72,8 @@ namespace ignition
       /// \param[in] _g Green value (range 0 to 1
       /// \param[in] _b Blue value (range 0 to 1
       /// \param[in] _a Alpha value (0=transparent, 1=opaque)
-      public: Color(float _r, float _g, float _b, float _a = 1.0);
+      public: Color(const float _r, const float _g, const float _b,
+                  const float _a = 1.0);
 
       /// \brief Copy Constructor
       /// \param[in] _clr Color to copy
@@ -79,7 +82,8 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~Color();
 
-      /// \brief Reset the color to default values
+      /// \brief Reset the color to default values to red=0, green=0,
+      /// blue=0, alpha=1.
       public: void Reset();
 
       /// \brief Set the contents of the vector
@@ -87,7 +91,8 @@ namespace ignition
       /// \param[in] _g Green value (range 0 to 1)
       /// \param[in] _b Blue value (range 0 to 1)
       /// \param[in] _a Alpha value (0=transparent, 1=opaque)
-      public: void Set(float _r = 1, float _g = 1 , float _b = 1, float _a = 1);
+      public: void Set(const float _r = 1, const float _g = 1,
+                  const float _b = 1, const float _a = 1);
 
       /// \brief Get the color in HSV colorspace
       /// \return HSV values in a Vector3f format. A vector3f containing
@@ -98,7 +103,7 @@ namespace ignition
       /// \param[in] _h Hue(0..360)
       /// \param[in] _s Saturation(0..1)
       /// \param[in] _v Value(0..1)
-      public: void SetFromHSV(float _h, float _s, float _v);
+      public: void SetFromHSV(const float _h, const float _s, const float _v);
 
       /// \brief Get the color in YUV colorspace
       /// \return the YUV  color
@@ -108,7 +113,7 @@ namespace ignition
       /// \param[in] _y value
       /// \param[in] _u value
       /// \param[in] _v value
-      public: void SetFromYUV(float _y, float _u, float _v);
+      public: void SetFromYUV(const float _y, const float _u, const float _v);
 
       /// \brief Equal operator
       /// \param[in] _pt Color to copy
@@ -119,7 +124,7 @@ namespace ignition
       /// \param[in] _index Color component index(0=red, 1=green, 2=blue)
       /// \return r, g, b, or a when _index is 0, 1, 2 or 3. A NAN_F value is
       /// returned if the _index is invalid
-      public: float operator[](unsigned int _index);
+      public: float operator[](const unsigned int _index);
 
       /// \brief Get as uint32 RGBA packed value
       /// \return the color
@@ -297,16 +302,16 @@ namespace ignition
       public: void A(const float _a);
 
       /// \brief Red value
-      private: float r;
+      private: float r = 0;
 
       /// \brief Green value
-      private: float g;
+      private: float g = 0;
 
       /// \brief Blue value
-      private: float b;
+      private: float b = 0;
 
       /// \brief Alpha value
-      private: float a;
+      private: float a = 1;
     };
   }
 }

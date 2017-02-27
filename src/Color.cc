@@ -29,16 +29,15 @@ const Color Color::Green = Color(0, 1, 0, 1);
 const Color Color::Blue = Color(0, 0, 1, 1);
 const Color Color::Yellow = Color(1, 1, 0, 1);
 const Color Color::Magenta = Color(1, 0, 1, 1);
+const Color Color::Cyan = Color(0, 1, 1, 1);
 
 //////////////////////////////////////////////////
 Color::Color()
-: r(0), g(0), b(0), a(0)
 {
-  this->Clamp();
 }
 
 //////////////////////////////////////////////////
-Color::Color(float _r, float _g, float _b, const float _a)
+Color::Color(const float _r, const float _g, const float _b, const float _a)
 : r(_r), g(_g), b(_b), a(_a)
 {
   this->Clamp();
@@ -59,11 +58,12 @@ Color::~Color()
 //////////////////////////////////////////////////
 void Color::Reset()
 {
-  this->r = this->g = this->b = this->a = 0;
+  this->r = this->g = this->b = 0;
+  this->a = 1;
 }
 
 //////////////////////////////////////////////////
-void Color::Set(float _r, float _g, float _b, float _a)
+void Color::Set(const float _r, const float _g, const float _b, const float _a)
 {
   this->r = _r;
   this->g = _g;
@@ -74,12 +74,12 @@ void Color::Set(float _r, float _g, float _b, float _a)
 }
 
 //////////////////////////////////////////////////
-void Color::SetFromHSV(float _h, float _s, float _v)
+void Color::SetFromHSV(const float _h, const float _s, const float _v)
 {
   int i;
   float f, p , q, t;
 
-  _h = static_cast<float>(static_cast<int>(_h < 0 ? 0 : _h) % 360);
+  float h = static_cast<float>(static_cast<int>(_h < 0 ? 0 : _h) % 360);
 
   if (equal(_s, 0.0f))
   {
@@ -89,11 +89,11 @@ void Color::SetFromHSV(float _h, float _s, float _v)
   }
 
   // sector 0 - 5
-  _h /= 60;
+  h /= 60;
 
-  i = static_cast<int>(floor(_h));
+  i = static_cast<int>(floor(h));
 
-  f = _h - i;
+  f = h - i;
 
   p = _v * (1-_s);
   q = _v * (1 - _s * f);
@@ -186,7 +186,7 @@ Vector3f Color::YUV() const
 }
 
 //////////////////////////////////////////////////
-void Color::SetFromYUV(float _y, float _u, float _v)
+void Color::SetFromYUV(const float _y, const float _u, const float _v)
 {
   this->r = _y + 1.140*_v;
   this->g = _y - 0.395*_u - 0.581*_v;
@@ -195,7 +195,7 @@ void Color::SetFromYUV(float _y, float _u, float _v)
 }
 
 //////////////////////////////////////////////////
-float Color::operator[](unsigned int index)
+float Color::operator[](const unsigned int index)
 {
   switch (index)
   {
