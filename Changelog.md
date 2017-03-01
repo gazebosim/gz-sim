@@ -4,6 +4,9 @@
 
 ### Ignition Math 2.8.0
 
+1. Added Color
+    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
+
 1. Added OrientedBox
     * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
 
