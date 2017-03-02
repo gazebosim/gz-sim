@@ -52,9 +52,9 @@ set (gtest_sources
 
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-# When the minimum CMake required version will be >= 3.1 
-# we could use the target_compile_features() command 
-# to enable C++11 support in a platform-independent way. 
+# When the minimum CMake required version will be >= 3.1
+# we could use the target_compile_features() command
+# to enable C++11 support in a platform-independent way.
 if(NOT MSVC)
     target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++11")
 endif()
@@ -82,6 +82,8 @@ if (SWIG_FOUND)
     Vector3.i)
 endif()
 
+MESSAGE(STATUS "Checking Ruby tests")
+
 #################################################
 # Create and install Ruby interfaces
 # Example usage
@@ -97,12 +99,13 @@ if (RUBY_FOUND)
   )
 
   set_source_files_properties(ruby.i ${swig_files} PROPERTIES CPLUSPLUS ON)
-  
+
   SWIG_ADD_MODULE(math ruby ruby.i ${swig_files} ${sources})
   SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
   install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)
-  
+
   foreach (test ${ruby_tests})
+    MESSAGE(STATUS "Test ${test}")
     add_test(NAME ${test} COMMAND
       ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
   	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)

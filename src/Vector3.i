@@ -18,7 +18,7 @@
 %module vector3
 %{
 #include <ignition/math/Vector3.hh>
-%} 
+%}
 
 namespace ignition
 {
