@@ -37,6 +37,7 @@
 # Check prereqs
 FIND_PROGRAM( GCOV_PATH gcov )
 FIND_PROGRAM( LCOV_PATH lcov )
+FIND_PROGRAM( GREP_PATH grep )
 FIND_PROGRAM( GENHTML_PATH genhtml )
 FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
 
@@ -93,6 +94,10 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 	IF(NOT LCOV_PATH)
 		MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
 	ENDIF() # NOT LCOV_PATH
+
+  IF(NOT GREP_PATH)
+    MESSAGE(FATAL_ERROR "grep not found! Run code coverage on linux or mac.")
+  ENDIF()
 
 	IF(NOT GENHTML_PATH)
 		MESSAGE(FATAL_ERROR "genhtml not found! Aborting...")

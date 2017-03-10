@@ -44,7 +44,7 @@ This repository contains boilerplate code to start new ignition projects.
 
 ** Igntion <project-name> classes and functions for robot applications.**
 
-Ignition <IGN_PROJECT_NAME> is a component in the ignition framework, a set
+Ignition <project-name> is a component in the ignition framework, a set
 of libraries designed to rapidly develop robot applications.
 
   [http://ignitionrobotics.org](http://ignitionrobotics.org)
@@ -86,5 +86,32 @@ To build without tests, on the cmake step, do this instead:
 
 To build test coverage, first install lcov:
 
+    sudo apt-get install lcov
+
+Configure coverage:
+
+    cmake -DCMAKE_BUILD_TYPE=coverage ../; make
+
+Run tests:
+
+    make test # or individual test
+
+Make coverage:
+
+    make coverage # FIXME: currently failing
+
+See coverage report:
+
+    firefox coverage/index.html
+
+## Code checker
+
+To run the code checker:
+
+    sh tools/code_check.sh
+
+## Documentation generation
+
+    # TODO
 
 
