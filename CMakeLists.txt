@@ -230,10 +230,11 @@ if (build_errors)
 else (build_errors)
 
   ########################################
-  # Write the config.h file
+  # Write the config.hh file
   configure_file (${project_cmake_dir}/config.hh.in
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
-  ign_install_includes(${IGN_PROJECT_NAME}
+  ign_install_includes(
+    ${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}/ignition/${IGN_PROJECT_NAME}
     ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
 
   include_directories(
@@ -249,7 +250,6 @@ else (build_errors)
   endif()
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
-
 
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
@@ -304,6 +304,5 @@ else (build_errors)
     add_subdirectory(cmake/packager-hooks)
   endif()
 
-  message(STATUS "Configuration successful. Type make to compile
-  ${PROJECT_NAME_LOWER}")
+  message(STATUS "Configuration successful. Type make to compile ${PROJECT_NAME_LOWER}")
 endif(build_errors)
