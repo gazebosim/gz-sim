@@ -32,7 +32,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_D
 
     + ***Deprecation:*** IGN_DBL_LOW
-    + ***Replacement:*** ignition::math::LOw_D
+    + ***Replacement:*** ignition::math::LOW_D
 
     + ***Deprecation:*** IGN_DBL_INF
     + ***Replacement:*** ignition::math::INF_D
@@ -44,7 +44,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_F
 
     + ***Deprecation:*** IGN_FLT_LOW
-    + ***Replacement:*** ignition::math::LOw_F
+    + ***Replacement:*** ignition::math::LOW_F
 
     + ***Deprecation:*** IGN_FLT_INF
     + ***Replacement:*** ignition::math::INF_F
@@ -56,7 +56,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_UI16
 
     + ***Deprecation:*** IGN_UI16_LOW
-    + ***Replacement:*** ignition::math::LOw_UI16
+    + ***Replacement:*** ignition::math::LOW_UI16
 
     + ***Deprecation:*** IGN_UI16_INF
     + ***Replacement:*** ignition::math::INF_UI16
@@ -68,7 +68,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_I16
 
     + ***Deprecation:*** IGN_I16_LOW
-    + ***Replacement:*** ignition::math::LOw_I16
+    + ***Replacement:*** ignition::math::LOW_I16
 
     + ***Deprecation:*** IGN_I16_INF
     + ***Replacement:*** ignition::math::INF_I16
@@ -80,7 +80,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_UI32
 
     + ***Deprecation:*** IGN_UI32_LOW
-    + ***Replacement:*** ignition::math::LOw_UI32
+    + ***Replacement:*** ignition::math::LOW_UI32
 
     + ***Deprecation:*** IGN_UI32_INF
     + ***Replacement:*** ignition::math::INF_UI32
@@ -92,7 +92,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_I32
 
     + ***Deprecation:*** IGN_I32_LOW
-    + ***Replacement:*** ignition::math::LOw_I32
+    + ***Replacement:*** ignition::math::LOW_I32
 
     + ***Deprecation:*** IGN_I32_INF
     + ***Replacement:*** ignition::math::INF_I32
@@ -104,7 +104,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_UI64
 
     + ***Deprecation:*** IGN_UI64_LOW
-    + ***Replacement:*** ignition::math::LOw_UI64
+    + ***Replacement:*** ignition::math::LOW_UI64
 
     + ***Deprecation:*** IGN_UI64_INF
     + ***Replacement:*** ignition::math::INF_UI64
@@ -116,7 +116,7 @@ release will remove the deprecated code.
     + ***Replacement:*** ignition::math::MIN_I64
 
     + ***Deprecation:*** IGN_I64_LOW
-    + ***Replacement:*** ignition::math::LOw_I64
+    + ***Replacement:*** ignition::math::LOW_I64
 
     + ***Deprecation:*** IGN_I64_INF
     + ***Replacement:*** ignition::math::INF_I64
