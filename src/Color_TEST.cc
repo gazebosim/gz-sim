@@ -297,7 +297,7 @@ TEST(Color, DivisonOp)
   EXPECT_FLOAT_EQ(clr3.A(), 1.0f);
 
   clr.Set(0.0f, 0.0f, 0.0f, 0.0f);
-  clr2.Set(0.0f, 0.0f, 0.0f, 0.0f); 
+  clr2.Set(0.0f, 0.0f, 0.0f, 0.0f);
   clr3 = clr / clr2;
   EXPECT_FLOAT_EQ(clr3.R(), 0.0f);
   EXPECT_FLOAT_EQ(clr3.G(), 0.0f);
