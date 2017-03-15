@@ -229,6 +229,89 @@ TEST(HelpersTest, Odd)
 }
 
 /////////////////////////////////////////////////
+// Signum test
+TEST(HelpersTest, Signum)
+{
+  int i = 1;
+  signed s = 1;
+  signed int si = 1;
+  unsigned u = 1;
+  unsigned int ui = 1;
+  float f = 1.f;
+  double d = 1.;
+
+  EXPECT_EQ(1, math::signum(i));
+  EXPECT_EQ(1, math::signum(s));
+  EXPECT_EQ(1, math::signum(si));
+  EXPECT_EQ(1, math::signum(u));
+  EXPECT_EQ(1, math::signum(ui));
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  i = s = si = u = ui = 2;
+  f = 2.f;
+  d = 2.;
+
+  EXPECT_EQ(1, math::signum(i));
+  EXPECT_EQ(1, math::signum(s));
+  EXPECT_EQ(1, math::signum(si));
+  EXPECT_EQ(1, math::signum(u));
+  EXPECT_EQ(1, math::signum(ui));
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  i = s = si = u = ui = 0;
+  f = 0.f;
+  d = 0.;
+
+  EXPECT_EQ(0, math::signum(i));
+  EXPECT_EQ(0, math::signum(s));
+  EXPECT_EQ(0, math::signum(si));
+  EXPECT_EQ(0, math::signum(u));
+  EXPECT_EQ(0, math::signum(ui));
+  EXPECT_EQ(0, math::signum(f));
+  EXPECT_EQ(0, math::signum(d));
+
+  i = s = si = -1;
+  f = -1.f;
+  d = -1.;
+
+  EXPECT_EQ(-1, math::signum(i));
+  EXPECT_EQ(-1, math::signum(s));
+  EXPECT_EQ(-1, math::signum(si));
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  i = s = si = -2;
+  f = -2.f;
+  d = -2.;
+
+  EXPECT_EQ(-1, math::signum(i));
+  EXPECT_EQ(-1, math::signum(s));
+  EXPECT_EQ(-1, math::signum(si));
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  f = -2.5f;
+  d = -2.5;
+
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  f = 2.5f;
+  d = 2.5;
+
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  f = 1e-10f;
+  d = 1e-10;
+
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+}
+
+/////////////////////////////////////////////////
 TEST(HelpersTest, Sort)
 {
   {
