@@ -3,6 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   Angle.hh
   Box.hh
+  Color.hh
   Filter.hh
   Frustum.hh
   Helpers.hh
