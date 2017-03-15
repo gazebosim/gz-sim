@@ -297,7 +297,7 @@ TEST(Color, DivisonOp)
   EXPECT_FLOAT_EQ(clr3.A(), 1.0f);
 
   clr.Set(0.0f, 0.0f, 0.0f, 0.0f);
-  clr2.Set(0.0f, 0.0f, 0.0f, 0.0f);
+  clr2.Set(0.0f, 0.0f, 0.0f, 0.0f); 
   clr3 = clr / clr2;
   EXPECT_FLOAT_EQ(clr3.R(), 0.0f);
   EXPECT_FLOAT_EQ(clr3.G(), 0.0f);
@@ -308,7 +308,7 @@ TEST(Color, DivisonOp)
 /////////////////////////////////////////////////
 TEST(Color, ConstAndSet)
 {
-  const math::Color clr(0.1, 0.2, 0.3, 0.4);
+  const math::Color clr(0.1f, 0.2f, 0.3f, 0.4f);
 
   EXPECT_FLOAT_EQ(clr.R(), 0.1f);
   EXPECT_FLOAT_EQ(clr.G(), 0.2f);
@@ -316,10 +316,10 @@ TEST(Color, ConstAndSet)
   EXPECT_FLOAT_EQ(clr.A(), 0.4f);
 
   math::Color clr2;
-  clr2.R(0.4);
-  clr2.G(0.3);
-  clr2.B(0.2);
-  clr2.A(0.1);
+  clr2.R(0.4f);
+  clr2.G(0.3f);
+  clr2.B(0.2f);
+  clr2.A(0.1f);
   EXPECT_FLOAT_EQ(clr2.R(), 0.4f);
   EXPECT_FLOAT_EQ(clr2.G(), 0.3f);
   EXPECT_FLOAT_EQ(clr2.B(), 0.2f);
@@ -331,7 +331,7 @@ TEST(Color, ConstAndSet)
 /////////////////////////////////////////////////
 TEST(Color, OperatorStreamOut)
 {
-  math::Color c(0.1, 0.2, 0.3, 0.5);
+  math::Color c(0.1f, 0.2f, 0.3f, 0.5f);
   std::ostringstream stream;
   stream << c;
   EXPECT_EQ(stream.str(), "0.1 0.2 0.3 0.5");
@@ -346,13 +346,13 @@ TEST(Color, HSV)
   EXPECT_FLOAT_EQ(hsv.Y(), 0.0f);
   EXPECT_FLOAT_EQ(hsv.Z(), 0.0f);
 
-  clr.Set(0.1, 0.2, 0.3, 1.0);
+  clr.Set(0.1f, 0.2f, 0.3f, 1.0f);
   hsv = clr.HSV();
   EXPECT_NEAR(hsv.X(), 3.5f, 1e-3);
   EXPECT_NEAR(hsv.Y(), 0.666667f, 1e-3);
   EXPECT_NEAR(hsv.Z(), 0.3f, 1e-3);
 
-  clr.Set(0.3, 0.2, 0.1, 1.0);
+  clr.Set(0.3f, 0.2f, 0.1f, 1.0f);
   hsv = clr.HSV();
   EXPECT_NEAR(hsv.X(), 0.5f, 1e-3);
   EXPECT_NEAR(hsv.Y(), 0.666667f, 1e-3);
