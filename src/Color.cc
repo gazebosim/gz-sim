@@ -169,18 +169,18 @@ Vector3f Color::YUV() const
 {
   Vector3f yuv;
 
-  yuv.X() = 0.299*this->r + 0.587*this->g + 0.114*this->b;
-  yuv.Y() = -0.1679*this->r - 0.332*this->g + 0.5*this->b + 0.5;
-  yuv.Z() = 0.5*this->r - 0.4189*this->g - 0.08105*this->b + 0.5;
+  yuv.X() = 0.299f*this->r + 0.587f*this->g + 0.114f*this->b;
+  yuv.Y() = -0.1679f*this->r - 0.332f*this->g + 0.5f*this->b + 0.5f;
+  yuv.Z() = 0.5f*this->r - 0.4189f*this->g - 0.08105f*this->b + 0.5f;
 
   yuv.X() = yuv.X() < 0 ? 0: yuv.X();
-  yuv.X() = yuv.X() > 255 ? 255.0: yuv.X();
+  yuv.X() = yuv.X() > 255 ? 255.0f: yuv.X();
 
   yuv.Y() = yuv.Y() < 0 ? 0: yuv.Y();
-  yuv.Y() = yuv.Y() > 255 ? 255.0: yuv.Y();
+  yuv.Y() = yuv.Y() > 255 ? 255.0f: yuv.Y();
 
   yuv.Z() = yuv.Z() < 0 ? 0: yuv.Z();
-  yuv.Z() = yuv.Z() > 255 ? 255.0: yuv.Z();
+  yuv.Z() = yuv.Z() > 255 ? 255.0f: yuv.Z();
 
   return yuv;
 }
@@ -188,9 +188,9 @@ Vector3f Color::YUV() const
 //////////////////////////////////////////////////
 void Color::SetFromYUV(const float _y, const float _u, const float _v)
 {
-  this->r = _y + 1.140*_v;
-  this->g = _y - 0.395*_u - 0.581*_v;
-  this->b = _y + 2.032*_u;
+  this->r = _y + 1.140f*_v;
+  this->g = _y - 0.395f*_u - 0.581f*_v;
+  this->b = _y + 2.032f*_u;
   this->Clamp();
 }
 
@@ -498,16 +498,16 @@ bool Color::operator!=(const Color &_pt) const
 void Color::Clamp()
 {
   this->r = this->r < 0 || isnan(this->r) ? 0: this->r;
-  this->r = this->r > 1 ? this->r/255.0: this->r;
+  this->r = this->r > 1 ? this->r/255.0f: this->r;
 
   this->g = this->g < 0 || isnan(this->g) ? 0: this->g;
-  this->g = this->g > 1 ? this->g/255.0: this->g;
+  this->g = this->g > 1 ? this->g/255.0f: this->g;
 
   this->b = this->b < 0 || isnan(this->b) ? 0: this->b;
-  this->b = this->b > 1 ? this->b/255.0: this->b;
+  this->b = this->b > 1 ? this->b/255.0f: this->b;
 
   this->a = this->a < 0 || isnan(this->a) ? 0: this->a;
-  this->a = this->a > 1 ? 1.0: this->a;
+  this->a = this->a > 1 ? 1.0f: this->a;
 }
 
 //////////////////////////////////////////////////

@@ -458,6 +458,30 @@ namespace ignition
       return (_v % 2) != 0;
     }
 
+    /// \brief The signum function.
+    ///
+    /// Returns 0 for zero values, -1 for negative values,
+    /// +1 for positive values.
+    /// \param[in] _value The value.
+    /// \return The signum of the value.
+    template<typename T>
+    inline int sgn(T _value)
+    {
+      return (T(0) < _value) - (_value < T(0));
+    }
+
+    /// \brief The signum function.
+    ///
+    /// Returns 0 for zero values, -1 for negative values,
+    /// +1 for positive values.
+    /// \param[in] _value The value.
+    /// \return The signum of the value.
+    template<typename T>
+    inline int signum(T _value)
+    {
+      return sgn(_value);
+    }
+
     /// \brief get mean of vector of values
     /// \param[in] _values the vector of values
     /// \return the mean
