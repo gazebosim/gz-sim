@@ -47,11 +47,44 @@ TEST(SplineTest, Spline)
   s.AutoCalculate(true);
 
   // ::Interpolate
-  EXPECT_TRUE(s.Interpolate(0.5) == math::Vector3d(0.5, 0.5, 0.5));
+  EXPECT_EQ(s.Interpolate(0.5), math::Vector3d(0.5, 0.5, 0.5));
 
   // ::Interpolate
   s.AddPoint(math::Vector3d(4, 4, 4));
-  EXPECT_TRUE(s.Interpolate(1, 0.2) == math::Vector3d(2.496, 2.496, 2.496));
+  EXPECT_EQ(s.Interpolate(1, 0.2), math::Vector3d(2.496, 2.496, 2.496));
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, FixedTangentSpline)
+{
+  math::Spline s;
+
+  s.AddPoint(math::Vector3d(0, 0, 0), math::Vector3d(0, 1, 0));
+  s.AddPoint(math::Vector3d(0, 0.5, 0), math::Vector3d(0, 1, 0));
+  s.AddPoint(math::Vector3d(0.5, 1, 0), math::Vector3d(1, 0, 0));
+  s.AddPoint(math::Vector3d(1, 1, 0), math::Vector3d(1, 0, 0));
+
+  // ::Interpolate
+  EXPECT_EQ(s.Interpolate(0, 0.5), math::Vector3d(0, 0.25, 0));
+  EXPECT_EQ(s.InterpolateTangent(0, 0.5), math::Vector3d(0, 0.5, 0));
+  EXPECT_EQ(s.Interpolate(1, 0.5), math::Vector3d(0.125, 0.875, 0));
+  EXPECT_EQ(s.Interpolate(2, 0.5), math::Vector3d(0.75, 1, 0));
+  EXPECT_EQ(s.InterpolateTangent(2, 0.5), math::Vector3d(0.5, 0, 0));
+}
+
+/////////////////////////////////////////////////
+TEST(SplineTest, ArcLength)
+{
+  math::Spline s;
+  s.AddPoint(math::Vector3d(0, 0, 0), math::Vector3d(1, 0, 0));
+  s.AddPoint(math::Vector3d(1, 0, 0), math::Vector3d(1, 0, 0));
+  EXPECT_DOUBLE_EQ(s.ArcLength(), 1.0);
+  
+  s.Clear();
+  
+  s.AddPoint(math::Vector3d(1, 1, 1), math::Vector3d(1, 1, 1));
+  s.AddPoint(math::Vector3d(4, 4, 4), math::Vector3d(1, 1, 1));
+  EXPECT_DOUBLE_EQ(s.ArcLength(), 5.19615242270663);
 }
 
 /////////////////////////////////////////////////
@@ -100,6 +133,10 @@ TEST(SplineTest, Tangent)
 
   s.AddPoint(math::Vector3d(1, 0, 0));
   EXPECT_EQ(s.Tangent(0), math::Vector3d(0.5, 0, 0));
+
+  s.AddPoint(math::Vector3d(1, 1, 0), math::Vector3d(-1, 1, 0));
+  EXPECT_EQ(s.Tangent(1), math::Vector3d(0.5, 0.5, 0));
+  EXPECT_EQ(s.Tangent(2), math::Vector3d(-1, 1, 0));
 }
 
 /////////////////////////////////////////////////
@@ -107,9 +144,9 @@ TEST(SplineTest, RecalcTangents)
 {
   math::Spline s;
   s.AddPoint(math::Vector3d(0, 0, 0));
-  s.AddPoint(math::Vector3d(.4, .4, .4));
-  s.AddPoint(math::Vector3d(0, 0, 0));
-
+  s.AddPoint(math::Vector3d(.4, .4, .4));  
+  s.AddPoint(math::Vector3d(0, 0, 0));  
+  
   s.RecalcTangents();
 
   EXPECT_EQ(s.Interpolate(0, 0.5), math::Vector3d(0.2, 0.2, 0.2));

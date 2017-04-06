@@ -17,31 +17,194 @@
 #ifndef IGNITION_MATH_SPLINEPRIVATE_HH_
 #define IGNITION_MATH_SPLINEPRIVATE_HH_
 
+#include <algorithm>
 #include <vector>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/Vector4.hh>
 #include <ignition/math/Matrix4.hh>
 
 namespace ignition
 {
   namespace math
   {
+    class ControlPoint
+    {      
+      /// \brief Constructor that takes the M derivatives that
+      /// define the control point
+      /// \param[in] _init_list with the M derivatives
+      public: ControlPoint(std::initializer_list<Vector3d> _init_list)
+          : derivatives_(_init_list.begin(), _init_list.end())
+      {
+      }
+
+      /// \brief Matches all mth derivatives defined in \p _other
+      /// to this.
+      /// \remarks Higher order derivatives in this and not defined
+      /// in \p _other are kept.
+      /// \param[in] _other control point to be matches
+      /// \return this control point
+      public: inline void Match(const ControlPoint &_other)
+      {
+        std::copy(_other.derivatives_.begin(),
+                  _other.derivatives_.end(),
+                  this->derivatives_.begin());
+      }
+
+      /// \brief Checks for control point equality.
+      /// \param[in] _other control point to compare against
+      /// \return whether this and \p _other can be seen as equal
+      public: inline bool operator==(const ControlPoint &_other)
+      {
+        return (this->derivatives_ == _other.derivatives_);
+      }
+
+      /// \brief Returns the mth derivative of
+      /// this control point.
+      /// \remarks Higher derivatives than those defined
+      /// default to [0.0, 0.0, 0.0].
+      /// \param[in] _mth derivative order
+      /// \return The mth derivative.
+      public: inline Vector3d MthDerivative(const unsigned int _mth) const
+      { 
+        if (_mth >= this->derivatives_.size())
+          return Vector3d(0.0f, 0.0f, 0.0f);
+        return this->derivatives_[_mth];
+      }
+      
+      /// \brief Returns a mutable reference to the mth derivative of
+      /// this control point.
+      /// \remarks Higher derivatives than those defined
+      /// default to [0.0, 0.0, 0.0].
+      /// \param[in] _mth derivative order
+      /// \return The mth derivative.
+      public: inline Vector3d& MthDerivative(const unsigned int _mth)
+      { 
+        if (_mth >= this->derivatives_.size())
+          this->derivatives_.insert(this->derivatives_.end(),
+                                    _mth - this->derivatives_.size() + 1,
+                                    Vector3d(0.0f, 0.0f, 0.0f));
+        return this->derivatives_[_mth];
+      }
+
+      /// \brief control point M derivatives (0 to M-1)
+      private: std::vector<Vector3d> derivatives_;
+    };
+    
+    class IntervalCubicSpline
+    {
+      /// \brief Dummy constructor.
+      public: IntervalCubicSpline();
+
+      /// \brief Constructor that takes the control points for
+      /// interpolation.
+      /// \param[in] _start start control point
+      /// \param[in] _end end control point
+      public: IntervalCubicSpline(const ControlPoint &_start,
+                                  const ControlPoint &_end);
+      
+      /// \brief Sets both control points for this interpolator
+      /// \param[in] _start start control point
+      /// \param[in] _end end control point
+      public: void SetPoints(const ControlPoint &_start,
+                             const ControlPoint &_end);
+
+      /// \brief Returns the start control point for this interpolator
+      /// \return the start control point
+      public: inline const ControlPoint& StartPoint() const
+      {
+        return this->start_;
+      };
+
+      /// \brief Returns the end control point for this interpolator
+      /// \return the end control point
+      public: inline const ControlPoint& EndPoint() const
+      {
+        return this->end_;
+      };
+      
+      /// \brief Interpolates the mth derivative based on a parametric value.
+      /// \param[in] _mth order of curve derivative to interpolate
+      /// \param[in] _t arc length parameter value (range 0 to 1)
+      /// \return The interpolated mth derivative, or
+      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// Vector3d::IsFinite() to check for an error.
+      public: Vector3d InterpolateMthDerivative(const unsigned int _mth,
+                                                const double _t) const;
+      
+      /// \brief Returns this spline arc length
+      public: inline double ArcLength() const { return this->arc_length_; }
+
+      /// \internal
+      /// \brief Computes this spline arc length
+      /// \return arc length
+      private: double ComputeArcLength() const;
+      
+      /// \brief start control point for the curve
+      private: ControlPoint start_;
+      
+      /// \brief end control point for the curve
+      private: ControlPoint end_;
+
+      /// \brief Bernstein-Hermite polynomial coefficients
+      /// for interpolation
+      private: Matrix4d coeffs_;
+
+      /// \brief spline arc length
+      private: double arc_length_;
+    };
+    
+    class InverseArcLengthCubicInterpolator
+    {
+      /// \brief Dummy constructor
+      public: InverseArcLengthCubicInterpolator();
+      
+      /// \brief Constructor that takes the \p _spline to scale for
+      /// \param[in] _spline to scale the inverse arc length function
+      public: InverseArcLengthCubicInterpolator(const IntervalCubicSpline& _spline);
+
+      /// \brief Rescales this inverse function to match the given
+      /// \p _spline arc length
+      /// \param[in] _spline to scale the inverse arc length function
+      public: void Rescale(const IntervalCubicSpline& _spline); 
+      
+      /// \brief Interpolates the \p _mth derivative of the inverse arc length
+      /// function based on the arc length parametric value \p _s.
+      /// \param[in] _mth order of curve derivative to interpolate
+      /// \param[in] _s arc length parameter value (range 0 to length)
+      /// \return The interpolated mth derivative of the inverse function
+      public: double InterpolateMthDerivative(const unsigned int _mth,
+                                              const double _s) const;
+      
+      /// \brief full arc length for rescaling
+      private: double arc_length_;
+    };
+
     class SplinePrivate
     {
       /// \brief when true, the tangents are recalculated when the control
       /// point change
       public: bool autoCalc;
 
-      /// \brief control points
-      public: std::vector<Vector3d> points;
-
-      /// \brief tangents
-      public: std::vector<Vector3d> tangents;
-
-      /// Matrix of coefficients
-      public: Matrix4d coeffs;
-
       /// Tension of 0 = Catmull-Rom spline, otherwise a Cardinal spline
       public: double tension;
+
+      /// \brief fixings for control points
+      public: std::vector<bool> fixings;
+      
+      /// \brief control points
+      public: std::vector<ControlPoint> points;
+      
+      // \brief interpolated arcs
+      public: std::vector<IntervalCubicSpline> segments;
+      
+      // \brief segments arc length parameterizations
+      public: std::vector<InverseArcLengthCubicInterpolator> params;
+      
+      // \brief segments arc length cumulative distribution
+      public: std::vector<double> cumulative_arc_lengths;
+
+      // \brief full spline arc length
+      public: double arc_length;
     };
   }
 }

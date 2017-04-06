@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Open Source Robotics Foundation
+ * Copyright (C) 2012-2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,32 +27,12 @@ using namespace math;
 
 ///////////////////////////////////////////////////////////
 Spline::Spline()
-: dataPtr(new SplinePrivate)
+    : dataPtr(new SplinePrivate())
 {
   // Set up matrix
-  // Hermite polynomial
-  this->dataPtr->coeffs(0, 0) = 2;
-  this->dataPtr->coeffs(0, 1) = -2;
-  this->dataPtr->coeffs(0, 2) = 1;
-  this->dataPtr->coeffs(0, 3) = 1;
-
-  this->dataPtr->coeffs(1, 0) = -3;
-  this->dataPtr->coeffs(1, 1) = 3;
-  this->dataPtr->coeffs(1, 2) = -2;
-  this->dataPtr->coeffs(1, 3) = -1;
-
-  this->dataPtr->coeffs(2, 0) = 0;
-  this->dataPtr->coeffs(2, 1) = 0;
-  this->dataPtr->coeffs(2, 2) = 1;
-  this->dataPtr->coeffs(2, 3) = 0;
-
-  this->dataPtr->coeffs(3, 0) = 1;
-  this->dataPtr->coeffs(3, 1) = 0;
-  this->dataPtr->coeffs(3, 2) = 0;
-  this->dataPtr->coeffs(3, 3) = 0;
-
   this->dataPtr->autoCalc = true;
   this->dataPtr->tension = 0.0;
+  this->dataPtr->arc_length = 0.0;
 }
 
 ///////////////////////////////////////////////////////////
@@ -67,6 +47,9 @@ void Spline::Tension(double _t)
 {
   this->dataPtr->tension = _t;
   this->RecalcTangents();
+  // TODO: Rebuild should call RecalcTangents, not the
+  // other way around, BUT that isn't backwards compatible  
+  this->Rebuild();
 }
 
 ///////////////////////////////////////////////////////////
@@ -76,86 +59,133 @@ double Spline::Tension() const
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::AddPoint(const Vector3d &_p)
+double Spline::ArcLength() const
 {
-  this->dataPtr->points.push_back(_p);
-  if (this->dataPtr->autoCalc)
-    this->RecalcTangents();
+  return this->dataPtr->arc_length;
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d Spline::Interpolate(double _t) const
+double Spline::ArcLength(const unsigned int _index) const
 {
-  // Currently assumes points are evenly spaced, will cause velocity
-  // change where this is not the case
-  // TODO: base on arclength?
+  if (_index >= this->dataPtr->segments.size())
+    return INF_D;
+  return this->dataPtr->segments[_index].ArcLength();
+}
 
-  // Work out which segment this is in
-  double fSeg = _t * (this->dataPtr->points.size() - 1);
-  unsigned int segIdx = (unsigned int)fSeg;
-  // Apportion t
-  _t = fSeg - segIdx;
+///////////////////////////////////////////////////////////
+void Spline::AddPoint(const Vector3d &_p)
+{
+  this->AddPoint({_p, Vector3d(INF_D, INF_D, INF_D)}, false);
+}
 
-  return this->Interpolate(segIdx, _t);
+///////////////////////////////////////////////////////////
+void Spline::AddPoint(const Vector3d &_p, const Vector3d &_t)
+{
+  this->AddPoint({_p, _t}, true);
+}
+
+///////////////////////////////////////////////////////////
+void Spline::AddPoint(const ControlPoint &_cp, bool _fixed)
+{
+  this->dataPtr->points.push_back(_cp);
+  this->dataPtr->fixings.push_back(_fixed);
+  if (this->dataPtr->autoCalc)    
+    this->RecalcTangents();
+  // TODO: Rebuild should call RecalcTangents, not the
+  // other way around, BUT that isn't backwards compatible  
+  this->Rebuild();
+
+}
+
+///////////////////////////////////////////////////////////
+Vector3d Spline::InterpolateMthDerivative(const unsigned int _mth,
+                                          const double _s) const
+{
+  auto it = std::lower_bound(this->dataPtr->cumulative_arc_lengths.begin(),
+                             this->dataPtr->cumulative_arc_lengths.end(),
+                             _s);
+  int fromIndex = it - this->dataPtr->cumulative_arc_lengths.begin() - 1;
+  double s_fraction = _s - this->dataPtr->cumulative_arc_lengths[fromIndex];
+  return this->InterpolateMthDerivative(fromIndex, _mth, s_fraction);
+}
+
+///////////////////////////////////////////////////////////
+Vector3d Spline::InterpolateMthDerivative(const unsigned int _fromIndex,
+                                          const unsigned int _mth,
+                                          const double _s) const
+{
+  // Bounds check
+  if (_fromIndex >= this->dataPtr->points.size())
+    return Vector3d(INF_D, INF_D, INF_D);
+  
+  if (_fromIndex == this->dataPtr->points.size() - 1)
+  {
+    // Duff request, cannot blend to nothing
+    // Just return source
+    return this->dataPtr->points[_fromIndex].MthDerivative(_mth);
+  }
+
+  if (_mth > 3) {
+    // M > 3 => p = 0 (as this is a cubic interpolator)
+    return Vector3d(0.0f, 0.0f, 0.0f);
+  }
+  double t_s = this->dataPtr->params[_fromIndex].InterpolateMthDerivative(0, _s);
+  if (_mth < 1) {
+    // M = 0 => P(s) = Q(t(s))
+    return this->dataPtr->segments[_fromIndex].InterpolateMthDerivative(0, t_s);
+  }
+  double t_prime_s = this->dataPtr->params[_fromIndex].InterpolateMthDerivative(1, _s);
+  Vector3d q_prime_t = this->dataPtr->segments[_fromIndex].InterpolateMthDerivative(1, t_s);
+  if (_mth < 2) {
+    // M = 1 => P'(s) = Q'(t(s)) * t'(s)
+    return q_prime_t * t_prime_s;
+  }
+  double t_prime_s_2 = t_prime_s * t_prime_s;
+  double t_prime2_s = this->dataPtr->params[_fromIndex].InterpolateMthDerivative(2, _s);
+  Vector3d q_prime2_t = this->dataPtr->segments[_fromIndex].InterpolateMthDerivative(2, t_s);
+  if (_mth < 3) {
+    // M = 2 => P''(s) = Q''(t(s)) * t'(s)^2 + Q'(t(s)) * t''(s)
+    return q_prime2_t * t_prime_s_2 + q_prime_t * t_prime2_s;
+  }
+  double t_prime_s_3 = t_prime_s_2 * t_prime_s;
+  double t_prime3_s = this->dataPtr->params[_fromIndex].InterpolateMthDerivative(3, _s);
+  Vector3d q_prime3_t = this->dataPtr->segments[_fromIndex].InterpolateMthDerivative(3, t_s);
+  // M = 3 => P'''(s) = Q'''(t(s)) * t'(s)^3
+  ///                   + 3 * Q''(t(s)) * t'(s) * t''(s)
+  ///                   + Q'(t(s)) * t'''(s)
+  return (q_prime3_t * t_prime_s_3
+          + 3 * q_prime2_t * t_prime_s * t_prime2_s
+          + q_prime_t * t_prime3_s);
+}
+
+///////////////////////////////////////////////////////////
+Vector3d Spline::Interpolate(const double _t) const
+{
+  return this->InterpolateMthDerivative(
+      0, _t * this->ArcLength());
 }
 
 ///////////////////////////////////////////////////////////
 Vector3d Spline::Interpolate(const unsigned int _fromIndex,
                              const double _t) const
 {
-  // Bounds check
-  if (_fromIndex >= this->dataPtr->points.size())
-    return Vector3d(INF_D, INF_D, INF_D);
+  return this->InterpolateMthDerivative(
+      _fromIndex, 0, _t * this->ArcLength(_fromIndex));
+}
 
-  if ((_fromIndex + 1) == this->dataPtr->points.size())
-  {
-    // Duff request, cannot blend to nothing
-    // Just return source
-    return this->dataPtr->points[_fromIndex];
-  }
+///////////////////////////////////////////////////////////
+Vector3d Spline::InterpolateTangent(const double _t) const
+{
+  return this->InterpolateMthDerivative(
+      1, _t * this->ArcLength());
+}
 
-  // Fast special cases
-  if (equal(_t, 0.0))
-    return this->dataPtr->points[_fromIndex];
-  else if (equal(_t, 1.0))
-    return this->dataPtr->points[_fromIndex + 1];
-
-  // double interpolation
-  // Form a vector of powers of t
-  double t2, t3;
-  t2 = _t * _t;
-  t3 = t2 * _t;
-  Vector4d powers(t3, t2, _t, 1);
-
-
-  // Algorithm is ret = powers * this->dataPtr->coeffs * Matrix4(point1,
-  // point2, tangent1, tangent2)
-  const Vector3d &point1 = this->dataPtr->points[_fromIndex];
-  const Vector3d &point2 = this->dataPtr->points[_fromIndex+1];
-  const Vector3d &tan1 = this->dataPtr->tangents[_fromIndex];
-  const Vector3d &tan2 = this->dataPtr->tangents[_fromIndex+1];
-  Matrix4d pt;
-
-  pt(0, 0) = point1.X();
-  pt(0, 1) = point1.Y();
-  pt(0, 2) = point1.Z();
-  pt(0, 3) = 1.0f;
-  pt(1, 0) = point2.X();
-  pt(1, 1) = point2.Y();
-  pt(1, 2) = point2.Z();
-  pt(1, 3) = 1.0f;
-  pt(2, 0) = tan1.X();
-  pt(2, 1) = tan1.Y();
-  pt(2, 2) = tan1.Z();
-  pt(2, 3) = 1.0f;
-  pt(3, 0) = tan2.X();
-  pt(3, 1) = tan2.Y();
-  pt(3, 2) = tan2.Z();
-  pt(3, 3) = 1.0f;
-
-  Vector4d ret = powers * this->dataPtr->coeffs * pt;
-
-  return Vector3d(ret.X(), ret.Y(), ret.Z());
+///////////////////////////////////////////////////////////
+Vector3d Spline::InterpolateTangent(const unsigned int _fromIndex,
+                                    const double _t) const
+{
+  return this->InterpolateMthDerivative(
+      _fromIndex, 1, _t * this->ArcLength(_fromIndex));
 }
 
 ///////////////////////////////////////////////////////////
@@ -178,71 +208,113 @@ void Spline::RecalcTangents()
   }
 
   // Closed or open?
-  if (this->dataPtr->points[0] == this->dataPtr->points[numPoints-1])
+  if (this->dataPtr->points[0].MthDerivative(0) ==
+      this->dataPtr->points[numPoints-1].MthDerivative(0))
     isClosed = true;
   else
     isClosed = false;
 
   double t = 1.0 - this->dataPtr->tension;
-  this->dataPtr->tangents.resize(numPoints);
-
+  
   for (i = 0; i < numPoints; ++i)
   {
-    if (i == 0)
+    if (!this->dataPtr->fixings[i])
     {
-      // Special case start
-      if (isClosed)
+      if (i == 0)
       {
-        // Use this->dataPtr->points-2 since this->dataPtr->points-1
-        // is the last point and == [0]
-        this->dataPtr->tangents[i] =
-          ((this->dataPtr->points[1] -
-            this->dataPtr->points[numPoints-2]) * 0.5) * t;
+        // Special case start
+        if (isClosed)
+        {
+          // Use this->dataPtr->points-2 since this->dataPtr->points-1
+          // is the last point and == [0]
+          this->dataPtr->points[i].MthDerivative(1) =
+              ((this->dataPtr->points[1].MthDerivative(0) -
+                this->dataPtr->points[numPoints-2].MthDerivative(0)) * 0.5) * t;
+        }
+        else
+        {
+          this->dataPtr->points[i].MthDerivative(1) =
+              ((this->dataPtr->points[1].MthDerivative(0) -
+                this->dataPtr->points[0].MthDerivative(0)) * 0.5) * t;
+        }
+      }
+      else if (i == numPoints-1)
+      {
+        // Special case end
+        if (isClosed)
+        {
+          // Use same tangent as already calculated for [0]
+          this->dataPtr->points[i].MthDerivative(1) = this->dataPtr->points[0].MthDerivative(1);
+        }
+        else
+        {
+          this->dataPtr->points[i].MthDerivative(1) =
+              ((this->dataPtr->points[i].MthDerivative(0) -
+                this->dataPtr->points[i-1].MthDerivative(0)) * 0.5) * t;
+        }
       }
       else
       {
-        this->dataPtr->tangents[i] =
-          ((this->dataPtr->points[1] - this->dataPtr->points[0]) * 0.5) * t;
+        this->dataPtr->points[i].MthDerivative(1) =
+            ((this->dataPtr->points[i+1].MthDerivative(0) -
+              this->dataPtr->points[i-1].MthDerivative(0)) * 0.5) * t;
       }
-    }
-    else if (i == numPoints-1)
-    {
-      // Special case end
-      if (isClosed)
-      {
-        // Use same tangent as already calculated for [0]
-        this->dataPtr->tangents[i] = this->dataPtr->tangents[0];
-      }
-      else
-      {
-        this->dataPtr->tangents[i] =
-          ((this->dataPtr->points[i] - this->dataPtr->points[i-1]) * 0.5) * t;
-      }
-    }
-    else
-    {
-      this->dataPtr->tangents[i] =
-        ((this->dataPtr->points[i+1] - this->dataPtr->points[i-1]) * 0.5) * t;
     }
   }
 }
 
 ///////////////////////////////////////////////////////////
+void Spline::Rebuild()
+{
+  size_t numPoints = this->dataPtr->points.size();
+
+  if (numPoints < 2) {
+    // Can't do anything yet
+    return;
+  }
+
+  size_t numSegments = numPoints - 1;  
+  this->dataPtr->segments.resize(numSegments);
+  this->dataPtr->params.resize(numSegments);
+  this->dataPtr->cumulative_arc_lengths.resize(numSegments);
+  for (size_t i = 0 ; i < numSegments ; ++i)
+  {
+    this->dataPtr->segments[i].SetPoints(this->dataPtr->points[i],
+                                         this->dataPtr->points[i+1]);
+    this->dataPtr->params[i].Rescale(this->dataPtr->segments[i]);
+    
+    if (i > 0) {
+      this->dataPtr->cumulative_arc_lengths[i] =
+          (this->dataPtr->segments[i-1].ArcLength()
+           + this->dataPtr->cumulative_arc_lengths[i-1]);
+    }
+    else {
+      this->dataPtr->cumulative_arc_lengths[i] = 0.0;
+    }
+  }
+  this->dataPtr->arc_length = (this->dataPtr->cumulative_arc_lengths.back()
+                               + this->dataPtr->segments.back().ArcLength());
+}
+
+///////////////////////////////////////////////////////////
 Vector3d Spline::Point(const unsigned int _index) const
 {
-  if (_index >= this->dataPtr->points.size())
-    return Vector3d(INF_D, INF_D, INF_D);
-
-  return this->dataPtr->points[_index];
+  return this->MthDerivative(_index, 0);
 }
 
 ///////////////////////////////////////////////////////////
 Vector3d Spline::Tangent(const unsigned int _index) const
-{
-  if (_index >= this->dataPtr->tangents.size())
-    return Vector3d(INF_D, INF_D, INF_D);
+{ 
+  return this->MthDerivative(_index, 1);
+}
 
-  return this->dataPtr->tangents[_index];
+///////////////////////////////////////////////////////////
+Vector3d Spline::MthDerivative(const unsigned int _index,
+                               const unsigned int _mth) const
+{
+  if (_index >= this->dataPtr->points.size())
+    return Vector3d(INF_D, INF_D, INF_D);
+  return this->dataPtr->points[_index].MthDerivative(_mth);
 }
 
 ///////////////////////////////////////////////////////////
@@ -255,18 +327,42 @@ size_t Spline::PointCount() const
 void Spline::Clear()
 {
   this->dataPtr->points.clear();
-  this->dataPtr->tangents.clear();
+  this->dataPtr->segments.clear();
+  this->dataPtr->params.clear();
+  this->dataPtr->fixings.clear();
 }
 
 ///////////////////////////////////////////////////////////
-bool Spline::UpdatePoint(const unsigned int _index, const Vector3d &_value)
+bool Spline::UpdatePoint(const unsigned int _index,
+                         const Vector3d &_point)
+{
+  return this->UpdatePoint(_index, {_point}, false);
+}
+
+///////////////////////////////////////////////////////////
+bool Spline::UpdatePoint(const unsigned int _index,
+                         const Vector3d &_point,
+                         const Vector3d &_tangent)
+{
+  return this->UpdatePoint(_index, {_point, _tangent}, true);
+}
+
+///////////////////////////////////////////////////////////
+bool Spline::UpdatePoint(const unsigned int _index,
+                         const ControlPoint &_point,
+                         const bool _fixed)
 {
   if (_index >= this->dataPtr->points.size())
     return false;
 
-  this->dataPtr->points[_index] = _value;
+  this->dataPtr->points[_index].Match(_point);
+  this->dataPtr->fixings[_index] = _fixed;
+  
   if (this->dataPtr->autoCalc)
     this->RecalcTangents();
+  // TODO: Rebuild should call RecalcTangents, not the
+  // other way around, BUT that isn't backwards compatible  
+  this->Rebuild();
   return true;
 }
 
