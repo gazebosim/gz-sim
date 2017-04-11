@@ -50,14 +50,20 @@ namespace ignition
       public: double Tension() const;
 
       /// \brief Gets the spline arc length
-      /// \return The value of arc length
       public: double ArcLength() const;
+
+      /// \brief Gets the spline arc length
+      /// \param[in] _t optional parameter value (range 0 to 1)
+      /// \return The value of arc length up to \p _t
+      public: double ArcLength(const double _t) const;
 
       /// \brief Gets a spline segment arc length
       /// \param[in] _index of the spline segment
-      /// \return The value of given segment arc length,
-      /// or INF on error.
-      public: double ArcLength(const unsigned int _index) const;
+      /// \param[in] _t parameter value (range 0 to 1)
+      /// \return The value of given segment arc length up to
+      /// \p _t or INF on error.
+      public: double ArcLength(const unsigned int _index,
+                               const double _t) const;
 
       /// \brief  Adds a single control point to the end of the spline.
       /// \param[in] _pt control point value to add
@@ -184,25 +190,25 @@ namespace ignition
       /// \brief Returns an interpolated mth derivative based on an
       ///        arc length parametric value over the whole series.
       /// \param[in] _mth order of curve derivative to interpolate
-      /// \param[in] _arc arc length parameter value (range 0 to spline length)
+      /// \param[in] _s arc length parameter value (range 0 to spline length)
       /// \return The interpolated mth derivative, or
       /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _mth,
-                                                const double _arc) const;
+                                                const double _s) const;
 
       /// \brief Interpolates the mth derivative at a single segment of
       ///        the spline based on an arc length parametric value.
       /// \param[in] _fromIndex point index to treat as t = 0, fromIndex + 1
       ///                       is deemed to be t = 1
       /// \param[in] _mth order of curve derivative to interpolate
-      /// \param[in] _arc arc length parameter value (range 0 to segment length)
+      /// \param[in] _s arc length parameter value (range 0 to segment length)
       /// \return The interpolated mth derivative, or
       /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _fromIndex,
                                                 const unsigned int _mth,
-                                                const double _arc) const;
+                                                const double _s) const;
 
       /// \brief Tells the spline whether it should automatically
       ///        calculate tangents on demand as points are added.
@@ -226,8 +232,18 @@ namespace ignition
       ///          after completing your updates to the spline points.
       public: void RecalcTangents();
 
-      /// \brief Rebuilds this spline.
-      public: void Rebuild();
+      /// \brief Rebuilds this spline's segments.
+      private: void Rebuild();
+
+      /// \brief Maps \p _t parameter value over the whole spline
+      /// to the right segment (starting at point \p _index) with
+      /// the proper parameter value fraction \p _fraction.
+      /// \param[in] _t parameter value over the whole spline (range 0 to 1)
+      /// \param[out] _index point index at which the segment starts
+      /// \param[out] _fraction parameter value fraction for the given segment
+      private: void MapToSegment(const double _t,
+                                 int &_index,
+                                 double &_fraction) const;
 
       /// \internal
       /// \brief Private data pointer

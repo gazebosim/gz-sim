@@ -90,32 +90,10 @@ namespace ignition
       private: std::vector<Vector3d> derivatives;
     };
 
-    class CurveInterpolator
-    {
-      /// \brief Interpolates the mth derivative based on a parametric value.
-      /// \param[in] _mth order of curve derivative to interpolate
-      /// \param[in] _t parameter value (range 0 to 1)
-      /// \return The interpolated mth derivative, or
-      /// [INF, INF, INF] on error. Use
-      /// Vector3d::IsFinite() to check for an error.
-      public: virtual Vector3d InterpolateMthDerivative(
-          const unsigned int _mth, const double _t) const = 0;
-
-      /// \brief Returns this curve arc length
-      public: virtual double ArcLength() const = 0;
-    };
-
-    class IntervalCubicSpline : public CurveInterpolator
+    class IntervalCubicSpline
     {
       /// \brief Dummy constructor.
       public: IntervalCubicSpline();
-
-      /// \brief Constructor that takes the control points for
-      /// interpolation.
-      /// \param[in] _startPoint start control point
-      /// \param[in] _endPoint end control point
-      public: explicit IntervalCubicSpline(const ControlPoint &_startPoint,
-                                           const ControlPoint &_endPoint);
 
       /// \brief Sets both control points for this interpolator
       /// \param[in] _startPoint start control point
@@ -139,23 +117,30 @@ namespace ignition
 
       /// \brief Interpolates the mth derivative based on a parametric value.
       /// \param[in] _mth order of curve derivative to interpolate
-      /// \param[in] _t arc length parameter value (range 0 to 1)
+      /// \param[in] _t parameter value (range 0 to 1)
       /// \return The interpolated mth derivative, or
       /// [INF, INF, INF] on error. Use Vector3d::IsFinite() to
       /// check for an error.
-      public: virtual Vector3d InterpolateMthDerivative(
-          const unsigned int _mth, const double _t) const override;
+      public: Vector3d InterpolateMthDerivative(
+          const unsigned int _mth, const double _t) const;
 
       /// \brief Returns this spline arc length
-      public: inline virtual double ArcLength() const override
-      {
-        return this->arcLength;
-      }
+      public: inline double ArcLength() const { return this->arcLength; }
+
+      /// \brief Returns this spline arc length
+      /// \param[in] _t optional parameter value (range 0 to 1)
+      /// to compute arc length upto
+      /// \return The value of given segment arc length up to
+      /// \p _t or INF on error.
+      public: double ArcLength(const double _t) const;
 
       /// \internal
-      /// \brief Computes this spline arc length
-      /// \return arc length
-      private: double ComputeArcLength() const;
+      /// \brief Interpolates the mth derivative based on a parametric value.
+      /// \param[in] _mth order of curve derivative to interpolate
+      /// \param[in] _t parameter value (range 0 to 1)
+      /// \return The interpolated mth derivative.
+      private: Vector3d DoInterpolateMthDerivative(
+          const unsigned int _mth, const double _t) const;
 
       /// \brief start control point for the curve
       private: ControlPoint startPoint;
@@ -167,34 +152,7 @@ namespace ignition
       /// for interpolation
       private: Matrix4d coeffs;
 
-      /// \brief spline arc length
-      private: double arcLength;
-    };
-
-    class InverseArcLengthInterpolator
-    {
-      /// \brief Dummy constructor
-      public: InverseArcLengthInterpolator();
-
-      /// \brief Constructor that takes the \p _spline to scale for
-      /// \param[in] _spline to scale the inverse arc length function
-      public: explicit InverseArcLengthInterpolator(
-          const CurveInterpolator &_interpolator);
-
-      /// \brief Rescales this inverse function to match the given
-      /// \p _spline arc length
-      /// \param[in] _spline to scale the inverse arc length function
-      public: void Rescale(const CurveInterpolator &_interpolator);
-
-      /// \brief Interpolates the \p _mth derivative of the inverse arc length
-      /// function based on the arc length parametric value \p _s.
-      /// \param[in] _mth order of curve derivative to interpolate
-      /// \param[in] _s arc length parameter value (range 0 to length)
-      /// \return The interpolated mth derivative of the inverse function
-      public: double InterpolateMthDerivative(const unsigned int _mth,
-                                              const double _s) const;
-
-      /// \brief full arc length for rescaling
+      /// \brief curve arc length
       private: double arcLength;
     };
 
@@ -215,9 +173,6 @@ namespace ignition
 
       // \brief interpolated arcs
       public: std::vector<IntervalCubicSpline> segments;
-
-      // \brief segments arc length parameterizations
-      public: std::vector<InverseArcLengthInterpolator> params;
 
       // \brief segments arc length cumulative distribution
       public: std::vector<double> cumulativeArcLengths;

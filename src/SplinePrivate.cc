@@ -38,7 +38,7 @@ Vector4d GetPolynomialPowers(const unsigned int _order,
     case 1:
       return Vector4d(3*t2, 2*_t, 1.0, 0.0);
     case 2:
-      return Vector4d(6*_t, 2.0, 0.0, 0.0f);
+      return Vector4d(6*_t, 2.0, 0.0, 0.0);
     case 3:
       return Vector4d(6.0, 0.0, 0.0, 0.0);
     default:
@@ -78,50 +78,67 @@ IntervalCubicSpline::IntervalCubicSpline()
     : startPoint({Vector3d::Zero, Vector3d::Zero}),
       endPoint({Vector3d::Zero, Vector3d::Zero}),
       coeffs(Matrix4d::Zero),
-      arcLength(0.0f)
+      arcLength(0.0)
 {
 }
 
 ///////////////////////////////////////////////////////////
-IntervalCubicSpline::IntervalCubicSpline(const ControlPoint &_startPoint,
-                                         const ControlPoint &_endPoint)
-    : startPoint(_startPoint), endPoint(_endPoint)
-{
-  ComputeCubicBernsteinHermiteCoeff(
-      this->startPoint, this->endPoint, this->coeffs);
-
-  this->arcLength = this->ComputeArcLength();
-}
-
 void IntervalCubicSpline::SetPoints(const ControlPoint &_startPoint,
                                     const ControlPoint &_endPoint)
 {
-  this->startPoint = _startPoint; this->endPoint = _endPoint;
+  this->startPoint = _startPoint;
+  this->endPoint = _endPoint;
+
   ComputeCubicBernsteinHermiteCoeff(
       this->startPoint, this->endPoint, this->coeffs);
 
-  this->arcLength = this->ComputeArcLength();
+  this->startPoint.MthDerivative(2) = this->DoInterpolateMthDerivative(2, 0.0);
+  this->startPoint.MthDerivative(3) = this->DoInterpolateMthDerivative(3, 0.0);
+  this->endPoint.MthDerivative(2) = this->DoInterpolateMthDerivative(2, 1.0);
+  this->endPoint.MthDerivative(3) = this->DoInterpolateMthDerivative(3, 1.0);
+  this->arcLength = this->ArcLength(1.0);
 }
 
-double IntervalCubicSpline::ComputeArcLength() const
+///////////////////////////////////////////////////////////
+double IntervalCubicSpline::ArcLength(const double _t) const
 {
+  // Bound check
+  if (_t < 0.0 || _t > 1.0)
+    return INF_D;
+
   // 5 Point Gauss-Legendre quadrature rule for numerical path integration
   // TODO: generalize into a numerical integration toolkit ?
-  double arc_length = 0.2844444444444444 * this->InterpolateMthDerivative(
-      1, 0.5000000000000000).Length();
-  arc_length += 0.2393143352496833 * (
-      this->InterpolateMthDerivative(1, 0.2307653449471584).Length()
-      + this->InterpolateMthDerivative(1, 0.7692346550528415).Length());
-  arc_length += 0.1184634425280946 * (
-      this->InterpolateMthDerivative(1, 0.0469100770306680).Length()
-      + this->InterpolateMthDerivative(1, 0.9530899229693319).Length());
+  double w1 = 0.28444444444444444 * _t;
+  double w23 = 0.23931433524968326 * _t;
+  double w45 = 0.11846344252809456 * _t;
+  double x1 = 0.5 * _t;
+  double x2 = 0.23076534494715845 * _t;
+  double x3 = 0.7692346550528415 * _t;
+  double x4 = 0.0469100770306680 * _t;
+  double x5 = 0.9530899229693319 * _t;
+
+  double arc_length = w1 * this->InterpolateMthDerivative(1, x1).Length();
+  arc_length += w23 * this->InterpolateMthDerivative(1, x2).Length();
+  arc_length += w23 * this->InterpolateMthDerivative(1, x3).Length();
+  arc_length += w45 * this->InterpolateMthDerivative(1, x4).Length();
+  arc_length += w45 * this->InterpolateMthDerivative(1, x5).Length();
   return arc_length;
 }
 
 ///////////////////////////////////////////////////////////
-Vector3d IntervalCubicSpline::InterpolateMthDerivative(const unsigned int _mth,
-                                                       const double _t) const
+Vector3d IntervalCubicSpline::DoInterpolateMthDerivative(
+    const unsigned int _mth, const double _t) const
 {
+  Vector4d powers = GetPolynomialPowers(_mth, _t);
+  Vector4d interpolation = powers * this->coeffs;
+  return Vector3d(interpolation.X(), interpolation.Y(), interpolation.Z());
+}
+
+///////////////////////////////////////////////////////////
+Vector3d IntervalCubicSpline::InterpolateMthDerivative(
+    const unsigned int _mth, const double _t) const
+{
+  // Bound check
   if (_t < 0.0 || _t > 1.0)
     return Vector3d(INF_D, INF_D, INF_D);
 
@@ -130,44 +147,10 @@ Vector3d IntervalCubicSpline::InterpolateMthDerivative(const unsigned int _mth,
   else if (equal(_t, 1.0))
     return this->endPoint.MthDerivative(_mth);
 
-  Vector4d powers = GetPolynomialPowers(_mth, _t);
-  Vector4d interpolation = powers * this->coeffs;
-  return Vector3d(interpolation.X(), interpolation.Y(), interpolation.Z());
+  return this->DoInterpolateMthDerivative(_mth, _t);
 }
 
-///////////////////////////////////////////////////////////
-InverseArcLengthInterpolator::InverseArcLengthInterpolator()
-    : arcLength(0)
-{
-}
 
-///////////////////////////////////////////////////////////
-InverseArcLengthInterpolator::InverseArcLengthInterpolator(
-    const CurveInterpolator &_curve)
-{
-  this->Rescale(_curve);
-}
-
-///////////////////////////////////////////////////////////
-void InverseArcLengthInterpolator::Rescale(
-    const CurveInterpolator &_curve)
-{
-  this->arcLength = _curve.ArcLength();
-}
-
-///////////////////////////////////////////////////////////
-double InverseArcLengthInterpolator::InterpolateMthDerivative(
-    const unsigned int _mth, const double _s) const
-{
-  // TODO: implement inverse arc length
-  // function approximation for proper
-  // parameterization
-  if (_mth > 1)
-    return 0.0f;
-  if (_mth > 0)
-    return 1.0f / this->arcLength;
-  return _s / this->arcLength;
-}
 
 }
 }
