@@ -29,7 +29,7 @@ namespace ignition
     // Forward declare private data classes
     class ControlPoint;
     class SplinePrivate;
-    
+
     /// \class Spline Spline.hh ignition/math/Spline.hh
     /// \brief Splines
     class IGNITION_VISIBLE Spline
@@ -58,7 +58,7 @@ namespace ignition
       /// \return The value of given segment arc length,
       /// or INF on error.
       public: double ArcLength(const unsigned int _index) const;
-      
+
       /// \brief  Adds a single control point to the end of the spline.
       /// \param[in] _pt control point value to add
       public: void AddPoint(const Vector3d &_pt);
@@ -73,7 +73,7 @@ namespace ignition
       /// \param[in] _cp control point to add
       /// \param[in] _fixed whether this control point should not be
       ///                   subject to tangent recomputation
-      private: void AddPoint(const ControlPoint &_cp, bool _fixed);
+      private: void AddPoint(const ControlPoint &_cp, const bool _fixed);
 
       /// \brief Gets the value for one of the control points
       /// of the spline.
@@ -88,20 +88,20 @@ namespace ignition
       /// \return the control point tangent, or [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d Tangent(const unsigned int _index) const;
-      
+
       /// \brief Gets the mth derivative for one of the control points
       /// of the spline.
       /// \param[in] _index the control point index
       /// \param[in] _mth derivative order
-      /// \return the control point mth derivative, or [INF, INF, INF] on error. Use
-      /// Vector3d::IsFinite() to check for an error.
+      /// \return the control point mth derivative, or [INF, INF, INF]
+      ///  on error. Use Vector3d::IsFinite() to check for an error.
       public: Vector3d MthDerivative(const unsigned int _index,
                                      const unsigned int _mth) const;
-      
+
       /// \brief  Gets the number of control points in the spline.
       /// \return the count
       public: size_t PointCount() const;
-      
+
       /// \brief  Clears all the points in the spline.
       public: void Clear();
 
@@ -137,16 +137,16 @@ namespace ignition
       /// \return True on success.
       private: bool UpdatePoint(const unsigned int _index,
                                 const ControlPoint &_cp,
-                                bool _fixed);
-      
+                                const bool _fixed);
+
       /// \brief Returns an interpolated point based on an
       ///        arc-length parametric value, normalized over
       ///        the whole series.
       /// \param[in] _t parameter (range 0 to 1)
       /// \return The interpolated point, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
-      public: Vector3d Interpolate(double _t) const;
+      public: Vector3d Interpolate(const double _t) const;
 
       /// \brief Interpolates a point at a single segment of the spline
       ///        based on an arc-length parametric value, normalized
@@ -155,7 +155,7 @@ namespace ignition
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t parameter (range 0 to 1)
       /// \return The interpolated point, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d Interpolate(const unsigned int _fromIndex,
                                    const double _t) const;
@@ -165,9 +165,9 @@ namespace ignition
       ///        the whole series.
       /// \param[in] _t parameter (range 0 to 1)
       /// \return The interpolated point, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinte() to check for an error.
-      public: Vector3d InterpolateTangent(double _t) const;
+      public: Vector3d InterpolateTangent(const double _t) const;
 
       /// \brief Interpolates the tangent at a single segment of
       ///        the spline based on an arc length parametric value,
@@ -176,7 +176,7 @@ namespace ignition
       ///        fromIndex + 1 is deemed to be t = 1
       /// \param[in] _t parameter (range 0 to 1)
       /// \return The interpolated point, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinte() to check for an error.
       public: Vector3d InterpolateTangent(const unsigned int _fromIndex,
                                           const double _t) const;
@@ -186,11 +186,11 @@ namespace ignition
       /// \param[in] _mth order of curve derivative to interpolate
       /// \param[in] _arc arc length parameter value (range 0 to spline length)
       /// \return The interpolated mth derivative, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _mth,
                                                 const double _arc) const;
-      
+
       /// \brief Interpolates the mth derivative at a single segment of
       ///        the spline based on an arc length parametric value.
       /// \param[in] _fromIndex point index to treat as t = 0, fromIndex + 1
@@ -198,12 +198,12 @@ namespace ignition
       /// \param[in] _mth order of curve derivative to interpolate
       /// \param[in] _arc arc length parameter value (range 0 to segment length)
       /// \return The interpolated mth derivative, or
-      /// [IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF] on error. Use
+      /// [INF, INF, INF] on error. Use
       /// Vector3d::IsFinite() to check for an error.
       public: Vector3d InterpolateMthDerivative(const unsigned int _fromIndex,
                                                 const unsigned int _mth,
                                                 const double _arc) const;
-      
+
       /// \brief Tells the spline whether it should automatically
       ///        calculate tangents on demand as points are added.
       /// \remarks The spline calculates tangents at each point
@@ -228,7 +228,7 @@ namespace ignition
 
       /// \brief Rebuilds this spline.
       public: void Rebuild();
-      
+
       /// \internal
       /// \brief Private data pointer
       private: SplinePrivate *dataPtr;
