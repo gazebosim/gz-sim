@@ -242,7 +242,7 @@ namespace ignition
       /// \param[out] _index point index at which the segment starts
       /// \param[out] _fraction parameter value fraction for the given segment
       private: void MapToSegment(const double _t,
-                                 int &_index,
+                                 unsigned int &_index,
                                  double &_fraction) const;
 
       /// \internal

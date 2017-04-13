@@ -65,7 +65,7 @@ double Spline::ArcLength() const
 ///////////////////////////////////////////////////////////
 double Spline::ArcLength(const double _t) const
 {
-  int fromIndex; double tFraction;
+  unsigned int fromIndex; double tFraction;
   this->MapToSegment(_t, fromIndex, tFraction);
   return this->ArcLength(fromIndex, tFraction);
 }
@@ -108,7 +108,7 @@ void Spline::AddPoint(const ControlPoint &_cp, const bool _fixed)
 Vector3d Spline::InterpolateMthDerivative(const unsigned int _mth,
                                           const double _t) const
 {
-  int fromIndex; double tFraction;
+  unsigned int fromIndex; double tFraction;
   this->MapToSegment(_t, fromIndex, tFraction);
   return this->InterpolateMthDerivative(fromIndex, _mth, tFraction);
 }
@@ -122,7 +122,7 @@ Vector3d Spline::InterpolateMthDerivative(const unsigned int _fromIndex,
   if (_fromIndex >= this->dataPtr->points.size())
     return Vector3d(INF_D, INF_D, INF_D);
 
-  if (_fromIndex == this->dataPtr->points.size() - 1)
+  if (_fromIndex == this->dataPtr->segments.size())
   {
     // Duff request, cannot blend to nothing
     // Just return source
@@ -237,18 +237,45 @@ void Spline::RecalcTangents()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::MapToSegment(const double _t, int &_index, double &_fraction) const
+void Spline::MapToSegment(const double _t,
+                          unsigned int &_index,
+                          double &_fraction) const
 {
+  _index = 0;
+  // Check corner cases
+  if (this->dataPtr->segments.empty())
+  {
+    _fraction = _t;
+    return;
+  }
+  
+  if (equal(_t, 0.0))
+  {  
+    _fraction = 0.0;
+    return;
+  }
+  
+  if (equal(_t, 1.0))
+  {
+    _index = this->dataPtr->segments.size()-1;
+    _fraction = 1.0;
+    return;
+  }
+
+  // Assume linear relationship between t and arclength
+  double tArc = _t * this->dataPtr->arcLength;
+
+  // Get segment index where t would lie
   auto it = std::lower_bound(this->dataPtr->cumulativeArcLengths.begin(),
                              this->dataPtr->cumulativeArcLengths.end(),
-                             _t * this->dataPtr->arcLength);
-  _index = 0; _fraction = _t;
+                             tArc);
+
   if (it != this->dataPtr->cumulativeArcLengths.begin())
-  {
     _index = it - this->dataPtr->cumulativeArcLengths.begin() - 1;
-    _fraction -= this->dataPtr->cumulativeArcLengths[_index]
-                 / this->dataPtr->arcLength;
-  }
+
+  // Get fraction of t, but renormalized to the segment
+  _fraction = (tArc - this->dataPtr->cumulativeArcLengths[_index])
+              / this->dataPtr->segments[_index].ArcLength();
 }
 
 ///////////////////////////////////////////////////////////
