@@ -248,13 +248,13 @@ void Spline::MapToSegment(const double _t,
     _fraction = _t;
     return;
   }
-  
+
   if (equal(_t, 0.0))
-  {  
+  {
     _fraction = 0.0;
     return;
   }
-  
+
   if (equal(_t, 1.0))
   {
     _index = this->dataPtr->segments.size()-1;

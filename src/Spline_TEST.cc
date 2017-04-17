@@ -47,7 +47,9 @@ TEST(SplineTest, Spline)
   s.AutoCalculate(true);
 
   // ::Interpolate
+  EXPECT_EQ(s.Interpolate(0.0), math::Vector3d(-1, -1, -1));
   EXPECT_EQ(s.Interpolate(0.5), math::Vector3d(0.5, 0.5, 0.5));
+  EXPECT_EQ(s.Interpolate(1.0), math::Vector3d(2, 2, 2));
 
   // ::Interpolate
   s.AddPoint(math::Vector3d(4, 4, 4));
@@ -120,12 +122,17 @@ TEST(SplineTest, Interpolate)
   EXPECT_FALSE(s.Interpolate(0, -0.1).IsFinite());
   EXPECT_EQ(s.InterpolateTangent(0, 0.0), s.Tangent(0));
 
+  // Fast and slow call variations
+  EXPECT_EQ(s.Interpolate(0, 0.5), math::Vector3d(0.5, 1.0, 1.5));
   EXPECT_EQ(s.Interpolate(0, 1.0), s.Point(1));
+  EXPECT_EQ(s.InterpolateTangent(0, 0.5), math::Vector3d(1.25, 2.5, 3.75));
   EXPECT_EQ(s.InterpolateTangent(0, 1.0), s.Tangent(1));
-
   EXPECT_EQ(s.InterpolateMthDerivative(2, 0.5), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(s.InterpolateMthDerivative(2, 1.0), math::Vector3d(-3, -6, -9));
   EXPECT_EQ(s.InterpolateMthDerivative(3, 0.5), math::Vector3d(-6, -12, -18));
+  EXPECT_EQ(s.InterpolateMthDerivative(3, 1.0), math::Vector3d(-6, -12, -18));
   EXPECT_EQ(s.InterpolateMthDerivative(4, 0.5), math::Vector3d(0, 0, 0));
+  EXPECT_EQ(s.InterpolateMthDerivative(4, 1.0), math::Vector3d(0, 0, 0));
 }
 
 /////////////////////////////////////////////////
