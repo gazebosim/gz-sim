@@ -247,7 +247,8 @@ namespace ignition
       /// \param[in] _t parameter value over the whole spline (range 0 to 1).
       /// \param[out] _index point index at which the segment starts.
       /// \param[out] _fraction parameter value fraction for the given segment.
-      private: void MapToSegment(const double _t,
+      /// \return True on success.
+      private: bool MapToSegment(const double _t,
                                  unsigned int &_index,
                                  double &_fraction) const;
 

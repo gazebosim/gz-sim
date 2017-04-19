@@ -66,8 +66,10 @@ double Spline::ArcLength() const
 double Spline::ArcLength(const double _t) const
 {
   unsigned int fromIndex; double tFraction;
-  this->MapToSegment(_t, fromIndex, tFraction);
-  return this->ArcLength(fromIndex, tFraction);
+  if (!this->MapToSegment(_t, fromIndex, tFraction))
+    return INF_D;
+  return (this->dataPtr->cumulativeArcLengths[fromIndex] +
+          this->ArcLength(fromIndex, tFraction));
 }
 
 ///////////////////////////////////////////////////////////
@@ -237,29 +239,26 @@ void Spline::RecalcTangents()
 }
 
 ///////////////////////////////////////////////////////////
-void Spline::MapToSegment(const double _t,
+bool Spline::MapToSegment(const double _t,
                           unsigned int &_index,
                           double &_fraction) const
 {
-  _index = 0;
   // Check corner cases
   if (this->dataPtr->segments.empty())
-  {
-    _fraction = _t;
-    return;
-  }
+    return false;
 
   if (equal(_t, 0.0))
   {
+    _index = 0;
     _fraction = 0.0;
-    return;
+    return true;
   }
 
   if (equal(_t, 1.0))
   {
     _index = this->dataPtr->segments.size()-1;
     _fraction = 1.0;
-    return;
+    return true;
   }
 
   // Assume linear relationship between t and arclength
@@ -276,6 +275,7 @@ void Spline::MapToSegment(const double _t,
   // Get fraction of t, but renormalized to the segment
   _fraction = (tArc - this->dataPtr->cumulativeArcLengths[_index])
               / this->dataPtr->segments[_index].ArcLength();
+  return true;
 }
 
 ///////////////////////////////////////////////////////////

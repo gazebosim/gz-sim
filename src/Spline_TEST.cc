@@ -94,7 +94,9 @@ TEST(SplineTest, ArcLength)
   s.AddPoint(math::Vector3d(4, 4, 4), math::Vector3d(1, 1, 1));
   EXPECT_NEAR(s.ArcLength(0, 1.0), 3.46410161513775, 1e-14);
   EXPECT_NEAR(s.ArcLength(), 5.19615242270663, 1e-14);
-  EXPECT_FALSE(std::isfinite(s.ArcLength(-1)));
+  EXPECT_EQ(s.ArcLength(), s.ArcLength(1.0));
+  EXPECT_FALSE(std::isfinite(s.ArcLength(-1.0)));
+  EXPECT_FALSE(std::isfinite(s.ArcLength(4, 0.0)));
 }
 
 /////////////////////////////////////////////////

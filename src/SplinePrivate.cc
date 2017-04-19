@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Open Source Robotics Foundation
+ * Copyright (C) 2017 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ namespace math
 {
 
 ///////////////////////////////////////////////////////////
-Vector4d GetPolynomialPowers(const unsigned int _order,
-                             const double _t)
+Vector4d PolynomialPowers(const unsigned int _order,
+                          const double _t)
 {
   // It is much faster to go over this table than
   // delving into factorials and power computations.
@@ -129,7 +129,7 @@ double IntervalCubicSpline::ArcLength(const double _t) const
 Vector3d IntervalCubicSpline::DoInterpolateMthDerivative(
     const unsigned int _mth, const double _t) const
 {
-  Vector4d powers = GetPolynomialPowers(_mth, _t);
+  Vector4d powers = PolynomialPowers(_mth, _t);
   Vector4d interpolation = powers * this->coeffs;
   return Vector3d(interpolation.X(), interpolation.Y(), interpolation.Z());
 }
