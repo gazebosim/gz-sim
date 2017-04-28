@@ -2,6 +2,10 @@
 
 ### Ignition Math 3.x.x
 
+1. Extended Spline API: derivative interpolation, arc length calculation
+   and tangent forcing.
+    * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
+
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka
     * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
