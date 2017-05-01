@@ -80,7 +80,7 @@ uint32_t &Rand::SeedMutable()
   // We don't seed with time for the cases when two processes are started the
   // same time (this mostly happens with launch scripts that start a server
   // and gui simultaneously).
-  static uint32_t seed = std::random_device {}();;
+  static uint32_t seed = std::random_device {}();
   return seed;
 }
 
