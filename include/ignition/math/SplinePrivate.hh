@@ -57,7 +57,14 @@ namespace ignition
       /// \return whether this and \p _other can be seen as equal.
       public: inline bool operator==(const ControlPoint &_other) const
       {
-        return (this->derivatives == _other.derivatives);
+	if (this->derivatives.size() != _other.derivatives.size())
+	  return false;
+
+	for (auto i = 0; i < this->derivatives.size(); ++i)
+	  if (this->derivatives[i] != _other.derivatives[i])
+	    return false;
+
+	return true;
       }
 
       /// \brief Gets the mth derivative of this control point.
