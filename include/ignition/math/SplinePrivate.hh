@@ -62,8 +62,8 @@ namespace ignition
         // https://bitbucket.org/ignitionrobotics/ign-math/issues/70
         if (this->derivatives.size() != _other.derivatives.size())
           return false;
-	
-        for (auto i = 0; i < this->derivatives.size(); ++i)
+
+        for (size_t i = 0; i < this->derivatives.size(); ++i)
           if (this->derivatives[i] != _other.derivatives[i])
             return false;
 
