@@ -243,16 +243,15 @@ bool Spline::MapToSegment(const double _t,
                           unsigned int &_index,
                           double &_fraction) const
 {
+  _index = 0;
+  _fraction = 0.0;
+
   // Check corner cases
   if (this->dataPtr->segments.empty())
     return false;
 
   if (equal(_t, 0.0))
-  {
-    _index = 0;
-    _fraction = 0.0;
     return true;
-  }
 
   if (equal(_t, 1.0))
   {
