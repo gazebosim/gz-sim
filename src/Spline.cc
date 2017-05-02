@@ -256,7 +256,7 @@ bool Spline::MapToSegment(const double _t,
 
   if (equal(_t, 1.0))
   {
-    _index = this->dataPtr->segments.size()-1;
+    _index = static_cast<unsigned int>(this->dataPtr->segments.size()-1);
     _fraction = 1.0;
     return true;
   }
@@ -270,7 +270,8 @@ bool Spline::MapToSegment(const double _t,
                              tArc);
 
   if (it != this->dataPtr->cumulativeArcLengths.begin())
-    _index = it - this->dataPtr->cumulativeArcLengths.begin() - 1;
+    _index = static_cast<unsigned int>(
+        (it - this->dataPtr->cumulativeArcLengths.begin() - 1));
 
   // Get fraction of t, but renormalized to the segment
   _fraction = (tArc - this->dataPtr->cumulativeArcLengths[_index])
