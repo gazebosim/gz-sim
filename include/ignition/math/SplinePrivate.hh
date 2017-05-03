@@ -57,7 +57,17 @@ namespace ignition
       /// \return whether this and \p _other can be seen as equal.
       public: inline bool operator==(const ControlPoint &_other) const
       {
-        return (this->derivatives == _other.derivatives);
+        // Workaround to compare the two vector of vectors in MSVC 2013
+        // and MSVC 2015. See
+        // https://bitbucket.org/ignitionrobotics/ign-math/issues/70
+        if (this->derivatives.size() != _other.derivatives.size())
+          return false;
+
+        for (size_t i = 0; i < this->derivatives.size(); ++i)
+          if (this->derivatives[i] != _other.derivatives[i])
+            return false;
+
+        return true;
       }
 
       /// \brief Gets the mth derivative of this control point.

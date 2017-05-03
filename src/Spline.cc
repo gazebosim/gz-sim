@@ -243,20 +243,19 @@ bool Spline::MapToSegment(const double _t,
                           unsigned int &_index,
                           double &_fraction) const
 {
+  _index = 0;
+  _fraction = 0.0;
+
   // Check corner cases
   if (this->dataPtr->segments.empty())
     return false;
 
   if (equal(_t, 0.0))
-  {
-    _index = 0;
-    _fraction = 0.0;
     return true;
-  }
 
   if (equal(_t, 1.0))
   {
-    _index = this->dataPtr->segments.size()-1;
+    _index = static_cast<unsigned int>(this->dataPtr->segments.size()-1);
     _fraction = 1.0;
     return true;
   }
@@ -270,7 +269,8 @@ bool Spline::MapToSegment(const double _t,
                              tArc);
 
   if (it != this->dataPtr->cumulativeArcLengths.begin())
-    _index = it - this->dataPtr->cumulativeArcLengths.begin() - 1;
+    _index = static_cast<unsigned int>(
+        (it - this->dataPtr->cumulativeArcLengths.begin() - 1));
 
   // Get fraction of t, but renormalized to the segment
   _fraction = (tArc - this->dataPtr->cumulativeArcLengths[_index])
