@@ -57,6 +57,17 @@ double Spline::Tension() const
 }
 
 ///////////////////////////////////////////////////////////
+bool Spline::IsMonotonic() const
+{
+  // Check that all segments are monotonic
+  return std::all_of(this->dataPtr->segments.begin(),
+                     this->dataPtr->segments.end(),
+                     [](const IntervalCubicSpline &segment) {
+                       return segment.IsMonotonic();
+                     });
+}
+
+///////////////////////////////////////////////////////////
 double Spline::ArcLength() const
 {
   return this->dataPtr->arcLength;

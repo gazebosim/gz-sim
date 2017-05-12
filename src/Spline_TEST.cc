@@ -84,6 +84,31 @@ TEST(SplineTest, FixedTangentSpline)
 }
 
 /////////////////////////////////////////////////
+TEST(SplineTest, IsMonotonic)
+{
+  math::Spline s;
+  // Non coplanar splines are not covered by current implementation
+  s.AddPoint(math::Vector3d(0, 0, 0), math::Vector3d(0, 3, 0));
+  s.AddPoint(math::Vector3d(2, 2, 1), math::Vector3d(3, 0, 0));
+  EXPECT_FALSE(s.IsMonotonic());
+  // Monotonic, normal case
+  s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(3, 0, 0));
+  EXPECT_TRUE(s.IsMonotonic());
+  // Monotonic, corner case
+  s.UpdatePoint(0, math::Vector3d(0, 0, 0), math::Vector3d(0, 6, 0));
+  s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(6, 0, 0));
+  EXPECT_TRUE(s.IsMonotonic());
+  // Non monotonic, cusp case
+  s.UpdatePoint(0, math::Vector3d(0, 0, 0), math::Vector3d(0, 12, 0));
+  s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(12, 0, 0));
+  EXPECT_FALSE(s.IsMonotonic());
+  // Non monotonic, loop case
+  s.UpdatePoint(0, math::Vector3d(0, 0, 0), math::Vector3d(0, 16, 0));
+  s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(16, 0, 0));
+  EXPECT_FALSE(s.IsMonotonic());
+}
+
+/////////////////////////////////////////////////
 TEST(SplineTest, ArcLength)
 {
   math::Spline s;

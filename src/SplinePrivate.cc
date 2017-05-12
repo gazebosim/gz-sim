@@ -57,7 +57,7 @@ void ComputeCubicBernsteinHermiteCoeff(const ControlPoint &_startPoint,
   const Vector3d &tan0 = _startPoint.MthDerivative(1);
   const Vector3d &tan1 = _endPoint.MthDerivative(1);
 
-  // Bernstein polynomials matrix
+  // Hermite basis matrix
   const Matrix4d bmatrix(2.0, -2.0,  1.0,  1.0,
                         -3.0,  3.0, -2.0, -1.0,
                          0.0,  0.0,  1.0,  0.0,
@@ -123,6 +123,63 @@ double IntervalCubicSpline::ArcLength(const double _t) const
   arc_length += w45 * this->InterpolateMthDerivative(1, x4).Length();
   arc_length += w45 * this->InterpolateMthDerivative(1, x5).Length();
   return arc_length;
+}
+
+///////////////////////////////////////////////////////////
+bool IntervalCubicSpline::IsMonotonic() const
+{
+  // Bezier Bernstein polynomial basis.
+  const Matrix4d bmatrix(-1.0, 3.0, -3.0, 1.0,
+                         3.0, -6.0, 3.0, 0.0,
+                         -3.0, 3.0, 0.0, 0.0,
+                         1.0, 0.0, 0.0, 0.0);
+
+  // Recover Bezier representation, whose control points
+  // and convex hull is defined as follows:
+  //
+  //     p2 o--------o p3
+  //       /          \
+  //    b /            \  c
+  //     /      a       \
+  // p1 o----------------o p4
+
+  const Matrix4d pmatrix = bmatrix.Inverse() * this->coeffs;
+
+  const Vector3d p1(pmatrix(0, 0),
+                    pmatrix(0, 1),
+                    pmatrix(0, 2));
+  const Vector3d p2(pmatrix(1, 0),
+                    pmatrix(1, 1),
+                    pmatrix(1, 2));
+  const Vector3d p3(pmatrix(2, 0),
+                    pmatrix(2, 1),
+                    pmatrix(2, 2));
+  const Vector3d p4(pmatrix(3, 0),
+                    pmatrix(3, 1),
+                    pmatrix(3, 2));
+
+  const Vector3d a = p4 - p1;
+  const Vector3d b = p2 - p1;
+  const Vector3d c = p3 - p4;
+
+  // Check for coplanarity.
+  const Vector3d bxc = b.Cross(c);
+
+  if (!equal<double>(a.Dot(bxc), 0.0)) {
+    // TODO: handle non coplanar cases
+    return false;
+  }
+
+  // Determine the scale factors p and s that bring b
+  // and c to their intersection.
+  double p = a.Cross(c).Dot(bxc) / bxc.SquaredLength();
+  double s = a.Cross(b).Dot(bxc) / bxc.SquaredLength();
+
+  // If scale factors are at least 1, meaning, neither
+  // b nor c extend beyond their intersection, artifacts
+  // like loops and cusps won't happen (this IS NOT a
+  // necessary condition, but a sufficient one).
+  return (p >= 1.0 && s >= 1.0);
 }
 
 ///////////////////////////////////////////////////////////
