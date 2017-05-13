@@ -2,6 +2,9 @@
 
 ### Ignition Math 3.x.x
 
+1. Construct on first use in Rand class
+    * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
+
 1. Extended Spline API: derivative interpolation, arc length calculation
    and tangent forcing.
     * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
@@ -9,6 +12,8 @@
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka
     * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
+
+### Ignition Math 3.0.0 (2017-01-05)
 
 1. Deprecate many IGN_* macros in favor of static const variables in Helpers.hh
     * [Pull request 138](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/138)
