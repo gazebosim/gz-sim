@@ -148,11 +148,9 @@ namespace ignition
       /// \return the arc length up to \p _t or INF on error.
       public: double ArcLength(const double _t) const;
 
-      /// \brief Tells whether the curve is monotonic (meaning,
-      /// it does not show any artifact like loops or cusps) or
-      /// not.
-      /// \return true if the curve is monotonic
-      public: bool IsMonotonic() const;
+      /// \brief Tells whether the curve has a loop.
+      /// \return true if the curve has loops.
+      public: bool HasLoop() const;
 
       /// \internal
       /// \brief Interpolates the curve mth derivative at parameter

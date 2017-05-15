@@ -57,13 +57,13 @@ double Spline::Tension() const
 }
 
 ///////////////////////////////////////////////////////////
-bool Spline::IsMonotonic() const
+bool Spline::HasLoop() const
 {
-  // Check that all segments are monotonic
-  return std::all_of(this->dataPtr->segments.begin(),
+  // Check that all segments don
+  return std::any_of(this->dataPtr->segments.begin(),
                      this->dataPtr->segments.end(),
                      [](const IntervalCubicSpline &segment) {
-                       return segment.IsMonotonic();
+                       return segment.HasLoop();
                      });
 }
 

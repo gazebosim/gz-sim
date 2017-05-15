@@ -50,11 +50,9 @@ namespace ignition
       /// \return the value of the tension, which is between 0.0 and 1.0.
       public: double Tension() const;
 
-      /// \brief Tells whether the spline is monotonic (meaning,
-      /// it does not show any artifact like loops or cusps) or
-      /// not.
-      /// \return true if the spline is monotonic
-      public: bool IsMonotonic() const;
+      /// \brief Tells whether the spline has a loop.
+      /// \return true if the spline has a loop.
+      public: bool HasLoop() const;
 
       /// \brief Gets spline arc length.
       /// \return arc length or INF on error.

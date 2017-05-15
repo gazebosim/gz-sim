@@ -126,7 +126,7 @@ double IntervalCubicSpline::ArcLength(const double _t) const
 }
 
 ///////////////////////////////////////////////////////////
-bool IntervalCubicSpline::IsMonotonic() const
+bool IntervalCubicSpline::HasLoop() const
 {
   // Bezier Bernstein polynomial basis.
   const Matrix4d bmatrix(-1.0, 3.0, -3.0, 1.0,
@@ -165,21 +165,27 @@ bool IntervalCubicSpline::IsMonotonic() const
   // Check for coplanarity.
   const Vector3d bxc = b.Cross(c);
 
+  if (bxc == Vector3d::Zero) {
+    // parallel tangents always yield
+    // nice curves
+    return false;
+  }
+  
   if (!equal<double>(a.Dot(bxc), 0.0)) {
     // TODO: handle non coplanar cases
-    return false;
+    return true;
   }
 
   // Determine the scale factors p and s that bring b
   // and c to their intersection.
-  double p = a.Cross(c).Dot(bxc) / bxc.SquaredLength();
-  double s = a.Cross(b).Dot(bxc) / bxc.SquaredLength();
-
-  // If scale factors are at least 1, meaning, neither
-  // b nor c extend beyond their intersection, artifacts
-  // like loops and cusps won't happen (this IS NOT a
+  double p = std::abs(a.Cross(c).Dot(bxc) / bxc.SquaredLength());
+  double s = std::abs(a.Cross(b).Dot(bxc) / bxc.SquaredLength());
+  
+  // If scale factors are at less than 1, meaning, either
+  // b or c extend beyond their intersection, artifacts
+  // like loops are likely to happen (this IS NOT a
   // necessary condition, but a sufficient one).
-  return (p >= 1.0 && s >= 1.0);
+  return (p < 1.0 || s < 1.0);
 }
 
 ///////////////////////////////////////////////////////////
