@@ -2,6 +2,8 @@
 
 ### Ignition Math 3.x.x
 
+### Ignition Math 3.2.0 (2017-05-15)
+
 1. Construct on first use in Rand class
     * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
 
@@ -9,9 +11,20 @@
    and tangent forcing.
     * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
 
+### Ignition Math 3.1.0 (2017-04-11)
+
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka
     * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
+
+1. Added Color
+    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
+
+1. Added OrientedBox
+    * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
+
+1. Added an assignment operator to the Frustum class.
+    * [Pull request 144](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/144)
 
 ### Ignition Math 3.0.0 (2017-01-05)
 
