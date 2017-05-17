@@ -91,14 +91,23 @@ TEST(SplineTest, HasLoop)
   s.AddPoint(math::Vector3d(0, 0, 0), math::Vector3d(0, 3, 0));
   s.AddPoint(math::Vector3d(2, 2, 1), math::Vector3d(3, 0, 0));
   EXPECT_TRUE(s.HasLoop());
-  // Monotonic, normal case
+  // No loop, parallel case.
+  s.UpdatePoint(1, math::Vector3d(1, 0, 0), math::Vector3d(0, 3, 0));
+  EXPECT_FALSE(s.HasLoop());
+  // Loop, collinear case.
+  s.UpdatePoint(1, math::Vector3d(0, 1, 0), math::Vector3d(0, 3, 0));
+  EXPECT_TRUE(s.HasLoop());
+  // No loop, collinear case.
+  s.UpdatePoint(1, math::Vector3d(0, 6, 0), math::Vector3d(0, 3, 0));
+  EXPECT_FALSE(s.HasLoop());
+  // No loop, curved case.
   s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(3, 0, 0));
   EXPECT_FALSE(s.HasLoop());
-  // Monotonic, corner case
+  // No loop, critically curved case.
   s.UpdatePoint(0, math::Vector3d(0, 0, 0), math::Vector3d(0, 6, 0));
   s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(6, 0, 0));
   EXPECT_FALSE(s.HasLoop());
-  // Non monotonic, loop case
+  // Loop case.
   s.UpdatePoint(0, math::Vector3d(0, 0, 0), math::Vector3d(0, 16, 0));
   s.UpdatePoint(1, math::Vector3d(2, 2, 0), math::Vector3d(16, 0, 0));
   EXPECT_TRUE(s.HasLoop());

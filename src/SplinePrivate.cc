@@ -162,30 +162,56 @@ bool IntervalCubicSpline::HasLoop() const
   const Vector3d b = p2 - p1;
   const Vector3d c = p3 - p4;
 
-  // Check for coplanarity.
+  const Vector3d axc = a.Cross(c);
   const Vector3d bxc = b.Cross(c);
+  const Vector3d axb = a.Cross(b);
 
   if (bxc == Vector3d::Zero) {
-    // parallel tangents always yield
-    // nice curves
-    return false;
+    if (axb != Vector3d::Zero) {
+      // Parallel tangents case.
+      return false;
+    }
+    // All collinear points case. If inner
+    // control points go past each other
+    // loops will ensue.
+    const Vector3d d = p3 - p1;
+    return d.Length() < b.Length();
   }
-  
+
   if (!equal<double>(a.Dot(bxc), 0.0)) {
-    // TODO: handle non coplanar cases
+    // TODO: handle non coplanar cases.
     return true;
   }
 
-  // Determine the scale factors p and s that bring b
-  // and c to their intersection.
-  double p = std::abs(a.Cross(c).Dot(bxc) / bxc.SquaredLength());
-  double s = std::abs(a.Cross(b).Dot(bxc) / bxc.SquaredLength());
-  
-  // If scale factors are at less than 1, meaning, either
-  // b or c extend beyond their intersection, artifacts
-  // like loops are likely to happen (this IS NOT a
-  // necessary condition, but a sufficient one).
-  return (p < 1.0 || s < 1.0);
+  bool has_loop = false;
+
+  if (axc != Vector3d::Zero) {
+    // The second control point tangent is not collinear
+    // with the line that passes through both control points,
+    // so intersection with the first control point tangent
+    // projection is not at the latter origin.
+
+    // If scale factor is less than 1, the first control
+    // point tangent extends beyond the intersection, and
+    // thus loops are likely to happen (this IS NOT a necessary
+    // condition, but a sufficient one).
+    has_loop |= (std::abs(axc.Dot(bxc) / bxc.SquaredLength()) < 1.0);
+  }
+
+  if (axb != Vector3d::Zero) {
+    // The first control point tangent is not collinear
+    // with the line that passes through both control points,
+    // so intersection with the second control point tangent
+    // projection is not at the latter origin.
+
+    // If scale factor is less than 1, the second control
+    // point tangent extends beyond the intersection, and
+    // thus loops are likely to happen (this IS NOT a necessary
+    // condition, but a sufficient one).
+    has_loop |= (std::abs(axb.Dot(bxc) / bxc.SquaredLength()) < 1.0);
+  }
+
+  return has_loop;
 }
 
 ///////////////////////////////////////////////////////////
