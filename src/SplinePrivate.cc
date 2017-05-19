@@ -166,8 +166,10 @@ bool IntervalCubicSpline::HasLoop() const
   const Vector3d bxc = b.Cross(c);
   const Vector3d axb = a.Cross(b);
 
-  if (bxc == Vector3d::Zero) {
-    if (axb != Vector3d::Zero) {
+  if (bxc == Vector3d::Zero)
+  {
+    if (axb != Vector3d::Zero)
+    {
       // Parallel tangents case.
       return false;
     }
@@ -178,14 +180,16 @@ bool IntervalCubicSpline::HasLoop() const
     return d.Length() < b.Length();
   }
 
-  if (!equal<double>(a.Dot(bxc), 0.0)) {
+  if (!equal(a.Dot(bxc), 0.0))
+  {
     // TODO: handle non coplanar cases.
     return true;
   }
 
   bool has_loop = false;
 
-  if (axc != Vector3d::Zero) {
+  if (axc != Vector3d::Zero)
+  {
     // The second control point tangent is not collinear
     // with the line that passes through both control points,
     // so intersection with the first control point tangent
@@ -198,7 +202,8 @@ bool IntervalCubicSpline::HasLoop() const
     has_loop |= (std::abs(axc.Dot(bxc) / bxc.SquaredLength()) < 1.0);
   }
 
-  if (axb != Vector3d::Zero) {
+  if (axb != Vector3d::Zero)
+  {
     // The first control point tangent is not collinear
     // with the line that passes through both control points,
     // so intersection with the second control point tangent
