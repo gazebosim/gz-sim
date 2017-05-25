@@ -51,13 +51,14 @@ set (gtest_sources
   Vector3_TEST.cc
   Vector3Stats_TEST.cc
   Vector4_TEST.cc
+  Vertex_TEST.cc
 )
 
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-# When the minimum CMake required version will be >= 3.1 
-# we could use the target_compile_features() command 
-# to enable C++11 support in a platform-independent way. 
+# When the minimum CMake required version will be >= 3.1
+# we could use the target_compile_features() command
+# to enable C++11 support in a platform-independent way.
 if(NOT MSVC)
     target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++11")
 endif()
