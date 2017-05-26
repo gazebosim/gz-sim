@@ -84,6 +84,49 @@ TEST(SplineTest, FixedTangentSpline)
 }
 
 /////////////////////////////////////////////////
+TEST(SplineTest, EnsureNoLoop)
+{
+  math::Spline s;
+  // Dummy case
+  s.EnsureNoLoop();
+  EXPECT_FALSE(s.HasLoop());
+  
+  // No loop case.
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  s.AddPoint(math::Vector3d(1, 1, 0));
+  s.AddPoint(math::Vector3d(2, 1, 0));
+  EXPECT_FALSE(s.HasLoop());
+
+  // Adjusting tangents should have no effect.
+  s.EnsureNoLoop();
+
+  // Just double checking.
+  EXPECT_FALSE(s.HasLoop());
+
+  // Loop case, due to point distribution.
+  s.AddPoint(math::Vector3d(64, 0, 0));
+  s.AddPoint(math::Vector3d(0, 0, 0));
+  EXPECT_TRUE(s.HasLoop());
+
+  // Adjusting tangents should fix it.
+  s.EnsureNoLoop();
+
+  // Loops should be gone now.
+  EXPECT_FALSE(s.HasLoop());
+
+  // Loop case, due to tangent settings.
+  s.UpdatePoint(3, math::Vector3d(3, 0, 0),
+                math::Vector3d(20, 0, 0));
+  EXPECT_TRUE(s.HasLoop());
+  
+  // Adjusting tangents should fix it.
+  s.EnsureNoLoop();
+
+  // Loops should be gone now.
+  EXPECT_FALSE(s.HasLoop());  
+}
+
+/////////////////////////////////////////////////
 TEST(SplineTest, HasLoop)
 {
   math::Spline s;

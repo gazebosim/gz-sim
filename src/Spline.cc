@@ -17,6 +17,8 @@
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
 
+#include <algorithm>
+
 #include "ignition/math/SplinePrivate.hh"
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Vector4.hh"
@@ -24,6 +26,156 @@
 
 using namespace ignition;
 using namespace math;
+
+///////////////////////////////////////////////////////////
+void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
+                               const ControlPoint &_endPoint,
+                               ControlPoint &_criticalStartPoint,
+                               ControlPoint &_criticalEndPoint)
+{
+  // Bezier polynomial basis.
+  const Matrix4d bmatrix(-1.0, 3.0, -3.0, 1.0,
+                         3.0, -6.0, 3.0, 0.0,
+                         -3.0, 3.0, 0.0, 0.0,
+                         1.0, 0.0, 0.0, 0.0);
+  // Hermite basis matrix
+  const Matrix4d hmatrix(2.0, -2.0,  1.0,  1.0,
+                        -3.0,  3.0, -2.0, -1.0,
+                         0.0,  0.0,  1.0,  0.0,
+                         1.0,  0.0,  0.0,  0.0);
+  
+  // Get Hermite control points
+  const Vector3d &hpoint0 = _startPoint.MthDerivative(0);
+  const Vector3d &hpoint1 = _endPoint.MthDerivative(0);
+  const Vector3d &htan0 = _startPoint.MthDerivative(1);
+  const Vector3d &htan1 = _endPoint.MthDerivative(1);
+
+  // Build Hermite control matrix
+  Matrix4d hcmatrix(hpoint0.X(), hpoint0.Y(), hpoint0.Z(), 1.0,
+                    hpoint1.X(), hpoint1.Y(), hpoint1.Z(), 1.0,
+                    htan0.X(),   htan0.Y(),   htan0.Z(),   1.0,
+                    htan1.X(),   htan1.Y(),   htan1.Z(),   1.0);
+
+  // Compute Bezier control matrix
+  Matrix4d bcmatrix = bmatrix.Inverse() * hmatrix * hcmatrix;
+
+  // Get Bezier control points
+  Vector3d bpoint0(bcmatrix(0, 0),
+                   bcmatrix(0, 1),
+                   bcmatrix(0, 2));
+  Vector3d bpoint1(bcmatrix(1, 0),
+                   bcmatrix(1, 1),
+                   bcmatrix(1, 2));
+  Vector3d bpoint2(bcmatrix(2, 0),
+                   bcmatrix(2, 1),
+                   bcmatrix(2, 2));
+  Vector3d bpoint3(bcmatrix(3, 0),
+                   bcmatrix(3, 1),
+                   bcmatrix(3, 2));
+
+  // Compute distance vectors and useful cross-products
+  const Vector3d a = bpoint3 - bpoint0;
+  const Vector3d b = bpoint1 - bpoint0;
+  const Vector3d c = bpoint2 - bpoint3;
+
+  const Vector3d axc = a.Cross(c);
+  const Vector3d bxc = b.Cross(c);
+  const Vector3d axb = a.Cross(b);
+
+  // Following uses a large scalar as a replacement of infinity
+  // in order for the matrix products to yield meaningful values.
+  
+  if (bxc != Vector3d::Zero) // Non collinear nor parallel tangents
+  {
+    if (equal(a.Dot(bxc), 0.0)) // Coplanar points
+    {
+      if (axc != Vector3d::Zero) 
+      {
+        // The second control point tangent is not collinear
+        // with the line that passes through both control points,
+        // so intersection with the first control point tangent
+        // projection is not at the latter origin.
+        
+        // If scale factor is less than 1, the first control
+        // point tangent extends beyond the intersection, and
+        // thus loops are likely to happen (this IS NOT a necessary
+        // condition, but a sufficient one).
+        bpoint1 = b * (axc.Dot(bxc) / bxc.SquaredLength()) + bpoint0;
+      }
+      else
+      {
+        bpoint1 = b * MAX_D * 0.5 + bpoint0;
+      }
+      
+      if (axb != Vector3d::Zero)
+      {
+        // The first control point tangent is not collinear
+        // with the line that passes through both control points,
+        // so intersection with the second control point tangent
+        // projection is not at the latter origin.
+        
+        // If scale factor is less than 1, the second control
+        // point tangent extends beyond the intersection, and
+        // thus loops are likely to happen (this IS NOT a necessary
+        // condition, but a sufficient one).
+        bpoint2 = c * (axb.Dot(bxc) / bxc.SquaredLength()) + bpoint3;      
+      }
+      else
+      {
+        bpoint2 = c * MAX_D * 0.5 + bpoint3;      
+      }       
+    }
+    else
+    {
+      // TODO: handle non coplanar cases.
+      bpoint1 = bpoint0;
+      bpoint2 = bpoint3;
+    }
+  }
+  else
+  {
+    if (axb == Vector3d::Zero)
+    {
+      // All collinear points case. If inner
+      // control points go past each other
+      // loops will ensue.
+      double k = a.Length() / (c.Length() + b.Length());
+      bpoint1 = bpoint0 + k * b; bpoint2 = bpoint3 + k * c;
+    } else {
+      // Parallel tangents case.
+      bpoint1 = b * MAX_D * 0.5 + bpoint0;
+      bpoint2 = c * MAX_D * 0.5 + bpoint3;
+    }
+  }
+
+  // Build Bezier critical control matrix
+  bcmatrix.Set(bpoint0.X(), bpoint0.Y(), bpoint0.Z(), 1.0,
+               bpoint1.X(), bpoint1.Y(), bpoint1.Z(), 1.0,
+               bpoint2.X(), bpoint2.Y(), bpoint2.Z(), 1.0,
+               bpoint3.X(), bpoint3.Y(), bpoint3.Z(), 1.0);
+
+  // Compute Hermite critical control matrix
+  hcmatrix = hmatrix.Inverse() * bmatrix * bcmatrix;
+
+  // Recover critical hermite control points
+  Vector3d &chpoint0 = _criticalStartPoint.MthDerivative(0);
+  Vector3d &chpoint1 = _criticalEndPoint.MthDerivative(0);
+  Vector3d &chtan0 = _criticalStartPoint.MthDerivative(1);
+  Vector3d &chtan1 = _criticalEndPoint.MthDerivative(1);
+
+  chpoint0.Set(hcmatrix(0, 0),
+               hcmatrix(0, 1),
+               hcmatrix(0, 2));
+  chpoint1.Set(hcmatrix(1, 0),
+               hcmatrix(1, 1),
+               hcmatrix(1, 2));
+  chtan0.Set(hcmatrix(2, 0),
+             hcmatrix(2, 1),
+             hcmatrix(2, 2));
+  chtan1.Set(hcmatrix(3, 0),
+             hcmatrix(3, 1),
+             hcmatrix(3, 2));      
+}
 
 ///////////////////////////////////////////////////////////
 Spline::Spline()
@@ -59,12 +211,134 @@ double Spline::Tension() const
 ///////////////////////////////////////////////////////////
 bool Spline::HasLoop() const
 {
-  // Check that all segments don
-  return std::any_of(this->dataPtr->segments.begin(),
-                     this->dataPtr->segments.end(),
-                     [](const IntervalCubicSpline &segment) {
-                       return segment.HasLoop();
-                     });
+  // Check if any segments shows loop
+  return std::any_of(
+      this->dataPtr->segments.begin(),
+      this->dataPtr->segments.end(),
+      [](const IntervalCubicSpline &segment) {
+        ControlPoint criticalStartPoint, criticalEndPoint;
+
+        ComputeLoopCriticalPoints(
+            segment.StartPoint(), segment.EndPoint(),
+            criticalStartPoint, criticalEndPoint);
+
+        const Vector3d &startTangent = segment.StartPoint().MthDerivative(1);
+        const Vector3d &endTangent = segment.EndPoint().MthDerivative(1);
+        const Vector3d &critStartTangent = criticalStartPoint.MthDerivative(1);
+        const Vector3d &critEndTangent = criticalEndPoint.MthDerivative(1);
+        return (startTangent.Length() > critStartTangent.Length() ||
+                endTangent.Length() > critEndTangent.Length());
+      });
+}
+
+///////////////////////////////////////////////////////////
+void Spline::EnsureNoLoop()
+{
+  size_t numPoints = this->dataPtr->points.size();
+
+  if (numPoints < 2)
+  {
+    // Nothing to be done here.
+    return;
+  }
+
+  if (std::any_of(this->dataPtr->fixings.begin(),
+                  this->dataPtr->fixings.end(),
+                  [](const bool &x) { return x; }))
+  {
+    // Reset all fixings and recalc tangents.
+    std::fill(this->dataPtr->fixings.begin(),
+              this->dataPtr->fixings.end(),
+              false);
+
+    this->RecalcTangents();
+  }
+
+  ControlPoint criticalStartPoint, criticalEndPoint;
+  for(size_t i = 0 ; i < this->dataPtr->points.size() - 1 ; ++i)
+  {
+    ControlPoint &startPoint = this->dataPtr->points[i];
+    ControlPoint &endPoint = this->dataPtr->points[i+1];
+
+    ComputeLoopCriticalPoints(startPoint, endPoint,
+                              criticalStartPoint,
+                              criticalEndPoint);
+
+    Vector3d &startTangent = startPoint.MthDerivative(1);
+    Vector3d &endTangent = endPoint.MthDerivative(1);
+    const Vector3d &criticalStartTangent = criticalStartPoint.MthDerivative(1);
+    const Vector3d &criticalEndTangent = criticalEndPoint.MthDerivative(1);
+
+    if (startTangent.Length() > criticalStartTangent.Length())
+    {
+      startTangent = criticalStartTangent;
+    }
+
+    if (endTangent.Length() > criticalEndTangent.Length())
+    {
+      endTangent = criticalEndTangent;
+    }
+  }
+
+  bool isClosed;
+  if (this->dataPtr->points[0].MthDerivative(0) ==
+      this->dataPtr->points[numPoints-1].MthDerivative(0))
+    isClosed = true;
+  else
+    isClosed = false;
+
+  double noLoopTension = 0.0;
+  Vector3d pointNeighboursChord;
+  for(size_t i = 0 ; i < numPoints; ++i)
+  {
+    if (i == 0)
+    {
+      // Special case start
+      if (isClosed)
+      {
+        // Use this->dataPtr->points-2 since this->dataPtr->points-1
+        // is the last point and == [0]
+        pointNeighboursChord = (
+            this->dataPtr->points[1].MthDerivative(0) -
+            this->dataPtr->points[numPoints-2].MthDerivative(0));
+      }
+      else
+      {
+        pointNeighboursChord = (this->dataPtr->points[1].MthDerivative(0) -
+                                this->dataPtr->points[0].MthDerivative(0));
+      }
+    }
+    else if (i == numPoints-1)
+    {
+      // Special case end
+      if (isClosed)
+      {
+        // Use same tangent as already calculated for [0]
+        pointNeighboursChord = (
+            this->dataPtr->points[1].MthDerivative(0) -
+            this->dataPtr->points[numPoints-2].MthDerivative(0));
+      }
+      else
+      {
+        pointNeighboursChord = (this->dataPtr->points[i].MthDerivative(0) -
+                                this->dataPtr->points[i-1].MthDerivative(0));
+      }
+    }
+    else
+    {
+      pointNeighboursChord = (this->dataPtr->points[i+1].MthDerivative(0) -
+                              this->dataPtr->points[i-1].MthDerivative(0));
+    }
+
+    const Vector3d &pointTangent = this->dataPtr->points[i].MthDerivative(1);
+
+    noLoopTension = std::max(
+        noLoopTension, (1 - 2 * pointTangent.Length()
+                        / pointNeighboursChord.Length()));
+  }
+  this->dataPtr->tension = noLoopTension;
+
+  this->RecalcTangents();
 }
 
 ///////////////////////////////////////////////////////////

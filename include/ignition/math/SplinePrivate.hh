@@ -32,6 +32,12 @@ namespace ignition
     /// of arbitrary m derivatives at such point.
     class ControlPoint
     {
+
+      /// \brief Default constructor.
+      public: ControlPoint()
+      {
+      }
+
       /// \brief Constructor that takes the M derivatives that
       /// define the control point.
       /// \param[in] _initList with the M derivatives.
@@ -147,10 +153,6 @@ namespace ignition
       /// \param[in] _t parameter value (range 0 to 1).
       /// \return the arc length up to \p _t or INF on error.
       public: double ArcLength(const double _t) const;
-
-      /// \brief Tells whether the curve has a loop.
-      /// \return true if the curve has loops.
-      public: bool HasLoop() const;
 
       /// \internal
       /// \brief Interpolates the curve mth derivative at parameter

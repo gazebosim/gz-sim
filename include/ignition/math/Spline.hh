@@ -50,9 +50,19 @@ namespace ignition
       /// \return the value of the tension, which is between 0.0 and 1.0.
       public: double Tension() const;
 
-      /// \brief Tells whether the spline has a loop.
-      /// \return true if the spline has a loop.
+      /// \brief Tells whether the spline has a loop (that is,
+      /// a self intersection).
+      /// \return true if the spline has a loop (that is,
+      /// a self intersection).
       public: bool HasLoop() const;
+
+      /// \brief Recalculates tension and tangents for this
+      /// spline so as to avoid loops
+      /// \remarks An extension to RecalcTangents() so as to
+      /// prevent any loops. This computation WILL override
+      /// ALL previously set tangents, and estimate a tension
+      /// to satisfy the constrain.
+      public: void EnsureNoLoop();
 
       /// \brief Gets spline arc length.
       /// \return arc length or INF on error.
