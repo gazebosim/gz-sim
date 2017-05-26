@@ -37,11 +37,16 @@ namespace graph
   /// \brief The unique Id of each vertex.
   using VertexId = uint64_t;
 
+  /// \def VertexId_P
+  /// \brief A pair of two vertex Ids.
+  using VertexId_P = std::pair<VertexId, VertexId>;
+
   /// \brief Represents an invalid Id.
   static const VertexId kNullId = MAX_UI64;
 
-  /// \brief A vertex of a graph. It stores user information and keeps
-  /// an internal unique Id.
+  /// \brief A vertex of a graph. It stores user information, an optional name,
+  /// and keeps an internal unique Id. This class does not enforce to choose a
+  /// unique name.
   template<typename V>
   class Vertex
   {
@@ -122,10 +127,6 @@ namespace graph
   /// \brief An invalid vertex.
   template<typename V>
   Vertex<V> Vertex<V>::NullVertex("__null__", V(), kNullId);
-
-  /// \def VertexId_P
-  /// \brief A pair of two vertex Ids.
-  using VertexId_P = std::pair<VertexId, VertexId>;
 
   /// \def VertexRef_M
   /// \brief Map of vertices. The key is the vertex Id. The value is a
