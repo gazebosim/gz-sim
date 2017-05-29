@@ -32,7 +32,6 @@ namespace ignition
     /// of arbitrary m derivatives at such point.
     class ControlPoint
     {
-
       /// \brief Default constructor.
       public: ControlPoint()
       {

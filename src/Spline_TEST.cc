@@ -90,7 +90,7 @@ TEST(SplineTest, EnsureNoLoop)
   // Dummy case
   s.EnsureNoLoop();
   EXPECT_FALSE(s.HasLoop());
-  
+
   // No loop case.
   s.AddPoint(math::Vector3d(0, 0, 0));
   s.AddPoint(math::Vector3d(1, 1, 0));
@@ -118,12 +118,12 @@ TEST(SplineTest, EnsureNoLoop)
   s.UpdatePoint(3, math::Vector3d(3, 0, 0),
                 math::Vector3d(20, 0, 0));
   EXPECT_TRUE(s.HasLoop());
-  
+
   // Adjusting tangents should fix it.
   s.EnsureNoLoop();
 
   // Loops should be gone now.
-  EXPECT_FALSE(s.HasLoop());  
+  EXPECT_FALSE(s.HasLoop());
 }
 
 /////////////////////////////////////////////////

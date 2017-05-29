@@ -28,7 +28,7 @@ using namespace ignition;
 using namespace math;
 
 ///////////////////////////////////////////////////////////
-void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
+void computeLoopCriticalPoints(const ControlPoint &_startPoint,
                                const ControlPoint &_endPoint,
                                ControlPoint &_criticalStartPoint,
                                ControlPoint &_criticalEndPoint)
@@ -43,7 +43,7 @@ void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
                         -3.0,  3.0, -2.0, -1.0,
                          0.0,  0.0,  1.0,  0.0,
                          1.0,  0.0,  0.0,  0.0);
-  
+
   // Get Hermite control points
   const Vector3d &hpoint0 = _startPoint.MthDerivative(0);
   const Vector3d &hpoint1 = _endPoint.MthDerivative(0);
@@ -84,18 +84,18 @@ void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
 
   // Following uses a large scalar as a replacement of infinity
   // in order for the matrix products to yield meaningful values.
-  
-  if (bxc != Vector3d::Zero) // Non collinear nor parallel tangents
+
+  if (bxc != Vector3d::Zero)  // Non collinear nor parallel tangents
   {
-    if (equal(a.Dot(bxc), 0.0)) // Coplanar points
+    if (equal(a.Dot(bxc), 0.0))  // Coplanar points
     {
-      if (axc != Vector3d::Zero) 
+      if (axc != Vector3d::Zero)
       {
         // The second control point tangent is not collinear
         // with the line that passes through both control points,
         // so intersection with the first control point tangent
         // projection is not at the latter origin.
-        
+
         // If scale factor is less than 1, the first control
         // point tangent extends beyond the intersection, and
         // thus loops are likely to happen (this IS NOT a necessary
@@ -106,24 +106,24 @@ void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
       {
         bpoint1 = b * MAX_D * 0.5 + bpoint0;
       }
-      
+
       if (axb != Vector3d::Zero)
       {
         // The first control point tangent is not collinear
         // with the line that passes through both control points,
         // so intersection with the second control point tangent
         // projection is not at the latter origin.
-        
+
         // If scale factor is less than 1, the second control
         // point tangent extends beyond the intersection, and
         // thus loops are likely to happen (this IS NOT a necessary
         // condition, but a sufficient one).
-        bpoint2 = c * (axb.Dot(bxc) / bxc.SquaredLength()) + bpoint3;      
+        bpoint2 = c * (axb.Dot(bxc) / bxc.SquaredLength()) + bpoint3;
       }
       else
       {
-        bpoint2 = c * MAX_D * 0.5 + bpoint3;      
-      }       
+        bpoint2 = c * MAX_D * 0.5 + bpoint3;
+      }
     }
     else
     {
@@ -141,7 +141,9 @@ void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
       // loops will ensue.
       double k = a.Length() / (c.Length() + b.Length());
       bpoint1 = bpoint0 + k * b; bpoint2 = bpoint3 + k * c;
-    } else {
+    }
+    else
+    {
       // Parallel tangents case.
       bpoint1 = b * MAX_D * 0.5 + bpoint0;
       bpoint2 = c * MAX_D * 0.5 + bpoint3;
@@ -174,7 +176,7 @@ void ComputeLoopCriticalPoints(const ControlPoint &_startPoint,
              hcmatrix(2, 2));
   chtan1.Set(hcmatrix(3, 0),
              hcmatrix(3, 1),
-             hcmatrix(3, 2));      
+             hcmatrix(3, 2));
 }
 
 ///////////////////////////////////////////////////////////
@@ -218,7 +220,7 @@ bool Spline::HasLoop() const
       [](const IntervalCubicSpline &segment) {
         ControlPoint criticalStartPoint, criticalEndPoint;
 
-        ComputeLoopCriticalPoints(
+        computeLoopCriticalPoints(
             segment.StartPoint(), segment.EndPoint(),
             criticalStartPoint, criticalEndPoint);
 
@@ -255,12 +257,12 @@ void Spline::EnsureNoLoop()
   }
 
   ControlPoint criticalStartPoint, criticalEndPoint;
-  for(size_t i = 0 ; i < this->dataPtr->points.size() - 1 ; ++i)
+  for (size_t i = 0 ; i < this->dataPtr->points.size() - 1 ; ++i)
   {
     ControlPoint &startPoint = this->dataPtr->points[i];
     ControlPoint &endPoint = this->dataPtr->points[i+1];
 
-    ComputeLoopCriticalPoints(startPoint, endPoint,
+    computeLoopCriticalPoints(startPoint, endPoint,
                               criticalStartPoint,
                               criticalEndPoint);
 
@@ -280,16 +282,12 @@ void Spline::EnsureNoLoop()
     }
   }
 
-  bool isClosed;
-  if (this->dataPtr->points[0].MthDerivative(0) ==
-      this->dataPtr->points[numPoints-1].MthDerivative(0))
-    isClosed = true;
-  else
-    isClosed = false;
+  bool isClosed = (this->dataPtr->points[0].MthDerivative(0) ==
+                   this->dataPtr->points[numPoints-1].MthDerivative(0));
 
   double noLoopTension = 0.0;
   Vector3d pointNeighboursChord;
-  for(size_t i = 0 ; i < numPoints; ++i)
+  for (size_t i = 0 ; i < numPoints; ++i)
   {
     if (i == 0)
     {
