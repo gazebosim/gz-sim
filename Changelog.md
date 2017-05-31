@@ -2,6 +2,10 @@
 
 ### Ignition Math 3.x.x
 
+1. Extended Spline API: loop (self crossing curve) detection and avoidance
+   through HasLoop() and EnsureNoLoop() methods, respectively.
+    * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/169)
+
 1. Extended Spline API: derivative interpolation, arc length calculation
    and tangent forcing.
     * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
