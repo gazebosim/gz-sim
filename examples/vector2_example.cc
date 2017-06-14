@@ -48,14 +48,8 @@ int main(int argc, char **argv)
   std::cout << "Vec2a: x=" << vec2a[0] << " y=" << vec2a[1] << "\n";
   std::cout << "Vec2b: x=" << vec2b.X() << " y=" << vec2b[1] << "\n";
 
-  // An IndexException will be thrown if the [] operator is given a
-  // value that is too high
-  try
-  {
-    std::cout << vec2[3] << std::endl;
-  } catch(ignition::math::IndexException &_e) {
-    std::cerr << _e.what() << std::endl;
-  }
+  // The [] operator is clamped to the range [0, 1]
+  std::cout << vec2[3] << std::endl;
 
   // The Vector2 class overloads many common operators
   std::cout << vec2 * vec2a << "\n"
