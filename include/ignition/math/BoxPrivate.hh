@@ -27,18 +27,11 @@ namespace ignition
     /// \brief Private data for Box class
     class BoxPrivate
     {
-      /// \brief Enumeration of extents
-      public: enum Extent {EXTENT_NULL, EXTENT_FINITE};
-
       /// \brief Minimum corner of the box
       public: Vector3d min = Vector3d::Zero;
 
       /// \brief Maximum corner of the box
       public: Vector3d max = Vector3d::Zero;
-
-      /// \brief When set to EXTENT_NULL (the default value)
-      /// the min and max are not valid positions
-      public: Extent extent = EXTENT_NULL;
     };
   }
 }

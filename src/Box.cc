@@ -26,6 +26,8 @@ using namespace math;
 Box::Box()
 : dataPtr(new BoxPrivate)
 {
+  this->dataPtr->min.Set(MAX_D, MAX_D, MAX_D);
+  this->dataPtr->max.Set(MIN_D, MIN_D, MIN_D);
 }
 
 //////////////////////////////////////////////////
@@ -33,7 +35,6 @@ Box::Box(double _vec1X, double _vec1Y, double _vec1Z,
          double _vec2X, double _vec2Y, double _vec2Z)
 : dataPtr(new BoxPrivate)
 {
-  this->dataPtr->extent = BoxPrivate::EXTENT_FINITE;
   this->dataPtr->min.Set(_vec1X, _vec1Y, _vec1Z);
   this->dataPtr->max.Set(_vec2X, _vec2Y, _vec2Z);
 
@@ -45,7 +46,6 @@ Box::Box(double _vec1X, double _vec1Y, double _vec1Z,
 Box::Box(const Vector3d &_vec1, const Vector3d &_vec2)
 : dataPtr(new BoxPrivate)
 {
-  this->dataPtr->extent = BoxPrivate::EXTENT_FINITE;
   this->dataPtr->min = _vec1;
   this->dataPtr->min.Min(_vec2);
 
@@ -59,7 +59,6 @@ Box::Box(const Box &_b)
 {
   this->dataPtr->min = _b.dataPtr->min;
   this->dataPtr->max = _b.dataPtr->max;
-  this->dataPtr->extent = _b.dataPtr->extent;
 }
 
 //////////////////////////////////////////////////
@@ -105,17 +104,8 @@ math::Vector3d Box::Center() const
 //////////////////////////////////////////////////
 void Box::Merge(const Box &_box)
 {
-  if (this->dataPtr->extent == BoxPrivate::EXTENT_NULL)
-  {
-    this->dataPtr->min = _box.dataPtr->min;
-    this->dataPtr->max = _box.dataPtr->max;
-    this->dataPtr->extent = _box.dataPtr->extent;
-  }
-  else
-  {
-    this->dataPtr->min.Min(_box.dataPtr->min);
-    this->dataPtr->max.Max(_box.dataPtr->max);
-  }
+  this->dataPtr->min.Min(_box.dataPtr->min);
+  this->dataPtr->max.Max(_box.dataPtr->max);
 }
 
 //////////////////////////////////////////////////
@@ -123,7 +113,6 @@ Box &Box::operator =(const Box &_b)
 {
   this->dataPtr->max = _b.dataPtr->max;
   this->dataPtr->min = _b.dataPtr->min;
-  this->dataPtr->extent = _b.dataPtr->extent;
 
   return *this;
 }
@@ -131,39 +120,16 @@ Box &Box::operator =(const Box &_b)
 //////////////////////////////////////////////////
 Box Box::operator+(const Box &_b) const
 {
-  Vector3d mn, mx;
-
-  if (this->dataPtr->extent != BoxPrivate::EXTENT_NULL)
-  {
-    mn = this->dataPtr->min;
-    mx = this->dataPtr->max;
-
-    mn.Min(_b.dataPtr->min);
-    mx.Max(_b.dataPtr->max);
-  }
-  else
-  {
-    mn = _b.dataPtr->min;
-    mx = _b.dataPtr->max;
-  }
-
-  return Box(mn, mx);
+  Box result(*this);
+  result += _b;
+  return result;
 }
 
 //////////////////////////////////////////////////
 const Box &Box::operator+=(const Box &_b)
 {
-  if (this->dataPtr->extent != BoxPrivate::EXTENT_NULL)
-  {
-    this->dataPtr->min.Min(_b.dataPtr->min);
-    this->dataPtr->max.Max(_b.dataPtr->max);
-  }
-  else
-  {
-    this->dataPtr->min = _b.dataPtr->min;
-    this->dataPtr->max = _b.dataPtr->max;
-    this->dataPtr->extent = _b.dataPtr->extent;
-  }
+  this->dataPtr->min.Min(_b.dataPtr->min);
+  this->dataPtr->max.Max(_b.dataPtr->max);
   return *this;
 }
 
