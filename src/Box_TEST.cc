@@ -49,8 +49,10 @@ TEST(BoxTest, Inherit)
     EXPECT_TRUE(box != NULL);
   }
 
-  EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D, math::MAX_D));
-  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D, math::MIN_D));
+  EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D,
+      math::MAX_D));
+  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D,
+      math::MIN_D));
 
   {
     delete box;
@@ -68,8 +70,10 @@ TEST(BoxTest, EmptyConstructorNew)
     EXPECT_TRUE(box != NULL);
   }
 
-  EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D, math::MAX_D));
-  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D, math::MIN_D));
+  EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D,
+      math::MAX_D));
+  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D,
+      math::MIN_D));
 
   {
     delete box;
@@ -81,8 +85,10 @@ TEST(BoxTest, EmptyConstructorNew)
 TEST(BoxTest, EmptyConstructor)
 {
   math::Box box;
-  EXPECT_TRUE(box.Min() == math::Vector3d(math::MAX_D, math::MAX_D, math::MAX_D));
-  EXPECT_TRUE(box.Max() == math::Vector3d(math::MIN_D, math::MIN_D, math::MIN_D));
+  EXPECT_TRUE(box.Min() == math::Vector3d(math::MAX_D, math::MAX_D,
+      math::MAX_D));
+  EXPECT_TRUE(box.Max() == math::Vector3d(math::MIN_D, math::MIN_D,
+      math::MIN_D));
 }
 
 /////////////////////////////////////////////////
