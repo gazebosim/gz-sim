@@ -5,6 +5,8 @@
 1. Added graph utilites:
     1. Added a Vertex class:
         * [Pull request 170](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/170)
+    1. Added an Edge class:
+        * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/170)
 
 ## Ignition Math 3.x
 
