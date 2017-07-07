@@ -117,4 +117,4 @@ class Angle_TEST < Test::Unit::TestCase
   end
 end
 
-Test::Unit::UI::Console::TestRunner.run(Angle_TEST)
+exit Test::Unit::UI::Console::TestRunner.run(Angle_TEST).passed? ? 0 : -1

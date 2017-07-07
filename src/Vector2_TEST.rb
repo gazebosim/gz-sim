@@ -225,4 +225,4 @@ class Vector2_TEST < Test::Unit::TestCase
   end
 end
 
-Test::Unit::UI::Console::TestRunner.run(Vector2_TEST)
+exit Test::Unit::UI::Console::TestRunner.run(Vector2_TEST).passed? ? 0 : -1

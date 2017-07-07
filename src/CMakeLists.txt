@@ -85,8 +85,6 @@ if (SWIG_FOUND)
     Vector3.i)
 endif()
 
-MESSAGE(STATUS "Checking Ruby tests")
-
 #################################################
 # Create and install Ruby interfaces
 # Example usage
@@ -108,8 +106,7 @@ if (RUBY_FOUND)
   install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)
 
   foreach (test ${ruby_tests})
-    MESSAGE(STATUS "Test ${test}")
-    add_test(NAME ${test} COMMAND
+    add_test(NAME ${test}.rb COMMAND
       ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
   	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
   endforeach()

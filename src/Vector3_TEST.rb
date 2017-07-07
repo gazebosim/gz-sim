@@ -18,6 +18,7 @@ require 'test/unit/ui/console/testrunner'
 require 'test/unit'
 require 'math'
 
+
 class Vector3_TEST < Test::Unit::TestCase
   def test_construction
     v = Ignition::Math::Vector3d.new
@@ -423,6 +424,7 @@ class Vector3_TEST < Test::Unit::TestCase
 
     assert(vec1.IsFinite(), "Vector3 vec1 should be be finite")
   end
+
 end
 
-Test::Unit::UI::Console::TestRunner.run(Vector3_TEST)
+exit Test::Unit::UI::Console::TestRunner.run(Vector3_TEST).passed? ? 0 : -1
