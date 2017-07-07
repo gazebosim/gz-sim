@@ -20,7 +20,7 @@
 #if defined(__GNUC__)
 #define IGN_DEPRECATED(version) __attribute__((deprecated))
 #define IGN_FORCEINLINE __attribute__((always_inline))
-#elif defined(MSVC)
+#elif defined(_WIN32)
 #define IGN_DEPRECATED(version)
 #define IGN_FORCEINLINE __forceinline
 #else

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ Quaterniond RotationSpline::Interpolate(const unsigned int _fromIndex,
 {
   // Bounds check
   if (_fromIndex >= this->dataPtr->points.size())
-    return Quaterniond(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
+    return Quaterniond(INF_D, INF_D, INF_D, INF_D);
 
   if ((_fromIndex + 1) == this->dataPtr->points.size())
   {
@@ -167,7 +167,7 @@ void RotationSpline::RecalcTangents()
 /////////////////////////////////////////////////
 const Quaterniond &RotationSpline::Point(const unsigned int _index) const
 {
-  static Quaterniond inf(IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF, IGN_DBL_INF);
+  static Quaterniond inf(INF_D, INF_D, INF_D, INF_D);
 
   if (this->dataPtr->points.empty())
     return inf;

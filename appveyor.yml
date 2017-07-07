@@ -16,7 +16,7 @@ build_script:
   - cmake --build . --config %CONFIGURATION%
 
 test_script:
-  - cmake --build . --config %CONFIGURATION% --target RUN_TESTS
+    - cmake --build . --config %CONFIGURATION% --target RUN_TESTS
 
 after_build:
-  - cmake --build . --config %CONFIGURATION% --target INSTALL
+    - cmake --build . --config %CONFIGURATION% --target INSTALL

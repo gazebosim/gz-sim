@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,12 @@ TEST(HelpersTest, Helpers)
   EXPECT_TRUE(math::equal(.012345, math::parseFloat("1.2345e-002"), 1e-2));
   EXPECT_TRUE(math::equal(1.2345, math::parseFloat("1.2345e+"), 1e-2));
   EXPECT_TRUE(math::equal(1.2345, math::parseFloat("1.2345e-"), 1e-2));
+  EXPECT_TRUE(math::lessOrNearEqual(1.0, 2.0, 1e-2));
+  EXPECT_TRUE(math::lessOrNearEqual(1.0, 1.0 - 9e-3, 1e-2));
+  EXPECT_FALSE(math::lessOrNearEqual(1.0, 1.0 - 1.1e-2, 1e-2));
+  EXPECT_TRUE(math::greaterOrNearEqual(1.0, 0.5, 1e-2));
+  EXPECT_TRUE(math::greaterOrNearEqual(1.0, 1.0 + 9e-3, 1e-2));
+  EXPECT_FALSE(math::greaterOrNearEqual(1.0, 1.0 + 1.1e-2, 1e-2));
   EXPECT_DOUBLE_EQ(1.2345, math::parseFloat("1.2345e+0"));
 
   EXPECT_TRUE(math::isnan(math::parseFloat("")));
@@ -223,6 +229,89 @@ TEST(HelpersTest, Odd)
 }
 
 /////////////////////////////////////////////////
+// Signum test
+TEST(HelpersTest, Signum)
+{
+  int i = 1;
+  signed s = 1;
+  signed int si = 1;
+  unsigned u = 1;
+  unsigned int ui = 1;
+  float f = 1.f;
+  double d = 1.;
+
+  EXPECT_EQ(1, math::signum(i));
+  EXPECT_EQ(1, math::signum(s));
+  EXPECT_EQ(1, math::signum(si));
+  EXPECT_EQ(1, math::signum(u));
+  EXPECT_EQ(1, math::signum(ui));
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  i = s = si = u = ui = 2;
+  f = 2.f;
+  d = 2.;
+
+  EXPECT_EQ(1, math::signum(i));
+  EXPECT_EQ(1, math::signum(s));
+  EXPECT_EQ(1, math::signum(si));
+  EXPECT_EQ(1, math::signum(u));
+  EXPECT_EQ(1, math::signum(ui));
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  i = s = si = u = ui = 0;
+  f = 0.f;
+  d = 0.;
+
+  EXPECT_EQ(0, math::signum(i));
+  EXPECT_EQ(0, math::signum(s));
+  EXPECT_EQ(0, math::signum(si));
+  EXPECT_EQ(0, math::signum(u));
+  EXPECT_EQ(0, math::signum(ui));
+  EXPECT_EQ(0, math::signum(f));
+  EXPECT_EQ(0, math::signum(d));
+
+  i = s = si = -1;
+  f = -1.f;
+  d = -1.;
+
+  EXPECT_EQ(-1, math::signum(i));
+  EXPECT_EQ(-1, math::signum(s));
+  EXPECT_EQ(-1, math::signum(si));
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  i = s = si = -2;
+  f = -2.f;
+  d = -2.;
+
+  EXPECT_EQ(-1, math::signum(i));
+  EXPECT_EQ(-1, math::signum(s));
+  EXPECT_EQ(-1, math::signum(si));
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  f = -2.5f;
+  d = -2.5;
+
+  EXPECT_EQ(-1, math::signum(f));
+  EXPECT_EQ(-1, math::signum(d));
+
+  f = 2.5f;
+  d = 2.5;
+
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+
+  f = 1e-10f;
+  d = 1e-10;
+
+  EXPECT_EQ(1, math::signum(f));
+  EXPECT_EQ(1, math::signum(d));
+}
+
+/////////////////////////////////////////////////
 TEST(HelpersTest, Sort)
 {
   {
@@ -325,11 +414,11 @@ TEST(HelpersTest, Volume)
 TEST(HelpersTest, Pair)
 {
 #ifdef _MSC_VER
-  math::PairInput maxA = IGN_UINT16_MAX;
-  math::PairInput maxB = IGN_UINT16_MAX;
+  math::PairInput maxA = math::MAX_UI16;
+  math::PairInput maxB = math::MAX_UI16;
 #else
-  math::PairInput maxA = IGN_UINT32_MAX;
-  math::PairInput maxB = IGN_UINT32_MAX;
+  math::PairInput maxA = math::MAX_UI32;
+  math::PairInput maxB = math::MAX_UI32;
 #endif
 
   math::PairInput maxC, maxD;
@@ -337,9 +426,9 @@ TEST(HelpersTest, Pair)
   // Maximum parameters should generate a maximum key
   math::PairOutput maxKey = math::Pair(maxA, maxB);
 #ifdef _MSC_VER
-  EXPECT_EQ(maxKey, IGN_UINT32_MAX);
+  EXPECT_EQ(maxKey, math::MAX_UI32);
 #else
-  EXPECT_EQ(maxKey, IGN_UINT64_MAX);
+  EXPECT_EQ(maxKey, math::MAX_UI64);
 #endif
 
   std::tie(maxC, maxD) = math::Unpair(maxKey);
@@ -347,20 +436,20 @@ TEST(HelpersTest, Pair)
   EXPECT_EQ(maxD, maxB);
 
 #ifdef _MSC_VER
-  math::PairInput minA = IGN_UINT16_MIN;
-  math::PairInput minB = IGN_UINT16_MIN;
+  math::PairInput minA = math::MIN_UI16;
+  math::PairInput minB = math::MIN_UI16;
 #else
-  math::PairInput minA = IGN_UINT32_MIN;
-  math::PairInput minB = IGN_UINT32_MIN;
+  math::PairInput minA = math::MIN_UI32;
+  math::PairInput minB = math::MIN_UI32;
 #endif
   math::PairInput minC, minD;
 
   // Minimum parameters should generate a minimum key
   math::PairOutput minKey = math::Pair(minA, minB);
 #ifdef _MSC_VER
-  EXPECT_EQ(minKey, IGN_UINT32_MIN);
+  EXPECT_EQ(minKey, math::MIN_UI32);
 #else
-  EXPECT_EQ(minKey, IGN_UINT64_MIN);
+  EXPECT_EQ(minKey, math::MIN_UI64);
 #endif
 
   std::tie(minC, minD) = math::Unpair(minKey);
@@ -392,10 +481,10 @@ TEST(HelpersTest, Pair)
     std::set<math::PairOutput> set;
 
     // Iterate over range of pairs, and check for unique keys.
-    for (uint16_t a = IGN_UINT16_MIN; a < IGN_UINT16_MAX - 500;
+    for (uint16_t a = math::MIN_UI16; a < math::MAX_UI16 - 500;
          a += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
     {
-      for (uint16_t b = IGN_UINT16_MIN; b < IGN_UINT16_MAX - 500;
+      for (uint16_t b = math::MIN_UI16; b < math::MAX_UI16 - 500;
          b += static_cast<uint16_t>(math::Rand::IntUniform(100, 500)))
       {
         math::PairOutput key = math::Pair(a, b);
@@ -410,9 +499,9 @@ TEST(HelpersTest, Pair)
 
 #ifndef _MSC_VER
     // Iterate over large numbers, and check for unique keys.
-    for (math::PairInput a = IGN_UINT32_MAX-5000; a < IGN_UINT32_MAX; a++)
+    for (math::PairInput a = math::MAX_UI32-5000; a < math::MAX_UI32; a++)
     {
-      for (math::PairInput b = IGN_UINT32_MAX-5000; b < IGN_UINT32_MAX; b++)
+      for (math::PairInput b = math::MAX_UI32-5000; b < math::MAX_UI32; b++)
       {
         math::PairOutput key = math::Pair(a, b);
         std::tie(c, d) = math::Unpair(key);

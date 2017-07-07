@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,12 +100,12 @@ namespace ignition
       /// \return This new box
       public: const Box &operator+=(const Box &_b);
 
-      /// \brief Equality test operatoer
+      /// \brief Equality test operator
       /// \param[in] _b Box to test
       /// \return True if equal
       public: bool operator==(const Box &_b) const;
 
-      /// \brief Inequality test operatoer
+      /// \brief Inequality test operator
       /// \param[in] _b Box to test
       /// \return True if not equal
       public: bool operator!=(const Box &_b) const;

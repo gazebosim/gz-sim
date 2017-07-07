@@ -1,4 +1,4 @@
-# Ignition Math 
+# Ignition Math
 
 
 **Math classes and functions for robot applications.**
@@ -11,14 +11,17 @@ classes and functions used in other Ignition libraries and programs.
 
 ## Continuous integration
 
-Please refer to the [drone.io
-job](https://drone.io/bitbucket.org/ignitionrobotics/ign-math).
+This project uses [appveyor](https://ci.appveyor.com/project/scpeters/ign-math/history)
+for testing on Windows.
+It has the following build status: 
+![appveyor badge](https://ci.appveyor.com/api/projects/status/bitbucket/ignitionrobotics/ign-math?svg=true)
 
-[![Build Status](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/status.png)](https://drone.io/bitbucket.org/ignitionrobotics/ign-math/latest)
+This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
+for testing with Linux.
 
 ## Installation
 
-Standard installation can be performed in UNIX systems using the following 
+Standard installation can be performed in UNIX systems using the following
 steps:
 
  - mkdir build/
@@ -26,7 +29,7 @@ steps:
  - cmake ..
  - sudo make install
 
-## Uninstallation 
+## Uninstallation
 
 To uninstall the software installed with the previous steps:
 

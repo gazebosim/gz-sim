@@ -1,6 +1,18 @@
+## Ignition Math 4.x
+
+### Ignition Math 4.x.x
+
 ## Ignition Math 3.x
 
 ### Ignition Math 3.x.x
+
+1. Added signum functions to Helpers.hh.
+    * Contribution from Martin Pecka
+    * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
+
+1. Deprecate many IGN_* macros in favor of static const variables in Helpers.hh
+    * [Pull request 138](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/138)
+    * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
 
 1. Removed exceptions. Return values should be evaluated to determine if
    errors have occured.
@@ -25,25 +37,54 @@
 
 ## Ignition Math 2.x
 
-1. Fix Euler angle conversion of quaternions near singularities
-    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+### Ignition Math 2.8
 
-1. Added SemanticVersion class
-    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
+### Ignition Math 2.8.0
 
-1. Added Matrix4<T>::LookAt
-    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
+1. Added Color
+    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
 
-1. Added triangle3 class, and helper functions in other classes
-    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
+1. Added OrientedBox
+    * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
 
-1. Change equality helper to work with 387 fp unit.
-   Contribution from Rich Mattes.
-    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+1. Added an assignment operator to the Frustum class.
+    * [Pull request 144](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/144)
+
+### Ignition Math 2.7
+
+### Ignition Math 2.7.0
+
+1. Add static const variables as alternative to macros in Helpers.hh
+    * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
+
+1. Add new methods for floating numbers: lessOrEqual and greaterOrEqual
+    * [Pull request 134](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/134)
+
+### Ignition Math 2.6
+
+### Ignition Math 2.6.0
 
 1. Added copy constructor, equality operators and assignment operators to
     SphericalCoordinates class.
     * [Pull request 131](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/131)
+
+1. Fix Euler angle conversion of quaternions near singularities
+    * [Pull request 129](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/129)
+
+1. Backport triangle3, helper functions, equality helper to work with 387 fp unit
+   (Contribution from Rich Mattes).
+    * [Pull request 125](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/125)
+    * [Pull request 58](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/58)
+    * [Pull request 56](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/56)
+
+1. Added Matrix4<T>::LookAt
+    * [Pull request 124](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/124)
+
+1. Set Inertial Rotations
+    * [Pull request 121](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/121)
+
+1. Added SemanticVersion class
+    * [Pull request 120](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/120)
 
 ### Ignition Math 2.5
 
