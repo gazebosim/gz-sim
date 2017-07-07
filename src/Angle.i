@@ -18,7 +18,7 @@
 %module angle
 %{
 #include <ignition/math/Angle.hh>
-%} 
+%}
 
 namespace ignition
 {
