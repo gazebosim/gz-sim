@@ -51,8 +51,8 @@ TEST(BoxTest, Inherit)
 
   EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D,
       math::MAX_D));
-  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D,
-      math::MIN_D));
+  EXPECT_TRUE(box->Max() == math::Vector3d(math::LOW_D, math::LOW_D,
+      math::LOW_D));
 
   {
     delete box;
@@ -72,8 +72,8 @@ TEST(BoxTest, EmptyConstructorNew)
 
   EXPECT_TRUE(box->Min() == math::Vector3d(math::MAX_D, math::MAX_D,
       math::MAX_D));
-  EXPECT_TRUE(box->Max() == math::Vector3d(math::MIN_D, math::MIN_D,
-      math::MIN_D));
+  EXPECT_TRUE(box->Max() == math::Vector3d(math::LOW_D, math::LOW_D,
+      math::LOW_D));
 
   {
     delete box;
@@ -87,8 +87,8 @@ TEST(BoxTest, EmptyConstructor)
   math::Box box;
   EXPECT_TRUE(box.Min() == math::Vector3d(math::MAX_D, math::MAX_D,
       math::MAX_D));
-  EXPECT_TRUE(box.Max() == math::Vector3d(math::MIN_D, math::MIN_D,
-      math::MIN_D));
+  EXPECT_TRUE(box.Max() == math::Vector3d(math::LOW_D, math::LOW_D,
+      math::LOW_D));
 }
 
 /////////////////////////////////////////////////
@@ -121,6 +121,18 @@ TEST_F(ExampleBox, ManuallySet)
   EXPECT_DOUBLE_EQ(box1.Max().X(), 1);
   EXPECT_DOUBLE_EQ(box1.Max().Y(), 0);
   EXPECT_DOUBLE_EQ(box1.Max().Z(), 3);
+
+  math::Box box2;
+  box2.Max().Set( 1, 1, 1);
+  EXPECT_DOUBLE_EQ(box2.Size().X(), 0);
+  EXPECT_DOUBLE_EQ(box2.Size().Y(), 0);
+  EXPECT_DOUBLE_EQ(box2.Size().Z(), 0);
+
+  math::Box box3;
+  box3.Min().Set(-1,-1,-1);
+  EXPECT_DOUBLE_EQ(box3.Size().X(), 0);
+  EXPECT_DOUBLE_EQ(box3.Size().Y(), 0);
+  EXPECT_DOUBLE_EQ(box3.Size().Z(), 0);
 }
 
 /////////////////////////////////////////////////
@@ -154,9 +166,34 @@ TEST(BoxTest, MergeEmpty)
   EXPECT_DOUBLE_EQ(box1.Min().Y(), math::MAX_D);
   EXPECT_DOUBLE_EQ(box1.Min().Z(), math::MAX_D);
 
-  EXPECT_DOUBLE_EQ(box1.Max().X(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box1.Max().Y(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box1.Max().Z(), math::MIN_D);
+  EXPECT_DOUBLE_EQ(box1.Max().X(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box1.Max().Y(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box1.Max().Z(), math::LOW_D);
+}
+
+/////////////////////////////////////////////////
+TEST(BoxTest, DefaultConstructor)
+{
+  math::Box defaultBox1, defaultBox2;
+
+  EXPECT_DOUBLE_EQ(defaultBox1.Size().X(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.Size().Y(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.Size().Z(), 0);
+
+  EXPECT_DOUBLE_EQ(defaultBox1.XLength(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.YLength(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.ZLength(), 0);
+
+  EXPECT_DOUBLE_EQ(defaultBox1.Center().X(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.Center().Y(), 0);
+  EXPECT_DOUBLE_EQ(defaultBox1.Center().Z(), 0);
+
+  EXPECT_FALSE(defaultBox1.Intersects(defaultBox2));
+
+  EXPECT_FALSE(defaultBox1.Intersects(math::Box(
+          math::Vector3d(0, 0, 0), math::Vector3d(1, 1, 1))));
+
+  EXPECT_FALSE(defaultBox2.Contains(math::Vector3d::Zero));
 }
 
 /////////////////////////////////////////////////
@@ -181,18 +218,18 @@ TEST(BoxTest, PlusEmpty)
   EXPECT_DOUBLE_EQ(box1.Min().Y(), math::MAX_D);
   EXPECT_DOUBLE_EQ(box1.Min().Z(), math::MAX_D);
 
-  EXPECT_DOUBLE_EQ(box1.Max().X(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box1.Max().Y(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box1.Max().Z(), math::MIN_D);
+  EXPECT_DOUBLE_EQ(box1.Max().X(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box1.Max().Y(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box1.Max().Z(), math::LOW_D);
 
   math::Box box3 = box2 + box1;
   EXPECT_DOUBLE_EQ(box3.Min().X(), math::MAX_D);
   EXPECT_DOUBLE_EQ(box3.Min().Y(), math::MAX_D);
   EXPECT_DOUBLE_EQ(box3.Min().Z(), math::MAX_D);
 
-  EXPECT_DOUBLE_EQ(box3.Max().X(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box3.Max().Y(), math::MIN_D);
-  EXPECT_DOUBLE_EQ(box3.Max().Z(), math::MIN_D);
+  EXPECT_DOUBLE_EQ(box3.Max().X(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box3.Max().Y(), math::LOW_D);
+  EXPECT_DOUBLE_EQ(box3.Max().Z(), math::LOW_D);
 }
 
 /////////////////////////////////////////////////

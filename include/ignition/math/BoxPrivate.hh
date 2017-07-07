@@ -28,10 +28,10 @@ namespace ignition
     class BoxPrivate
     {
       /// \brief Minimum corner of the box
-      public: Vector3d min = Vector3d::Zero;
+      public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
 
       /// \brief Maximum corner of the box
-      public: Vector3d max = Vector3d::Zero;
+      public: Vector3d max = Vector3d(LOW_D, LOW_D, LOW_D);
     };
   }
 }

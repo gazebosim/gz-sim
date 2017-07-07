@@ -26,8 +26,6 @@ using namespace math;
 Box::Box()
 : dataPtr(new BoxPrivate)
 {
-  this->dataPtr->min.Set(MAX_D, MAX_D, MAX_D);
-  this->dataPtr->max.Set(MIN_D, MIN_D, MIN_D);
 }
 
 //////////////////////////////////////////////////
@@ -71,19 +69,19 @@ Box::~Box()
 //////////////////////////////////////////////////
 double Box::XLength() const
 {
-  return std::abs(this->dataPtr->max.X() - this->dataPtr->min.X());
+  return std::max(0.0, this->dataPtr->max.X() - this->dataPtr->min.X());
 }
 
 //////////////////////////////////////////////////
 double Box::YLength() const
 {
-  return std::abs(this->dataPtr->max.Y() - this->dataPtr->min.Y());
+  return std::max(0.0, this->dataPtr->max.Y() - this->dataPtr->min.Y());
 }
 
 //////////////////////////////////////////////////
 double Box::ZLength() const
 {
-  return std::abs(this->dataPtr->max.Z() - this->dataPtr->min.Z());
+  return std::max(0.0, this->dataPtr->max.Z() - this->dataPtr->min.Z());
 }
 
 //////////////////////////////////////////////////
@@ -97,7 +95,7 @@ math::Vector3d Box::Size() const
 //////////////////////////////////////////////////
 math::Vector3d Box::Center() const
 {
-  return this->dataPtr->min + (this->dataPtr->max - this->dataPtr->min) * 0.5;
+  return 0.5 * this->dataPtr->min + 0.5 * this->dataPtr->max;
 }
 
 
