@@ -2,6 +2,12 @@
 
 ### Ignition Math 4.x.x
 
+1. Removed the box 'extent' field. The default constructor now sets a box's
+   corners to extrema in order to indicate an uninitialized box.
+    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/172)
+    * [Issue 72](https://bitbucket.org/ignitionrobotics/ign-math/issues/72)
+    * [Issue 43](https://bitbucket.org/ignitionrobotics/ign-math/issues/53)
+
 ## Ignition Math 3.x
 
 ### Ignition Math 3.x.x
