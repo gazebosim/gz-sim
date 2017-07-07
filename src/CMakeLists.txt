@@ -15,6 +15,7 @@ set (sources
   SignalStats.cc
   SphericalCoordinates.cc
   Spline.cc
+  SplinePrivate.cc
   Temperature.cc
   Vector3Stats.cc
 )
