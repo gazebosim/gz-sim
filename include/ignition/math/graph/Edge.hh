@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_EDGE_HH_
-#define IGNITION_MATH_EDGE_HH_
+#ifndef IGNITION_MATH_GRAPH_EDGE_HH_
+#define IGNITION_MATH_GRAPH_EDGE_HH_
 
 // uint64_t
 #include <cstdint>
