@@ -111,7 +111,7 @@ TEST_F(ExampleBox, ManuallySet)
 {
   math::Box box1;
   box1.Min().Set(-2, 2, 3);
-  box1.Max().Set( 0, 0, 3);
+  box1.Max().Set(0, 0, 3);
 
   box1 += box;
   EXPECT_DOUBLE_EQ(box1.Min().X(), -2);
@@ -123,13 +123,13 @@ TEST_F(ExampleBox, ManuallySet)
   EXPECT_DOUBLE_EQ(box1.Max().Z(), 3);
 
   math::Box box2;
-  box2.Max().Set( 1, 1, 1);
+  box2.Max().Set(1, 1, 1);
   EXPECT_DOUBLE_EQ(box2.Size().X(), 0);
   EXPECT_DOUBLE_EQ(box2.Size().Y(), 0);
   EXPECT_DOUBLE_EQ(box2.Size().Z(), 0);
 
   math::Box box3;
-  box3.Min().Set(-1,-1,-1);
+  box3.Min().Set(-1, -1, -1);
   EXPECT_DOUBLE_EQ(box3.Size().X(), 0);
   EXPECT_DOUBLE_EQ(box3.Size().Y(), 0);
   EXPECT_DOUBLE_EQ(box3.Size().Z(), 0);
