@@ -42,37 +42,82 @@ TYPED_TEST(EdgeTestFixture, Accessors)
 {
   {
     EdgeId id = 1;
+    EdgeId newId = 2;
     double weight = 2.0;
+    double newWeight = 3.0;
     VertexId_P vertices = {0, 1};
+    VertexId_P newVertices = {2, 3};
     int data = 3;
-    TypeParam edge(id, vertices, data, weight);
+    TypeParam edge(vertices, data, weight, id);
 
+    // Id.
     EXPECT_EQ(edge.Id(), id);
+    edge.SetId(newId);
+    EXPECT_EQ(edge.Id(), newId);
+
+    // Weight.
     EXPECT_DOUBLE_EQ(edge.Weight(), weight);
+    edge.SetWeight(newWeight);
+    EXPECT_DOUBLE_EQ(edge.Weight(), newWeight);
+
+    // Vertices.
     EXPECT_EQ(edge.Vertices(), vertices);
+    edge.SetVertices(newVertices);
+    EXPECT_EQ(edge.Vertices(), newVertices);
+
+    // Data.
     EXPECT_EQ(edge.Data(), data);
-    // Modify the data.
     edge.Data() += 1;
     EXPECT_EQ(edge.Data(), data + 1);
+
+    // Validation.
     EXPECT_TRUE(edge.Valid());
   }
 
   {
-    EdgeId id = kNullId;
     double weight = 2.0;
     VertexId_P vertices = {0, 1};
     int data = 3;
-    TypeParam edge(id, vertices, data, weight);
+    TypeParam edge(vertices, data, weight);
 
-    EXPECT_EQ(edge.Id(), id);
+    // Id.
+    EXPECT_EQ(edge.Id(), kNullId);
+
+    // Weight.
     EXPECT_DOUBLE_EQ(edge.Weight(), weight);
+
+    // Vertices.
     VertexId_P expectedVertices = {kNullId, kNullId};
     EXPECT_EQ(edge.Vertices(), expectedVertices);
+
+    // Data.
     EXPECT_EQ(edge.Data(), data);
-    // Modify the data.
     edge.Data() += 1;
     EXPECT_EQ(edge.Data(), data + 1);
+
+    // Validation. It does not have a valid Id.
     EXPECT_FALSE(edge.Valid());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(EdgeTest, Initializer)
+{
+  VertexId_P vertices = {1, 2};
+  std::string data = "hi";
+
+  {
+    double weight = 2.0;
+    EdgeInitializer<std::string> edgeInitializer(vertices, data, weight);
+    EXPECT_EQ(edgeInitializer.vertices, vertices);
+    EXPECT_EQ(edgeInitializer.data, data);
+    EXPECT_EQ(edgeInitializer.weight, weight);
+  }
+  {
+    EdgeInitializer<std::string> edgeInitializer(vertices, "hi");
+    EXPECT_EQ(edgeInitializer.vertices, vertices);
+    EXPECT_EQ(edgeInitializer.data, "hi");
+    EXPECT_EQ(edgeInitializer.weight, 1.0);
   }
 }
 
@@ -84,7 +129,7 @@ TEST(EdgeTest, FromToDirected)
     double weight = 2.0;
     VertexId_P vertices = {0, 1};
     int data = 3;
-    DirectedEdge<int> edge(id, vertices, data, weight);
+    DirectedEdge<int> edge(vertices, data, weight, id);
 
     EXPECT_EQ(edge.From(0), 1);
     EXPECT_EQ(edge.To(1), 0);
@@ -99,11 +144,10 @@ TEST(EdgeTest, FromToDirected)
   }
 
   {
-    EdgeId id = kNullId;
     double weight = 2.0;
     VertexId_P vertices = {0, 1};
     int data = 3;
-    DirectedEdge<int> edge(id, vertices, data, weight);
+    DirectedEdge<int> edge(vertices, data, weight);
     // The edge is not valid because the Id == kNullId.
     EXPECT_FALSE(edge.Valid());
 
@@ -122,7 +166,7 @@ TEST(EdgeTest, FromToUndirected)
     double weight = 2.0;
     VertexId_P vertices = {0, 1};
     int data = 3;
-    UndirectedEdge<int> edge(id, vertices, data, weight);
+    UndirectedEdge<int> edge(vertices, data, weight, id);
 
     EXPECT_EQ(edge.From(0), 1);
     EXPECT_EQ(edge.To(1), 0);
@@ -140,7 +184,7 @@ TEST(EdgeTest, FromToUndirected)
     // Only one vertex.
     VertexId_P vertices = {0, 1};
     int data = 3;
-    UndirectedEdge<int> edge(id, vertices, data, weight);
+    UndirectedEdge<int> edge(vertices, data, weight, id);
     // The edge is not valid because the Id == kNullId.
     EXPECT_FALSE(edge.Valid());
 
@@ -158,7 +202,7 @@ TEST(EdgeTest, StreamInsertionDirected)
   double weight = 2.0;
   VertexId_P vertices = {0, 1};
   int data = 3;
-  DirectedEdge<int> edge(id, vertices, data, weight);
+  DirectedEdge<int> edge(vertices, data, weight, id);
 
   std::ostringstream output;
   output << edge;
@@ -174,7 +218,7 @@ TEST(EdgeTest, StreamInsertionUndirected)
   double weight = 2.0;
   VertexId_P vertices = {0, 1};
   int data = 3;
-  UndirectedEdge<int> edge(id, vertices, data, weight);
+  UndirectedEdge<int> edge(vertices, data, weight, id);
 
   std::ostringstream output;
   output << edge;

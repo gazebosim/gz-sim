@@ -70,18 +70,18 @@ namespace graph
   class Edge
   {
     /// \brief Constructor.
-    /// \param[in] _id Unique id.
     /// \param[in] _vertices The vertices of the edge.
     /// \param[in] _data The data stored in the edge.
     /// \param[in] _weight The weight (cost) of the edge.
-    public: explicit Edge(const EdgeId &_id,
-                          const VertexId_P &_vertices,
+    /// \param[in] _id Optional unique id.
+    public: explicit Edge(const VertexId_P &_vertices,
                           const E &_data,
-                          const double _weight)
-      : id(_id),
-        vertices(_vertices),
+                          const double _weight,
+                          const EdgeId &_id = kNullId)
+      : vertices(_vertices),
         data(_data),
-        weight(_weight)
+        weight(_weight),
+        id(_id)
     {
     }
 
@@ -92,6 +92,13 @@ namespace graph
       return this->id;
     }
 
+    /// \brief Set a new edge Id.
+    /// \param[in] _newId The new edge Id.
+    public: void SetId(const EdgeId &_newId)
+    {
+      this->id = _newId;
+    }
+
     /// \brief Get the two vertices contained in the edge.
     /// \return The two vertices contained in the edge.
     public: VertexId_P Vertices() const
@@ -100,6 +107,13 @@ namespace graph
         return {kNullId, kNullId};
 
       return this->vertices;
+    }
+
+    /// \brief Set the new pair of vertices
+    /// \param[in] _vertices The new pair of vertices.
+    public: void SetVertices(const VertexId_P &_vertices)
+    {
+      this->vertices = _vertices;
     }
 
     /// \brief Get a non-mutable reference to the user data stored in the edge
@@ -122,6 +136,13 @@ namespace graph
     public: double Weight() const
     {
       return this->weight;
+    }
+
+    /// \brief Set the cost of the edge.
+    /// \param[in] _newWeight The new cost.
+    public: void SetWeight(const double _newWeight)
+    {
+      this->weight = _newWeight;
     }
 
     /// \brief Get the destination end that is reachable from a source end of
@@ -173,7 +194,8 @@ namespace graph
     /// \brief User data.
     private: E data;
 
-    /// \brief The weight (cost) of the edge.
+    /// \brief The weight (cost) of the edge. By default, the cost of an edge
+    /// is 1.0 .
     private: double weight = 1.0;
   };
 
@@ -188,6 +210,8 @@ namespace graph
   using EdgeRef_M = std::map<EdgeId, std::reference_wrapper<const EdgeType>>;
 
   /// \brief An undirected edge represents a connection between two vertices.
+  /// The conection is bidirectional, it's possible to traverse the edge
+  /// in both directions.
   template<typename E>
   class UndirectedEdge : public Edge<E>
   {
@@ -195,15 +219,15 @@ namespace graph
     public: static UndirectedEdge<E> NullEdge;
 
     /// \brief Constructor.
-    /// \param[in] _id Unique id.
     /// \param[in] _vertices The vertices of the edge.
     /// \param[in] _data The data stored in the edge.
     /// \param[in] _weight The weight (cost) of the edge.
-    public: explicit UndirectedEdge(const EdgeId &_id,
-                                    const VertexId_P &_vertices,
+    /// \param[in] _id Optional unique id.
+    public: explicit UndirectedEdge(const VertexId_P &_vertices,
                                     const E &_data,
-                                    const double _weight)
-      : Edge<E>(_id, _vertices, _data, _weight)
+                                    const double _weight,
+                                    const EdgeId &_id = kNullId)
+      : Edge<E>(_vertices, _data, _weight, _id)
     {
     }
 
@@ -249,6 +273,8 @@ namespace graph
     kNullId, {kNullId, kNullId}, E(), 1.0);
 
   /// \brief A directed edge represents a connection between two vertices.
+  /// The conection is unidirectional, it's only possible to traverse the edge
+  /// in one direction (from the first vertex to the second vertex).
   template<typename E>
   class DirectedEdge : public Edge<E>
   {
@@ -256,15 +282,15 @@ namespace graph
     public: static DirectedEdge<E> NullEdge;
 
     /// \brief Constructor.
-    /// \param[in] _id Unique id.
-    /// \param[in] _weight The weight (cost) of the edge.
     /// \param[in] _vertices The vertices of the edge.
     /// \param[in] _data The data stored in the edge.
-    public: explicit DirectedEdge(const EdgeId &_id,
-                                  const VertexId_P &_vertices,
+    /// \param[in] _weight The weight (cost) of the edge.
+    /// \param[in] _id Optional unique id.
+    public: explicit DirectedEdge(const VertexId_P &_vertices,
                                   const E &_data,
-                                  const double _weight)
-      : Edge<E>(_id, _vertices, _data, _weight)
+                                  const double _weight,
+                                  const EdgeId &_id = kNullId)
+      : Edge<E>(_vertices, _data, _weight, _id)
     {
     }
 
