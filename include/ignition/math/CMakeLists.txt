@@ -6,6 +6,7 @@ set (headers
   Color.hh
   Filter.hh
   Frustum.hh
+  graph/Edge.hh
   graph/Vertex.hh
   Helpers.hh
   Inertial.hh
