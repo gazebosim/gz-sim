@@ -51,24 +51,24 @@ TYPED_TEST(EdgeTestFixture, Accessors)
     TypeParam edge(vertices, data, weight, id);
 
     // Id.
-    EXPECT_EQ(edge.Id(), id);
+    EXPECT_EQ(id, edge.Id());
     edge.SetId(newId);
-    EXPECT_EQ(edge.Id(), newId);
+    EXPECT_EQ(newId, edge.Id());
 
     // Weight.
-    EXPECT_DOUBLE_EQ(edge.Weight(), weight);
+    EXPECT_DOUBLE_EQ(weight, edge.Weight());
     edge.SetWeight(newWeight);
-    EXPECT_DOUBLE_EQ(edge.Weight(), newWeight);
+    EXPECT_DOUBLE_EQ(newWeight, edge.Weight());
 
     // Vertices.
-    EXPECT_EQ(edge.Vertices(), vertices);
+    EXPECT_EQ(vertices, edge.Vertices());
     edge.SetVertices(newVertices);
-    EXPECT_EQ(edge.Vertices(), newVertices);
+    EXPECT_EQ(newVertices, edge.Vertices());
 
     // Data.
-    EXPECT_EQ(edge.Data(), data);
+    EXPECT_EQ(data, edge.Data());
     edge.Data() += 1;
-    EXPECT_EQ(edge.Data(), data + 1);
+    EXPECT_EQ(data + 1, edge.Data());
 
     // Validation.
     EXPECT_TRUE(edge.Valid());
@@ -81,19 +81,19 @@ TYPED_TEST(EdgeTestFixture, Accessors)
     TypeParam edge(vertices, data, weight);
 
     // Id.
-    EXPECT_EQ(edge.Id(), kNullId);
+    EXPECT_EQ(kNullId, edge.Id());
 
     // Weight.
-    EXPECT_DOUBLE_EQ(edge.Weight(), weight);
+    EXPECT_DOUBLE_EQ(weight, edge.Weight());
 
     // Vertices.
     VertexId_P expectedVertices = {kNullId, kNullId};
-    EXPECT_EQ(edge.Vertices(), expectedVertices);
+    EXPECT_EQ(expectedVertices, edge.Vertices());
 
     // Data.
-    EXPECT_EQ(edge.Data(), data);
+    EXPECT_EQ(data, edge.Data());
     edge.Data() += 1;
-    EXPECT_EQ(edge.Data(), data + 1);
+    EXPECT_EQ(data + 1, edge.Data());
 
     // Validation. It does not have a valid Id.
     EXPECT_FALSE(edge.Valid());
@@ -109,15 +109,15 @@ TEST(EdgeTest, Initializer)
   {
     double weight = 2.0;
     EdgeInitializer<std::string> edgeInitializer(vertices, data, weight);
-    EXPECT_EQ(edgeInitializer.vertices, vertices);
-    EXPECT_EQ(edgeInitializer.data, data);
-    EXPECT_EQ(edgeInitializer.weight, weight);
+    EXPECT_EQ(vertices, edgeInitializer.vertices);
+    EXPECT_EQ(data, edgeInitializer.data);
+    EXPECT_EQ(weight, edgeInitializer.weight);
   }
   {
     EdgeInitializer<std::string> edgeInitializer(vertices, "hi");
-    EXPECT_EQ(edgeInitializer.vertices, vertices);
-    EXPECT_EQ(edgeInitializer.data, "hi");
-    EXPECT_EQ(edgeInitializer.weight, 1.0);
+    EXPECT_EQ(vertices, edgeInitializer.vertices);
+    EXPECT_EQ( "hi", edgeInitializer.data);
+    EXPECT_EQ(1.0, edgeInitializer.weight);
   }
 }
 
@@ -131,16 +131,16 @@ TEST(EdgeTest, FromToDirected)
     int data = 3;
     DirectedEdge<int> edge(vertices, data, weight, id);
 
-    EXPECT_EQ(edge.From(0), 1);
-    EXPECT_EQ(edge.To(1), 0);
+    EXPECT_EQ(1, edge.From(0));
+    EXPECT_EQ(0, edge.To(1));
 
     // It's a directed edge, you cannot go in this direction.
-    EXPECT_EQ(edge.From(1), kNullId);
-    EXPECT_EQ(edge.To(0), kNullId);
+    EXPECT_EQ(kNullId, edge.From(1));
+    EXPECT_EQ(kNullId, edge.To(0));
 
     // The Id doesn't exit.
-    EXPECT_EQ(edge.From(99), kNullId);
-    EXPECT_EQ(edge.To(99), kNullId);
+    EXPECT_EQ(kNullId, edge.From(99));
+    EXPECT_EQ(kNullId, edge.To(99));
   }
 
   {
@@ -151,10 +151,10 @@ TEST(EdgeTest, FromToDirected)
     // The edge is not valid because the Id == kNullId.
     EXPECT_FALSE(edge.Valid());
 
-    EXPECT_EQ(edge.From(0), kNullId);
-    EXPECT_EQ(edge.To(1), kNullId);
-    EXPECT_EQ(edge.From(1), kNullId);
-    EXPECT_EQ(edge.To(0), kNullId);
+    EXPECT_EQ(kNullId, edge.From(0));
+    EXPECT_EQ(kNullId, edge.To(1));
+    EXPECT_EQ(kNullId, edge.From(1));
+    EXPECT_EQ(kNullId, edge.To(0));
   }
 }
 
@@ -168,14 +168,14 @@ TEST(EdgeTest, FromToUndirected)
     int data = 3;
     UndirectedEdge<int> edge(vertices, data, weight, id);
 
-    EXPECT_EQ(edge.From(0), 1);
-    EXPECT_EQ(edge.To(1), 0);
-    EXPECT_EQ(edge.From(1), 0);
-    EXPECT_EQ(edge.To(0), 1);
+    EXPECT_EQ(1, edge.From(0));
+    EXPECT_EQ(0, edge.To(1));
+    EXPECT_EQ(0, edge.From(1));
+    EXPECT_EQ(1, edge.To(0));
 
     // The Id doesn't exit.
-    EXPECT_EQ(edge.From(99), kNullId);
-    EXPECT_EQ(edge.To(99), kNullId);
+    EXPECT_EQ(kNullId, edge.From(99));
+    EXPECT_EQ(kNullId, edge.To(99));
   }
 
   {
@@ -188,10 +188,10 @@ TEST(EdgeTest, FromToUndirected)
     // The edge is not valid because the Id == kNullId.
     EXPECT_FALSE(edge.Valid());
 
-    EXPECT_EQ(edge.From(0), kNullId);
-    EXPECT_EQ(edge.To(1), kNullId);
-    EXPECT_EQ(edge.From(1), kNullId);
-    EXPECT_EQ(edge.To(0), kNullId);
+    EXPECT_EQ(kNullId, edge.From(0));
+    EXPECT_EQ(kNullId, edge.To(1));
+    EXPECT_EQ(kNullId, edge.From(1));
+    EXPECT_EQ(kNullId, edge.To(0));
   }
 }
 
@@ -208,7 +208,7 @@ TEST(EdgeTest, StreamInsertionDirected)
   output << edge;
 
   std::string expectedOutput = "  0 -> 1 [label=2];\n";
-  EXPECT_EQ(output.str(), expectedOutput);
+  EXPECT_EQ(expectedOutput, output.str());
 }
 
 /////////////////////////////////////////////////
@@ -224,5 +224,5 @@ TEST(EdgeTest, StreamInsertionUndirected)
   output << edge;
 
   std::string expectedOutput = "  0 -- 1 [label=2];\n";
-  EXPECT_EQ(output.str(), expectedOutput);
+  EXPECT_EQ(expectedOutput, output.str());
 }
