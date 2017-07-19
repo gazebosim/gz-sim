@@ -567,6 +567,12 @@ namespace graph
       return this->nextEdgeId;
     }
 
+    /// \brief The next vertex Id to be assigned to a new vertex.
+    protected: VertexId nextVertexId = 0u;
+
+    /// \brief The next edge Id to be assigned to a new edge.
+    protected: VertexId nextEdgeId = 0u;
+
     /// \brief The set of vertices.
     private: std::map<VertexId, Vertex<V>> vertices;
 
@@ -582,12 +588,6 @@ namespace graph
 
     /// \brief Association between names and vertices curently used.
     private: std::multimap<std::string, VertexId> names;
-
-    /// \brief The next vertex Id to be assigned to a new vertex.
-    protected: VertexId nextVertexId = 0u;
-
-    /// \brief The next edge Id to be assigned to a new edge.
-    protected: VertexId nextEdgeId = 0u;
   };
 
   /////////////////////////////////////////////////
