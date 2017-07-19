@@ -7,6 +7,7 @@ set (headers
   Filter.hh
   Frustum.hh
   graph/Edge.hh
+  graph/Graph.hh
   graph/Vertex.hh
   Helpers.hh
   Inertial.hh

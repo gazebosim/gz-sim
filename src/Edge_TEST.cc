@@ -116,7 +116,7 @@ TEST(EdgeTest, Initializer)
   {
     EdgeInitializer<std::string> edgeInitializer(vertices, "hi");
     EXPECT_EQ(vertices, edgeInitializer.vertices);
-    EXPECT_EQ( "hi", edgeInitializer.data);
+    EXPECT_EQ("hi", edgeInitializer.data);
     EXPECT_EQ(1.0, edgeInitializer.weight);
   }
 }

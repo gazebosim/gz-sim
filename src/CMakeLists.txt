@@ -27,6 +27,9 @@ set (gtest_sources
   Edge_TEST.cc
   Filter_TEST.cc
   Frustum_TEST.cc
+  Graph_TEST.cc
+  GraphDirected_TEST.cc
+  GraphUndirected_TEST.cc
   Helpers_TEST.cc
   Inertial_TEST.cc
   Kmeans_TEST.cc

@@ -270,7 +270,7 @@ namespace graph
   /// \brief An invalid undirected edge.
   template<typename E>
   UndirectedEdge<E> UndirectedEdge<E>::NullEdge(
-    kNullId, {kNullId, kNullId}, E(), 1.0);
+    {kNullId, kNullId}, E(), 1.0, kNullId);
 
   /// \brief A directed edge represents a connection between two vertices.
   /// The conection is unidirectional, it's only possible to traverse the edge
@@ -345,7 +345,7 @@ namespace graph
   /// \brief An invalid directed edge.
   template<typename E>
   DirectedEdge<E> DirectedEdge<E>::NullEdge(
-    kNullId, {kNullId, kNullId}, E(), 1.0);
+    {kNullId, kNullId}, E(), 1.0, kNullId);
 }
 }
 }
