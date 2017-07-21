@@ -45,7 +45,7 @@ namespace graph
     /// \param[in] _data The data stored in the edge.
     /// \param[in] _weight The weight (cost) of the edge.
     EdgeInitializer(const VertexId_P &_vertices,
-                    const E &_data,
+                    const E &_data = E(),
                     const double _weight = 1)
       : vertices(_vertices),
         data(_data),

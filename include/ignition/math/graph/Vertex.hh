@@ -58,7 +58,7 @@ namespace graph
     /// \param[in] _data User information.
     /// \param[in] _id Optional unique id.
     public: Vertex(const std::string &_name,
-                   const V &_data,
+                   const V &_data = V(),
                    const VertexId _id = kNullId)
       : name(_name),
         data(_data),

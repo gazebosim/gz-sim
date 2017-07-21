@@ -38,6 +38,61 @@ namespace graph
   /// internally. The vertices also have a name that could be reused among
   /// other vertices if needed. This class supports the use of different edge
   /// types (e.g. directed or undirected edges).
+  ///
+  /// <b> Example directed graph</b>
+  //
+  /// \code{.cpp}
+  ///
+  /// // Create a directed graph that is capable of storing integer data in the
+  /// // vertices and double data on the edges.
+  /// ignition::math::graph::DirectedGraph<int, double> graph(
+  ///   // Create the vertices, with default data and vertex ids
+  ///   {
+  ///     {"vertex1"}, {"vertex2"}, {"vertex3"}
+  ///   },
+  ///   // Create the edges, with default data and weight values
+  ///   {
+  ///     // Edge from vertex 0 to vertex 1. Each number refers to a vertex id.
+  ///     // Vertex ids start from zero.
+  ///     {{0, 1}}, {{1, 2}}
+  ///   });
+  ///
+  /// // It's also possible to specify vertex ids.
+  /// ignition::math::graph::DirectedGraph<int, double> graph2(
+  ///   // Create the vertices, with custom data and default vertex ids
+  ///   {
+  ///     {"vertex1", 1}, {"vertex2", 2}, {"vertex3", 10}
+  ///   },
+  ///   // Create the edges, with default data and weight values
+  ///   {
+  ///     // Edge from vertex 0 to vertex 1. Each number refers to a vertex id
+  ///     // specified above.
+  ///     {{0, 2}}, {{1, 2}}
+  ///   });
+  ///
+  ///
+  /// // You can assign data to vertices and edges.
+  /// ignition::math::graph::DirectedGraph<int, double> graph3(
+  ///   // Create the vertices with custom data and vertex ids
+  ///   {
+  ///     {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}
+  ///   },
+  ///   // Create the edges, with custom data and default weight values
+  ///   {
+  ///     {{2, 3}, 6.3}, {{3, 4}, 4.2}
+  ///   });
+  ///
+  /// // Finally, you can also assign weights to the edges.
+  /// ignition::math::graph::DirectedGraph<int, double> graph4(
+  ///   // Create the vertices with custom data and vertex ids
+  ///   {
+  ///     {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}
+  ///   },
+  ///   // Create the edges, with custom data and default weight values
+  ///   {
+  ///     {{2, 3}, 6.3, 1.1}, {{3, 4}, 4.2, 2.3}
+  ///   });
+  /// \endcode
   template<typename V, typename E, typename EdgeType>
   class Graph
   {
@@ -71,7 +126,8 @@ namespace graph
     /// \brief Add a new vertex to the graph.
     /// \param[in] _name Name of the vertex. It doesn't have to be unique.
     /// \param[in] _data Data to be stored in the vertex.
-    /// \param[in] _id Optional Id to be used for this vertex.
+    /// \param[in] _id Optional Id to be used for this vertex. This Id must
+    /// be unique.
     /// \return A reference to the new vertex.
     public: Vertex<V> &AddVertex(const std::string &_name,
                                  const V &_data,
@@ -92,7 +148,7 @@ namespace graph
           return Vertex<V>::NullVertex;
         }
       }
-      // The user provided an Id but already exists.
+      // The user provided an Id but the Id already exists.
       else if (this->vertices.find(id) != this->vertices.end())
       {
         std::cerr << "[Graph::AddVertex()] Repeated vertex [" << id << "]"
@@ -162,9 +218,12 @@ namespace graph
       return this->LinkEdge(std::move(newEdge));
     }
 
-    /// \brief Links an edge to the graph.
-    /// \param[in] _edge A new edge.
-    /// \return A reference to the new link created.
+    /// \brief Links an edge to the graph. This function verifies that the
+    /// edge's two vertices exist in the graph, copies the edge into the
+    /// graph's internal data structure, and returns a reference to this
+    /// new edge.
+    /// \param[in] _edge An edge to copy into the graph.
+    /// \return A reference to the new edge.
     public: EdgeType &LinkEdge(const EdgeType &_edge)
     {
       auto edgeVertices = _edge.Vertices();
@@ -172,8 +231,7 @@ namespace graph
       // Sanity check: Both vertices should exist.
       for (auto const &v : {edgeVertices.first, edgeVertices.second})
       {
-        auto itV = this->vertices.find(v);
-        if (itV == this->vertices.end())
+        if (this->vertices.find(v) == this->vertices.end())
           return EdgeType::NullEdge;
       }
 
@@ -188,8 +246,10 @@ namespace graph
         }
       }
 
+      // Note: the std::move here performs a copy.
       this->edges.insert(std::make_pair(_edge.Id(), std::move(_edge)));
 
+      // Return the new edge
       return this->edges.at(_edge.Id());
     }
 
@@ -208,15 +268,25 @@ namespace graph
     }
 
     /// \brief Get all vertices that are directly connected with one edge
-    /// from a given vertex. E.g. j is adjacent from i if there is an
+    /// from a given vertex. In other words, this function will return
+    /// child vertices of the given vertex (all vertices from the given
+    /// vertex).  E.g. j is adjacent from i (the given vertex) if there is an
     /// edge (i->j).
-    /// \param[in] _vertex The Id of the vertex to check adjacentsFrom.
+    ///
+    /// In an undirected graph, the result of this function will match
+    /// the result provided by AdjacentsTo.
+    ///
+    /// \param[in] _vertex The Id of the vertex from which adjacent
+    /// vertices will be returned.
     /// \return A map of vertices, where keys are Ids and values are
-    /// references to the vertices.
+    /// references to the vertices. This is the set of adjacent vertices.
+    /// An empty map will be returned when the _vertex is not found in the
+    /// graph.
     public: VertexRef_M<V> AdjacentsFrom(const VertexId &_vertex) const
     {
       VertexRef_M<V> res;
 
+      // Make sure the vertex exists
       auto vertexIt = this->adjList.find(_vertex);
       if (vertexIt == this->adjList.end())
         return res;
@@ -236,22 +306,41 @@ namespace graph
       return res;
     }
 
-    /// \brief Get all neighbors vertices that are directly connected to
-    /// a given vertex.
-    /// \param[in] _vertex The vertex to check adjacents.
+    /// \brief Get all vertices that are directly connected with one edge
+    /// from a given vertex. In other words, this function will return
+    /// child vertices of the given vertex (all vertices from the given
+    /// vertex).  E.g. j is adjacent from i (the given vertex) if there is an
+    /// edge (i->j).
+    ///
+    /// In an undirected graph, the result of this function will match
+    /// the result provided by AdjacentsTo.
+    ///
+    /// \param[in] _vertex The Id of the vertex from which adjacent
+    /// vertices will be returned.
     /// \return A map of vertices, where keys are Ids and values are
-    /// references to the vertices.
+    /// references to the vertices. This is the set of adjacent vertices.
+    /// An empty map will be returned when the _vertex is not found in the
+    /// graph.
     public: VertexRef_M<V> AdjacentsFrom(const Vertex<V> &_vertex) const
     {
       return this->AdjacentsFrom(_vertex.Id());
     }
 
     /// \brief Get all vertices that are directly connected with one edge
-    /// to a given vertex. E.g. i is adjacent to j if there is an
+    /// to a given vertex. In other words, this function will return
+    /// child vertices of the given vertex (all vertices from the given
+    /// vertex).
+    ///
+    /// In an undirected graph, the result of this function will match
+    /// the result provided by AdjacentsFrom.
+    ///
+    /// E.g. i is adjacent to j (the given vertex) if there is an
     /// edge (i->j).
     /// \param[in] _vertex The Id of the vertex to check adjacentsTo.
     /// \return A map of vertices, where keys are Ids and values are
-    /// references to the vertices.
+    /// references to the vertices. An empty map is returned if the
+    /// _vertex is not present in this graph, or when there are no
+    /// adjacent vertices.
     public: VertexRef_M<V> AdjacentsTo(const VertexId &_vertex) const
     {
       auto incidentEdges = this->IncidentsTo(_vertex);
@@ -271,17 +360,26 @@ namespace graph
     }
 
     /// \brief Get all vertices that are directly connected with one edge
-    /// to a given vertex. E.g. i is adjacent to j if there is an
+    /// to a given vertex. In other words, this function will return
+    /// child vertices of the given vertex (all vertices from the given
+    /// vertex).
+    ///
+    /// In an undirected graph, the result of this function will match
+    /// the result provided by AdjacentsFrom.
+    ///
+    /// E.g. i is adjacent to j (the given vertex) if there is an
     /// edge (i->j).
-    /// \param[in] _vertex The the vertex to check adjacentsTo.
+    /// \param[in] _vertex The vertex to check adjacentsTo.
     /// \return A map of vertices, where keys are Ids and values are
-    /// references to the vertices.
+    /// references to the vertices. An empty map is returned if the
+    /// _vertex is not present in this graph, or when there are no
+    /// adjacent vertices.
     public: VertexRef_M<V> AdjacentsTo(const Vertex<V> &_vertex) const
     {
       return this->AdjacentsTo(_vertex.Id());
     }
 
-    /// \brief Get the number of edges incidents to a vertex.
+    /// \brief Get the number of edges incident to a vertex.
     /// \param[in] _vertex The vertex Id.
     /// \return The number of edges incidents to a vertex.
     public: size_t InDegree(const VertexId &_vertex) const
@@ -289,7 +387,7 @@ namespace graph
       return this->IncidentsTo(_vertex).size();
     }
 
-    /// \brief Get the number of edges incidents to a vertex.
+    /// \brief Get the number of edges incident to a vertex.
     /// \param[in] _vertex The vertex.
     /// \return The number of edges incidents to a vertex.
     public: size_t InDegree(const Vertex<V> &_vertex) const
@@ -297,7 +395,7 @@ namespace graph
       return this->IncidentsTo(this->VertexFromId(_vertex.Id())).size();
     }
 
-    /// \brief Get the number of edges incidents from a vertex.
+    /// \brief Get the number of edges incident from a vertex.
     /// \param[in] _vertex The vertex Id.
     /// \return The number of edges incidents from a vertex.
     public: size_t OutDegree(const VertexId &_vertex) const
@@ -305,7 +403,7 @@ namespace graph
       return this->AdjacentsFrom(_vertex).size();
     }
 
-    /// \brief Get the number of edges incidents from a vertex.
+    /// \brief Get the number of edges incident from a vertex.
     /// \param[in] _vertex The vertex.
     /// \return The number of edges incidents from a vertex.
     public: size_t OutDegree(const Vertex<V> &_vertex) const
@@ -316,7 +414,8 @@ namespace graph
     /// \brief Get the set of outgoing edges from a given vertex.
     /// \param[in] _vertex Id of the vertex.
     /// \return A map of edges, where keys are Ids and values are
-    /// references to the edges.
+    /// references to the edges. An empty map is returned when the provided
+    /// vertex does not exist, or when there are no outgoing edges.
     public: const EdgeRef_M<EdgeType> IncidentsFrom(const VertexId &_vertex)
       const
     {
@@ -340,9 +439,10 @@ namespace graph
     /// \brief Get the set of outgoing edges from a given vertex.
     /// \param[in] _vertex The vertex.
     /// \return A map of edges, where keys are Ids and values are
-    /// references to the edges.
-    public: const EdgeRef_M<EdgeType> IncidentsFrom(const Vertex<V> &_vertex)
-      const
+    /// references to the edges. An empty map is returned when the provided
+    /// vertex does not exist, or when there are no outgoing edges.
+    public: const EdgeRef_M<EdgeType> IncidentsFrom(
+                const Vertex<V> &_vertex) const
     {
       return this->IncidentsFrom(_vertex.Id());
     }
@@ -350,9 +450,10 @@ namespace graph
     /// \brief Get the set of incoming edges to a given vertex.
     /// \param[in] _vertex Id of the vertex.
     /// \return A map of edges, where keys are Ids and values are
-    /// references to the edges.
-    public: const EdgeRef_M<EdgeType> IncidentsTo(const VertexId &_vertex)
-      const
+    /// references to the edges. An empty map is returned when the provided
+    /// vertex does not exist, or when there are no incoming edges.
+    public: const EdgeRef_M<EdgeType> IncidentsTo(
+                const VertexId &_vertex) const
     {
       EdgeRef_M<EdgeType> res;
 
@@ -377,14 +478,15 @@ namespace graph
     /// \brief Get the set of incoming edges to a given vertex.
     /// \param[in] _vertex The vertex.
     /// \return A map of edges, where keys are Ids and values are
-    /// references to the edges.
+    /// references to the edges. An empty map is returned when the provided
+    /// vertex does not exist, or when there are no incoming edges.
     public: const EdgeRef_M<EdgeType> IncidentsTo(const Vertex<V> &_vertex)
       const
     {
       return this->IncidentsTo(_vertex.Id());
     }
 
-    /// \brief Whether the graph is empty.
+    /// \brief Get whether the graph is empty.
     /// \return True when there are no vertices in the graph or
     /// false otherwise.
     public: bool Empty() const
@@ -447,17 +549,20 @@ namespace graph
     public: size_t RemoveVertices(const std::string &_name)
     {
       size_t numVertices = this->names.count(_name);
+      size_t result = 0;
       for (size_t i = 0; i < numVertices; ++i)
       {
         auto iter = this->names.find(_name);
-        this->RemoveVertex(iter->second);
+        if (this->RemoveVertex(iter->second))
+          ++result;
       }
 
-      return numVertices;
+      return result;
     }
 
     /// \brief Remove an existing edge from the graph. After the removal, it
-    /// won't be possible to reach any of the vertices from the edge.
+    /// won't be possible to reach any of the vertices from the edge, unless
+    /// there are other edges that connect the to vertices.
     /// \param[in] _edge Id of the edge to be removed.
     /// \return True when the edge was removed or false otherwise.
     public: bool RemoveEdge(const EdgeId &_edge)
@@ -485,7 +590,8 @@ namespace graph
     }
 
     /// \brief Remove an existing edge from the graph. After the removal, it
-    /// won't be possible to reach any of the vertices from the edge.
+    /// won't be possible to reach any of the vertices from the edge, unless
+    /// there are other edges that connect the to vertices.
     /// \param[in] _edge The edge to be removed.
     /// \return True when the edge was removed or false otherwise.
     public: bool RemoveEdge(EdgeType &_edge)
