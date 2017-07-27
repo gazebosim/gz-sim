@@ -353,8 +353,8 @@ TYPED_TEST(GraphTestFixture, AddVertex)
   v4.Data() = 20;
   for (auto const &vertexPair : vertices)
   {
-    auto &vertex = vertexPair.second.get();
-    EXPECT_NE(20, vertex.Data());
+    auto &v = vertexPair.second.get();
+    EXPECT_NE(20, v.Data());
   }
 }
 
