@@ -189,8 +189,8 @@ TYPED_TEST(GraphTestFixture, VertexFromId)
     // Create some vertices.
     auto &v0 = graph.AddVertex("0", 0, 0);
     EXPECT_EQ("0", v0.Name());
-    auto &v1 = graph.AddVertex("1", 1, 1);
-    auto &v2 = graph.AddVertex("2", 2, 2);
+    graph.AddVertex("1", 1, 1);
+    graph.AddVertex("2", 2, 2);
 
     auto v = graph.VertexFromId(v0.Id());
     EXPECT_EQ(v0.Id(), v.Id());

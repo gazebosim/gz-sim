@@ -248,11 +248,9 @@ namespace graph
         }
       }
 
-      // Note: the std::move here performs a copy.
-      auto ret = this->edges.insert(
-        std::make_pair(_edge.Id(), std::move(_edge)));
+      auto ret = this->edges.insert(std::make_pair(_edge.Id(), _edge));
 
-      // Return the new edge
+      // Return the new edge.
       return ret.first->second;
     }
 

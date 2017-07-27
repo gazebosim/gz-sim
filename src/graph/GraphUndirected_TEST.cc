@@ -362,7 +362,7 @@ TEST(UndirectedGraphTest, AddEdge)
 
   // Change some content and verity it.
   e2.Data() = 5.0;
-  e2.SetWeight(6.0) ;
+  e2.SetWeight(6.0);
   auto edge = graph.EdgeFromId(e2.Id());
   EXPECT_DOUBLE_EQ(5.0, edge.Data());
   EXPECT_DOUBLE_EQ(6.0, edge.Weight());
