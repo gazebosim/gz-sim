@@ -92,13 +92,6 @@ namespace graph
       return this->id;
     }
 
-    /// \brief Set a new edge Id.
-    /// \param[in] _newId The new edge Id.
-    public: void SetId(const EdgeId &_newId)
-    {
-      this->id = _newId;
-    }
-
     /// \brief Get the two vertices contained in the edge.
     /// \return The two vertices contained in the edge.
     public: VertexId_P Vertices() const
@@ -107,13 +100,6 @@ namespace graph
         return {kNullId, kNullId};
 
       return this->vertices;
-    }
-
-    /// \brief Set the new pair of vertices
-    /// \param[in] _vertices The new pair of vertices.
-    public: void SetVertices(const VertexId_P &_vertices)
-    {
-      this->vertices = _vertices;
     }
 
     /// \brief Get a non-mutable reference to the user data stored in the edge

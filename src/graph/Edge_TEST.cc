@@ -42,18 +42,14 @@ TYPED_TEST(EdgeTestFixture, Accessors)
 {
   {
     EdgeId id = 1;
-    EdgeId newId = 2;
     double weight = 2.0;
     double newWeight = 3.0;
     VertexId_P vertices = {0, 1};
-    VertexId_P newVertices = {2, 3};
     int data = 3;
     TypeParam edge(vertices, data, weight, id);
 
     // Id.
     EXPECT_EQ(id, edge.Id());
-    edge.SetId(newId);
-    EXPECT_EQ(newId, edge.Id());
 
     // Weight.
     EXPECT_DOUBLE_EQ(weight, edge.Weight());
@@ -62,8 +58,6 @@ TYPED_TEST(EdgeTestFixture, Accessors)
 
     // Vertices.
     EXPECT_EQ(vertices, edge.Vertices());
-    edge.SetVertices(newVertices);
-    EXPECT_EQ(newVertices, edge.Vertices());
 
     // Data.
     EXPECT_EQ(data, edge.Data());
