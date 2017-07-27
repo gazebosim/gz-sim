@@ -343,6 +343,14 @@ TYPED_TEST(GraphTestFixture, AddVertex)
 
   auto vertices = graph.Vertices();
   EXPECT_EQ(4u, vertices.size());
+
+  // Try to change data in v4 and verify that is not propagated into the graph.
+  v4.Data() = 4;
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    EXPECT_NE(4, vertex.Data());
+  }
 }
 
 /////////////////////////////////////////////////
