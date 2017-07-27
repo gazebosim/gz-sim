@@ -163,9 +163,8 @@ namespace graph
     /// vertex or kNullId otherwise.
     public: virtual VertexId To(const VertexId &_to) const = 0;
 
-    /// \brief Get if the edge is valid. An edge is valid if its linked in a
-    /// graph and its vertices are reachable.
-    /// \return True when the edge is valid or false otherwise (invalid Id).
+    /// \brief An edge is considered valid when its id is not kNullId.
+    /// \return Whether the edge is valid or not.
     public: bool Valid() const
     {
       return this->id != kNullId;
