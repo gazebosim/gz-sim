@@ -351,14 +351,21 @@ TEST(UndirectedGraphTest, AddEdge)
   });
 
   // Create some edges [(v0--v1), (v1--v2), (v2--v0)]
-  auto e0 = graph.AddEdge({0, 1}, 2.0);
-  auto e1 = graph.AddEdge({1, 2}, 3.0);
-  auto e2 = graph.AddEdge({2, 0}, 4.0);
+  auto &e0 = graph.AddEdge({0, 1}, 2.0);
+  auto &e1 = graph.AddEdge({1, 2}, 3.0);
+  auto &e2 = graph.AddEdge({2, 0}, 4.0);
 
   // Check the edge content.
   EXPECT_EQ(2.0, e0.Data());
   EXPECT_EQ(3.0, e1.Data());
   EXPECT_EQ(4.0, e2.Data());
+
+  // Change some content and verity it.
+  e2.Data() = 5.0;
+  e2.SetWeight(6.0) ;
+  auto edge = graph.EdgeFromId(e2.Id());
+  EXPECT_DOUBLE_EQ(5.0, edge.Data());
+  EXPECT_DOUBLE_EQ(6.0, edge.Weight());
 
   // Check that the edges point to the right vertices.
   EXPECT_EQ(0, e0.Vertices().first);
@@ -367,7 +374,7 @@ TEST(UndirectedGraphTest, AddEdge)
   EXPECT_EQ(3u, edges.size());
 
   // Try to add an edge with an incorrect tail.
-  auto edge = graph.AddEdge({kNullId, 1}, 2.0);
+  edge = graph.AddEdge({kNullId, 1}, 2.0);
   EXPECT_EQ(kNullId, edge.Id());
   EXPECT_EQ(3u, graph.Edges().size());
 

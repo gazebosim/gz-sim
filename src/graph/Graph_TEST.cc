@@ -187,10 +187,10 @@ TYPED_TEST(GraphTestFixture, VertexFromId)
     TypeParam graph;
 
     // Create some vertices.
-    auto v0 = graph.AddVertex("0", 0, 0);
+    auto &v0 = graph.AddVertex("0", 0, 0);
     EXPECT_EQ("0", v0.Name());
-    auto v1 = graph.AddVertex("1", 1, 1);
-    auto v2 = graph.AddVertex("2", 2, 2);
+    auto &v1 = graph.AddVertex("1", 1, 1);
+    auto &v2 = graph.AddVertex("2", 2, 2);
 
     auto v = graph.VertexFromId(v0.Id());
     EXPECT_EQ(v0.Id(), v.Id());
@@ -313,7 +313,7 @@ TYPED_TEST(GraphTestFixture, Empty)
   EXPECT_TRUE(graph.Empty());
 
   // Create a vertex.
-  auto v0 = graph.AddVertex("0", 0);
+  auto &v0 = graph.AddVertex("0", 0);
   ASSERT_TRUE(v0.Valid());
   EXPECT_FALSE(graph.Empty());
 }
@@ -324,32 +324,37 @@ TYPED_TEST(GraphTestFixture, AddVertex)
   TypeParam graph;
 
   // Create some vertices without Id.
-  auto v0 = graph.AddVertex("0", 0);
+  auto &v0 = graph.AddVertex("0", 0);
   EXPECT_TRUE(v0.Id() != kNullId);
-  auto v1 = graph.AddVertex("1", 1);
+  auto &v1 = graph.AddVertex("1", 1);
   EXPECT_TRUE(v1.Id() != kNullId);
-  auto v2 = graph.AddVertex("2", 2);
+  auto &v2 = graph.AddVertex("2", 2);
   EXPECT_TRUE(v2.Id() != kNullId);
 
   // Create a vertex with Id.
-  auto v3 = graph.AddVertex("3", 5, 3);
+  auto &v3 = graph.AddVertex("3", 5, 3);
   EXPECT_EQ(3, v3.Id());
   EXPECT_EQ(5, v3.Data());
   EXPECT_EQ("3", v3.Name());
 
   // Create a vertex with an already used Id.
-  auto v4 = graph.AddVertex("3", 0, 3);
+  auto &v4 = graph.AddVertex("3", 0, 3);
   ASSERT_TRUE(v4.Id() == kNullId);
 
   auto vertices = graph.Vertices();
   EXPECT_EQ(4u, vertices.size());
 
+  // Change data in v3 and verify that is propagated into the graph.
+  v3.Data() = 10;
+  auto &vertex = graph.VertexFromId(v3.Id());
+  EXPECT_EQ(10, vertex.Data());
+
   // Try to change data in v4 and verify that is not propagated into the graph.
-  v4.Data() = 4;
+  v4.Data() = 20;
   for (auto const &vertexPair : vertices)
   {
     auto &vertex = vertexPair.second.get();
-    EXPECT_NE(4, vertex.Data());
+    EXPECT_NE(20, vertex.Data());
   }
 }
 
