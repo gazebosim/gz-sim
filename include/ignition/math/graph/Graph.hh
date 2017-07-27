@@ -648,7 +648,7 @@ namespace graph
                                     const Graph<VV, EE, EEdgeType> &_g);
 
     /// \brief Get an available Id to be assigned to a new vertex.
-    /// \return The next available Id.
+    /// \return The next available Id or kNullId if there aren't ids available.
     private: VertexId &NextVertexId()
     {
       while (this->vertices.find(this->nextVertexId) != this->vertices.end()
@@ -661,7 +661,7 @@ namespace graph
     }
 
     /// \brief Get an available Id to be assigned to a new edge.
-    /// \return The next available Id.
+    /// \return The next available Id or kNullId if there aren't ids available.
     private: VertexId &NextEdgeId()
     {
       while (this->edges.find(this->nextEdgeId) != this->edges.end() &&
