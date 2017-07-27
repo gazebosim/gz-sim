@@ -19,6 +19,10 @@ It has the following build status:
 This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
 for testing with Linux.
 
+## Optional Dependencies
+
+    sudo apt-get install doxygen
+
 ## Installation
 
 Standard installation can be performed in UNIX systems using the following
