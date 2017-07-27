@@ -148,16 +148,18 @@ namespace graph
           return Vertex<V>::NullVertex;
         }
       }
-      // The user provided an Id but the Id already exists.
-      else if (this->vertices.find(id) != this->vertices.end())
+
+      // Create the vertex.
+      auto ret = this->vertices.insert(
+        std::make_pair(id, Vertex<V>(_name, _data, id)));
+
+      // The Id already exists.
+      if (!ret.second)
       {
         std::cerr << "[Graph::AddVertex()] Repeated vertex [" << id << "]"
                   << std::endl;
         return Vertex<V>::NullVertex;
       }
-
-      // Create the vertex.
-      this->vertices.insert(std::make_pair(id, Vertex<V>(_name, _data, id)));
 
       // Link the vertex with an empty list of edges.
       this->adjList[id] = EdgeId_S();
@@ -165,7 +167,7 @@ namespace graph
       // Update the map of names.
       this->names.insert(std::make_pair(_name, id));
 
-      return this->vertices.at(id);
+      return ret.first->second;
     }
 
     /// \brief The collection of all vertices in the graph.
@@ -247,10 +249,11 @@ namespace graph
       }
 
       // Note: the std::move here performs a copy.
-      this->edges.insert(std::make_pair(_edge.Id(), std::move(_edge)));
+      auto ret = this->edges.insert(
+        std::make_pair(_edge.Id(), std::move(_edge)));
 
       // Return the new edge
-      return this->edges.at(_edge.Id());
+      return ret.first->second;
     }
 
     /// \brief The collection of all edges in the graph.
