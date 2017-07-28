@@ -24,7 +24,6 @@ set (gtest_sources
   Angle_TEST.cc
   Box_TEST.cc
   Color_TEST.cc
-  Edge_TEST.cc
   Filter_TEST.cc
   Frustum_TEST.cc
   Helpers_TEST.cc
@@ -53,7 +52,6 @@ set (gtest_sources
   Vector3_TEST.cc
   Vector3Stats_TEST.cc
   Vector4_TEST.cc
-  Vertex_TEST.cc
 )
 
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
@@ -71,3 +69,6 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 
 ign_build_tests(${gtest_sources})
 ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
+
+# graph namespace
+add_subdirectory(graph)

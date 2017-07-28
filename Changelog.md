@@ -13,6 +13,8 @@
         * [Pull request 170](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/170)
     1. Added an Edge class:
         * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/174)
+    1. Added a Graph class:
+        * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
 
 ## Ignition Math 3.x
 

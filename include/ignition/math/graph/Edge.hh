@@ -45,7 +45,7 @@ namespace graph
     /// \param[in] _data The data stored in the edge.
     /// \param[in] _weight The weight (cost) of the edge.
     EdgeInitializer(const VertexId_P &_vertices,
-                    const E &_data,
+                    const E &_data = E(),
                     const double _weight = 1)
       : vertices(_vertices),
         data(_data),
@@ -92,13 +92,6 @@ namespace graph
       return this->id;
     }
 
-    /// \brief Set a new edge Id.
-    /// \param[in] _newId The new edge Id.
-    public: void SetId(const EdgeId &_newId)
-    {
-      this->id = _newId;
-    }
-
     /// \brief Get the two vertices contained in the edge.
     /// \return The two vertices contained in the edge.
     public: VertexId_P Vertices() const
@@ -107,13 +100,6 @@ namespace graph
         return {kNullId, kNullId};
 
       return this->vertices;
-    }
-
-    /// \brief Set the new pair of vertices
-    /// \param[in] _vertices The new pair of vertices.
-    public: void SetVertices(const VertexId_P &_vertices)
-    {
-      this->vertices = _vertices;
     }
 
     /// \brief Get a non-mutable reference to the user data stored in the edge
@@ -177,9 +163,8 @@ namespace graph
     /// vertex or kNullId otherwise.
     public: virtual VertexId To(const VertexId &_to) const = 0;
 
-    /// \brief Get if the edge is valid. An edge is valid if its linked in a
-    /// graph and its vertices are reachable.
-    /// \return True when the edge is valid or false otherwise (invalid Id).
+    /// \brief An edge is considered valid when its id is not kNullId.
+    /// \return Whether the edge is valid or not.
     public: bool Valid() const
     {
       return this->id != kNullId;
@@ -270,7 +255,7 @@ namespace graph
   /// \brief An invalid undirected edge.
   template<typename E>
   UndirectedEdge<E> UndirectedEdge<E>::NullEdge(
-    kNullId, {kNullId, kNullId}, E(), 1.0);
+    VertexId_P(kNullId, kNullId), E(), 1.0, kNullId);
 
   /// \brief A directed edge represents a connection between two vertices.
   /// The conection is unidirectional, it's only possible to traverse the edge
@@ -345,7 +330,7 @@ namespace graph
   /// \brief An invalid directed edge.
   template<typename E>
   DirectedEdge<E> DirectedEdge<E>::NullEdge(
-    kNullId, {kNullId, kNullId}, E(), 1.0);
+    VertexId_P(kNullId, kNullId), E(), 1.0, kNullId);
 }
 }
 }
