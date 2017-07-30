@@ -6,6 +6,7 @@ set (sources
 set (gtest_sources
   Edge_TEST.cc
   Graph_TEST.cc
+  GraphAlgorithms_TEST.cc
   GraphDirected_TEST.cc
   GraphUndirected_TEST.cc
   Vertex_TEST.cc

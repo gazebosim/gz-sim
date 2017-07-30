@@ -20,6 +20,7 @@
 #include <string>
 
 #include "ignition/math/graph/Graph.hh"
+#include "ignition/math/graph/GraphAlgorithms.hh"
 
 using namespace ignition;
 using namespace math;
