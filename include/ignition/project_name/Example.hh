@@ -15,20 +15,20 @@
  *
 */
 
-#ifndef IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
-#define IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
+#ifndef IGNITION_PROJECT_NAME_EXAMPLE_HH_
+#define IGNITION_PROJECT_NAME_EXAMPLE_HH_
 
-#include "ignition/<project-name>/System.hh"
+#include "ignition/project_name/System.hh"
 
 namespace ignition
 {
-  namespace <project-name>
+  namespace project_name
   {
     /// \brief Example class
-    class IGNITION_<PROJECT-NAME>_VISIBLE Example
+    class IGNITION_PROJECT_NAME_VISIBLE Example
     {
       /// \brief Constructor
-      public: Example() = default;
+      public: Example();
     };
   }
 }

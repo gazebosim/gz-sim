@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/<project-name>/Example.hh"
+#include "ignition/project_name/Example.hh"
 
 using namespace ignition;
-using namespace <project-name>;
+using namespace project_name;
 
 /////////////////////////////////////////////////
 TEST(ExampleTest, Example)

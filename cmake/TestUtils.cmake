@@ -23,12 +23,12 @@ macro (ign_build_tests)
          libgtest_main.a
          libgtest.a
          pthread
-	       ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
+	       ${PROJECT_NAME_LOWER})
     elseif(WIN32)
       target_link_libraries(${BINARY_NAME}
          gtest.lib
          gtest_main.lib
-         ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}.lib)
+         ${PROJECT_NAME_LOWER}.lib)
     else()
        message(FATAL_ERROR "Unsupported platform")
     endif()
@@ -37,6 +37,10 @@ macro (ign_build_tests)
 	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
     set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
+
+    target_include_directories(${BINARY_NAME}
+      PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+             $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR_FULL}>)
 
     if(PYTHONINTERP_FOUND)
       # Check that the test produced a result and create a failure if it didn't.

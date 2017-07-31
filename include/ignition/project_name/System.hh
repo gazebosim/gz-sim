@@ -14,47 +14,47 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_<PROJECT-NAME>_SYSTEM_HH_
-#define IGNITION_<PROJECT-NAME>_SYSTEM_HH_
+#ifndef IGNITION_PROJECT_NAME_SYSTEM_HH_
+#define IGNITION_PROJECT_NAME_SYSTEM_HH_
 
 #if defined(__GNUC__)
-#define IGNITION_<PROJECT-NAME>_DEPRECATED(version) __attribute__((deprecated))
-#define IGNITION_<PROJECT-NAME>_FORCEINLINE __attribute__((always_inline))
+#define IGNITION_PROJECT_NAME_DEPRECATED(version) __attribute__((deprecated))
+#define IGNITION_PROJECT_NAME_FORCEINLINE __attribute__((always_inline))
 #elif defined(_WIN32)
-#define IGNITION_<PROJECT-NAME>_DEPRECATED(version) ()
-#define IGNITION_<PROJECT-NAME>_FORCEINLINE __forceinline
+#define IGNITION_PROJECT_NAME_DEPRECATED(version) ()
+#define IGNITION_PROJECT_NAME_FORCEINLINE __forceinline
 #else
-#define IGNITION_<PROJECT-NAME>_DEPRECATED(version) ()
-#define IGNITION_<PROJECT-NAME>_FORCEINLINE
+#define IGNITION_PROJECT_NAME_DEPRECATED(version) ()
+#define IGNITION_PROJECT_NAME_FORCEINLINE
 #endif
 
-/// \def IGNITION_<PROJECT-NAME>_VISIBLE
+/// \def IGNITION_PROJECT_NAME_VISIBLE
 /// Use to represent "symbol visible" if supported
 
-/// \def IGNITION_<PROJECT-NAME>_HIDDEN
+/// \def IGNITION_PROJECT_NAME_HIDDEN
 /// Use to represent "symbol hidden" if supported
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
     #ifdef __GNUC__
-      #define IGNITION_<PROJECT-NAME>_VISIBLE __attribute__ ((dllexport))
+      #define IGNITION_PROJECT_NAME_VISIBLE __attribute__ ((dllexport))
     #else
-      #define IGNITION_<PROJECT-NAME>_VISIBLE __declspec(dllexport)
+      #define IGNITION_PROJECT_NAME_VISIBLE __declspec(dllexport)
     #endif
   #else
     #ifdef __GNUC__
-      #define IGNITION_<PROJECT-NAME>_VISIBLE __attribute__ ((dllimport))
+      #define IGNITION_PROJECT_NAME_VISIBLE __attribute__ ((dllimport))
     #else
-      #define IGNITION_<PROJECT-NAME>_VISIBLE __declspec(dllimport)
+      #define IGNITION_PROJECT_NAME_VISIBLE __declspec(dllimport)
     #endif
   #endif
-  #define IGNITION_<PROJECT-NAME>_HIDDEN
+  #define IGNITION_PROJECT_NAME_HIDDEN
 #else
   #if __GNUC__ >= 4
-    #define IGNITION_<PROJECT-NAME>_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_<PROJECT-NAME>_HIDDEN  __attribute__ ((visibility ("hidden")))
+    #define IGNITION_PROJECT_NAME_VISIBLE __attribute__ ((visibility ("default")))
+    #define IGNITION_PROJECT_NAME_HIDDEN  __attribute__ ((visibility ("hidden")))
   #else
-    #define IGNITION_<PROJECT-NAME>_VISIBLE
-    #define IGNITION_<PROJECT-NAME>_HIDDEN
+    #define IGNITION_PROJECT_NAME_VISIBLE
+    #define IGNITION_PROJECT_NAME_HIDDEN
   #endif
 #endif
 
