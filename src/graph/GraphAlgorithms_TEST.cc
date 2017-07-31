@@ -290,15 +290,15 @@ TEST(GraphTestFixture, DijkstraUndirected)
   });
 
   // Inexistent source vertex.
-  auto res = dijkstra(graph, 99);
+  auto res = Dijkstra(graph, 99);
   EXPECT_TRUE(res.empty());
 
   // Inexistent destination vertex.
-  res = dijkstra(graph, 0, 99);
+  res = Dijkstra(graph, 0, 99);
   EXPECT_TRUE(res.empty());
 
   // Calculate all shortest paths from 0.
-  res = dijkstra(graph, 0);
+  res = Dijkstra(graph, 0);
 
   ASSERT_NE(res.end(), res.find(0));
   EXPECT_EQ(0, res.at(0).first);
@@ -317,7 +317,7 @@ TEST(GraphTestFixture, DijkstraUndirected)
   EXPECT_EQ(3, res.at(4).second);
 
   // Calculate the shortest path between 0 and 1.
-  res = dijkstra(graph, 0, 1);
+  res = Dijkstra(graph, 0, 1);
 
   ASSERT_NE(res.end(), res.find(1));
   EXPECT_EQ(3, res.at(1).first);
@@ -339,15 +339,15 @@ TEST(GraphTestFixture, DijkstraDirected)
   });
 
   // Inexistent source vertex.
-  auto res = dijkstra(graph, 99);
+  auto res = Dijkstra(graph, 99);
   EXPECT_TRUE(res.empty());
 
   // Inexistent destination vertex.
-  res = dijkstra(graph, 0, 99);
+  res = Dijkstra(graph, 0, 99);
   EXPECT_TRUE(res.empty());
 
   // Calculate all shortest paths from 0.
-  res = dijkstra(graph, 0);
+  res = Dijkstra(graph, 0);
 
   ASSERT_NE(res.end(), res.find(0));
   EXPECT_EQ(0, res.at(0).first);
@@ -366,7 +366,7 @@ TEST(GraphTestFixture, DijkstraDirected)
   EXPECT_EQ(3, res.at(4).second);
 
   // Calculate the shortest path between 0 and 1.
-  res = dijkstra(graph, 0, 1);
+  res = Dijkstra(graph, 0, 1);
 
   ASSERT_NE(res.end(), res.find(1));
   EXPECT_EQ(6, res.at(1).first);

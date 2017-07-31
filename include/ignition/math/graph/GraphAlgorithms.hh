@@ -248,7 +248,7 @@ namespace graph
   /// |  4  |ignore|     ignore      |
   /// ================================
   template<typename V, typename E, typename EdgeType>
-  std::map<VertexId, CostInfo> dijkstra(const Graph<V, E, EdgeType> &_graph,
+  std::map<VertexId, CostInfo> Dijkstra(const Graph<V, E, EdgeType> &_graph,
                                         const VertexId &_from,
                                         const VertexId &_to = kNullId)
   {
