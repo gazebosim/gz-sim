@@ -67,6 +67,10 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR_FULL}>)
 
+# For including generated header config.hh
+include_directories(${PROJECT_LIBRARY_TARGET_NAME}
+  ${CMAKE_BINARY_DIR}/include)
+
 ign_build_tests(${gtest_sources})
 ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
 

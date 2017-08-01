@@ -17,8 +17,8 @@
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"
 
-using namespace ignition;
-using namespace math;
+namespace ignmath = ignition::math::IGNITION_MATH_VERSION_NAMESPACE;
+using namespace ignmath;
 
 const Angle Angle::Zero = math::Angle(0);
 const Angle Angle::Pi = math::Angle(IGN_PI);

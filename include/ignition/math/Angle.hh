@@ -18,6 +18,7 @@
 #define IGNITION_MATH_ANGLE_HH_
 
 #include <iostream>
+#include <ignition/math/config.hh>
 #include <ignition/math/Helpers.hh>
 
 /// \brief Macro that converts radians to degrees
@@ -39,6 +40,8 @@ namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Angle Angle.hh ignition/math/Angle.hh
     /// \brief An angle and related functions.
     class IGNITION_VISIBLE Angle
@@ -197,6 +200,7 @@ namespace ignition
       /// The angle in radians
       private: double value;
     };
+    }
   }
 }
 
