@@ -1,5 +1,6 @@
 include (${project_cmake_dir}/Utils.cmake)
 
+set (ign_headers "" CACHE INTERNAL "Ignition math headers" FORCE)
 set (headers
   Angle.hh
   Box.hh
@@ -34,8 +35,8 @@ set (headers
   Vector3Stats.hh
   Vector4.hh
 )
+add_subdirectory(graph)
 
-set (ign_headers "" CACHE INTERNAL "Ignition math headers" FORCE)
 foreach (hdr ${headers})
   APPEND_TO_CACHED_STRING(ign_headers
     "Ignition math headers" "#include <ignition/math/${hdr}>\n")

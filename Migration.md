@@ -5,6 +5,13 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Math 3.X to 4.X
+
+### Modifications
+
+1. **Box.hh**
+    + Boxes generated with the default constructor do not intersect any other
+    boxes or contain any points (previously they contained the origin).
 
 ## Ignition Math 2.X to 3.X
 
