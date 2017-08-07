@@ -41,7 +41,7 @@ namespace graph
   using CostInfo = std::pair<double, VertexId>;
 
   /// \brief Breadth first sort (BFS).
-  /// Starting from the node == _from, it traverses the graph exploring the
+  /// Starting from the vertex == _from, it traverses the graph exploring the
   /// neighbors first, before moving to the next level neighbors.
   /// \param[in] _graph A graph.
   /// \param[in] _from The starting vertex.
@@ -75,52 +75,12 @@ namespace graph
     return visited;
   }
 
-  /// \brief Finds a vertex using breadth first search (BFS).
-  /// Starting from the node == _root, it visits the graph exploring the
-  /// neighbors first, before moving to the next level neighbors or
-  /// until `_dst` is found.
-  /// \param[in] _graph A graph.
-  /// \param[in] _root The starting vertex.
-  /// \param[in] _dst The destination vertex.
-  /// \return True when the destination is found or false otherwise.
-  template<typename V, typename E, typename EdgeType>
-  bool FindBF(const Graph<V, E, EdgeType> &_graph,
-              const VertexId &_root,
-              const VertexId &_dst)
-  {
-    std::vector<VertexId> visited;
-    std::list<VertexId> pending = {_root};
-
-    while (!pending.empty())
-    {
-      auto v = pending.front();
-      if (v == _dst)
-        return true;
-      pending.pop_front();
-
-      // The vertex hasn't been visited yet.
-      if (std::find(visited.begin(), visited.end(), v) == visited.end())
-        visited.push_back(v);
-
-      // Add more vertices to visit if they haven't been visited yet.
-      auto adjacents = _graph.AdjacentsFrom(v);
-      for (auto const &adj : adjacents)
-      {
-        v = adj.first;
-        if (std::find(visited.begin(), visited.end(), v) == visited.end())
-          pending.push_back(v);
-      }
-    }
-
-    return false;
-  }
-
   /// \brief Depth first sort (DFS).
-  /// Starting from the node == _root, it visits the graph as far as
+  /// Starting from the vertex == _root, it visits the graph as far as
   /// possible along each branch before backtracking.
   /// \param[in] _graph A graph.
   /// \param[in] _root The starting vertex.
-  /// \return The vector of vertices Ids visited.
+  /// \return The vector of vertices Ids visited in a depth first manner.
   template<typename V, typename E, typename EdgeType>
   std::vector<VertexId> DepthFirstSort(const Graph<V, E, EdgeType> &_graph,
                                        const VertexId &_root)
@@ -150,49 +110,10 @@ namespace graph
     return visited;
   }
 
-  /// \brief Finds a vertex using depth first search (DFS).
-  /// Starting from the node == _root, it visits the graph as far as
-  /// possible along each branch before backtracking or until `_dst` is found.
-  /// \param[in] _graph A graph.
-  /// \param[in] _root The starting vertex.
-  /// \param[in] _dst The destination vertex.
-  /// \return True when the destination is found or false otherwise.
-  template<typename V, typename E, typename EdgeType>
-  bool FindDF(const Graph<V, E, EdgeType> &_graph,
-              const VertexId &_root,
-              const VertexId &_dst)
-  {
-    std::vector<VertexId> visited;
-    std::stack<VertexId> pending({_root});
-
-    while (!pending.empty())
-    {
-      auto v = pending.top();
-      if (v == _dst)
-        return true;
-      pending.pop();
-
-      // The vertex hasn't been visited yet.
-      if (std::find(visited.begin(), visited.end(), v) == visited.end())
-        visited.push_back(v);
-
-      // Add more vertices to visit if they haven't been visited yet.
-      auto adjacents = _graph.AdjacentsFrom(v);
-      for (auto const &adj : adjacents)
-      {
-        v = adj.first;
-        if (std::find(visited.begin(), visited.end(), v) == visited.end())
-          pending.push(v);
-      }
-    }
-
-    return false;
-  }
-
   /// \brief Dijkstra algorithm.
-  /// Find the shortest path between the nodes in a graph.
+  /// Find the shortest path between the vertices in a graph.
   /// If only a graph and a source vertex is provided, the algorithm will
-  /// find shortest paths from the source vertex to all other nodes in the
+  /// find shortest paths from the source vertex to all other vertices in the
   /// graph. If an additional destination vertex is provided, the algorithm
   /// will stop when the shortest path is found between the source and
   /// destination vertex.
@@ -205,8 +126,8 @@ namespace graph
   /// shortest path.
   /// Note: In the case of providing a destination vertex, only the entry in the
   /// map with key = _to should be used. The rest of the map may contain
-  /// incomplete information. If you want all shortest paths to all other nodes,
-  /// please remove the destination vertex.
+  /// incomplete information. If you want all shortest paths to all other
+  /// vertices, please remove the destination vertex.
   /// If the source or destination vertex don't exist, the function will return
   /// an empty map.
   ///
