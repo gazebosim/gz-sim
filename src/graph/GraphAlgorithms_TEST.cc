@@ -148,7 +148,7 @@ TEST(GraphTestFixture, FindBFUndirected)
 }
 
 /////////////////////////////////////////////////
-TEST(GraphTest, DFSDirected)
+TEST(GraphTest, DepthFirstSortDirected)
 {
   DirectedGraph<int, double> graph(
   {
@@ -160,13 +160,13 @@ TEST(GraphTest, DFSDirected)
      {{1, 5}, 3.0}, {{2, 6}, 4.0}, {{5, 4}, 2.0}}
   });
 
-  auto res = DFS(graph, 0);
+  auto res = DepthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 4, 2, 6, 1, 5, 3};
   EXPECT_EQ(res, expected);
 }
 
 /////////////////////////////////////////////////
-TEST(UndirectedGraphTest, DFSUndirected)
+TEST(UndirectedGraphTest, DepthFirstSortUndirected)
 {
   UndirectedGraph<int, double> graph(
   {
@@ -178,7 +178,7 @@ TEST(UndirectedGraphTest, DFSUndirected)
      {{1, 5}, 3.0}, {{2, 6}, 4.0}, {{5, 4}, 2.0}}
   });
 
-  auto res = DFS(graph, 0);
+  auto res = DepthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 4, 5, 1, 3, 2, 6};
   EXPECT_EQ(res, expected);
 }

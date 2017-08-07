@@ -115,15 +115,15 @@ namespace graph
     return false;
   }
 
-  /// \brief Depth first search (DFS).
+  /// \brief Depth first sort (DFS).
   /// Starting from the node == _root, it visits the graph as far as
   /// possible along each branch before backtracking.
   /// \param[in] _graph A graph.
   /// \param[in] _root The starting vertex.
   /// \return The vector of vertices Ids visited.
   template<typename V, typename E, typename EdgeType>
-  std::vector<VertexId> DFS(const Graph<V, E, EdgeType> &_graph,
-                            const VertexId &_root)
+  std::vector<VertexId> DepthFirstSort(const Graph<V, E, EdgeType> &_graph,
+                                       const VertexId &_root)
   {
     std::vector<VertexId> visited;
     std::stack<VertexId> pending({_root});
