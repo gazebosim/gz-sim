@@ -40,15 +40,15 @@ namespace graph
   /// the cost (first element) to reach a destination vertex (second element).
   using CostInfo = std::pair<double, VertexId>;
 
-  /// \brief Breadth first search (BFS).
+  /// \brief Breadth first sort (BFS).
   /// Starting from the node == _from, it traverses the graph exploring the
   /// neighbors first, before moving to the next level neighbors.
   /// \param[in] _graph A graph.
   /// \param[in] _from The starting vertex.
-  /// \return The vector of vertices Ids traversed.
+  /// \return The vector of vertices Ids traversed in a breadth first manner.
   template<typename V, typename E, typename EdgeType>
-  std::vector<VertexId> BFS(const Graph<V, E, EdgeType> &_graph,
-                            const VertexId &_from)
+  std::vector<VertexId> BreadthFirstSort(const Graph<V, E, EdgeType> &_graph,
+                                         const VertexId &_from)
   {
     std::vector<VertexId> visited;
     std::list<VertexId> pending = {_from};

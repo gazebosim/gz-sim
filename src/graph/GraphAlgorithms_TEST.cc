@@ -37,7 +37,7 @@ using GraphTypes = ::testing::Types<DirectedGraph<int, double>,
 TYPED_TEST_CASE(GraphTestFixture, GraphTypes);
 
 /////////////////////////////////////////////////
-TYPED_TEST(GraphTestFixture, BFS)
+TYPED_TEST(GraphTestFixture, BreadthFirstSort)
 {
   TypeParam graph(
   {
@@ -50,7 +50,7 @@ TYPED_TEST(GraphTestFixture, BFS)
      {{5, 4}, 2.0}}
   });
 
-  auto res = BFS(graph, 0);
+  auto res = BreadthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 1, 2, 4, 3, 5, 6};
   EXPECT_EQ(res, expected);
 }
