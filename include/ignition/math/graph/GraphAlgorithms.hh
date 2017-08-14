@@ -50,25 +50,42 @@ namespace graph
   std::vector<VertexId> BreadthFirstSort(const Graph<V, E, EdgeType> &_graph,
                                          const VertexId &_from)
   {
+    // Create an auxiliary graph, where the data is just a boolean value that
+    // stores whether the vertex has been visited or not.
+    Graph<bool, E, EdgeType> visitorGraph;
+
+    // Copy the vertices (just the Id).
+    for (auto const &v : _graph.Vertices())
+      visitorGraph.AddVertex("", false, v.first);
+
+    // Copy the edges (without data).
+    for (auto const &e : _graph.Edges())
+      visitorGraph.AddEdge(e.second.get().Vertices(), E());
+
     std::vector<VertexId> visited;
     std::list<VertexId> pending = {_from};
 
     while (!pending.empty())
     {
-      auto v = pending.front();
+      auto vId = pending.front();
       pending.pop_front();
 
-      // The vertex hasn't been visited yet.
-      if (std::find(visited.begin(), visited.end(), v) == visited.end())
-        visited.push_back(v);
+      // The vertex has been visited yet.
+      if (std::find(visited.begin(), visited.end(), vId) != visited.end())
+        continue;
+
+      visited.push_back(vId);
+      auto &vertex = visitorGraph.VertexFromId(vId);
+      vertex.Data() = true;
 
       // Add more vertices to visit if they haven't been visited yet.
-      auto adjacents = _graph.AdjacentsFrom(v);
+      auto adjacents = visitorGraph.AdjacentsFrom(vId);
       for (auto const &adj : adjacents)
       {
-        v = adj.first;
-        if (std::find(visited.begin(), visited.end(), v) == visited.end())
-          pending.push_back(v);
+        vId = adj.first;
+        auto &vertex = adj.second.get();
+        if (!vertex.Data())
+          pending.push_back(vId);
       }
     }
 
@@ -94,8 +111,10 @@ namespace graph
       pending.pop();
 
       // The vertex hasn't been visited yet.
-      if (std::find(visited.begin(), visited.end(), v) == visited.end())
-        visited.push_back(v);
+      if (std::find(visited.begin(), visited.end(), v) != visited.end())
+        continue;
+
+      visited.push_back(v);
 
       // Add more vertices to visit if they haven't been visited yet.
       auto adjacents = _graph.AdjacentsFrom(v);

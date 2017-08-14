@@ -52,7 +52,7 @@ TYPED_TEST(GraphTestFixture, BreadthFirstSort)
 
   auto res = BreadthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 1, 2, 4, 3, 5, 6};
-  EXPECT_EQ(res, expected);
+  EXPECT_EQ(expected, res);
 }
 
 /////////////////////////////////////////////////
@@ -70,7 +70,7 @@ TEST(GraphTest, DepthFirstSortDirected)
 
   auto res = DepthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 4, 2, 6, 1, 5, 3};
-  EXPECT_EQ(res, expected);
+  EXPECT_EQ(expected, res);
 }
 
 /////////////////////////////////////////////////
@@ -88,7 +88,7 @@ TEST(UndirectedGraphTest, DepthFirstSortUndirected)
 
   auto res = DepthFirstSort(graph, 0);
   std::vector<VertexId> expected = {0, 4, 5, 1, 3, 2, 6};
-  EXPECT_EQ(res, expected);
+  EXPECT_EQ(expected, res);
 }
 
 /////////////////////////////////////////////////
