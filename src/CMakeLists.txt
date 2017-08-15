@@ -58,9 +58,9 @@ ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
 # When the minimum CMake required version will be >= 3.1
 # we could use the target_compile_features() command
-# to enable C++11 support in a platform-independent way.
+# to enable C++14 support in a platform-independent way.
 if(NOT MSVC)
-    target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++11")
+    target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++14")
 endif()
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
