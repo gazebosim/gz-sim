@@ -23,11 +23,14 @@
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     class SphericalCoordinatesPrivate;
 
     /// \class SphericalCoordinates SphericalCoordinates.hh commmon/common.hh
@@ -227,6 +230,7 @@ namespace ignition
 #endif
     };
     /// \}
+    }
   }
 }
 #endif

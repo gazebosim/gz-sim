@@ -18,8 +18,8 @@
 #define IGNITION_MATH_ANGLE_HH_
 
 #include <iostream>
-#include <ignition/math/config.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 /// \brief Macro that converts radians to degrees
 /// \param[in] radians

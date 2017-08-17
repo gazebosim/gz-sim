@@ -18,11 +18,14 @@
 #define IGNITION_MATH_ROTATIONSPLINE_HH_
 
 #include <ignition/math/Quaternion.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     // Forward declare private data
     class RotationSplinePrivate;
 
@@ -115,6 +118,7 @@ namespace ignition
       /// \brief Private data pointer
       private: RotationSplinePrivate *dataPtr;
     };
+    }
   }
 }
 

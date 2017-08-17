@@ -19,11 +19,14 @@
 
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
@@ -546,6 +549,7 @@ namespace ignition
     typedef Vector4<int> Vector4i;
     typedef Vector4<double> Vector4d;
     typedef Vector4<float> Vector4f;
+    }
   }
 }
 #endif

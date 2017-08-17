@@ -21,11 +21,14 @@
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Matrix3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     template <typename T> class Matrix3;
 
     /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
@@ -1068,6 +1071,7 @@ namespace ignition
     typedef Quaternion<double> Quaterniond;
     typedef Quaternion<float> Quaternionf;
     typedef Quaternion<int> Quaternioni;
+    }
   }
 }
 #endif

@@ -22,11 +22,14 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector4.hh>
 #include <ignition/math/Matrix4.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \brief Control point representation for
     /// polynomial interpolation, defined in terms
     /// of arbitrary m derivatives at such point.
@@ -196,6 +199,7 @@ namespace ignition
       // \brief spline arc length.
       public: double arcLength;
     };
+    }
   }
 }
 

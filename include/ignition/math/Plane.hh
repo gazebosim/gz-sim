@@ -20,11 +20,14 @@
 #include <ignition/math/Box.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector2.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Plane Plane.hh ignition/math/Plane.hh
     /// \brief A plane and related functions.
     template<typename T>
@@ -225,6 +228,7 @@ namespace ignition
     typedef Plane<int> Planei;
     typedef Plane<double> Planed;
     typedef Plane<float> Planef;
+    }
   }
 }
 
