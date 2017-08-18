@@ -70,12 +70,12 @@ namespace graph
       auto vId = pending.front();
       pending.pop_front();
 
-      // The vertex has been visited yet.
-      if (std::find(visited.begin(), visited.end(), vId) != visited.end())
+      // If the vertex has been visited, skip.
+      auto &vertex = visitorGraph.VertexFromId(vId);
+      if (vertex.Data())
         continue;
 
       visited.push_back(vId);
-      auto &vertex = visitorGraph.VertexFromId(vId);
       vertex.Data() = true;
 
       // Add more vertices to visit if they haven't been visited yet.
@@ -83,8 +83,8 @@ namespace graph
       for (auto const &adj : adjacents)
       {
         vId = adj.first;
-        auto &vertex = adj.second.get();
-        if (!vertex.Data())
+        auto &v = adj.second.get();
+        if (!v.Data())
           pending.push_back(vId);
       }
     }
@@ -93,36 +93,51 @@ namespace graph
   }
 
   /// \brief Depth first sort (DFS).
-  /// Starting from the vertex == _root, it visits the graph as far as
+  /// Starting from the vertex == _from, it visits the graph as far as
   /// possible along each branch before backtracking.
   /// \param[in] _graph A graph.
-  /// \param[in] _root The starting vertex.
+  /// \param[in] _from The starting vertex.
   /// \return The vector of vertices Ids visited in a depth first manner.
   template<typename V, typename E, typename EdgeType>
   std::vector<VertexId> DepthFirstSort(const Graph<V, E, EdgeType> &_graph,
-                                       const VertexId &_root)
+                                       const VertexId &_from)
   {
+    // Create an auxiliary graph, where the data is just a boolean value that
+    // stores whether the vertex has been visited or not.
+    Graph<bool, E, EdgeType> visitorGraph;
+
+    // Copy the vertices (just the Id).
+    for (auto const &v : _graph.Vertices())
+      visitorGraph.AddVertex("", false, v.first);
+
+    // Copy the edges (without data).
+    for (auto const &e : _graph.Edges())
+      visitorGraph.AddEdge(e.second.get().Vertices(), E());
+
     std::vector<VertexId> visited;
-    std::stack<VertexId> pending({_root});
+    std::stack<VertexId> pending({_from});
 
     while (!pending.empty())
     {
-      auto v = pending.top();
+      auto vId = pending.top();
       pending.pop();
 
-      // The vertex hasn't been visited yet.
-      if (std::find(visited.begin(), visited.end(), v) != visited.end())
+      // If the vertex has been visited, skip.
+      auto &vertex = visitorGraph.VertexFromId(vId);
+      if (vertex.Data())
         continue;
 
-      visited.push_back(v);
+      visited.push_back(vId);
+      vertex.Data() = true;
 
       // Add more vertices to visit if they haven't been visited yet.
-      auto adjacents = _graph.AdjacentsFrom(v);
+      auto adjacents = visitorGraph.AdjacentsFrom(vId);
       for (auto const &adj : adjacents)
       {
-        v = adj.first;
-        if (std::find(visited.begin(), visited.end(), v) == visited.end())
-          pending.push(v);
+        vId = adj.first;
+        auto &v = adj.second.get();
+        if (!v.Data())
+          pending.push(vId);
       }
     }
 
@@ -255,7 +270,6 @@ namespace graph
 
     return dist;
   }
-
 }
 }
 }
