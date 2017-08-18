@@ -17,7 +17,6 @@
 #ifndef IGNITION_MATH_GRAPH_GRAPHALGORITHMS_HH_
 #define IGNITION_MATH_GRAPH_GRAPHALGORITHMS_HH_
 
-#include <algorithm>
 #include <functional>
 #include <list>
 #include <map>
