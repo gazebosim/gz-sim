@@ -3,6 +3,7 @@ include (${project_cmake_dir}/Utils.cmake)
 set (headers
   Edge.hh
   Graph.hh
+  GraphAlgorithms.hh
   Vertex.hh
 )
 
