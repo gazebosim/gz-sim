@@ -12,6 +12,7 @@ pipelines:
           - apt-get update
           - apt-get -y install cmake
           - gcc -v
+          - g++ -v
           - mkdir build
           - cd build
           - cmake ..
