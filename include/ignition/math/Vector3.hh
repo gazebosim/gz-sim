@@ -614,7 +614,7 @@ namespace ignition
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z.
       /// The index is clamped to the range [0,2].
       /// \return The value.
-      public: const T &operator[](const std::size_t _index) const
+      public: T operator[](const std::size_t _index) const
       {
         return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
