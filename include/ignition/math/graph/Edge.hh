@@ -259,7 +259,7 @@ namespace graph
 
   /// \brief A directed edge represents a connection between two vertices.
   /// The conection is unidirectional, it's only possible to traverse the edge
-  /// in one direction (from the first vertex to the second vertex).
+  /// in one direction (from the tail to the head).
   template<typename E>
   class DirectedEdge : public Edge<E>
   {
