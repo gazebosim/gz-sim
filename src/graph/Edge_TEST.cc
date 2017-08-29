@@ -125,12 +125,15 @@ TEST(EdgeTest, FromToDirected)
     int data = 3;
     DirectedEdge<int> edge(vertices, data, weight, id);
 
-    EXPECT_EQ(1, edge.From(0));
-    EXPECT_EQ(0, edge.To(1));
+    EXPECT_EQ(0, edge.Tail());
+    EXPECT_EQ(1, edge.Head());
+
+    EXPECT_EQ(edge.Head(), edge.From(edge.Tail()));
+    EXPECT_EQ(edge.Tail(), edge.To(edge.Head()));
 
     // It's a directed edge, you cannot go in this direction.
-    EXPECT_EQ(kNullId, edge.From(1));
-    EXPECT_EQ(kNullId, edge.To(0));
+    EXPECT_EQ(kNullId, edge.From(edge.Head()));
+    EXPECT_EQ(kNullId, edge.To(edge.Tail()));
 
     // The Id doesn't exit.
     EXPECT_EQ(kNullId, edge.From(99));
@@ -145,10 +148,10 @@ TEST(EdgeTest, FromToDirected)
     // The edge is not valid because the Id == kNullId.
     EXPECT_FALSE(edge.Valid());
 
-    EXPECT_EQ(kNullId, edge.From(0));
-    EXPECT_EQ(kNullId, edge.To(1));
-    EXPECT_EQ(kNullId, edge.From(1));
-    EXPECT_EQ(kNullId, edge.To(0));
+    EXPECT_EQ(kNullId, edge.From(edge.Tail()));
+    EXPECT_EQ(kNullId, edge.To(edge.Head()));
+    EXPECT_EQ(kNullId, edge.From(edge.Head()));
+    EXPECT_EQ(kNullId, edge.To(edge.Tail()));
   }
 }
 
