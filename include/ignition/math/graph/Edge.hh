@@ -195,7 +195,7 @@ namespace graph
   using EdgeRef_M = std::map<EdgeId, std::reference_wrapper<const EdgeType>>;
 
   /// \brief An undirected edge represents a connection between two vertices.
-  /// The conection is bidirectional, it's possible to traverse the edge
+  /// The connection is bidirectional, it's possible to traverse the edge
   /// in both directions.
   template<typename E>
   class UndirectedEdge : public Edge<E>
@@ -258,7 +258,7 @@ namespace graph
     VertexId_P(kNullId, kNullId), E(), 1.0, kNullId);
 
   /// \brief A directed edge represents a connection between two vertices.
-  /// The conection is unidirectional, it's only possible to traverse the edge
+  /// The connection is unidirectional, it's only possible to traverse the edge
   /// in one direction (from the tail to the head).
   template<typename E>
   class DirectedEdge : public Edge<E>
