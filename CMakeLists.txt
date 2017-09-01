@@ -181,23 +181,48 @@ endif()
 unset (CMAKE_C_FLAGS_ALL CACHE)
 unset (CMAKE_CXX_FLAGS CACHE)
 
+# USE_HOST_CFLAGS (default TRUE)
+# Will check building host machine for proper cflags
+if(NOT DEFINED USE_HOST_CFLAGS OR USE_HOST_CFLAGS)
+  message(STATUS "Enable host CFlags")
+  include (${project_cmake_dir}/HostCFlags.cmake)
+endif()
+
+# USE_UPSTREAM_CFLAGS (default TRUE)
+# Will use predefined ignition developers cflags
+if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
+  message(STATUS "Enable upstream CFlags")
+  include(${project_cmake_dir}/DefaultCFlags.cmake)
+endif()
+
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
 # MSVC generates tons of warnings on gtest code.
 # Recommended to use /W4 instead of /Wall
 if (MSVC)
   set(WARN_LEVEL "/W4")
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  # Handling exceptions rightly and ignore unknown pragmas
+  set(UNFILTERED_FLAGS "/EHsc /wd4068")
 else()
-  set(WARN_LEVEL "-Wall")
+  # Equivalent to Wall (according to man gcc) but removed the unknown pragmas since we use
+  # MSVC only pragmas all over the code
+  list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
+  list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
+  list(APPEND WARN_LEVEL -Wsequence-point -Wsign-compare -Wstrict-aliasing)
+  list(APPEND WARN_LEVEL -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized)
+  list(APPEND WARN_LEVEL -Wunused-function -Wunused-label -Wunused-value)
+  list(APPEND WARN_LEVEL -Wunused-variable -Wvolatile-register-var)
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  set(UNFILTERED_FLAGS "-Wc++11-compat")
 endif()
 
 filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
-  -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
-if (DEFINED EXTRA_CMAKE_CXX_FLAGS)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CMAKE_CXX_FLAGS}")
-endif()
+  -Wmissing-include-dirs -pedantic -Wno-pragmas)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} ${UNFILTERED_FLAGS}")
 
 #################################################
 # OS Specific initialization
