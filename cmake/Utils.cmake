@@ -101,8 +101,28 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
-  if(MSVC)
-    add_definitions("/EHsc")
+  # Using static linking in Windows by default
+  set(BUILD_SHARED_LIBS FALSE)
+  add_definitions(-DBUILDING_STATIC_LIBS -DWIN32_LEAN_AND_MEAN)
+
+  # Don't pull in the Windows min/max macros
+  add_definitions(-DNOMINMAX)
+
+  # And force linking to MSVC dynamic runtime
+  if ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "DEBUG")
+    add_definitions("/MDd")
+  else()
+    add_definitions("/MD")
+  endif()
+
+  # And we want exceptions
+  add_definitions("/EHsc")
+
+  if (MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    # Not need if proper cmake gnerator (-G "...Win64") is passed to cmake
+    # Enable as a second measure to workaround over bug
+    # http://www.cmake.org/Bug/print_bug_page.php?bug_id=11240
+    set(CMAKE_SHARED_LINKER_FLAGS "/machine:x64")
   endif()
 endmacro()
 
