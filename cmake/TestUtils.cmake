@@ -14,27 +14,25 @@ macro (ign_build_tests)
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
-      ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}
+      ${PROJECT_LIBRARY_TARGET_NAME}
       gtest gtest_main
-      )
+    )
+
+    target_link_libraries(${BINARY_NAME}
+      gtest
+      gtest_main
+      ${PROJECT_LIBRARY_TARGET_NAME}
+    )
 
     if (UNIX)
       target_link_libraries(${BINARY_NAME}
-         libgtest_main.a
-         libgtest.a
-         pthread
-	       ${PROJECT_NAME_LOWER})
+        pthread
+      )
     elseif(WIN32)
-      target_link_libraries(${BINARY_NAME}
-         gtest.lib
-         gtest_main.lib
-         ${PROJECT_NAME_LOWER}.lib)
-    else()
-       message(FATAL_ERROR "Unsupported platform")
     endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
-	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+      --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
     set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
