@@ -16,6 +16,8 @@ pipelines:
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
           - make test
+          - ls -l
+          - cat coverage.info.cleaned
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
 
