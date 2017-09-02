@@ -458,8 +458,7 @@ namespace graph
     {
       EdgeRef_M<EdgeType> res;
 
-      const auto &vertexIt = this->adjList.find(_vertex);
-      if (vertexIt == this->adjList.end())
+      if (this->adjList.end() == this->adjList.find(_vertex))
         return res;
 
       for (auto const &nodeAdjList : this->adjList)
