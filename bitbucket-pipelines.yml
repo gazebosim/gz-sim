@@ -15,6 +15,7 @@ pipelines:
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
+          - make install
           - make test
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
