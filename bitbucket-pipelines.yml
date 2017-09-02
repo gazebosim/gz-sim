@@ -10,14 +10,12 @@ pipelines:
     - step:
         script: # Modify the commands below to build your repository.
           - apt-get update
-          - apt-get -y install cmake lcov tree
+          - apt-get -y install cmake lcov
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
           - make test
-          - ls -l
-          - tree . | grep gcda
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
 
