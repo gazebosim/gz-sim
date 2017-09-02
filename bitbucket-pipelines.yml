@@ -13,6 +13,8 @@ pipelines:
           - apt-get -y install cmake
           - mkdir build
           - cd build
-          - cmake ..
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
           - make test
+          - make coverage
+          - bash <(curl -s https://codecov.io/bash)
