@@ -17,6 +17,6 @@ pipelines:
           - make
           - make install
           - make test
-          - make coverage
+          - lcov -q --no-checksum --directory . --capture --output-file coverage.info
           - bash <(curl -s https://codecov.io/bash)
 

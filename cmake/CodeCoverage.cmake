@@ -116,8 +116,6 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
     COMMAND ${GENHTML_PATH} -q --legend -o ${_outputname} ${_outputname}.info.cleaned
     COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "lines" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/lines.txt
     COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "functions" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/functions.txt
-    #COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info
-      #${_outputname}.info.cleaned
 
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMENT "Resetting code coverage counters to zero.\n"
