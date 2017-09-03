@@ -17,7 +17,8 @@ pipelines:
           - make
           - make install
           - make test
-          # `make coverage` failing on pipelines, call command directly
+          # `make coverage` failing on pipelines, call lcov directly
           - lcov -q --no-checksum --directory . --capture --output-file coverage.info
+          - lcov -q --remove coverage.info 'test/*' '/usr/*' '*_TEST*' --output-file $coverage.info.cleaned
           - bash <(curl -s https://codecov.io/bash)
 
