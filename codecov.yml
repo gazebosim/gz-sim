@@ -1,5 +1,6 @@
 codecov:
   branch: default
-  ignore:
-    - "test"
-    - "*TEST*"
+
+ignore:
+  - "test"
+  - "*TEST*"
