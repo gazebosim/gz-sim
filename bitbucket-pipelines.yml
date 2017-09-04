@@ -19,7 +19,5 @@ pipelines:
           - make test
           # `make coverage` failing on pipelines, call lcov directly
           - lcov -q --no-checksum --directory . --capture --output-file coverage.info
-          - find . -name "*TEST.cc.gcda" -type f -delete
-          - find . -name "*test*.gcda" -type f -delete
           - bash <(curl -s https://codecov.io/bash)
 
