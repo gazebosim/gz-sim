@@ -613,7 +613,8 @@ TEST(SignalStatsTest, SignalStats)
 
     // test operator=
     {
-      math::SignalStats copy = stats;
+      math::SignalStats copy;
+      copy = stats;
       EXPECT_EQ(copy.Count(), 2u);
       auto map = stats.Map();
       EXPECT_EQ(map.size(), 5u);
