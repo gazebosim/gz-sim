@@ -401,7 +401,7 @@ namespace graph
     /// \return The number of edges incidents from a vertex.
     public: size_t OutDegree(const VertexId &_vertex) const
     {
-      return this->AdjacentsFrom(_vertex).size();
+      return this->IncidentsFrom(_vertex).size();
     }
 
     /// \brief Get the number of edges incident from a vertex.
@@ -409,7 +409,7 @@ namespace graph
     /// \return The number of edges incidents from a vertex.
     public: size_t OutDegree(const Vertex<V> &_vertex) const
     {
-      return this->AdjacentsFrom(this->VertexFromId(_vertex.Id())).size();
+      return this->IncidentsFrom(this->VertexFromId(_vertex.Id())).size();
     }
 
     /// \brief Get the set of outgoing edges from a given vertex.
@@ -458,8 +458,7 @@ namespace graph
     {
       EdgeRef_M<EdgeType> res;
 
-      const auto &vertexIt = this->adjList.find(_vertex);
-      if (vertexIt == this->adjList.end())
+      if (this->adjList.end() == this->adjList.find(_vertex))
         return res;
 
       for (auto const &nodeAdjList : this->adjList)
