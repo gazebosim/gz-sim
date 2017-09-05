@@ -591,7 +591,7 @@ namespace ignition
           // this should never happen
           // f1small && f2small implies a repeated moment
           // return invalid quaternion
-          return Quaternion<T>::Zero;
+          return Quaternion<T>::Zero;  // LCOV_EXCL_LINE
         }
         else if (f1small)
         {
@@ -721,7 +721,7 @@ namespace ignition
         if (_rot == Quaternion<T>::Zero)
         {
           // _rot is an invalid quaternion
-          return false;
+          return false;  // LCOV_EXCL_LINE
         }
 
         return true;
