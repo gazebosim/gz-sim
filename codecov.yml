@@ -3,4 +3,4 @@ codecov:
 
 ignore:
   - "test"
-  - "*TEST*"
+  - ".*_TEST.cc"
