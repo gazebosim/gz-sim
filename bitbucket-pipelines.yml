@@ -3,21 +3,20 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: gcc:6.1
+image: ubuntu:xenial
 
 pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
           - apt-get update
-          - apt-get -y install cmake lcov
+          - apt-get -y install cmake build-essential lcov
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
-          - make install
           - make test
-          # `make coverage` failing on pipelines, call lcov directly
-          - lcov -q --no-checksum --directory . --capture --output-file coverage.info
+          - make coverage
+          # - lcov -q --no-checksum --directory . --capture --output-file coverage.info
           - bash <(curl -s https://codecov.io/bash)
 
