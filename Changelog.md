@@ -15,6 +15,8 @@
         * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/174)
     1. Added a Graph class:
         * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
+    1. Added a GraphAlgorithms class:
+        * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
 
 ## Ignition Math 3.x
 
