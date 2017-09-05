@@ -285,33 +285,35 @@ TEST(GraphTest, IncidentsTo)
 /////////////////////////////////////////////////
 TEST(GraphTest, InDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v1)]
+  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v1) x 2]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
-    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}, {{2, 1}, 4.0}}
+    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}, {{2, 1}, 4.0}, {{2, 1}, 4.0}}
   });
 
   EXPECT_EQ(1u, graph.InDegree(0));
   EXPECT_EQ(1u, graph.InDegree(graph.VertexFromId(0)));
-  EXPECT_EQ(2u, graph.InDegree(1));
-  EXPECT_EQ(2u, graph.InDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(3u, graph.InDegree(1));
+  EXPECT_EQ(3u, graph.InDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(1u, graph.InDegree(2));
+  EXPECT_EQ(1u, graph.InDegree(graph.VertexFromId(2)));
 }
 
 /////////////////////////////////////////////////
 TEST(GraphTest, OutDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v0), (v1-->v2)]
+  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v0), (v1-->v2) x 2]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
-    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 0}, 3.0}, {{1, 2}, 4.0}}
+    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 0}, 3.0}, {{1, 2}, 4.0}, {{1, 2}, 5.0}}
   });
 
   EXPECT_EQ(2u, graph.OutDegree(0));
   EXPECT_EQ(2u, graph.OutDegree(graph.VertexFromId(0)));
-  EXPECT_EQ(2u, graph.OutDegree(1));
-  EXPECT_EQ(2u, graph.OutDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(3u, graph.OutDegree(1));
+  EXPECT_EQ(3u, graph.OutDegree(graph.VertexFromId(1)));
   EXPECT_EQ(0u, graph.OutDegree(2));
   EXPECT_EQ(0u, graph.OutDegree(graph.VertexFromId(2)));
 }
