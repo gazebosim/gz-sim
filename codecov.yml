@@ -1,6 +1,2 @@
 codecov:
   branch: default
-
-ignore:
-  - "test"
-  - ".*_TEST.cc"
