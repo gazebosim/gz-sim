@@ -591,7 +591,8 @@ namespace ignition
           // this should never happen
           // f1small && f2small implies a repeated moment
           // return invalid quaternion
-          return Quaternion<T>::Zero;  // LCOV_EXCL_LINE
+          /// \todo Use a mock class to test this line
+          return Quaternion<T>::Zero;
         }
         else if (f1small)
         {
@@ -721,7 +722,8 @@ namespace ignition
         if (_rot == Quaternion<T>::Zero)
         {
           // _rot is an invalid quaternion
-          return false;  // LCOV_EXCL_LINE
+          /// \todo Use a mock class to test this line
+          return false;
         }
 
         return true;
