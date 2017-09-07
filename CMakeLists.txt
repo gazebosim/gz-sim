@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # Set the project name and version number here
-set(IGN_PROJECT_NAME "project_name")
+set (IGN_PROJECT_NAME "<project-name>")
 set (PROJECT_MAJOR_VERSION 0)
 set (PROJECT_MINOR_VERSION 1)
 set (PROJECT_PATCH_VERSION 0)
@@ -267,14 +267,12 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  set (pkgconfig_files ${PROJECT_NAME_NO_VERSION_LOWER})
-
-  foreach (pkgconfig ${pkgconfig_files})
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
-      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc
-      DESTINATION ${LIB_INSTALL_DIR}/pkgconfig COMPONENT pkgconfig)
-  endforeach()
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
+    DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
+    COMPONENT pkgconfig)
 
   ########################################
   # Make the cmake config files

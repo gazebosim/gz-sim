@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_PROJECT_NAME_EXAMPLE_HH_
-#define IGNITION_PROJECT_NAME_EXAMPLE_HH_
+#ifndef IGNITION_PROJECT-NAME_EXAMPLE_HH_
+#define IGNITION_PROJECT-NAME_EXAMPLE_HH_
 
-#include "ignition/project_name/System.hh"
+#include "ignition/project-name/System.hh"
 
 namespace ignition
 {
-  namespace project_name
+  namespace project-name
   {
     /// \brief Example class
     class IGNITION_PROJECT_NAME_VISIBLE Example

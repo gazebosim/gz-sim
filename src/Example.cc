@@ -15,10 +15,10 @@
  *
 */
 #include <iostream>
-#include "ignition/project_name/Example.hh"
+#include "ignition/project-name/Example.hh"
 
 using namespace ignition;
-using namespace project_name;
+using namespace project-name;
 
 /////////////////////////////////////////////////
 Example::Example()

@@ -20,19 +20,11 @@ This repository contains boilerplate code to start new ignition projects.
 
 1. Substitute `<project-name>` in the code with <name>:
 
-        sed -i 's/<project-name>/<name>/g' *.*
-        sed -i 's/<project-name>/<name>/g' */*.*
-        sed -i 's/<project-name>/<name>/g' */*/*.*
-        sed -i 's/<project-name>/<name>/g' */*/*/*.*
-
-        sed -i 's/<PROJECT-NAME>/<NAME>/g' *.*
-        sed -i 's/<PROJECT-NAME>/<NAME>/g' */*.*
-        sed -i 's/<PROJECT-NAME>/<NAME>/g' */*/*.*
-        sed -i 's/<PROJECT-NAME>/<NAME>/g' */*/*/*.*
+        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/<name>/g'
 
 1. Rename files and directories:
 
-        mv include/ignition/project_name include/ignition/<name>
+        mv include/ignition/project-name include/ignition/<name>
         mv cmake/ignition-config.cmake.in cmake/ignition-<name>-config.cmake.in
 
 1. Now delete these instructions down to the line below, and follow the
