@@ -34,9 +34,6 @@ This repository contains boilerplate code to start new C++ ignition projects.
 
         mv include/ignition/project-name include/ignition/<name>
 
-1. Now delete these instructions down to the line below, and follow the
-   remaining instructions.
-
 ### Example
 
 This example will create an ign-test instance of ign-seed.
@@ -60,6 +57,9 @@ find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<PROJECT-NAME>/TEST/g' {}
 ```
 mv include/ignition/project-name include/ignition/test
 ```
+
+Now delete these instructions down to the line below, and follow the
+   remaining instructions.
 
 -----------------
 
