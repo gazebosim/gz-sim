@@ -188,3 +188,53 @@ TEST(GraphTestFixture, DijkstraDirected)
   EXPECT_EQ(6, res.at(1).first);
   EXPECT_EQ(0, res.at(1).second);
 }
+
+/////////////////////////////////////////////////
+TEST(GraphTestFixture, ConnectedComponents)
+{
+  DirectedGraph<int, double> graph(
+  {
+    // Vertices.
+    {{"A", 0, 0}, {"B", 1, 1}, {"C", 2, 2}, {"D", 3, 3}, {"E", 4, 4}},
+    // Edges.
+    {{{0, 1}, 2.0, 6.0}, {{0, 3}, 3.0, 1.0},
+     {{1, 2}, 4.0, 5.0}, {{1, 3}, 4.0, 2.0}, {{1, 4}, 4.0, 2.0},
+     {{2, 4}, 2.0, 5.0},
+     {{3, 4}, 2.0, 1.0}}
+  });
+
+  // Inexistent source vertex.
+  auto res = Dijkstra(graph, 99);
+  EXPECT_TRUE(res.empty());
+
+  // Inexistent destination vertex.
+  res = Dijkstra(graph, 0, 99);
+  EXPECT_TRUE(res.empty());
+
+  // Calculate all shortest paths from 0.
+  res = Dijkstra(graph, 0);
+
+  ASSERT_NE(res.end(), res.find(0));
+  EXPECT_EQ(0, res.at(0).first);
+  EXPECT_EQ(0, res.at(0).second);
+  ASSERT_NE(res.end(), res.find(1));
+  EXPECT_EQ(6, res.at(1).first);
+  EXPECT_EQ(0, res.at(1).second);
+  ASSERT_NE(res.end(), res.find(2));
+  EXPECT_EQ(11, res.at(2).first);
+  EXPECT_EQ(1, res.at(2).second);
+  ASSERT_NE(res.end(), res.find(3));
+  EXPECT_EQ(1, res.at(3).first);
+  EXPECT_EQ(0, res.at(3).second);
+  ASSERT_NE(res.end(), res.find(4));
+  EXPECT_EQ(2, res.at(4).first);
+  EXPECT_EQ(3, res.at(4).second);
+
+  // Calculate the shortest path between 0 and 1.
+  res = Dijkstra(graph, 0, 1);
+
+  ASSERT_NE(res.end(), res.find(1));
+  EXPECT_EQ(6, res.at(1).first);
+  EXPECT_EQ(0, res.at(1).second);
+}
+

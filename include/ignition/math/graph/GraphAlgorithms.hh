@@ -269,6 +269,36 @@ namespace graph
 
     return dist;
   }
+
+  template<typename V, typename E, typename EdgeType>
+  std::vector<Graph<V, E, EdgeType>> ConnectedComponents(
+    const Graph<V, E, EdgeType> &_graph)
+  {
+    std::vector<Graph<V, E, EdgeType>> res;
+    std::map<VertexId, unsigned int> visited;
+    unsigned int componentId = 0;
+
+    for (auto const &v : _graph.Vertices())
+    {
+      if (visited.find(v.first) == visited.end())
+      {
+        auto component = BreadthFirstSort(_graph, v.first);
+        for (auto const &vId : component)
+          visited.insert[vId] = componentId;
+        ++componentId;
+      }
+    }
+
+    res.resize(componentId);
+
+    // Create the graphs.
+    for (auto const &v : _graph.Vertices())
+    {
+      auto componentId = visited[v.first];
+      res[componentId].AddVertex(v.Name(), v.Data(), v.Id());
+
+    }
+  }
 }
 }
 }
