@@ -611,6 +611,20 @@ TEST(SignalStatsTest, SignalStats)
       EXPECT_DOUBLE_EQ(map["mean"], 0.0);
     }
 
+    // test operator=
+    {
+      math::SignalStats copy;
+      copy = stats;
+      EXPECT_EQ(copy.Count(), 2u);
+      auto map = stats.Map();
+      EXPECT_EQ(map.size(), 5u);
+      EXPECT_DOUBLE_EQ(map["max"], value);
+      EXPECT_DOUBLE_EQ(map["maxAbs"], value);
+      EXPECT_DOUBLE_EQ(map["min"], -value);
+      EXPECT_DOUBLE_EQ(map["rms"], value);
+      EXPECT_DOUBLE_EQ(map["mean"], 0.0);
+    }
+
     stats.Reset();
     EXPECT_EQ(stats.Map().size(), 5u);
     EXPECT_EQ(stats.Count(), 0u);

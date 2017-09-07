@@ -106,6 +106,8 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 	# Setup target
 	ADD_CUSTOM_TARGET(${_targetname}
 
+    COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info.cleaned
+      ${_outputname}.info
 		# Capturing lcov counters and generating report
     COMMAND ${LCOV_PATH} -q --no-checksum --directory ${PROJECT_BINARY_DIR}
       --capture --output-file ${_outputname}.info 2>/dev/null
@@ -115,8 +117,8 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
       ${_outputname}.info.cleaned
     COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "lines" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/lines.txt
     COMMAND ${LCOV_PATH} --summary ${_outputname}.info.cleaned 2>&1 | grep "functions" | cut -d ' ' -f 4 | cut -d '%' -f 1 > coverage/functions.txt
-    COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info
-      ${_outputname}.info.cleaned
+    COMMAND ${CMAKE_COMMAND} -E rename ${_outputname}.info.cleaned
+      ${_outputname}.info
 		
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMENT "Resetting code coverage counters to zero.\n"
