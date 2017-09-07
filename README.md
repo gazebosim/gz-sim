@@ -1,6 +1,6 @@
 # Ignition Seed
 
-This repository contains boilerplate code to start new ignition projects.
+This repository contains boilerplate code to start new C++ ignition projects.
 
 ## Quickstart
 
@@ -14,21 +14,52 @@ This repository contains boilerplate code to start new ignition projects.
 
         hg clone http://bitbucket.org/ignitionrobotics/ign-seed ign-<name>
 
+        Example with <name> == "test":
+
+
 1. Move to the project folder:
 
         cd ign-<name>
 
 1. Substitute `<project-name>` in the code with <name>:
 
-        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/<name>/g'
+        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/<name>/g' {} \;
+
+1. Substitute `<PROJECT-NAME>` in the code with <NAME>:
+
+        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<PROJECT-NAME>/<NAME>/g' {} \;
+
 
 1. Rename files and directories:
 
         mv include/ignition/project-name include/ignition/<name>
-        mv cmake/ignition-config.cmake.in cmake/ignition-<name>-config.cmake.in
 
 1. Now delete these instructions down to the line below, and follow the
    remaining instructions.
+
+### Example
+
+This example will create an ign-test instance of ign-seed.
+
+```
+hg clone http://bitbucket.org/ignitionrobotics/ign-seed ign-test
+```
+
+```
+cd ign-test
+```
+
+```
+find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/test/g' {} \;
+```
+
+```
+find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<PROJECT-NAME>/TEST/g' {} \;
+```
+
+```
+mv include/ignition/project-name include/ignition/test
+```
 
 -----------------
 
