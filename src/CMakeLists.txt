@@ -56,11 +56,15 @@ set (gtest_sources
 
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-# When the minimum CMake required version will be >= 3.1
-# we could use the target_compile_features() command
-# to enable C++14 support in a platform-independent way.
 if(NOT MSVC)
-    target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++14")
+  # The following line enables C++14 (or greater) mode for this library an all
+  # downstream libraries. "cxx_attribute_deprecated" is a feature that is only
+  # available in c++14 and after. This allows downstream libraries to use
+  # c++14 or c++17 and beyond.
+  #
+  # When switching to cmake 3.8, we can use that cxx_std_14 meta feature.
+  target_compile_features(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC cxx_attribute_deprecated)
 endif()
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
