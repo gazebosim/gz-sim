@@ -240,7 +240,7 @@ namespace graph
       // Link the new edge.
       for (auto const &v : {edgeVertices.first, edgeVertices.second})
       {
-        if (_edge.From(v) != kNullId)
+        if (v != kNullId)
         {
           auto vertexIt = this->adjList.find(v);
           assert(vertexIt != this->adjList.end());
@@ -458,18 +458,16 @@ namespace graph
     {
       EdgeRef_M<EdgeType> res;
 
-      if (this->adjList.end() == this->adjList.find(_vertex))
+      const auto &adjIt = this->adjList.find(_vertex);
+      if (adjIt == this->adjList.end())
         return res;
 
-      for (auto const &nodeAdjList : this->adjList)
+      const auto &edgeIds = adjIt->second;
+      for (auto const &edgeId : edgeIds)
       {
-        const auto &edgeIds = nodeAdjList.second;
-        for (auto const &edgeId : edgeIds)
-        {
-          const auto &edge = this->EdgeFromId(edgeId);
-          if (edge.From(nodeAdjList.first) == _vertex)
-            res.emplace(std::make_pair(edge.Id(), std::cref(edge)));
-        }
+        const auto &edge = this->EdgeFromId(edgeId);
+        if (edge.To(_vertex) != kNullId)
+          res.emplace(std::make_pair(edge.Id(), std::cref(edge)));
       }
 
       return std::move(res);
