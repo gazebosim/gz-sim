@@ -17,6 +17,9 @@
         * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
     1. Added a GraphAlgorithms class:
         * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
+    1. Added a function to calculate connected components in undirected
+       graphs:
+         * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
 
 ## Ignition Math 3.x
 
