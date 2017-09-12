@@ -94,7 +94,8 @@ TEST(FrustumTest, AssignmentOperator)
       // Pose
       Pose3d(0, 0, 0, 0, 0, IGN_DTOR(45)));
 
-  Frustum frustum2 = frustum;
+  Frustum frustum2;
+  frustum2 = frustum;
 
   EXPECT_EQ(frustum.FOV(), frustum2.FOV());
   EXPECT_EQ(frustum.Near(), frustum2.Near());
