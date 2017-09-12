@@ -192,49 +192,99 @@ TEST(GraphTestFixture, DijkstraDirected)
 /////////////////////////////////////////////////
 TEST(GraphTestFixture, ConnectedComponents)
 {
-  DirectedGraph<int, double> graph(
+  // Connected components of an empty graph.
+  UndirectedGraph<int, double> emptyGraph;
+  auto components = ConnectedComponents(emptyGraph);
+  EXPECT_TRUE(components.empty());
+
+  UndirectedGraph<int, double> graph(
   {
     // Vertices.
     {{"A", 0, 0}, {"B", 1, 1}, {"C", 2, 2}, {"D", 3, 3}, {"E", 4, 4}},
     // Edges.
-    {{{0, 1}, 2.0, 6.0}, {{0, 3}, 3.0, 1.0},
-     {{1, 2}, 4.0, 5.0}, {{1, 3}, 4.0, 2.0}, {{1, 4}, 4.0, 2.0},
-     {{2, 4}, 2.0, 5.0},
-     {{3, 4}, 2.0, 1.0}}
+    {{{0, 2}, 2.0, 6.0},
+     {{1, 4}, 4.0, 5.0}}
   });
 
-  // Inexistent source vertex.
-  auto res = Dijkstra(graph, 99);
-  EXPECT_TRUE(res.empty());
+  // Connected components of a graph with three components.
+  components = ConnectedComponents(graph);
+  ASSERT_EQ(3u, components.size());
 
-  // Inexistent destination vertex.
-  res = Dijkstra(graph, 0, 99);
-  EXPECT_TRUE(res.empty());
+  // Component #0.
+  auto component = components.at(0);
+  auto vertices = component.Vertices();
+  EXPECT_EQ(2u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(0));
+  EXPECT_NE(vertices.end(), vertices.find(2));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 0:
+      {
+        EXPECT_EQ("A", vertex.Name());
+        EXPECT_EQ(0, vertex.Data());
+        break;
+      }
+      case 2:
+      {
+        EXPECT_EQ("C", vertex.Name());
+        EXPECT_EQ(2, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
 
-  // Calculate all shortest paths from 0.
-  res = Dijkstra(graph, 0);
+  // Component #1.
+  component = components.at(1);
+  vertices = component.Vertices();
+  EXPECT_EQ(2u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(1));
+  EXPECT_NE(vertices.end(), vertices.find(4));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 1:
+      {
+        EXPECT_EQ("B", vertex.Name());
+        EXPECT_EQ(1, vertex.Data());
+        break;
+      }
+      case 4:
+      {
+        EXPECT_EQ("E", vertex.Name());
+        EXPECT_EQ(4, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
 
-  ASSERT_NE(res.end(), res.find(0));
-  EXPECT_EQ(0, res.at(0).first);
-  EXPECT_EQ(0, res.at(0).second);
-  ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(6, res.at(1).first);
-  EXPECT_EQ(0, res.at(1).second);
-  ASSERT_NE(res.end(), res.find(2));
-  EXPECT_EQ(11, res.at(2).first);
-  EXPECT_EQ(1, res.at(2).second);
-  ASSERT_NE(res.end(), res.find(3));
-  EXPECT_EQ(1, res.at(3).first);
-  EXPECT_EQ(0, res.at(3).second);
-  ASSERT_NE(res.end(), res.find(4));
-  EXPECT_EQ(2, res.at(4).first);
-  EXPECT_EQ(3, res.at(4).second);
-
-  // Calculate the shortest path between 0 and 1.
-  res = Dijkstra(graph, 0, 1);
-
-  ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(6, res.at(1).first);
-  EXPECT_EQ(0, res.at(1).second);
+  // Component #2.
+  component = components.at(2);
+  vertices = component.Vertices();
+  EXPECT_EQ(1u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(3));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 3:
+      {
+        EXPECT_EQ("D", vertex.Name());
+        EXPECT_EQ(3, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
 }
 

@@ -270,11 +270,19 @@ namespace graph
     return dist;
   }
 
-  template<typename V, typename E, typename EdgeType>
-  std::vector<Graph<V, E, EdgeType>> ConnectedComponents(
-    const Graph<V, E, EdgeType> &_graph)
+  /// \brief Calculate the connected components of an undirected graph.
+  /// A connected component of an undirected graph is a subgraph in which any
+  /// two vertices are connected to each other by paths, and which is connected
+  /// to no additional vertices in the supergraph.
+  /// \ref https://en.wikipedia.org/wiki/Connected_component_(graph_theory)
+  /// \param[in] _graph A graph.
+  /// \return A vector of graphs. Each element of the graph is a component
+  /// (subgraph) of the original graph.
+  template<typename V, typename E>
+  std::vector<UndirectedGraph<V, E>> ConnectedComponents(
+    const UndirectedGraph<V, E> &_graph)
   {
-    std::vector<Graph<V, E, EdgeType>> res;
+    std::vector<UndirectedGraph<V, E>> res;
     std::map<VertexId, unsigned int> visited;
     unsigned int componentId = 0;
 
@@ -284,20 +292,31 @@ namespace graph
       {
         auto component = BreadthFirstSort(_graph, v.first);
         for (auto const &vId : component)
-          visited.insert[vId] = componentId;
+          visited[vId] = componentId;
         ++componentId;
       }
     }
 
     res.resize(componentId);
 
-    // Create the graphs.
-    for (auto const &v : _graph.Vertices())
+    // Create the vertices.
+    for (auto const &vPair : _graph.Vertices())
     {
-      auto componentId = visited[v.first];
+      const auto &v = vPair.second.get();
+      const auto &componentId = visited[v.Id()];
       res[componentId].AddVertex(v.Name(), v.Data(), v.Id());
-
     }
+
+    // Create the edges.
+    for (auto const &ePair : _graph.Edges())
+    {
+      const auto &e = ePair.second.get();
+      const auto &vertices = e.Vertices();
+      const auto &componentId = visited[vertices.first];
+      res[componentId].AddEdge(vertices, e.Data(), e.Weight());
+    }
+
+    return res;
   }
 }
 }
