@@ -4,6 +4,9 @@
 
 ### Ignition Math 3.2.0 (2017-05-15)
 
+1. Create consistent bracket operators across all Vector# types
+    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
 1. Construct on first use in Rand class
     * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
 
