@@ -282,9 +282,8 @@ namespace graph
   std::vector<UndirectedGraph<V, E>> ConnectedComponents(
     const UndirectedGraph<V, E> &_graph)
   {
-    std::vector<UndirectedGraph<V, E>> res;
     std::map<VertexId, unsigned int> visited;
-    unsigned int componentId = 0;
+    unsigned int componentCount = 0;
 
     for (auto const &v : _graph.Vertices())
     {
@@ -292,12 +291,12 @@ namespace graph
       {
         auto component = BreadthFirstSort(_graph, v.first);
         for (auto const &vId : component)
-          visited[vId] = componentId;
-        ++componentId;
+          visited[vId] = componentCount;
+        ++componentCount;
       }
     }
 
-    res.resize(componentId);
+    std::vector<UndirectedGraph<V, E>> res(componentCount);
 
     // Create the vertices.
     for (auto const &vPair : _graph.Vertices())
