@@ -21,7 +21,7 @@ for testing with Linux.
 
 Test coverage reports are available at Codecov:
 
-[![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
+[![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/ign-math3/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
 
 ## Optional Dependencies
 
