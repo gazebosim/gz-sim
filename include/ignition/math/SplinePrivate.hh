@@ -32,6 +32,11 @@ namespace ignition
     /// of arbitrary m derivatives at such point.
     class ControlPoint
     {
+      /// \brief Default constructor.
+      public: ControlPoint()
+      {
+      }
+
       /// \brief Constructor that takes the M derivatives that
       /// define the control point.
       /// \param[in] _initList with the M derivatives.
