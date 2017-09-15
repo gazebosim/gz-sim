@@ -118,7 +118,8 @@ TEST(Vector2Test, Vector2)
   EXPECT_TRUE(v.IsFinite());
 
   // ::operator[]
-  v.Set(6, 7);
+  v[0] = 6;
+  v[1] = 7;
   EXPECT_DOUBLE_EQ(6, v[0]);
   EXPECT_DOUBLE_EQ(7, v[1]);
 }
