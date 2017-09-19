@@ -87,9 +87,9 @@ bool Frustum::Contains(const Box &_b) const
     auto const &max = _b.Max();
     for (int p = 0; p < 8; ++p)
     {
-      const double &x = p & 4 ? min.X() : max.X();
-      const double &y = p & 2 ? min.Y() : max.Y();
-      const double &z = p & 1 ? min.Z() : max.Z();
+      const double &x = (p & 4) ? min.X() : max.X();
+      const double &y = (p & 2) ? min.Y() : max.Y();
+      const double &z = (p & 1) ? min.Z() : max.Z();
       if (this->Contains(Vector3d(x, y, z)))
         return true;
     }
