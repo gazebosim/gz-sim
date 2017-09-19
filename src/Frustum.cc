@@ -69,10 +69,37 @@ bool Frustum::Contains(const Box &_b) const
 {
   // If the box is on the negative side of a plane, then the box is not
   // visible.
+  int overlapping = 0;
   for (auto const &plane : this->dataPtr->planes)
   {
-    if (plane.Side(_b) == Planed::NEGATIVE_SIDE)
+    auto const sign = plane.Side(_b);
+    if (sign == Planed::NEGATIVE_SIDE)
       return false;
+    else if (sign == Planed::BOTH_SIDE)
+      ++overlapping;
+  }
+
+  // it is possible to be outside of frustum and overlapping multiple planes
+  if (overlapping >= 2)
+  {
+    // return true if any box point is inside the frustum
+    auto const &min = _b.Min();
+    auto const &max = _b.Max();
+    for (int p = 0; p < 8; ++p)
+    {
+      const double &x = p & 4 ? min.X() : max.X();
+      const double &y = p & 2 ? min.Y() : max.Y();
+      const double &z = p & 1 ? min.Z() : max.Z();
+      if (this->Contains(Vector3d(x, y, z)))
+        return true;
+    }
+    // return true if any frustum point is inside the box
+    for (auto const &pt : this->dataPtr->points)
+    {
+      if (_b.Contains(pt))
+        return true;
+    }
+    return false;
   }
 
   return true;
@@ -205,6 +232,16 @@ void Frustum::ComputePlanes()
   Vector3d farTopRight = farCenter + upFarHeight2 + rightFarWidth2;
   Vector3d farBottomLeft = farCenter - upFarHeight2 - rightFarWidth2;
   Vector3d farBottomRight = farCenter - upFarHeight2 + rightFarWidth2;
+
+  // Save these vertices
+  this->dataPtr->points[0] = nearTopLeft;
+  this->dataPtr->points[1] = nearTopRight;
+  this->dataPtr->points[2] = nearBottomLeft;
+  this->dataPtr->points[3] = nearBottomRight;
+  this->dataPtr->points[4] = farTopLeft;
+  this->dataPtr->points[5] = farTopRight;
+  this->dataPtr->points[6] = farBottomLeft;
+  this->dataPtr->points[7] = farBottomRight;
 
   Vector3d leftCenter =
     (farTopLeft + nearTopLeft + farBottomLeft + nearBottomLeft) / 4.0;

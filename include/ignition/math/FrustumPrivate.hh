@@ -72,6 +72,9 @@ namespace ignition
       /// \brief Each plane of the frustum.
       /// \sa Frustum::FrustumPlane
       public: std::array<Planed, 6> planes;
+
+      /// \brief Each corner of the frustum.
+      public: std::array<Vector3d, 8> points;
     };
   }
 }
