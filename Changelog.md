@@ -1,5 +1,8 @@
 ## Ignition Math 2.x
 
+1. Fixed frustum falsely saying it contained AABB in some cases
+    * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+
 ### Ignition Math 2.8
 
 ### Ignition Math 2.8.0
