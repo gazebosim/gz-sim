@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Find ignition-cmake
 #============================================================================
+# If you get an error at this line, you need to install ignition-cmake
 find_package(ignition-cmake0 REQUIRED)
 
 #============================================================================

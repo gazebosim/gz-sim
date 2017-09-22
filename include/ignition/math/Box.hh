@@ -32,7 +32,7 @@ namespace ignition
 
     /// \class Box Box.hh ignition/math/Box.hh
     /// \brief Mathematical representation of a box and related functions.
-    class IGNITION_VISIBLE Box
+    class IGNITION_MATH_VISIBLE Box
     {
       /// \brief Default constructor
       public: Box();

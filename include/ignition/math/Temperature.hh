@@ -61,7 +61,7 @@ namespace ignition
     ///     std::cout << "Copied the temp object and added 23.5K. newTemp = "
     ///               << newTemp.Fahrenheit() << "F" << std::endl;
     ///
-    class IGNITION_VISIBLE Temperature
+    class IGNITION_MATH_VISIBLE Temperature
     {
       /// \brief Default constructor
       public: Temperature();
