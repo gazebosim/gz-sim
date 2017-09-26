@@ -11,6 +11,8 @@ pipelines:
         script: # Modify the commands below to build your repository.
           - apt-get update
           - apt-get -y install cmake build-essential lcov curl mercurial
+          - gcc -v
+          - g++ -v
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage

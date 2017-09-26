@@ -2,6 +2,9 @@
 
 ### Ignition Math 4.x.x
 
+1. Switch to C++14
+    * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
+
 1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
     * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
     * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
