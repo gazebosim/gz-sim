@@ -5,6 +5,10 @@
 1. Switch to C++14
     * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
 
+1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
+    * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
+
 1. Removed the box 'extent' field. The default constructor now sets a box's
    corners to extrema in order to indicate an uninitialized box.
     * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/172)

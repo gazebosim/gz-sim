@@ -16,7 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-#include <iostream>
 #include <string>
 
 #include "ignition/math/graph/Graph.hh"
@@ -391,5 +390,43 @@ TYPED_TEST(GraphTestFixture, EdgeFromId)
     // Id not found.
     e = graph.EdgeFromId(500);
     EXPECT_EQ(kNullId, e.Id());
+  }
+}
+
+/////////////////////////////////////////////////
+TYPED_TEST(GraphTestFixture, EdgelessInDegree)
+{
+  TypeParam graph;
+
+  // add a bunch of vertices but no edges
+  const int vertexCount = 10000;
+  for (int i = 0; i < vertexCount; ++i)
+  {
+    auto &v = graph.AddVertex(std::to_string(i), i);
+    EXPECT_TRUE(v.Valid());
+  }
+
+  for (auto const &idVertex : graph.Vertices())
+  {
+    EXPECT_EQ(0, graph.InDegree(idVertex.first));
+  }
+}
+
+/////////////////////////////////////////////////
+TYPED_TEST(GraphTestFixture, EdgelessOutDegree)
+{
+  TypeParam graph;
+
+  // add a bunch of vertices but no edges
+  const int vertexCount = 10000;
+  for (int i = 0; i < vertexCount; ++i)
+  {
+    auto &v = graph.AddVertex(std::to_string(i), i);
+    EXPECT_TRUE(v.Valid());
+  }
+
+  for (auto const &idVertex : graph.Vertices())
+  {
+    EXPECT_EQ(0, graph.OutDegree(idVertex.first));
   }
 }

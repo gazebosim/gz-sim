@@ -309,35 +309,37 @@ TEST(UndirectedGraphTest, IncidentsTo)
 /////////////////////////////////////////////////
 TEST(UndirectedGraphTest, InDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0--v1), (v1--v2)]
+  // Create a graph with edges [(v0--v0), (v0--v1), (v1--v2) x 2]
   UndirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
-    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}}
+    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}, {{1, 2}, 4.0}}
   });
 
   EXPECT_EQ(2u, graph.InDegree(0));
   EXPECT_EQ(2u, graph.InDegree(graph.VertexFromId(0)));
-  EXPECT_EQ(2u, graph.InDegree(1));
-  EXPECT_EQ(2u, graph.InDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(3u, graph.InDegree(1));
+  EXPECT_EQ(3u, graph.InDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(2u, graph.InDegree(2));
+  EXPECT_EQ(2u, graph.InDegree(graph.VertexFromId(2)));
 }
 
 /////////////////////////////////////////////////
 TEST(UndirectedGraphTest, OutDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0--v1), (v1--v2)]
+  // Create a graph with edges [(v0--v0), (v0--v1), (v1--v2) x 2]
   UndirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
-    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}}
+    {{{0, 0}, 1.0}, {{0, 1}, 2.0}, {{1, 2}, 3.0}, {{1, 2}, 4.0}}
   });
 
   EXPECT_EQ(2u, graph.OutDegree(0));
   EXPECT_EQ(2u, graph.OutDegree(graph.VertexFromId(0)));
-  EXPECT_EQ(2u, graph.OutDegree(1));
-  EXPECT_EQ(2u, graph.OutDegree(graph.VertexFromId(1)));
-  EXPECT_EQ(1u, graph.OutDegree(2));
-  EXPECT_EQ(1u, graph.OutDegree(graph.VertexFromId(2)));
+  EXPECT_EQ(3u, graph.OutDegree(1));
+  EXPECT_EQ(3u, graph.OutDegree(graph.VertexFromId(1)));
+  EXPECT_EQ(2u, graph.OutDegree(2));
+  EXPECT_EQ(2u, graph.OutDegree(graph.VertexFromId(2)));
 }
 
 /////////////////////////////////////////////////

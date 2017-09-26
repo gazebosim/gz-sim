@@ -28,7 +28,7 @@ using namespace graph;
 /////////////////////////////////////////////////
 TEST(GraphTest, Edges)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v0)]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v2), (v2-->v0)]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
@@ -85,7 +85,7 @@ TEST(GraphTest, Edges)
 /////////////////////////////////////////////////
 TEST(GraphTest, AdjacentsFrom)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v0)]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v2), (v2-->v0)]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
@@ -180,7 +180,7 @@ TEST(GraphTest, AdjacentsTo)
 /////////////////////////////////////////////////
 TEST(GraphTest, IncidentsFrom)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v0), (v1-->v2)]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v0), (v1-->v2)]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
@@ -236,7 +236,7 @@ TEST(GraphTest, IncidentsFrom)
 /////////////////////////////////////////////////
 TEST(GraphTest, IncidentsTo)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v0)]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v2), (v2-->v0)]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
@@ -285,7 +285,7 @@ TEST(GraphTest, IncidentsTo)
 /////////////////////////////////////////////////
 TEST(GraphTest, InDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v2), (v2-->v1) x 2]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v2), (v2-->v1) x 2]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
@@ -303,7 +303,7 @@ TEST(GraphTest, InDegree)
 /////////////////////////////////////////////////
 TEST(GraphTest, OutDegree)
 {
-  // Create a graph with edges [(v0--v0), (v0-->v1), (v1-->v0), (v1-->v2) x 2]
+  // Create a graph with edges [(v0-->v0), (v0-->v1), (v1-->v0), (v1-->v2) x 2]
   DirectedGraph<int, double> graph(
   {
     {{"0", 0, 0}, {"1", 1, 1}, {"2", 2, 2}},
