@@ -17,7 +17,7 @@ pipelines:
           # Ignition math
           - mkdir build
           - cd build
-          - cmake ..
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make
           - make test
           - make coverage
