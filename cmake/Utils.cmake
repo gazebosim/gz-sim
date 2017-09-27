@@ -51,8 +51,16 @@ endmacro (BUILD_WARNING)
 
 #################################################
 macro (ign_add_library _name)
+  set(LIBS_DESTINATION ${PROJECT_BINARY_DIR}/src)
+  set_source_files_properties(${ARGN} PROPERTIES COMPILE_DEFINITIONS "BUILDING_DLL_IGN_${IGN_PROJECT_NAME}")
   add_library(${_name} SHARED ${ARGN})
   target_link_libraries (${_name} ${general_libraries})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DESTINATION})
+  if (MSVC)
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBS_DESTINATION})
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${LIBS_DESTINATION})
+    set_target_properties( ${_name} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBS_DESTINATION})
+  endif ( MSVC )
 endmacro ()
 
 #################################################
@@ -70,17 +78,18 @@ endmacro ()
 
 #################################################
 macro (ign_install_includes _subdir)
-  install(FILES ${ARGN} DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
+  install(FILES ${ARGN}
+    DESTINATION ${INCLUDE_INSTALL_DIR}/${_subdir} COMPONENT headers)
 endmacro()
 
 #################################################
-macro (ign_install_library _name)
+macro (ign_install_library _name _exportName)
   set_target_properties(${_name} PROPERTIES SOVERSION ${PROJECT_MAJOR_VERSION} VERSION ${PROJECT_VERSION_FULL})
-  install (TARGETS ${_name} DESTINATION ${LIB_INSTALL_DIR} COMPONENT shlib)
+  install (TARGETS ${_name} EXPORT ${_exportName} DESTINATION ${LIB_INSTALL_DIR} COMPONENT shlib)
 endmacro ()
 
 #################################################
-macro (ign_install_executable _name)
+macro (ign_install_executable _name )
   set_target_properties(${_name} PROPERTIES VERSION ${PROJECT_VERSION_FULL})
   install (TARGETS ${_name} DESTINATION ${BIN_INSTALL_DIR})
   manpage(${_name} 1)
@@ -92,6 +101,29 @@ endmacro()
 
 #################################################
 macro (ign_setup_windows)
+  # Using static linking in Windows by default
+  set(BUILD_SHARED_LIBS FALSE)
+  add_definitions(-DBUILDING_STATIC_LIBS -DWIN32_LEAN_AND_MEAN)
+
+  # Don't pull in the Windows min/max macros
+  add_definitions(-DNOMINMAX)
+
+  # And force linking to MSVC dynamic runtime
+  if ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "DEBUG")
+    add_definitions("/MDd")
+  else()
+    add_definitions("/MD")
+  endif()
+
+  # And we want exceptions
+  add_definitions("/EHsc")
+
+  if (MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    # Not need if proper cmake gnerator (-G "...Win64") is passed to cmake
+    # Enable as a second measure to workaround over bug
+    # http://www.cmake.org/Bug/print_bug_page.php?bug_id=11240
+    set(CMAKE_SHARED_LINKER_FLAGS "/machine:x64")
+  endif()
 endmacro()
 
 #################################################
@@ -110,6 +142,8 @@ macro (ign_setup_apple)
     add_definitions(-DMAC_OS_X_VERSION=1070)
   elseif (${CMAKE_SYSTEM_VERSION} GREATER 12 OR ${CMAKE_SYSTEM_VERSION} EQUAL 12)
     add_definitions(-DMAC_OS_X_VERSION=1080)
+    # Use libc++ on Mountain Lion (10.8)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
   else ()
     add_definitions(-DMAC_OS_X_VERSION=0)
   endif ()
@@ -128,7 +162,7 @@ if (NOT DEFINED ENABLE_TESTS_COMPILATION)
   set (ENABLE_TESTS_COMPILATION True)
 endif()
 
-# Define testing macros as empty and redefine them if support is found and 
+# Define testing macros as empty and redefine them if support is found and
 # ENABLE_TESTS_COMPILATION is set to true
 macro (ign_build_tests)
 endmacro()
@@ -139,10 +173,10 @@ endif()
 
 #################################################
 # Macro to setup supported compiler warnings
-# Based on work of Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST. 
+# Based on work of Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST.
 include(CheckCXXCompilerFlag)
 
-macro(filter_valid_compiler_warnings) 
+macro(filter_valid_compiler_warnings)
   foreach(flag ${ARGN})
     CHECK_CXX_COMPILER_FLAG(${flag} R${flag})
     if(${R${flag}})
