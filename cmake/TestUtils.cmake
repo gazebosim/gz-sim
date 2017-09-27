@@ -1,5 +1,9 @@
 #################################################
 macro (ign_build_tests)
+  # Find the Python interpreter for running the
+  # check_test_ran.py script
+  find_package(PythonInterp QUIET)
+
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
@@ -10,25 +14,37 @@ macro (ign_build_tests)
     add_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
 
     add_dependencies(${BINARY_NAME}
-      lib${PROJECT_NAME_LOWER}
+      ${PROJECT_LIBRARY_TARGET_NAME}
       gtest gtest_main
-      )
+    )
 
     target_link_libraries(${BINARY_NAME}
-      lib${PROJECT_NAME_LOWER}
-      libgtest.a
-      libgtest_main.a
-      pthread
+      gtest
+      gtest_main
+      ${PROJECT_LIBRARY_TARGET_NAME}
+    )
+
+    if (UNIX)
+      target_link_libraries(${BINARY_NAME}
+        pthread
       )
+    elseif(WIN32)
+    endif()
 
     add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
-	--gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+      --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
 
     set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 
-    # Check that the test produced a result and create a failure if it didn't.
-    # Guards against crashed and timed out tests.
-    add_test(check_${BINARY_NAME} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
-	${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+    target_include_directories(${BINARY_NAME}
+      PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+             $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR_FULL}>)
+
+    if(PYTHONINTERP_FOUND)
+      # Check that the test produced a result and create a failure if it didn't.
+      # Guards against crashed and timed out tests.
+      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/check_test_ran.py
+        ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
+    endif()
   endforeach()
 endmacro()

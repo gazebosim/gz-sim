@@ -1,24 +1,37 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-set(IGN_PROJECT_NAME "Ignition project name, such as 'math', or 'transport'. The name should be one word and lower case.")
-
-project (ignition-${IGN_PROJECT_NAME})
-string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
-string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
-
+# Set the project name and version number here
+set (IGN_PROJECT_NAME "<project-name>")
 set (PROJECT_MAJOR_VERSION 0)
 set (PROJECT_MINOR_VERSION 1)
 set (PROJECT_PATCH_VERSION 0)
 
-set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
-set (PROJECT_VERSION_FULL ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
+#################################################
+# Only change values below here if you know
+# what you're doing
+#################################################
 
-message (STATUS "${PROJECT_NAME} version ${PROJECT_VERSION_FULL}")
+project (ignition-${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION})
+
+set(PROJECT_NAME_NO_VERSION "ignition-${IGN_PROJECT_NAME}")
+string (TOLOWER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_LOWER)
+string (TOUPPER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_UPPER)
+string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
+string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
+set(PROJECT_EXPORT_NAME ${PROJECT_NAME_LOWER})
+set(PROJECT_LIBRARY_TARGET_NAME ${PROJECT_NAME_LOWER})
+
+set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
+set (PROJECT_VERSION_FULL
+  ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
+
+message (STATUS "${PROJECT_NAME_NO_VERSION} version ${PROJECT_VERSION_FULL}")
 
 set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
   CACHE PATH "Location of CMake scripts")
 
 include (${project_cmake_dir}/Utils.cmake)
+include (CMakePackageConfigHelpers)
 
 ########################################
 # Package Creation:
@@ -91,9 +104,10 @@ if(LD_LIBRARY_PATH)
 endif()
 
 
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/ignition")
+set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
+set (INCLUDE_INSTALL_DIR_POSTFIX "ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}")
+set (INCLUDE_INSTALL_DIR_FULL    "${INCLUDE_INSTALL_DIR}/${INCLUDE_INSTALL_DIR_POSTFIX}")
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (LIB_INSTALL_DIR_ARCH_INDEPENDENT "lib/")
 set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
 
 set (USE_FULL_RPATH OFF CACHE BOOL "Set to true to enable full rpath")
@@ -159,7 +173,7 @@ elseif ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "COVERAGE")
   set (BUILD_TYPE_DEBUG TRUE)
   SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
 else()
-  build_error("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} unknown. Valid options are: Debug Release RelWithDebInfo Profile Check")
+  build_error("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} unknown. Valid options are: Debug Release RelWithDebInfo Profile Check Coverage")
 endif()
 
 #####################################
@@ -182,11 +196,33 @@ if(NOT DEFINED USE_UPSTREAM_CFLAGS OR USE_UPSTREAM_CFLAGS)
 endif()
 
 # Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
-filter_valid_compiler_warnings(-Wall -Wextra -Wno-long-long
+# MSVC generates tons of warnings on gtest code.
+# Recommended to use /W4 instead of /Wall
+if (MSVC)
+  set(WARN_LEVEL "/W4")
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  # Handling exceptions rightly and ignore unknown pragmas
+  set(UNFILTERED_FLAGS "/EHsc /wd4068")
+else()
+  # Equivalent to Wall (according to man gcc) but removed the unknown pragmas since we use
+  # MSVC only pragmas all over the code
+  list(APPEND WARN_LEVEL -Waddress -Warray-bounds -Wcomment -Wformat -Wnonnull)
+  list(APPEND WARN_LEVEL -Wparentheses -Wreorder -Wreturn-type)
+  list(APPEND WARN_LEVEL -Wsequence-point -Wsign-compare -Wstrict-aliasing)
+  list(APPEND WARN_LEVEL -Wstrict-overflow=1 -Wswitch -Wtrigraphs -Wuninitialized)
+  list(APPEND WARN_LEVEL -Wunused-function -Wunused-label -Wunused-value)
+  list(APPEND WARN_LEVEL -Wunused-variable -Wvolatile-register-var)
+
+  # Unable to be filtered flags (failing due to limitations in filter_valid_compiler_warnings)
+  set(UNFILTERED_FLAGS "-Wc++11-compat")
+endif()
+
+filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
   -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
   -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
-  -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
+  -Wmissing-include-dirs -pedantic -Wno-pragmas)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS} ${UNFILTERED_FLAGS}")
 
 #################################################
 # OS Specific initialization
@@ -230,16 +266,13 @@ if (build_errors)
 else (build_errors)
 
   ########################################
-  # Write the config.h file
-  configure_file (${project_cmake_dir}/config.hh.in
-    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
-  ign_install_includes(${IGN_PROJECT_NAME}
-    ${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh)
+  # Write the config.hh file
+  configure_file ("${project_cmake_dir}/config.hh.in"
+    "${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh")
+  ign_install_includes(
+    "${INCLUDE_INSTALL_DIR_POSTFIX}/ignition/${IGN_PROJECT_NAME}"
+    "${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh")
 
-  include_directories(
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
-  )
   link_directories(${PROJECT_BINARY_DIR}/src)
 
   if (DEFINED CMAKE_CXX_FLAGS)
@@ -250,7 +283,6 @@ else (build_errors)
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
-
   if (BUILD_IGNITION)
     set(TEST_TYPE "UNIT")
     add_subdirectory(src)
@@ -260,50 +292,71 @@ else (build_errors)
 
   ########################################
   # Make the package config files
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/ignition.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc @ONLY)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${PROJECT_NAME_LOWER}.pc
     DESTINATION ${LIB_INSTALL_DIR_ARCH_INDEPENDENT}/pkgconfig
     COMPONENT pkgconfig)
 
   ########################################
   # Make the cmake config files
-  set(PKG_NAME ${PROJECT_NAME_UPPER})
-  set(PKG_LIBRARIES ${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION})
-  set(cmake_conf_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config.cmake")
-  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}-config-version.cmake")
-  
+  set(PKG_NAME ${PROJECT_NAME_NO_VERSION_UPPER})
+  set(cmake_conf_file "${PROJECT_NAME_LOWER}-config.cmake")
+  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}-config-version.cmake")
+  set(cmake_targets_file      "${PROJECT_NAME_LOWER}-targets.cmake")
+
   set(PKG_DEPENDS)
 
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}" @ONLY)
+  if(WIN32 AND NOT CYGWIN)
+    set(CMAKE_CONFIG_INSTALL_DIR CMake)
+  else()
+    set(CMAKE_CONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/)
+  endif()
+
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ignition-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}"
+    PATH_VARS LIB_INSTALL_DIR INCLUDE_INSTALL_DIR_FULL
+    INSTALL_DESTINATION ${CMAKE_CONFIG_INSTALL_DIR})
 
   # Use write_basic_package_version_file to generate a ConfigVersion file that
   # allow users of gazebo to specify the API or version to depend on
   # TODO: keep this instruction until deprecate Ubuntu/Precise and update with
-  # https://github.com/Kitware/CMake/blob/v2.8.8/Modules/CMakePackageConfigHelpers.cmake 
+  # https://github.com/Kitware/CMake/blob/v2.8.8/Modules/CMakePackageConfigHelpers.cmake
   include(WriteBasicConfigVersionFile)
   write_basic_config_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
     VERSION "${PROJECT_VERSION_FULL}"
     COMPATIBILITY SameMajorVersion)
 
-  install(FILES 
+  install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
     ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}${PROJECT_MAJOR_VERSION}/ COMPONENT cmake)
+    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
+    
+  # Create *-targets.cmake file for build directory
+  # TODO: keep this instruction until we depend on CMake 3
+  #       then change the first line from TARGETS ...  
+  #       to EXPORT ... to match the format used in install(EXPORT
+  export(TARGETS ${PROJECT_LIBRARY_TARGET_NAME}
+         FILE  ${CMAKE_BINARY_DIR}/${cmake_targets_file})
+
+  # Install *-targets.cmake file
+  install(EXPORT ${PROJECT_EXPORT_NAME}
+          DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+          FILE ${cmake_targets_file})
+          
 
   ########################################
   # If present, load platform-specific build hooks.  This system is used,
-  # for example, by the Ubuntu overlay, to arrange for installation of
-  # Ubuntu-specific application-launching configuration.
+  # for example, by the Ubuntu overlay, to
+  # arrange for installation of Ubuntu-specific application-launching
+  # configuration.
   if (EXISTS ${PROJECT_SOURCE_DIR}/cmake/packager-hooks/CMakeLists.txt)
     message(STATUS "Loading packager build hooks from cmake/packager-hooks")
     add_subdirectory(cmake/packager-hooks)
   endif()
 
-  message(STATUS "Configuration successful. Type make to compile
-  ${PROJECT_NAME_LOWER}")
+  message(STATUS "Configuration successful.")
 endif(build_errors)

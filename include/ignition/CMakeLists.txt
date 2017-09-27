@@ -1,1 +1,1 @@
-add_subdirectory(rename_to_ign_project_name)
+add_subdirectory(<project-name>)
