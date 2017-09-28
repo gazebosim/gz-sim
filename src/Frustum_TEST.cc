@@ -28,10 +28,10 @@ TEST(FrustumTest, Constructor)
 {
   Frustum frustum;
 
-  EXPECT_EQ(frustum.Near(), 0);
-  EXPECT_EQ(frustum.Far(), 1);
+  EXPECT_DOUBLE_EQ(frustum.Near(), 0.0);
+  EXPECT_DOUBLE_EQ(frustum.Far(), 1.0);
   EXPECT_EQ(frustum.FOV(), IGN_DTOR(45));
-  EXPECT_EQ(frustum.AspectRatio(), 1);
+  EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 1.0);
   EXPECT_EQ(frustum.Pose(), Pose3d::Zero);
 }
 
@@ -54,10 +54,10 @@ TEST(FrustumTest, CopyConstructor)
   Frustum frustum2(frustum);
 
   EXPECT_EQ(frustum.FOV(), frustum2.FOV());
-  EXPECT_EQ(frustum.Near(), frustum2.Near());
-  EXPECT_EQ(frustum.Far(), frustum2.Far());
-  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
-  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+  EXPECT_DOUBLE_EQ(frustum.Near(), frustum2.Near());
+  EXPECT_DOUBLE_EQ(frustum.Far(), frustum2.Far());
+  EXPECT_DOUBLE_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+  EXPECT_DOUBLE_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
 
   EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal(),
             frustum2.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal());
@@ -97,10 +97,10 @@ TEST(FrustumTest, AssignmentOperator)
   Frustum frustum2 = frustum;
 
   EXPECT_EQ(frustum.FOV(), frustum2.FOV());
-  EXPECT_EQ(frustum.Near(), frustum2.Near());
-  EXPECT_EQ(frustum.Far(), frustum2.Far());
-  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
-  EXPECT_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+  EXPECT_DOUBLE_EQ(frustum.Near(), frustum2.Near());
+  EXPECT_DOUBLE_EQ(frustum.Far(), frustum2.Far());
+  EXPECT_DOUBLE_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
+  EXPECT_DOUBLE_EQ(frustum.AspectRatio(), frustum2.AspectRatio());
 
   EXPECT_EQ(frustum.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal(),
             frustum2.Plane(Frustum::FRUSTUM_PLANE_NEAR).Normal());
