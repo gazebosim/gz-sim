@@ -652,7 +652,7 @@ TEST(MassMatrix3dTest, EquivalentBox)
 
     // even if mass is valid, it should not be set if size is invalid
     EXPECT_FALSE(m.SetFromBox(1.0, size, rot));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
 
     // equivalent box should not be findable
     EXPECT_FALSE(m.EquivalentBox(size, rot));
@@ -795,7 +795,7 @@ TEST(MassMatrix3dTest, SetFromCylinderZ)
     EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 0, q0));
     EXPECT_FALSE(m.SetFromCylinderZ(1, 1, 0, q0));
     EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 1, q0));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
   }
 
   // unit cylinder with mass 1.0
@@ -832,7 +832,7 @@ TEST(MassMatrix3dTest, SetFromSphere)
 
     // even if mass is valid, it should not be set if radius is invalid
     EXPECT_FALSE(m.SetFromSphere(1.0, 0.0));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
   }
 
   // unit sphere with mass 1.0

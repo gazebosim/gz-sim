@@ -50,7 +50,7 @@ TEST(Line3Test, Constructor)
   EXPECT_DOUBLE_EQ(lineC[1].Z(), 6.0);
 
   EXPECT_NO_THROW(lineB[2].X());
-  EXPECT_EQ(lineB[2].X(), lineB[1].X());
+  EXPECT_DOUBLE_EQ(lineB[2].X(), lineB[1].X());
   EXPECT_NO_THROW(lineA[0].X());
 }
 
@@ -186,11 +186,11 @@ TEST(Line3Test, Distance)
   math::Line3d result;
 
   EXPECT_TRUE(line.Distance(math::Line3d(1, 0.5, 0, -1, 0.5, 0), result));
-  EXPECT_EQ(result.Length(), 0);
+  EXPECT_DOUBLE_EQ(result.Length(), 0);
   EXPECT_EQ(result, math::Line3d(0, 0.5, 0, 0, 0.5, 0));
 
   EXPECT_TRUE(line.Distance(math::Line3d(1, 0, 0, -1, 0, 0), result));
-  EXPECT_EQ(result.Length(), 0);
+  EXPECT_DOUBLE_EQ(result.Length(), 0);
   EXPECT_EQ(result, math::Line3d(0, 0, 0, 0, 0, 0));
 
   EXPECT_TRUE(line.Distance(math::Line3d(1, 1.1, 0, -1, 1.1, 0), result));
