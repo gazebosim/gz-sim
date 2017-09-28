@@ -74,9 +74,6 @@ void ComputeCubicBernsteinHermiteCoeff(const ControlPoint &_startPoint,
 }
 
 ///////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////
 IntervalCubicSpline::IntervalCubicSpline()
     : startPoint({Vector3d::Zero, Vector3d::Zero}),
       endPoint({Vector3d::Zero, Vector3d::Zero}),
