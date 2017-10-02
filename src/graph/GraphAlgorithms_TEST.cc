@@ -210,3 +210,103 @@ TEST(GraphTestFixture, DijkstraDirected)
   EXPECT_EQ(6, res.at(1).first);
   EXPECT_EQ(0, res.at(1).second);
 }
+
+/////////////////////////////////////////////////
+TEST(GraphTestFixture, ConnectedComponents)
+{
+  // Connected components of an empty graph.
+  UndirectedGraph<int, double> emptyGraph;
+  auto components = ConnectedComponents(emptyGraph);
+  EXPECT_TRUE(components.empty());
+
+  UndirectedGraph<int, double> graph(
+  {
+    // Vertices.
+    {{"A", 0, 0}, {"B", 1, 1}, {"C", 2, 2}, {"D", 3, 3}, {"E", 4, 4}},
+    // Edges.
+    {{{0, 2}, 2.0, 6.0},
+     {{1, 4}, 4.0, 5.0}}
+  });
+
+  // Connected components of a graph with three components.
+  components = ConnectedComponents(graph);
+  ASSERT_EQ(3u, components.size());
+
+  // Component #0.
+  auto component = components.at(0);
+  auto vertices = component.Vertices();
+  EXPECT_EQ(2u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(0));
+  EXPECT_NE(vertices.end(), vertices.find(2));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 0:
+      {
+        EXPECT_EQ("A", vertex.Name());
+        EXPECT_EQ(0, vertex.Data());
+        break;
+      }
+      case 2:
+      {
+        EXPECT_EQ("C", vertex.Name());
+        EXPECT_EQ(2, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
+
+  // Component #1.
+  component = components.at(1);
+  vertices = component.Vertices();
+  EXPECT_EQ(2u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(1));
+  EXPECT_NE(vertices.end(), vertices.find(4));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 1:
+      {
+        EXPECT_EQ("B", vertex.Name());
+        EXPECT_EQ(1, vertex.Data());
+        break;
+      }
+      case 4:
+      {
+        EXPECT_EQ("E", vertex.Name());
+        EXPECT_EQ(4, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
+
+  // Component #2.
+  component = components.at(2);
+  vertices = component.Vertices();
+  EXPECT_EQ(1u, vertices.size());
+  EXPECT_NE(vertices.end(), vertices.find(3));
+  for (auto const &vertexPair : vertices)
+  {
+    auto &vertex = vertexPair.second.get();
+    switch (vertex.Id())
+    {
+      case 3:
+      {
+        EXPECT_EQ("D", vertex.Name());
+        EXPECT_EQ(3, vertex.Data());
+        break;
+      }
+      default:
+        FAIL();
+    };
+  }
+}
+

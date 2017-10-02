@@ -269,6 +269,54 @@ namespace graph
 
     return dist;
   }
+
+  /// \brief Calculate the connected components of an undirected graph.
+  /// A connected component of an undirected graph is a subgraph in which any
+  /// two vertices are connected to each other by paths, and which is connected
+  /// to no additional vertices in the supergraph.
+  /// \ref https://en.wikipedia.org/wiki/Connected_component_(graph_theory)
+  /// \param[in] _graph A graph.
+  /// \return A vector of graphs. Each element of the graph is a component
+  /// (subgraph) of the original graph.
+  template<typename V, typename E>
+  std::vector<UndirectedGraph<V, E>> ConnectedComponents(
+    const UndirectedGraph<V, E> &_graph)
+  {
+    std::map<VertexId, unsigned int> visited;
+    unsigned int componentCount = 0;
+
+    for (auto const &v : _graph.Vertices())
+    {
+      if (visited.find(v.first) == visited.end())
+      {
+        auto component = BreadthFirstSort(_graph, v.first);
+        for (auto const &vId : component)
+          visited[vId] = componentCount;
+        ++componentCount;
+      }
+    }
+
+    std::vector<UndirectedGraph<V, E>> res(componentCount);
+
+    // Create the vertices.
+    for (auto const &vPair : _graph.Vertices())
+    {
+      const auto &v = vPair.second.get();
+      const auto &componentId = visited[v.Id()];
+      res[componentId].AddVertex(v.Name(), v.Data(), v.Id());
+    }
+
+    // Create the edges.
+    for (auto const &ePair : _graph.Edges())
+    {
+      const auto &e = ePair.second.get();
+      const auto &vertices = e.Vertices();
+      const auto &componentId = visited[vertices.first];
+      res[componentId].AddEdge(vertices, e.Data(), e.Weight());
+    }
+
+    return res;
+  }
 }
 }
 }
