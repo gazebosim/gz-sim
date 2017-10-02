@@ -461,13 +461,13 @@ TEST(HelpersTest, Pair)
 
   // Just a simple test case
   {
-    int a = 10;
-    int b = 20;
+    unsigned int a = 10;
+    unsigned int b = 20;
     math::PairInput c, d;
 
     auto key = math::Pair(static_cast<math::PairInput>(a),
                           static_cast<math::PairInput>(b));
-    EXPECT_EQ(key, 410);
+    EXPECT_EQ(key, 410u);
     EXPECT_TRUE(key != maxKey);
     EXPECT_TRUE(key != minKey);
 

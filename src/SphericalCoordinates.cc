@@ -530,7 +530,7 @@ bool SphericalCoordinates::operator==(const SphericalCoordinates &_sc) const
   return this->Surface() == _sc.Surface() &&
          this->LatitudeReference() == _sc.LatitudeReference() &&
          this->LongitudeReference() == _sc.LongitudeReference() &&
-         this->ElevationReference() == _sc.ElevationReference() &&
+         math::equal(this->ElevationReference(), _sc.ElevationReference()) &&
          this->HeadingOffset() == _sc.HeadingOffset();
 }
 
