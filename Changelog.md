@@ -2,10 +2,6 @@
 
 ### Ignition Math 3.x.x
 
-1. Extended Spline API: loop (self crossing curve) detection and avoidance
-   through HasLoop() and EnsureNoLoop() methods, respectively.
-    * [Pull request 169](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/169)
-
 ### Ignition Math 3.2.0 (2017-05-15)
 
 1. Create consistent bracket operators across all Vector# types
