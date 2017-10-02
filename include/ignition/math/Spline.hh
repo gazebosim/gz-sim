@@ -46,8 +46,8 @@ namespace ignition
       /// \param[in] _t Tension value between 0.0 and 1.0
       public: void Tension(double _t);
 
-      /// \brief Gets the tension value
-      /// \return the value of the tension, which is between 0.0 and 1.0
+      /// \brief Gets the tension value.
+      /// \return the value of the tension, which is between 0.0 and 1.0.
       public: double Tension() const;
 
       /// \brief Gets spline arc length.

@@ -64,9 +64,12 @@ TEST(Vector3Test, Vector3d)
   EXPECT_TRUE(v == math::Vector3d(4, 3, 2));
 
   // ::operator[]
-  EXPECT_DOUBLE_EQ(v[0], 4);
-  EXPECT_DOUBLE_EQ(v[1], 3);
-  EXPECT_DOUBLE_EQ(v[2], 2);
+  v[0] = 40;
+  v[1] = 30;
+  v[2] = 20;
+  EXPECT_DOUBLE_EQ(v[0], 40);
+  EXPECT_DOUBLE_EQ(v[1], 30);
+  EXPECT_DOUBLE_EQ(v[2], 20);
 
   v.Set(1.23, 2.35, 3.654321);
   v.Round(1);

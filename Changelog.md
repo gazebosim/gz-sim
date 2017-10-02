@@ -32,6 +32,20 @@
 
 ### Ignition Math 3.x.x
 
+1. Create consistent bracket operators across all Vector# types
+    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
+### Ignition Math 3.2.0 (2017-05-15)
+
+1. Construct on first use in Rand class
+    * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
+
+1. Extended Spline API: derivative interpolation, arc length calculation
+   and tangent forcing.
+    * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
+
+### Ignition Math 3.1.0 (2017-04-11)
+
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka
     * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)

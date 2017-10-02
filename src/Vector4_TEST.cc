@@ -133,7 +133,10 @@ TEST(Vector4dTest, Vector4d)
   EXPECT_TRUE(v.IsFinite());
 
   // ::operator[]
-  v.Set(1, 2, 3, 4);
+  v[0] = 1;
+  v[1] = 2;
+  v[2] = 3;
+  v[3] = 4;
   EXPECT_DOUBLE_EQ(v[0], 1);
   EXPECT_DOUBLE_EQ(v[1], 2);
   EXPECT_DOUBLE_EQ(v[2], 3);

@@ -57,7 +57,7 @@ void ComputeCubicBernsteinHermiteCoeff(const ControlPoint &_startPoint,
   const Vector3d &tan0 = _startPoint.MthDerivative(1);
   const Vector3d &tan1 = _endPoint.MthDerivative(1);
 
-  // Bernstein polynomials matrix
+  // Hermite basis matrix
   const Matrix4d bmatrix(2.0, -2.0,  1.0,  1.0,
                         -3.0,  3.0, -2.0, -1.0,
                          0.0,  0.0,  1.0,  0.0,
