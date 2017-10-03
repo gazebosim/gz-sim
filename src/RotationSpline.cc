@@ -16,7 +16,7 @@
 */
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
-#include "ignition/math/RotationSplinePrivate.hh"
+#include "RotationSplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;
