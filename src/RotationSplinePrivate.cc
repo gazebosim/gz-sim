@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/math/RotationSplinePrivate.hh"
+#include "RotationSplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;

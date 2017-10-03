@@ -17,7 +17,7 @@
 #include <cmath>
 
 #include "ignition/math/Matrix4.hh"
-#include "ignition/math/FrustumPrivate.hh"
+#include "FrustumPrivate.hh"
 #include "ignition/math/Frustum.hh"
 
 using namespace ignition;

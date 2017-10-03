@@ -17,7 +17,7 @@
 // Note: Originally cribbed from Ogre3d. Modified to implement Cardinal
 // spline and catmull-rom spline
 
-#include "ignition/math/SplinePrivate.hh"
+#include "SplinePrivate.hh"
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Vector4.hh"
 #include "ignition/math/Spline.hh"
