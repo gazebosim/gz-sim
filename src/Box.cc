@@ -17,7 +17,7 @@
 #include <cmath>
 #include <ignition/math/Box.hh>
 
-#include "ignition/math/BoxPrivate.hh"
+#include "BoxPrivate.hh"
 
 using namespace ignition;
 using namespace math;

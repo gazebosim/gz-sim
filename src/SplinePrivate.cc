@@ -17,7 +17,7 @@
 
 #include "ignition/math/Matrix4.hh"
 
-#include "ignition/math/SplinePrivate.hh"
+#include "SplinePrivate.hh"
 
 namespace ignition
 {
@@ -72,9 +72,6 @@ void ComputeCubicBernsteinHermiteCoeff(const ControlPoint &_startPoint,
   // Compute coefficients
   _coeffs = bmatrix * cmatrix;
 }
-
-///////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////
 IntervalCubicSpline::IntervalCubicSpline()
