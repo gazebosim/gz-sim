@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include <ignition/math/Vector3StatsPrivate.hh>
+#include "Vector3StatsPrivate.hh"
 #include <ignition/math/Vector3Stats.hh>
 
 using namespace ignition;

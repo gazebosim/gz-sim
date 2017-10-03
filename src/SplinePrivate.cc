@@ -17,7 +17,7 @@
 
 #include "ignition/math/Matrix4.hh"
 
-#include "ignition/math/SplinePrivate.hh"
+#include "SplinePrivate.hh"
 
 namespace ignition
 {
