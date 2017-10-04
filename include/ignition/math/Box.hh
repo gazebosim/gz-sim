@@ -34,7 +34,12 @@ namespace ignition
     /// \brief Mathematical representation of a box and related functions.
     class IGNITION_MATH_VISIBLE Box
     {
-      /// \brief Default constructor
+      /// \brief Default constructor. This constructor will set the box's
+      /// minimum and maximum corners to the highest (max) and lowest
+      /// floating point values available to indicate that it is uninitialized.
+      /// The default box does not intersect any other boxes or contain any
+      /// points since it has no extent. Its center is the origin and its side
+      /// lengths are 0.
       public: Box();
 
       /// \brief Constructor. This constructor will compute the box's

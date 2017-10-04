@@ -1,3 +1,33 @@
+## Ignition Math 4.x
+
+### Ignition Math 4.x.x
+
+1. Switch to C++14
+    * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
+
+1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
+    * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
+
+1. Removed the box 'extent' field. The default constructor now sets a box's
+   corners to extrema in order to indicate an uninitialized box.
+    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/172)
+    * [Issue 72](https://bitbucket.org/ignitionrobotics/ign-math/issues/72)
+    * [Issue 53](https://bitbucket.org/ignitionrobotics/ign-math/issues/53)
+
+1. Added graph utilites:
+    1. Added a Vertex class:
+        * [Pull request 170](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/170)
+    1. Added an Edge class:
+        * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/174)
+    1. Added a Graph class:
+        * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
+    1. Added a GraphAlgorithms class:
+        * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
+    1. Added a function to calculate connected components in undirected
+       graphs:
+         * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
+
 ## Ignition Math 3.x
 
 ### Ignition Math 3.x.x
@@ -19,15 +49,6 @@
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka
     * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
-
-1. Added Color
-    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
-
-1. Added OrientedBox
-    * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
-
-1. Added an assignment operator to the Frustum class.
-    * [Pull request 144](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/144)
 
 ### Ignition Math 3.0.0 (2017-01-05)
 
