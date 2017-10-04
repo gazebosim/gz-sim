@@ -21,11 +21,14 @@
 #include <memory>
 #include <string>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \brief Forward declare private data class.
     class SignalStatisticPrivate;
 
@@ -251,6 +254,7 @@ namespace ignition
 #pragma warning(pop)
 #endif
     };
+    }
     /// \}
   }
 }

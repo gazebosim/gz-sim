@@ -19,11 +19,14 @@
 
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
     /// \brief Encapsulates a position and rotation in three space
     template<typename T>
@@ -406,6 +409,7 @@ namespace ignition
     typedef Pose3<int> Pose3i;
     typedef Pose3<double> Pose3d;
     typedef Pose3<float> Pose3f;
+    }
   }
 }
 #endif

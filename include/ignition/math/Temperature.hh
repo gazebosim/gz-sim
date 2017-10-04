@@ -21,11 +21,14 @@
 #include <memory>
 
 #include "ignition/math/Helpers.hh"
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     // Forward declare private data class.
     class TemperaturePrivate;
 
@@ -370,6 +373,7 @@ namespace ignition
 #pragma warning(pop)
 #endif
     };
+    }
   }
 }
 #endif
