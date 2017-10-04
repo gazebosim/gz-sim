@@ -22,7 +22,6 @@
 
 using namespace ignition;
 using namespace math;
-/*
 
 /////////////////////////////////////////////////
 TEST(FrustumTest, Constructor)
@@ -611,7 +610,6 @@ TEST(FrustumTest, AABBContainsFrustum)
   EXPECT_TRUE(frustum.Contains(
         Box(Vector3d(-100, -100, -100), Vector3d(100, 100, 100))));
 }
-*/
 
 //////////////////////////////////////////////////
 TEST(FrustumTest, AABBFrustumEdgeOverlap)
