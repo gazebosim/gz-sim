@@ -18,14 +18,11 @@
 #define IGNITION_MATH_VECTOR3STATSPRIVATE_HH_
 
 #include <ignition/math/SignalStats.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \brief Private data class for the Vector3Stats class.
     class Vector3StatsPrivate
     {
@@ -41,7 +38,6 @@ namespace ignition
       /// \brief Statistics for magnitude of signal.
       public: SignalStats mag;
     };
-    }
   }
 }
 #endif

@@ -17,12 +17,13 @@
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Angle.hh"
 
-using namespace ignition::math;
+using namespace ignition;
+using namespace math;
 
-const Angle Angle::Zero = Angle(0);
-const Angle Angle::Pi = Angle(IGN_PI);
-const Angle Angle::HalfPi = Angle(IGN_PI_2);
-const Angle Angle::TwoPi = Angle(IGN_PI * 2.0);
+const Angle Angle::Zero = math::Angle(0);
+const Angle Angle::Pi = math::Angle(IGN_PI);
+const Angle Angle::HalfPi = math::Angle(IGN_PI_2);
+const Angle Angle::TwoPi = math::Angle(IGN_PI * 2.0);
 
 //////////////////////////////////////////////////
 Angle::Angle()
@@ -150,7 +151,7 @@ bool Angle::operator<(const Angle &angle) const
 //////////////////////////////////////////////////
 bool Angle::operator<=(const Angle &angle) const
 {
-  return this->value < angle.value || equal(this->value, angle.value);
+  return this->value < angle.value || math::equal(this->value, angle.value);
 }
 
 //////////////////////////////////////////////////
@@ -162,7 +163,7 @@ bool Angle::operator>(const Angle &angle) const
 //////////////////////////////////////////////////
 bool Angle::operator>=(const Angle &angle) const
 {
-  return this->value > angle.value || equal(this->value, angle.value);
+  return this->value > angle.value || math::equal(this->value, angle.value);
 }
 
 //////////////////////////////////////////////////

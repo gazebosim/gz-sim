@@ -21,14 +21,11 @@
 #include <ignition/math/Line3.hh>
 #include <ignition/math/Plane.hh>
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \class Triangle3 Triangle3.hh ignition/math/Triangle3.hh
     /// \brief A 3-dimensional triangle and related functions.
     template<typename T>
@@ -276,7 +273,6 @@ namespace ignition
 
     /// \brief Float specialization of the Triangle class.
     typedef Triangle3<float> Triangle3f;
-    }
   }
 }
 #endif

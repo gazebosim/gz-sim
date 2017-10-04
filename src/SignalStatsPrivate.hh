@@ -19,14 +19,11 @@
 
 #include <memory>
 #include <vector>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \brief Private data class for the SignalStatistic class.
     class SignalStatisticPrivate
     {
@@ -75,7 +72,6 @@ namespace ignition
         return dataPtr;
       }
     };
-    }
   }
 }
 #endif

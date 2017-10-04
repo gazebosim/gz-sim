@@ -20,14 +20,11 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \class Filter Filter.hh ignition/math/Filter.hh
     /// \brief Filter base class
     template <class T>
@@ -244,7 +241,6 @@ namespace ignition
         this->Set(math::Vector3d(0, 0, 0));
       }
     };
-    }
   }
 }
 
