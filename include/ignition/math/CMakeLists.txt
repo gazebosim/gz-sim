@@ -1,2 +1,2 @@
 
-ign_install_all_headers()
+ign_install_all_headers(ADDITIONAL_DIRS graph)
