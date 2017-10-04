@@ -22,14 +22,11 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Plane.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \internal
     /// \brief Private data for the Frustum class
     class FrustumPrivate
@@ -76,7 +73,6 @@ namespace ignition
       /// \sa Frustum::FrustumPlane
       public: std::array<Planed, 6> planes;
     };
-    }
   }
 }
 #endif

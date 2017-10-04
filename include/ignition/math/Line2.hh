@@ -19,14 +19,11 @@
 
 #include <algorithm>
 #include <ignition/math/Vector2.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \class Line2 Line2.hh ignition/math/Line2.hh
     /// \brief A two dimensional line segment. The line is defined by a
     /// start and end point.
@@ -313,7 +310,6 @@ namespace ignition
     typedef Line2<int> Line2i;
     typedef Line2<double> Line2d;
     typedef Line2<float> Line2f;
-    }
   }
 }
 #endif

@@ -18,14 +18,11 @@
 #define IGNITION_MATH_BOXPRIVATE_HH_
 
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \internal
     /// \brief Private data for Box class
     class BoxPrivate
@@ -36,7 +33,6 @@ namespace ignition
       /// \brief Maximum corner of the box
       public: Vector3d max = Vector3d(LOW_D, LOW_D, LOW_D);
     };
-    }
   }
 }
 #endif

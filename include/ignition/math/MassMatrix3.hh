@@ -26,14 +26,11 @@
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Matrix3.hh"
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \class MassMatrix3 MassMatrix3.hh ignition/math/MassMatrix3.hh
     /// \brief A class for inertial information about a rigid body
     /// consisting of the scalar mass and a 3x3 symmetric moment
@@ -904,7 +901,6 @@ namespace ignition
 
     typedef MassMatrix3<double> MassMatrix3d;
     typedef MassMatrix3<float> MassMatrix3f;
-    }
   }
 }
 #endif

@@ -22,14 +22,11 @@
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
-#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
     /// \brief Mathematical representation of a box which can be arbitrarily
     /// positioned and rotated.
     template<typename T>
@@ -185,7 +182,6 @@ namespace ignition
     typedef OrientedBox<int> OrientedBoxi;
     typedef OrientedBox<double> OrientedBoxd;
     typedef OrientedBox<float> OrientedBoxf;
-    }
   }
 }
 #endif
