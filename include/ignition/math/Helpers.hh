@@ -748,7 +748,8 @@ namespace ignition
     /// \return A unique non-negative integer value. On Windows the return
     /// value is uint32_t. On Linux/OSX the return value is uint64_t
     /// \sa Unpair
-    PairOutput IGNITION_MATH_VISIBLE Pair(const PairInput _a, const PairInput _b);
+    PairOutput IGNITION_MATH_VISIBLE Pair(
+        const PairInput _a, const PairInput _b);
 
     /// \brief The reverse of the Pair function. Accepts a key, produced
     /// from the Pair function, and returns a tuple consisting of the two
