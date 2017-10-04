@@ -53,33 +53,33 @@ TEST(UndirectedGraphTest, Edges)
       case 0:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(0, vertices.first);
-        EXPECT_EQ(0, vertices.second);
-        EXPECT_EQ(1.0, edge.Data());
+        EXPECT_EQ(0u, vertices.first);
+        EXPECT_EQ(0u, vertices.second);
+        EXPECT_DOUBLE_EQ(1.0, edge.Data());
         break;
       }
       case 1:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(0, vertices.first);
-        EXPECT_EQ(1, vertices.second);
-        EXPECT_EQ(2.0, edge.Data());
+        EXPECT_EQ(0u, vertices.first);
+        EXPECT_EQ(1u, vertices.second);
+        EXPECT_DOUBLE_EQ(2.0, edge.Data());
         break;
       }
       case 2:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(1, vertices.first);
-        EXPECT_EQ(2, vertices.second);
-        EXPECT_EQ(3.0, edge.Data());
+        EXPECT_EQ(1u, vertices.first);
+        EXPECT_EQ(2u, vertices.second);
+        EXPECT_DOUBLE_EQ(3.0, edge.Data());
         break;
       }
       case 3:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(2, vertices.first);
-        EXPECT_EQ(0, vertices.second);
-        EXPECT_EQ(4.0, edge.Data());
+        EXPECT_EQ(2u, vertices.first);
+        EXPECT_EQ(0u, vertices.second);
+        EXPECT_DOUBLE_EQ(4.0, edge.Data());
         break;
       }
       default:
@@ -224,17 +224,17 @@ TEST(UndirectedGraphTest, IncidentsFrom)
       case 1:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(0, vertices.first);
-        EXPECT_EQ(1, vertices.second);
-        EXPECT_EQ(2.0, edge.Data());
+        EXPECT_EQ(0u, vertices.first);
+        EXPECT_EQ(1u, vertices.second);
+        EXPECT_DOUBLE_EQ(2.0, edge.Data());
         break;
       }
       case 2:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(1, vertices.first);
-        EXPECT_EQ(2, vertices.second);
-        EXPECT_EQ(3.0, edge.Data());
+        EXPECT_EQ(1u, vertices.first);
+        EXPECT_EQ(2u, vertices.second);
+        EXPECT_DOUBLE_EQ(3.0, edge.Data());
         break;
       }
       default:
@@ -279,25 +279,25 @@ TEST(UndirectedGraphTest, IncidentsTo)
       case 0:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(0, vertices.first);
-        EXPECT_EQ(0, vertices.second);
-        EXPECT_EQ(1.0, edge.Data());
+        EXPECT_EQ(0u, vertices.first);
+        EXPECT_EQ(0u, vertices.second);
+        EXPECT_DOUBLE_EQ(1.0, edge.Data());
         break;
       }
       case 1:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(0, vertices.first);
-        EXPECT_EQ(1, vertices.second);
-        EXPECT_EQ(2.0, edge.Data());
+        EXPECT_EQ(0u, vertices.first);
+        EXPECT_EQ(1u, vertices.second);
+        EXPECT_DOUBLE_EQ(2.0, edge.Data());
         break;
       }
       case 3:
       {
         auto vertices = edge.Vertices();
-        EXPECT_EQ(2, vertices.first);
-        EXPECT_EQ(0, vertices.second);
-        EXPECT_EQ(4.0, edge.Data());
+        EXPECT_EQ(2u, vertices.first);
+        EXPECT_EQ(0u, vertices.second);
+        EXPECT_DOUBLE_EQ(4.0, edge.Data());
         break;
       }
       default:
@@ -358,9 +358,9 @@ TEST(UndirectedGraphTest, AddEdge)
   auto &e2 = graph.AddEdge({2, 0}, 4.0);
 
   // Check the edge content.
-  EXPECT_EQ(2.0, e0.Data());
-  EXPECT_EQ(3.0, e1.Data());
-  EXPECT_EQ(4.0, e2.Data());
+  EXPECT_DOUBLE_EQ(2.0, e0.Data());
+  EXPECT_DOUBLE_EQ(3.0, e1.Data());
+  EXPECT_DOUBLE_EQ(4.0, e2.Data());
 
   // Change some content and verity it.
   e2.Data() = 5.0;
@@ -370,7 +370,7 @@ TEST(UndirectedGraphTest, AddEdge)
   EXPECT_DOUBLE_EQ(6.0, edge.Weight());
 
   // Check that the edges point to the right vertices.
-  EXPECT_EQ(0, e0.Vertices().first);
+  EXPECT_EQ(0u, e0.Vertices().first);
 
   auto edges = graph.Edges();
   EXPECT_EQ(3u, edges.size());
@@ -469,7 +469,7 @@ TEST(UndirectedGraphTest, RemoveVertices)
   });
 
   // Try to remove a node with a name that doesn't exist.
-  EXPECT_EQ(0, graph.RemoveVertices("wrong_name"));
+  EXPECT_EQ(0u, graph.RemoveVertices("wrong_name"));
   EXPECT_EQ(4u, graph.Vertices().size());
   EXPECT_EQ(2u, graph.AdjacentsFrom(1).size());
 
