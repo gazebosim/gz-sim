@@ -7,6 +7,12 @@ release will remove the deprecated code.
 
 ## Ignition Math 3.X to 4.X
 
+### Added dependencies
+
+1. **ignition-cmake**
+    + Ignition-math now has a build dependency on ignition-cmake, which
+      allows cmake scripts to be shared across all the ignition packages.
+
 ### Modifications
 
 1. **Box.hh**

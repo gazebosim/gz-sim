@@ -2,6 +2,9 @@
 
 ### Ignition Math 4.x.x
 
+1. Use ignition-cmake to simplify build scripts
+    * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/200)
+
 1. Switch to C++14
     * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
 
