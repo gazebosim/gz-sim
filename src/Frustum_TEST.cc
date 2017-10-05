@@ -617,10 +617,7 @@ TEST(FrustumTest, AABBFrustumEdgeOverlap)
   // This test case has the top of an AABB overlap a frustum, but all the
   // corners of AABB fall outside the frustum.
 
-  // \todo Change ybounds to a value of 10 when issue #85 is fixed.
-  double ybounds = 1;
-
-  std::cerr << "Warning, issue #85 has not been fixed.\n";
+  double ybounds = 10;
 
   Frustum frustum;
   frustum.SetNear(0.55);
@@ -631,4 +628,24 @@ TEST(FrustumTest, AABBFrustumEdgeOverlap)
 
   EXPECT_TRUE(frustum.Contains(
         Box(Vector3d(1, -ybounds, 0), Vector3d(2, ybounds, 2))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, AABBBFWall)
+{
+  // Frustum contains at a large but thin wall
+
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1, -10, -10), Vector3d(2, 10, 10))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(-10, 1, -10), Vector3d(10, 1.1, 10))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(-10, -10, 1.95), Vector3d(10, 10, 2.05))));
 }

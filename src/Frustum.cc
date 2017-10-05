@@ -67,6 +67,7 @@ Planed Frustum::Plane(const FrustumPlane _plane) const
 /////////////////////////////////////////////////
 bool Frustum::Contains(const Box &_b) const
 {
+  // This is a fast test used for culling.
   // If the box is on the negative side of a plane, then the box is not
   // visible.
   int overlapping = 0;
@@ -98,6 +99,48 @@ bool Frustum::Contains(const Box &_b) const
     {
       if (_b.Contains(pt))
         return true;
+    }
+
+    // Return true if any edge of the frustum passes through the AABB
+    for (const auto &edge : this->dataPtr->edges)
+    {
+      // If the edge projected onto a world axis does not overlapp with the AABB
+      // then the edge could not be passing through the AABB.
+      if (edge.first.X() < min.X() && edge.second.X() < min.X())
+      {
+        // both frustum edge points are below AABB on x axis
+        continue;
+      }
+      else if (edge.first.X() > max.X() && edge.second.X() > max.X())
+      {
+        // both frustum edge points are above AABB on x axis
+        continue;
+      }
+      else if (edge.first.Y() < min.Y() && edge.second.Y() < min.Y())
+      {
+        // both frustum edge points are below AABB on y axis
+        continue;
+      }
+      else if (edge.first.Y() > max.Y() && edge.second.Y() > max.Y())
+      {
+        // both frustum edge points are above AABB on y axis
+        continue;
+      }
+      else if (edge.first.Z() < min.Z() && edge.second.Z() < min.Z())
+      {
+        // both frustum edge points are below AABB on z axis
+        continue;
+      }
+      else if (edge.first.Z() > max.Z() && edge.second.Z() > max.Z())
+      {
+        // both frustum edge points are above AABB on z axis
+        continue;
+      }
+      else
+      {
+        // TODO prove or disprove that Frustum must penetrate AABB???
+        return true;
+      }
     }
     return false;
   }
@@ -242,6 +285,20 @@ void Frustum::ComputePlanes()
   this->dataPtr->points[5] = farTopRight;
   this->dataPtr->points[6] = farBottomLeft;
   this->dataPtr->points[7] = farBottomRight;
+
+  // Save the edges
+  this->dataPtr->edges[0] = {nearTopLeft, nearTopRight};
+  this->dataPtr->edges[1] = {nearTopLeft, nearBottomLeft};
+  this->dataPtr->edges[2] = {nearTopLeft, farTopLeft};
+  this->dataPtr->edges[3] = {nearTopRight, nearBottomRight};
+  this->dataPtr->edges[4] = {nearTopRight, farTopRight};
+  this->dataPtr->edges[5] = {nearBottomLeft, nearBottomRight};
+  this->dataPtr->edges[6] = {nearBottomLeft, farBottomLeft};
+  this->dataPtr->edges[7] = {farTopLeft, farTopRight};
+  this->dataPtr->edges[8] = {farTopLeft, farBottomLeft};
+  this->dataPtr->edges[9] = {farTopRight, farBottomRight};
+  this->dataPtr->edges[10] = {farBottomLeft, farBottomRight};
+  this->dataPtr->edges[11] = {farBottomRight, nearBottomRight};
 
   Vector3d leftCenter =
     (farTopLeft + nearTopLeft + farBottomLeft + nearBottomLeft) / 4.0;
