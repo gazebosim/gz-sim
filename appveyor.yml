@@ -12,8 +12,9 @@ environment:
 install:
   - hg summary
   - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
-  - mkdir -p ign-cmake/build
-  - cd ign-cmake/build
+  - cd ign-cmake
+  - md build
+  - cd build
   - cmake ..
   - cmake --build . --target INSTALL
   - cd ../..
