@@ -1,6 +1,6 @@
 os:
-  - Visual Studio 2013
   - Visual Studio 2015
+  - Visual Studio 2017
 
 configuration:
   - Debug
@@ -9,6 +9,14 @@ configuration:
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
 
+install:
+  - hg summary
+  - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
+  - mkdir -p ign-cmake/build
+  - cd ign-cmake/build
+  - cmake ..
+  - cmake --build . --target INSTALL
+  - cd ../..
 build_script:
   - md build
   - cd build
