@@ -34,7 +34,7 @@ test_script:
   - cd ../examples
   - md build 
   - cd build
-  - cmake .. -DCMAKE_CXX_FLAGS="-WX"
+  - cmake ..
   - cmake --build . --config %CONFIGURATION% 
   - cd ..
   
