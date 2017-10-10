@@ -22,7 +22,7 @@ install:
 build_script:
   - md build
   - cd build
-  - cmake .. -DEXTRA_CMAKE_CXX_FLAGS="-WX"
+  - cmake .. -DCMAKE_CXX_FLAGS="-WX"
   - cmake --build . --config %CONFIGURATION%
 
 after_build:
@@ -34,7 +34,7 @@ test_script:
   - cd ../examples
   - md build 
   - cd build
-  - cmake ..
+  - cmake .. -DCMAKE_CXX_FLAGS="-WX"
   - cmake --build . --config %CONFIGURATION% 
   - cd ..
   
