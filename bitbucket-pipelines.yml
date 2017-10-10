@@ -9,7 +9,7 @@ pipelines:
           - gcc -v
           - g++ -v
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b CMakeRefactor
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake
           - cd ign-cmake
           - mkdir build
           - cd build
