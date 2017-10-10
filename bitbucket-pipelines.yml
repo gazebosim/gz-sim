@@ -9,13 +9,11 @@ pipelines:
           - gcc -v
           - g++ -v
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake
-          - cd ign-cmake
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make install
-          - cd ../..
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
+          - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
+          - apt-get update
+          - apt-get -y install
+            libignition-cmake-dev
           # Ignition math
           - mkdir build
           - cd build
