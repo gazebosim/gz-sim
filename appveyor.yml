@@ -13,7 +13,7 @@ install:
   - hg summary
   - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
   - cd ign-cmake
-  - hg up msvc_features
+  - hg up default
   - md build
   - cd build
   - cmake ..
