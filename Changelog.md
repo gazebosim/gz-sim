@@ -2,6 +2,9 @@
 
 ### Ignition Math 4.x.x
 
+1. Make constructor SemanticVersion(string) explicit
+    * [Pull request 203](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/203)
+
 1. Switch to C++14
     * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
 

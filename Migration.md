@@ -13,6 +13,9 @@ release will remove the deprecated code.
     + Boxes generated with the default constructor do not intersect any other
     boxes or contain any points (previously they contained the origin).
 
+1. **SemanticVersion.hh**
+    + The SemanticVersion(const std::string &) constructor is now explicit.
+
 ## Ignition Math 2.X to 3.X
 
 ### Modifications
