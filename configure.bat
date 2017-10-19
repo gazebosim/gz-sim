@@ -10,7 +10,7 @@ call %win_lib% :install_ign_project ign-cmake WindowsUpdate-Oct2017
 @if not "%1"=="" set build_type=%1
 @echo Configuring for build type %build_type%
 
-:: Go to the directory that this file configure.bat file exists in
+:: Go to the directory that this configure.bat file exists in
 cd %~dp0
 
 :: Create a build directory and configure
