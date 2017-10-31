@@ -75,10 +75,11 @@ TYPED_TEST(GraphTestFixture, UniformInitialization)
 
     for (int i = 0; i < 3; ++i)
     {
+      unsigned int iu = i;
       ASSERT_NE(vertices.find(i), vertices.end());
       auto v = vertices.at(i).get();
       EXPECT_EQ(std::to_string(i), v.Name());
-      EXPECT_EQ(i, v.Id());
+      EXPECT_EQ(iu, v.Id());
       EXPECT_EQ(i, v.Data());
     }
 
@@ -101,10 +102,11 @@ TYPED_TEST(GraphTestFixture, UniformInitialization)
 
     for (int i = 0; i < 3; ++i)
     {
+      unsigned int iu = i;
       ASSERT_NE(vertices.find(i), vertices.end());
       auto v = vertices.at(i).get();
       EXPECT_EQ(std::to_string(i), v.Name());
-      EXPECT_EQ(i, v.Id());
+      EXPECT_EQ(iu, v.Id());
       EXPECT_EQ(i, v.Data());
     }
 
@@ -155,10 +157,11 @@ TYPED_TEST(GraphTestFixture, BadUniformInitialization)
 
     for (int i = 0; i < 2; ++i)
     {
+      unsigned int iu = i;
       ASSERT_NE(vertices.find(i), vertices.end());
       auto v = vertices.at(i).get();
       EXPECT_EQ(std::to_string(i), v.Name());
-      EXPECT_EQ(i, v.Id());
+      EXPECT_EQ(iu, v.Id());
       EXPECT_EQ(i, v.Data());
     }
   }
@@ -208,7 +211,7 @@ TYPED_TEST(GraphTestFixture, VertexFromId)
     });
 
     auto v = graph.VertexFromId(0);
-    EXPECT_EQ(0, v.Id());
+    EXPECT_EQ(0u, v.Id());
 
     // Id not found.
     v = graph.VertexFromId(500);
@@ -332,7 +335,7 @@ TYPED_TEST(GraphTestFixture, AddVertex)
 
   // Create a vertex with Id.
   auto &v3 = graph.AddVertex("3", 5, 3);
-  EXPECT_EQ(3, v3.Id());
+  EXPECT_EQ(3u, v3.Id());
   EXPECT_EQ(5, v3.Data());
   EXPECT_EQ("3", v3.Name());
 
@@ -369,7 +372,7 @@ TYPED_TEST(GraphTestFixture, EdgeFromId)
     });
 
     auto e = graph.EdgeFromId(1);
-    EXPECT_EQ(1, e.Id());
+    EXPECT_EQ(1u, e.Id());
 
     // Id not found.
     e = graph.EdgeFromId(500);
@@ -385,7 +388,7 @@ TYPED_TEST(GraphTestFixture, EdgeFromId)
     });
 
     auto e = graph.EdgeFromId(1);
-    EXPECT_EQ(1, e.Id());
+    EXPECT_EQ(1u, e.Id());
 
     // Id not found.
     e = graph.EdgeFromId(500);
@@ -408,7 +411,7 @@ TYPED_TEST(GraphTestFixture, EdgelessInDegree)
 
   for (auto const &idVertex : graph.Vertices())
   {
-    EXPECT_EQ(0, graph.InDegree(idVertex.first));
+    EXPECT_EQ(0u, graph.InDegree(idVertex.first));
   }
 }
 
@@ -427,6 +430,6 @@ TYPED_TEST(GraphTestFixture, EdgelessOutDegree)
 
   for (auto const &idVertex : graph.Vertices())
   {
-    EXPECT_EQ(0, graph.OutDegree(idVertex.first));
+    EXPECT_EQ(0u, graph.OutDegree(idVertex.first));
   }
 }

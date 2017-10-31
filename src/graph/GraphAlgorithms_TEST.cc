@@ -94,17 +94,17 @@ TEST(UndirectedGraphTest, DepthFirstSortUndirected)
 /////////////////////////////////////////////////
 TEST(GraphTestFixture, DijkstraUndirected)
 {
-  ///              (6)
-  ///           0-------1
-  ///           |      /|\
-  ///           |     / | \(5)
-  ///           | (2)/  |  \
-  ///           |   /   |   2
-  ///        (1)|  / (2)|  /
-  ///           | /     | /(5)
-  ///           |/      |/
-  ///           3-------4
-  ///              (1)
+  ///              (6)                 |
+  ///           0-------1              |
+  ///           |      /|\             |
+  ///           |     / | \(5)         |
+  ///           | (2)/  |  \           |
+  ///           |   /   |   2          |
+  ///        (1)|  / (2)|  /           |
+  ///           | /     | /(5)         |
+  ///           |/      |/             |
+  ///           3-------4              |
+  ///              (1)                 |
   UndirectedGraph<int, double> graph(
   {
     // Vertices.
@@ -128,43 +128,43 @@ TEST(GraphTestFixture, DijkstraUndirected)
   res = Dijkstra(graph, 0);
 
   ASSERT_NE(res.end(), res.find(0));
-  EXPECT_EQ(0, res.at(0).first);
-  EXPECT_EQ(0, res.at(0).second);
+  EXPECT_DOUBLE_EQ(0, res.at(0).first);
+  EXPECT_EQ(0u, res.at(0).second);
   ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(3, res.at(1).first);
-  EXPECT_EQ(3, res.at(1).second);
+  EXPECT_DOUBLE_EQ(3, res.at(1).first);
+  EXPECT_EQ(3u, res.at(1).second);
   ASSERT_NE(res.end(), res.find(2));
-  EXPECT_EQ(7, res.at(2).first);
-  EXPECT_EQ(4, res.at(2).second);
+  EXPECT_DOUBLE_EQ(7, res.at(2).first);
+  EXPECT_EQ(4u, res.at(2).second);
   ASSERT_NE(res.end(), res.find(3));
-  EXPECT_EQ(1, res.at(3).first);
-  EXPECT_EQ(0, res.at(3).second);
+  EXPECT_DOUBLE_EQ(1, res.at(3).first);
+  EXPECT_EQ(0u, res.at(3).second);
   ASSERT_NE(res.end(), res.find(4));
-  EXPECT_EQ(2, res.at(4).first);
-  EXPECT_EQ(3, res.at(4).second);
+  EXPECT_DOUBLE_EQ(2, res.at(4).first);
+  EXPECT_EQ(3u, res.at(4).second);
 
   // Calculate the shortest path between 0 and 1.
   res = Dijkstra(graph, 0, 1);
 
   ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(3, res.at(1).first);
-  EXPECT_EQ(3, res.at(1).second);
+  EXPECT_DOUBLE_EQ(3, res.at(1).first);
+  EXPECT_EQ(3u, res.at(1).second);
 }
 
 /////////////////////////////////////////////////
 TEST(GraphTestFixture, DijkstraDirected)
 {
-  ///              (6)
-  ///           0------>1
-  ///           |      /|\
-  ///           |     / | \(5)
-  ///           | (2)/  |  ┘
-  ///           |   /   |   2
-  ///        (1)|  / (2)|  /
-  ///           | /     | /(5)
-  ///           VL      VL
-  ///           3------>4
-  ///              (1)
+  ///              (6)                  |
+  ///           0------>1               |
+  ///           |      /|\              |
+  ///           |     / | \(5)          |
+  ///           | (2)/  |  ┘            |
+  ///           |   /   |   2           |
+  ///        (1)|  / (2)|  /            |
+  ///           | /     | /(5)          |
+  ///           VL      VL              |
+  ///           3------>4               |
+  ///              (1)                  |
   DirectedGraph<int, double> graph(
   {
     // Vertices.
@@ -188,27 +188,27 @@ TEST(GraphTestFixture, DijkstraDirected)
   res = Dijkstra(graph, 0);
 
   ASSERT_NE(res.end(), res.find(0));
-  EXPECT_EQ(0, res.at(0).first);
-  EXPECT_EQ(0, res.at(0).second);
+  EXPECT_DOUBLE_EQ(0, res.at(0).first);
+  EXPECT_EQ(0u, res.at(0).second);
   ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(6, res.at(1).first);
-  EXPECT_EQ(0, res.at(1).second);
+  EXPECT_DOUBLE_EQ(6, res.at(1).first);
+  EXPECT_EQ(0u, res.at(1).second);
   ASSERT_NE(res.end(), res.find(2));
-  EXPECT_EQ(11, res.at(2).first);
-  EXPECT_EQ(1, res.at(2).second);
+  EXPECT_DOUBLE_EQ(11, res.at(2).first);
+  EXPECT_EQ(1u, res.at(2).second);
   ASSERT_NE(res.end(), res.find(3));
-  EXPECT_EQ(1, res.at(3).first);
-  EXPECT_EQ(0, res.at(3).second);
+  EXPECT_DOUBLE_EQ(1, res.at(3).first);
+  EXPECT_EQ(0u, res.at(3).second);
   ASSERT_NE(res.end(), res.find(4));
-  EXPECT_EQ(2, res.at(4).first);
-  EXPECT_EQ(3, res.at(4).second);
+  EXPECT_DOUBLE_EQ(2, res.at(4).first);
+  EXPECT_EQ(3u, res.at(4).second);
 
   // Calculate the shortest path between 0 and 1.
   res = Dijkstra(graph, 0, 1);
 
   ASSERT_NE(res.end(), res.find(1));
-  EXPECT_EQ(6, res.at(1).first);
-  EXPECT_EQ(0, res.at(1).second);
+  EXPECT_DOUBLE_EQ(6, res.at(1).first);
+  EXPECT_EQ(0u, res.at(1).second);
 }
 
 /////////////////////////////////////////////////
