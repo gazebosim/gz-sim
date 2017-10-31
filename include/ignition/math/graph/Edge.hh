@@ -78,10 +78,10 @@ namespace graph
                           const E &_data,
                           const double _weight,
                           const EdgeId &_id = kNullId)
-      : vertices(_vertices),
+      : id(_id),
+        vertices(_vertices),
         data(_data),
-        weight(_weight),
-        id(_id)
+        weight(_weight)
     {
     }
 

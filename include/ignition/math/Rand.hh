@@ -41,7 +41,7 @@ namespace ignition
 
     /// \class Rand Rand.hh ignition/math/Rand.hh
     /// \brief Random number generator class
-    class IGNITION_VISIBLE Rand
+    class IGNITION_MATH_VISIBLE Rand
     {
       /// \brief Set the seed value.
       /// \param[in] _seed The seed used to initialize the randon number

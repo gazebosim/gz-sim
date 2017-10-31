@@ -34,7 +34,7 @@ namespace ignition
     /// \brief Version comparison class based on Semantic Versioning 2.0.0
     /// http://semver.org/
     /// Compares versions and converts versions from string.
-    class IGNITION_VISIBLE SemanticVersion
+    class IGNITION_MATH_VISIBLE SemanticVersion
     {
       /// \brief Default constructor. Use the Parse function to populate
       /// an instance with version information.
@@ -42,8 +42,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _v the string version. ex: "0.3.2"
-      // cppcheck-suppress noExplicitConstructor
-      public: SemanticVersion(const std::string &_v);
+      public: explicit SemanticVersion(const std::string &_v);
 
       /// \brief Copy constructor
       /// \param[in] _copy the other version
