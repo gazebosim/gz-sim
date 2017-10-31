@@ -212,7 +212,7 @@ namespace ignition
       /// \brief Multiplication operator
       /// \param[in] _pose the other pose
       /// \return itself
-      public: Pose3<T> operator*(const Pose3<T> &_pose)
+      public: Pose3<T> operator*(const Pose3<T> &_pose) const
       {
         return Pose3<T>(this->CoordPositionAdd(_pose),  _pose.q * this->q);
       }
