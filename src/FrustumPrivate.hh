@@ -18,7 +18,7 @@
 #define IGNITION_MATH_FRUSTUMPRIVATE_HH_
 
 #include <array>
-
+#include <utility>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Plane.hh>
@@ -72,6 +72,12 @@ namespace ignition
       /// \brief Each plane of the frustum.
       /// \sa Frustum::FrustumPlane
       public: std::array<Planed, 6> planes;
+
+      /// \brief Each corner of the frustum.
+      public: std::array<Vector3d, 8> points;
+
+      /// \brief each edge of the frustum.
+      public: std::array<std::pair<Vector3d, Vector3d>, 12> edges;
     };
   }
 }
