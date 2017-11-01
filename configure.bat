@@ -17,7 +17,7 @@ cd /d %~dp0
 md build
 cd build
 cmake .. -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX="%WORKSPACE_INSTALL_DIR%" -DCMAKE_BUILD_TYPE="%build_type%" -DENABLE_TESTS_COMPILATION:BOOL=True
-:: Note: We disable testing by default. If the intention is for the CI to build and test
-:: this project, then the CI script will turn it back on.
+:: Note: Testing is enabled by default in legacy branches.
+:: Take care when merging this forward.
 
 :: If the caller wants to build and/or install, they should do so after calling this script
