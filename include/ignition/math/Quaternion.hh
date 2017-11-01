@@ -75,6 +75,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
+      // cppcheck-suppress noExplicitConstructor
       public: Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);

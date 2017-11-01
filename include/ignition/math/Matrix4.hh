@@ -81,6 +81,7 @@ namespace ignition
 
       /// \brief Construct Matrix4 from a quaternion.
       /// \param[in] _q Quaternion.
+      // cppcheck-suppress noExplicitConstructor
       public: Matrix4(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
@@ -105,6 +106,7 @@ namespace ignition
 
       /// \brief Construct Matrix4 from a math::Pose3
       /// \param[in] _pose Pose.
+      // cppcheck-suppress noExplicitConstructor
       public: Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
       {
         this->Translate(_pose.Pos());
