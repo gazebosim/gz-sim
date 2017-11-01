@@ -7,6 +7,9 @@
 @if not "%1"=="" set build_type=%1
 @echo Configuring for build type %build_type%
 
+:: Use legacy install location if unset
+@if "%WORKSPACE_INSTALL_DIR%"=="" set WORKSPACE_INSTALL_DIR="install\%build_type%"
+
 :: Go to the directory that this configure.bat file exists in
 cd /d %~dp0
 
