@@ -254,7 +254,7 @@ namespace ignition
       public: friend inline Vector4<T> operator-(const T _s,
                                                  const Vector4<T> &_v)
       {
-        return Vector4<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W());
+        return {_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W()};
       }
 
       /// \brief Subtraction assignment operator
