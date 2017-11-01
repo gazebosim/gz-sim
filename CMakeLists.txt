@@ -1,335 +1,58 @@
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 
-project (ignition-math4)
+#============================================================================
+# Find ignition-cmake
+#============================================================================
+# If you get an error at this line, you need to install ignition-cmake
+find_package(ignition-cmake0 REQUIRED)
 
-string (SUBSTRING ${PROJECT_NAME} 9 4 IGN_PROJECT_NAME)
-
-string (SUBSTRING ${PROJECT_NAME} 13 -1 PROJECT_MAJOR_VERSION)
-set (PROJECT_MINOR_VERSION 2)
-set (PROJECT_PATCH_VERSION 0)
-
-set(PROJECT_NAME_NO_VERSION "ignition-${IGN_PROJECT_NAME}")
-string (TOLOWER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_LOWER)
-string (TOUPPER ${PROJECT_NAME_NO_VERSION} PROJECT_NAME_NO_VERSION_UPPER)
-string (TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
-string (TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
-set(PROJECT_EXPORT_NAME ${PROJECT_NAME_LOWER})
-set(PROJECT_LIBRARY_TARGET_NAME ${PROJECT_NAME_LOWER})
-
-set (PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION})
-set (PROJECT_VERSION_FULL
-  ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_VERSION})
+#============================================================================
+# Set up the project
+#============================================================================
+ign_configure_project(math 4.0.0)
 
 
-message (STATUS "${PROJECT_NAME_NO_VERSION} version ${PROJECT_VERSION_FULL}")
+#============================================================================
+# Set project-specific options
+#============================================================================
 
-set (project_cmake_dir ${PROJECT_SOURCE_DIR}/cmake
-  CACHE PATH "Location of CMake scripts")
+# ignition-math currently has no options that are unique to it
 
-include (${project_cmake_dir}/Utils.cmake)
-include (CMakePackageConfigHelpers)
+
+#============================================================================
+# Search for project-specific dependencies
+#============================================================================
 
 ########################################
-# Package Creation:
-include (${project_cmake_dir}/cpack.cmake)
-set (CPACK_PACKAGE_VERSION "${PROJECT_VERSION_FULL}")
-set (CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_MAJOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_MINOR "${PROJECT_MINOR_VERSION}")
-set (CPACK_PACKAGE_VERSION_PATCH "${PROJECT_PATCH_VERSION}")
-
-if (CPACK_GENERATOR)
-  message(STATUS "Found CPack generators: ${CPACK_GENERATOR}")
-
-  configure_file("${project_cmake_dir}/cpack_options.cmake.in"
-    ${PROJECT_CPACK_CFG_FILE} @ONLY)
-
-  set(CPACK_PROJECT_CONFIG_FILE ${PROJECT_CPACK_CFG_FILE})
-  include (CPack)
-endif()
-
-# If we're configuring only to package source, stop here
-if (PACKAGE_SOURCE_ONLY)
-  message(WARNING "Configuration was done in PACKAGE_SOURCE_ONLY mode."
-  "You can build a tarball (make package_source), but nothing else.")
-  return()
-endif()
-
-#################################################
-# Documentation:
-add_subdirectory(doc)
-
-# Configure documentation uploader
-configure_file("${project_cmake_dir}/upload_doc.sh.in"
-  ${CMAKE_BINARY_DIR}/upload_doc.sh @ONLY)
-
-# If we're configuring only to build docs, stop here
-if (DOC_ONLY)
-  message(WARNING "Configuration was done in DOC_ONLY mode."
-  " You can build documentation (make doc), but nothing else.")
-  return()
-endif()
-
-enable_testing()
-
-# Use GNUInstallDirst to get canonical paths
-include(GNUInstallDirs)
-
-# with -fPIC
-if(UNIX AND NOT WIN32)
-  set (CMAKE_INSTALL_PREFIX "/usr" CACHE STRING "Install Prefix")
- find_program(CMAKE_UNAME uname /bin /usr/bin /usr/local/bin )
- if(CMAKE_UNAME)
-   exec_program(uname ARGS -m OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
-   set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE INTERNAL
-     "processor type (i386 and x86_64)")
-   if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-     ADD_DEFINITIONS(-fPIC)
-   endif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
- endif(CMAKE_UNAME)
-endif()
-
-set (CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON)
-
-# developer's option to cache PKG_CONFIG_PATH and
-# LD_LIBRARY_PATH for local installs
-if(PKG_CONFIG_PATH)
-  set (ENV{PKG_CONFIG_PATH} ${PKG_CONFIG_PATH}:$ENV{PKG_CONFIG_PATH})
-endif()
-if(LD_LIBRARY_PATH)
-  set (ENV{LD_LIBRARY_PATH} ${LD_LIBRARY_PATH}:$ENV{LD_LIBRARY_PATH})
-endif()
-
-
-set (INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
-set (INCLUDE_INSTALL_DIR_POSTFIX "ignition/${IGN_PROJECT_NAME}${PROJECT_MAJOR_VERSION}")
-set (INCLUDE_INSTALL_DIR_FULL    "${INCLUDE_INSTALL_DIR}/${INCLUDE_INSTALL_DIR_POSTFIX}")
-set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
-
-set (USE_FULL_RPATH OFF CACHE BOOL "Set to true to enable full rpath")
-
-if (USE_FULL_RPATH)
-  # use, i.e. don't skip the full RPATH for the build tree
-  set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-  # when building, don't use the install RPATH already
-  # (but later on when installing)
-  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
-
-  # add the automatically determined parts of the RPATH
-  # which point to directories outside the build tree to the install RPATH
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-  # the RPATH to be used when installing, but only if its not a system directory
-  list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}" isSystemDir)
-  if("${isSystemDir}" STREQUAL "-1")
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
-  endif("${isSystemDir}" STREQUAL "-1")
-endif()
-
-set (BUILD_IGNITION ON CACHE INTERNAL "Build Ignition Math" FORCE)
-set (build_errors "" CACHE INTERNAL "build errors" FORCE)
-set (build_warnings "" CACHE INTERNAL "build warnings" FORCE)
-
-include (${project_cmake_dir}/DissectVersion.cmake)
-
-message (STATUS "\n\n====== Finding 3rd Party Packages ======")
-include (${project_cmake_dir}/SearchForStuff.cmake)
-message (STATUS "----------------------------------------\n")
-
-#####################################
-MESSAGE(STATUS "Checking ignition build type")
-# Set the default build type
-if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
-        "Choose the type of build, options are: Debug Release RelWithDebInfo Profile Check" FORCE)
-endif (NOT CMAKE_BUILD_TYPE)
-# TODO: still convert to uppercase to keep backwards compatibility with
-# uppercase old supported and deprecated modes
-string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPERCASE)
-
-set (BUILD_TYPE_PROFILE FALSE)
-set (BUILD_TYPE_RELEASE FALSE)
-set (BUILD_TYPE_RELWITHDEBINFO FALSE)
-set (BUILD_TYPE_DEBUG FALSE)
-
-if ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "PROFILE")
-  set (BUILD_TYPE_PROFILE TRUE)
-elseif ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "RELEASE")
-  set (BUILD_TYPE_RELEASE TRUE)
-elseif ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "RELWITHDEBINFO")
-  set (BUILD_TYPE_RELWITHDEBINFO TRUE)
-elseif ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "DEBUG")
-  set (BUILD_TYPE_DEBUG TRUE)
-elseif ("${CMAKE_BUILD_TYPE_UPPERCASE}" STREQUAL "COVERAGE")
-  include (${project_cmake_dir}/CodeCoverage.cmake)
-  set (BUILD_TYPE_DEBUG TRUE)
-  SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
+# Include swig
+find_package(SWIG QUIET)
+if (NOT SWIG_FOUND)
+  IGN_BUILD_WARNING("Swig is missing: Language interfaces are disabled.")
+  message (STATUS "Searching for swig - not found.")
 else()
-  build_error("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} unknown. Valid options are: Debug Release RelWithDebInfo Profile Check")
+  message (STATUS "Searching for swig - found.")
 endif()
 
-#####################################
-# Handle CFlags
-unset (CMAKE_C_FLAGS_ALL CACHE)
-unset (CMAKE_CXX_FLAGS CACHE)
-
-# Check if warning options are avaliable for the compiler and return WARNING_CXX_FLAGS variable
-# MSVC generates tons of warnings on gtest code.
-# Recommended to use /W4 instead of /Wall
-if (MSVC)
-  set(WARN_LEVEL "/W4")
-else()
-  set(WARN_LEVEL "-Wall")
-endif()
-
-filter_valid_compiler_warnings(${WARN_LEVEL} -Wextra -Wno-long-long
-  -Wno-unused-value -Wno-unused-value -Wno-unused-value -Wno-unused-value
-  -Wfloat-equal -Wshadow -Winit-self -Wswitch-default
-  -Wmissing-include-dirs -pedantic)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}${WARNING_CXX_FLAGS}")
-if (DEFINED EXTRA_CMAKE_CXX_FLAGS)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_CMAKE_CXX_FLAGS}")
-endif()
-
-#################################################
-# OS Specific initialization
-if (UNIX)
-  ign_setup_unix()
-else (WIN32)
-  ign_setup_windows()
-endif()
-
-if(APPLE)
-  ign_setup_apple()
-endif()
-
-#################################################
-# Print warnings and errors
-if ( build_warnings )
-  message(STATUS "BUILD WARNINGS")
-  foreach (msg ${build_warnings})
-    message(STATUS ${msg})
-  endforeach ()
-  message(STATUS "END BUILD WARNINGS\n")
-endif (build_warnings)
-
-########### Add uninstall target ###############
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-add_custom_target(uninstall
-  "${CMAKE_COMMAND}" -P
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake")
-
-if (build_errors)
-  message(STATUS "BUILD ERRORS: These must be resolved before compiling.")
-  foreach (msg ${build_errors})
-    message(STATUS ${msg})
-  endforeach ()
-  message(STATUS "END BUILD ERRORS\n")
-  message (FATAL_ERROR "Errors encountered in build. "
-      "Please see the BUILD ERRORS above.")
-else (build_errors)
-
+# Include other languages if swig was found
+if (SWIG_FOUND)
   ########################################
-  # Write the config.h file
-  configure_file ("${project_cmake_dir}/config.hh.in"
-    "${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh")
-  ign_install_includes(
-    "${INCLUDE_INSTALL_DIR_POSTFIX}/ignition/${IGN_PROJECT_NAME}"
-    "${PROJECT_BINARY_DIR}/include/ignition/${IGN_PROJECT_NAME}/config.hh")
-
-  link_directories(${PROJECT_BINARY_DIR}/src)
-
-  if (DEFINED CMAKE_CXX_FLAGS)
-    message (STATUS "Custom CFlags:${CMAKE_CXX_FLAGS}")
+  # Include ruby
+  find_package(Ruby 1.9 QUIET)
+  if (NOT RUBY_FOUND)
+    IGN_BUILD_WARNING("Ruby is missing: Install ruby-dev to enable ruby interface to ignition math.")
+    message (STATUS "Searching for Ruby - not found.")
   else()
-    message (STATUS "Use default CFlags")
+    message (STATUS "Searching for Ruby - found.")
   endif()
-  message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-  message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+#============================================================================
+# Configure the build
+#============================================================================
+ign_configure_build(QUIT_IF_BUILD_ERRORS)
 
 
-  if (BUILD_IGNITION)
-    set(TEST_TYPE "UNIT")
-    add_subdirectory(src)
-    add_subdirectory(include)
-    add_subdirectory(test)
-  endif (BUILD_IGNITION)
-
-  ########################################
-  # Make the package config files
-  set (pkgconfig_files ${PROJECT_NAME_NO_VERSION_LOWER})
-
-  foreach (pkgconfig ${pkgconfig_files})
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/pkgconfig/${pkgconfig}.in
-      ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/pkgconfig/${pkgconfig}${PROJECT_MAJOR_VERSION}.pc
-      DESTINATION ${LIB_INSTALL_DIR}/pkgconfig COMPONENT pkgconfig)
-  endforeach()
-
-  ########################################
-  # Make the cmake config files
-  set(PKG_NAME ${PROJECT_NAME_NO_VERSION_UPPER})
-  set(cmake_conf_file "${PROJECT_NAME_LOWER}-config.cmake")
-  set(cmake_conf_version_file "${PROJECT_NAME_LOWER}-config-version.cmake")
-  set(cmake_targets_file      "${PROJECT_NAME_LOWER}-targets.cmake")
-
-  set(PKG_DEPENDS)
-
-  if(WIN32 AND NOT CYGWIN)
-    set(CMAKE_CONFIG_INSTALL_DIR CMake)
-  else()
-    set(CMAKE_CONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME_LOWER}/)
-  endif()
-
-  configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME_NO_VERSION_LOWER}-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}"
-    PATH_VARS LIB_INSTALL_DIR INCLUDE_INSTALL_DIR_FULL
-    INSTALL_DESTINATION ${CMAKE_CONFIG_INSTALL_DIR})
-
-  # Use write_basic_package_version_file to generate a ConfigVersion file that
-  # allow users of gazebo to specify the API or version to depend on
-  # TODO: keep this instruction until deprecate Ubuntu/Precise and update with
-  # https://github.com/Kitware/CMake/blob/v2.8.8/Modules/CMakePackageConfigHelpers.cmake
-  include(WriteBasicConfigVersionFile)
-  write_basic_config_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
-    VERSION "${PROJECT_VERSION_FULL}"
-    COMPATIBILITY SameMajorVersion)
-
-  install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_file}
-    ${CMAKE_CURRENT_BINARY_DIR}/${cmake_conf_version_file}
-    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR} COMPONENT cmake)
-
-  # Create *-targets.cmake file for build directory
-  # TODO: keep this instruction until we depend on CMake 3
-  #       then change the first line from TARGETS ...
-  #       to EXPORT ... to match the format used in install(EXPORT
-  export(TARGETS ${PROJECT_LIBRARY_TARGET_NAME}
-         FILE  ${CMAKE_BINARY_DIR}/${cmake_targets_file})
-
-  # Install *-targets.cmake file
-  install(EXPORT ${PROJECT_EXPORT_NAME}
-          DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
-          FILE ${cmake_targets_file})
-
-
-  ########################################
-  # If present, load platform-specific build hooks.  This system is used,
-  # for example, by the Ubuntu overlay, to
-  # arrange for installation of Ubuntu-specific application-launching
-  # configuration.
-  if (EXISTS ${PROJECT_SOURCE_DIR}/cmake/packager-hooks/CMakeLists.txt)
-    message(STATUS "Loading packager build hooks from cmake/packager-hooks")
-    add_subdirectory(cmake/packager-hooks)
-  endif()
-
-  message(STATUS "Configuration successful.")
-endif(build_errors)
+#============================================================================
+# Create package information
+#============================================================================
+ign_create_packages()

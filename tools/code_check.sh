@@ -78,7 +78,7 @@ if [ $CPPCHECK_LT_157 -eq 0 ]; then
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
 CPPCHECK_INCLUDES="-I ./include -I $builddir -I test -I ./include/ignition/math"
-CPPCHECK_RULES="-DIGNITION_VISIBLE"\
+CPPCHECK_RULES="-DIGNITION_MATH_VISIBLE"\
 " --rule-file=./tools/cppcheck_rules/header_guard.rule"\
 " --rule-file=./tools/cppcheck_rules/namespace_AZ.rule"
 CPPCHECK_CMD1A="-j 4 --enable=style,performance,portability,information"

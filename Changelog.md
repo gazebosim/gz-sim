@@ -2,6 +2,19 @@
 
 ### Ignition Math 4.x.x
 
+1. Use ignition-cmake to simplify build scripts
+    * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/200)
+
+1. Make constructor SemanticVersion(string) explicit
+    * [Pull request 203](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/203)
+
+1. Switch to C++14
+    * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
+
+1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
+    * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
+
 1. Removed the box 'extent' field. The default constructor now sets a box's
    corners to extrema in order to indicate an uninitialized box.
     * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/172)
@@ -17,10 +30,27 @@
         * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
     1. Added a GraphAlgorithms class:
         * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
+    1. Added a function to calculate connected components in undirected
+       graphs:
+         * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
 
 ## Ignition Math 3.x
 
 ### Ignition Math 3.x.x
+
+1. Create consistent bracket operators across all Vector# types
+    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
+### Ignition Math 3.2.0 (2017-05-15)
+
+1. Construct on first use in Rand class
+    * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
+
+1. Extended Spline API: derivative interpolation, arc length calculation
+   and tangent forcing.
+    * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
+
+### Ignition Math 3.1.0 (2017-04-11)
 
 1. Added signum functions to Helpers.hh.
     * Contribution from Martin Pecka

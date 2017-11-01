@@ -370,7 +370,8 @@ void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m,
 {
   auto q = _m.PrincipalAxesOffset(_tolerance);
   auto R = math::Matrix3d(q);
-  EXPECT_FALSE(q.W() == 0.0 && q.X() == 0.0 && q.Y() == 0.0 && q.Z() == 0.0);
+  EXPECT_FALSE(math::equal(q.W(), 0.0, 1e-6) && math::equal(q.X(), 0.0, 1e-6) &&
+               math::equal(q.Y(), 0.0, 1e-6) && math::equal(q.Z(), 0.0, 1e-6));
   auto moments = _m.PrincipalMoments(_tolerance);
   math::Matrix3d L(moments[0], 0, 0,
                    0, moments[1], 0,
@@ -652,7 +653,7 @@ TEST(MassMatrix3dTest, EquivalentBox)
 
     // even if mass is valid, it should not be set if size is invalid
     EXPECT_FALSE(m.SetFromBox(1.0, size, rot));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
 
     // equivalent box should not be findable
     EXPECT_FALSE(m.EquivalentBox(size, rot));
@@ -795,7 +796,7 @@ TEST(MassMatrix3dTest, SetFromCylinderZ)
     EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 0, q0));
     EXPECT_FALSE(m.SetFromCylinderZ(1, 1, 0, q0));
     EXPECT_FALSE(m.SetFromCylinderZ(1, 0, 1, q0));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
   }
 
   // unit cylinder with mass 1.0
@@ -832,7 +833,7 @@ TEST(MassMatrix3dTest, SetFromSphere)
 
     // even if mass is valid, it should not be set if radius is invalid
     EXPECT_FALSE(m.SetFromSphere(1.0, 0.0));
-    EXPECT_EQ(m.Mass(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
   }
 
   // unit sphere with mass 1.0

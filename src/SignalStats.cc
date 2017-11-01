@@ -16,8 +16,8 @@
 */
 #include <cmath>
 #include <iostream>
-#include <ignition/math/SignalStatsPrivate.hh>
 #include <ignition/math/SignalStats.hh>
+#include "SignalStatsPrivate.hh"
 
 using namespace ignition;
 using namespace math;

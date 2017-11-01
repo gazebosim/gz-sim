@@ -7,11 +7,20 @@ release will remove the deprecated code.
 
 ## Ignition Math 3.X to 4.X
 
+### Added dependencies
+
+1. **ignition-cmake**
+    + Ignition-math now has a build dependency on ignition-cmake, which
+      allows cmake scripts to be shared across all the ignition packages.
+
 ### Modifications
 
 1. **Box.hh**
     + Boxes generated with the default constructor do not intersect any other
     boxes or contain any points (previously they contained the origin).
+
+1. **SemanticVersion.hh**
+    + The SemanticVersion(const std::string &) constructor is now explicit.
 
 ## Ignition Math 2.X to 3.X
 

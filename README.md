@@ -13,15 +13,24 @@ classes and functions used in other Ignition libraries and programs.
 
 This project uses [appveyor](https://ci.appveyor.com/project/scpeters/ign-math/history)
 for testing on Windows.
-It has the following build status: 
+It has the following build status:
 ![appveyor badge](https://ci.appveyor.com/api/projects/status/bitbucket/ignitionrobotics/ign-math?svg=true)
 
 This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
 for testing with Linux.
 
+Test coverage reports are available at Codecov:
+
+[![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
+
+## Required Dependencies
+
+    brew install ignition-cmake
+
 ## Optional Dependencies
 
     sudo apt-get install doxygen
+    brew install doxygen
 
 ## Installation
 

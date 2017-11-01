@@ -38,7 +38,7 @@ TEST(Line2Test, Constructor)
   EXPECT_DOUBLE_EQ(lineB[1].Y(), 4.0);
 
   EXPECT_NO_THROW(lineB[2].X());
-  EXPECT_EQ(lineB[2].X(), lineB[1].X());
+  EXPECT_DOUBLE_EQ(lineB[2].X(), lineB[1].X());
   EXPECT_NO_THROW(lineA[0].X());
 }
 
@@ -69,7 +69,7 @@ TEST(Line2Test, Slope)
 
   {
     math::Line2d line(-10, 0, 100, 0);
-    EXPECT_EQ(line.Slope(), 0.0);
+    EXPECT_DOUBLE_EQ(line.Slope(), 0.0);
   }
 }
 #ifdef _MSC_VER

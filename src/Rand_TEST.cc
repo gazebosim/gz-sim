@@ -72,7 +72,7 @@ TEST(RandTest, SetSeed)
   for (int i = 0; i < N; ++i)
   {
     math::Rand::Seed(i);
-    EXPECT_EQ(math::Rand::Seed(), i);
+    EXPECT_EQ(math::Rand::Seed(), static_cast<unsigned int>(i));
     EXPECT_EQ(first[i], math::Rand::IntUniform(-10, 10));
     EXPECT_EQ(second[i], math::Rand::IntUniform(-10, 10));
   }

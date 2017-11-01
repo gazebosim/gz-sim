@@ -1,79 +1,25 @@
-include (${project_cmake_dir}/Utils.cmake)
 
-set (sources
-  Angle.cc
-  Box.cc
-  Color.cc
-  Frustum.cc
-  Helpers.cc
-  Kmeans.cc
-  PID.cc
-  Rand.cc
-  RotationSpline.cc
-  RotationSplinePrivate.cc
-  SemanticVersion.cc
-  SignalStats.cc
-  SphericalCoordinates.cc
-  Spline.cc
-  SplinePrivate.cc
-  Temperature.cc
-  Vector3Stats.cc
-)
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable
+ign_get_libsources_and_unittests(sources gtest_sources)
 
-set (gtest_sources
-  Angle_TEST.cc
-  Box_TEST.cc
-  Color_TEST.cc
-  Filter_TEST.cc
-  Frustum_TEST.cc
-  Helpers_TEST.cc
-  Inertial_TEST.cc
-  Kmeans_TEST.cc
-  Line2_TEST.cc
-  Line3_TEST.cc
-  MassMatrix3_TEST.cc
-  Matrix3_TEST.cc
-  Matrix4_TEST.cc
-  OrientedBox_TEST.cc
-  PID_TEST.cc
-  Plane_TEST.cc
-  Pose_TEST.cc
-  Quaternion_TEST.cc
-  Rand_TEST.cc
-  RotationSpline_TEST.cc
-  SemanticVersion_TEST.cc
-  SignalStats_TEST.cc
-  SphericalCoordinates_TEST.cc
-  Spline_TEST.cc
-  Temperature_TEST.cc
-  Triangle_TEST.cc
-  Triangle3_TEST.cc
-  Vector2_TEST.cc
-  Vector3_TEST.cc
-  Vector3Stats_TEST.cc
-  Vector4_TEST.cc
-)
-
+# Create the library target
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-# When the minimum CMake required version will be >= 3.1
-# we could use the target_compile_features() command
-# to enable C++11 support in a platform-independent way.
-if(NOT MSVC)
-    target_compile_options(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC "-std=c++11")
-endif()
+set (c++standard 14)
 
-target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR_FULL}>)
+# Turn on C++14 support for the library
+ign_set_project_public_cxx_standard(${c++standard})
 
-ign_build_tests(${gtest_sources})
-ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
+# Create installation instructions for the library target. This must be called
+# in the same scope that the target is created.
+ign_install_library()
+
+# Build the unit tests
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
 # graph namespace
 add_subdirectory(graph)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 #################################################
 # Setup swig
@@ -84,9 +30,10 @@ if (SWIG_FOUND)
   include_directories(${PROJECT_SOURCE_DIR}/include)
 
   set(swig_files
-    Angle.i
-    Vector2.i
-    Vector3.i)
+    ruby
+    Angle
+    Vector2
+    Vector3)
 endif()
 
 #################################################
@@ -97,21 +44,31 @@ endif()
 if (RUBY_FOUND)
   include_directories(${RUBY_INCLUDE_DIRS})
 
-  set(ruby_tests
-    Angle_TEST
-    Vector2_TEST
-    Vector3_TEST
-  )
+  foreach (swig_file ${swig_files})
+    # Assuming that each swig file has a test
+    list(APPEND ruby_tests ${swig_file}_TEST)
 
-  set_source_files_properties(ruby.i ${swig_files} PROPERTIES CPLUSPLUS ON)
+    # Generate the list if .i files
+    list(APPEND swig_i_files ${swig_file}.i)
 
-  SWIG_ADD_MODULE(math ruby ruby.i ${swig_files} ${sources})
+    # Removing warning from auto-generated files.
+    set_source_files_properties(${swig_file}RUBY_wrap.cxx
+      PROPERTIES COMPILE_FLAGS "-w")
+  endforeach()
+
+  # Turn on c++
+  set_source_files_properties(${swig_i_files} PROPERTIES CPLUSPLUS ON)
+
+  # Create the ruby library
+  SWIG_ADD_MODULE(math ruby ruby.i ${swig_i_files} ${sources})
   SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
-  install(TARGETS math DESTINATION ${LIB_INSTALL_DIR}/ruby/ignition)
+  target_compile_features(math PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
+  install(TARGETS math DESTINATION ${IGN_LIB_INSTALL_DIR}/ruby/ignition)
 
+  # Add the ruby tests
   foreach (test ${ruby_tests})
     add_test(NAME ${test}.rb COMMAND
       ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
-  	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
+   	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
   endforeach()
 endif()
