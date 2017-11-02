@@ -29,7 +29,7 @@ namespace ignition
     /// \class Color Color.hh ignition/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
     /// (A) component. Each color component is in the range [0..1].
-    class IGNITION_VISIBLE Color
+    class IGNITION_MATH_VISIBLE Color
     {
       /// \brief (1, 1, 1)
       public: static const Color White;

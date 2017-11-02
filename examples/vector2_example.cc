@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 
   // It's also possible to set initial values. This time we are using
   // a Vector2 of floats
-  ignition::math::Vector2f vec2b(1.2, 3.4);
+  ignition::math::Vector2f vec2b(1.2f, 3.4f);
 
   // We can output the contents of each vector using std::cout
   std::cout << "Vec2: " << vec2 << "\n"

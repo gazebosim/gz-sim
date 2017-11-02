@@ -32,7 +32,7 @@ namespace ignition
 
     /// \class SphericalCoordinates SphericalCoordinates.hh commmon/common.hh
     /// \brief Convert spherical coordinates for planetary surfaces.
-    class IGNITION_VISIBLE SphericalCoordinates
+    class IGNITION_MATH_VISIBLE SphericalCoordinates
     {
       /// \enum SurfaceType
       /// \brief Unique identifiers for planetary surface models.

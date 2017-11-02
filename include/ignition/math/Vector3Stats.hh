@@ -31,7 +31,7 @@ namespace ignition
 
     /// \class Vector3Stats Vector3Stats.hh ignition/math/Vector3Stats.hh
     /// \brief Collection of statistics for a Vector3 signal.
-    class IGNITION_VISIBLE Vector3Stats
+    class IGNITION_MATH_VISIBLE Vector3Stats
     {
       /// \brief Constructor
       public: Vector3Stats();

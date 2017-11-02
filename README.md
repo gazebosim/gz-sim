@@ -23,9 +23,14 @@ Test coverage reports are available at Codecov:
 
 [![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
 
+## Required Dependencies
+
+    brew install ignition-cmake
+
 ## Optional Dependencies
 
     sudo apt-get install doxygen
+    brew install doxygen
 
 ## Installation
 

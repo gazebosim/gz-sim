@@ -32,7 +32,7 @@ namespace ignition
 
     /// \class Spline Spline.hh ignition/math/Spline.hh
     /// \brief Splines
-    class IGNITION_VISIBLE Spline
+    class IGNITION_MATH_VISIBLE Spline
     {
       /// \brief constructor
       public: Spline();

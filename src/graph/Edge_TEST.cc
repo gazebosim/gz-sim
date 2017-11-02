@@ -105,13 +105,13 @@ TEST(EdgeTest, Initializer)
     EdgeInitializer<std::string> edgeInitializer(vertices, data, weight);
     EXPECT_EQ(vertices, edgeInitializer.vertices);
     EXPECT_EQ(data, edgeInitializer.data);
-    EXPECT_EQ(weight, edgeInitializer.weight);
+    EXPECT_DOUBLE_EQ(weight, edgeInitializer.weight);
   }
   {
     EdgeInitializer<std::string> edgeInitializer(vertices, "hi");
     EXPECT_EQ(vertices, edgeInitializer.vertices);
     EXPECT_EQ("hi", edgeInitializer.data);
-    EXPECT_EQ(1.0, edgeInitializer.weight);
+    EXPECT_DOUBLE_EQ(1.0, edgeInitializer.weight);
   }
 }
 
@@ -125,8 +125,8 @@ TEST(EdgeTest, FromToDirected)
     int data = 3;
     DirectedEdge<int> edge(vertices, data, weight, id);
 
-    EXPECT_EQ(0, edge.Tail());
-    EXPECT_EQ(1, edge.Head());
+    EXPECT_EQ(0u, edge.Tail());
+    EXPECT_EQ(1u, edge.Head());
 
     EXPECT_EQ(edge.Head(), edge.From(edge.Tail()));
     EXPECT_EQ(edge.Tail(), edge.To(edge.Head()));
@@ -165,10 +165,10 @@ TEST(EdgeTest, FromToUndirected)
     int data = 3;
     UndirectedEdge<int> edge(vertices, data, weight, id);
 
-    EXPECT_EQ(1, edge.From(0));
-    EXPECT_EQ(0, edge.To(1));
-    EXPECT_EQ(0, edge.From(1));
-    EXPECT_EQ(1, edge.To(0));
+    EXPECT_EQ(1u, edge.From(0));
+    EXPECT_EQ(0u, edge.To(1));
+    EXPECT_EQ(0u, edge.From(1));
+    EXPECT_EQ(1u, edge.To(0));
 
     // The Id doesn't exit.
     EXPECT_EQ(kNullId, edge.From(99));
