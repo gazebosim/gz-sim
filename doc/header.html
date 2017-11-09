@@ -3,65 +3,60 @@
   <head>
     <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-    <meta name="keywords" content="Ingition: Math">
-    <title>Ignition: $title</title>
+    <meta name="keywords" content="Ignition Rendering">
+    <title>Ignition Rendering: $title</title>
     <link href="tabs.css" rel="stylesheet" type="text/css">
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="dynsections.js"></script>
-    <link href="search/search.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript" src="search/search.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function() { searchBox.OnSelectItem(0); });
-    </script>
+
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,100,500,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.deep_orange-blue.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <link href="doxygen.css" rel="stylesheet" type="text/css">
-    <!--<link href="tabs.css" rel="stylesheet" type="text/css">-->
-    <link href="style.css" rel="stylesheet" type="text/css">
   </head>
 
 <body>
-  <div class="leftbar"> 
-    <h2 style="text-align:center;">
-      <a href="index.html"><img src="ignition_logo.svg" width="180px"/></a>
-    </h2>
 
-    <div class="menu">
-      <dl>
-        <dt>API</dt>
-        <dd><a href="classes.html">Class List</a></dd>
-        <dd><a href="hierarchy.html">Class Hierarchy</a></dd>
-        <dd><a href="globals.html">Globals</a></dd>
-        <dd><a href="namespacemembers.html">Namespace Members</a></dd>
-        <dd><a href="files.html">Files</a></dd>
-      </dl>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer"> 
+    <div class="mdl-layout__drawer mdl-color--grey-100 mdl-color-text--blue-grey-50">
+      <header class="mdl-color--grey-100">
+        <a href="index.html"><img width="60px" src="ignition_logo.svg"/></a>
+        <h1 class="project_title">$title</h1>
+        <h2>API Reference</h2>
+        <div class="version">
+        $projectnumber
+        </div>
+      </header>
+
+      <nav class="ign-navigation mdl-navigation">
+        <a class="mdl-navigation__link" href="annotated.html">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">list</i>Class List</a>
+        <a class="mdl-navigation__link" href="classes.html">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">library_books</i>Class Index</a>
+        <a class="mdl-navigation__link" href="hierarchy.html">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">sort</i>Class Hierarchy</a>
+        <a class="mdl-navigation__link" href="functions.html">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">receipt</i>Class Members</a>
+        <a class="mdl-navigation__link" href="files.html">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">insert_drive_file</i>Files</a>
+        <a class="mdl-navigation__link" target="_blank"
+           href="http://ignitionrobotics.org">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">launch</i>Ignition Website</a>
+        <a class="mdl-navigation__link" target="_blank"
+           href="https://bitbucket.org/ignitionrobotics/ign-rendering/issues/new">
+          <i class="mdl-color-text--grey-400 material-icons"
+             role="presentation">warning</i>Report Issues</a>
+
+      </nav>
     </div>
-    <div class="menu">
-      <dl>
-        <dt>Links</dt>
-        <dd><a href="http://ignitionrobotics.org">Ignition Website</a></dd>
-        <dd><a href="https://bitbucket.org/ignitionrobotics/ign-math/issues/new">Report Documentation Issues</a></dd>
-      </dl>
-    </div>
 
-    <div id="MSearchBox" class="MSearchBoxInactive">
-      <span>
-        <img id="MSearchSelect" src="search/mag_sel.png"
-        onmouseover="return searchBox.OnSearchSelectShow()"
-        onmouseout="return searchBox.OnSearchSelectHide()"
-        alt=""/>
-        <input type="text" id="MSearchField" value="Search" accesskey="S"
-        onfocus="searchBox.OnSearchFieldFocus(true)" 
-        onblur="searchBox.OnSearchFieldFocus(false)" 
-        onkeyup="searchBox.OnSearchFieldChange(event)"/>
-      </span>
-    </div> <!-- End MSearchBox -->
-
-    <div id="MSearchResultsWindow" style="position: static; display: block; border: none; background-color: #ffffff; width: 18em;">
-      <iframe src="javascript:void(0)" frameborder="0" 
-              name="MSearchResults"
-              style="height: 500px; width: 18em; display: block; text-wrap: unrestricted">
-      </iframe>
-    </div>
-  </div>
-
-  <div id="top">
+    <main class="mdl-layout__content mdl-color--white">
+    <div id="top">
