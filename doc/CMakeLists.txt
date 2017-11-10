@@ -12,9 +12,6 @@ if (DOXYGEN_FOUND)
     ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/ignition.dox
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 
-    COMMAND cp ${CMAKE_SOURCE_DIR}/doc/ignition_logo.svg
-            ${CMAKE_BINARY_DIR}/doxygen/html
-
     COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/tutorials.dox
 
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
