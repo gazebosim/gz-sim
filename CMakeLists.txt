@@ -11,9 +11,6 @@ find_package(ignition-cmake0 REQUIRED)
 #============================================================================
 ign_configure_project(math 4.0.0)
 
-# Configure documentation uploader
-configure_file("tools/upload_doc.sh.in" ${CMAKE_BINARY_DIR}/upload_doc.sh @ONLY)
-
 #============================================================================
 # Set project-specific options
 #============================================================================
