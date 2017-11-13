@@ -469,3 +469,183 @@ TEST(FrustumTest, PoseContains)
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(1, 1, 0)));
 }
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, ContainsAABBNoOverlap)
+{
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  // Boxes that don't overlapp any planes
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1.45, -0.05, 1.95), Vector3d(1.55, 0.05, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(2.55, -0.05, 1.95), Vector3d(2.65, 0.05, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(0.35, -0.05, 1.95), Vector3d(0.45, 0.05, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(1.45, -0.05, 2.55), Vector3d(1.55, 0.05, 2.65))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(1.45, -0.05, 1.35), Vector3d(1.55, 0.05, 1.45))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(1.45, -1.05, 1.95), Vector3d(1.55, -0.95, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(1.45, 0.95, 1.95), Vector3d(1.55, 1.05, 2.05))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, ContainsAABBOverlapOnePlane)
+{
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  // Boxes overlapping one plane
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.43, -0.05, 1.95), Vector3d(2.53, 0.05, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.05, 1.95), Vector3d(0.595, 0.05, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1.45, -0.05, 2.42), Vector3d(1.55, 0.05, 2.52))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1.45, -0.05, 1.48), Vector3d(1.55, 0.05, 1.58))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1.45, -0.9, 1.95), Vector3d(1.55, -0.8, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1.45, 0.8, 1.95), Vector3d(1.55, 0.9, 2.05))));
+}
+
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, ContainsAABBOverlapTwoPlanes)
+{
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  // Boxes overlapping two planes
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, -0.05, 2.7), Vector3d(2.52, 0.05, 2.8))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, -0.05, 1.2), Vector3d(2.52, 0.05, 1.3))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, -1.44, 1.95), Vector3d(2.52, -1.34, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, 1.34, 1.95), Vector3d(2.52, 1.44, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.05, 2.1), Vector3d(0.595, 0.05, 2.2))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.05, 1.8), Vector3d(0.595, 0.05, 1.9))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, 0.25, 1.95), Vector3d(0.595, 0.35, 2.05))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.35, 1.95), Vector3d(0.595, -0.25, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+        Box(Vector3d(2.48, -0.05, 2.81), Vector3d(2.58, 0.05, 2.91))));
+  EXPECT_FALSE(frustum.Contains(
+        Box(Vector3d(2.48, -0.05, 1.09), Vector3d(2.58, 0.05, 1.19))));
+  EXPECT_FALSE(frustum.Contains(
+        Box(Vector3d(2.48, -1.55, 1.95), Vector3d(2.58, -1.45, 2.05))));
+  EXPECT_FALSE(frustum.Contains(
+        Box(Vector3d(2.48, 1.45, 1.95), Vector3d(2.58, 1.55, 2.05))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, ContainsAABBOverlapThreePlanes)
+{
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  // Boxes overlapping three planes
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, 0.25, 2.1), Vector3d(0.595, 0.35, 2.2))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, 0.25, 1.8), Vector3d(0.595, 0.35, 1.9))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.35, 2.1), Vector3d(0.595, -0.25, 2.2))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(0.495, -0.35, 1.8), Vector3d(0.595, -0.25, 1.9))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, 1.34, 2.7), Vector3d(2.52, 1.44, 2.8))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, 1.34, 1.2), Vector3d(2.52, 1.44, 1.3))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, -1.44, 2.7), Vector3d(2.52, -1.34, 2.8))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(2.42, -1.44, 1.2), Vector3d(2.52, -1.34, 1.3))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(2.48, 1.45, 2.81), Vector3d(2.58, 1.55, 2.91))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(2.48, -1.55, 2.81), Vector3d(2.58, -1.45, 2.91))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(2.48, 1.45, 1.09), Vector3d(2.58, 1.55, 1.19))));
+  EXPECT_FALSE(frustum.Contains(
+      Box(Vector3d(2.48, -1.55, 1.09), Vector3d(2.58, -1.45, 1.19))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, AABBContainsFrustum)
+{
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(-100, -100, -100), Vector3d(100, 100, 100))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, AABBFrustumEdgeOverlap)
+{
+  // This test case has the top of an AABB overlap a frustum, but all the
+  // corners of AABB fall outside the frustum.
+
+  double ybounds = 10;
+
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1, -ybounds, 0), Vector3d(2, ybounds, 2))));
+}
+
+//////////////////////////////////////////////////
+TEST(FrustumTest, AABBBFWall)
+{
+  // Frustum contains at a large but thin wall
+
+  Frustum frustum;
+  frustum.SetNear(0.55);
+  frustum.SetFar(2.5);
+  frustum.SetFOV(1.05);
+  frustum.SetAspectRatio(1.8);
+  frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
+
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(1, -10, -10), Vector3d(2, 10, 10))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(-10, 1, -10), Vector3d(10, 1.1, 10))));
+  EXPECT_TRUE(frustum.Contains(
+        Box(Vector3d(-10, -10, 1.95), Vector3d(10, 10, 2.05))));
+}
