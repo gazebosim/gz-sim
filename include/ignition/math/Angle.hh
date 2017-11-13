@@ -60,6 +60,7 @@ namespace ignition
 
       /// \brief Copy Constructor
       /// \param[in] _radian Radians
+      // cppcheck-suppress noExplicitConstructor
       public: Angle(double _radian);
 
       /// \brief Copy constructor
