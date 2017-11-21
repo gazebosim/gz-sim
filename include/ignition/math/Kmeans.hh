@@ -37,6 +37,7 @@ namespace ignition
     {
       /// \brief constructor
       /// \param[in] _obs Set of observations to cluster.
+      // cppcheck-suppress noExplicitConstructor
       public: Kmeans(const std::vector<Vector3d> &_obs);
 
       /// \brief Destructor.
