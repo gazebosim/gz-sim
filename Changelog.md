@@ -61,15 +61,22 @@
 
 ## Ignition Math 2.x
 
+
+
+## Ignition Math 2.9 (2017-11-22)
+
 1. Fixed frustum falsely saying it contained AABB in some cases
     * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+
+1. Added Color
+    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
+
+1. Backport updated configure.bat to ign-math2 and fix cppcheck warnings
+    * [Pull request 207](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/207)
 
 ### Ignition Math 2.8
 
 ### Ignition Math 2.8.0
-
-1. Added Color
-    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
 
 1. Added OrientedBox
     * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
