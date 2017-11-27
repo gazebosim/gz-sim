@@ -4,7 +4,7 @@
 
 
 
-### Ignition Math 3.2.1 (2017-11-29)
+### Ignition Math 3.3.0 (2017-11-27)
 
 1. Fixed frustum falsely saying it contained AABB in some cases
     * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
