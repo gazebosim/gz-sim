@@ -2,11 +2,31 @@
 
 ### Ignition Math 3.x.x
 
+
+
+### Ignition Math 3.2.1 (2017-11-29)
+
 1. Fixed frustum falsely saying it contained AABB in some cases
     * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+    * [Issue 78](https://bitbucket.org/ignitionrobotics/ign-math/issues/78)
 
 1. Create consistent bracket operators across all Vector# types
     * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
+1. Change name to the generic BUILDING_DLL macro to avoid conflicts
+    * [Pull request 173](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/173)
+
+1. Fix some compiler warnings
+    * [Pull request 196](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/196)
+
+1. Suppress gtest warnings
+    * [Pull request 199](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/199)
+
+1. Move private headers to src folder
+    * [Pull request 198](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/198)
+
+1. Update configure.bat
+    * [Pull request 206](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/206)
 
 ### Ignition Math 3.2.0 (2017-05-15)
 
