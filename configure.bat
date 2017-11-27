@@ -3,7 +3,7 @@
 :: Users and developers should build and install this library using cmake and Visual Studio
 
 :: Install dependencies
-call %win_lib% :install_ign_project ign-cmake default
+call %win_lib% :install_ign_project ign-cmake LiteralProject
 
 :: Set configuration variables
 @set build_type=Release

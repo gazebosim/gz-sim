@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 
 #============================================================================
+# Initialize the project
+#============================================================================
+project(ignition-math4 VERSION 4.0.0)
+
+#============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
 find_package(ignition-cmake0 REQUIRED)
 
 #============================================================================
-# Set up the project
+# Configure the project
 #============================================================================
-project(ignition-math4 VERSION 4.0.0)
 ign_configure_project()
 
 
