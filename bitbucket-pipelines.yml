@@ -5,7 +5,7 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial
+          - apt-get -y install cmake build-essential lcov curl mercurial ruby-dev swig
           - gcc -v
           - g++ -v
           # Ignition cmake
