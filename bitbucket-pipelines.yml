@@ -22,3 +22,10 @@ pipelines:
           - make test
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
+          # Examples
+          - cd examples
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make
+          - ./graph_example
