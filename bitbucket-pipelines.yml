@@ -22,6 +22,7 @@ pipelines:
           - make test
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
+          - make install
           # Examples
           - cd ..
           - cd examples
