@@ -18,11 +18,14 @@
 #define IGNITION_MATH_VECTOR2_HH_
 
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>
@@ -473,6 +476,7 @@ namespace ignition
     typedef Vector2<int> Vector2i;
     typedef Vector2<double> Vector2d;
     typedef Vector2<float> Vector2f;
+    }
   }
 }
 #endif

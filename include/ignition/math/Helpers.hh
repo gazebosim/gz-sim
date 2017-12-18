@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "ignition/math/Export.hh"
+#include <ignition/math/config.hh>
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 /// \deprecated Use static const value instead.
@@ -209,6 +210,8 @@ namespace ignition
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \brief size_t type with a value of 0
     static const size_t IGN_ZERO_SIZE_T  = 0u;
 
@@ -764,6 +767,7 @@ namespace ignition
     /// \sa Pair
     std::tuple<PairInput, PairInput> IGNITION_MATH_VISIBLE Unpair(
         const PairOutput _key);
+    }
   }
 }
 
