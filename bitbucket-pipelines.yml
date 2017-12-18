@@ -23,6 +23,7 @@ pipelines:
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
           # Examples
+          - cd ..
           - cd examples
           - mkdir build
           - cd build
