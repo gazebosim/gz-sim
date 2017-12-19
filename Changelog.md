@@ -37,7 +37,7 @@
        graphs:
          * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
 
-1. Added Inline Versioned Namespacce
+1. Added Inline Versioned Namespace
     * [Pull request 216](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/216/)
 
 ## Ignition Math 3.x
