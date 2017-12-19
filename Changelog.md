@@ -38,11 +38,31 @@
 
 ### Ignition Math 3.x.x
 
+
+
+### Ignition Math 3.3.0 (2017-11-27)
+
 1. Fixed frustum falsely saying it contained AABB in some cases
     * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+    * [Issue 78](https://bitbucket.org/ignitionrobotics/ign-math/issues/78)
 
 1. Create consistent bracket operators across all Vector# types
     * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
+1. Change name to the generic BUILDING_DLL macro to avoid conflicts
+    * [Pull request 173](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/173)
+
+1. Fix some compiler warnings
+    * [Pull request 196](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/196)
+
+1. Suppress gtest warnings
+    * [Pull request 199](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/199)
+
+1. Move private headers to src folder
+    * [Pull request 198](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/198)
+
+1. Update configure.bat
+    * [Pull request 206](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/206)
 
 ### Ignition Math 3.2.0 (2017-05-15)
 
@@ -88,15 +108,22 @@
 
 ## Ignition Math 2.x
 
+
+
+## Ignition Math 2.9 (2017-11-22)
+
 1. Fixed frustum falsely saying it contained AABB in some cases
     * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+
+1. Added Color
+    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
+
+1. Backport updated configure.bat to ign-math2 and fix cppcheck warnings
+    * [Pull request 207](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/207)
 
 ### Ignition Math 2.8
 
 ### Ignition Math 2.8.0
-
-1. Added Color
-    * [Pull request 150](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/150)
 
 1. Added OrientedBox
     * [Pull request 146](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/146)
