@@ -107,7 +107,7 @@ namespace ignition
       /// \param[in] _pose Pose.
       public: explicit Matrix4(const Pose3<T> &_pose) : Matrix4(_pose.Rot())
       {
-        this->Translate(_pose.Pos());
+        this->SetTranslation(_pose.Pos());
       }
 
       /// \brief Destructor
@@ -181,7 +181,17 @@ namespace ignition
 
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
-      public: void Translate(const Vector3<T> &_t)
+      /// \deprecated Use SetTranslation instead
+      public: void
+              IGN_DEPRECATED(4)
+              Translate(const Vector3<T> &_t)
+      {
+        this->SetTranslation(_t);
+      }
+
+      /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
+      /// \param[in] _t Values to set
+      public: void SetTranslation(const Vector3<T> &_t)
       {
         this->data[0][3] = _t.X();
         this->data[1][3] = _t.Y();
@@ -192,7 +202,19 @@ namespace ignition
       /// \param[in] _x X translation value.
       /// \param[in] _y Y translation value.
       /// \param[in] _z Z translation value.
-      public: void Translate(T _x, T _y, T _z)
+      /// \deprecated Use SetTranslation instead
+      public: void
+              IGN_DEPRECATED(4)
+              Translate(T _x, T _y, T _z)
+      {
+        this->SetTranslation(_x, _y, _z);
+      }
+
+      /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
+      /// \param[in] _x X translation value.
+      /// \param[in] _y Y translation value.
+      /// \param[in] _z Z translation value.
+      public: void SetTranslation(T _x, T _y, T _z)
       {
         this->data[0][3] = _x;
         this->data[1][3] = _y;
@@ -379,10 +401,9 @@ namespace ignition
       /// Vector3<T> is returned if this matrix is not affine.
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
       /// Vector3<T> &_result) const;
-      public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
-#ifndef _WIN32
-      IGN_DEPRECATED(3.0)
-#endif
+      public: Vector3<T>
+              IGN_DEPRECATED(3.0)
+              TransformAffine(const Vector3<T> &_v) const
       {
         if (this->IsAffine())
         {
