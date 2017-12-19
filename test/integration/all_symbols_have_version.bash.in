@@ -1,0 +1,27 @@
+# Returns non-zero exit code if there are symbols which don't contain the project major version
+
+LIBPATH=$1
+VERSIONED_NS=v@PROJECT_MAJOR_VERSION@
+IGN_PROJECT=@IGN_PROJECT_NAME@
+
+# Sanity check - there should be at least one symbol
+NUM_SYMBOLS=$(nm $LIBPATH | grep -e "ignition.*$IGN_PROJECT" | wc -l)
+
+if [ $NUM_SYMBOLS -eq 0 ]
+then
+  echo >&2 "ERROR: Did not find any symbols in the project library"
+  exit 1
+fi
+
+# There must be no unversioned symbols
+UNVERSIONED_SYMBOLS=$(nm $LIBPATH | grep -e "ignition.*$IGN_PROJECT" | grep -e "$VERSIONED_NS" -v)
+UNVERSIONED_SYMBOL_CHARS=$(printf "$UNVERSIONED_SYMBOLS" | wc -m)
+
+if [ $UNVERSIONED_SYMBOL_CHARS -ne 0 ]
+then
+  echo >&2 "ERROR: Found unversioned symbols:\n$UNVERSIONED_SYMBOLS"
+  exit 1
+fi
+
+echo "No unversioned symbols found (num versioned symbols:$NUM_SYMBOLS)"
+exit 0

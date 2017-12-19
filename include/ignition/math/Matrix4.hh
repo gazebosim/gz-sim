@@ -22,11 +22,14 @@
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Pose3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Matrix4 Matrix4.hh ignition/math/Matrix4.hh
     /// \brief A 4x4 matrix class
     template<typename T>
@@ -906,6 +909,7 @@ namespace ignition
     typedef Matrix4<int> Matrix4i;
     typedef Matrix4<double> Matrix4d;
     typedef Matrix4<float> Matrix4f;
+    }
   }
 }
 #endif
