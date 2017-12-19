@@ -31,10 +31,10 @@ TEST(HelpersTest, Helpers)
   EXPECT_EQ(-12345, math::parseInt("-12345"));
   EXPECT_EQ(-12345, math::parseInt("    -12345"));
   EXPECT_EQ(0, math::parseInt("    "));
+  EXPECT_EQ(23, math::parseInt("23ab67"));
 
   EXPECT_EQ(math::NAN_I, math::parseInt(""));
   EXPECT_EQ(math::NAN_I, math::parseInt("?"));
-  EXPECT_EQ(math::NAN_I, math::parseInt("23ab67"));
 
   EXPECT_DOUBLE_EQ(12.345, math::parseFloat("12.345"));
   EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("-12.345"));
@@ -54,10 +54,10 @@ TEST(HelpersTest, Helpers)
   EXPECT_TRUE(math::greaterOrNearEqual(1.0, 1.0 + 9e-3, 1e-2));
   EXPECT_FALSE(math::greaterOrNearEqual(1.0, 1.0 + 1.1e-2, 1e-2));
   EXPECT_DOUBLE_EQ(1.2345, math::parseFloat("1.2345e+0"));
+  EXPECT_DOUBLE_EQ(23.0, math::parseFloat("23ab67"));
 
   EXPECT_TRUE(math::isnan(math::parseFloat("")));
   EXPECT_TRUE(math::isnan(math::parseFloat("?")));
-  EXPECT_TRUE(math::isnan(math::parseFloat("23ab67")));
 
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(0));
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(1));
