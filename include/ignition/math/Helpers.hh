@@ -26,8 +26,8 @@
 #include <tuple>
 #include <cstdint>
 
-#include "ignition/math/Export.hh"
 #include <ignition/math/config.hh>
+#include "ignition/math/Export.hh"
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 /// \deprecated Use static const value instead.

@@ -21,12 +21,12 @@
 #include <string>
 #include <vector>
 
+#include <ignition/math/config.hh>
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
 #include "ignition/math/Matrix3.hh"
-#include <ignition/math/config.hh>
 
 namespace ignition
 {

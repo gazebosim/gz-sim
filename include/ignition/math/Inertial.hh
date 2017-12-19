@@ -17,9 +17,9 @@
 #ifndef IGNITION_MATH_INERTIAL_HH_
 #define IGNITION_MATH_INERTIAL_HH_
 
+#include <ignition/math/config.hh>
 #include "ignition/math/MassMatrix3.hh"
 #include "ignition/math/Pose3.hh"
-#include <ignition/math/config.hh>
 
 namespace ignition
 {

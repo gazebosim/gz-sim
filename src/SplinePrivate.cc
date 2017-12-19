@@ -25,7 +25,6 @@ namespace math
 {
 inline namespace IGNITION_MATH_VERSION_NAMESPACE
 {
-
 ///////////////////////////////////////////////////////////
 Vector4d PolynomialPowers(const unsigned int _order,
                           const double _t)
@@ -151,8 +150,6 @@ Vector3d IntervalCubicSpline::InterpolateMthDerivative(
 
   return this->DoInterpolateMthDerivative(_mth, _t);
 }
-
-
 }
 }
 }

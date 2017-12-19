@@ -18,8 +18,8 @@
 #define IGNITION_MATH_ROTATIONSPLINEPRIVATE_HH_
 
 #include <vector>
-#include "ignition/math/Quaternion.hh"
 #include <ignition/math/config.hh>
+#include "ignition/math/Quaternion.hh"
 
 namespace ignition
 {
