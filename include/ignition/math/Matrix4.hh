@@ -183,7 +183,9 @@ namespace ignition
       /// \param[in] _t Values to set
       /// \deprecated Use SetTranslation instead
       public: void Translate(const Vector3<T> &_t)
+#ifndef _WIN32
       IGN_DEPRECATED(4)
+#endif
       {
         this->SetTranslation(_t);
       }
@@ -203,7 +205,9 @@ namespace ignition
       /// \param[in] _z Z translation value.
       /// \deprecated Use SetTranslation instead
       public: void Translate(T _x, T _y, T _z)
+#ifndef _WIN32
       IGN_DEPRECATED(4)
+#endif
       {
         this->SetTranslation(_x, _y, _z);
       }
@@ -400,7 +404,9 @@ namespace ignition
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
       /// Vector3<T> &_result) const;
       public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
+#ifndef _WIN32
       IGN_DEPRECATED(3.0)
+#endif
       {
         if (this->IsAffine())
         {
