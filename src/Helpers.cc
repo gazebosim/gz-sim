@@ -23,8 +23,7 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE
     {
     /////////////////////////////////////////////
-    PairOutput Pair(
-        const PairInput _a, const PairInput _b)
+    PairOutput Pair(const PairInput _a, const PairInput _b)
     {
       // Store in 64bit local variable so that we don't overflow.
       uint64_t a = _a;
@@ -37,8 +36,7 @@ namespace ignition
     }
 
     /////////////////////////////////////////////
-    std::tuple<PairInput, PairInput>
-    Unpair(const PairOutput _key)
+    std::tuple<PairInput, PairInput> Unpair(const PairOutput _key)
     {
       // Must explicitly cast so that the _key is not auto cast to a double
       uint64_t sqrt = static_cast<uint64_t>(
