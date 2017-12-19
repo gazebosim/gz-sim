@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,7 +212,7 @@ namespace ignition
       /// \brief Multiplication operator
       /// \param[in] _pose the other pose
       /// \return itself
-      public: Pose3<T> operator*(const Pose3<T> &_pose)
+      public: Pose3<T> operator*(const Pose3<T> &_pose) const
       {
         return Pose3<T>(this->CoordPositionAdd(_pose),  _pose.q * this->q);
       }

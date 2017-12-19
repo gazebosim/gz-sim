@@ -63,7 +63,7 @@ TEST(KmeansTest, Kmeans)
   EXPECT_TRUE(kmeans.Cluster(2, centroids, labels));
 
   // Check that there are two centroids.
-  EXPECT_EQ(centroids.size(), 2);
+  EXPECT_EQ(centroids.size(), 2u);
 
   // Check that the observations are clustered properly.
   EXPECT_EQ(labels[0], labels[1]);

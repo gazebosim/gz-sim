@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2015 Open Source Robotics Foundation
+ * Copyright (C) 2014 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,11 @@ namespace ignition
     /// k-means partitions the observations into k sets so as to minimize the
     /// within-cluster sum of squares.
     /// Description based on http://en.wikipedia.org/wiki/K-means_clustering.
-    class IGNITION_VISIBLE Kmeans
+    class IGNITION_MATH_VISIBLE Kmeans
     {
       /// \brief constructor
       /// \param[in] _obs Set of observations to cluster.
-      // cppcheck-suppress noExplicitConstructor
-      public: Kmeans(const std::vector<Vector3d> &_obs);
+      public: explicit Kmeans(const std::vector<Vector3d> &_obs);
 
       /// \brief Destructor.
       public: virtual ~Kmeans();

@@ -1,16 +1,20 @@
-# This is a sample build configuration for C++.
-# Check our guides at https://confluence.atlassian.com/x/VYk8Lw for more examples.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
 image: ubuntu:xenial
 
 pipelines:
   default:
     - step:
-        script: # Modify the commands below to build your repository.
+        script:
           - apt-get update
           - apt-get -y install cmake build-essential lcov curl mercurial
+          - gcc -v
+          - g++ -v
+          # Ignition cmake
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
+          - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
+          - apt-get update
+          - apt-get -y install
+            libignition-cmake-dev
+          # Ignition math
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
@@ -18,4 +22,3 @@ pipelines:
           - make test
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
-

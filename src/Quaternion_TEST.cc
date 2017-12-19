@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -426,6 +426,13 @@ TEST(QuaternionTest, Math)
                                        -0.242668, -0.364002));
 
     EXPECT_TRUE(math::Matrix3d(q) == math::Matrix3d(
+                0.617229, -0.589769, 0.52077,
+                0.707544, 0.705561, -0.0395554,
+                -0.344106, 0.392882, 0.85278));
+
+    math::Matrix3d matFromQ;
+    matFromQ = q;
+    EXPECT_TRUE(matFromQ == math::Matrix3d(
                 0.617229, -0.589769, 0.52077,
                 0.707544, 0.705561, -0.0395554,
                 -0.344106, 0.392882, 0.85278));

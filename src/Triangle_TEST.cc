@@ -44,7 +44,8 @@ TEST(TriangleTest, Constructor)
     EXPECT_EQ(tri[0], math::Vector2d(0, 0));
     EXPECT_EQ(tri[1], math::Vector2d(0, 1));
     EXPECT_EQ(tri[2], math::Vector2d(1, 0));
-    EXPECT_THROW(tri[3], math::IndexException);
+    EXPECT_NO_THROW(tri[3]);
+    EXPECT_EQ(tri[3], tri[2]);
   }
 
   {
@@ -77,7 +78,7 @@ TEST(TriangleTest, Set)
   EXPECT_EQ(tri[1], math::Vector2d(0.3, 0.4));
   EXPECT_EQ(tri[2], math::Vector2d(1.5, 2.6));
 
-  EXPECT_THROW(tri.Set(3, math::Vector2d(1.5, 2.6)), math::IndexException);
+  EXPECT_NO_THROW(tri.Set(3, math::Vector2d(1.5, 2.6)));
 }
 
 /////////////////////////////////////////////////
@@ -91,7 +92,7 @@ TEST(TriangleTest, Side)
   EXPECT_TRUE(tri.Side(1) == math::Line2d(0, 1, 1, 0));
   EXPECT_TRUE(tri.Side(2) == math::Line2d(1, 0, 0, 0));
 
-  EXPECT_THROW(tri.Side(3), math::IndexException);
+  EXPECT_NO_THROW(tri.Side(3));
 }
 
 /////////////////////////////////////////////////

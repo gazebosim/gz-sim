@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,7 @@ namespace ignition
 
       /// \brief Constructor
       /// \param[in] _rpy euler angles
-      // cppcheck-suppress noExplicitConstructor
-      public: Quaternion(const Vector3<T> &_rpy)
+      public: explicit Quaternion(const Vector3<T> &_rpy)
       {
         this->Euler(_rpy);
       }
@@ -350,8 +349,18 @@ namespace ignition
 
         // Pitch
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
-        vec.Y(sarg <= T(-1.0) ? T(-0.5*IGN_PI) :
-            (sarg >= T(1.0) ? T(0.5*IGN_PI) : T(asin(sarg))));
+        if (sarg <= T(-1.0))
+        {
+          vec.Y(T(-0.5*IGN_PI));
+        }
+        else if (sarg >= T(1.0))
+        {
+          vec.Y(T(0.5*IGN_PI));
+        }
+        else
+        {
+          vec.Y(T(asin(sarg)));
+        }
 
         // If the pitch angle is PI/2 or -PI/2, we can only compute
         // the sum roll + yaw.  However, any combination that gives
@@ -529,22 +538,22 @@ namespace ignition
             {
               if (_v1Abs.X() < _v1Abs.Z())
               {
-                other = {1, 0, 0};
+                other.Set(1, 0, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
             else
             {
               if (_v1Abs.Y() < _v1Abs.Z())
               {
-                other = {0, 1, 0};
+                other.Set(0, 1, 0);
               }
               else
               {
-                other = {0, 0, 1};
+                other.Set(0, 0, 1);
               }
             }
           }

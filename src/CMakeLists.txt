@@ -1,60 +1,20 @@
-include (${project_cmake_dir}/Utils.cmake)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set (sources
-  Angle.cc
-  Box.cc
-  Color.cc
-  Frustum.cc
-  Helpers.cc
-  IndexException.cc
-  Kmeans.cc
-  PID.cc
-  Rand.cc
-  RotationSpline.cc
-  RotationSplinePrivate.cc
-  SemanticVersion.cc
-  SignalStats.cc
-  SphericalCoordinates.cc
-  Spline.cc
-  Temperature.cc
-  Vector3Stats.cc
-)
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable
+ign_get_libsources_and_unittests(sources gtest_sources)
 
-set (gtest_sources
-  Angle_TEST.cc
-  Box_TEST.cc
-  Color_TEST.cc
-  Filter_TEST.cc
-  Frustum_TEST.cc
-  Helpers_TEST.cc
-  Inertial_TEST.cc
-  Kmeans_TEST.cc
-  Line2_TEST.cc
-  Line3_TEST.cc
-  MassMatrix3_TEST.cc
-  Matrix3_TEST.cc
-  Matrix4_TEST.cc
-  OrientedBox_TEST.cc
-  PID_TEST.cc
-  Plane_TEST.cc
-  Pose_TEST.cc
-  Quaternion_TEST.cc
-  Rand_TEST.cc
-  RotationSpline_TEST.cc
-  SemanticVersion_TEST.cc
-  SignalStats_TEST.cc
-  SphericalCoordinates_TEST.cc
-  Spline_TEST.cc
-  Temperature_TEST.cc
-  Triangle_TEST.cc
-  Triangle3_TEST.cc
-  Vector2_TEST.cc
-  Vector3_TEST.cc
-  Vector3Stats_TEST.cc
-  Vector4_TEST.cc
-)
+# Create the library target
+ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-ign_add_library(ignition-math${PROJECT_MAJOR_VERSION} ${sources})
-ign_build_tests(${gtest_sources})
-ign_install_library(ignition-math${PROJECT_MAJOR_VERSION})
+# Turn on C++14 support for the library
+ign_set_project_public_cxx_standard(14)
+
+# Create installation instructions for the library target. This must be called
+# in the same scope that the target is created.
+ign_install_library()
+
+# Build the unit tests
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+
+# graph namespace
+add_subdirectory(graph)

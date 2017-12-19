@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -444,33 +444,36 @@ TEST(Matrix4dTest, AffineTransform)
   math::Matrix4d mat = math::Matrix4d::Zero;
   math::Vector3d vec(1, 2, 3);
 
-  EXPECT_THROW(mat.TransformAffine(vec), ignition::math::AffineException);
+  math::Vector3d v;
+  EXPECT_NO_THROW(mat.TransformAffine(vec, v));
+  EXPECT_FALSE(mat.TransformAffine(vec, v));
 
   mat = math::Matrix4d::Identity;
-  EXPECT_NO_THROW(mat.TransformAffine(vec));
+  EXPECT_NO_THROW(mat.TransformAffine(vec, v));
+  EXPECT_TRUE(mat.TransformAffine(vec, v));
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4dTest, IndexException)
+TEST(Matrix4dTest, NoIndexException)
 {
   math::Matrix4d mat = math::Matrix4d::Zero;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
       EXPECT_NO_THROW(mat(i, j));
 
-  EXPECT_THROW(math::equal(mat(4, 0), 0.0), math::IndexException);
-  EXPECT_THROW(math::equal(mat(0, 4), 0.0), math::IndexException);
-  EXPECT_THROW(math::equal(mat(4, 4), 0.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(mat(4, 0), 0.0));
+  EXPECT_NO_THROW(math::equal(mat(0, 4), 0.0));
+  EXPECT_NO_THROW(math::equal(mat(4, 4), 0.0));
 
-  EXPECT_THROW(mat(4, 0) = 0, math::IndexException);
-  EXPECT_THROW(mat(0, 4) = 0, math::IndexException);
-  EXPECT_THROW(mat(4, 4) = 0, math::IndexException);
+  EXPECT_NO_THROW(mat(4, 0) = 0);
+  EXPECT_NO_THROW(mat(0, 4) = 0);
+  EXPECT_NO_THROW(mat(4, 4) = 0);
 
   const math::Matrix4d constMat(math::Matrix4d::Zero);
 
-  EXPECT_THROW(math::equal(constMat(4, 0), 0.0), math::IndexException);
-  EXPECT_THROW(math::equal(constMat(0, 4), 0.0), math::IndexException);
-  EXPECT_THROW(math::equal(constMat(4, 4), 0.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(constMat(4, 0), 0.0));
+  EXPECT_NO_THROW(math::equal(constMat(0, 4), 0.0));
+  EXPECT_NO_THROW(math::equal(constMat(4, 4), 0.0));
 }
 
 /////////////////////////////////////////////////

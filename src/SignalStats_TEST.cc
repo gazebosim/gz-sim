@@ -31,6 +31,12 @@ TEST(SignalStatsTest, SignalMaximumConstructor)
   EXPECT_EQ(max.Count(), 0u);
   EXPECT_EQ(max.ShortName(), std::string("max"));
 
+  math::SignalMaximum maxCopy(max);
+
+  EXPECT_DOUBLE_EQ(max.Value(), maxCopy.Value());
+  EXPECT_EQ(max.Count(), maxCopy.Count());
+  EXPECT_EQ(max.ShortName(), maxCopy.ShortName());
+
   // Reset
   max.Reset();
   EXPECT_DOUBLE_EQ(max.Value(), 0.0);
@@ -475,7 +481,7 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_TRUE(stats.Map().empty());
     EXPECT_EQ(stats.Count(), 0u);
 
-    math::SignalStats stats2 = stats;
+    const math::SignalStats &stats2 = stats;
     EXPECT_EQ(stats.Count(), stats2.Count());
 
     // Reset
@@ -527,7 +533,7 @@ TEST(SignalStatsTest, SignalStats)
     EXPECT_EQ(map.count("var"), 1u);
     EXPECT_EQ(map.count("FakeStatistic"), 0u);
 
-    math::SignalStats stats2 = stats;
+    math::SignalStats stats2(stats);
     std::map<std::string, double> map2 = stats2.Map();
     EXPECT_FALSE(map2.empty());
     EXPECT_EQ(map.size(), map2.size());
@@ -598,6 +604,20 @@ TEST(SignalStatsTest, SignalStats)
 
     {
       std::map<std::string, double> map = stats.Map();
+      EXPECT_DOUBLE_EQ(map["max"], value);
+      EXPECT_DOUBLE_EQ(map["maxAbs"], value);
+      EXPECT_DOUBLE_EQ(map["min"], -value);
+      EXPECT_DOUBLE_EQ(map["rms"], value);
+      EXPECT_DOUBLE_EQ(map["mean"], 0.0);
+    }
+
+    // test operator=
+    {
+      math::SignalStats copy;
+      copy = stats;
+      EXPECT_EQ(copy.Count(), 2u);
+      auto map = stats.Map();
+      EXPECT_EQ(map.size(), 5u);
       EXPECT_DOUBLE_EQ(map["max"], value);
       EXPECT_DOUBLE_EQ(map["maxAbs"], value);
       EXPECT_DOUBLE_EQ(map["min"], -value);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 
   // It's also possible to set initial values. This time we are using
   // a Vector2 of floats
-  ignition::math::Vector2f vec2b(1.2, 3.4);
+  ignition::math::Vector2f vec2b(1.2f, 3.4f);
 
   // We can output the contents of each vector using std::cout
   std::cout << "Vec2: " << vec2 << "\n"
@@ -48,14 +48,8 @@ int main(int argc, char **argv)
   std::cout << "Vec2a: x=" << vec2a[0] << " y=" << vec2a[1] << "\n";
   std::cout << "Vec2b: x=" << vec2b.X() << " y=" << vec2b[1] << "\n";
 
-  // An IndexException will be thrown if the [] operator is given a
-  // value that is too high
-  try
-  {
-    std::cout << vec2[3] << std::endl;
-  } catch(ignition::math::IndexException &_e) {
-    std::cerr << _e.what() << std::endl;
-  }
+  // The [] operator is clamped to the range [0, 1]
+  std::cout << vec2[3] << std::endl;
 
   // The Vector2 class overloads many common operators
   std::cout << vec2 * vec2a << "\n"

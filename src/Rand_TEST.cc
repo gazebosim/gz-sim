@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ TEST(RandTest, SetSeed)
   for (int i = 0; i < N; ++i)
   {
     math::Rand::Seed(i);
-    EXPECT_EQ(math::Rand::Seed(), i);
+    EXPECT_EQ(math::Rand::Seed(), static_cast<unsigned int>(i));
     EXPECT_EQ(first[i], math::Rand::IntUniform(-10, 10));
     EXPECT_EQ(second[i], math::Rand::IntUniform(-10, 10));
   }

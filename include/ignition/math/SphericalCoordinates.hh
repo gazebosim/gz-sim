@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2016 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ namespace ignition
 
     /// \class SphericalCoordinates SphericalCoordinates.hh commmon/common.hh
     /// \brief Convert spherical coordinates for planetary surfaces.
-    class IGNITION_VISIBLE SphericalCoordinates
+    class IGNITION_MATH_VISIBLE SphericalCoordinates
     {
       /// \enum SurfaceType
       /// \brief Unique identifiers for planetary surface models.

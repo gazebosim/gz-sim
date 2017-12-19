@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,9 +64,12 @@ TEST(Vector3Test, Vector3d)
   EXPECT_TRUE(v == math::Vector3d(4, 3, 2));
 
   // ::operator[]
-  EXPECT_DOUBLE_EQ(v[0], 4);
-  EXPECT_DOUBLE_EQ(v[1], 3);
-  EXPECT_DOUBLE_EQ(v[2], 2);
+  v[0] = 40;
+  v[1] = 30;
+  v[2] = 20;
+  EXPECT_DOUBLE_EQ(v[0], 40);
+  EXPECT_DOUBLE_EQ(v[1], 30);
+  EXPECT_DOUBLE_EQ(v[2], 20);
 
   v.Set(1.23, 2.35, 3.654321);
   v.Round(1);
@@ -402,13 +405,14 @@ TEST(Vector3dTest, Finite)
 }
 
 /////////////////////////////////////////////////
-TEST(Vector3dTest, IndexException)
+TEST(Vector3dTest, NoException)
 {
   math::Vector3d v(1, 2, 3);
   EXPECT_NO_THROW(math::equal(v[0], 1.0));
   EXPECT_NO_THROW(math::equal(v[1], 2.0));
   EXPECT_NO_THROW(math::equal(v[2], 3.0));
 
-  EXPECT_THROW(math::equal(v[3], 4.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(v[3], 4.0));
+  EXPECT_DOUBLE_EQ(v[3], 3.0);
 }
 

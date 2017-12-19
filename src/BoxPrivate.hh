@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_BOX_PRIVATE_HH_
-#define IGNITION_MATH_BOX_PRIVATE_HH_
+#ifndef IGNITION_MATH_BOXPRIVATE_HH_
+#define IGNITION_MATH_BOXPRIVATE_HH_
 
 #include <ignition/math/Vector3.hh>
 
@@ -27,18 +27,11 @@ namespace ignition
     /// \brief Private data for Box class
     class BoxPrivate
     {
-      /// \brief Enumeration of extents
-      public: enum Extent {EXTENT_NULL, EXTENT_FINITE};
-
       /// \brief Minimum corner of the box
-      public: Vector3d min = Vector3d::Zero;
+      public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
 
       /// \brief Maximum corner of the box
-      public: Vector3d max = Vector3d::Zero;
-
-      /// \brief When set to EXTENT_NULL (the default value)
-      /// the min and max are not valid positions
-      public: Extent extent = EXTENT_NULL;
+      public: Vector3d max = Vector3d(LOW_D, LOW_D, LOW_D);
     };
   }
 }

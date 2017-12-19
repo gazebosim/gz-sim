@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ROTATIONSPLINE_PRIVATE_HH_
-#define IGNITION_MATH_ROTATIONSPLINE_PRIVATE_HH_
+#ifndef IGNITION_MATH_ROTATIONSPLINEPRIVATE_HH_
+#define IGNITION_MATH_ROTATIONSPLINEPRIVATE_HH_
 
 #include <vector>
 #include "ignition/math/Quaternion.hh"

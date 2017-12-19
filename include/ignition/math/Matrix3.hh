@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-
 #ifndef IGNITION_MATH_MATRIX3_HH_
 #define IGNITION_MATH_MATRIX3_HH_
 
 #include <algorithm>
 #include <cstring>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 
@@ -80,8 +80,7 @@ namespace ignition
 
       /// \brief Construct Matrix3 from a quaternion.
       /// \param[in] _q Quaternion.
-      // cppcheck-suppress noExplicitConstructor
-      public: Matrix3(const Quaternion<T> &_q)
+      public: explicit Matrix3(const Quaternion<T> &_q)
       {
         Quaternion<T> qt = _q;
         qt.Normalize();
@@ -202,17 +201,26 @@ namespace ignition
         this->Axis(cross, acos(dot));
       }
 
-      /// \brief Set a column
-      /// \param[in] _c The colum index (0, 1, 2)
-      /// \param[in] _v The value to set in each row of the column
+      /// \brief Set a column.
+      /// \param[in] _c The colum index [0, 1, 2]. _col is clamped to the
+      /// range [0, 2].
+      /// \param[in] _v The value to set in each row of the column.
       public: void Col(unsigned int _c, const Vector3<T> &_v)
       {
-        if (_c >= 3)
-          throw IndexException();
+        unsigned int c = clamp(_c, 0u, 2u);
 
-        this->data[0][_c] = _v.X();
-        this->data[1][_c] = _v.Y();
-        this->data[2][_c] = _v.Z();
+        this->data[0][c] = _v.X();
+        this->data[1][c] = _v.Y();
+        this->data[2][c] = _v.Z();
+      }
+
+      /// \brief Equal operator. this = _mat
+      /// \param _mat Incoming matrix
+      /// \return itself
+      public: Matrix3<T> &operator=(const Matrix3<T> &_mat)
+      {
+        memcpy(this->data, _mat.data, sizeof(this->data[0][0])*9);
+        return *this;
       }
 
       /// \brief returns the element wise difference of two matrices
@@ -365,6 +373,14 @@ namespace ignition
         return this->Equal(_m, static_cast<T>(1e-6));
       }
 
+      /// \brief Set the matrix3 from a quaternion
+      /// \param[in] _q Quaternion to set the matrix3 from.
+      /// \return Reference to the new matrix3 object.
+      public: Matrix3<T> &operator=(const Quaternion<T> &_q)
+      {
+        return *this = Matrix3<T>(_q);
+      }
+
       /// \brief Inequality test operator
       /// \param[in] _m Matrix3<T> to test
       /// \return True if not equal (using the default tolerance of 1e-6)
@@ -374,23 +390,23 @@ namespace ignition
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index
+      /// \param[in] _row row index. _row is clamped to the range [0,2]
+      /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
       public: inline const T &operator()(size_t _row, size_t _col) const
       {
-        if (_row >= 3 || _col >= 3)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// \brief Array subscript operator
-      /// \param[in] _row row index
+      /// \param[in] _row row index. _row is clamped to the range [0,2]
+      /// \param[in] _col column index. _col is clamped to the range [0,2]
       /// \return a pointer to the row
       public: inline T &operator()(size_t _row, size_t _col)
       {
-        if (_row >= 3 || _col >=3)
-          throw IndexException();
-        return this->data[_row][_col];
+        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
+                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// \brief Return the determinant of the matrix

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,13 @@ TEST(RotationSplineTest, RotationSpline)
   EXPECT_TRUE(s.Point(1) == math::Quaterniond(.1, .1, .1));
 
   // ::UpdatePoint
-  EXPECT_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)),
-               math::IndexException);
-  s.UpdatePoint(1, math::Quaterniond(.2, .2, .2));
+  EXPECT_NO_THROW(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)));
+  EXPECT_FALSE(s.UpdatePoint(2, math::Quaterniond(.2, .2, .2)));
+
+  EXPECT_TRUE(s.UpdatePoint(1, math::Quaterniond(.2, .2, .2)));
   s.AutoCalculate(false);
-  s.UpdatePoint(0, math::Vector3d(-.1, -.1, -.1));
+  EXPECT_TRUE(s.UpdatePoint(0, math::Quaterniond(
+    math::Vector3d(-.1, -.1, -.1))));
   s.AutoCalculate(true);
 
   // ::Interpolate
@@ -54,7 +56,9 @@ TEST(RotationSplineTest, RotationSpline)
 
   // ::Interpolate
   s.AddPoint(math::Quaterniond(.4, .4, .4));
-  EXPECT_THROW(s.Interpolate(4, 0.2), math::IndexException);
+  EXPECT_NO_THROW(s.Interpolate(4, 0.2));
+  EXPECT_FALSE(s.Interpolate(4, 0.2).IsFinite());
+
   EXPECT_EQ(s.Interpolate(s.PointCount()-1, 0.2),
             s.Point(s.PointCount()-1));
   EXPECT_TRUE(s.Interpolate(1, 0.2) ==
@@ -67,12 +71,15 @@ TEST(RotationSplineTest, RotationSpline)
 TEST(RotationSplineTest, GetPoint)
 {
   math::RotationSpline s;
-  EXPECT_THROW(s.Point(0), math::IndexException);
-  EXPECT_THROW(s.Point(1), math::IndexException);
+  EXPECT_NO_THROW(s.Point(0));
+  EXPECT_FALSE(s.Point(0).IsFinite());
+  EXPECT_NO_THROW(s.Point(1));
+  EXPECT_FALSE(s.Point(1).IsFinite());
 
   s.AddPoint(math::Quaterniond(0, 0, 0));
   EXPECT_NO_THROW(s.Point(0));
-  EXPECT_THROW(s.Point(1), math::IndexException);
+  EXPECT_NO_THROW(s.Point(1));
+  EXPECT_TRUE(s.Point(1).IsFinite());
 }
 
 /////////////////////////////////////////////////
@@ -84,12 +91,10 @@ TEST(RotationSplineTest, RecalcTangents)
   s.AddPoint(math::Quaterniond(0, 0, 0));
 
   s.RecalcTangents();
-  math::Quaterniond q = s.Interpolate(0, 0.5);
-  std::cout << q.W() << " " << q.X() << " " << q.Y() << " " << q.Z() << "\n";
   EXPECT_EQ(s.Interpolate(0, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 
-  q = s.Interpolate(1, 0.5);
+  math::Quaterniond q = s.Interpolate(1, 0.5);
   EXPECT_EQ(s.Interpolate(1, 0.5),
       math::Quaterniond(0.987225, 0.077057, 0.11624, 0.077057));
 }

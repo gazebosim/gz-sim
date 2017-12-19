@@ -14,14 +14,13 @@
  * limitations under the License.
  *
 */
-
 #ifndef IGNITION_MATH_TRIANGLE_HH_
 #define IGNITION_MATH_TRIANGLE_HH_
 
 #include <set>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Line2.hh>
 #include <ignition/math/Vector2.hh>
-#include <ignition/math/IndexException.hh>
 
 namespace ignition
 {
@@ -47,15 +46,13 @@ namespace ignition
       }
 
       /// \brief Set one vertex of the triangle.
-      /// \param[in] _index Index of the point to set.
+      /// \param[in] _index Index of the point to set, where
+      /// 0 == first vertex, 1 == second vertex, and 2 == third vertex.
+      /// The index is clamped to the range [0, 2].
       /// \param[in] _pt Value of the point to set.
-      /// \throws IndexException if _index is > 2.
-      public: void Set(unsigned int _index, const math::Vector2<T> &_pt)
+      public: void Set(const unsigned int _index, const math::Vector2<T> &_pt)
       {
-        if (_index >2)
-          throw IndexException();
-        else
-          this->pts[_index] = _pt;
+        this->pts[clamp(_index, 0u, 2u)] = _pt;
       }
 
       /// \brief Set all vertices of the triangle.
@@ -88,13 +85,11 @@ namespace ignition
       /// 0 == Line2(pt1, pt2),
       /// 1 == Line2(pt2, pt3),
       /// 2 == Line2(pt3, pt1)
+      /// The index is clamped to the range [0, 2]
       /// \return Line segment of the requested side.
-      /// \throws IndexException if _index is > 2.
-      public: Line2<T> Side(unsigned int _index) const
+      public: Line2<T> Side(const unsigned int _index) const
       {
-        if (_index > 2)
-          throw IndexException();
-        else if (_index == 0)
+        if (_index == 0)
           return Line2<T>(this->pts[0], this->pts[1]);
         else if (_index == 1)
           return Line2<T>(this->pts[1], this->pts[2]);
@@ -221,13 +216,13 @@ namespace ignition
       }
 
       /// \brief Get one of points that define the triangle.
-      /// \param[in] _index: 0, 1, or 2.
-      /// \throws IndexException if _index is > 2.
-      public: math::Vector2<T> operator[](size_t _index) const
+      /// \param[in] _index The index, where 0 == first vertex,
+      /// 1 == second vertex, and 2 == third vertex.
+      /// The index is clamped to the range [0, 2]
+      /// \return The point specified by _index.
+      public: math::Vector2<T> operator[](const size_t _index) const
       {
-        if (_index > 2)
-          throw IndexException();
-        return this->pts[_index];
+        return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
       }
 
       /// The points of the triangle

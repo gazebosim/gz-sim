@@ -37,7 +37,8 @@ TEST(Line2Test, Constructor)
   EXPECT_DOUBLE_EQ(lineB[1].X(), 3.0);
   EXPECT_DOUBLE_EQ(lineB[1].Y(), 4.0);
 
-  EXPECT_THROW(lineB[2].X(), math::IndexException);
+  EXPECT_NO_THROW(lineB[2].X());
+  EXPECT_DOUBLE_EQ(lineB[2].X(), lineB[1].X());
   EXPECT_NO_THROW(lineA[0].X());
 }
 
@@ -48,6 +49,11 @@ TEST(Line2Test, Length)
   EXPECT_NEAR(lineA.Length(), sqrt(200), 1e-10);
 }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+// C4723: potential divide by 0
+#pragma warning(disable : 4723)
+#endif
 /////////////////////////////////////////////////
 TEST(Line2Test, Slope)
 {
@@ -57,18 +63,18 @@ TEST(Line2Test, Slope)
   }
 
   {
-// MSVC reports a warning about division by zero
-#ifndef _MSC_VER
     math::Line2d line(0, 0, 0, 10);
     EXPECT_TRUE(math::isnan(line.Slope()));
-#endif
   }
 
   {
     math::Line2d line(-10, 0, 100, 0);
-    EXPECT_EQ(line.Slope(), 0.0);
+    EXPECT_DOUBLE_EQ(line.Slope(), 0.0);
   }
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 /////////////////////////////////////////////////
 TEST(Line2Test, ParallelLine)
@@ -150,7 +156,7 @@ TEST(Line2Test, CollinearPoint)
 
   pt.Set(0, 0.00001);
   EXPECT_FALSE(lineA.Collinear(pt));
-  EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
+  EXPECT_TRUE(lineA.Collinear(pt, 1e-3));
   {
     math::Line2d ptLine(pt, pt);
     EXPECT_FALSE(lineA.Collinear(ptLine));
@@ -162,7 +168,7 @@ TEST(Line2Test, CollinearPoint)
 
   pt.Set(0, -0.00001);
   EXPECT_FALSE(lineA.Collinear(pt));
-  EXPECT_TRUE(lineA.Collinear(pt, 1e-4));
+  EXPECT_TRUE(lineA.Collinear(pt, 1e-3));
   {
     math::Line2d ptLine(pt, pt);
     EXPECT_FALSE(lineA.Collinear(ptLine));

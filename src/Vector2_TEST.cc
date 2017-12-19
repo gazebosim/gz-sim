@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,19 +118,21 @@ TEST(Vector2Test, Vector2)
   EXPECT_TRUE(v.IsFinite());
 
   // ::operator[]
-  v.Set(6, 7);
+  v[0] = 6;
+  v[1] = 7;
   EXPECT_DOUBLE_EQ(6, v[0]);
   EXPECT_DOUBLE_EQ(7, v[1]);
 }
 
 /////////////////////////////////////////////////
-TEST(Vector2Test, IndexException)
+TEST(Vector2Test, NoException)
 {
   math::Vector2d v(1, 2);
   EXPECT_NO_THROW(math::equal(v[0], 1.0));
   EXPECT_NO_THROW(math::equal(v[1], 2.0));
 
-  EXPECT_THROW(math::equal(v[2], 1.0), math::IndexException);
+  EXPECT_NO_THROW(math::equal(v[2], 1.0));
+  EXPECT_DOUBLE_EQ(v[2], 2.0);
 }
 
 /////////////////////////////////////////////////

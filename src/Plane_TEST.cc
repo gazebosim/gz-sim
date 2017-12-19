@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,11 @@ TEST(PlaneTest, PlaneConstructor)
   EXPECT_NEAR(plane.Offset(), 0.1, 1e-6);
 }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+// C4723: potential divide by 0
+#pragma warning(disable : 4723)
+#endif
 /////////////////////////////////////////////////
 TEST(PlaneTest, Distance)
 {
@@ -43,13 +48,12 @@ TEST(PlaneTest, Distance)
 
   EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.2),
               Vector3d(0, 0, 1)), -0.1, 1e-6);
-
-// MSVC reports a warning about division by zero
-#ifndef _MSC_VER
   EXPECT_NEAR(plane.Distance(Vector3d(0, 0, 0.1),
               Vector3d(1, 0, 0)), 0, 1e-6);
-#endif
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 /////////////////////////////////////////////////
 TEST(PlaneTest, Plane)

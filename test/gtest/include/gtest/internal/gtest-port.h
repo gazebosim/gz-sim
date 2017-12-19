@@ -39,6 +39,9 @@
 
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
+#ifndef _WIN32
+#pragma GCC system_header
+#endif
 
 // The user can define the following macros in the build script to
 // control Google Test's behavior.  If the user doesn't define a macro

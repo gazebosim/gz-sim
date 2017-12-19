@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,107 +26,141 @@
 #include <tuple>
 #include <cstdint>
 
+#include "ignition/math/Export.hh"
+
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
-#define IGN_DBL_MAX ignition::math::MAX_D
+/// \deprecated Use static const value instead.
+#define IGN_DBL_MAX ignition::math::DPRCT_MAX_D
 
 /// \brief Double min value. This value will be similar to 2.22507e-308
-#define IGN_DBL_MIN ignition::math::MIN_D
+/// \deprecated Use static const value instead.
+#define IGN_DBL_MIN ignition::math::DPRCT_MIN_D
 
 /// \brief Double low value, equivalent to -IGN_DBL_MAX
-#define IGN_DBL_LOW ignition::math::LOW_D
+/// \deprecated Use static const value instead.
+#define IGN_DBL_LOW ignition::math::DPRCT_LOW_D
 
 /// \brief Double positive infinite value
-#define IGN_DBL_INF ignition::math::INF_D
+/// \deprecated Use static const value instead.
+#define IGN_DBL_INF ignition::math::DPRCT_INF_D
 
 /// \brief Float maximum value. This value will be similar to 3.40282e+38
-#define IGN_FLT_MAX ignition::math::MAX_F
+/// \deprecated Use static const value instead.
+#define IGN_FLT_MAX ignition::math::DPRCT_MAX_F
 
 /// \brief Float minimum value. This value will be similar to 1.17549e-38
-#define IGN_FLT_MIN ignition::math::MIN_F
+/// \deprecated Use static const value instead.
+#define IGN_FLT_MIN ignition::math::DPRCT_MIN_F
 
 /// \brief Float lowest value, equivalent to -IGN_FLT_MAX
-#define IGN_FLT_LOW ignition::math::LOW_F
+/// \deprecated Use static const value instead.
+#define IGN_FLT_LOW ignition::math::DPRCT_LOW_F
 
 /// \brief Float positive infinite value
-#define IGN_FLT_INF ignition::math::INF_F
+/// \deprecated Use static const value instead.
+#define IGN_FLT_INF ignition::math::DPRCT_INF_F
 
 /// \brief 16bit unsigned integer maximum value
-#define IGN_UINT16_MAX ignition::math::MAX_UI16
+/// \deprecated Use static const value instead.
+#define IGN_UINT16_MAX ignition::math::DPRCT_MAX_UI16
 
 /// \brief 16bit unsigned integer minimum value
-#define IGN_UINT16_MIN ignition::math::MIN_UI16
+/// \deprecated Use static const value instead.
+#define IGN_UINT16_MIN ignition::math::DPRCT_MIN_UI16
 
 /// \brief 16bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT16_MIN, and is defined here for completeness.
-#define IGN_UINT16_LOW ignition::math::LOW_UI16
+/// \deprecated Use static const value instead.
+#define IGN_UINT16_LOW ignition::math::DPRCT_LOW_UI16
 
 /// \brief 16-bit unsigned integer positive infinite value
-#define IGN_UINT16_INF ignition::math::INF_UI16
+/// \deprecated Use static const value instead.
+#define IGN_UINT16_INF ignition::math::DPRCT_INF_UI16
 
 /// \brief 16bit integer maximum value
-#define IGN_INT16_MAX ignition::math::MAX_I16
+/// \deprecated Use static const value instead.
+#define IGN_INT16_MAX ignition::math::DPRCT_MAX_I16
 
 /// \brief 16bit integer minimum value
-#define IGN_INT16_MIN ignition::math::MIN_I16
+/// \deprecated Use static const value instead.
+#define IGN_INT16_MIN ignition::math::DPRCT_MIN_I16
 
 /// \brief 16bit integer lowest value. This is equivalent to IGN_INT16_MIN,
 /// and is defined here for completeness.
-#define IGN_INT16_LOW ignition::math::LOW_I16
+/// \deprecated Use static const value instead.
+#define IGN_INT16_LOW ignition::math::DPRCT_LOW_I16
 
 /// \brief 16-bit integer positive infinite value
-#define IGN_INT16_INF ignition::math::INF_I16
+/// \deprecated Use static const value instead.
+#define IGN_INT16_INF ignition::math::DPRCT_INF_I16
 
 /// \brief 32bit unsigned integer maximum value
-#define IGN_UINT32_MAX ignition::math::MAX_UI32
+/// \deprecated Use static const value instead.
+#define IGN_UINT32_MAX ignition::math::DPRCT_MAX_UI32
 
 /// \brief 32bit unsigned integer minimum value
-#define IGN_UINT32_MIN ignition::math::MIN_UI32
+/// \deprecated Use static const value instead.
+#define IGN_UINT32_MIN ignition::math::DPRCT_MIN_UI32
 
 /// \brief 32bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT32_MIN, and is defined here for completeness.
-#define IGN_UINT32_LOW ignition::math::LOW_UI32
+/// \deprecated Use static const value instead.
+#define IGN_UINT32_LOW ignition::math::DPRCT_LOW_UI32
 
 /// \brief 32-bit unsigned integer positive infinite value
-#define IGN_UINT32_INF ignition::math::INF_UI32
+/// \deprecated Use static const value instead.
+#define IGN_UINT32_INF ignition::math::DPRCT_INF_UI32
 
 /// \brief 32bit integer maximum value
-#define IGN_INT32_MAX ignition::math::MAX_I32
+/// \deprecated Use static const value instead.
+#define IGN_INT32_MAX ignition::math::DPRCT_MAX_I32
 
 /// \brief 32bit integer minimum value
-#define IGN_INT32_MIN ignition::math::MIN_I32
+/// \deprecated Use static const value instead.
+#define IGN_INT32_MIN ignition::math::DPRCT_MIN_I32
 
 /// \brief 32bit integer minimum value. This is equivalent to IGN_INT32_MIN,
 /// and is defined here for completeness.
-#define IGN_INT32_LOW ignition::math::LOW_I32
+/// \deprecated Use static const value instead.
+#define IGN_INT32_LOW ignition::math::DPRCT_LOW_I32
 
 /// \brief 32-bit integer positive infinite value
-#define IGN_INT32_INF ignition::math::INF_I32
+/// \deprecated Use static const value instead.
+#define IGN_INT32_INF ignition::math::DPRCT_INF_I32
 
 /// \brief 64bit unsigned integer maximum value
-#define IGN_UINT64_MAX ignition::math::MAX_UI64
+/// \deprecated Use static const value instead.
+#define IGN_UINT64_MAX ignition::math::DPRCT_MAX_UI64
 
 /// \brief 64bit unsigned integer minimum value
-#define IGN_UINT64_MIN ignition::math::MIN_UI64
+/// \deprecated Use static const value instead.
+#define IGN_UINT64_MIN ignition::math::DPRCT_MIN_UI64
 
 /// \brief 64bit unsigned integer lowest value. This is equivalent to
 /// IGN_UINT64_MIN, and is defined here for completeness.
-#define IGN_UINT64_LOW ignition::math::LOW_UI64
+/// \deprecated Use static const value instead.
+#define IGN_UINT64_LOW ignition::math::DPRCT_LOW_UI64
 
 /// \brief 64-bit unsigned integer positive infinite value
-#define IGN_UINT64_INF ignition::math::INF_UI64
+/// \deprecated Use static const value instead.
+#define IGN_UINT64_INF ignition::math::DPRCT_INF_UI64
 
 /// \brief 64bit integer maximum value
-#define IGN_INT64_MAX ignition::math::MAX_I64
+/// \deprecated Use static const value instead.
+#define IGN_INT64_MAX ignition::math::DPRCT_MAX_I64
 
 /// \brief 64bit integer minimum value
-#define IGN_INT64_MIN ignition::math::MIN_I64
+/// \deprecated Use static const value instead.
+#define IGN_INT64_MIN ignition::math::DPRCT_MIN_I64
 
 /// \brief 64bit integer lowest value. This is equivalent to IGN_INT64_MIN,
 /// and is defined here for completeness.
-#define IGN_INT64_LOW ignition::math::LOW_I64
+/// \deprecated Use static const value instead.
+#define IGN_INT64_LOW ignition::math::DPRCT_LOW_I64
 
 /// \brief 64-bit integer positive infinite value
-#define IGN_INT64_INF ignition::math::INF_I64
+/// \deprecated Use static const value instead.
+#define IGN_INT64_INF ignition::math::DPRCT_INF_I64
 
 /// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
 /// This was put here for Windows support.
@@ -170,44 +204,41 @@
 /// \param[in] _v Vector3d that contains the box's dimensions.
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
 
-/** \def IGNITION_VISIBLE
- * Use to represent "symbol visible" if supported
- */
-
-/** \def IGNITION_HIDDEN
- * Use to represent "symbol hidden" if supported
- */
-
-#if defined _WIN32 || defined __CYGWIN__
-  #ifdef BUILDING_DLL
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllexport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllexport)
-    #endif
-  #else
-    #ifdef __GNUC__
-      #define IGNITION_VISIBLE __attribute__ ((dllimport))
-    #else
-      #define IGNITION_VISIBLE __declspec(dllimport)
-    #endif
-  #endif
-  #define IGNITION_HIDDEN
-#else
-  #if __GNUC__ >= 4
-    #define IGNITION_VISIBLE __attribute__ ((visibility ("default")))
-    #define IGNITION_HIDDEN  __attribute__ ((visibility ("hidden")))
-  #else
-    #define IGNITION_VISIBLE
-    #define IGNITION_HIDDEN
-  #endif
-#endif
-
 namespace ignition
 {
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    /// \brief size_t type with a value of 0
+    static const size_t IGN_ZERO_SIZE_T  = 0u;
+
+    /// \brief size_t type with a value of 1
+    static const size_t IGN_ONE_SIZE_T   = 1u;
+
+    /// \brief size_t type with a value of 2
+    static const size_t IGN_TWO_SIZE_T   = 2u;
+
+    /// \brief size_t type with a value of 3
+    static const size_t IGN_THREE_SIZE_T = 3u;
+
+    /// \brief size_t type with a value of 4
+    static const size_t IGN_FOUR_SIZE_T  = 4u;
+
+    /// \brief size_t type with a value of 5
+    static const size_t IGN_FIVE_SIZE_T  = 5u;
+
+    /// \brief size_t type with a value of 6
+    static const size_t IGN_SIX_SIZE_T   = 6u;
+
+    /// \brief size_t type with a value of 7
+    static const size_t IGN_SEVEN_SIZE_T = 7u;
+
+    /// \brief size_t type with a value of 8
+    static const size_t IGN_EIGHT_SIZE_T = 8u;
+
+    /// \brief size_t type with a value of 9
+    static const size_t IGN_NINE_SIZE_T  = 9u;
+
     /// \brief Double maximum value. This value will be similar to 1.79769e+308
     static const double MAX_D = std::numeric_limits<double>::max();
 
@@ -319,6 +350,40 @@ namespace ignition
     /// \brief Returns the representation of a quiet not a number (NAN)
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
+    // variables created to deprecate macros in this file
+    static const double IGN_DEPRECATED(2) DPRCT_MAX_D = MAX_D;
+    static const double IGN_DEPRECATED(2) DPRCT_MIN_D = MIN_D;
+    static const double IGN_DEPRECATED(2) DPRCT_LOW_D = LOW_D;
+    static const double IGN_DEPRECATED(2) DPRCT_INF_D = INF_D;
+    static const float IGN_DEPRECATED(2) DPRCT_MAX_F = MAX_F;
+    static const float IGN_DEPRECATED(2) DPRCT_MIN_F = MIN_F;
+    static const float IGN_DEPRECATED(2) DPRCT_LOW_F = LOW_F;
+    static const float IGN_DEPRECATED(2) DPRCT_INF_F = INF_F;
+    static const uint16_t IGN_DEPRECATED(2) DPRCT_MAX_UI16 = MAX_UI16;
+    static const uint16_t IGN_DEPRECATED(2) DPRCT_MIN_UI16 = MIN_UI16;
+    static const uint16_t IGN_DEPRECATED(2) DPRCT_LOW_UI16 = LOW_UI16;
+    static const uint16_t IGN_DEPRECATED(2) DPRCT_INF_UI16 = INF_UI16;
+    static const int16_t IGN_DEPRECATED(2) DPRCT_MAX_I16 = MAX_I16;
+    static const int16_t IGN_DEPRECATED(2) DPRCT_MIN_I16 = MIN_I16;
+    static const int16_t IGN_DEPRECATED(2) DPRCT_LOW_I16 = LOW_I16;
+    static const int16_t IGN_DEPRECATED(2) DPRCT_INF_I16 = INF_I16;
+    static const uint32_t IGN_DEPRECATED(2) DPRCT_MAX_UI32 = MAX_UI32;
+    static const uint32_t IGN_DEPRECATED(2) DPRCT_MIN_UI32 = MIN_UI32;
+    static const uint32_t IGN_DEPRECATED(2) DPRCT_LOW_UI32 = LOW_UI32;
+    static const uint32_t IGN_DEPRECATED(2) DPRCT_INF_UI32 = INF_UI32;
+    static const int32_t IGN_DEPRECATED(2) DPRCT_MAX_I32 = MAX_I32;
+    static const int32_t IGN_DEPRECATED(2) DPRCT_MIN_I32 = MIN_I32;
+    static const int32_t IGN_DEPRECATED(2) DPRCT_LOW_I32 = LOW_I32;
+    static const int32_t IGN_DEPRECATED(2) DPRCT_INF_I32 = INF_I32;
+    static const uint64_t IGN_DEPRECATED(2) DPRCT_MAX_UI64 = MAX_UI64;
+    static const uint64_t IGN_DEPRECATED(2) DPRCT_MIN_UI64 = MIN_UI64;
+    static const uint64_t IGN_DEPRECATED(2) DPRCT_LOW_UI64 = LOW_UI64;
+    static const uint64_t IGN_DEPRECATED(2) DPRCT_INF_UI64 = INF_UI64;
+    static const int64_t IGN_DEPRECATED(2) DPRCT_MAX_I64 = MAX_I64;
+    static const int64_t IGN_DEPRECATED(2) DPRCT_MIN_I64 = MIN_I64;
+    static const int64_t IGN_DEPRECATED(2) DPRCT_LOW_I64 = LOW_I64;
+    static const int64_t IGN_DEPRECATED(2) DPRCT_INF_I64 = INF_I64;
+
     /// \brief Simple clamping function
     /// \param[in] _v value
     /// \param[in] _min minimum
@@ -391,6 +456,30 @@ namespace ignition
     inline bool isOdd(const unsigned int _v)
     {
       return (_v % 2) != 0;
+    }
+
+    /// \brief The signum function.
+    ///
+    /// Returns 0 for zero values, -1 for negative values,
+    /// +1 for positive values.
+    /// \param[in] _value The value.
+    /// \return The signum of the value.
+    template<typename T>
+    inline int sgn(T _value)
+    {
+      return (T(0) < _value) - (_value < T(0));
+    }
+
+    /// \brief The signum function.
+    ///
+    /// Returns 0 for zero values, -1 for negative values,
+    /// +1 for positive values.
+    /// \param[in] _value The value.
+    /// \return The signum of the value.
+    template<typename T>
+    inline int signum(T _value)
+    {
+      return sgn(_value);
     }
 
     /// \brief get mean of vector of values
@@ -622,7 +711,8 @@ namespace ignition
     /// \return A unique non-negative integer value. On Windows the return
     /// value is uint32_t. On Linux/OSX the return value is uint64_t
     /// \sa Unpair
-    PairOutput IGNITION_VISIBLE Pair(const PairInput _a, const PairInput _b);
+    PairOutput IGNITION_MATH_VISIBLE Pair(
+        const PairInput _a, const PairInput _b);
 
     /// \brief The reverse of the Pair function. Accepts a key, produced
     /// from the Pair function, and returns a tuple consisting of the two
@@ -635,7 +725,7 @@ namespace ignition
     /// tuple contains two uint16_t values. On Linux/OSX the tuple contains
     /// two uint32_t values.
     /// \sa Pair
-    std::tuple<PairInput, PairInput> IGNITION_VISIBLE Unpair(
+    std::tuple<PairInput, PairInput> IGNITION_MATH_VISIBLE Unpair(
         const PairOutput _key);
   }
 }

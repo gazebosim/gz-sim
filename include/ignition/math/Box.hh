@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,14 @@ namespace ignition
 
     /// \class Box Box.hh ignition/math/Box.hh
     /// \brief Mathematical representation of a box and related functions.
-    class IGNITION_VISIBLE Box
+    class IGNITION_MATH_VISIBLE Box
     {
-      /// \brief Default constructor
+      /// \brief Default constructor. This constructor will set the box's
+      /// minimum and maximum corners to the highest (max) and lowest
+      /// floating point values available to indicate that it is uninitialized.
+      /// The default box does not intersect any other boxes or contain any
+      /// points since it has no extent. Its center is the origin and its side
+      /// lengths are 0.
       public: Box();
 
       /// \brief Constructor. This constructor will compute the box's

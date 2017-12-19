@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNAL_STATS_HH_
-#define IGNITION_MATH_SIGNAL_STATS_HH_
+#ifndef IGNITION_MATH_SIGNALSTATS_HH_
+#define IGNITION_MATH_SIGNALSTATS_HH_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <ignition/math/Helpers.hh>
 
@@ -30,13 +31,17 @@ namespace ignition
 
     /// \class SignalStatistic SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Statistical properties of a discrete time scalar signal.
-    class IGNITION_VISIBLE SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalStatistic
     {
       /// \brief Constructor
       public: SignalStatistic();
 
       /// \brief Destructor
       public: virtual ~SignalStatistic();
+
+      /// \brief Copy constructor
+      /// \param[in] _ss SignalStatistic to copy
+      public: SignalStatistic(const SignalStatistic &_ss);
 
       /// \brief Get the current value of the statistical measure.
       /// \return Current value of the statistical measure.
@@ -57,14 +62,23 @@ namespace ignition
       /// \brief Forget all previous data.
       public: virtual void Reset();
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Pointer to private data.
-      protected: SignalStatisticPrivate *dataPtr;
+      protected: std::unique_ptr<SignalStatisticPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     /// \}
 
     /// \class SignalMaximum SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the maximum value of a discretely sampled signal.
-    class IGNITION_VISIBLE SignalMaximum : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalMaximum : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -80,7 +94,7 @@ namespace ignition
 
     /// \class SignalMean SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the mean value of a discretely sampled signal.
-    class IGNITION_VISIBLE SignalMean : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalMean : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -96,7 +110,7 @@ namespace ignition
 
     /// \class SignalMinimum SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the minimum value of a discretely sampled signal.
-    class IGNITION_VISIBLE SignalMinimum : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalMinimum : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -113,7 +127,7 @@ namespace ignition
     /// \class SignalRootMeanSquare SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the square root of the mean squared value
     /// of a discretely sampled signal.
-    class IGNITION_VISIBLE SignalRootMeanSquare : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalRootMeanSquare : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -132,7 +146,7 @@ namespace ignition
     /// \brief Computing the maximum of the absolute value
     /// of a discretely sampled signal.
     /// Also known as the maximum norm, infinity norm, or supremum norm.
-    class IGNITION_VISIBLE SignalMaxAbsoluteValue : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalMaxAbsoluteValue : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -149,7 +163,7 @@ namespace ignition
     /// \class SignalVariance SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Computing the incremental variance
     /// of a discretely sampled signal.
-    class IGNITION_VISIBLE SignalVariance : public SignalStatistic
+    class IGNITION_MATH_VISIBLE SignalVariance : public SignalStatistic
     {
       // Documentation inherited.
       public: virtual double Value() const;
@@ -168,13 +182,17 @@ namespace ignition
 
     /// \class SignalStats SignalStats.hh ignition/math/SignalStats.hh
     /// \brief Collection of statistics for a scalar signal.
-    class IGNITION_VISIBLE SignalStats
+    class IGNITION_MATH_VISIBLE SignalStats
     {
       /// \brief Constructor
       public: SignalStats();
 
       /// \brief Destructor
       public: ~SignalStats();
+
+      /// \brief Copy constructor
+      /// \param[in] _ss SignalStats to copy
+      public: SignalStats(const SignalStats &_ss);
 
       /// \brief Get number of data points in first statistic.
       /// Technically you can have different numbers of data points
@@ -221,8 +239,17 @@ namespace ignition
       /// \return this
       public: SignalStats &operator=(const SignalStats &_s);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Pointer to private data.
-      protected: SignalStatsPrivate *dataPtr;
+      private: std::unique_ptr<SignalStatsPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     /// \}
   }

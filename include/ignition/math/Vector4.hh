@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #define IGNITION_MATH_VECTOR4_HH_
 
 #include <ignition/math/Matrix4.hh>
+#include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
@@ -440,42 +441,77 @@ namespace ignition
                std::isfinite(static_cast<double>(this->data[2])) &&
                std::isfinite(static_cast<double>(this->data[3]));
       }
+
       /// \brief Array subscript operator
       /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
-      /// \return The value. Throws an IndexException if _index is out of
-      /// bounds.
-      /// \throws IndexException if _index is >= 4.
-      public: inline T operator[](size_t _index) const
+      /// The index is clamped to the range (0,3).
+      /// \return The value.
+      public: T &operator[](const std::size_t _index)
       {
-        if (_index > 3)
-          throw IndexException();
-        return this->data[_index];
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
+      }
+
+      /// \brief Const-qualified array subscript operator
+      /// \param[in] _index The index, where 0 == x, 1 == y, 2 == z, 3 == w.
+      /// The index is clamped to the range (0,3).
+      /// \return The value.
+      public: T operator[](const std::size_t _index) const
+      {
+        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
+      }
+
+      /// \brief Return a mutable x value.
+      /// \return The x component of the vector
+      public: T &X()
+      {
+        return this->data[0];
+      }
+
+      /// \brief Return a mutable y value.
+      /// \return The y component of the vector
+      public: T &Y()
+      {
+        return this->data[1];
+      }
+
+      /// \brief Return a mutable z value.
+      /// \return The z component of the vector
+      public: T &Z()
+      {
+        return this->data[2];
+      }
+
+      /// \brief Return a mutable w value.
+      /// \return The w component of the vector
+      public: T &W()
+      {
+        return this->data[3];
       }
 
       /// \brief Get the x value.
       /// \return The x component of the vector
-      public: inline T X() const
+      public: T X() const
       {
         return this->data[0];
       }
 
       /// \brief Get the y value.
       /// \return The y component of the vector
-      public: inline T Y() const
+      public: T Y() const
       {
         return this->data[1];
       }
 
       /// \brief Get the z value.
       /// \return The z component of the vector
-      public: inline T Z() const
+      public: T Z() const
       {
         return this->data[2];
       }
 
       /// \brief Get the w value.
       /// \return The w component of the vector
-      public: inline T W() const
+      public: T W() const
       {
         return this->data[3];
       }

@@ -1,3 +1,91 @@
+## Ignition Math 4.x
+
+### Ignition Math 4.x.x
+
+1. Use ignition-cmake to simplify build scripts
+    * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/200)
+
+1. Make constructor SemanticVersion(string) explicit
+    * [Pull request 203](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/203)
+
+1. Switch to C++14
+    * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
+
+1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
+    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
+    * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
+
+1. Removed the box 'extent' field. The default constructor now sets a box's
+   corners to extrema in order to indicate an uninitialized box.
+    * [Pull request 172](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/172)
+    * [Issue 72](https://bitbucket.org/ignitionrobotics/ign-math/issues/72)
+    * [Issue 53](https://bitbucket.org/ignitionrobotics/ign-math/issues/53)
+
+1. Added graph utilites:
+    1. Added a Vertex class:
+        * [Pull request 170](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/170)
+    1. Added an Edge class:
+        * [Pull request 174](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/174)
+    1. Added a Graph class:
+        * [Pull request 175](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/175)
+    1. Added a GraphAlgorithms class:
+        * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
+    1. Added a function to calculate connected components in undirected
+       graphs:
+         * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
+
+## Ignition Math 3.x
+
+### Ignition Math 3.x.x
+
+1. Fixed frustum falsely saying it contained AABB in some cases
+    * [Pull request 193](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/193)
+
+1. Create consistent bracket operators across all Vector# types
+    * [Pull request 181](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/181)
+
+### Ignition Math 3.2.0 (2017-05-15)
+
+1. Construct on first use in Rand class
+    * [Pull request 165](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/165)
+
+1. Extended Spline API: derivative interpolation, arc length calculation
+   and tangent forcing.
+    * [Pull request 162](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/162)
+
+### Ignition Math 3.1.0 (2017-04-11)
+
+1. Added signum functions to Helpers.hh.
+    * Contribution from Martin Pecka
+    * [Pull request 153](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/153)
+
+### Ignition Math 3.0.0 (2017-01-05)
+
+1. Deprecate many IGN_* macros in favor of static const variables in Helpers.hh
+    * [Pull request 138](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/138)
+    * [Pull request 137](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/137)
+
+1. Removed exceptions. Return values should be evaluated to determine if
+   errors have occured.
+    * [Pull request 132](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/132)
+
+1. Added `operator=(const Quaternion<T> &_q)` to `Matrix3`.
+    * [Pull request 111](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/111)
+
+1. Fix xenial cppcheck
+    * [Pull request xxx](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/xxx)
+
+1. Require cmake 2.8.12
+    * [Pull request 76](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/76)
+
+1. Migrate to relocatable CMake package.
+   Contribution from Silvio Traversaro.
+    * [Pull request 67](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/67)
+
+1. Fix logic of installation of CMake configuration files in Windows.
+   Contribution from Silvio Traversaro.
+    * [Pull request 63](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/63)
+
 ## Ignition Math 2.x
 
 

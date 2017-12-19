@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2016 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -530,7 +530,7 @@ bool SphericalCoordinates::operator==(const SphericalCoordinates &_sc) const
   return this->Surface() == _sc.Surface() &&
          this->LatitudeReference() == _sc.LatitudeReference() &&
          this->LongitudeReference() == _sc.LongitudeReference() &&
-         this->ElevationReference() == _sc.ElevationReference() &&
+         math::equal(this->ElevationReference(), _sc.ElevationReference()) &&
          this->HeadingOffset() == _sc.HeadingOffset();
 }
 

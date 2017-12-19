@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#include <ignition/math/Vector3StatsPrivate.hh>
 #include <ignition/math/Vector3Stats.hh>
+#include "Vector3StatsPrivate.hh"
 
 using namespace ignition;
 using namespace math;
@@ -72,25 +72,25 @@ void Vector3Stats::Reset()
 }
 
 //////////////////////////////////////////////////
-SignalStats Vector3Stats::X() const
+const SignalStats &Vector3Stats::X() const
 {
   return this->dataPtr->x;
 }
 
 //////////////////////////////////////////////////
-SignalStats Vector3Stats::Y() const
+const SignalStats &Vector3Stats::Y() const
 {
   return this->dataPtr->y;
 }
 
 //////////////////////////////////////////////////
-SignalStats Vector3Stats::Z() const
+const SignalStats &Vector3Stats::Z() const
 {
   return this->dataPtr->z;
 }
 
 //////////////////////////////////////////////////
-SignalStats Vector3Stats::Mag() const
+const SignalStats &Vector3Stats::Mag() const
 {
   return this->dataPtr->mag;
 }

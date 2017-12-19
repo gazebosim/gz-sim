@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2014 Open Source Robotics Foundation
+ * Copyright (C) 2012 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 */
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/RotationSpline.hh"
-#include "ignition/math/RotationSplinePrivate.hh"
+#include "RotationSplinePrivate.hh"
 
 using namespace ignition;
 using namespace math;
@@ -43,7 +43,8 @@ void RotationSpline::AddPoint(const Quaterniond &_p)
 }
 
 /////////////////////////////////////////////////
-Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
+Quaterniond RotationSpline::Interpolate(double _t,
+                                        const bool _useShortestPath)
 {
   // Work out which segment this is in
   double fSeg = _t * (this->dataPtr->points.size() - 1);
@@ -56,12 +57,12 @@ Quaterniond RotationSpline::Interpolate(double _t, bool _useShortestPath)
 }
 
 /////////////////////////////////////////////////
-Quaterniond RotationSpline::Interpolate(unsigned int _fromIndex, double _t,
-                                        bool _useShortestPath)
+Quaterniond RotationSpline::Interpolate(const unsigned int _fromIndex,
+    const double _t, const bool _useShortestPath)
 {
   // Bounds check
   if (_fromIndex >= this->dataPtr->points.size())
-      throw IndexException();
+    return Quaterniond(INF_D, INF_D, INF_D, INF_D);
 
   if ((_fromIndex + 1) == this->dataPtr->points.size())
   {
@@ -164,12 +165,16 @@ void RotationSpline::RecalcTangents()
 }
 
 /////////////////////////////////////////////////
-const Quaterniond &RotationSpline::Point(unsigned int _index) const
+const Quaterniond &RotationSpline::Point(const unsigned int _index) const
 {
-  if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+  static Quaterniond inf(INF_D, INF_D, INF_D, INF_D);
 
-  return this->dataPtr->points[_index];
+  if (this->dataPtr->points.empty())
+    return inf;
+
+  return this->dataPtr->points[
+    clamp(_index, 0u, static_cast<unsigned int>(
+          this->dataPtr->points.size()-1))];
 }
 
 /////////////////////////////////////////////////
@@ -186,15 +191,17 @@ void RotationSpline::Clear()
 }
 
 /////////////////////////////////////////////////
-void RotationSpline::UpdatePoint(unsigned int _index,
+bool RotationSpline::UpdatePoint(const unsigned int _index,
                                  const Quaterniond &_value)
 {
   if (_index >= this->dataPtr->points.size())
-    throw IndexException();
+    return false;
 
   this->dataPtr->points[_index] = _value;
   if (this->dataPtr->autoCalc)
     this->RecalcTangents();
+
+  return true;
 }
 
 /////////////////////////////////////////////////
