@@ -369,7 +369,7 @@ namespace ignition
       public: friend inline Vector3<T> operator+(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() + _s, _v.Y() + _s, _v.Z() + _s);
+        return {_v.X() + _s, _v.Y() + _s, _v.Z() + _s};
       }
 
       /// \brief Addition assignment operator
@@ -430,7 +430,7 @@ namespace ignition
       public: friend inline Vector3<T> operator-(const T _s,
                                                  const Vector3<T> &_v)
       {
-        return Vector3<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z());
+        return {_s - _v.X(), _s - _v.Y(), _s - _v.Z()};
       }
 
       /// \brief Subtraction assignment operator
@@ -533,7 +533,7 @@ namespace ignition
       /// \return a scaled vector
       public: friend inline Vector3<T> operator*(T _s, const Vector3<T> &_v)
       {
-        return Vector3<T>(_v.X() * _s, _v.Y() * _s, _v.Z() * _s);
+        return {_v.X() * _s, _v.Y() * _s, _v.Z() * _s};
       }
 
       /// \brief Multiplication operator
@@ -695,6 +695,16 @@ namespace ignition
       public: inline void Z(const T &_v)
       {
         this->data[2] = _v;
+      }
+
+      /// \brief Less than operator.
+      /// \param[in] _pt Vector to compare.
+      /// \return True if this vector's X(), Y(), or Z() value is less
+      /// than the given vector's corresponding values.
+      public: bool operator<(const Vector3<T> &_pt) const
+      {
+        return this->data[0] < _pt[0] || this->data[1] < _pt[1] ||
+               this->data[2] < _pt[2];
       }
 
       /// \brief Stream insertion operator

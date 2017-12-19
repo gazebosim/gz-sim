@@ -413,6 +413,8 @@ void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, PrincipalAxesOffsetDiagonal)
 {
+  // all repeated moments [3, 3, 3]
+  VerifyDiagonalMomentsAndAxes(math::Vector3d(3.0, 3.0, 3.0));
   // repeated moments [2, 3, 3]
   VerifyDiagonalMomentsAndAxes(math::Vector3d(2.0, 3.0, 3.0));
   VerifyDiagonalMomentsAndAxes(math::Vector3d(3.0, 2.0, 3.0));

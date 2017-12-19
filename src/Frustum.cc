@@ -67,12 +67,82 @@ Planed Frustum::Plane(const FrustumPlane _plane) const
 /////////////////////////////////////////////////
 bool Frustum::Contains(const Box &_b) const
 {
+  // This is a fast test used for culling.
   // If the box is on the negative side of a plane, then the box is not
   // visible.
+  int overlapping = 0;
   for (auto const &plane : this->dataPtr->planes)
   {
-    if (plane.Side(_b) == Planed::NEGATIVE_SIDE)
+    auto const sign = plane.Side(_b);
+    if (sign == Planed::NEGATIVE_SIDE)
       return false;
+    else if (sign == Planed::BOTH_SIDE)
+      ++overlapping;
+  }
+
+  // it is possible to be outside of frustum and overlapping multiple planes
+  if (overlapping >= 2)
+  {
+    // return true if any box point is inside the frustum
+    auto const &min = _b.Min();
+    auto const &max = _b.Max();
+    for (int p = 0; p < 8; ++p)
+    {
+      const double &x = (p & 4) ? min.X() : max.X();
+      const double &y = (p & 2) ? min.Y() : max.Y();
+      const double &z = (p & 1) ? min.Z() : max.Z();
+      if (this->Contains(Vector3d(x, y, z)))
+        return true;
+    }
+    // return true if any frustum point is inside the box
+    for (auto const &pt : this->dataPtr->points)
+    {
+      if (_b.Contains(pt))
+        return true;
+    }
+
+    // Return true if any edge of the frustum passes through the AABB
+    for (const auto &edge : this->dataPtr->edges)
+    {
+      // If the edge projected onto a world axis does not overlapp with the AABB
+      // then the edge could not be passing through the AABB.
+      if (edge.first.X() < min.X() && edge.second.X() < min.X())
+      {
+        // both frustum edge points are below AABB on x axis
+        continue;
+      }
+      else if (edge.first.X() > max.X() && edge.second.X() > max.X())
+      {
+        // both frustum edge points are above AABB on x axis
+        continue;
+      }
+      else if (edge.first.Y() < min.Y() && edge.second.Y() < min.Y())
+      {
+        // both frustum edge points are below AABB on y axis
+        continue;
+      }
+      else if (edge.first.Y() > max.Y() && edge.second.Y() > max.Y())
+      {
+        // both frustum edge points are above AABB on y axis
+        continue;
+      }
+      else if (edge.first.Z() < min.Z() && edge.second.Z() < min.Z())
+      {
+        // both frustum edge points are below AABB on z axis
+        continue;
+      }
+      else if (edge.first.Z() > max.Z() && edge.second.Z() > max.Z())
+      {
+        // both frustum edge points are above AABB on z axis
+        continue;
+      }
+      else
+      {
+        // TODO prove or disprove that Frustum must penetrate AABB???
+        return true;
+      }
+    }
+    return false;
   }
 
   return true;
@@ -206,6 +276,30 @@ void Frustum::ComputePlanes()
   Vector3d farBottomLeft = farCenter - upFarHeight2 - rightFarWidth2;
   Vector3d farBottomRight = farCenter - upFarHeight2 + rightFarWidth2;
 
+  // Save these vertices
+  this->dataPtr->points[0] = nearTopLeft;
+  this->dataPtr->points[1] = nearTopRight;
+  this->dataPtr->points[2] = nearBottomLeft;
+  this->dataPtr->points[3] = nearBottomRight;
+  this->dataPtr->points[4] = farTopLeft;
+  this->dataPtr->points[5] = farTopRight;
+  this->dataPtr->points[6] = farBottomLeft;
+  this->dataPtr->points[7] = farBottomRight;
+
+  // Save the edges
+  this->dataPtr->edges[0] = {nearTopLeft, nearTopRight};
+  this->dataPtr->edges[1] = {nearTopLeft, nearBottomLeft};
+  this->dataPtr->edges[2] = {nearTopLeft, farTopLeft};
+  this->dataPtr->edges[3] = {nearTopRight, nearBottomRight};
+  this->dataPtr->edges[4] = {nearTopRight, farTopRight};
+  this->dataPtr->edges[5] = {nearBottomLeft, nearBottomRight};
+  this->dataPtr->edges[6] = {nearBottomLeft, farBottomLeft};
+  this->dataPtr->edges[7] = {farTopLeft, farTopRight};
+  this->dataPtr->edges[8] = {farTopLeft, farBottomLeft};
+  this->dataPtr->edges[9] = {farTopRight, farBottomRight};
+  this->dataPtr->edges[10] = {farBottomLeft, farBottomRight};
+  this->dataPtr->edges[11] = {farBottomRight, nearBottomRight};
+
   Vector3d leftCenter =
     (farTopLeft + nearTopLeft + farBottomLeft + nearBottomLeft) / 4.0;
 
@@ -238,4 +332,17 @@ void Frustum::ComputePlanes()
 
   norm = Vector3d::Normal(nearBottomLeft, nearBottomRight, farBottomRight);
   this->dataPtr->planes[FRUSTUM_PLANE_BOTTOM].Set(norm, bottomCenter.Dot(norm));
+}
+
+//////////////////////////////////////////////////
+Frustum &Frustum::operator =(const Frustum &_f)
+{
+  this->dataPtr->near = _f.dataPtr->near;
+  this->dataPtr->far = _f.dataPtr->far;
+  this->dataPtr->fov = _f.dataPtr->fov;
+  this->dataPtr->aspectRatio = _f.dataPtr->aspectRatio;
+  this->dataPtr->pose = _f.dataPtr->pose;
+  this->ComputePlanes();
+
+  return *this;
 }

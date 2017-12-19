@@ -4,6 +4,7 @@ set (headers
   AffineException.hh
   Angle.hh
   Box.hh
+  Color.hh
   Filter.hh
   Frustum.hh
   Helpers.hh
@@ -15,16 +16,20 @@ set (headers
   MassMatrix3.hh
   Matrix3.hh
   Matrix4.hh
+  OrientedBox.hh
   PID.hh
   Plane.hh
   Pose3.hh
   Quaternion.hh
   Rand.hh
   RotationSpline.hh
+  SemanticVersion.hh
   SignalStats.hh
+  SphericalCoordinates.hh
   Spline.hh
   Temperature.hh
   Triangle.hh
+  Triangle3.hh
   Vector2.hh
   Vector3.hh
   Vector3Stats.hh

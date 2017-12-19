@@ -227,7 +227,7 @@ namespace ignition
       public: friend inline Vector2<T> operator-(const T _s,
                                                  const Vector2<T> &_v)
       {
-        return Vector2<T>(_s - _v.X(), _s - _v.Y());
+        return {_s - _v.X(), _s - _v.Y()};
       }
 
       /// \brief Subtraction assignment operator
@@ -439,7 +439,7 @@ namespace ignition
 
       /// \brief Less than operator.
       /// \param[in] _pt Vector to compare.
-      /// \return True if this vector2 first or second value is less than
+      /// \return True if this vector's first or second value is less than
       /// the given vector's first or second value.
       public: bool operator<(const Vector2<T> &_pt) const
       {
