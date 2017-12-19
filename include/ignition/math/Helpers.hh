@@ -731,7 +731,9 @@ namespace ignition
 
     // Degrade precision on Windows, which cannot handle 'long double'
     // values properly. See the implementation of Unpair.
-#ifdef _MSC_VER
+    // 32 bit ARM processors also define 'long double' to be the same
+    // size as 'double', and must also be degraded
+#if defined _MSC_VER || defined __arm__
     using PairInput = uint16_t;
     using PairOutput = uint32_t;
 #else
