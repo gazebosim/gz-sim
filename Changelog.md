@@ -2,6 +2,9 @@
 
 ### Ignition Math 4.x.x
 
+1. Deprecate Matrix4::Translate and replace by Matrix4::SetTranslation
+    * [Pull request 221](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/221)
+
 1. Use ignition-cmake to simplify build scripts
     * [Pull request 200](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/200)
 
