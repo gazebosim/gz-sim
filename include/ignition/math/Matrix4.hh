@@ -182,10 +182,9 @@ namespace ignition
       /// \brief Set the translational values [ (0, 3) (1, 3) (2, 3) ]
       /// \param[in] _t Values to set
       /// \deprecated Use SetTranslation instead
-      public: void Translate(const Vector3<T> &_t)
-#ifndef _WIN32
-      IGN_DEPRECATED(4)
-#endif
+      public: void
+              IGN_DEPRECATED(4)
+              Translate(const Vector3<T> &_t)
       {
         this->SetTranslation(_t);
       }
@@ -204,10 +203,9 @@ namespace ignition
       /// \param[in] _y Y translation value.
       /// \param[in] _z Z translation value.
       /// \deprecated Use SetTranslation instead
-      public: void Translate(T _x, T _y, T _z)
-#ifndef _WIN32
-      IGN_DEPRECATED(4)
-#endif
+      public: void
+              IGN_DEPRECATED(4)
+              Translate(T _x, T _y, T _z)
       {
         this->SetTranslation(_x, _y, _z);
       }
@@ -403,10 +401,9 @@ namespace ignition
       /// Vector3<T> is returned if this matrix is not affine.
       /// \deprecated Use bool TransformAffine(const Vector3<T> &_v,
       /// Vector3<T> &_result) const;
-      public: Vector3<T> TransformAffine(const Vector3<T> &_v) const
-#ifndef _WIN32
-      IGN_DEPRECATED(3.0)
-#endif
+      public: Vector3<T>
+              IGN_DEPRECATED(3.0)
+              TransformAffine(const Vector3<T> &_v) const
       {
         if (this->IsAffine())
         {
