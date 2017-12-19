@@ -16,7 +16,7 @@ install:
   - hg up default
   - md build
   - cd build
-  - cmake ..
+  - cmake .. -DBUILD_TESTING:BOOL=False
   - cmake --build . --target INSTALL
   - cd ../..
 build_script:
