@@ -16,9 +16,11 @@
 */
 #include "ignition/math/Helpers.hh"
 
+using namespace ignition::math;
+
 /////////////////////////////////////////////
-ignition::math::PairOutput ignition::math::Pair(
-    const ignition::math::PairInput _a, const ignition::math::PairInput _b)
+PairOutput ignition::math::Pair(
+    const PairInput _a, const PairInput _b)
 {
   // Store in 64bit local variable so that we don't overflow.
   uint64_t a = _a;
@@ -31,8 +33,8 @@ ignition::math::PairOutput ignition::math::Pair(
 }
 
 /////////////////////////////////////////////
-std::tuple<ignition::math::PairInput, ignition::math::PairInput>
-ignition::math::Unpair(const ignition::math::PairOutput _key)
+std::tuple<PairInput, PairInput>
+ignition::math::Unpair(const PairOutput _key)
 {
   // Must explicitly cast so that the _key is not auto cast to a double
   uint64_t sqrt = static_cast<uint64_t>(
