@@ -22,6 +22,11 @@ release will remove the deprecated code.
 1. **SemanticVersion.hh**
     + The SemanticVersion(const std::string &) constructor is now explicit.
 
+1. **All Headers**
+    + All headers now have an inline versioned namespace. Code should be
+    unchanged except all forward declarations of math types must be replaced
+    with an include of the header for that type.
+
 ### Deprecations
 
 1. **Matrix4.hh**
