@@ -20,8 +20,8 @@
 #include <iostream>
 #include <memory>
 
-#include "ignition/math/Helpers.hh"
 #include <ignition/math/config.hh>
+#include "ignition/math/Helpers.hh"
 
 namespace ignition
 {

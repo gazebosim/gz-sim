@@ -16,34 +16,41 @@
 */
 #include "ignition/math/Helpers.hh"
 
-using namespace ignition::math;
-
-/////////////////////////////////////////////
-PairOutput ignition::math::Pair(
-    const PairInput _a, const PairInput _b)
+namespace ignition
 {
-  // Store in 64bit local variable so that we don't overflow.
-  uint64_t a = _a;
-  uint64_t b = _b;
+  namespace math
+  {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
+    /////////////////////////////////////////////
+    PairOutput Pair(
+        const PairInput _a, const PairInput _b)
+    {
+      // Store in 64bit local variable so that we don't overflow.
+      uint64_t a = _a;
+      uint64_t b = _b;
 
-  // Szudzik's function
-  return _a >= _b ?
-          static_cast<PairOutput>(a * a + a + b) :
-          static_cast<PairOutput>(a + b * b);
-}
+      // Szudzik's function
+      return _a >= _b ?
+              static_cast<PairOutput>(a * a + a + b) :
+              static_cast<PairOutput>(a + b * b);
+    }
 
-/////////////////////////////////////////////
-std::tuple<PairInput, PairInput>
-ignition::math::Unpair(const PairOutput _key)
-{
-  // Must explicitly cast so that the _key is not auto cast to a double
-  uint64_t sqrt = static_cast<uint64_t>(
-      std::floor(std::sqrt(static_cast<long double>(_key))));
-  uint64_t sq = sqrt * sqrt;
+    /////////////////////////////////////////////
+    std::tuple<PairInput, PairInput>
+    Unpair(const PairOutput _key)
+    {
+      // Must explicitly cast so that the _key is not auto cast to a double
+      uint64_t sqrt = static_cast<uint64_t>(
+          std::floor(std::sqrt(static_cast<long double>(_key))));
+      uint64_t sq = sqrt * sqrt;
 
-  return ((_key - sq) >= sqrt) ?
-    std::make_tuple(static_cast<PairInput>(sqrt),
-                    static_cast<PairInput>(_key - sq - sqrt)) :
-    std::make_tuple(static_cast<PairInput>(_key - sq),
-                    static_cast<PairInput>(sqrt));
+      return ((_key - sq) >= sqrt) ?
+        std::make_tuple(static_cast<PairInput>(sqrt),
+                        static_cast<PairInput>(_key - sq - sqrt)) :
+        std::make_tuple(static_cast<PairInput>(_key - sq),
+                        static_cast<PairInput>(sqrt));
+    }
+    }
+  }
 }
