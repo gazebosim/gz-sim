@@ -25,12 +25,15 @@
 #include <utility>
 #include <vector>
 
+#include <ignition/math/config.hh>
 #include "ignition/math/graph/Graph.hh"
 #include "ignition/math/Helpers.hh"
 
 namespace ignition
 {
 namespace math
+{
+inline namespace IGNITION_MATH_VERSION_NAMESPACE
 {
 namespace graph
 {
@@ -317,6 +320,7 @@ namespace graph
 
     return res;
   }
+}
 }
 }
 }

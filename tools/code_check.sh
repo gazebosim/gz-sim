@@ -64,12 +64,8 @@ SUPPRESS=/tmp/cpp_check.suppress
 SUPPRESS=/tmp/gazebo_cpp_check.suppress
 # false positives related to explicit constructors where there is no
 # constructor declared
-echo "*:include/ignition/math/Vector2.hh:230" > $SUPPRESS
-echo "*:include/ignition/math/Vector3.hh:372" >> $SUPPRESS
-echo "*:include/ignition/math/Vector3.hh:433" >> $SUPPRESS
-echo "*:include/ignition/math/Vector3.hh:536" >> $SUPPRESS
-echo "*:include/ignition/math/Vector4.hh:257" >> $SUPPRESS
-echo "*:include/ignition/math/Vector4.hh:258" >> $SUPPRESS	
+rm $SUPPRESS
+touch $SUPPRESS
 
 #cppcheck
 CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS --inline-suppr"

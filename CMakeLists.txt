@@ -14,7 +14,7 @@ find_package(ignition-cmake0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre3)
+ign_configure_project(VERSION_SUFFIX pre4)
 
 #============================================================================
 # Set project-specific options
