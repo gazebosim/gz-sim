@@ -22,11 +22,14 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Line3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     // Forward declaration of private data
     class BoxPrivate;
 
@@ -231,6 +234,7 @@ namespace ignition
       /// \brief Private data pointer
       private: BoxPrivate *dataPtr;
     };
+    }
   }
 }
 #endif

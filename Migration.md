@@ -22,6 +22,20 @@ release will remove the deprecated code.
 1. **SemanticVersion.hh**
     + The SemanticVersion(const std::string &) constructor is now explicit.
 
+1. **All Headers**
+    + All headers now have an inline versioned namespace. Code should be
+    unchanged except all forward declarations of math types must be replaced
+    with an include of the header for that type.
+
+### Deprecations
+
+1. **Matrix4.hh**
+    + ***Deprecation:*** public: void Translate(const Vector3<T> &_t)
+    + ***Replacement:*** public: void SetTranslation(const Vector3<T> &_t)
+
+    + ***Deprecation:*** public: void Translate(T _x, T _y, T _z)
+    + ***Replacement:*** public: void SetTranslation(T _x, T _y, T _z)
+
 ## Ignition Math 2.X to 3.X
 
 ### Modifications

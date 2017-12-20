@@ -26,6 +26,7 @@
 #include <tuple>
 #include <cstdint>
 
+#include <ignition/math/config.hh>
 #include "ignition/math/Export.hh"
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
@@ -209,6 +210,8 @@ namespace ignition
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \brief size_t type with a value of 0
     static const size_t IGN_ZERO_SIZE_T  = 0u;
 
@@ -351,38 +354,38 @@ namespace ignition
     static const int NAN_I = std::numeric_limits<int>::quiet_NaN();
 
     // variables created to deprecate macros in this file
-    static const double IGN_DEPRECATED(2) DPRCT_MAX_D = MAX_D;
-    static const double IGN_DEPRECATED(2) DPRCT_MIN_D = MIN_D;
-    static const double IGN_DEPRECATED(2) DPRCT_LOW_D = LOW_D;
-    static const double IGN_DEPRECATED(2) DPRCT_INF_D = INF_D;
-    static const float IGN_DEPRECATED(2) DPRCT_MAX_F = MAX_F;
-    static const float IGN_DEPRECATED(2) DPRCT_MIN_F = MIN_F;
-    static const float IGN_DEPRECATED(2) DPRCT_LOW_F = LOW_F;
-    static const float IGN_DEPRECATED(2) DPRCT_INF_F = INF_F;
-    static const uint16_t IGN_DEPRECATED(2) DPRCT_MAX_UI16 = MAX_UI16;
-    static const uint16_t IGN_DEPRECATED(2) DPRCT_MIN_UI16 = MIN_UI16;
-    static const uint16_t IGN_DEPRECATED(2) DPRCT_LOW_UI16 = LOW_UI16;
-    static const uint16_t IGN_DEPRECATED(2) DPRCT_INF_UI16 = INF_UI16;
-    static const int16_t IGN_DEPRECATED(2) DPRCT_MAX_I16 = MAX_I16;
-    static const int16_t IGN_DEPRECATED(2) DPRCT_MIN_I16 = MIN_I16;
-    static const int16_t IGN_DEPRECATED(2) DPRCT_LOW_I16 = LOW_I16;
-    static const int16_t IGN_DEPRECATED(2) DPRCT_INF_I16 = INF_I16;
-    static const uint32_t IGN_DEPRECATED(2) DPRCT_MAX_UI32 = MAX_UI32;
-    static const uint32_t IGN_DEPRECATED(2) DPRCT_MIN_UI32 = MIN_UI32;
-    static const uint32_t IGN_DEPRECATED(2) DPRCT_LOW_UI32 = LOW_UI32;
-    static const uint32_t IGN_DEPRECATED(2) DPRCT_INF_UI32 = INF_UI32;
-    static const int32_t IGN_DEPRECATED(2) DPRCT_MAX_I32 = MAX_I32;
-    static const int32_t IGN_DEPRECATED(2) DPRCT_MIN_I32 = MIN_I32;
-    static const int32_t IGN_DEPRECATED(2) DPRCT_LOW_I32 = LOW_I32;
-    static const int32_t IGN_DEPRECATED(2) DPRCT_INF_I32 = INF_I32;
-    static const uint64_t IGN_DEPRECATED(2) DPRCT_MAX_UI64 = MAX_UI64;
-    static const uint64_t IGN_DEPRECATED(2) DPRCT_MIN_UI64 = MIN_UI64;
-    static const uint64_t IGN_DEPRECATED(2) DPRCT_LOW_UI64 = LOW_UI64;
-    static const uint64_t IGN_DEPRECATED(2) DPRCT_INF_UI64 = INF_UI64;
-    static const int64_t IGN_DEPRECATED(2) DPRCT_MAX_I64 = MAX_I64;
-    static const int64_t IGN_DEPRECATED(2) DPRCT_MIN_I64 = MIN_I64;
-    static const int64_t IGN_DEPRECATED(2) DPRCT_LOW_I64 = LOW_I64;
-    static const int64_t IGN_DEPRECATED(2) DPRCT_INF_I64 = INF_I64;
+    static const double IGN_DEPRECATED(3) DPRCT_MAX_D = MAX_D;
+    static const double IGN_DEPRECATED(3) DPRCT_MIN_D = MIN_D;
+    static const double IGN_DEPRECATED(3) DPRCT_LOW_D = LOW_D;
+    static const double IGN_DEPRECATED(3) DPRCT_INF_D = INF_D;
+    static const float IGN_DEPRECATED(3) DPRCT_MAX_F = MAX_F;
+    static const float IGN_DEPRECATED(3) DPRCT_MIN_F = MIN_F;
+    static const float IGN_DEPRECATED(3) DPRCT_LOW_F = LOW_F;
+    static const float IGN_DEPRECATED(3) DPRCT_INF_F = INF_F;
+    static const uint16_t IGN_DEPRECATED(3) DPRCT_MAX_UI16 = MAX_UI16;
+    static const uint16_t IGN_DEPRECATED(3) DPRCT_MIN_UI16 = MIN_UI16;
+    static const uint16_t IGN_DEPRECATED(3) DPRCT_LOW_UI16 = LOW_UI16;
+    static const uint16_t IGN_DEPRECATED(3) DPRCT_INF_UI16 = INF_UI16;
+    static const int16_t IGN_DEPRECATED(3) DPRCT_MAX_I16 = MAX_I16;
+    static const int16_t IGN_DEPRECATED(3) DPRCT_MIN_I16 = MIN_I16;
+    static const int16_t IGN_DEPRECATED(3) DPRCT_LOW_I16 = LOW_I16;
+    static const int16_t IGN_DEPRECATED(3) DPRCT_INF_I16 = INF_I16;
+    static const uint32_t IGN_DEPRECATED(3) DPRCT_MAX_UI32 = MAX_UI32;
+    static const uint32_t IGN_DEPRECATED(3) DPRCT_MIN_UI32 = MIN_UI32;
+    static const uint32_t IGN_DEPRECATED(3) DPRCT_LOW_UI32 = LOW_UI32;
+    static const uint32_t IGN_DEPRECATED(3) DPRCT_INF_UI32 = INF_UI32;
+    static const int32_t IGN_DEPRECATED(3) DPRCT_MAX_I32 = MAX_I32;
+    static const int32_t IGN_DEPRECATED(3) DPRCT_MIN_I32 = MIN_I32;
+    static const int32_t IGN_DEPRECATED(3) DPRCT_LOW_I32 = LOW_I32;
+    static const int32_t IGN_DEPRECATED(3) DPRCT_INF_I32 = INF_I32;
+    static const uint64_t IGN_DEPRECATED(3) DPRCT_MAX_UI64 = MAX_UI64;
+    static const uint64_t IGN_DEPRECATED(3) DPRCT_MIN_UI64 = MIN_UI64;
+    static const uint64_t IGN_DEPRECATED(3) DPRCT_LOW_UI64 = LOW_UI64;
+    static const uint64_t IGN_DEPRECATED(3) DPRCT_INF_UI64 = INF_UI64;
+    static const int64_t IGN_DEPRECATED(3) DPRCT_MAX_I64 = MAX_I64;
+    static const int64_t IGN_DEPRECATED(3) DPRCT_MIN_I64 = MIN_I64;
+    static const int64_t IGN_DEPRECATED(3) DPRCT_LOW_I64 = LOW_I64;
+    static const int64_t IGN_DEPRECATED(3) DPRCT_INF_I64 = INF_I64;
 
     /// \brief Simple clamping function
     /// \param[in] _v value
@@ -694,7 +697,9 @@ namespace ignition
 
     // Degrade precision on Windows, which cannot handle 'long double'
     // values properly. See the implementation of Unpair.
-#ifdef _MSC_VER
+    // 32 bit ARM processors also define 'long double' to be the same
+    // size as 'double', and must also be degraded
+#if defined _MSC_VER || defined __arm__
     using PairInput = uint16_t;
     using PairOutput = uint32_t;
 #else
@@ -727,6 +732,7 @@ namespace ignition
     /// \sa Pair
     std::tuple<PairInput, PairInput> IGNITION_MATH_VISIBLE Unpair(
         const PairOutput _key);
+    }
   }
 }
 

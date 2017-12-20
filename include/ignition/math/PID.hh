@@ -19,11 +19,14 @@
 
 #include <chrono>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class PID PID.hh ignition/math/PID.hh
     /// \brief Generic PID controller class.
     /// Generic proportional-integral-derivative controller class that
@@ -223,6 +226,7 @@ namespace ignition
       /// \brief Command offset.
       private: double cmdOffset = 0.0;
     };
+    }
   }
 }
 #endif
