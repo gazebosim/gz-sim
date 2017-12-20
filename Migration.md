@@ -21,8 +21,9 @@ release will remove the deprecated code.
 
 1. **Helpers.hh**
     + parseInt and parseFloat functions now use std::stoi and std::stod,
-      so parsing an alphanumeric string no longer returns a NaN, but instead
-      one of the numeric parts is parsed (e.g. "23ab67" -> 23).
+      so parsing an alphanumeric string that starts with numbers
+      no longer returns a NaN, but instead the beginning of the string
+      is parsed (e.g. ("23ab67" -> 23) now, but ("ab23ab67" -> NaN) still).
 
 1. **SemanticVersion.hh**
     + The SemanticVersion(const std::string &) constructor is now explicit.
