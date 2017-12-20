@@ -25,11 +25,14 @@
 #include <string>
 #include <utility>
 
+#include <ignition/math/config.hh>
 #include <ignition/math/Helpers.hh>
 
 namespace ignition
 {
 namespace math
+{
+inline namespace IGNITION_MATH_VERSION_NAMESPACE
 {
 namespace graph
 {
@@ -134,6 +137,7 @@ namespace graph
   template<typename V>
   using VertexRef_M =
     std::map<VertexId, std::reference_wrapper<const Vertex<V>>>;
+}
 }
 }
 }

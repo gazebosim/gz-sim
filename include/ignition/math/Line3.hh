@@ -19,11 +19,14 @@
 
 #include <algorithm>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Line3 Line3.hh ignition/math/Line3.hh
     /// \brief A three dimensional line segment. The line is defined by a
     /// start and end point.
@@ -383,6 +386,7 @@ namespace ignition
     typedef Line3<int> Line3i;
     typedef Line3<double> Line3d;
     typedef Line3<float> Line3f;
+    }
   }
 }
 #endif

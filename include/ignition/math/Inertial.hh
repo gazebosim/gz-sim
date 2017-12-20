@@ -17,6 +17,7 @@
 #ifndef IGNITION_MATH_INERTIAL_HH_
 #define IGNITION_MATH_INERTIAL_HH_
 
+#include <ignition/math/config.hh>
 #include "ignition/math/MassMatrix3.hh"
 #include "ignition/math/Pose3.hh"
 
@@ -24,6 +25,8 @@ namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Inertial Inertial.hh ignition/math/Inertial.hh
     /// \brief A class for inertial information about a rigid body
     /// consisting of the scalar mass, a 3x3 symmetric moment
@@ -239,6 +242,7 @@ namespace ignition
 
     typedef Inertial<double> Inertiald;
     typedef Inertial<float> Inertialf;
+    }
   }
 }
 #endif

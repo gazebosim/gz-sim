@@ -413,7 +413,7 @@ TEST(HelpersTest, Volume)
 /////////////////////////////////////////////////
 TEST(HelpersTest, Pair)
 {
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   math::PairInput maxA = math::MAX_UI16;
   math::PairInput maxB = math::MAX_UI16;
 #else
@@ -425,7 +425,7 @@ TEST(HelpersTest, Pair)
 
   // Maximum parameters should generate a maximum key
   math::PairOutput maxKey = math::Pair(maxA, maxB);
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   EXPECT_EQ(maxKey, math::MAX_UI32);
 #else
   EXPECT_EQ(maxKey, math::MAX_UI64);
@@ -435,7 +435,7 @@ TEST(HelpersTest, Pair)
   EXPECT_EQ(maxC, maxA);
   EXPECT_EQ(maxD, maxB);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   math::PairInput minA = math::MIN_UI16;
   math::PairInput minB = math::MIN_UI16;
 #else
@@ -446,7 +446,7 @@ TEST(HelpersTest, Pair)
 
   // Minimum parameters should generate a minimum key
   math::PairOutput minKey = math::Pair(minA, minB);
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   EXPECT_EQ(minKey, math::MIN_UI32);
 #else
   EXPECT_EQ(minKey, math::MIN_UI64);
@@ -497,7 +497,7 @@ TEST(HelpersTest, Pair)
       }
     }
 
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __arm__
     // Iterate over large numbers, and check for unique keys.
     for (math::PairInput a = math::MAX_UI32-5000; a < math::MAX_UI32; a++)
     {
