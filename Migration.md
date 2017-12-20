@@ -19,6 +19,11 @@ release will remove the deprecated code.
     + Boxes generated with the default constructor do not intersect any other
     boxes or contain any points (previously they contained the origin).
 
+1. **Helpers.hh**
+    + parseInt and parseFloat functions now use std::stoi and std::stod,
+      so parsing an alphanumeric string no longer returns a NaN, but instead
+      one of the numeric parts is parsed (e.g. "23ab67" -> 23).
+
 1. **SemanticVersion.hh**
     + The SemanticVersion(const std::string &) constructor is now explicit.
 
