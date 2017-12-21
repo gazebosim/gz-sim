@@ -24,11 +24,14 @@
 #include <map>
 #include <set>
 
+#include <ignition/math/config.hh>
 #include "ignition/math/graph/Vertex.hh"
 
 namespace ignition
 {
 namespace math
+{
+inline namespace IGNITION_MATH_VERSION_NAMESPACE
 {
 namespace graph
 {
@@ -331,6 +334,7 @@ namespace graph
   template<typename E>
   DirectedEdge<E> DirectedEdge<E>::NullEdge(
     VertexId_P(kNullId, kNullId), E(), 1.0, kNullId);
+}
 }
 }
 }

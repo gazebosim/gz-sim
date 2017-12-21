@@ -21,11 +21,14 @@
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Color Color.hh ignition/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
     /// (A) component. Each color component is in the range [0..1].
@@ -313,6 +316,7 @@ namespace ignition
       /// \brief Alpha value
       private: float a = 1;
     };
+    }
   }
 }
 #endif

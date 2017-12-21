@@ -19,11 +19,14 @@
 
 #include <ignition/math/Matrix4.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
@@ -255,7 +258,7 @@ namespace ignition
       public: friend inline Vector4<T> operator-(const T _s,
                                                  const Vector4<T> &_v)
       {
-        return Vector4<T>(_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W());
+        return {_s - _v.X(), _s - _v.Y(), _s - _v.Z(), _s - _v.W()};
       }
 
       /// \brief Subtraction assignment operator
@@ -584,6 +587,7 @@ namespace ignition
     typedef Vector4<int> Vector4i;
     typedef Vector4<double> Vector4d;
     typedef Vector4<float> Vector4f;
+    }
   }
 }
 #endif

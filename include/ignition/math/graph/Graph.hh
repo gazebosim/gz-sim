@@ -23,12 +23,15 @@
 #include <string>
 #include <vector>
 
+#include <ignition/math/config.hh>
 #include "ignition/math/graph/Edge.hh"
 #include "ignition/math/graph/Vertex.hh"
 
 namespace ignition
 {
 namespace math
+{
+inline namespace IGNITION_MATH_VERSION_NAMESPACE
 {
 namespace graph
 {
@@ -757,6 +760,7 @@ namespace graph
   /// \brief A directed graph.
   template<typename V, typename E>
   using DirectedGraph = Graph<V, E, DirectedEdge<E>>;
+}
 }
 }
 }

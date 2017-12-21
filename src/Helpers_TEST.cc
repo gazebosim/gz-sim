@@ -31,10 +31,11 @@ TEST(HelpersTest, Helpers)
   EXPECT_EQ(-12345, math::parseInt("-12345"));
   EXPECT_EQ(-12345, math::parseInt("    -12345"));
   EXPECT_EQ(0, math::parseInt("    "));
+  EXPECT_EQ(23, math::parseInt("23ab67"));
 
   EXPECT_EQ(math::NAN_I, math::parseInt(""));
   EXPECT_EQ(math::NAN_I, math::parseInt("?"));
-  EXPECT_EQ(math::NAN_I, math::parseInt("23ab67"));
+  EXPECT_EQ(math::NAN_I, math::parseInt("ab23ab67"));
 
   EXPECT_DOUBLE_EQ(12.345, math::parseFloat("12.345"));
   EXPECT_DOUBLE_EQ(-12.345, math::parseFloat("-12.345"));
@@ -54,10 +55,11 @@ TEST(HelpersTest, Helpers)
   EXPECT_TRUE(math::greaterOrNearEqual(1.0, 1.0 + 9e-3, 1e-2));
   EXPECT_FALSE(math::greaterOrNearEqual(1.0, 1.0 + 1.1e-2, 1e-2));
   EXPECT_DOUBLE_EQ(1.2345, math::parseFloat("1.2345e+0"));
+  EXPECT_DOUBLE_EQ(23.0, math::parseFloat("23ab67"));
 
   EXPECT_TRUE(math::isnan(math::parseFloat("")));
   EXPECT_TRUE(math::isnan(math::parseFloat("?")));
-  EXPECT_TRUE(math::isnan(math::parseFloat("23ab67")));
+  EXPECT_TRUE(math::isnan(math::parseFloat("ab23ab67")));
 
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(0));
   EXPECT_EQ(1u, math::roundUpPowerOfTwo(1));
@@ -413,7 +415,7 @@ TEST(HelpersTest, Volume)
 /////////////////////////////////////////////////
 TEST(HelpersTest, Pair)
 {
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   math::PairInput maxA = math::MAX_UI16;
   math::PairInput maxB = math::MAX_UI16;
 #else
@@ -425,7 +427,7 @@ TEST(HelpersTest, Pair)
 
   // Maximum parameters should generate a maximum key
   math::PairOutput maxKey = math::Pair(maxA, maxB);
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   EXPECT_EQ(maxKey, math::MAX_UI32);
 #else
   EXPECT_EQ(maxKey, math::MAX_UI64);
@@ -435,7 +437,7 @@ TEST(HelpersTest, Pair)
   EXPECT_EQ(maxC, maxA);
   EXPECT_EQ(maxD, maxB);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   math::PairInput minA = math::MIN_UI16;
   math::PairInput minB = math::MIN_UI16;
 #else
@@ -446,7 +448,7 @@ TEST(HelpersTest, Pair)
 
   // Minimum parameters should generate a minimum key
   math::PairOutput minKey = math::Pair(minA, minB);
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __arm__
   EXPECT_EQ(minKey, math::MIN_UI32);
 #else
   EXPECT_EQ(minKey, math::MIN_UI64);
@@ -497,7 +499,7 @@ TEST(HelpersTest, Pair)
       }
     }
 
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __arm__
     // Iterate over large numbers, and check for unique keys.
     for (math::PairInput a = math::MAX_UI32-5000; a < math::MAX_UI32; a++)
     {

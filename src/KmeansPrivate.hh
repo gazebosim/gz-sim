@@ -20,11 +20,14 @@
 #include <vector>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \internal
     /// \brief Private data for Kmeans class
     class KmeansPrivate
@@ -44,6 +47,7 @@ namespace ignition
       /// \brief Counts the number of observations contained in each partition.
       public: std::vector<unsigned int> counters;
     };
+    }
   }
 }
 #endif
