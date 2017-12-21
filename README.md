@@ -62,7 +62,7 @@ make doc
 
 ```
 cd build
-sh upload.sh
+sh upload_doc.sh
 ```
 
 1. If you're creating a new release, then tell ignitionrobotics.org about
