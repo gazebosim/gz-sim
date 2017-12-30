@@ -19,8 +19,28 @@ release will remove the deprecated code.
     + Boxes generated with the default constructor do not intersect any other
     boxes or contain any points (previously they contained the origin).
 
+1. **Helpers.hh**
+    + parseInt and parseFloat functions now use std::stoi and std::stod,
+      so parsing an alphanumeric string that starts with numbers
+      no longer returns a NaN, but instead the beginning of the string
+      is parsed (e.g. ("23ab67" -> 23) now, but ("ab23ab67" -> NaN) still).
+
 1. **SemanticVersion.hh**
     + The SemanticVersion(const std::string &) constructor is now explicit.
+
+1. **All Headers**
+    + All headers now have an inline versioned namespace. Code should be
+    unchanged except all forward declarations of math types must be replaced
+    with an include of the header for that type.
+
+### Deprecations
+
+1. **Matrix4.hh**
+    + ***Deprecation:*** public: void Translate(const Vector3<T> &_t)
+    + ***Replacement:*** public: void SetTranslation(const Vector3<T> &_t)
+
+    + ***Deprecation:*** public: void Translate(T _x, T _y, T _z)
+    + ***Replacement:*** public: void SetTranslation(T _x, T _y, T _z)
 
 ## Ignition Math 2.X to 3.X
 

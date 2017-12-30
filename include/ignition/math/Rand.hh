@@ -21,11 +21,14 @@
 #include <cmath>
 #include <cstdint>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \def GeneratorType
     /// \brief std::mt19937
     typedef std::mt19937 GeneratorType;
@@ -81,6 +84,7 @@ namespace ignition
       /// static member if it hasn't been created yet).
       private: static GeneratorType &RandGenerator();
     };
+    }
   }
 }
 #endif

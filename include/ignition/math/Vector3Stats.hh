@@ -21,11 +21,14 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/SignalStats.hh>
 #include <ignition/math/Vector3.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \brief Forward declare private data class.
     class Vector3StatsPrivate;
 
@@ -101,6 +104,7 @@ namespace ignition
       /// \brief Pointer to private data.
       protected: Vector3StatsPrivate *dataPtr;
     };
+    }
   }
 }
 #endif

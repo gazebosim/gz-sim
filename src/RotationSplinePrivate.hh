@@ -18,12 +18,15 @@
 #define IGNITION_MATH_ROTATIONSPLINEPRIVATE_HH_
 
 #include <vector>
+#include <ignition/math/config.hh>
 #include "ignition/math/Quaternion.hh"
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \internal
     /// \brief Private data for RotationSpline
     class RotationSplinePrivate
@@ -41,6 +44,7 @@ namespace ignition
       /// \brief the tangents
       public: std::vector<Quaterniond> tangents;
     };
+    }
   }
 }
 #endif
