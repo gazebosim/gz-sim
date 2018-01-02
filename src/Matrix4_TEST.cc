@@ -236,11 +236,11 @@ TEST(Matrix4dTest, GetAsPose3d)
 }
 
 /////////////////////////////////////////////////
-TEST(Matrix4dTest, Translate)
+TEST(Matrix4dTest, Translation)
 {
   math::Matrix4d mat, mat2;
-  mat.Translate(math::Vector3d(1, 2, 3));
-  mat2.Translate(1, 2, 3);
+  mat.SetTranslation(math::Vector3d(1, 2, 3));
+  mat2.SetTranslation(1, 2, 3);
 
   EXPECT_EQ(mat, mat2);
 

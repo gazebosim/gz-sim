@@ -26,6 +26,8 @@ namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     class SemanticVersionPrivate
     {
       /// \brief Major revision (incompatible api changes)
@@ -47,6 +49,7 @@ namespace ignition
       /// immediately following the patch or pre-release version
       public: std::string build = "";
     };
+    }
   }
 }
 

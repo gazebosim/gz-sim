@@ -22,11 +22,14 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Angle.hh>
 #include <ignition/math/Plane.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
   namespace math
   {
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    {
     /// \internal
     /// \brief Private data for the Frustum class
     class FrustumPrivate
@@ -79,6 +82,7 @@ namespace ignition
       /// \brief each edge of the frustum.
       public: std::array<std::pair<Vector3d, Vector3d>, 12> edges;
     };
+    }
   }
 }
 #endif
