@@ -2,6 +2,17 @@
 
 ### Ignition Math 4.x.x
 
+
+
+### Ignition Math 4.0.0 (2017-12-26)
+
+1. Use std::stoi and std::stod in math::parse* functions to reduce code
+    * [Pull request 224](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/224)
+    * [Issue 50](https://bitbucket.org/ignitionrobotics/ign-math/issues/50)
+
+1. Fixing const-correctness for operator* of Pose3
+    * [Pull request 205](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/205)
+
 1. Deprecate Matrix4::Translate and replace by Matrix4::SetTranslation
     * [Pull request 222](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/222)
 
@@ -13,10 +24,6 @@
 
 1. Switch to C++14
     * [Pull request 180](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/180)
-
-1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
-    * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
-    * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
 
 1. Removed the box 'extent' field. The default constructor now sets a box's
    corners to extrema in order to indicate an uninitialized box.
@@ -35,7 +42,10 @@
         * [Pull request 177](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/177)
     1. Added a function to calculate connected components in undirected
        graphs:
-         * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
+        * [Pull request 190](https://bitbucket.org/ignitionrobotics/ign-math/pull-request/190)
+    1. Improved the performance of `graph::InDegree()` and `graph::IncidentsTo()`.
+        * [Pull request 188](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/188)
+        * [Issue 79](https://bitbucket.org/ignitionrobotics/ign-math/issues/79)
 
 1. Added Inline Versioned Namespace
     * [Pull request 216](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/216/)
