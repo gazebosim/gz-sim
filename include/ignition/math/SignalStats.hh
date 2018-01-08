@@ -27,8 +27,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+
     /// \brief Forward declare private data class.
     class SignalStatisticPrivate;
 

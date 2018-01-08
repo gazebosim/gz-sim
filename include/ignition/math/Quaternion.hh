@@ -27,8 +27,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+
     template <typename T> class Matrix3;
 
     /// \class Quaternion Quaternion.hh ignition/math/Quaternion.hh
