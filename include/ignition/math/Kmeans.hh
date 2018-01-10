@@ -26,10 +26,9 @@ namespace ignition
 {
   namespace math
   {
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     // Forward declare private data
     class KmeansPrivate;
 

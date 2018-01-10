@@ -34,7 +34,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \class MassMatrix3 MassMatrix3.hh ignition/math/MassMatrix3.hh
     /// \brief A class for inertial information about a rigid body
     /// consisting of the scalar mass and a 3x3 symmetric moment

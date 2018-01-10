@@ -29,7 +29,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     // Forward declare private classes
     class ControlPoint;
     class SplinePrivate;

@@ -26,7 +26,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \class Vector2 Vector2.hh ignition/math/Vector2.hh
     /// \brief Two dimensional (x, y) vector.
     template<typename T>

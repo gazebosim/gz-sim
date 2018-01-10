@@ -212,7 +212,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \brief size_t type with a value of 0
     static const size_t IGN_ZERO_SIZE_T  = 0u;
 

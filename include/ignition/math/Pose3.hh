@@ -27,7 +27,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \class Pose3 Pose3.hh ignition/math/Pose3.hh
     /// \brief Encapsulates a position and rotation in three space
     template<typename T>

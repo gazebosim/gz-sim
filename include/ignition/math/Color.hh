@@ -29,7 +29,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \class Color Color.hh ignition/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
     /// (A) component. Each color component is in the range [0..1].

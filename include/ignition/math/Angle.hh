@@ -42,7 +42,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \class Angle Angle.hh ignition/math/Angle.hh
     /// \brief An angle and related functions.
     class IGNITION_MATH_VISIBLE Angle

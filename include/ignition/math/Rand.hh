@@ -29,7 +29,7 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     /// \def GeneratorType
     /// \brief std::mt19937
     typedef std::mt19937 GeneratorType;
