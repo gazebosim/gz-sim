@@ -372,8 +372,8 @@ ignition::math::Vector3d SphericalCoordinates::PositionTransform(
             this->dataPtr->sinHea);
         tmp.Y(-_pos.X() * this->dataPtr->sinHea - _pos.Y() *
             this->dataPtr->cosHea);
-        /* Falls through. */
       }
+      /* Falls through. */
 
     case GLOBAL:
       {
