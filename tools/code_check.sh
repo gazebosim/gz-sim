@@ -89,10 +89,10 @@ CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES $CPPCHECK_INCLUDES"
 
 if [ $xmlout -eq 1 ]; then
   # Performance, style, portability, and information
-  ($CPPCHECK_BASE --xml $CPPCHECK_CMD1) 2> $xmldir/cppcheck.xml
+  ($CPPCHECK_BASE --xml --xml-version=2 $CPPCHECK_CMD1) 2> $xmldir/cppcheck.xml
 
   # Check the configuration
-  ($CPPCHECK_BASE --xml $CPPCHECK_CMD3) 2> $xmldir/cppcheck-configuration.xml
+  ($CPPCHECK_BASE --xml --xml-version=2 $CPPCHECK_CMD3) 2> $xmldir/cppcheck-configuration.xml
 elif [ $QUICK_CHECK -eq 1 ]; then
   for f in $CHECK_FILES; do
     prefix=`basename $f | sed -e 's@\..*$@@'`
