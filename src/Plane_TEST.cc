@@ -29,6 +29,11 @@ TEST(PlaneTest, PlaneConstructor)
   Planed plane(Vector3d(1, 0, 0), 0.1);
   EXPECT_EQ(plane.Normal(), Vector3d(1, 0, 0));
   EXPECT_NEAR(plane.Offset(), 0.1, 1e-6);
+
+  Planed planeCopy(plane);
+  EXPECT_EQ(plane.Normal(), planeCopy.Normal());
+  EXPECT_DOUBLE_EQ(plane.Offset(), planeCopy.Offset());
+  EXPECT_EQ(plane.Size(), planeCopy.Size());
 }
 
 #ifdef _MSC_VER
