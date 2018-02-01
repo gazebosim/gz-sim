@@ -77,6 +77,12 @@ namespace ignition
         this->Set(_normal, _size, _offset);
       }
 
+      /// \brief Copy constructor
+      /// \param[in] _plane Plane to copy
+      public: Plane(const Plane &_plane)
+      : normal(_plane.normal), size(_plane.size), d(_plane.d)
+      {}
+
       /// \brief Destructor
       public: virtual ~Plane() {}
 

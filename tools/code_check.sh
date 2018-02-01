@@ -74,7 +74,7 @@ if [ $CPPCHECK_LT_157 -eq 0 ]; then
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
 CPPCHECK_INCLUDES="-I ./include -I $builddir -I test -I ./include/ignition/math"
-CPPCHECK_RULES="-DIGNITION_MATH_VISIBLE"\
+CPPCHECK_RULES="-UM_PI"\
 " --rule-file=./tools/cppcheck_rules/header_guard.rule"\
 " --rule-file=./tools/cppcheck_rules/namespace_AZ.rule"
 CPPCHECK_CMD1A="-j 4 --enable=style,performance,portability,information"
@@ -89,10 +89,10 @@ CPPCHECK_CMD3="-j 4 --enable=missingInclude $CPPCHECK_FILES $CPPCHECK_INCLUDES"
 
 if [ $xmlout -eq 1 ]; then
   # Performance, style, portability, and information
-  ($CPPCHECK_BASE --xml $CPPCHECK_CMD1) 2> $xmldir/cppcheck.xml
+  ($CPPCHECK_BASE --xml --xml-version=2 $CPPCHECK_CMD1) 2> $xmldir/cppcheck.xml
 
   # Check the configuration
-  ($CPPCHECK_BASE --xml $CPPCHECK_CMD3) 2> $xmldir/cppcheck-configuration.xml
+  ($CPPCHECK_BASE --xml --xml-version=2 $CPPCHECK_CMD3) 2> $xmldir/cppcheck-configuration.xml
 elif [ $QUICK_CHECK -eq 1 ]; then
   for f in $CHECK_FILES; do
     prefix=`basename $f | sed -e 's@\..*$@@'`

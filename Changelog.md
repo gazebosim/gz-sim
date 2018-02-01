@@ -2,6 +2,9 @@
 
 ### Ignition Math 4.x.x
 
+1. Add Plane copy constructor and fix cppcheck on artful
+    * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
+
 
 
 ### Ignition Math 4.0.0 (2017-12-26)
