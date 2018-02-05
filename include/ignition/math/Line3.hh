@@ -25,8 +25,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Line3 Line3.hh ignition/math/Line3.hh
     /// \brief A three dimensional line segment. The line is defined by a
     /// start and end point.
