@@ -27,8 +27,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Triangle Triangle.hh ignition/math/Triangle.hh
     /// \brief Triangle class and related functions.
     template<typename T>
