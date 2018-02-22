@@ -28,8 +28,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \brief Mathematical representation of a box which can be arbitrarily
     /// positioned and rotated.
     template<typename T>

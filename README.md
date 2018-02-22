@@ -48,3 +48,27 @@ To uninstall the software installed with the previous steps:
 
  - cd build/
  - sudo make uninstall
+
+## Create Documentation & Release
+
+1. Build documentation
+
+```
+cd build
+make doc
+```
+
+1. Upload documentation to ignitionrobotics.org.
+
+```
+cd build
+sh upload_doc.sh
+```
+
+1. If you're creating a new release, then tell ignitionrobotics.org about
+   the new version. For example:
+
+```
+curl -k -X POST -d '{"libName":"common", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.ignitionrobotics.org/1.0/versions
+```
+

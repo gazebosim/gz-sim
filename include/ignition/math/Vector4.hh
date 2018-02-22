@@ -25,8 +25,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Vector4 Vector4.hh ignition/math/Vector4.hh
     /// \brief T Generic x, y, z, w vector
     template<typename T>
