@@ -29,8 +29,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Vector3 Vector3.hh ignition/math/Vector3.hh
     /// \brief The Vector3 class represents the generic vector containing 3
     /// elements.  Since it's commonly used to keep coordinate system

@@ -28,8 +28,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Matrix4 Matrix4.hh ignition/math/Matrix4.hh
     /// \brief A 4x4 matrix class
     template<typename T>

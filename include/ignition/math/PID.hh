@@ -25,8 +25,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class PID PID.hh ignition/math/PID.hh
     /// \brief Generic PID controller class.
     /// Generic proportional-integral-derivative controller class that

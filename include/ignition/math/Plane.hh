@@ -26,8 +26,9 @@ namespace ignition
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
-    {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     /// \class Plane Plane.hh ignition/math/Plane.hh
     /// \brief A plane and related functions.
     template<typename T>
