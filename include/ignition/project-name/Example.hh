@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_PROJECT-NAME_EXAMPLE_HH_
-#define IGNITION_PROJECT-NAME_EXAMPLE_HH_
+#ifndef IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
+#define IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
 
 #include "ignition/<project-name>/System.hh"
 
@@ -25,7 +25,7 @@ namespace ignition
   namespace <project-name>
   {
     /// \brief Example class
-    class IGNITION_PROJECT_NAME_VISIBLE Example
+    class IGNITION_<PROJECT-NAME>_VISIBLE Example
     {
       /// \brief Constructor
       public: Example();
