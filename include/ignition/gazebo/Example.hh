@@ -15,21 +15,25 @@
  *
 */
 
-#ifndef IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
-#define IGNITION_<PROJECT-NAME>_EXAMPLE_HH_
+#ifndef IGNITION_GAZEBO_EXAMPLE_HH_
+#define IGNITION_GAZEBO_EXAMPLE_HH_
 
-#include "ignition/<project-name>/System.hh"
+#include <ignition/gazebo/Export.hh>
 
 namespace ignition
 {
-  namespace <project-name>
+  namespace gazebo
   {
+    // Inline brackt to help doxygen filtering
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
     /// \brief Example class
-    class IGNITION_<PROJECT-NAME>_VISIBLE Example
+    class IGNITION_GAZEBO_VISIBLE Example
     {
       /// \brief Constructor
       public: Example();
     };
+    }
   }
 }
 

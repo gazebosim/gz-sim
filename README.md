@@ -7,8 +7,8 @@ This repository contains boilerplate code to start new C++ ignition projects.
 1. Choose a name for your project. The name should be one word.
    On the following instructions, substitute:
 
-    * `<project-name>` with your project's lower case name, i.e. `math`
-    * `<PROJECT-NAME>` with your project's lower case name, i.e. `MATH`
+    * `gazebo` with your project's lower case name, i.e. `math`
+    * `GAZEBO` with your project's lower case name, i.e. `MATH`
 
 1. Clone this repository:
 
@@ -19,15 +19,15 @@ This repository contains boilerplate code to start new C++ ignition projects.
 
 1. Move to the project folder:
 
-        cd ign-<project-name>
+        cd ign-gazebo
 
-1. Substitute `<project-name>` in the code with <name>:
+1. Substitute `gazebo` in the code with <name>:
 
-        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/<name>/g' {} \;
+        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/gazebo/<name>/g' {} \;
 
-1. Substitute `<PROJECT-NAME>` in the code with <NAME>:
+1. Substitute `GAZEBO` in the code with <NAME>:
 
-        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<PROJECT-NAME>/<NAME>/g' {} \;
+        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/GAZEBO/<NAME>/g' {} \;
 
 
 1. Rename files and directories:
@@ -47,11 +47,11 @@ cd ign-test
 ```
 
 ```
-find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<project-name>/test/g' {} \;
+find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/gazebo/test/g' {} \;
 ```
 
 ```
-find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/<PROJECT-NAME>/TEST/g' {} \;
+find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/GAZEBO/TEST/g' {} \;
 ```
 
 ```
@@ -63,11 +63,11 @@ Now delete these instructions down to the line below, and follow the
 
 -----------------
 
-# Ignition <project-name>
+# Ignition gazebo
 
-** Igntion <project-name> classes and functions for robot applications.**
+** Igntion gazebo classes and functions for robot applications.**
 
-Ignition <project-name> is a component in the ignition framework, a set
+Ignition gazebo is a component in the ignition framework, a set
 of libraries designed to rapidly develop robot applications.
 
   [http://ignitionrobotics.org](http://ignitionrobotics.org)

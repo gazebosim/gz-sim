@@ -1,1 +1,1 @@
-add_subdirectory(<project-name>)
+add_subdirectory(gazebo)
