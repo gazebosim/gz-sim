@@ -1,22 +1,16 @@
-include (${project_cmake_dir}/Utils.cmake)
+# Collect source files into the "sources" variable and unit test files into the
+# "gtest_sources" variable
+ign_get_libsources_and_unittests(sources gtest_sources)
 
-set (sources
-  Example.cc
-)
-
-set (gtest_sources
-  Example_TEST.cc
-)
-
+# Create the library target
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-set_target_properties(${PROJECT_LIBRARY_TARGET_NAME} PROPERTIES
-  CXX_STANDARD 14 
-  CXX_STANDARD_REQURED YES)
+# Turn on C++14 support for the library
+ign_set_project_public_cxx_standard(14)
 
-target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
-  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR_FULL}>)
+# Create installation instructions for the library target. This must be called
+# in the same scope that the target is created.
+ign_install_library()
 
-ign_build_tests(${gtest_sources})
-ign_install_library(${PROJECT_LIBRARY_TARGET_NAME} ${PROJECT_EXPORT_NAME})
+# Build the unit tests
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
