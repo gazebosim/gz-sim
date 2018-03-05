@@ -7,19 +7,19 @@ This repository contains boilerplate code to start new C++ ignition projects.
 1. Choose a name for your project. The name should be one word.
    On the following instructions, substitute:
 
-    * `<name>` with your project's lower case name, i.e. `math`
-    * `<NAME>` with your project's lower case name, i.e. `MATH`
+    * `<project-name>` with your project's lower case name, i.e. `math`
+    * `<PROJECT-NAME>` with your project's lower case name, i.e. `MATH`
 
 1. Clone this repository:
 
         hg clone http://bitbucket.org/ignitionrobotics/ign-seed ign-<name>
 
-        Example with <name> == "test":
+        Example with <projhect-name> == "test":
 
 
 1. Move to the project folder:
 
-        cd ign-<name>
+        cd ign-<project-name>
 
 1. Substitute `<project-name>` in the code with <name>:
 
