@@ -33,13 +33,6 @@ Entity::Entity()
 }
 
 /////////////////////////////////////////////////
-Entity::Entity(const Entity &_entity)
-: dataPtr(new EntityPrivate())
-{
-  this->dataPtr->id = _entity.Id();
-}
-
-/////////////////////////////////////////////////
 Entity::Entity(Entity &&_entity)
 : dataPtr(std::move(_entity.dataPtr))
 {
