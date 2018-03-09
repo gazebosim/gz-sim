@@ -1,3 +1,6 @@
 ## Ignition Gazebo 0.x
 
 ### Ignition Gazebo 0.1.0
+
+1. Added basic System class
+    * [Pull request 2](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-request/2)
