@@ -73,7 +73,7 @@ if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
 fi
-CPPCHECK_INCLUDES="-I ./include -I $builddir -I test -I ./include/ignition/math"
+CPPCHECK_INCLUDES="-I ./include -I $builddir -I test -I ./include/ignition/gazebo"
 CPPCHECK_RULES="-UM_PI"\
 " --rule-file=./tools/cppcheck_rules/header_guard.rule"\
 " --rule-file=./tools/cppcheck_rules/namespace_AZ.rule"
@@ -122,7 +122,7 @@ elif [ $QUICK_CHECK -eq 1 ]; then
     # Undo changes to suppression file
     sed -i -e "s@$tmp2@$f@" $SUPPRESS
 
-    python $hg_root/tools/cpplint.py $tmp2 2>&1 \
+    python $hg_root/tools/cpplint.py --quiet $tmp2 2>&1 \
       | sed -e "s@$tmp2@$f@g" -e "s@$tmp2base@$prefix@g" \
       | grep -v 'Total errors found: 0'
 
@@ -139,8 +139,8 @@ fi
 
 # cpplint
 if [ $xmlout -eq 1 ]; then
-  (echo $CPPLINT_FILES | xargs python tools/cpplint.p --extensions=cc,hhy 2>&1) \
+  (echo $CPPLINT_FILES | xargs python tools/cpplint.py --extensions=cc,hh --quiet 2>&1) \
     | python tools/cpplint_to_cppcheckxml.py 2> $xmldir/cpplint.xml
 elif [ $QUICK_CHECK -eq 0 ]; then
-  echo $CPPLINT_FILES | xargs python tools/cpplint.py --extensions=cc,hh 2>&1
+  echo $CPPLINT_FILES | xargs python tools/cpplint.py --extensions=cc,hh --quiet 2>&1
 fi
