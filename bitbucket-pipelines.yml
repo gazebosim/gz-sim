@@ -1,0 +1,27 @@
+image: ubuntu:xenial
+
+pipelines:
+  default:
+    - step:
+        script:
+          - apt-get update
+          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck
+          - gcc -v
+          - g++ -v
+          # Static checking before building - fail fast
+          - sh tools/code_check.sh
+          # Ignition cmake
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
+          - apt-get update
+          - apt-get -y install
+            libignition-cmake-dev
+          # Ignition Gazebo
+          - mkdir build
+          - cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
+          - make
+          - make test
+          - make coverage
+          # todo: - bash <(curl -s https://codecov.io/bash)
+          - make install

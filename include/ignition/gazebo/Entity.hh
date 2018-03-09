@@ -43,6 +43,10 @@ namespace ignition
       /// \brief Constructor.
       public: Entity();
 
+      /// \brief Copy constructor.
+      /// \param[in] _entity Entity to copy.
+      public: Entity(const Entity &_entity);
+
       /// \brief Move constructor.
       /// \param[in] _entity Entity to move.
       public: Entity(Entity &&_entity);
