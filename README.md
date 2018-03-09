@@ -1,140 +1,45 @@
-# Ignition Seed
+# Ignition Gazebo
 
-This repository contains boilerplate code to start new C++ ignition projects.
+This is a prototype for the next version of [Gazebo](http://gazebosim.org).
 
-## Quickstart
+# Building from source
 
-1. Choose a name for your project. The name should be one word.
-   On the following instructions, substitute:
-
-    * `gazebo` with your project's lower case name, i.e. `math`
-    * `GAZEBO` with your project's lower case name, i.e. `MATH`
-
-1. Clone this repository:
-
-        hg clone http://bitbucket.org/ignitionrobotics/ign-seed ign-<name>
-
-        Example with <projhect-name> == "test":
-
-
-1. Move to the project folder:
-
-        cd ign-gazebo
-
-1. Substitute `gazebo` in the code with <name>:
-
-        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/gazebo/<name>/g' {} \;
-
-1. Substitute `GAZEBO` in the code with <NAME>:
-
-        find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/GAZEBO/<NAME>/g' {} \;
-
-
-1. Rename files and directories:
-
-        mv include/ignition/project-name include/ignition/<name>
-
-### Example
-
-This example will create an ign-test instance of ign-seed.
+1. Get the source code
 
 ```
-hg clone http://bitbucket.org/ignitionrobotics/ign-seed ign-test
+hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
 ```
 
-```
-cd ign-test
-```
+2. Configure and Build
 
 ```
-find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/gazebo/test/g' {} \;
+cd ign-gazebo
+mkdir build
+cd build
+cmake ../
+make
 ```
 
-```
-find -regex '.*\.\(cc\|txt\|hh\|md\)$' -exec sed -i 's/GAZEBO/TEST/g' {} \;
-```
+# Tests
+
+Testing is done using Google Test. Tests are built by default. To run all tests:
 
 ```
-mv include/ignition/project-name include/ignition/test
+make test
 ```
 
-Now delete these instructions down to the line below, and follow the
-   remaining instructions.
+# Style and Static Code Check
 
------------------
+In the root of the source tree run:
 
-# Ignition gazebo
+```
+sh tools/code_check.sh
+```
 
-** Igntion gazebo classes and functions for robot applications.**
+# Documentation
 
-Ignition gazebo is a component in the ignition framework, a set
-of libraries designed to rapidly develop robot applications.
+Documentation is generated at compile time. To view the documentation:
 
-  [http://ignitionrobotics.org](http://ignitionrobotics.org)
-
-## Installation
-
-Standard installation can be performed in UNIX systems using the following
-steps:
-
-    mkdir build/
-    cd build/
-    cmake ..
-    sudo make install
-
-## Uninstallation
-
-To uninstall the software installed with the previous steps:
-
-    cd build/
-    sudo make uninstall
-
-## Testing
-
-Tests are built by default. After building, to run all tests:
-
-    make test
-
-To run one specific test:
-
-    ./src/UNIT_Example_TEST
-
-### Disable tests building
-
-To build without tests, on the cmake step, do this instead:
-
-    cmake .. -DENABLE_TESTS_COMPILATION=False
-
-### Test coverage
-
-To build test coverage, first install lcov:
-
-    sudo apt-get install lcov
-
-Configure coverage:
-
-    cmake -DCMAKE_BUILD_TYPE=coverage ../; make
-
-Run tests:
-
-    make test # or individual test
-
-Make coverage:
-
-    make coverage # FIXME: currently failing
-
-See coverage report:
-
-    firefox coverage/index.html
-
-## Code checker
-
-To run the code checker:
-
-    sh tools/code_check.sh
-
-## Documentation generation
-
-    # TODO
-
-
+```
+firefox build/doxygen/html/index.html
+```
