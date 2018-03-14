@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef GAZEBO_ENTITY_HH_
-#define GAZEBO_ENTITY_HH_
+#ifndef IGNITION_GAZEBO_ENTITY_HH_
+#define IGNITION_GAZEBO_ENTITY_HH_
 
 namespace ignition
 {
