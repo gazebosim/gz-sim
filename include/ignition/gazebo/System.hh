@@ -14,9 +14,8 @@
  * limitations under the License.
  *
 */
-
-#ifndef GAZEBO_SYSTEM_HH_
-#define GAZEBO_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_SYSTEM_HH_
+#define IGNITION_GAZEBO_SYSTEM_HH_
 
 namespace ignition
 {
@@ -36,10 +35,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
-
-      /// \brief Disable copy constructor
-      /// \parm[in] _system System to not copy
-      private: System(const System &_system) = delete;
 
       /// \brief Private data class
       private: SystemPrivate *dataPtr = nullptr;
