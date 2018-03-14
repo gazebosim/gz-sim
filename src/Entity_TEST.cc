@@ -37,3 +37,17 @@ TEST(Entity, Constructor)
   entity5 = std::move(entity2);
   EXPECT_TRUE(entity5 == entity);
 }
+
+/////////////////////////////////////////////////
+TEST(Entity, CopyConstructor)
+{
+  gazebo::Entity entity;
+  gazebo::Entity entity2(entity);
+
+  EXPECT_EQ(gazebo::kNullEntity, entity.Id());
+  EXPECT_EQ(entity, entity2);
+
+  gazebo::Entity entity3;
+  entity3 = entity2;
+  EXPECT_TRUE(entity == entity3);
+}

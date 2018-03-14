@@ -22,6 +22,17 @@ using namespace ignition::gazebo;
 /// \brief Private data class
 class ignition::gazebo::EntityPrivate
 {
+  public: EntityPrivate()
+  {
+  }
+
+  /// \brief Copy constructor
+  /// \param[in] _entity Entity to copy
+  public: EntityPrivate(const EntityPrivate &_entity)
+          : id(_entity.id)
+  {
+  }
+
   /// \brief ID of entity
   public: EntityId id = kNullEntity;
 };
@@ -29,6 +40,12 @@ class ignition::gazebo::EntityPrivate
 /////////////////////////////////////////////////
 Entity::Entity()
 : dataPtr(new EntityPrivate())
+{
+}
+
+/////////////////////////////////////////////////
+Entity::Entity(const Entity &_entity)
+: dataPtr(new EntityPrivate(*_entity.dataPtr))
 {
 }
 
@@ -44,6 +61,13 @@ Entity::~Entity()
 {
   delete this->dataPtr;
   this->dataPtr = nullptr;
+}
+
+/////////////////////////////////////////////////
+Entity &Entity::operator=(const Entity &_entity)
+{
+  this->dataPtr->id = _entity.Id();
+  return *this;
 }
 
 /////////////////////////////////////////////////
