@@ -43,12 +43,21 @@ namespace ignition
       /// \brief Constructor.
       public: Entity();
 
+      /// \brief Copy constructor.
+      /// \param[in] _entity Entity to copy.
+      public: Entity(const Entity &_entity);
+
       /// \brief Move constructor.
       /// \param[in] _entity Entity to move.
       public: Entity(Entity &&_entity);
 
       /// \brief Destructor.
       public: ~Entity();
+
+      /// \brief Copy assignment operator.
+      /// \param[in] _entity Entity to copy.
+      /// \return Refernce to this Entity.
+      public: Entity &operator=(const Entity &_entity);
 
       /// \brief Move assignment operator.
       /// \param[in] _entity Entity to move.
@@ -64,10 +73,6 @@ namespace ignition
       /// \brief Return id of entity
       /// \return Id of this Entity.
       public: EntityId Id() const;
-
-      /// \brief Disable copy constructor.
-      /// \param[in] _entity Entity to not copy.
-      private: Entity(const Entity &_entity) = delete;
 
       /// \brief Private data pointer
       private: EntityPrivate *dataPtr = nullptr;
