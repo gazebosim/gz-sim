@@ -14,32 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_HH_
-#define IGNITION_GAZEBO_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
+#define IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
+
+#include "ignition/gazebo/System.hh"
 
 namespace ignition
 {
   namespace gazebo
   {
-    // Forward declaration
-    class SystemPrivate;
+    // Forward declarations
+    class PhysicsSystemPrivate;
 
-    /// \brief Base class for a System
-    ///
-    /// A System operates on entities that have certain components. A system
-    /// will only operate on an Entity if it has all of the required components.
-    class System
+    class PhysicsSystem : public System
     {
-      /// \brief Constructor
-      public: System();
+      public: PhysicsSystem();
+      public: virtual ~PhysicsSystem() override final;
+      public: virtual bool Update() override final;
 
-      /// \brief Destructor
-      public: virtual ~System();
-
-      public: virtual bool Update();
-
-      /// \brief Private data class
-      private: SystemPrivate *dataPtr = nullptr;
+      public: PhysicsSystemPrivate *dataPtr;
     };
   }
 }

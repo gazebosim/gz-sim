@@ -15,30 +15,26 @@
  *
 */
 
-#include "ignition/gazebo/System.hh"
+#include <ignition/gazebo.hh>
+#include <sdf/Link.hh>
+#include <sdf/Model.hh>
 
-using namespace ignition::gazebo;
+namespace ign = ignition;
+namespace gz = ignition::gazebo;
 
-// Private data class
-class ignition::gazebo::SystemPrivate
+int main()
 {
-};
 
-/////////////////////////////////////////////////
-System::System()
-: dataPtr(new SystemPrivate())
-{
-}
+  sdf::Model model;
+  model.SetName("ball");
+  sdf::Link *link = model.AddLink({"link", ign::math::Pose3d::Zero});
 
-/////////////////////////////////////////////////
-System::~System()
-{
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
-}
+  // Create the Gazebo server
+  ignition::gazebo::Server server;
 
-/////////////////////////////////////////////////
-bool System::Update()
-{
-  return true;
+  // Add a ball model to the server
+  gz::Entity ball = server.CreateEntity(model);
+
+  // Run the server
+  return server.Step(1);
 }

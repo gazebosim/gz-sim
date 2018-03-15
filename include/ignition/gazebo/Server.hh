@@ -14,33 +14,30 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_HH_
-#define IGNITION_GAZEBO_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_SERVER_HH_
+#define IGNITION_GAZEBO_SERVER_HH_
+
+#include <sdf/Model.hh>
+#include "ignition/gazebo/Entity.hh"
 
 namespace ignition
 {
   namespace gazebo
   {
-    // Forward declaration
-    class SystemPrivate;
+    // Forware declarations
+    class ServerPrivate;
 
-    /// \brief Base class for a System
-    ///
-    /// A System operates on entities that have certain components. A system
-    /// will only operate on an Entity if it has all of the required components.
-    class System
+    class Server
     {
-      /// \brief Constructor
-      public: System();
+      public: Server();
 
-      /// \brief Destructor
-      public: virtual ~System();
+      public: Entity CreateEntity(const sdf::Model &_model);
 
-      public: virtual bool Update();
+      public: int Step(const unsigned int _iterations);
 
-      /// \brief Private data class
-      private: SystemPrivate *dataPtr = nullptr;
+      private: ServerPrivate *dataPtr;
     };
   }
 }
+
 #endif
