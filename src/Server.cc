@@ -14,31 +14,47 @@
  * limitations under the License.
  *
 */
-
+#include <vector>
+#include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/Entity.hh"
 
 using namespace ignition::gazebo;
 
-// Private data class
-class ignition::gazebo::SystemPrivate
+class ignition::gazebo::ServerPrivate
 {
+  public: std::vector<System *> systems;
+  public: std::vector<Entity> entities;
 };
 
 /////////////////////////////////////////////////
-System::System()
-: dataPtr(new SystemPrivate())
+Server::Server()
+  : dataPtr(new ServerPrivate)
 {
+  this->dataPtr->systems.push_back(new PhysicsSystem());
 }
 
 /////////////////////////////////////////////////
-System::~System()
+Entity Server::CreateEntity(const sdf::Model & /*_model*/)
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
+  Entity entity;
+  this->dataPtr->entities.push_back(entity);
+  return this->dataPtr->entities.back();
 }
 
 /////////////////////////////////////////////////
-bool System::Update()
+int Server::Step(const unsigned int _iterations)
 {
-  return true;
+  // For each iteration ...
+  for (unsigned int iter = 0; iter < _iterations; ++iter)
+  {
+    // Update systems
+    for (System *system : this->dataPtr->systems)
+    {
+      system->Update();
+    }
+  }
+
+  return 0;
 }

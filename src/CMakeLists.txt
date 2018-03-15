@@ -4,6 +4,9 @@ ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
+target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+  PUBLIC
+  ${SDFormat_LIBRARIES})
 
 # Turn on C++14 support for the library
 ign_set_project_public_cxx_standard(14)

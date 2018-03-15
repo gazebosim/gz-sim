@@ -14,31 +14,28 @@
  * limitations under the License.
  *
 */
-
-#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/PhysicsSystem.hh"
 
 using namespace ignition::gazebo;
 
-// Private data class
-class ignition::gazebo::SystemPrivate
+class ignition::gazebo::PhysicsSystemPrivate
 {
 };
 
-/////////////////////////////////////////////////
-System::System()
-: dataPtr(new SystemPrivate())
+//////////////////////////////////////////////////
+PhysicsSystem::PhysicsSystem()
+  : System(), dataPtr(new PhysicsSystemPrivate)
 {
 }
 
-/////////////////////////////////////////////////
-System::~System()
+//////////////////////////////////////////////////
+PhysicsSystem::~PhysicsSystem()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
-/////////////////////////////////////////////////
-bool System::Update()
+//////////////////////////////////////////////////
+bool PhysicsSystem::Update()
 {
+  // Process entities that match my requirements.
   return true;
 }

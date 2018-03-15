@@ -25,6 +25,8 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
+find_package(SDFormat REQUIRED)
+include_directories(${SDFormat_INCLUDE_DIRS})
 
 #============================================================================
 # Configure the build
