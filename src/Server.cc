@@ -39,6 +39,15 @@ Server::Server()
 Entity Server::CreateEntity(const sdf::Model & /*_model*/)
 {
   Entity entity;
+
+  // Notify systems that an entity has been created.
+  // \todo: We could move this into batch style process that happens
+  // once before systems are updated.
+  for (System *system : this->dataPtr->systems)
+  {
+    system->EntityCreated(entity);
+  }
+
   this->dataPtr->entities.push_back(entity);
   return this->dataPtr->entities.back();
 }

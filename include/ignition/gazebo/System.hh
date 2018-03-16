@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include "ignition/gazebo/Entity.hh"
+
 namespace ignition
 {
   namespace gazebo
@@ -35,6 +37,8 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
+
+      public: virtual void EntityCreated(const Entity &_entity);
 
       public: virtual bool Update();
 
