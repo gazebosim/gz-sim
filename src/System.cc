@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
@@ -38,7 +37,12 @@ System::~System()
 }
 
 /////////////////////////////////////////////////
+void System::EntityCreated(const Entity &/*_entity*/)
+{
+}
+
+/////////////////////////////////////////////////
 bool System::Update()
 {
-  return true;
+  return false;
 }
