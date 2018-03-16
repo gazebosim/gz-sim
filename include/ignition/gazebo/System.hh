@@ -30,7 +30,9 @@ namespace ignition
     class System
     {
       /// \brief Constructor
-      public: System();
+      public: System() = default;
+
+      public: virtual ~System() = default;
 
       public: virtual void EntityCreated(const Entity &_entity);
 

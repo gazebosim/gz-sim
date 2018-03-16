@@ -10,7 +10,7 @@ pipelines:
           - g++ -v
           # Static checking before building - fail fast
           - sh tools/code_check.sh
-          # Ignition cmake
+          # Ignition depends
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
@@ -23,6 +23,14 @@ pipelines:
           # SDFormat
           - hg clone http://bitbucket.org/osrf/sdformat -b create_dom_programmatically
           - cd sdformat
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition GUI
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b default
+          - cd ign-gui
           - mkdir build
           - cd build
           - cmake ..

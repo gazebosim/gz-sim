@@ -19,11 +19,6 @@
 using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
-System::System()
-{
-}
-
-/////////////////////////////////////////////////
 void System::EntityCreated(const Entity &/*_entity*/)
 {
 }

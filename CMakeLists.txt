@@ -29,6 +29,16 @@ find_package(SDFormat REQUIRED)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
+# Find ignition-gui
+find_package(ignition-gui0 0.1 REQUIRED)
+# Find Qt5
+find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
+
+include_directories(${IGNITION-GUI_INCLUDE_DIRS} ${Qt5Core_INCLUDE_DIRS})
+link_directories(${IGNITION-GUI_LIBRARY_DIRS})
+
+
+#--------------------------------------
 # Find ignition-common
 set(IGN_COMMON_VER 1)
 ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)

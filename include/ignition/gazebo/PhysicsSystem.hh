@@ -30,7 +30,7 @@ namespace ignition
     class PhysicsSystem : public System
     {
       public: PhysicsSystem();
-      public: ~PhysicsSystem();
+      public: virtual ~PhysicsSystem();
 
       public: virtual void EntityCreated(const Entity &_entity) override final;
       public: virtual bool Update() override final;
