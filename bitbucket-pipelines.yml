@@ -5,7 +5,7 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind
+          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
@@ -15,11 +15,11 @@ pipelines:
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
-            libgflags-dev
             libignition-cmake-dev
+            libignition-math4-dev
             libignition-common-dev
             libignition-msgs-dev
-            libignition-transport-dev
+            libignition-transport4-dev
           # SDFormat
           - hg clone http://bitbucket.org/osrf/sdformat -b create_dom_programmatically
           - cd sdformat
