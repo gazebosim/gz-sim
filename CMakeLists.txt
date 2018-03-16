@@ -28,6 +28,33 @@ ign_configure_project()
 find_package(SDFormat REQUIRED)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
+#--------------------------------------
+# Find ignition-common
+set(IGN_COMMON_VER 1)
+ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
+
+#--------------------------------------
+# Find ignition-transport
+set(IGN_TRANSPORT_VER 4)
+ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
+
+#--------------------------------------
+# Find ignitionm-msgs
+set(IGN_MSGS_VER 1)
+ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
+
+#--------------------------------------
+# Find gflags
+find_library(gflags_LIBRARIES NAMES gflags)
+find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
+if (NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
+  BUILD_ERROR("Missing: GFlags (libgflags-dev)")
+else()
+  message (STATUS "Found GFlags")
+  include_directories(${gflags_INCLUDE_DIRS})
+  link_directories(${gflags_LIBRARY_DIRS})
+endif()
+
 #============================================================================
 # Configure the build
 #============================================================================
