@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SERVER_HH_
 
 #include <sdf/Model.hh>
+#include <memory>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
@@ -30,6 +31,7 @@ namespace ignition
     class Server
     {
       public: Server();
+
       public: ~Server();
 
       public: Entity CreateEntity(const sdf::Model &_model);
@@ -46,7 +48,7 @@ namespace ignition
       /// \return True if the steps were execture.
       public: bool Step(const unsigned int _iterations);
 
-      private: ServerPrivate *dataPtr;
+      private: std::unique_ptr<ServerPrivate> dataPtr;
     };
   }
 }

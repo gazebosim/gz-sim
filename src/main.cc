@@ -16,8 +16,9 @@
 */
 #include <signal.h>
 #include <gflags/gflags.h>
-#include <iostream>
 #include <ignition/common/Console.hh>
+
+#include <iostream>
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 

@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
 #define IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
 
+#include <memory>
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -29,11 +30,12 @@ namespace ignition
     class PhysicsSystem : public System
     {
       public: PhysicsSystem();
-      public: virtual ~PhysicsSystem() override final;
+      public: ~PhysicsSystem();
+
       public: virtual void EntityCreated(const Entity &_entity) override final;
       public: virtual bool Update() override final;
 
-      public: PhysicsSystemPrivate *dataPtr;
+      private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
     };
   }
 }
