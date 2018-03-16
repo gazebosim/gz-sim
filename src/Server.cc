@@ -28,6 +28,8 @@ using namespace ignition::gazebo;
 
 class ignition::gazebo::ServerPrivate
 {
+  public: ~ServerPrivate();
+
   /// \brief Update all the systems
   public: void UpdateSystems();
 
@@ -54,6 +56,13 @@ Server::Server()
   : dataPtr(new ServerPrivate)
 {
   this->dataPtr->systems.push_back(new PhysicsSystem());
+}
+
+/////////////////////////////////////////////////
+Server::~Server()
+{
+  delete this->dataPtr;
+  this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -101,6 +110,22 @@ bool Server::Step(const unsigned int _iterations)
 /////////////////////////////////////////////////
 /// Server Private functions
 /////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+ServerPrivate::~ServerPrivate()
+{
+  if (this->runThread.joinable())
+  {
+    this->running = false;
+    this->runThread.join();
+  }
+
+  for (System *system : this->systems)
+  {
+    delete system;
+  }
+  this->systems.clear();
+}
 
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()

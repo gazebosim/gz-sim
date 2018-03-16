@@ -30,6 +30,7 @@ namespace ignition
     class Server
     {
       public: Server();
+      public: ~Server();
 
       public: Entity CreateEntity(const sdf::Model &_model);
 
