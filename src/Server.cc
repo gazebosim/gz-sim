@@ -68,7 +68,8 @@ std::atomic<bool> ServerPrivate::running(false);
 Server::Server()
   : dataPtr(new ServerPrivate)
 {
-  this->dataPtr->systems.push_back(std::unique_ptr<System>(new PhysicsSystem));
+  this->dataPtr->systems.push_back(
+      std::unique_ptr<System>(new PhysicsSystem));
 
   this->dataPtr->node.Advertise("/ign/gazebo/scene",
       &ServerPrivate::SceneService, this->dataPtr.get());

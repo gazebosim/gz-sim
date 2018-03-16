@@ -31,4 +31,7 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
 # Create the gazebo executable
 ign_add_executable(gazebo main.cc)
-target_link_libraries(gazebo PUBLIC ${PROJECT_LIBRARY_TARGET_NAME} gflags)
+target_link_libraries(gazebo PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
+    ${IGNITION-GUI_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES}
+    gflags)
+target_compile_options(gazebo PRIVATE -fPIC)

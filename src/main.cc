@@ -19,6 +19,13 @@
 #include <ignition/common/Console.hh>
 
 #include <iostream>
+
+#ifndef Q_MOC_RUN
+  #include <ignition/gui/qt.h>
+  #include <ignition/gui/Iface.hh>
+  #include <ignition/gui/MainWindow.hh>
+#endif
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 
@@ -123,7 +130,32 @@ int main(int _argc, char **_argv)
   {
     // Set verbosity level
     Verbose();
+/*
+    // Initialize app
+    ignition::gui::initApp();
 
+    // Look for all plugins in the same place
+    ignition::gui::setPluginPathEnv("GAZEBO_PLUGIN_PATH");
+
+    // Create main window
+    ignition::gui::createMainWindow();
+
+    // Customize window
+    ignition::gui::MainWindow *win = ignition::gui::mainWindow();
+    win->setWindowTitle("Gazebo");
+
+    // Run main window - this blocks until the window is closed or we receive a
+    // SIGINT
+    ignition::gui::runMainWindow();
+
+    // Cleanup once main window is closed
+    ignition::gui::stop();
+
+
+    // Then look for plugins on compile-time defined path.
+    // Plugins installed by gazebo end up here
+    // ignition::gui::addPluginPath(GAZEBO_PLUGIN_INSTALL_PATH);
+*/
     // Create the Gazebo server
     ignition::gazebo::Server server;
 
