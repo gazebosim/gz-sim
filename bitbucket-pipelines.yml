@@ -27,6 +27,7 @@ pipelines:
           - cd build
           - cmake ..
           - make -j4 install
+          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
