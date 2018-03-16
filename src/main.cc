@@ -26,6 +26,7 @@
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
+DEFINE_int32(iterations, 0, "Number of iterations to execute");
 
 //////////////////////////////////////////////////
 void Help()
@@ -37,11 +38,14 @@ void Help()
   << std::endl
   << std::endl
   << "Options:" << std::endl
-  << "  -h [ --help ]                 Print help message." << std::endl
-  << "  --version                     Print version information." << std::endl
+  << "  -h [ --help ]                 Print help message."
+  << std::endl
+  << "  --version                     Print version information."
+  << std::endl
   << "  -v [--verbose] arg            Adjust the level of console output (0~4)."
   << std::endl
-  << "  -f [ --file ] FILE            SDF file to load on start." << std::endl
+  << "  -i [ --iteration ] arg        Number of iterations to execute."
+  << std::endl
   << std::endl;
 }
 
@@ -122,8 +126,15 @@ int main(int _argc, char **_argv)
     // Create the Gazebo server
     ignition::gazebo::Server server;
 
-    // Run the server, and block.
-    server.Run(true);
+    if (FLAGS_iterations <= 0)
+    {
+      // Run the server, and block.
+      server.Run(true);
+    }
+    else
+    {
+      server.Step(FLAGS_iterations);
+    }
   }
 
   igndbg << "Shutting down" << std::endl;
