@@ -14,7 +14,11 @@
  * limitations under the License.
  *
 */
+#include <atomic>
+#include <thread>
 #include <vector>
+#include <signal.h>
+
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
@@ -24,9 +28,26 @@ using namespace ignition::gazebo;
 
 class ignition::gazebo::ServerPrivate
 {
+  /// \brief Update all the systems
+  public: void UpdateSystems();
+
+  /// \brief Run the server.
+  public: void Run();
+
+  private: static void SigHandler(int);
+
+  /// \brief This is used to indicate that Run has been called, and the
+  /// server is in the run state.
+  public: static std::atomic<bool> running;
+
+  public: std::thread runThread;
+
   public: std::vector<System *> systems;
+
   public: std::vector<Entity> entities;
 };
+
+std::atomic<bool> ServerPrivate::running(false);
 
 /////////////////////////////////////////////////
 Server::Server()
@@ -53,17 +74,74 @@ Entity Server::CreateEntity(const sdf::Model & /*_model*/)
 }
 
 /////////////////////////////////////////////////
-int Server::Step(const unsigned int _iterations)
+void Server::Run(const bool _blocking)
 {
-  // For each iteration ...
-  for (unsigned int iter = 0; iter < _iterations; ++iter)
+  if (_blocking)
+    this->dataPtr->Run();
+  else
+    this->dataPtr->runThread = std::thread(&ServerPrivate::Run, this->dataPtr);
+}
+
+/////////////////////////////////////////////////
+bool Server::Step(const unsigned int _iterations)
+{
+  if (!this->dataPtr->running)
   {
-    // Update systems
-    for (System *system : this->dataPtr->systems)
+    // For each iteration ...
+    for (unsigned int iter = 0; iter < _iterations; ++iter)
     {
-      system->Update();
+      this->dataPtr->UpdateSystems();
     }
+    return true;
   }
 
-  return 0;
+  return false;
+}
+
+/////////////////////////////////////////////////
+/// Server Private functions
+/////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+void ServerPrivate::UpdateSystems()
+{
+  // Update systems
+  for (System *system : this->systems)
+    system->Update();
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::SigHandler(int)
+{
+  running = false;
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::Run()
+{
+#ifndef _WIN32
+  struct sigaction sigact;
+  sigact.sa_flags = 0;
+  sigact.sa_handler = ServerPrivate::SigHandler;
+  if (sigemptyset(&sigact.sa_mask) != 0)
+    std::cerr << "sigemptyset failed while setting up for SIGINT" << std::endl;
+
+  if (sigaction(SIGINT, &sigact, NULL))
+  {
+    std::cerr << "Stopping. Unable to catch SIGINT.\n"
+      << " Please visit http://gazebosim.org/support.html for help.\n";
+    return;
+  }
+  if (sigaction(SIGTERM, &sigact, NULL))
+  {
+    std::cerr << "Stopping. Unable to catch SIGTERM.\n";
+    return;
+  }
+#endif
+
+  this->running = true;
+  while (this->running)
+  {
+    this->UpdateSystems();
+  }
 }

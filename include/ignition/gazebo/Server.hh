@@ -33,7 +33,17 @@ namespace ignition
 
       public: Entity CreateEntity(const sdf::Model &_model);
 
-      public: int Step(const unsigned int _iterations);
+      /// \brief Run the server. By default, this is a blocking call. Pass
+      /// in false to run the server in a separate thread.
+      /// \param[in] _blocking False to run the server in a new thread, and
+      /// return immediately.
+      public: void Run(const bool _blocking = false);
+
+      /// \brief Step the server a number of iterations. This will only
+      /// work if the server is paused.
+      /// \param[in] _iterations Number of steps to perform.
+      /// \return True if the steps were execture.
+      public: bool Step(const unsigned int _iterations);
 
       private: ServerPrivate *dataPtr;
     };
