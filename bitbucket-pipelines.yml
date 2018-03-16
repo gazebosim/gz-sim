@@ -15,7 +15,18 @@ pipelines:
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
+            libgflags-dev
             libignition-cmake-dev
+            libignition-common-dev
+            libignition-msgs-dev
+            libignition-transport-dev
+          # SDFormat
+          - hg clone http://bitbucket.org/osrf/sdformat -b create_dom_programmatically
+          - cd sdformat
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
           # Ignition Gazebo
           - mkdir build
           - cd build
