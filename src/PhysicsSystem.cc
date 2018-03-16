@@ -33,11 +33,8 @@ PhysicsSystem::PhysicsSystem()
 {
 }
 
-//////////////////////////////////////////////////
 PhysicsSystem::~PhysicsSystem()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////

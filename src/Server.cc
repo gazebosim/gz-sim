@@ -14,10 +14,13 @@
  * limitations under the License.
  *
 */
+#include <signal.h>
+#include <ignition/transport/Node.hh>
+#include <ignition/msgs.hh>
 #include <atomic>
 #include <thread>
 #include <vector>
-#include <signal.h>
+
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/System.hh"
@@ -28,6 +31,7 @@ using namespace ignition::gazebo;
 
 class ignition::gazebo::ServerPrivate
 {
+  public: ServerPrivate() = default;
   public: ~ServerPrivate();
 
   /// \brief Update all the systems
@@ -36,7 +40,13 @@ class ignition::gazebo::ServerPrivate
   /// \brief Run the server.
   public: void Run();
 
-  private: static void SigHandler(int);
+  public: bool SceneService(ignition::msgs::Scene &_rep);
+
+  // cppcheck-suppress unusedPrivateFunction
+  private: static void SigHandler(int)
+  {
+    running = false;
+  }
 
   /// \brief This is used to indicate that Run has been called, and the
   /// server is in the run state.
@@ -44,9 +54,12 @@ class ignition::gazebo::ServerPrivate
 
   public: std::thread runThread;
 
-  public: std::vector<System *> systems;
+  public: std::vector<std::unique_ptr<System>> systems;
 
   public: std::vector<Entity> entities;
+
+  /// \brief Communication node.
+  public: ignition::transport::Node node;
 };
 
 std::atomic<bool> ServerPrivate::running(false);
@@ -55,14 +68,14 @@ std::atomic<bool> ServerPrivate::running(false);
 Server::Server()
   : dataPtr(new ServerPrivate)
 {
-  this->dataPtr->systems.push_back(new PhysicsSystem());
-}
+  this->dataPtr->systems.push_back(std::unique_ptr<System>(new PhysicsSystem));
 
+  this->dataPtr->node.Advertise("/ign/gazebo/scene",
+      &ServerPrivate::SceneService, this->dataPtr.get());
+}
 /////////////////////////////////////////////////
 Server::~Server()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -73,7 +86,7 @@ Entity Server::CreateEntity(const sdf::Model & /*_model*/)
   // Notify systems that an entity has been created.
   // \todo: We could move this into batch style process that happens
   // once before systems are updated.
-  for (System *system : this->dataPtr->systems)
+  for (std::unique_ptr<System> &system : this->dataPtr->systems)
   {
     system->EntityCreated(entity);
   }
@@ -88,7 +101,8 @@ void Server::Run(const bool _blocking)
   if (_blocking)
     this->dataPtr->Run();
   else
-    this->dataPtr->runThread = std::thread(&ServerPrivate::Run, this->dataPtr);
+    this->dataPtr->runThread =
+      std::thread(&ServerPrivate::Run, this->dataPtr.get());
 }
 
 /////////////////////////////////////////////////
@@ -119,26 +133,14 @@ ServerPrivate::~ServerPrivate()
     this->running = false;
     this->runThread.join();
   }
-
-  for (System *system : this->systems)
-  {
-    delete system;
-  }
-  this->systems.clear();
 }
 
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
   // Update systems
-  for (System *system : this->systems)
+  for (std::unique_ptr<System> &system : this->systems)
     system->Update();
-}
-
-/////////////////////////////////////////////////
-void ServerPrivate::SigHandler(int)
-{
-  running = false;
 }
 
 /////////////////////////////////////////////////
@@ -169,4 +171,29 @@ void ServerPrivate::Run()
   {
     this->UpdateSystems();
   }
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::SceneService(ignition::msgs::Scene &_rep)
+{
+  _rep.set_name("gazebo");
+  ignition::msgs::Model *model = _rep.add_model();
+
+  model->set_name("sphere");
+  model->set_id(0);
+  ignition::msgs::Set(model->mutable_pose(),
+                      ignition::math::Pose3d(0, 0, 1, 0, 0, 0));
+
+  ignition::msgs::Link *link = model->add_link();
+  link->set_name("link");
+
+  ignition::msgs::Visual *visual = link->add_visual();
+  visual->set_name("visual");
+
+  ignition::msgs::Geometry *geom = visual->mutable_geometry();
+  geom->set_type(ignition::msgs::Geometry::SPHERE);
+  ignition::msgs::SphereGeom *sphere = geom->mutable_sphere();
+  sphere->set_radius(1.0);
+
+  return true;
 }

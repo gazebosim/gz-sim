@@ -23,9 +23,6 @@ namespace ignition
 {
   namespace gazebo
   {
-    // Forward declaration
-    class SystemPrivate;
-
     /// \brief Base class for a System
     ///
     /// A System operates on entities that have certain components. A system
@@ -35,15 +32,9 @@ namespace ignition
       /// \brief Constructor
       public: System();
 
-      /// \brief Destructor
-      public: virtual ~System();
-
       public: virtual void EntityCreated(const Entity &_entity);
 
       public: virtual bool Update();
-
-      /// \brief Private data class
-      private: SystemPrivate *dataPtr = nullptr;
     };
   }
 }
