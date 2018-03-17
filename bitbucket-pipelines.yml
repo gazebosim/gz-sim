@@ -20,12 +20,21 @@ pipelines:
             libignition-common-dev
             libignition-msgs-dev
             libignition-transport4-dev
+            libogre-1.9-dev
           # SDFormat
           - hg clone http://bitbucket.org/osrf/sdformat -b create_dom_programmatically
           - cd sdformat
           - mkdir build
           - cd build
           - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition rendering
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          - cd ign-rendering
+          - mkdir build
+          - cd build
+          - cmake .. # -DENABLE_TESTS_COMPILATION=false
           - make -j4 install
           - cd ../..
           # Ignition GUI
