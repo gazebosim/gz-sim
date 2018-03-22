@@ -31,14 +31,18 @@ using namespace ignition::gazebo;
 
 class ignition::gazebo::ServerPrivate
 {
+  /// \brief Constructor
   public: ServerPrivate() = default;
+
+  /// \brief Destructor
   public: ~ServerPrivate();
 
   /// \brief Update all the systems
   public: void UpdateSystems();
 
   /// \brief Run the server.
-  public: void Run();
+  /// \param[in] _iterations Number of iterations.
+  public: void Run(const uint64_t _iterations);
 
   public: bool SceneService(ignition::msgs::Scene &_rep);
 
@@ -60,6 +64,9 @@ class ignition::gazebo::ServerPrivate
 
   /// \brief Communication node.
   public: ignition::transport::Node node;
+
+  /// \brief Number of iterations.
+  public: uint64_t iterations = 0;
 };
 
 std::atomic<bool> ServerPrivate::running(false);
@@ -97,13 +104,13 @@ Entity Server::CreateEntity(const sdf::Model & /*_model*/)
 }
 
 /////////////////////////////////////////////////
-void Server::Run(const bool _blocking)
+void Server::Run(const uint64_t _iterations, const bool _blocking)
 {
   if (_blocking)
-    this->dataPtr->Run();
+    this->dataPtr->Run(_iterations);
   else
     this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get());
+      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
 }
 
 /////////////////////////////////////////////////
@@ -145,7 +152,7 @@ void ServerPrivate::UpdateSystems()
 }
 
 /////////////////////////////////////////////////
-void ServerPrivate::Run()
+void ServerPrivate::Run(const uint64_t _iterations)
 {
 #ifndef _WIN32
   struct sigaction sigact;
@@ -166,9 +173,9 @@ void ServerPrivate::Run()
     return;
   }
 #endif
-
   this->running = true;
-  while (this->running)
+  for (this->iterations = 0; this->running &&
+       (_iterations == 0 || this->iterations < _iterations); ++this->iterations)
   {
     this->UpdateSystems();
   }

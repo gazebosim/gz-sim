@@ -34,7 +34,9 @@
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
-DEFINE_int32(iterations, 0, "Number of iterations to execute");
+DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
+DEFINE_bool(s, false, "Run only the server (headless mode).");
+DEFINE_bool(g, false, "Run only the GUI.");
 
 //////////////////////////////////////////////////
 void Help()
@@ -46,13 +48,18 @@ void Help()
   << std::endl
   << std::endl
   << "Options:" << std::endl
-  << "  -h [ --help ]                 Print help message."
+  << "  -h [ --help ]          Print help message."
   << std::endl
-  << "  --version                     Print version information."
+  << "  --version              Print version information."
   << std::endl
-  << "  -v [--verbose] arg            Adjust the level of console output (0~4)."
+  << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
   << std::endl
-  << "  -i [ --iteration ] arg        Number of iterations to execute."
+  << "  --iterations arg       Number of iterations to execute."
+  << std::endl
+  << "  -s                     Run only the server (headless mode). This will "
+  << " override -g, if it is also present."
+  << std::endl
+  << "  -g                     Run only the GUI."
   << std::endl
   << std::endl;
 }
@@ -61,13 +68,6 @@ void Help()
 void Version()
 {
   std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
-}
-
-//////////////////////////////////////////////////
-void Verbose()
-{
-  // This also applies to all upstream libraries using ignition::common::Console
-  ignition::common::Console::SetVerbosity(FLAGS_verbose);
 }
 
 //////////////////////////////////////////////////
@@ -128,45 +128,56 @@ int main(int _argc, char **_argv)
   // Run Gazebo
   else
   {
-    // Set verbosity level
-    Verbose();
-/*
-    // Initialize app
-    ignition::gui::initApp();
+    // Set verbosity
+    ignition::common::Console::SetVerbosity(FLAGS_verbose);
 
-    // Look for all plugins in the same place
-    ignition::gui::setPluginPathEnv("GAZEBO_PLUGIN_PATH");
-
-    // Create main window
-    ignition::gui::createMainWindow();
-
-    // Customize window
-    ignition::gui::MainWindow *win = ignition::gui::mainWindow();
-    win->setWindowTitle("Gazebo");
-
-    // Run main window - this blocks until the window is closed or we receive a
-    // SIGINT
-    ignition::gui::runMainWindow();
-
-    // Cleanup once main window is closed
-    ignition::gui::stop();
-
-
-    // Then look for plugins on compile-time defined path.
-    // Plugins installed by gazebo end up here
-    // ignition::gui::addPluginPath(GAZEBO_PLUGIN_INSTALL_PATH);
-*/
-    // Create the Gazebo server
-    ignition::gazebo::Server server;
-
-    if (FLAGS_iterations <= 0)
+    // Run only the server (headless)
+    if (FLAGS_s)
     {
+      // Create the Gazebo server
+      ignition::gazebo::Server server;
+
       // Run the server, and block.
-      server.Run(true);
+      server.Run(FLAGS_iterations, true);
     }
+    // Run the GUI, or GUI+server
     else
     {
-      server.Step(FLAGS_iterations);
+      std::unique_ptr<ignition::gazebo::Server> server;
+
+      // Run the server along with the GUI
+      if (!FLAGS_g)
+      {
+        // Create the server
+        server.reset(new ignition::gazebo::Server());
+
+        // Run the server, and don't block.
+        server->Run(FLAGS_iterations, false);
+      }
+
+      // Initialize app
+      ignition::gui::initApp();
+
+      // Look for all plugins in the same place
+      ignition::gui::setPluginPathEnv("GAZEBO_PLUGIN_PATH");
+
+      // Create main window
+      ignition::gui::createMainWindow();
+
+      // Customize window
+      ignition::gui::MainWindow *win = ignition::gui::mainWindow();
+      win->setWindowTitle("Gazebo");
+
+      // Then look for plugins on compile-time defined path.
+      // Plugins installed by gazebo end up here
+      // ignition::gui::addPluginPath(GAZEBO_PLUGIN_INSTALL_PATH);
+
+      // Run main window - this blocks until the window is closed or we
+      // receive a SIGINT
+      ignition::gui::runMainWindow();
+
+      // Cleanup once main window is closed
+      ignition::gui::stop();
     }
   }
 
