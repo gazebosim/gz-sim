@@ -2,6 +2,7 @@ set (sources
   Entity.cc
   PhysicsSystem.cc
   Server.cc
+  ServerPrivate.cc
   System.cc
 )
 

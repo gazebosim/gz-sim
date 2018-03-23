@@ -14,16 +14,18 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/PhysicsSystem.hh"
+
 #include <vector>
 #include <iostream>
-#include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/Entity.hh"
 
 using namespace ignition::gazebo;
 
+/// \brief Private data.
 class ignition::gazebo::PhysicsSystemPrivate
 {
-  // \todo: Do we want pointers here?
+  // \todo(nkoenig): Need to make sure that these are data-aligned.
   public: std::vector<Entity> entities;
 };
 
@@ -33,8 +35,11 @@ PhysicsSystem::PhysicsSystem()
 {
 }
 
+//////////////////////////////////////////////////
 PhysicsSystem::~PhysicsSystem()
 {
+  delete this->dataPtr;
+  this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -45,17 +50,14 @@ void PhysicsSystem::EntityCreated(const Entity &_entity)
   this->dataPtr->entities.push_back(_entity);
 }
 
-
 //////////////////////////////////////////////////
 bool PhysicsSystem::Update()
 {
-  // Process all entities
+  // Process all entities that have matched my requirements.
   for (const auto &entity : this->dataPtr->entities)
   {
     std::cout << entity.Id() << std::endl;
   }
 
-
-  // Process entities that match my requirements.
   return true;
 }

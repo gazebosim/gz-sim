@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
 #define IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
 
-#include <memory>
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
@@ -27,15 +27,25 @@ namespace ignition
     // Forward declarations
     class PhysicsSystemPrivate;
 
+    /// \brief A stand-in physics system. For testing purposes only.
     class PhysicsSystem : public System
     {
+      /// \brief Constructor
       public: PhysicsSystem();
+
+      /// \brief Destructor
       public: virtual ~PhysicsSystem();
 
-      public: virtual void EntityCreated(const Entity &_entity) override final;
-      public: virtual bool Update() override final;
+      /// \brief Process the addition of an Entity.
+      /// \param[in] _entity Entity that was added.
+      public: virtual void EntityCreated(const Entity &_entity) final;
 
-      private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
+      /// \brief Update the physics system.
+      /// \return True on success.
+      public: virtual bool Update() final;
+
+      /// \brief Private data.
+      private: PhysicsSystemPrivate *dataPtr;
     };
   }
 }

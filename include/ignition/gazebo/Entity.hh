@@ -39,30 +39,6 @@ namespace ignition
     /// Systems process Entities that have a specific set of Components.
     class Entity
     {
-      /// \brief Constructor.
-      public: Entity();
-
-      /// \brief Copy constructor.
-      /// \param[in] _entity Entity to copy.
-      public: Entity(const Entity &_entity);
-
-      /// \brief Move constructor.
-      /// \param[in] _entity Entity to move.
-      public: Entity(Entity &&_entity);
-
-      /// \brief Destructor.
-      public: ~Entity();
-
-      /// \brief Copy assignment operator.
-      /// \param[in] _entity Entity to copy.
-      /// \return Refernce to this Entity.
-      public: Entity &operator=(const Entity &_entity);
-
-      /// \brief Move assignment operator.
-      /// \param[in] _entity Entity to move.
-      /// \return Refernce to this Entity.
-      public: Entity &operator=(Entity &&_entity);
-
       /// \brief Equality operator. Checks if this Entity is equivalend to
       /// the provided Entity.
       /// \param[in] _entity Entity to compare.
@@ -73,8 +49,11 @@ namespace ignition
       /// \return Id of this Entity.
       public: EntityId Id() const;
 
-      /// \brief Private data pointer
-      private: EntityPrivate *dataPtr = nullptr;
+      // Note: We are not using the private data pattern on purpose. An Entity
+      // should only have an ID.
+
+      /// \brief ID of the entity
+      private: EntityId id = kNullEntity;
     };
   }
 }
