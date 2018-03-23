@@ -11,11 +11,13 @@ pipelines:
           # Static checking before building - fail fast
           - sh tools/code_check.sh
           # Ignition cmake
+
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
-            libignition-cmake-dev
+            libignition-cmake1-dev
           # Ignition math
           - mkdir build
           - cd build
