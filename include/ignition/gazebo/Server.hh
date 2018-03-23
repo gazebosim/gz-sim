@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SERVER_HH_
 
 #include <sdf/Model.hh>
-#include <memory>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
@@ -28,12 +27,35 @@ namespace ignition
     // Forware declarations
     class ServerPrivate;
 
+    /// \brief The server instantiates and controls simulation.
+    ///
+    /// ## Services
+    ///
+    /// The following are services provided by the Server.
+    /// List syntax: *topic_name(request_message) : response_message*
+    ///
+    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
+    ///   + Returns the current scene information.
+    ///
     class Server
     {
+      /// \brief Constructor
       public: Server();
 
+      /// \brief Destructor
       public: ~Server();
 
+      /// \brief Delete the copy constructor.
+      /// \param[in] _server Server that is not copied.
+      public: Server(const Server &_server) = delete;
+
+      /// \brief Delete the move constructor
+      /// \param[in] _server Server that is not moved.
+      public: Server(const Server &&_server) = delete;
+
+      /// \brief Create an entity based on an SDF Model.
+      /// \param[in] _model The SDF model to create an Entity from.
+      /// \return The Entity identifier.
       public: Entity CreateEntity(const sdf::Model &_model);
 
       /// \brief Run the server. By default, this is a blocking call. Pass
@@ -45,13 +67,8 @@ namespace ignition
       public: void Run(const uint64_t _iterations = 0,
                        const bool _blocking = false);
 
-      /// \brief Step the server a number of iterations. This will only
-      /// work if the server is paused.
-      /// \param[in] _iterations Number of steps to perform.
-      /// \return True if the steps were execture.
-      public: bool Step(const unsigned int _iterations);
-
-      private: std::unique_ptr<ServerPrivate> dataPtr;
+      /// \brief Private data
+      private: ServerPrivate *dataPtr;
     };
   }
 }

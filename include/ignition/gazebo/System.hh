@@ -32,10 +32,17 @@ namespace ignition
       /// \brief Constructor
       public: System() = default;
 
+      /// \brief Destructor
       public: virtual ~System() = default;
 
+      /// \brief Notifies a system that an entity has been created. Each
+      /// system should override this function.
+      /// \param[in] _entity Entity that was added.
       public: virtual void EntityCreated(const Entity &_entity);
 
+      /// \brief Update the system. Each system should override this
+      /// function.
+      /// \return True on success.
       public: virtual bool Update();
     };
   }

@@ -14,83 +14,18 @@
  * limitations under the License.
  *
 */
-#include <memory>
 #include "ignition/gazebo/Entity.hh"
 
 using namespace ignition::gazebo;
 
-/// \brief Private data class
-class ignition::gazebo::EntityPrivate
-{
-  public: EntityPrivate()
-  {
-  }
-
-  /// \brief Copy constructor
-  /// \param[in] _entity Entity to copy
-  public: EntityPrivate(const EntityPrivate &_entity)
-          : id(_entity.id)
-  {
-  }
-
-  /// \brief ID of entity
-  public: EntityId id = kNullEntity;
-};
-
-/////////////////////////////////////////////////
-Entity::Entity()
-: dataPtr(new EntityPrivate())
-{
-}
-
-/////////////////////////////////////////////////
-Entity::Entity(const Entity &_entity)
-: dataPtr(new EntityPrivate(*_entity.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-Entity::Entity(Entity &&_entity)
-: dataPtr(std::move(_entity.dataPtr))
-{
-  _entity.dataPtr = new EntityPrivate();
-}
-
-/////////////////////////////////////////////////
-Entity::~Entity()
-{
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
-}
-
-/////////////////////////////////////////////////
-Entity &Entity::operator=(const Entity &_entity)
-{
-  this->dataPtr->id = _entity.Id();
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Entity &Entity::operator=(Entity &&_entity)
-{
-  // Delete the existing dataPtr, if it exists
-  if (this->dataPtr)
-    delete this->dataPtr;
-
-  this->dataPtr = std::move(_entity.dataPtr);
-  _entity.dataPtr = new EntityPrivate();
-
-  return *this;
-}
-
 /////////////////////////////////////////////////
 bool Entity::operator==(const Entity &_entity) const
 {
-  return this->dataPtr->id == _entity.dataPtr->id;
+  return this->id == _entity.id;
 }
 
 /////////////////////////////////////////////////
 EntityId Entity::Id() const
 {
-  return this->dataPtr->id;
+  return this->id;
 }
