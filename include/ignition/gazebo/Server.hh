@@ -45,19 +45,6 @@ namespace ignition
       /// \brief Destructor
       public: ~Server();
 
-      /// \brief Delete the copy constructor.
-      /// \param[in] _server Server that is not copied.
-      public: Server(const Server &_server) = delete;
-
-      /// \brief Delete the move constructor
-      /// \param[in] _server Server that is not moved.
-      public: Server(const Server &&_server) = delete;
-
-      /// \brief Create an entity based on an SDF Model.
-      /// \param[in] _model The SDF model to create an Entity from.
-      /// \return The Entity identifier.
-      public: Entity CreateEntity(const sdf::Model &_model);
-
       /// \brief Run the server. By default, this is a blocking call. Pass
       /// in false to run the server in a separate thread.
       /// \param[in] _blocking False to run the server in a new thread, and

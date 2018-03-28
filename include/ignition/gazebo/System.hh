@@ -23,10 +23,10 @@ namespace ignition
 {
   namespace gazebo
   {
-    /// \brief Base class for a System
+    /// \brief Base class for a System.
     ///
-    /// A System operates on entities that have certain components. A system
-    /// will only operate on an Entity if it has all of the required components.
+    /// A System operates on Entities that have certain Components. A System
+    /// will only operate on an Entity if it has all of the required Components.
     class System
     {
       /// \brief Constructor

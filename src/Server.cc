@@ -41,25 +41,6 @@ Server::~Server()
 }
 
 /////////////////////////////////////////////////
-Entity Server::CreateEntity(const sdf::Model &/*_model*/)
-{
-  /// \todo(nkoenig) Need to process _model.
-  Entity entity;
-
-  // Notify systems that an entity has been created.
-  // \todo(nkoenig): We could move this into batch style process that happens
-  // once before systems are updated.
-  for (std::unique_ptr<System> &system : this->dataPtr->systems)
-  {
-    system->EntityCreated(entity);
-  }
-
-  // Store the entities, and return a copy.
-  this->dataPtr->entities.push_back(entity);
-  return this->dataPtr->entities.back();
-}
-
-/////////////////////////////////////////////////
 void Server::Run(const uint64_t _iterations, const bool _blocking)
 {
   if (_blocking)

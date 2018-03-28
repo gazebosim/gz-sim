@@ -21,10 +21,10 @@ namespace ignition
 {
   namespace gazebo
   {
-    /// \brief An Entity is an id!
+    /// \brief An Entity is an id.
     using EntityId = int;
 
-    /// \brief For results which there is no entity
+    /// \brief Indicates a non-existant or invalid Entity.
     const EntityId kNullEntity = -1;
 
     // Forward Declaration

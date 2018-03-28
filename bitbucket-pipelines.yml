@@ -16,12 +16,14 @@ pipelines:
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
-            libignition-cmake-dev
             libignition-cmake1-dev
             libignition-math5-dev
-            libignition-msgs-dev
             libignition-common-dev
             libsdformat6-dev
+          # Packages to remove/update
+            libignition-cmake-dev
+            libignition-msgs-dev
+            libignition-transport4-dev
           # Ignition Msgs
           - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
           - cd ign-msgs
