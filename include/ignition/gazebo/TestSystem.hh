@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
-#define IGNITION_GAZEBO_PHYSICSSYSTEM_HH_
+#ifndef IGNITION_GAZEBO_TESTSYSTEM_HH_
+#define IGNITION_GAZEBO_TESTSYSTEM_HH_
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
@@ -25,27 +25,28 @@ namespace ignition
   namespace gazebo
   {
     // Forward declarations
-    class PhysicsSystemPrivate;
+    class TestSystemPrivate;
 
-    /// \brief A stand-in physics system. For testing purposes only.
-    class PhysicsSystem : public System
+    /// \brief A stand-in system for testing and development.
+    /// This will go away in the near future.
+    class TestSystem : public System
     {
       /// \brief Constructor
-      public: PhysicsSystem();
+      public: TestSystem();
 
       /// \brief Destructor
-      public: virtual ~PhysicsSystem();
+      public: virtual ~TestSystem();
 
       /// \brief Process the addition of an Entity.
       /// \param[in] _entity Entity that was added.
       public: virtual void EntityCreated(const Entity &_entity) final;
 
-      /// \brief Update the physics system.
+      /// \brief Update the system.
       /// \return True on success.
       public: virtual bool Update() final;
 
       /// \brief Private data.
-      private: PhysicsSystemPrivate *dataPtr;
+      private: TestSystemPrivate *dataPtr;
     };
   }
 }

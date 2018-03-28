@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/TestSystem.hh"
 
 #include <vector>
 #include <iostream>
@@ -23,41 +23,38 @@
 using namespace ignition::gazebo;
 
 /// \brief Private data.
-class ignition::gazebo::PhysicsSystemPrivate
+class ignition::gazebo::TestSystemPrivate
 {
   // \todo(nkoenig): Need to make sure that these are data-aligned.
   public: std::vector<Entity> entities;
 };
 
 //////////////////////////////////////////////////
-PhysicsSystem::PhysicsSystem()
-  : System(), dataPtr(new PhysicsSystemPrivate)
+TestSystem::TestSystem()
+  : System(), dataPtr(new TestSystemPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-PhysicsSystem::~PhysicsSystem()
+TestSystem::~TestSystem()
 {
   delete this->dataPtr;
   this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////
-void PhysicsSystem::EntityCreated(const Entity &_entity)
+void TestSystem::EntityCreated(const Entity &_entity)
 {
-  // \todo: Add an entity if its components match this system's
-  // requirements.
+  // The test system adds all entities, for now.
   this->dataPtr->entities.push_back(_entity);
 }
 
 //////////////////////////////////////////////////
-bool PhysicsSystem::Update()
+bool TestSystem::Update()
 {
-  // Process all entities that have matched my requirements.
+  // Process all entities...just output some information.
   for (const auto &entity : this->dataPtr->entities)
-  {
     std::cout << entity.Id() << std::endl;
-  }
 
   return true;
 }

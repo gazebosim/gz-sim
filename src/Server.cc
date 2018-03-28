@@ -15,7 +15,7 @@
  *
 */
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/TestSystem.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ServerPrivate.hh"
 
@@ -27,7 +27,7 @@ Server::Server()
 {
   // \todo(nkoenig) Remove this once we can dynamically load systems.
   this->dataPtr->systems.push_back(
-      std::unique_ptr<System>(new PhysicsSystem));
+      std::unique_ptr<System>(new TestSystem));
 
   // This is the scene service
   this->dataPtr->node.Advertise("/ign/gazebo/scene",
@@ -41,7 +41,7 @@ Server::~Server()
 }
 
 /////////////////////////////////////////////////
-Entity Server::CreateEntity(const sdf::Model & /*_model*/)
+Entity Server::CreateEntity(const sdf::Model &/*_model*/)
 {
   /// \todo(nkoenig) Need to process _model.
   Entity entity;
