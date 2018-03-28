@@ -21,6 +21,7 @@ pipelines:
             libignition-common-dev
             libsdformat6-dev
           # Packages to remove/update
+          - apt-get -y install
             libignition-cmake-dev
             libignition-msgs-dev
             libignition-transport4-dev
