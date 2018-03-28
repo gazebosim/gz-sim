@@ -33,26 +33,29 @@ namespace ignition
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just and identifier.
     ///
-    /// Components are, usually, attached to an Entity. Components represent
-    /// data, such as position information.
+    /// An Entity usually has one or more associated Components. Components
+    /// represent data, such as position information.
     ///
-    /// Systems process Entities that have a specific set of Components.
+    /// The set of Components assigned to an Entity also act as a key.
+    /// Systems process Entities based on their key. For example, a physics
+    /// system may process only entities that have pose and inertia
+    /// components.
     class Entity
     {
-      /// \brief Equality operator. Checks if this Entity is equivalend to
+      /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.
       /// \param[in] _entity Entity to compare.
-      /// \returns true if the Entity ID's are the same.
+      /// \returns true if the Entity Id's are the same.
       public: bool operator==(const Entity &_entity) const;
 
-      /// \brief Return id of entity
+      /// \brief Return id of entity.
       /// \return Id of this Entity.
       public: EntityId Id() const;
 
       // Note: We are not using the private data pattern on purpose. An Entity
-      // should only have an ID.
+      // should only have an Id.
 
-      /// \brief ID of the entity
+      /// \brief Id of the entity
       private: EntityId id = kNullEntity;
     };
   }
