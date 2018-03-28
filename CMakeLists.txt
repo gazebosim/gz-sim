@@ -37,11 +37,15 @@ find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
 include_directories(${IGNITION-GUI_INCLUDE_DIRS} ${Qt5Core_INCLUDE_DIRS})
 link_directories(${IGNITION-GUI_LIBRARY_DIRS})
 
+#--------------------------------------
+# Find ignition-math
+set(IGN_MSGS_VER 5)
+ign_find_package(ignition-math${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
-# Find ignition-common
-set(IGN_COMMON_VER 1)
-ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
+# Find ignition-msgs
+set(IGN_MSGS_VER 2)
+ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-transport
@@ -49,9 +53,9 @@ set(IGN_TRANSPORT_VER 4)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
 
 #--------------------------------------
-# Find ignitionm-msgs
-set(IGN_MSGS_VER 1)
-ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
+# Find ignition-common
+set(IGN_COMMON_VER 1)
+ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 
 #--------------------------------------
 # Find gflags
