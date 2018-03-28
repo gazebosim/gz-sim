@@ -1940,38 +1940,38 @@ def CheckForHeaderGuard(filename, clean_lines, error):
           '#ifndef header guard has wrong style, please use: %s' % cppvar)
 
   # Check for "//" comments on endif line.
-  ParseNolintSuppressions(filename, raw_lines[endif_linenum], endif_linenum,
-                          error)
-  match = Match(r'#endif\s*//\s*' + cppvar + r'(_)?\b', endif)
-  if match:
-    if match.group(1) == '_':
-      # Issue low severity warning for deprecated double trailing underscore
-      error(filename, endif_linenum, 'build/header_guard', 0,
-            '#endif line should be "#endif  // %s"' % cppvar)
-    return
+  # ParseNolintSuppressions(filename, raw_lines[endif_linenum], endif_linenum,
+  #                         error)
+  # match = Match(r'#endif\s*//\s*' + cppvar + r'(_)?\b', endif)
+  # if match:
+  #   if match.group(1) == '_':
+  #     # Issue low severity warning for deprecated double trailing underscore
+  #     error(filename, endif_linenum, 'build/header_guard', 0,
+  #           '#endif line should be "#endif  // %s"' % cppvar)
+  #   return
 
   # Didn't find the corresponding "//" comment.  If this file does not
   # contain any "//" comments at all, it could be that the compiler
   # only wants "/**/" comments, look for those instead.
-  no_single_line_comments = True
-  for i in xrange(1, len(raw_lines) - 1):
-    line = raw_lines[i]
-    if Match(r'^(?:(?:\'(?:\.|[^\'])*\')|(?:"(?:\.|[^"])*")|[^\'"])*//', line):
-      no_single_line_comments = False
-      break
+  # no_single_line_comments = True
+  # for i in xrange(1, len(raw_lines) - 1):
+  #   line = raw_lines[i]
+  #   if Match(r'^(?:(?:\'(?:\.|[^\'])*\')|(?:"(?:\.|[^"])*")|[^\'"])*//', line):
+  #     no_single_line_comments = False
+  #     break
 
-  if no_single_line_comments:
-    match = Match(r'#endif\s*/\*\s*' + cppvar + r'(_)?\s*\*/', endif)
-    if match:
-      if match.group(1) == '_':
-        # Low severity warning for double trailing underscore
-        error(filename, endif_linenum, 'build/header_guard', 0,
-              '#endif line should be "#endif  /* %s */"' % cppvar)
-      return
+  # if no_single_line_comments:
+  #   match = Match(r'#endif\s*/\*\s*' + cppvar + r'(_)?\s*\*/', endif)
+  #   if match:
+  #     if match.group(1) == '_':
+  #       # Low severity warning for double trailing underscore
+  #       error(filename, endif_linenum, 'build/header_guard', 0,
+  #             '#endif line should be "#endif  /* %s */"' % cppvar)
+  #     return
 
-  # Didn't find anything
-  error(filename, endif_linenum, 'build/header_guard', 5,
-        '#endif line should be "#endif  // %s"' % cppvar)
+  # # Didn't find anything
+  # error(filename, endif_linenum, 'build/header_guard', 5,
+  #       '#endif line should be "#endif  // %s"' % cppvar)
 
 
 def CheckHeaderFileIncluded(filename, include_state, error):
@@ -3751,11 +3751,9 @@ def CheckBraces(filename, clean_lines, linenum, error):
     #         '{ should almost always be at the end of the previous line')
 
   # An else clause should be on the same line as the preceding closing brace.
-  if Match(r'\s*else\b\s*(?:if\b|\{|$)', line):
-    prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
-    if Match(r'\s*}\s*$', prevline):
-      error(filename, linenum, 'whitespace/newline', 4,
-            'An else should appear on the same line as the preceding }')
+  if Match(r'\s*}\s*else\b\s*(?:if\b|\{|$)', line):
+    error(filename, linenum, 'whitespace/newline', 4,
+          'An else should appear on a new line after }')
 
   # If braces come on one side of an else, they should be on both.
   # However, we have to worry about "else if" that spans multiple lines!
@@ -4470,7 +4468,7 @@ def _ClassifyInclude(fileinfo, include, is_system):
   is_cpp_h = include in _CPP_HEADERS
 
   if is_system:
-    if is_cpp_h:
+    if is_cpp_h or include.endswith(".hh"):
       return _CPP_SYS_HEADER
     else:
       return _C_SYS_HEADER
@@ -5118,13 +5116,13 @@ def CheckForNonConstReference(filename, clean_lines, linenum,
         return
 
   decls = ReplaceAll(r'{[^}]*}', ' ', line)  # exclude function body
-  for parameter in re.findall(_RE_PATTERN_REF_PARAM, decls):
-    if (not Match(_RE_PATTERN_CONST_REF_PARAM, parameter) and
-        not Match(_RE_PATTERN_REF_STREAM_PARAM, parameter)):
-      error(filename, linenum, 'runtime/references', 2,
-            'Is this a non-const reference? '
-            'If so, make const or use a pointer: ' +
-            ReplaceAll(' *<', '<', parameter))
+  # for parameter in re.findall(_RE_PATTERN_REF_PARAM, decls):
+    # if (not Match(_RE_PATTERN_CONST_REF_PARAM, parameter) and
+    #     not Match(_RE_PATTERN_REF_STREAM_PARAM, parameter)):
+    #   error(filename, linenum, 'runtime/references', 2,
+    #         'Is this a non-const reference? '
+    #         'If so, make const or use a pointer: ' +
+    #         ReplaceAll(' *<', '<', parameter))
 
 
 def CheckCasts(filename, clean_lines, linenum, error):
@@ -5269,6 +5267,8 @@ def CheckCStyleCast(filename, clean_lines, linenum, cast_type, pattern, error):
 
   # Exclude lines with keywords that tend to look like casts
   context = line[0:match.start(1) - 1]
+  if Match(r'^\s*(private|public):.*$', context):
+    return False
   if Match(r'.*\b(?:sizeof|alignof|alignas|[_A-Z][_A-Z0-9]*)\s*$', context):
     return False
 
@@ -5682,12 +5682,6 @@ def CheckRedundantOverrideOrFinal(filename, clean_lines, linenum, error):
     else:
       return
 
-  # Check that at most one of "override" or "final" is present, not both
-  if Search(r'\boverride\b', fragment) and Search(r'\bfinal\b', fragment):
-    error(filename, linenum, 'readability/inheritance', 4,
-          ('"override" is redundant since function is '
-           'already declared as "final"'))
-
 
 
 
@@ -5819,14 +5813,7 @@ def FlagCxx11Features(filename, clean_lines, linenum, error):
 
   # Flag unapproved C++11 headers.
   if include and include.group(1) in ('cfenv',
-                                      'condition_variable',
                                       'fenv.h',
-                                      'future',
-                                      'mutex',
-                                      'thread',
-                                      'chrono',
-                                      'ratio',
-                                      'regex',
                                       'system_error',
                                      ):
     error(filename, linenum, 'build/c++11', 5,
