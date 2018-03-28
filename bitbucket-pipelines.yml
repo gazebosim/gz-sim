@@ -5,17 +5,61 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck
+          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev libxml2-utils ruby-dev libboost-dev qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev libogre-1.9-dev libglew-dev libfreeimage-dev doxygen ruby-ronn freeglut3-dev libxmu-dev libxi-dev
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
           - sh tools/code_check.sh
-          # Ignition cmake
+          # Ignition depends
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
             libignition-cmake-dev
+            libignition-cmake1-dev
+            libignition-math5-dev
+            libignition-common-dev
+          # SDFormat
+          - hg clone http://bitbucket.org/osrf/sdformat -b create_dom_programmatically
+          - cd sdformat
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition Msgs
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
+          - cd ign-msgs
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition Transport
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b default
+          - cd ign-transport
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition rendering
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          - cd ign-rendering
+          - mkdir build
+          - cd build
+          - cmake .. # -DENABLE_TESTS_COMPILATION=false
+          - make -j4 install
+          - cd ../..
+          # Ignition GUI
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b default
+          - cd ign-gui
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
@@ -25,3 +69,4 @@ pipelines:
           - make coverage
           # todo: - bash <(curl -s https://codecov.io/bash)
           - make install
+          - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./src/gazebo -iterations 10
