@@ -24,7 +24,6 @@ namespace gz = ignition::gazebo;
 
 int main()
 {
-
   sdf::Model model;
   model.SetName("ball");
   sdf::Link *link = model.AddLink({"link", ign::math::Pose3d::Zero});

@@ -56,19 +56,8 @@ else
     find $CHECK_DIRS -name "*.cc" -o -name "*.hh" -o -name "*.c" -o -name "*.h"`
 fi
 
-SUPPRESS=/tmp/cpp_check.suppress
-
-# The follow suppression is useful when checking for missing includes.
-# It's disable for now because checking for missing includes is very
-# time consuming. See CPPCHECK_CMD3.
-SUPPRESS=/tmp/gazebo_cpp_check.suppress
-# false positives related to explicit constructors where there is no
-# constructor declared
-rm $SUPPRESS
-touch $SUPPRESS
-
 #cppcheck
-CPPCHECK_BASE="cppcheck -q --suppressions-list=$SUPPRESS --inline-suppr"
+CPPCHECK_BASE="cppcheck -q --inline-suppr"
 if [ $CPPCHECK_LT_157 -eq 0 ]; then
   # use --language argument if 1.57 or greater (issue #907)
   CPPCHECK_BASE="$CPPCHECK_BASE --language=c++"
@@ -101,9 +90,6 @@ elif [ $QUICK_CHECK -eq 1 ]; then
     tmp2base=`basename "$QUICK_TMP"`
     hg cat -r $QUICK_SOURCE $hg_root/$f > $tmp2
 
-    # Fix suppressions for tmp files
-    sed -i -e "s@$f@$tmp2@" $SUPPRESS
-
     # Skip cppcheck for header files if cppcheck is old
     DO_CPPCHECK=0
     if [ $ext = 'cc' ]; then
@@ -118,9 +104,6 @@ elif [ $QUICK_CHECK -eq 1 ]; then
         | grep -v 'use --check-config for details' \
         | grep -v 'Include file: .*not found'
     fi
-
-    # Undo changes to suppression file
-    sed -i -e "s@$tmp2@$f@" $SUPPRESS
 
     python $hg_root/tools/cpplint.py --quiet $tmp2 2>&1 \
       | sed -e "s@$tmp2@$f@g" -e "s@$tmp2base@$prefix@g" \

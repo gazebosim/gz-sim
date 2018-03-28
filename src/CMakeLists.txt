@@ -1,6 +1,6 @@
 set (sources
   Entity.cc
-  PhysicsSystem.cc
+  TestSystem.cc
   Server.cc
   ServerPrivate.cc
   System.cc
