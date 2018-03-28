@@ -24,5 +24,6 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(System, Constructor)
 {
+  /// \todo(nkoenig) Add more tests here.
   gazebo::System system;
 }
