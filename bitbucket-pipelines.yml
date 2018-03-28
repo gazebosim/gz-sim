@@ -5,7 +5,7 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev libxml2-utils ruby-dev libboost-dev qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev protobuf-compiler libprotobuf-dev libogre-1.9-dev libglew-dev libfreeimage-dev doxygen ruby-ronn freeglut3-dev libxmu-dev libxi-dev
+          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev libxml2-utils ruby-dev libboost-dev qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev protobuf-compiler libprotobuf-dev libogre-1.9-dev libglew-dev libfreeimage-dev doxygen ruby-ronn freeglut3-dev libxmu-dev libxi-dev libzmq3-dev uuid-dev
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
@@ -19,6 +19,7 @@ pipelines:
             libignition-cmake-dev
             libignition-cmake1-dev
             libignition-math5-dev
+            libignition-msgs-dev
             libignition-common-dev
             libsdformat6-dev
           # Ignition Msgs
