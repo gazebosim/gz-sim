@@ -64,6 +64,6 @@ pipelines:
           - make
           - make test
           - make coverage
-          # todo: - bash <(curl -s https://codecov.io/bash)
+          - bash <(curl -s https://codecov.io/bash)
           - make install
           - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./src/gazebo -iterations 10
