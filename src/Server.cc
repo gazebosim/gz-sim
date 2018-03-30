@@ -49,3 +49,15 @@ void Server::Run(const uint64_t _iterations, const bool _blocking)
     this->dataPtr->runThread =
       std::thread(&ServerPrivate::Run, this->dataPtr, _iterations);
 }
+
+/////////////////////////////////////////////////
+bool Server::Running() const
+{
+  return this->dataPtr->running;
+}
+
+/////////////////////////////////////////////////
+uint64_t Server::IterationCount() const
+{
+  return this->dataPtr->iterations;
+}

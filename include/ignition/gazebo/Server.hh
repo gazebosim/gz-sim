@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_SERVER_HH_
 #define IGNITION_GAZEBO_SERVER_HH_
 
+#include <cstdint>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
@@ -52,6 +53,15 @@ namespace ignition
       /// return immediately.
       public: void Run(const uint64_t _iterations = 0,
                        const bool _blocking = false);
+
+      /// \brief Get whether this server is running. When running is true,
+      /// then simulation is stepping forward.
+      /// \return True if the server is running.
+      public: bool Running() const;
+
+      /// \brief Get the number of iterations the server has executed.
+      /// \return The current iteration count.
+      uint64_t IterationCount() const;
 
       /// \brief Private data
       private: ServerPrivate *dataPtr;

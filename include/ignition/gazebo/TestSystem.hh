@@ -37,9 +37,8 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~TestSystem();
 
-      /// \brief Process the addition of an Entity.
-      /// \param[in] _entity Entity that was added.
-      public: virtual void EntityCreated(const Entity &_entity) final;
+      // Documentation inherited
+      public: virtual bool EntityCreated(const Entity &_entity) final;
 
       /// \brief Update the system.
       /// \return True on success.
