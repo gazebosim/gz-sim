@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SERVER_HH_
 #define IGNITION_GAZEBO_SERVER_HH_
 
-#include <sdf/Model.hh>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
