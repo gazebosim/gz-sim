@@ -49,7 +49,7 @@ ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-transport
-set(IGN_TRANSPORT_VER 4)
+set(IGN_TRANSPORT_VER 5)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
 
 #--------------------------------------
