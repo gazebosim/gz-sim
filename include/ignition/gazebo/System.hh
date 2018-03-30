@@ -38,7 +38,8 @@ namespace ignition
       /// \brief Notifies a system that an entity has been created. Each
       /// system should override this function.
       /// \param[in] _entity Entity that was added.
-      public: virtual void EntityCreated(const Entity &_entity);
+      /// \return True if the operation succeeded.
+      public: bool EntityCreated(const Entity &_entity);
 
       /// \brief Update the system. Each system should override this
       /// function.

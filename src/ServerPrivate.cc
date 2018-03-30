@@ -68,13 +68,16 @@ void ServerPrivate::Run(const uint64_t _iterations)
 
   this->running = true;
 
+  uint64_t startingIterations = this->iterations;
   // Execute all the system until we are told to stop, or the number of
   // iterations is reached.
-  for (this->iterations = 0; this->running &&
-       (_iterations == 0 || this->iterations < _iterations); ++this->iterations)
+  for (; this->running && (_iterations == 0 ||
+                           this->iterations < _iterations + startingIterations);
+       ++this->iterations)
   {
     this->UpdateSystems();
   }
+  this->running = false;
 }
 
 //////////////////////////////////////////////////

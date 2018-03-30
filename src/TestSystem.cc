@@ -43,10 +43,11 @@ TestSystem::~TestSystem()
 }
 
 /////////////////////////////////////////////////
-void TestSystem::EntityCreated(const Entity &_entity)
+bool TestSystem::EntityCreated(const Entity &_entity)
 {
   // The test system adds all entities, for now.
   this->dataPtr->entities.push_back(_entity);
+  return true;
 }
 
 //////////////////////////////////////////////////
