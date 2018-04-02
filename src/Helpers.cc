@@ -48,8 +48,7 @@ namespace ignition
       // compilers from 6.x/7.x series. The native support for C++ is defined
       // in C++17 See https://bugzilla.redhat.com/show_bug.cgi?id=1321986
 #if (__cplusplus < 201703L)
-      uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) -
-          0.00000000000000000001);
+      uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) -9.53674e-07);
 #else
       uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) - 0x1p-20);
 #endif
