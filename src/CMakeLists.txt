@@ -17,8 +17,6 @@ ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
-  ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   ${SDFormat_LIBRARIES})
 
