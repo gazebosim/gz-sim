@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SERVER_HH_
 
 #include <cstdint>
+#include <memory>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
@@ -64,7 +65,7 @@ namespace ignition
       uint64_t IterationCount() const;
 
       /// \brief Private data
-      private: ServerPrivate *dataPtr;
+      private: std::unique_ptr<ServerPrivate> dataPtr;
     };
   }
 }
