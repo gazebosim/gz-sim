@@ -35,7 +35,7 @@ ign_find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 2)
+set(IGN_MSGS_VER 1)
 ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
