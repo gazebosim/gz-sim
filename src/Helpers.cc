@@ -42,7 +42,7 @@ namespace ignition
       //  From https://stackoverflow.com/a/18501209
       //
       // \todo: Remove this ifdef and use the "0x1p-20" version when c++17
-      // is used. Windows should then support the "p" literal.
+      // is used. All platforms should then support the "p" literal.
       //
       // Note that the of Hexadecimal floats is failing in some Linux g++
       // compilers from 6.x/7.x series. The native support for C++ is defined
