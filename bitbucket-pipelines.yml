@@ -20,35 +20,11 @@ pipelines:
             libignition-math5-dev
             libignition-common-dev
             libsdformat6-dev
-          # Packages to remove/update
+          # Packages to remove or update to a newer version
           - apt-get -y install
             libignition-cmake-dev
             libignition-msgs-dev
             libignition-transport4-dev
-          # Ignition Msgs
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
-          - cd ign-msgs
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition rendering
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
-          - cd ign-rendering
-          - mkdir build
-          - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
-          - make -j4 install
-          - cd ../..
-          # Ignition GUI
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b default
-          - cd ign-gui
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
