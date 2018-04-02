@@ -24,9 +24,6 @@ namespace ignition
 {
   namespace gazebo
   {
-    // Forward declarations
-    class TestSystemPrivate;
-
     /// \brief A stand-in system for testing and development.
     /// This will go away in the near future.
     class TestSystem : public System
@@ -37,15 +34,9 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~TestSystem();
 
-      // Documentation inherited
-      public: virtual bool EntityCreated(const Entity &_entity) final;
-
       /// \brief Update the system.
       /// \return True on success.
       public: virtual bool Update() final;
-
-      /// \brief Private data.
-      private: TestSystemPrivate *dataPtr;
     };
   }
 }

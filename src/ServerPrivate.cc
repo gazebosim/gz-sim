@@ -47,6 +47,8 @@ void ServerPrivate::UpdateSystems()
 void ServerPrivate::Run(const uint64_t _iterations)
 {
 #ifndef _WIN32
+  /// \todo(nkoenig) Create an adaptor class for signal handling. This will
+  /// allow a mock interface to be created for testing purposes.
   struct sigaction sigact;
   sigact.sa_flags = 0;
   sigact.sa_handler = ServerPrivate::SigHandler;
