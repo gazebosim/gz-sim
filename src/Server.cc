@@ -31,13 +31,11 @@ Server::Server()
 
   // This is the scene service
   this->dataPtr->node.Advertise("/ign/gazebo/scene",
-      &ServerPrivate::SceneService, this->dataPtr);
+      &ServerPrivate::SceneService, this->dataPtr.get());
 }
 /////////////////////////////////////////////////
 Server::~Server()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
 /////////////////////////////////////////////////
@@ -47,7 +45,7 @@ void Server::Run(const uint64_t _iterations, const bool _blocking)
     this->dataPtr->Run(_iterations);
   else
     this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr, _iterations);
+      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
 }
 
 /////////////////////////////////////////////////
