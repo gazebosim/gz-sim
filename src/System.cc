@@ -19,12 +19,6 @@
 using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
-bool System::EntityCreated(const Entity &/*_entity*/)
-{
-  return false;
-}
-
-/////////////////////////////////////////////////
 bool System::Update()
 {
   return false;

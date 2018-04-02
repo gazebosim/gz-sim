@@ -26,7 +26,5 @@ TEST(System, Constructor)
 {
   /// \todo(nkoenig) Add more tests here.
   gazebo::System system;
-  gazebo::Entity entity;
-  EXPECT_FALSE(system.EntityCreated(entity));
   EXPECT_FALSE(system.Update());
 }

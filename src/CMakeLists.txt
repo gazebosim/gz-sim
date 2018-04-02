@@ -16,11 +16,11 @@ set (gtest_sources
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  PRIVATE
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
   ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+  PRIVATE
+  ignition-math${IGN_MATH_VER}::ignition-math${IGN_MATH_VER}
   ${SDFormat_LIBRARIES})
 
 # Turn on C++14 support for the library
