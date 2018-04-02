@@ -5,17 +5,26 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck
+          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev libxml2-utils ruby-dev libboost-dev qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev protobuf-compiler libprotobuf-dev libogre-1.9-dev libglew-dev libfreeimage-dev doxygen ruby-ronn freeglut3-dev libxmu-dev libxi-dev libzmq3-dev uuid-dev libsqlite3-dev
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
           - sh tools/code_check.sh
-          # Ignition cmake
+          # Ignition depends
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
           - apt-get -y install
+            libignition-cmake1-dev
+            libignition-math5-dev
+            libignition-common-dev
+            libsdformat6-dev
+          # Packages to remove or update to a newer version
+          - apt-get -y install
             libignition-cmake-dev
+            libignition-msgs-dev
+            libignition-transport4-dev
           # Ignition Gazebo
           - mkdir build
           - cd build
@@ -25,3 +34,4 @@ pipelines:
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
           - make install
+          - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
