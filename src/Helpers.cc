@@ -42,9 +42,13 @@ namespace ignition
       //  From https://stackoverflow.com/a/18501209
       //
       // \todo: Remove this ifdef and use the "0x1p-20" version when c++17
-      // is used. Windows should then support the "p" literal.
-#ifdef _WIN32
-      uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) - 0.000001);
+      // is used. All platforms should then support the "p" literal.
+      //
+      // Note that the of Hexadecimal floats is failing in some Linux g++
+      // compilers from 6.x/7.x series. The native support for C++ is defined
+      // in C++17 See https://bugzilla.redhat.com/show_bug.cgi?id=1321986
+#if (__cplusplus < 201703L)
+      uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) -9.53674e-07);
 #else
       uint64_t sqrt = static_cast<uint64_t>(std::sqrt(_key) - 0x1p-20);
 #endif
