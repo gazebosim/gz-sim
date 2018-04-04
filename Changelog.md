@@ -5,7 +5,9 @@
 1. Add Plane copy constructor and fix cppcheck on artful
     * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
 
-
+1. Added a Material class, which holds information about materials like wood,
+   steel, and iron.
+    * [Pull request XXX](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/XXX)
 
 ### Ignition Math 4.0.0 (2017-12-26)
 
