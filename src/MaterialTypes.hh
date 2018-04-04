@@ -18,6 +18,7 @@
 #define IGNITION_MATERIAL_HH_
 
 #include <map>
+#include <string>
 
 using namespace ignition;
 using namespace math;
@@ -27,6 +28,7 @@ struct MaterialData
 {
   // Name of the material
   std::string name;
+
   // Density of the material
   double density;
 };
