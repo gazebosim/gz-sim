@@ -5,7 +5,8 @@ ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
 # Turn on C++14 support for the library
-ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
+set (c++standard 14)
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
 
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
