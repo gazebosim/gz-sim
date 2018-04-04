@@ -14,14 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_MATERIALDENSITY_HH_
-#define IGNITION_MATH_MATERIALDENSITY_HH_
+#ifndef IGNITION_MATH_MATERIALTYPES_HH_
+#define IGNITION_MATH_MATERIALTYPES_HH_
 
-#include <string>
-#include <limits>
-#include <map>
-#include "ignition/math/Export.hh"
-#include "ignition/math/config.hh"
+#include <ignition/math/Export.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
@@ -39,11 +36,11 @@ namespace ignition
 #endif
     /// \enum MaterialType
     /// \brief This enum lists the supported material types. A value can be
-    /// used to query the MaterialDensity class for a density value.
+    /// used to create a Material instance.
     /// Source: https://en.wikipedia.org/wiki/Density
-    /// \sa MaterialDensity
+    /// \sa Material
     // Developer Note: When modifying this enum, make sure to also modify
-    // the MaterialDensity::materials map, see below.
+    // the kMaterials map in src/MaterialTypes.hh.
     enum class IGNITION_MATH_VISIBLE MaterialType
     {
       /// \brief Styrofoam, density = 75.0 kg/m^3
@@ -114,67 +111,6 @@ namespace ignition
 #ifndef _WIN32
 #pragma GCC diagnostic pop
 #endif
-
-    /// \brief Contains information about a single material.
-    struct IGNITION_MATH_VISIBLE Material
-    {
-      /// \brief The material type.
-      public: MaterialType type = MaterialType::INVALID;
-
-      /// \brief Name of the material. This will match the names
-      /// used in MaterialType, but in lowercase.
-      public: std::string name = "";
-
-      /// \brief Density value of the material in kg/m^3.
-      public: double density = -1;
-    };
-
-    /// \brief Encapsulates density types.
-    class IGNITION_MATH_VISIBLE MaterialDensity
-    {
-      /// \brief Accessor for retrieving density entries
-      /// \return List of entries.
-      public: static const std::map<MaterialType, Material> &Materials();
-
-      /// \brief Return the density of the given material name, or
-      /// a negative value if the material is not found. Units are kg/m^3
-      /// \param[in] _material Name of the material. The name must be a
-      /// lowercase version of one value in the MaterialType enum.
-      /// \return Matching density if found, otherwise a negative value.
-      /// \sa MaterialType.
-      public: static double Density(const std::string &_material);
-
-      /// \brief Return the density of a material based on a type. Units are
-      /// kg/m^3
-      /// \param[in] _material Type of the material.
-      /// \return Matching density if found, otherwise a negative value.
-      /// \sa MaterialType
-      public: static double Density(const MaterialType _material);
-
-      /// \brief Return the material with the closest density value within
-      /// _epsilon, or MATERIAL_TYPE_END if not found.
-      /// \param[in] _value Density value of entry to match.
-      /// \param[in] _epsilon Allowable range of difference between _value,
-      /// and a material's density.
-      /// \return The Material that has a density nearest to the given value.
-      /// A default constructed Material will be returned if a matching
-      /// material could not be found for the given value and epsilon.
-      public: static Material Nearest(
-                  const double _value,
-                  const double _epsilon = std::numeric_limits<double>::max());
-
-#ifdef _WIN32
-// Disable warning C4251
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-      // Developer Note: When modifying this map, make sure to also modify
-      // the MaterialType enum, see above.
-      private: static std::map<MaterialType, Material> materials;
-#ifdef _WIN32
-#pragma warning(pop)
-#endif
-    };
     }
   }
 }

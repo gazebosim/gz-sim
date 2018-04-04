@@ -16,16 +16,16 @@
 */
 
 #include <gtest/gtest.h>
-#include "ignition/math/MaterialDensity.hh"
+#include "ignition/math/Material.hh"
 #include "ignition/math/Helpers.hh"
 
 using namespace ignition;
 using namespace math;
 
 /////////////////////////////////////////////////
-TEST(MaterialDensityTest, Init)
+TEST(MaterialTest, Init)
 {
-  const std::map<MaterialType, Material> &mats = MaterialDensity::Materials();
+  const std::map<MaterialType, Material> &mats = Material::Materials();
   EXPECT_FALSE(mats.empty());
 
   // Make sure that the number of elements in the MaterialType enum matches
@@ -37,50 +37,58 @@ TEST(MaterialDensityTest, Init)
   for (size_t i = 0; i < static_cast<size_t>(MaterialType::INVALID); ++i)
   {
     // Get the type of the material for MaterialType i.
-    MaterialType type = mats.find(static_cast<MaterialType>(i))->second.type;
+    MaterialType type = mats.find(static_cast<MaterialType>(i))->second.Type();
     EXPECT_EQ(i, static_cast<size_t>(type));
 
     // The name should not be empty
-    EXPECT_FALSE(mats.find(static_cast<MaterialType>(i))->second.name.empty());
+    EXPECT_FALSE(
+        mats.find(static_cast<MaterialType>(i))->second.Name().empty());
 
     // The density should be less than the max double value and greater than
     // zero.
-    EXPECT_GT(MAX_D, mats.find(static_cast<MaterialType>(i))->second.density);
-    EXPECT_LT(0.0, mats.find(static_cast<MaterialType>(i))->second.density);
+    EXPECT_GT(MAX_D, mats.find(static_cast<MaterialType>(i))->second.Density());
+    EXPECT_LT(0.0, mats.find(static_cast<MaterialType>(i))->second.Density());
   }
 }
 
 /////////////////////////////////////////////////
-TEST(MaterialDensityTest, Accessors)
+TEST(MaterialTest, Accessors)
 {
   {
-    double density = MaterialDensity::Density("Aluminum");
-    double density1 = MaterialDensity::Density("aluminum");
-    double density2 = MaterialDensity::Density(MaterialType::ALUMINUM);
+    Material mat("Aluminum");
+    Material mat1("aluminum");
+    Material mat2(MaterialType::ALUMINUM);
 
-    EXPECT_DOUBLE_EQ(density, 2700);
-    EXPECT_DOUBLE_EQ(density, density1);
-    EXPECT_DOUBLE_EQ(density1, density2);
-  }
-
-  {
-    double density = MaterialDensity::Density("Notfoundium");
-    EXPECT_LT(density, 0.0);
+    EXPECT_DOUBLE_EQ(2700.0, mat.Density());
+    EXPECT_EQ(mat, mat1);
+    EXPECT_EQ(mat1, mat2);
   }
 
   {
-    Material material = MaterialDensity::Nearest(19300.0);
-    EXPECT_EQ(MaterialType::TUNGSTEN, material.type);
-    EXPECT_DOUBLE_EQ(19300.0, material.density);
+    Material mat("Notfoundium");
+    EXPECT_GT(0.0, mat.Density());
+    EXPECT_EQ(MaterialType::INVALID, mat.Type());
+    EXPECT_TRUE(mat.Name().empty());
+  }
+
+
+  {
+    Material material;
+    material.ToNearestDensity(19300.0);
+    EXPECT_EQ(MaterialType::TUNGSTEN, material.Type());
+    EXPECT_DOUBLE_EQ(19300.0, material.Density());
+  }
+
+  {
+    Material material;
+    material.ToNearestDensity(1001001.001, 1e-3);
+    EXPECT_EQ(MaterialType::INVALID, material.Type());
+    EXPECT_GT(0.0, material.Density());
   }
   {
-    Material material = MaterialDensity::Nearest(1001001.001, 1e-3);
-    EXPECT_EQ(MaterialType::INVALID, material.type);
-    EXPECT_LT(material.density, 0.0);
-  }
-  {
-    Material material = MaterialDensity::Nearest(1001001.001);
-    EXPECT_EQ(MaterialType::TUNGSTEN, material.type);
-    EXPECT_DOUBLE_EQ(19300, material.density);
+    Material material;
+    material.ToNearestDensity(1001001.001);
+    EXPECT_EQ(MaterialType::TUNGSTEN, material.Type());
+    EXPECT_DOUBLE_EQ(19300, material.Density());
   }
 }
