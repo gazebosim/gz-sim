@@ -7,7 +7,7 @@
 
 1. Added a Material class, which holds information about materials like wood,
    steel, and iron.
-    * [Pull request XXX](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/XXX)
+    * [Pull request 243](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/243)
 
 ### Ignition Math 4.0.0 (2017-12-26)
 
