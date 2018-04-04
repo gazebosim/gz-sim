@@ -39,6 +39,10 @@ namespace ignition
     /// allows you to create custom materials, or use built-in materials.
     /// The list of built-in materials can be found in the :MaterialType enum.
     ///
+    /// This class will replace the MaterialDensity class found in
+    /// the Ignition Common library, which was at version 1 at the time of this
+    /// writing.
+    ///
     /// **How to create a wood material:**
     ///
     /// ~~~
