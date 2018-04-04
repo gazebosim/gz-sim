@@ -33,4 +33,6 @@ pipelines:
           - cd build
           - cmake ..
           - make
+          # Add the following when a new cmake1 release is made
+          # - make codecheck
           - ./graph_example
