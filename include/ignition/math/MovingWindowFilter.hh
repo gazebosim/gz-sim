@@ -67,6 +67,8 @@ namespace ignition
 
     /// \brief Base class for MovingWindowFilter. This replaces the
     /// version of MovingWindowFilter in the Ignition Common library.
+    ///
+    /// The default window size is 4.
     template< typename T>
     class MovingWindowFilter
     {
@@ -78,11 +80,11 @@ namespace ignition
 
       /// \brief Update value of filter
       /// \param[in] _val new raw value
-      public: void Update(T _val);
+      public: void Update(const T _val);
 
       /// \brief Set window size
       /// \param[in] _n new desired window size
-      public: void SetWindowSize(unsigned int _n);
+      public: void SetWindowSize(const unsigned int _n);
 
       /// \brief Get the window size.
       /// \return The size of the moving window.
@@ -94,7 +96,7 @@ namespace ignition
 
       /// \brief Get filtered result
       /// \return Latest filtered value
-      public: T Value();
+      public: T Value() const;
 
       /// \brief Allow subclasses to initialize their own data pointer.
       /// \param[in] _d Reference to data pointer.
@@ -102,7 +104,7 @@ namespace ignition
                      MovingWindowFilterPrivate<T> &_d);
 
       /// \brief Data pointer.
-      protected: std::unique_ptr<MovingWindowFilterPrivate<T>> dataPtr;
+      private: std::unique_ptr<MovingWindowFilterPrivate<T>> dataPtr;
     };
 
     //////////////////////////////////////////////////
@@ -121,7 +123,7 @@ namespace ignition
 
     //////////////////////////////////////////////////
     template<typename T>
-    void MovingWindowFilter<T>::Update(T _val)
+    void MovingWindowFilter<T>::Update(const T _val)
     {
       // update sum and sample size with incoming _val
 
@@ -157,7 +159,7 @@ namespace ignition
 
     //////////////////////////////////////////////////
     template<typename T>
-    void MovingWindowFilter<T>::SetWindowSize(unsigned int _n)
+    void MovingWindowFilter<T>::SetWindowSize(const unsigned int _n)
     {
       this->dataPtr->valWindowSize = _n;
       this->dataPtr->valHistory.clear();
@@ -183,7 +185,7 @@ namespace ignition
 
     //////////////////////////////////////////////////
     template<typename T>
-    T MovingWindowFilter<T>::Value()
+    T MovingWindowFilter<T>::Value() const
     {
       return this->dataPtr->sum / static_cast<double>(this->dataPtr->samples);
     }
