@@ -14,8 +14,22 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_MATERIAL_HH_
+#define IGNITION_MATERIAL_HH_
 
 #include <map>
+
+using namespace ignition;
+using namespace math;
+
+// This class is used to curly-brace initialize kMaterialData
+struct MaterialData
+{
+  // Name of the material
+  std::string name;
+  // Density of the material
+  double density;
+};
 
 // The mapping of material type to name and density values.
 // If you modify this map, make sure to also modify the MaterialType enum in
@@ -38,3 +52,4 @@ static std::map<MaterialType, MaterialData> kMaterialData =
   {MaterialType::COPPER, {"copper", 8940.0}},
   {MaterialType::TUNGSTEN, {"tungsten", 19300.0}}
 }};
+#endif

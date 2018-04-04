@@ -18,19 +18,11 @@
 #include "ignition/math/Material.hh"
 #include "ignition/math/Helpers.hh"
 
+// Placing the kMaterialData in a separate file for conveniece and clarity.
+#include "MaterialTypes.hh"
+
 using namespace ignition;
 using namespace math;
-
-// This class is used to curly-brace initialize kMaterialData
-struct MaterialData
-{
-  // Name of the material
-  std::string name;
-  // Density of the material
-  double density;
-};
-
-#include "MaterialTypes.hh"
 
 // Initialize the static map of Material objects based on the kMaterialData.
 static std::map<MaterialType, Material> kMaterials = []()
