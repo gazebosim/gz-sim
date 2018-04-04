@@ -34,15 +34,40 @@ namespace ignition
     class MaterialPrivate;
 
     /// \brief Contains information about a single material.
+    ///
+    /// Steel, wood, and iron are examples of materials. This class
+    /// allows you to create custom materials, or use built-in materials.
+    /// The list of built-in materials can be found in the :MaterialType enum.
+    ///
+    /// **How to create a wood material:**
+    ///
+    /// ~~~
+    /// Material mat(MaterialType::WOOD);
+    /// std::cout << "The density of " << mat.Name() << " is "
+    ///   << mat.Density() << std::endl;
+    /// ~~~
+    ///
+    /// **How to create a custom material:**
+    ///
+    /// ~~~
+    /// Material mat;
+    /// mat.SetDensity(12.23);
+    /// mat.SetName("my_material");
+    /// std::cout << "The density of " << mat.Name() is "
+    ///   << mat.Density() << std::endl;
+    /// ~~~
     class IGNITION_MATH_VISIBLE Material
     {
       /// \brief Constructor.
       public: Material();
 
       /// \brief Construct a material based on a type.
+      /// \param[in] _type Built-in type to create.
       public: explicit Material(const MaterialType _type);
 
       /// \brief Construct a material based on a type name.
+      /// \param[in] _typename Name of the built-in type to create. String
+      /// names are listed in the :MaterialType documentation.
       public: explicit Material(const std::string &_typename);
 
       /// \brief Copy constructor.
@@ -68,7 +93,7 @@ namespace ignition
       /// \param[in] _value Density value of entry to match.
       /// \param[in] _epsilon Allowable range of difference between _value,
       /// and a material's density.
-      public: void ToNearestDensity(
+      public: void SetToNearestDensity(
                   const double _value,
                   const double _epsilon = std::numeric_limits<double>::max());
 
@@ -87,7 +112,7 @@ namespace ignition
       /// \return True if this material is equal to the given _material.
       public: bool operator==(const Material &_material) const;
 
-      /// \brief Get the material type.
+      /// \brief Get the material's type.
       /// \return The material's type.
       public: MaterialType Type() const;
 

@@ -58,10 +58,24 @@ TEST(MaterialTest, Accessors)
     Material mat("Aluminum");
     Material mat1("aluminum");
     Material mat2(MaterialType::ALUMINUM);
+    Material mat3(mat2);
 
     EXPECT_DOUBLE_EQ(2700.0, mat.Density());
     EXPECT_EQ(mat, mat1);
     EXPECT_EQ(mat1, mat2);
+    EXPECT_EQ(mat2, mat3);
+
+    // Test move constructor
+    Material mat4(std::move(mat3));
+    EXPECT_EQ(mat2, mat4);
+    Material defaultMat;
+    EXPECT_EQ(defaultMat, mat3);
+
+    // Test move operator
+    Material mat5;
+    mat5 = std::move(mat4);
+    EXPECT_EQ(mat2, mat5);
+    EXPECT_EQ(defaultMat, mat4);
   }
 
   {
@@ -71,23 +85,22 @@ TEST(MaterialTest, Accessors)
     EXPECT_TRUE(mat.Name().empty());
   }
 
-
   {
     Material material;
-    material.ToNearestDensity(19300.0);
+    material.SetToNearestDensity(19300.0);
     EXPECT_EQ(MaterialType::TUNGSTEN, material.Type());
     EXPECT_DOUBLE_EQ(19300.0, material.Density());
   }
 
   {
     Material material;
-    material.ToNearestDensity(1001001.001, 1e-3);
+    material.SetToNearestDensity(1001001.001, 1e-3);
     EXPECT_EQ(MaterialType::INVALID, material.Type());
     EXPECT_GT(0.0, material.Density());
   }
   {
     Material material;
-    material.ToNearestDensity(1001001.001);
+    material.SetToNearestDensity(1001001.001);
     EXPECT_EQ(MaterialType::TUNGSTEN, material.Type());
     EXPECT_DOUBLE_EQ(19300, material.Density());
   }

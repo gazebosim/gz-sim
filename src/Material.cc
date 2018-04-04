@@ -98,7 +98,7 @@ Material::Material(const Material &_material)
 Material::Material(Material &&_material)
 {
   this->dataPtr = std::move(_material.dataPtr);
-  _material.dataPtr = nullptr;
+  _material.dataPtr = new MaterialPrivate;
 }
 
 ///////////////////////////////
@@ -136,7 +136,7 @@ Material &Material::operator=(Material &&_material)
 {
   delete this->dataPtr;
   this->dataPtr = std::move(_material.dataPtr);
-  _material.dataPtr = nullptr;
+  _material.dataPtr = new MaterialPrivate;
   return *this;
 }
 
