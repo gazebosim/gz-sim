@@ -37,9 +37,10 @@ namespace ignition
     ///
     /// Steel, wood, and iron are examples of materials. This class
     /// allows you to create custom materials, or use built-in materials.
-    /// The list of built-in materials can be found in the :MaterialType enum.
+    /// The list of built-in materials can be found in the ::MaterialType
+    /// enum.
     ///
-    /// This class will replace the MaterialDensity class found in
+    /// This class will replace the [MaterialDensity class](https://bitbucket.org/ignitionrobotics/ign-common/src/ign-common1/include/ignition/common/MaterialDensity.hh) found in
     /// the Ignition Common library, which was at version 1 at the time of this
     /// writing.
     ///
@@ -71,7 +72,7 @@ namespace ignition
 
       /// \brief Construct a material based on a type name.
       /// \param[in] _typename Name of the built-in type to create. String
-      /// names are listed in the :MaterialType documentation.
+      /// names are listed in the ::MaterialType documentation.
       public: explicit Material(const std::string &_typename);
 
       /// \brief Copy constructor.
@@ -79,21 +80,21 @@ namespace ignition
       public: Material(const Material &_material);
 
       /// \brief Move constructor.
-      /// \param[in] _material Material to move.
+      /// \param[in] _material Material to move. The _material object will
+      /// have default values after the move.
       public: Material(Material &&_material);
 
       /// \brief Destructor.
       public: ~Material();
 
       /// \brief Get all the built-in materials.
-      /// \return A map of all the materials, where the key is the
-      /// material's type and the value is the material object.
+      /// \return A map of all the materials. The map's key is
+      /// material type and the map's value is the material object.
       public: static const std::map<MaterialType, Material> &Materials();
 
       /// \brief Set this Material to the built-in Material with
-      /// the nearest density value within
-      /// _epsilon. If a built-in material could not be found, then this
-      /// material is not changed.
+      /// the nearest density value within _epsilon. If a built-in material
+      /// could not be found, then this Material is not changed.
       /// \param[in] _value Density value of entry to match.
       /// \param[in] _epsilon Allowable range of difference between _value,
       /// and a material's density.
@@ -107,7 +108,8 @@ namespace ignition
       public: Material &operator=(const Material &_material);
 
       /// \brief Move operator.
-      /// \param[in] _material Material to move.
+      /// \param[in] _material Material to move. The _material object will
+      /// contain default values after this move.
       /// \return Reference to this Material.
       public: Material &operator=(Material &&_material);
 
@@ -125,14 +127,16 @@ namespace ignition
       /// \param[in] _type The material's type.
       public: void SetType(const MaterialType _type);
 
-      /// \brief Get the name of the material. This will match the names
-      /// used in MaterialType, but in lowercase.
+      /// \brief Get the name of the material. This will match the enum type
+      /// names used in ::MaterialType, but in lowercase, if a built-in
+      /// material is used.
       /// \return The material's name.
+      /// \sa void SetName(const std::string &_name)
       public: std::string Name() const;
 
-      /// \brief Set the name of the material. This should match one the names
-      /// used in MaterialType, but in lowercase.
+      /// \brief Set the name of the material.
       /// \param[in] _name The material's name.
+      /// \sa std::string Name() const
       public: void SetName(const std::string &_name);
 
       /// \brief Get the density value of the material in kg/m^3.

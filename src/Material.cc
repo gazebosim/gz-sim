@@ -177,7 +177,7 @@ void Material::SetDensity(const double _density)
 }
 
 //////////////////////////////////////////////////
-void Material::ToNearestDensity(const double _value, const double _epsilon)
+void Material::SetToNearestDensity(const double _value, const double _epsilon)
 {
   double min = MAX_D;
   Material result;

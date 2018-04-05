@@ -3400,12 +3400,18 @@ def CheckRValueReference(filename, clean_lines, linenum, nesting_state, error):
   # if what's to the left of "&&" is a type or not.
   and_pos = len(match.group(1))
   if IsRValueType(clean_lines, nesting_state, linenum, and_pos):
-    if not IsRValueAllowed(clean_lines, linenum):
+    if False and not IsRValueAllowed(clean_lines, linenum):
       error(filename, linenum, 'build/c++11', 3,
             'RValue references are an unapproved C++ feature.')
   else:
-    error(filename, linenum, 'whitespace/operators', 3,
-          'Missing spaces around &&')
+    # Custom hack that assumes a line containing '&&' with a semicolon at
+    # the end is function definition instead of an "if/while/for/etc". This
+    # could be better, but I'm going for simple solution. ign-math5+ will use
+    # an updated cpplint.py script that handles this case properly.
+    match = Match(r'.*;$', line)
+    if not match:
+      error(filename, linenum, 'whitespace/operators', 3,
+            'Missing spaces around &&')
 
 
 def CheckSectionSpacing(filename, clean_lines, class_info, linenum, error):
