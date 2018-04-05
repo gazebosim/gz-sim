@@ -31,7 +31,7 @@ namespace ignition
     class EntityPrivate;
 
     /// \brief An Entity identifies a single object in simulation such as
-    /// a model, link, or light. At its core, an Entity is just and identifier.
+    /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
     /// An Entity usually has one or more associated Components. Components
     /// represent data, such as position information.
