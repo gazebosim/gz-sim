@@ -4048,9 +4048,10 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
     line_width = GetLineWidth(line)
     extended_length = int((_line_length * 1.25))
     if line_width > extended_length:
-      error(filename, linenum, 'whitespace/line_length', 4,
-            'Lines should very rarely be longer than %i characters' %
-            extended_length)
+      if not Match(r'.*http(s?)://.*', line):
+        error(filename, linenum, 'whitespace/line_length', 4,
+              'Lines should very rarely be longer than %i characters' %
+              extended_length)
     elif line_width > _line_length:
       error(filename, linenum, 'whitespace/line_length', 2,
             'Lines should be <= %i characters long' % _line_length)
