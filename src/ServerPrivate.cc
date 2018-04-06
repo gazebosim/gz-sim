@@ -53,13 +53,13 @@ void ServerPrivate::Run(const uint64_t _iterations)
   if (sigemptyset(&sigact.sa_mask) != 0)
     std::cerr << "sigemptyset failed while setting up for SIGINT" << std::endl;
 
-  if (sigaction(SIGINT, &sigact, NULL))
+  if (sigaction(SIGINT, &sigact, nullptr))
   {
     std::cerr << "Stopping. Unable to catch SIGINT.\n"
       << " Please visit http://gazebosim.org/support.html for help.\n";
     return;
   }
-  if (sigaction(SIGTERM, &sigact, NULL))
+  if (sigaction(SIGTERM, &sigact, nullptr))
   {
     std::cerr << "Stopping. Unable to catch SIGTERM.\n";
     return;

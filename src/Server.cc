@@ -42,10 +42,14 @@ Server::~Server()
 void Server::Run(const uint64_t _iterations, const bool _blocking)
 {
   if (_blocking)
+  {
     this->dataPtr->Run(_iterations);
+  }
   else
+  {
     this->dataPtr->runThread =
       std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+  }
 }
 
 /////////////////////////////////////////////////
