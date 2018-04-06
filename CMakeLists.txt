@@ -25,9 +25,6 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
-find_package(SDFormat 6 REQUIRED)
-include_directories(${SDFormat_INCLUDE_DIRS})
-
 #--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 4)

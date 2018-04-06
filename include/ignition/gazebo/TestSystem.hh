@@ -33,10 +33,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~TestSystem();
-
-      /// \brief Update the system.
-      /// \return True on success.
-      public: virtual bool Update() final;
     };
   }
 }

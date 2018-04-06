@@ -34,11 +34,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System() = default;
-
-      /// \brief Update the system. Each system should override this
-      /// function.
-      /// \return True on success.
-      public: virtual bool Update();
     };
   }
 }

@@ -38,9 +38,7 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  // Update systems
-  for (std::unique_ptr<System> &system : this->systems)
-    system->Update();
+  /// \todo(nkoenig) Update systems
 }
 
 /////////////////////////////////////////////////
