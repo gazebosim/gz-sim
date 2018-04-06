@@ -17,10 +17,10 @@
 #ifndef IGNITION_GAZEBO_SERVERPRIVATE_HH_
 #define IGNITION_GAZEBO_SERVERPRIVATE_HH_
 
-#include <vector>
 #include <atomic>
 #include <memory>
 #include <thread>
+#include <vector>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
