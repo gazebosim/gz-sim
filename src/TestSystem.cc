@@ -32,9 +32,3 @@ TestSystem::TestSystem()
 TestSystem::~TestSystem()
 {
 }
-
-//////////////////////////////////////////////////
-bool TestSystem::Update()
-{
-  return true;
-}
