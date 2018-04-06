@@ -1,9 +1,9 @@
 set (sources
   Entity.cc
-  TestSystem.cc
   Server.cc
   ServerPrivate.cc
   System.cc
+  TestSystem.cc
 )
 
 set (gtest_sources

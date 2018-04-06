@@ -64,7 +64,7 @@ namespace ignition
 
       /// \brief Get the number of iterations the server has executed.
       /// \return The current iteration count.
-      uint64_t IterationCount() const;
+      public: uint64_t IterationCount() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
