@@ -66,9 +66,6 @@ namespace ignition
       /// \brief All of the systems.
       public: std::vector<std::unique_ptr<System>> systems;
 
-      /// \brief All of the entities.
-      public: std::vector<Entity> entities;
-
       /// \brief Communication node.
       public: ignition::transport::Node node;
 
