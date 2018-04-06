@@ -4,4 +4,6 @@
 
 1. Added basic System and Entity classes along with a Server and simple
    executable.
+
+1. Added basic Entity class.
     * [Pull request 3](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-request/3)
