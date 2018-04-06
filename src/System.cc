@@ -17,9 +17,3 @@
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
-
-/////////////////////////////////////////////////
-bool System::Update()
-{
-  return false;
-}
