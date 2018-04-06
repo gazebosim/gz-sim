@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include "ignition/gazebo/Entity.hh"
-
 namespace ignition
 {
   namespace gazebo
@@ -26,7 +24,8 @@ namespace ignition
     /// \brief Base class for a System.
     ///
     /// A System operates on Entities that have certain Components. A System
-    /// will only operate on an Entity if it has all of the required Components.
+    /// will only operate on an Entity if it has all of the required
+    /// Components.
     class System
     {
       /// \brief Constructor
