@@ -98,11 +98,6 @@ namespace ignition
       /// \return Latest filtered value
       public: T Value() const;
 
-      /// \brief Allow subclasses to initialize their own data pointer.
-      /// \param[in] _d Reference to data pointer.
-      protected: explicit MovingWindowFilter<T>(
-                     MovingWindowFilterPrivate<T> &_d);
-
       /// \brief Data pointer.
       private: std::unique_ptr<MovingWindowFilterPrivate<T>> dataPtr;
     };
