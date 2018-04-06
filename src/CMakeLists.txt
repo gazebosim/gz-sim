@@ -1,8 +1,10 @@
 set (sources
+  Entity.cc
   System.cc
 )
 
 set (gtest_sources
+  Entity_TEST.cc
   System_TEST.cc
 )
 
