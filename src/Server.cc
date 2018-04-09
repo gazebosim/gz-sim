@@ -33,6 +33,7 @@ Server::Server()
   this->dataPtr->node.Advertise("/ign/gazebo/scene",
       &ServerPrivate::SceneService, this->dataPtr.get());
 }
+
 /////////////////////////////////////////////////
 Server::~Server()
 {
