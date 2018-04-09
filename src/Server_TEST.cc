@@ -43,7 +43,10 @@ TEST(Server, RunBlocking)
   uint64_t expectedIters = 0;
   for (uint64_t i = 1; i < 100; ++i)
   {
+    EXPECT_FALSE(server.Running());
     server.Run(i, true);
+    EXPECT_FALSE(server.Running());
+
     expectedIters += i;
     EXPECT_EQ(expectedIters, server.IterationCount());
   }
@@ -58,9 +61,26 @@ TEST(Server, RunNonBlocking)
 
   server.Run(100, false);
   while (server.IterationCount() < 100)
+  {
     IGN_SLEEP_MS(100);
+  }
 
   EXPECT_EQ(100u, server.IterationCount());
+  EXPECT_FALSE(server.Running());
+}
+
+/////////////////////////////////////////////////
+TEST(Server, RunNonBlockingMultiple)
+{
+  gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_EQ(0u, server.IterationCount());
+
+  server.Run(100, false);
+  server.Run(100, false);
+
+  EXPECT_EQ(100u, server.IterationCount());
+  EXPECT_FALSE(server.Running());
 }
 
 /////////////////////////////////////////////////
