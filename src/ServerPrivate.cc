@@ -14,11 +14,10 @@
  * limitations under the License.
  *
 */
+#include "ServerPrivate.hh"
 
 #include <signal.h>
 #include <ignition/common/Console.hh>
-
-#include "ServerPrivate.hh"
 
 using namespace ignition;
 using namespace gazebo;
