@@ -119,3 +119,47 @@ TEST(Server, SigInt)
 
   EXPECT_FALSE(server.Running());
 }
+
+/////////////////////////////////////////////////
+TEST(Server, TwoServersNonBlocking)
+{
+  gazebo::Server server1;
+  gazebo::Server server2;
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(server2.Running());
+  EXPECT_EQ(0u, server1.IterationCount());
+  EXPECT_EQ(0u, server2.IterationCount());
+
+  server1.Run(100, false);
+  server2.Run(500, false);
+
+  while (server1.IterationCount() < 100 && server1.IterationCount() < 500)
+    IGN_SLEEP_MS(100);
+
+  EXPECT_EQ(100u, server1.IterationCount());
+  EXPECT_EQ(500u, server2.IterationCount());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(server2.Running());
+}
+
+/////////////////////////////////////////////////
+TEST(Server, TwoServersMixedBlocking)
+{
+  gazebo::Server server1;
+  gazebo::Server server2;
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(server2.Running());
+  EXPECT_EQ(0u, server1.IterationCount());
+  EXPECT_EQ(0u, server2.IterationCount());
+
+  server1.Run(10, false);
+  server2.Run(1000, true);
+
+  while (server1.IterationCount() < 10)
+    IGN_SLEEP_MS(100);
+
+  EXPECT_EQ(10u, server1.IterationCount());
+  EXPECT_EQ(1000u, server2.IterationCount());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(server2.Running());
+}
