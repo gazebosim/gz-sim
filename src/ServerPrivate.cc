@@ -16,14 +16,23 @@
 */
 
 #include "ServerPrivate.hh"
-#include <signal.h>
+
+#include <functional>
 #include <ignition/common/Console.hh>
+#include "SigHandler.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-// By default running is false
-std::atomic<bool> ServerPrivate::running(false);
+/////////////////////////////////////////////////
+ServerPrivate::ServerPrivate()
+{
+  // Windows does not support setting std::atmoic in the class definition.
+  // By default running is false
+  this->running = false;
+  this->sigHandler.AddCallback(
+      std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+}
 
 /////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
@@ -44,28 +53,20 @@ void ServerPrivate::UpdateSystems()
 /////////////////////////////////////////////////
 void ServerPrivate::Run(const uint64_t _iterations)
 {
-#ifndef _WIN32
-  /// \todo(nkoenig) Create an adaptor class for signal handling. This will
-  /// allow a mock interface to be created for testing purposes.
-  struct sigaction sigact;
-  sigact.sa_flags = 0;
-  sigact.sa_handler = ServerPrivate::SigHandler;
-  if (sigemptyset(&sigact.sa_mask) != 0)
-    std::cerr << "sigemptyset failed while setting up for SIGINT" << std::endl;
-
-  if (sigaction(SIGINT, &sigact, nullptr))
+  if (!this->sigHandler.Initialized())
   {
-    std::cerr << "Stopping. Unable to catch SIGINT.\n"
-      << " Please visit http://gazebosim.org/support.html for help.\n";
+    ignerr << "Signal handlers were not created. The server won't run.\n";
     return;
   }
-  if (sigaction(SIGTERM, &sigact, nullptr))
+
+  std::lock_guard<std::mutex> lock(this->runMutex);
+
+  // Can't run twice.
+  if (this->running)
   {
-    std::cerr << "Stopping. Unable to catch SIGTERM.\n";
+    ignwarn << "The server is already runnnng.\n";
     return;
   }
-#endif
-
   this->running = true;
 
   uint64_t startingIterations = this->iterations;
@@ -107,8 +108,8 @@ bool ServerPrivate::SceneService(ignition::msgs::Scene &_rep)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::SigHandler(int _sig)
+void ServerPrivate::OnSignal(int _sig)
 {
-  igndbg << "Received signal[" << _sig << "]. Quitting.\n";
-  running = false;
+  igndbg << "Server received signal[" << _sig  << "]\n";
+  this->running = false;
 }
