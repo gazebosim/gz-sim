@@ -48,8 +48,13 @@ void Server::Run(const uint64_t _iterations, const bool _blocking)
   }
   else
   {
-    this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+    // Make sure two threads are not created
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->runThread.get_id() == std::thread::id())
+    {
+      this->dataPtr->runThread =
+        std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+    }
   }
 }
 

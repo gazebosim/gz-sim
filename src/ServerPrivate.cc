@@ -59,8 +59,7 @@ void ServerPrivate::Run(const uint64_t _iterations)
     return;
   }
 
-  std::lock_guard<std::mutex> lock(this->runMutex);
-
+  this->runMutex.lock();
   // Can't run twice.
   if (this->running)
   {
@@ -68,6 +67,8 @@ void ServerPrivate::Run(const uint64_t _iterations)
     return;
   }
   this->running = true;
+  this->runMutex.unlock();
+
 
   uint64_t startingIterations = this->iterations;
   // Execute all the systems until we are told to stop, or the number of
@@ -78,7 +79,10 @@ void ServerPrivate::Run(const uint64_t _iterations)
   {
     this->UpdateSystems();
   }
+
+  this->runMutex.lock();
   this->running = false;
+  this->runMutex.unlock();
 }
 
 //////////////////////////////////////////////////
