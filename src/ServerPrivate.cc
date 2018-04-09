@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-
 #include "ServerPrivate.hh"
+
 #include <signal.h>
 #include <ignition/common/Console.hh>
 
@@ -69,7 +69,7 @@ void ServerPrivate::Run(const uint64_t _iterations)
   this->running = true;
 
   uint64_t startingIterations = this->iterations;
-  // Execute all the system until we are told to stop, or the number of
+  // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (; this->running && (_iterations == 0 ||
                            this->iterations < _iterations + startingIterations);
