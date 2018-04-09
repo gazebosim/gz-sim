@@ -133,7 +133,7 @@ TEST(Server, TwoServersNonBlocking)
   server1.Run(100, false);
   server2.Run(500, false);
 
-  while (server1.IterationCount() < 100 && server1.IterationCount() < 500)
+  while (server1.IterationCount() < 100 || server2.IterationCount() < 500)
     IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, server1.IterationCount());
