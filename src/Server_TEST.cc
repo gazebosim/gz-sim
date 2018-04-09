@@ -61,9 +61,7 @@ TEST(Server, RunNonBlocking)
 
   server.Run(100, false);
   while (server.IterationCount() < 100)
-  {
     IGN_SLEEP_MS(100);
-  }
 
   EXPECT_EQ(100u, server.IterationCount());
   EXPECT_FALSE(server.Running());
@@ -78,6 +76,9 @@ TEST(Server, RunNonBlockingMultiple)
 
   server.Run(100, false);
   server.Run(100, false);
+
+  while (server.IterationCount() < 100)
+    IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, server.IterationCount());
   EXPECT_FALSE(server.Running());
