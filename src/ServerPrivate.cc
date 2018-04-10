@@ -19,7 +19,7 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
-#include "SigHandler.hh"
+#include "SignalHandler.hh"
 
 using namespace ignition;
 using namespace gazebo;

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SIGHANDLER_HH_
-#define IGNITION_GAZEBO_SIGHANDLER_HH_
+#ifndef IGNITION_GAZEBO_SIGNALHANDLER_HH_
+#define IGNITION_GAZEBO_SIGNALHANDLER_HH_
 
 #include <functional>
 #include <vector>
@@ -25,13 +25,13 @@ namespace ignition
 {
   namespace gazebo
   {
-    class SigHandler
+    class SignalHandler
     {
       /// \brief Constructor
-      public: SigHandler();
+      public: SignalHandler();
 
       /// \brief Destructor.
-      public: ~SigHandler() = default;
+      public: ~SignalHandler() = default;
 
       /// \brief Get whether the signal handlers were successfully
       /// initialized.

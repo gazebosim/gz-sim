@@ -15,16 +15,16 @@
  *
 */
 
-#include "SigHandler.hh"
+#include "SignalHandler.hh"
 #include <gtest/gtest.h>
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(SigHandler, Multiple)
+TEST(SignalHandler, Multiple)
 {
-  gazebo::SigHandler handler1;
-  gazebo::SigHandler handler2;
+  gazebo::SignalHandler handler1;
+  gazebo::SignalHandler handler2;
 
   EXPECT_TRUE(handler1.Initialized());
   EXPECT_TRUE(handler2.Initialized());
