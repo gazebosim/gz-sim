@@ -27,7 +27,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/System.hh"
-#include "SigHandler.hh"
+#include "SignalHandler.hh"
 
 namespace ignition
 {
@@ -78,7 +78,7 @@ namespace ignition
       public: std::mutex runMutex;
 
       /// \brief Our signal handler.
-      public: SigHandler sigHandler;
+      public: SignalHandler sigHandler;
     };
   }
 }

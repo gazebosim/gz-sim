@@ -15,7 +15,7 @@
  *
 */
 
-#include "SigHandler.hh"
+#include "SignalHandler.hh"
 #include <signal.h>
 #include <functional>
 #include <vector>
@@ -33,9 +33,9 @@ void onSignal(int _value)
 }
 
 /////////////////////////////////////////////////
-SigHandler::SigHandler()
+SignalHandler::SignalHandler()
 {
-  onSignalWrapper = std::bind(&SigHandler::OnSignal, this,
+  onSignalWrapper = std::bind(&SignalHandler::OnSignal, this,
     std::placeholders::_1);
 
 #ifndef _WIN32
@@ -63,13 +63,13 @@ SigHandler::SigHandler()
 }
 
 //////////////////////////////////////////////////
-bool SigHandler::Initialized() const
+bool SignalHandler::Initialized() const
 {
   return this->initialized;
 }
 
 //////////////////////////////////////////////////
-void SigHandler::OnSignal(int _sig)
+void SignalHandler::OnSignal(int _sig)
 {
   igndbg << "Received signal[" << _sig << "]. Quitting.\n";
   for (std::function<void(int)> cb : this->callbacks)
@@ -79,7 +79,7 @@ void SigHandler::OnSignal(int _sig)
 }
 
 /////////////////////////////////////////////////
-void SigHandler::AddCallback(std::function<void(int)> _cb)
+void SignalHandler::AddCallback(std::function<void(int)> _cb)
 {
   this->callbacks.push_back(_cb);
 }

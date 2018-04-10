@@ -2,7 +2,7 @@ set (sources
   Entity.cc
   Server.cc
   ServerPrivate.cc
-  SigHandler.cc
+  SignalHandler.cc
   System.cc
   TestSystem.cc
 )
@@ -10,7 +10,7 @@ set (sources
 set (gtest_sources
   Entity_TEST.cc
   Server_TEST.cc
-  SigHandler_TEST.cc
+  SignalHandler_TEST.cc
   System_TEST.cc
 )
 
