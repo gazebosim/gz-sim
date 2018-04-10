@@ -49,7 +49,7 @@ SigHandler::SigHandler()
   if (sigaction(SIGINT, &sigact, nullptr))
   {
     ignerr << "Unable to catch SIGINT.\n"
-      << " Please visit http://gazebosim.org/support.html for help.\n";
+      << " Please visit http://community.gazebosim.org for help.\n";
     return;
   }
   if (sigaction(SIGTERM, &sigact, nullptr))
