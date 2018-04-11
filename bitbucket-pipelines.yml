@@ -32,6 +32,5 @@ pipelines:
           - make
           - make test
           - make coverage
-          - bash <(curl -s https://codecov.io/bash)
           - make install
           - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
