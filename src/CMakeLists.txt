@@ -1,6 +1,7 @@
 set (sources
   Entity.cc
   System.cc
+  TestSystem.cc
 )
 
 set (gtest_sources
