@@ -17,9 +17,7 @@ pipelines:
           - apt-get update
           - apt-get -y install
             libignition-cmake1-dev
-            libignition-math5-dev
             libignition-common-dev
-            libsdformat6-dev
           # Packages to remove or update to a newer version
           - apt-get -y install
             libignition-cmake-dev
