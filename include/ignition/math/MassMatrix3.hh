@@ -959,6 +959,25 @@ namespace ignition
         return this->SetMOI(R * L * R.Transposed());
       }
 
+      /// \brief Set inertial properties based on a material and
+      /// equivalent sphere.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const Material &_mat, const T _radius)
+      {
+        // Check that the density and _radius are strictly positive
+        if (_mat.Density() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        double volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        this->SetMass(_mat.Density() * volume);
+        return this->SetFromSphere(_radius);
+      }
+
       /// \brief Set inertial properties based on mass and equivalent sphere.
       /// \param[in] _mass Mass to set.
       /// \param[in] _radius Radius of equivalent, uniform sphere.
