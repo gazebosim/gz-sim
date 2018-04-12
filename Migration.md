@@ -12,6 +12,11 @@ release will remove the deprecated code.
 1. **Plane.hh**
     + Added copy constructor.
 
+### Deprecations
+
+1. **MassMatrix3.hh**
+    + All mutator functions that lacked a `Set` prefix have been deprecated
+    and replaced by version with a `Set` prefix.
 
 ## Ignition Math 3.X to 4.X
 
