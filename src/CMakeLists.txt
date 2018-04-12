@@ -4,16 +4,9 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
-ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
-
-set (c++standard 14)
-
 # Turn on C++14 support for the library
-ign_set_project_public_cxx_standard(${c++standard})
-
-# Create installation instructions for the library target. This must be called
-# in the same scope that the target is created.
-ign_install_library()
+set (c++standard 14)
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
 
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
@@ -68,7 +61,7 @@ if (RUBY_FOUND)
   # Add the ruby tests
   foreach (test ${ruby_tests})
     add_test(NAME ${test}.rb COMMAND
-      ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
+      ruby -I${CMAKE_BINARY_DIR}/lib ${CMAKE_SOURCE_DIR}/src/${test}.rb
    	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
   endforeach()
 endif()
