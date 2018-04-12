@@ -20,6 +20,7 @@
 
 #include "ignition/math/Helpers.hh"
 #include "ignition/math/MassMatrix3.hh"
+#include "ignition/math/Material.hh"
 
 using namespace ignition;
 
@@ -109,15 +110,15 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.Mass(mass));
-    EXPECT_FALSE(m.IXX(Ixxyyzz[0]));
-    EXPECT_FALSE(m.IYY(Ixxyyzz[1]));
+    EXPECT_FALSE(m.SetMass(mass));
+    EXPECT_FALSE(m.SetIXX(Ixxyyzz[0]));
+    EXPECT_FALSE(m.SetIYY(Ixxyyzz[1]));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.IZZ(Ixxyyzz[2]));
-    EXPECT_TRUE(m.IXY(Ixyxzyz[0]));
-    EXPECT_TRUE(m.IXZ(Ixyxzyz[1]));
-    EXPECT_TRUE(m.IYZ(Ixyxzyz[2]));
+    EXPECT_TRUE(m.SetIZZ(Ixxyyzz[2]));
+    EXPECT_TRUE(m.SetIXY(Ixyxzyz[0]));
+    EXPECT_TRUE(m.SetIXZ(Ixyxzyz[1]));
+    EXPECT_TRUE(m.SetIYZ(Ixyxzyz[2]));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
@@ -134,7 +135,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_TRUE(m.IsValid());
 
     // Invalid again if an invalid inertia is set
-    EXPECT_FALSE(m.Mass(-1));
+    EXPECT_FALSE(m.SetMass(-1));
   }
 
   // Test vector setters for moment of inertia
@@ -144,11 +145,11 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.Mass(mass));
+    EXPECT_FALSE(m.SetMass(mass));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
-    EXPECT_TRUE(m.OffDiagonalMoments(Ixyxzyz));
+    EXPECT_TRUE(m.SetDiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.SetOffDiagonalMoments(Ixyxzyz));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
@@ -165,7 +166,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_TRUE(m.IsValid());
 
     // Invalid if an invalid inertia is set
-    EXPECT_FALSE(m.IXX(-1));
+    EXPECT_FALSE(m.SetIXX(-1));
   }
 
   // Test Matrix3 setter for moment of inertia
@@ -175,10 +176,10 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.Mass(mass));
+    EXPECT_FALSE(m.SetMass(mass));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.MOI(MOI));
+    EXPECT_TRUE(m.SetMOI(MOI));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
@@ -195,7 +196,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_TRUE(m.IsValid());
 
     // Invalid if an excessive off-diagonal inertia is set
-    EXPECT_FALSE(m.IXY(1e3));
+    EXPECT_FALSE(m.SetIXY(1e3));
   }
 
   // // Test atomic InertiaMatrix setter
@@ -205,10 +206,10 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.Mass(mass));
+    EXPECT_FALSE(m.SetMass(mass));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.InertiaMatrix(2, 3, 4, 0.2, 0.3, 0.4));
+    EXPECT_TRUE(m.SetInertiaMatrix(2, 3, 4, 0.2, 0.3, 0.4));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
@@ -246,9 +247,9 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     // Minor perturbations of product moments
     // shouldn't affect PrincipalMoments, given the tolerance
     // of the Vector3 equality operator
-    EXPECT_TRUE(m.IXY(1e-10));
-    EXPECT_TRUE(m.IXZ(2e-10));
-    EXPECT_TRUE(m.IYZ(3e-10));
+    EXPECT_TRUE(m.SetIXY(1e-10));
+    EXPECT_TRUE(m.SetIXZ(2e-10));
+    EXPECT_TRUE(m.SetIYZ(3e-10));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -258,13 +259,13 @@ TEST(MassMatrix3dTest, PrincipalMoments)
   {
     const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
     math::MassMatrix3d m(1.0, Ixxyyzz, math::Vector3d::Zero);
-    EXPECT_TRUE(m.DiagonalMoments(Ixxyyzz));
+    EXPECT_TRUE(m.SetDiagonalMoments(Ixxyyzz));
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
 
     // Minor perturbation of product moments
-    EXPECT_TRUE(m.IXY(1e-10));
-    EXPECT_TRUE(m.IXZ(2e-10));
-    EXPECT_TRUE(m.IYZ(3e-10));
+    EXPECT_TRUE(m.SetIXY(1e-10));
+    EXPECT_TRUE(m.SetIXZ(2e-10));
+    EXPECT_TRUE(m.SetIYZ(3e-10));
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -353,8 +354,8 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetIdentity)
   EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond());
 
   // Scale the diagonal terms
-  EXPECT_TRUE(m.DiagonalMoments(3.5 * math::Vector3d::One));
-  EXPECT_TRUE(m.OffDiagonalMoments(math::Vector3d::Zero));
+  EXPECT_TRUE(m.SetDiagonalMoments(3.5 * math::Vector3d::One));
+  EXPECT_TRUE(m.SetOffDiagonalMoments(math::Vector3d::Zero));
   EXPECT_TRUE(m.IsValid());
   EXPECT_EQ(m.PrincipalAxesOffset(), math::Quaterniond::Identity);
 }
@@ -390,7 +391,7 @@ void VerifyPrincipalMomentsAndAxes(const math::MassMatrix3d &_m,
 void VerifyDiagonalMomentsAndAxes(const math::Vector3d &_moments)
 {
   math::MassMatrix3d m(1.0, math::Vector3d::Zero, math::Vector3d::Zero);
-  EXPECT_TRUE(m.DiagonalMoments(_moments));
+  EXPECT_TRUE(m.SetDiagonalMoments(_moments));
   EXPECT_EQ(m.PrincipalMoments(), m.DiagonalMoments());
   EXPECT_TRUE(m.IsValid());
   // Expect unit quaternion
@@ -688,6 +689,13 @@ TEST(MassMatrix3dTest, EquivalentBox)
     EXPECT_FALSE(m2.SetFromBox(sizeTrue, rotTrue));
     EXPECT_TRUE(m2.SetFromBox(mass, sizeTrue, rotTrue));
     EXPECT_EQ(m, m2);
+
+    double density = mass / (sizeTrue.X() * sizeTrue.Y() * sizeTrue.Z());
+    math::Material mat(density);
+    EXPECT_DOUBLE_EQ(density, mat.Density());
+    math::MassMatrix3d m3;
+    EXPECT_TRUE(m3.SetFromBox(mat, sizeTrue, rotTrue));
+    EXPECT_EQ(m2, m3);
   }
 
   // unit box with mass 1.0

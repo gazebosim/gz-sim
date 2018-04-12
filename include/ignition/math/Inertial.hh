@@ -106,7 +106,7 @@ namespace ignition
         auto moi = this->MOI();
         this->pose.Rot() = _q;
         auto R = Matrix3<T>(_q);
-        return this->massMatrix.MOI(R.Transposed() * moi * R);
+        return this->massMatrix.SetMOI(R.Transposed() * moi * R);
       }
 
       /// \brief Set the MassMatrix rotation (eigenvectors of inertia matrix)
@@ -132,7 +132,7 @@ namespace ignition
             0, moments[1], 0,
             0, 0, moments[2]);
         const auto R = Matrix3<T>(_q);
-        return this->massMatrix.MOI(R * diag * R.Transposed());
+        return this->massMatrix.SetMOI(R * diag * R.Transposed());
       }
 
       /// \brief Equal operator.

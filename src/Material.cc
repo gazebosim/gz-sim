@@ -86,6 +86,13 @@ Material::Material(const std::string &_typename)
 }
 
 ///////////////////////////////
+Material::Material(const double _density)
+: dataPtr(new MaterialPrivate)
+{
+  this->dataPtr->density = _density;
+}
+
+///////////////////////////////
 Material::Material(const Material &_material)
 : dataPtr(new MaterialPrivate)
 {

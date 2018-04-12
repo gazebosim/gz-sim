@@ -74,6 +74,10 @@ namespace ignition
       /// names are listed in the ::MaterialType documentation.
       public: explicit Material(const std::string &_typename);
 
+      /// \brief Construct a material based on a density value.
+      /// \param[in] _density Material density.
+      public: Material(const double _density);
+
       /// \brief Copy constructor.
       /// \param[in] _material Material to copy.
       public: Material(const Material &_material);
