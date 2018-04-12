@@ -2,7 +2,7 @@
 
 ### Ignition Math 5.x.x
 
-1. Added a `MassMatrix3::SetFromSpher` function that uses a `Material` to
+1. Added a `MassMatrix3::SetFromSphere` function that uses a `Material` to
 specify a density.
     * [Pull request 247](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/247)
 
