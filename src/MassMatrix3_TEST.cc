@@ -822,6 +822,14 @@ TEST(MassMatrix3dTest, SetFromCylinderZ)
     EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
 
+    double density = mass / (IGN_PI * radius * radius * length);
+    math::Material mat(density);
+    EXPECT_DOUBLE_EQ(density, mat.Density());
+    math::MassMatrix3d m1;
+    EXPECT_FALSE(m1.SetFromCylinderZ(math::Material(0), length, radius));
+    EXPECT_TRUE(m1.SetFromCylinderZ(mat, length, radius));
+    EXPECT_EQ(m, m1);
+
     // double the length and radius
     EXPECT_TRUE(m.SetFromCylinderZ(mass, 2*length, 2*radius, q0));
     EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);

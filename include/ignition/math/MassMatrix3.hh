@@ -908,6 +908,31 @@ namespace ignition
         return this->SetMOI(R * L * R.Transposed());
       }
 
+      /// \brief Set inertial properties based on a Material and equivalent
+      /// cylinder aligned with Z axis.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const Material &_mat,
+                                    const T _length,
+                                    const T _radius,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+      {
+        // Check that density, _radius and _length are strictly positive
+        // and that quatenion is valid
+        if (_mat.Density() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        double volume = IGN_PI * _radius * _radius * _length;
+        this->SetMass(_mat.Density() * volume);
+        return this->SetFromCylinderZ(_length, _radius, _rot);
+      }
+
       /// \brief Set inertial properties based on mass and equivalent cylinder
       /// aligned with Z axis.
       /// \param[in] _mass Mass to set.
