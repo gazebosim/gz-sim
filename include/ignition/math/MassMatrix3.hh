@@ -853,7 +853,7 @@ namespace ignition
       /// \param[in] _size Size of equivalent box.
       /// \param[in] _rot Rotational offset of equivalent box.
       /// \return True if inertial properties were set successfully.
-      public: bool SetFromBox(const Material _mat,
+      public: bool SetFromBox(const Material &_mat,
                               const Vector3<T> &_size,
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
      {

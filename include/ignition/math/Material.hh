@@ -76,7 +76,7 @@ namespace ignition
 
       /// \brief Construct a material based on a density value.
       /// \param[in] _density Material density.
-      public: Material(const double _density);
+      public: explicit Material(const double _density);
 
       /// \brief Copy constructor.
       /// \param[in] _material Material to copy.
