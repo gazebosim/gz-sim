@@ -25,6 +25,28 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
+find_package(SDFormat REQUIRED)
+include_directories(${SDFormat_INCLUDE_DIRS})
+
+#--------------------------------------
+# Find ignition-gui
+find_package(ignition-gui0 0.1 REQUIRED)
+# Find Qt5
+find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
+
+include_directories(${IGNITION-GUI_INCLUDE_DIRS} ${Qt5Core_INCLUDE_DIRS})
+link_directories(${IGNITION-GUI_LIBRARY_DIRS})
+
+#--------------------------------------
+# Find ignition-math
+set(IGN_MSGS_VER 5)
+ign_find_package(ignition-math${IGN_MSGS_VER} REQUIRED)
+
+#--------------------------------------
+# Find ignition-msgs
+set(IGN_MSGS_VER 2)
+ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
+
 #--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 4)
