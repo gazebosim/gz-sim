@@ -20,6 +20,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+  ${SDFormat_LIBRARIES}
 )
 
 # Build the unit tests
@@ -29,7 +30,10 @@ ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 ign_add_executable(ign-gazebo-exec main.cc)
 set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
 target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
+    ${IGNITION-GUI_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES}
     gflags)
+
+target_compile_options(ign-gazebo-exec PRIVATE -fPIC)
 
 # Switch to ign_install_executable when it is fixed (https://bitbucket.org/ignitionrobotics/ign-cmake/issues/29)
 set_target_properties(ign-gazebo-exec
