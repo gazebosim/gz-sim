@@ -53,6 +53,7 @@ void Help()
   << "  --version              Print version information."
   << std::endl
   << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
+  << " The default verbosity is 1"
   << std::endl
   << "  --iterations arg       Number of iterations to execute."
   << std::endl
@@ -108,6 +109,8 @@ int main(int _argc, char **_argv)
     gflags::GetCommandLineFlagInfo("v", &info);
     if (!info.is_default)
       FLAGS_verbose = FLAGS_v;
+    else
+      FLAGS_verbose = 1;
   }
 
   // If help message is requested, substitute in the override help function.
@@ -130,6 +133,7 @@ int main(int _argc, char **_argv)
   {
     // Set verbosity
     ignition::common::Console::SetVerbosity(FLAGS_verbose);
+    ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
 
     // Run only the server (headless)
     if (FLAGS_s)

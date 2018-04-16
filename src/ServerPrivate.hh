@@ -17,15 +17,17 @@
 #ifndef IGNITION_GAZEBO_SERVERPRIVATE_HH_
 #define IGNITION_GAZEBO_SERVERPRIVATE_HH_
 
-#include <vector>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <thread>
+#include <vector>
 
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/System.hh"
+#include "SignalHandler.hh"
 
 namespace ignition
 {
@@ -35,7 +37,7 @@ namespace ignition
     class ServerPrivate
     {
       /// \brief Constructor
-      public: ServerPrivate() = default;
+      public: ServerPrivate();
 
       /// \brief Destructor
       public: ~ServerPrivate();
@@ -52,13 +54,9 @@ namespace ignition
       /// \return True if the service successfully completed.
       public: bool SceneService(ignition::msgs::Scene &_rep);
 
-      /// \brief Signal handler
+      /// \brief Signal handler callback
       /// \param[in] _sig The signal number
-      private: static void SigHandler(int _sig);
-
-      /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state.
-      public: static std::atomic<bool> running;
+      private: void OnSignal(int _sig);
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
@@ -66,14 +64,21 @@ namespace ignition
       /// \brief All of the systems.
       public: std::vector<std::unique_ptr<System>> systems;
 
-      /// \brief All of the entities.
-      public: std::vector<Entity> entities;
-
       /// \brief Communication node.
       public: ignition::transport::Node node;
 
       /// \brief Number of iterations.
       public: uint64_t iterations = 0;
+
+      /// \brief This is used to indicate that Run has been called, and the
+      /// server is in the run state.
+      public: std::atomic<bool> running;
+
+      /// \brief Mutex to protect the Run operation.
+      public: std::mutex runMutex;
+
+      /// \brief Our signal handler.
+      public: SignalHandler sigHandler;
     };
   }
 }

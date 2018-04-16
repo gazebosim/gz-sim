@@ -31,40 +31,41 @@ Server::Server()
 
   // This is the scene service
   this->dataPtr->node.Advertise("/ign/gazebo/scene",
-      &ServerPrivate::SceneService, this->dataPtr);
+      &ServerPrivate::SceneService, this->dataPtr.get());
 }
+
 /////////////////////////////////////////////////
 Server::~Server()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
-}
-
-/////////////////////////////////////////////////
-Entity Server::CreateEntity(const sdf::Model &/*_model*/)
-{
-  /// \todo(nkoenig) Need to process _model.
-  Entity entity;
-
-  // Notify systems that an entity has been created.
-  // \todo(nkoenig): We could move this into batch style process that happens
-  // once before systems are updated.
-  for (std::unique_ptr<System> &system : this->dataPtr->systems)
-  {
-    system->EntityCreated(entity);
-  }
-
-  // Store the entities, and return a copy.
-  this->dataPtr->entities.push_back(entity);
-  return this->dataPtr->entities.back();
 }
 
 /////////////////////////////////////////////////
 void Server::Run(const uint64_t _iterations, const bool _blocking)
 {
   if (_blocking)
+  {
     this->dataPtr->Run(_iterations);
+  }
   else
-    this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr, _iterations);
+  {
+    // Make sure two threads are not created
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->runThread.get_id() == std::thread::id())
+    {
+      this->dataPtr->runThread =
+        std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+bool Server::Running() const
+{
+  return this->dataPtr->running;
+}
+
+/////////////////////////////////////////////////
+uint64_t Server::IterationCount() const
+{
+  return this->dataPtr->iterations;
 }

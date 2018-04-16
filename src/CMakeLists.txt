@@ -1,38 +1,37 @@
 set (sources
   Entity.cc
-  TestSystem.cc
   Server.cc
   ServerPrivate.cc
+  SignalHandler.cc
   System.cc
+  TestSystem.cc
 )
 
 set (gtest_sources
   Entity_TEST.cc
+  Server_TEST.cc
+  SignalHandler_TEST.cc
   System_TEST.cc
 )
 
 # Create the library target
-ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  ${SDFormat_LIBRARIES}
-  ${IGNITION-COMMON_LIBRARIES}
-  ${IGNITION-MSGS_LIBRARIES}
-  ${IGNITION-TRANSPORT_LIBRARIES})
-
-# Turn on C++14 support for the library
-ign_set_project_public_cxx_standard(14)
-
-# Create installation instructions for the library target. This must be called
-# in the same scope that the target is created.
-ign_install_library()
+  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+)
 
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
 # Create the gazebo executable
-ign_add_executable(gazebo main.cc)
-target_link_libraries(gazebo PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
-    ${IGNITION-GUI_LIBRARIES} ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES}
+ign_add_executable(ign-gazebo-exec main.cc)
+set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
+target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
     gflags)
-target_compile_options(gazebo PRIVATE -fPIC)
+
+# Switch to ign_install_executable when it is fixed (https://bitbucket.org/ignitionrobotics/ign-cmake/issues/29)
+set_target_properties(ign-gazebo-exec
+  PROPERTIES VERSION ${PROJECT_VERSION_FULL})
+install (TARGETS ign-gazebo-exec DESTINATION ${IGN_BIN_INSTALL_DIR})

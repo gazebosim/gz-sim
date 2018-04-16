@@ -17,7 +17,8 @@
 #ifndef IGNITION_GAZEBO_SERVER_HH_
 #define IGNITION_GAZEBO_SERVER_HH_
 
-#include <sdf/Model.hh>
+#include <cstdint>
+#include <memory>
 #include "ignition/gazebo/Entity.hh"
 
 namespace ignition
@@ -45,30 +46,28 @@ namespace ignition
       /// \brief Destructor
       public: ~Server();
 
-      /// \brief Delete the copy constructor.
-      /// \param[in] _server Server that is not copied.
-      public: Server(const Server &_server) = delete;
-
-      /// \brief Delete the move constructor
-      /// \param[in] _server Server that is not moved.
-      public: Server(const Server &&_server) = delete;
-
-      /// \brief Create an entity based on an SDF Model.
-      /// \param[in] _model The SDF model to create an Entity from.
-      /// \return The Entity identifier.
-      public: Entity CreateEntity(const sdf::Model &_model);
-
-      /// \brief Run the server. By default, this is a blocking call. Pass
-      /// in false to run the server in a separate thread.
-      /// \param[in] _blocking False to run the server in a new thread, and
+      /// \brief Run the server. By default this is a non-blocking call,
+      /// which means the server runs simulation in a separate thread. Pass
+      /// in true to the _blocking argument to run the server in the current
+      /// thread.
       /// \param[in] _iterations Number of steps to perform. A value of
       /// zero will run indefinitely.
-      /// return immediately.
+      /// \param[in] _blocking False to run the server in a new thread. True
+      /// to run the server in the current thread.
       public: void Run(const uint64_t _iterations = 0,
                        const bool _blocking = false);
 
+      /// \brief Get whether this server is running. When running is true,
+      /// then simulation is stepping forward.
+      /// \return True if the server is running.
+      public: bool Running() const;
+
+      /// \brief Get the number of iterations the server has executed.
+      /// \return The current iteration count.
+      public: uint64_t IterationCount() const;
+
       /// \brief Private data
-      private: ServerPrivate *dataPtr;
+      private: std::unique_ptr<ServerPrivate> dataPtr;
     };
   }
 }

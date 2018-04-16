@@ -16,14 +16,23 @@
 */
 
 #include "ServerPrivate.hh"
-#include <signal.h>
+
+#include <functional>
 #include <ignition/common/Console.hh>
+#include "SignalHandler.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-// By default running is false
-std::atomic<bool> ServerPrivate::running(false);
+/////////////////////////////////////////////////
+ServerPrivate::ServerPrivate()
+{
+  // Windows does not support setting std::atmoic in the class definition.
+  // By default running is false
+  this->running = false;
+  this->sigHandler.AddCallback(
+      std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+}
 
 /////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
@@ -38,43 +47,42 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  // Update systems
-  for (std::unique_ptr<System> &system : this->systems)
-    system->Update();
+  /// \todo(nkoenig) Update systems
 }
 
 /////////////////////////////////////////////////
 void ServerPrivate::Run(const uint64_t _iterations)
 {
-#ifndef _WIN32
-  struct sigaction sigact;
-  sigact.sa_flags = 0;
-  sigact.sa_handler = ServerPrivate::SigHandler;
-  if (sigemptyset(&sigact.sa_mask) != 0)
-    std::cerr << "sigemptyset failed while setting up for SIGINT" << std::endl;
-
-  if (sigaction(SIGINT, &sigact, NULL))
+  if (!this->sigHandler.Initialized())
   {
-    std::cerr << "Stopping. Unable to catch SIGINT.\n"
-      << " Please visit http://gazebosim.org/support.html for help.\n";
+    ignerr << "Signal handlers were not created. The server won't run.\n";
     return;
   }
-  if (sigaction(SIGTERM, &sigact, NULL))
+
+  this->runMutex.lock();
+  // Can't run twice.
+  if (this->running)
   {
-    std::cerr << "Stopping. Unable to catch SIGTERM.\n";
+    ignwarn << "The server is already runnnng.\n";
     return;
   }
-#endif
-
   this->running = true;
+  this->runMutex.unlock();
 
-  // Execute all the system until we are told to stop, or the number of
+
+  uint64_t startingIterations = this->iterations;
+  // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (this->iterations = 0; this->running &&
-       (_iterations == 0 || this->iterations < _iterations); ++this->iterations)
+  for (; this->running && (_iterations == 0 ||
+                           this->iterations < _iterations + startingIterations);
+       ++this->iterations)
   {
     this->UpdateSystems();
   }
+
+  this->runMutex.lock();
+  this->running = false;
+  this->runMutex.unlock();
 }
 
 //////////////////////////////////////////////////
@@ -104,8 +112,8 @@ bool ServerPrivate::SceneService(ignition::msgs::Scene &_rep)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::SigHandler(int _sig)
+void ServerPrivate::OnSignal(int _sig)
 {
-  igndbg << "Received signal[" << _sig << "]. Quitting.\n";
-  running = false;
+  igndbg << "Server received signal[" << _sig  << "]\n";
+  this->running = false;
 }
