@@ -17,16 +17,15 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include "ignition/gazebo/Entity.hh"
-
 namespace ignition
 {
   namespace gazebo
   {
-    /// \brief Base class for a System
+    /// \brief Base class for a System.
     ///
-    /// A System operates on entities that have certain components. A system
-    /// will only operate on an Entity if it has all of the required components.
+    /// A System operates on Entities that have certain Components. A System
+    /// will only operate on an Entity if it has all of the required
+    /// Components.
     class System
     {
       /// \brief Constructor
@@ -34,16 +33,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System() = default;
-
-      /// \brief Notifies a system that an entity has been created. Each
-      /// system should override this function.
-      /// \param[in] _entity Entity that was added.
-      public: virtual void EntityCreated(const Entity &_entity);
-
-      /// \brief Update the system. Each system should override this
-      /// function.
-      /// \return True on success.
-      public: virtual bool Update();
     };
   }
 }

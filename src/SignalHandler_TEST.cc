@@ -15,15 +15,17 @@
  *
 */
 
+#include "SignalHandler.hh"
 #include <gtest/gtest.h>
-
-#include "ignition/gazebo/System.hh"
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(System, Constructor)
+TEST(SignalHandler, Multiple)
 {
-  /// \todo(nkoenig) Add more tests here.
-  gazebo::System system;
+  gazebo::SignalHandler handler1;
+  gazebo::SignalHandler handler2;
+
+  EXPECT_TRUE(handler1.Initialized());
+  EXPECT_TRUE(handler2.Initialized());
 }
