@@ -49,6 +49,10 @@ TEST(MaterialTest, Init)
     EXPECT_GT(MAX_D, mats.find(static_cast<MaterialType>(i))->second.Density());
     EXPECT_LT(0.0, mats.find(static_cast<MaterialType>(i))->second.Density());
   }
+
+  Material malicious(static_cast<MaterialType>(42));
+  EXPECT_DOUBLE_EQ(-1.0, malicious.Density());
+  EXPECT_EQ("", malicious.Name());
 }
 
 /////////////////////////////////////////////////

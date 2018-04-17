@@ -25,7 +25,7 @@ using namespace ignition;
 using namespace math;
 
 // Initialize the static map of Material objects based on the kMaterialData.
-static std::map<MaterialType, Material> kMaterials = []()
+static const std::map<MaterialType, Material> kMaterials = []()
 {
   std::map<MaterialType, Material> matMap;
 
@@ -63,9 +63,12 @@ Material::Material()
 Material::Material(const MaterialType _type)
 : dataPtr(new MaterialPrivate)
 {
-  this->dataPtr->type = _type;
-  this->dataPtr->name = kMaterials[_type].Name();
-  this->dataPtr->density = kMaterials[_type].Density();
+  if (kMaterials.find(_type) != kMaterials.end())
+  {
+    this->dataPtr->type = _type;
+    this->dataPtr->name = kMaterials.at(_type).Name();
+    this->dataPtr->density = kMaterials.at(_type).Density();
+  }
 }
 
 ///////////////////////////////
@@ -97,7 +100,7 @@ Material::Material(const Material &_material)
 ///////////////////////////////
 Material::Material(Material &&_material)
 {
-  this->dataPtr = std::move(_material.dataPtr);
+  this->dataPtr = _material.dataPtr;
   _material.dataPtr = new MaterialPrivate;
 }
 
@@ -135,7 +138,7 @@ Material &Material::operator=(const Material &_material)
 Material &Material::operator=(Material &&_material)
 {
   delete this->dataPtr;
-  this->dataPtr = std::move(_material.dataPtr);
+  this->dataPtr = _material.dataPtr;
   _material.dataPtr = new MaterialPrivate;
   return *this;
 }
