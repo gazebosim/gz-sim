@@ -112,7 +112,7 @@ namespace ignition
       /// \return Reference to this Material.
       public: Material &operator=(Material &&_material);
 
-      /// \brief Equality operator.
+      /// \brief Equality operator. This only compares density values.
       /// \param[in] _material Material to evaluate this object against.
       /// \return True if this material is equal to the given _material.
       public: bool operator==(const Material &_material) const;
