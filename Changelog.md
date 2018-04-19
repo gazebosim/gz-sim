@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 0.1.0
 
+1. Remove some build dependencies.
+    * [Pull request 6](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-request/6)
+
 1. Added basic Entity class.
     * [Pull request 3](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-request/3)
 
