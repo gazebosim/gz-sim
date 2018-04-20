@@ -18,6 +18,7 @@
 #define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <vector>
 
