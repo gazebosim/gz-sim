@@ -311,6 +311,9 @@ namespace ignition
       /// and satisfy the triangle inequality.
       public: static bool ValidMoments(const Vector3<T> &_moments)
       {
+        // The following was borrowed heavily from:
+        // https://github.com/RobotLocomotion/drake/blob/master/multibody/multibody_tree/rotational_inertia.h
+
         // Compute the maximum possible moment of inertia, which will be
         // used to compute whether the moments are valid.
         //
