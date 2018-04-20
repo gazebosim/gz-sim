@@ -19,6 +19,12 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
+#include <ignition/math/Pose3.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
+
+#include "ignition/gazebo/TestSystem.hh"
+#include "ignition/gazebo/ComponentFactory.hh"
 #include "SignalHandler.hh"
 
 using namespace ignition;
@@ -32,6 +38,12 @@ ServerPrivate::ServerPrivate()
   this->running = false;
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+
+  // \todo(nkoenig) Remove this once we can dynamically load systems.
+  this->systems.push_back(std::unique_ptr<System>(new TestSystem));
+
+  // This is the scene service
+  this->node.Advertise("/ign/gazebo/scene", &ServerPrivate::SceneService, this);
 }
 
 /////////////////////////////////////////////////
@@ -116,4 +128,43 @@ void ServerPrivate::OnSignal(int _sig)
 {
   igndbg << "Server received signal[" << _sig  << "]\n";
   this->running = false;
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::EraseEntities()
+{
+  this->entities.clear();
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::CreateEntities(const sdf::Root &_root)
+{
+  for (uint64_t i = 0; i < _root.ModelCount(); ++i)
+  {
+    /// \todo(nkoenig) This should use free entity slots.
+    EntityId entityId = this->entities.size();
+    this->entities.push_back(Entity(entityId));
+
+    // Get the SDF model
+    const sdf::Model *model = _root.ModelByIndex(i);
+
+    // Create the pose component for the model.
+    ComponentKey compKey = this->componentFactory.CreateComponent(
+        model->Pose());
+    std::cout << "Created component[" << compKey.first << ":"
+              << compKey.second << "]\n";
+
+    this->entityComponents[entityId].push_back(compKey);
+  }
+
+  // Never compare to zero.
+  for (const std::pair<EntityId, std::vector<ComponentKey>> &ec :
+       this->entityComponents)
+  {
+    for (ComponentKey compKey : ec.second)
+    {
+      std::cout << *this->componentFactory.Component<ignition::math::Pose3d>(
+          compKey) << std::endl;
+    }
+  }
 }

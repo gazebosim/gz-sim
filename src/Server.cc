@@ -15,7 +15,8 @@
  *
 */
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/TestSystem.hh"
+
+#include <sdf/Root.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ServerPrivate.hh"
 
@@ -25,13 +26,20 @@ using namespace ignition::gazebo;
 Server::Server()
   : dataPtr(new ServerPrivate)
 {
-  // \todo(nkoenig) Remove this once we can dynamically load systems.
-  this->dataPtr->systems.push_back(
-      std::unique_ptr<System>(new TestSystem));
+}
 
-  // This is the scene service
-  this->dataPtr->node.Advertise("/ign/gazebo/scene",
-      &ServerPrivate::SceneService, this->dataPtr.get());
+/////////////////////////////////////////////////
+Server::Server(const ServerConfig &_config)
+  : dataPtr(new ServerPrivate)
+{
+  if (!_config.SdfFile().empty())
+  {
+    sdf::Root root;
+    root.Load(_config.SdfFile());
+
+    this->dataPtr->EraseEntities();
+    this->dataPtr->CreateEntities(root);
+  }
 }
 
 /////////////////////////////////////////////////

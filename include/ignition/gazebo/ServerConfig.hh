@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2018 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+#ifndef IGNITION_GAZEBO_SERVERCONFIG_HH_
+#define IGNITION_GAZEBO_SERVERCONFIG_HH_
+
+#include <string>
+#include <ignition/gazebo/Export.hh>
+
+namespace ignition
+{
+  namespace gazebo
+  {
+    // Forward declarations.
+    class ServerConfigPrivate;
+
+    /// \brief Configuration parameters for a Server
+    class IGNITION_GAZEBO_VISIBLE ServerConfig
+    {
+      /// \brief Constructor
+      public: ServerConfig();
+
+      /// \brief Destructor
+      public: ~ServerConfig();
+
+      /// \brief Set an SDF file. The SDF parser will attempt to load the
+      /// provided file. If the file fails to load, then the stored SDF file
+      /// will remain unchanged and a false value will be returned. You can
+      /// override the check using the _force parameter.
+      /// \param[in] _file Full path to an SDF file.
+      /// \param[in] _force Force the stored SDF file, bypassing the SDF
+      /// parser check.
+      /// \return True if the provided file was successfully found and
+      /// parsed, false otherwise.
+      public: bool SetSdfFile(const std::string &_file);
+
+      public: std::string SdfFile() const;
+
+
+      /// \brief Private data pointer
+      private: ServerConfigPrivate *dataPtr;
+    };
+  }
+}
+
+#endif

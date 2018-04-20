@@ -28,6 +28,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -37,6 +38,7 @@ DEFINE_int32(v, 1, "");
 DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_bool(s, false, "Run only the server (headless mode).");
 DEFINE_bool(g, false, "Run only the GUI.");
+DEFINE_string(f, "", "Load an SDF file on start.");
 
 //////////////////////////////////////////////////
 void Help()
@@ -61,6 +63,8 @@ void Help()
   << " override -g, if it is also present."
   << std::endl
   << "  -g                     Run only the GUI."
+  << std::endl
+  << "  -f                     Load an SDF file on start. "
   << std::endl
   << std::endl;
 }
@@ -135,11 +139,18 @@ int main(int _argc, char **_argv)
     ignition::common::Console::SetVerbosity(FLAGS_verbose);
     ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
 
+    ignition::gazebo::ServerConfig serverConfig;
+    if (!serverConfig.SetSdfFile(FLAGS_f))
+    {
+      ignerr << "Failed to set SDF file[" << FLAGS_f << "]" << std::endl;
+      return -1;
+    }
+
     // Run only the server (headless)
     if (FLAGS_s)
     {
       // Create the Gazebo server
-      ignition::gazebo::Server server;
+      ignition::gazebo::Server server(serverConfig);
 
       // Run the server, and block.
       server.Run(FLAGS_iterations, true);
@@ -153,7 +164,7 @@ int main(int _argc, char **_argv)
       if (!FLAGS_g)
       {
         // Create the server
-        server.reset(new ignition::gazebo::Server());
+        server.reset(new ignition::gazebo::Server(serverConfig));
 
         // Run the server, and don't block.
         server->Run(FLAGS_iterations, false);
