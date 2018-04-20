@@ -27,15 +27,14 @@
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
-DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 
 //////////////////////////////////////////////////
 void Help()
 {
   std::cout
-  << "gazebo -- Run the Gazebo server and GUI." << std::endl
+  << "ign-gazebo -- Run the Gazebo server and GUI." << std::endl
   << std::endl
-  << "`gazebo` [options] <world_file>" << std::endl
+  << "`ign-gazebo` [options] <world_file>" << std::endl
   << std::endl
   << std::endl
   << "Options:" << std::endl
@@ -45,8 +44,6 @@ void Help()
   << std::endl
   << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
   << " The default verbosity is 1"
-  << std::endl
-  << "  --iterations arg       Number of iterations to execute."
   << std::endl
   << std::endl;
 }
@@ -120,6 +117,8 @@ int main(int _argc, char **_argv)
     // Set verbosity
     ignition::common::Console::SetVerbosity(FLAGS_verbose);
     ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
+
+    /// \todo(nkoenig) Run the server and/or gui
   }
 
   igndbg << "Shutting down" << std::endl;
