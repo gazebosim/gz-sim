@@ -169,13 +169,20 @@ namespace ignition
                Quaternion<Precision>::Identity;
     };
 
+    /// \typedef Cylinder<int> Cylinderi
+    /// \brief Cylinder with integer precision.
     typedef Cylinder<int> Cylinderi;
+
+    /// \typedef Cylinder<double> Cylinderd
+    /// \brief Cylinder with double precision.
     typedef Cylinder<double> Cylinderd;
+
+    /// \typedef Cylinder<float> Cylinderf
+    /// \brief Cylinder with float precision.
     typedef Cylinder<float> Cylinderf;
     }
   }
 }
 #include "ignition/math/detail/Cylinder.hh"
-
 
 #endif

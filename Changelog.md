@@ -2,6 +2,9 @@
 
 ### Ignition Math 5.x.x
 
+1. Added a Cylinder class.
+    * [Pull request 250](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/250)
+
 1. Added a `MassMatrix3::SetFromCylinder` function that uses a `Material`
 to specify a density.
     * [Pull request 248](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/248)
