@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_TESTSYSTEM_HH_
 #define IGNITION_GAZEBO_TESTSYSTEM_HH_
 
-#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
 
 namespace ignition
