@@ -311,12 +311,32 @@ namespace ignition
       /// and satisfy the triangle inequality.
       public: static bool ValidMoments(const Vector3<T> &_moments)
       {
-        return _moments[0] > 0 &&
-               _moments[1] > 0 &&
-               _moments[2] > 0 &&
-               _moments[0] + _moments[1] > _moments[2] &&
-               _moments[1] + _moments[2] > _moments[0] &&
-               _moments[2] + _moments[0] > _moments[1];
+        // Compute the maximum possible moment of inertia, which will be
+        // used to compute whether the moments are valid.
+        //
+        // The maximum moment of inertia is bounded by:
+        // trace / 3 <= maxPossibleMoi <= trace / 2.
+        //
+        // The trace of a matrix is the sum of the coefficients on the
+        // main diagonal. For a mass matrix, this is equal to
+        // ixx + iyy + izz, or _moments.Sum() for this function's
+        // implementation.
+        //
+        // It is okay if maxPossibleMoi == zero.
+        T maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+
+        // In order to check validity of the moments we need to use an
+        // epsilon value that is related to machine precision multiplied by
+        // the largest possible moment of inertia.
+        T epsilon = 10 * std::numeric_limits<double>::epsilon() *
+          maxPossibleMoI;
+
+        return _moments[0] + epsilon >= 0 &&
+               _moments[1] + epsilon >= 0 &&
+               _moments[2] + epsilon >= 0 &&
+               _moments[0] + _moments[1] + epsilon >= _moments[2] &&
+               _moments[1] + _moments[2] + epsilon >= _moments[0] &&
+               _moments[2] + _moments[0] + epsilon >= _moments[1];
       }
 
       /// \brief Compute principal moments of inertia,
