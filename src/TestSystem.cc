@@ -16,10 +16,6 @@
 */
 #include "ignition/gazebo/TestSystem.hh"
 
-#include <vector>
-#include <iostream>
-#include "ignition/gazebo/Entity.hh"
-
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
