@@ -42,6 +42,9 @@ namespace ignition
     /// components.
     class Entity
     {
+      public: Entity() = default;
+      public: explicit Entity(const EntityId _id);
+
       /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.
       /// \param[in] _entity Entity to compare.

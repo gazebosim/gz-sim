@@ -18,14 +18,19 @@
 #define IGNITION_GAZEBO_SERVERPRIVATE_HH_
 
 #include <atomic>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
 
+#include <sdf/Root.hh>
+
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/ComponentFactory.hh"
 #include "ignition/gazebo/System.hh"
 #include "SignalHandler.hh"
 
@@ -34,7 +39,7 @@ namespace ignition
   namespace gazebo
   {
     // Private data for Server
-    class ServerPrivate
+    class IGNITION_GAZEBO_HIDDEN ServerPrivate
     {
       /// \brief Constructor
       public: ServerPrivate();
@@ -54,12 +59,21 @@ namespace ignition
       /// \return True if the service successfully completed.
       public: bool SceneService(ignition::msgs::Scene &_rep);
 
+      public: void EraseEntities();
+
+      public: void CreateEntities(const sdf::Root &_root);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
+
+      /// \brief All of the entities.
+      public: std::vector<Entity> entities;
+
+      public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
       /// \brief All of the systems.
       public: std::vector<std::unique_ptr<System>> systems;
@@ -79,6 +93,8 @@ namespace ignition
 
       /// \brief Our signal handler.
       public: SignalHandler sigHandler;
+
+      public: ComponentFactory componentFactory;
     };
   }
 }

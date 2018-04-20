@@ -1,6 +1,8 @@
 set (sources
   Entity.cc
+  ComponentFactory.cc
   Server.cc
+  ServerConfig.cc
   ServerPrivate.cc
   SignalHandler.cc
   System.cc

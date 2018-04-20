@@ -19,7 +19,9 @@
 
 #include <cstdint>
 #include <memory>
-#include "ignition/gazebo/Entity.hh"
+#include <ignition/gazebo/Entity.hh>
+#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/ServerConfig.hh>
 
 namespace ignition
 {
@@ -38,10 +40,15 @@ namespace ignition
     /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
     ///   + Returns the current scene information.
     ///
-    class Server
+    class IGNITION_GAZEBO_VISIBLE Server
     {
       /// \brief Constructor
       public: Server();
+
+      /// \brief Construct the server using the parameters specified in a
+      /// ServerConfig.
+      /// \param[in] _config Server configuration parameters.
+      public: Server(const ServerConfig &_config);
 
       /// \brief Destructor
       public: ~Server();

@@ -14,24 +14,10 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/Entity.hh"
 
-using namespace ignition::gazebo;
+#include "ignition/gazebo/ComponentFactory.hh"
+#include <map>
+#include <memory>
 
-/////////////////////////////////////////////////
-Entity::Entity(const EntityId _id)
-  : id(_id)
-{
-}
-
-/////////////////////////////////////////////////
-bool Entity::operator==(const Entity &_entity) const
-{
-  return this->id == _entity.id;
-}
-
-/////////////////////////////////////////////////
-EntityId Entity::Id() const
-{
-  return this->id;
-}
+using namespace ignition;
+using namespace gazebo;
