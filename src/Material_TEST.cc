@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include "ignition/math/Material.hh"
+#include "ignition/math/MaterialType.hh"
 #include "ignition/math/Helpers.hh"
 
 using namespace ignition;
@@ -30,11 +31,12 @@ TEST(MaterialTest, Init)
 
   // Make sure that the number of elements in the MaterialType enum matches
   // the number of elements in the MaterialDensity::materials map.
-  EXPECT_EQ(static_cast<size_t>(MaterialType::INVALID), mats.size());
+  EXPECT_EQ(static_cast<size_t>(MaterialType::INVALID_MATERIAL), mats.size());
 
   // Iterate over each element in the enum. Check the that enum value
   // matches the type value in the mats map.
-  for (size_t i = 0; i < static_cast<size_t>(MaterialType::INVALID); ++i)
+  for (size_t i = 0; i < static_cast<size_t>(MaterialType::INVALID_MATERIAL);
+       ++i)
   {
     // Get the type of the material for MaterialType i.
     MaterialType type = mats.find(static_cast<MaterialType>(i))->second.Type();
@@ -85,7 +87,7 @@ TEST(MaterialTest, Accessors)
   {
     Material mat("Notfoundium");
     EXPECT_GT(0.0, mat.Density());
-    EXPECT_EQ(MaterialType::INVALID, mat.Type());
+    EXPECT_EQ(MaterialType::INVALID_MATERIAL, mat.Type());
     EXPECT_TRUE(mat.Name().empty());
   }
 
@@ -99,7 +101,7 @@ TEST(MaterialTest, Accessors)
   {
     Material material;
     material.SetToNearestDensity(1001001.001, 1e-3);
-    EXPECT_EQ(MaterialType::INVALID, material.Type());
+    EXPECT_EQ(MaterialType::INVALID_MATERIAL, material.Type());
     EXPECT_GT(0.0, material.Density());
   }
   {

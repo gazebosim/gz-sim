@@ -22,7 +22,7 @@
 #include <string>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
-#include <ignition/math/MaterialTypes.hh>
+#include <ignition/math/MaterialType.hh>
 
 namespace ignition
 {

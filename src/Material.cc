@@ -19,7 +19,7 @@
 #include "ignition/math/Helpers.hh"
 
 // Placing the kMaterialData in a separate file for conveniece and clarity.
-#include "MaterialTypes.hh"
+#include "MaterialType.hh"
 
 using namespace ignition;
 using namespace math;
@@ -43,7 +43,7 @@ static const std::map<MaterialType, Material> kMaterials = []()
 class ignition::math::MaterialPrivate
 {
   /// \brief The material type.
-  public: MaterialType type = MaterialType::INVALID;
+  public: MaterialType type = MaterialType::INVALID_MATERIAL;
 
   /// \brief Name of the material. This will match the names
   /// used in MaterialType, but in lowercase.
@@ -195,6 +195,6 @@ void Material::SetToNearestDensity(const double _value, const double _epsilon)
     }
   }
 
-  if (result.Type() != MaterialType::INVALID)
+  if (result.Type() != MaterialType::INVALID_MATERIAL)
     *this = result;
 }
