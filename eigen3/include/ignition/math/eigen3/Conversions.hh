@@ -26,9 +26,9 @@
 
 namespace ignition
 {
-  namespace physics
+  namespace math
   {
-    namespace dart
+    namespace eigen3
     {
       // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
       // ---------------- Converting to Eigen ----------------------
