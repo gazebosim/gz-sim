@@ -2,6 +2,10 @@
 
 ### Ignition Math 4.x.x
 
+1. Add Graph::EdgeFromVertice function that return an edge, if one exists,
+   between two vertices.
+    * [Pull request 253](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/253)
+
 1. Add Plane copy constructor and fix cppcheck on artful
     * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
 

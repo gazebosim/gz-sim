@@ -626,6 +626,30 @@ namespace graph
       return iter->second;
     }
 
+    /// \brief Get a reference to an edge based on two vertices. A NullEdge
+    /// object reference is returned if an edge with the two vertices is not
+    /// found. If there are multiple edges that match the provided vertices,
+    /// then first is returned.
+    /// \param[in] _sourceId Source vertex Id.
+    /// \param[in] _destId Destination vertex Id.
+    /// \return A reference to the first edge found, or NullEdge if
+    /// not found.
+    public: const EdgeType &EdgeFromVertices(
+                const VertexId &_sourceId,
+                const VertexId &_destId) const
+    {
+      for (const std::pair<EdgeId, EdgeType> &edge : this->edges)
+      {
+        if (edge.second.From(_sourceId) == _destId &&
+            edge.second.To(_destId) == _sourceId)
+        {
+          return edge.second;
+        }
+      }
+
+      return EdgeType::NullEdge;
+    }
+
     /// \brief Get a reference to an edge using its Id.
     /// \param[in] _id The Id of the edge.
     /// \return A reference to the edge with Id = _id or NullEdge if
