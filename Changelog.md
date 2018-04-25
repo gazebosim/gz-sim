@@ -2,6 +2,10 @@
 
 ### Ignition Math 4.x.x
 
+1. Added multiply assign operator to Matrix4. 
+    * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
+
+
 1. Add Plane copy constructor and fix cppcheck on artful
     * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
 
