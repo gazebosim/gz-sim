@@ -638,13 +638,15 @@ namespace graph
                 const VertexId &_sourceId,
                 const VertexId &_destId) const
     {
-      for (const std::pair<EdgeId, EdgeType> &edge : this->edges)
+      for (typename std::map<EdgeId, EdgeType>::const_iterator iter =
+           this->edges.begin(); iter != this->edges.end(); ++iter)
       {
-        if (edge.second.From(_sourceId) == _destId &&
-            edge.second.To(_destId) == _sourceId)
+        if (iter->second.From(_sourceId) == _destId &&
+            iter->second.To(_destId) == _sourceId)
         {
-          return edge.second;
+          return iter->second;
         }
+
       }
 
       return EdgeType::NullEdge;
