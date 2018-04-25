@@ -647,7 +647,6 @@ namespace graph
         {
           return iter->second;
         }
-
       }
 
       return EdgeType::NullEdge;
