@@ -27,6 +27,14 @@ ign_configure_project(VERSION_SUFFIX pre1)
 # Search for project-specific dependencies
 #============================================================================
 
+#--------------------------------------
+# Find eigen3
+ign_find_package(
+  EIGEN3
+  REQUIRED_BY eigen3
+  PRETTY eigen3
+  PURPOSE "Provide conversions to eigen3 types")
+
 ########################################
 # Include swig
 find_package(SWIG QUIET)
@@ -53,7 +61,8 @@ endif()
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+ign_configure_build(QUIT_IF_BUILD_ERRORS
+  COMPONENTS eigen3)
 
 
 #============================================================================
