@@ -205,6 +205,10 @@ TEST(Matrix4dTest, Multiply4)
 
   math::Matrix4d mat2 = mat * mat1;
   EXPECT_EQ(mat2, mat3);
+
+  math::Matrix4d mat4 = mat;
+  mat4 *= mat1;
+  EXPECT_EQ(mat2, mat4);
 }
 
 /////////////////////////////////////////////////
