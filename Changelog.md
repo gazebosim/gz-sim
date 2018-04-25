@@ -2,9 +2,9 @@
 
 ### Ignition Math 4.x.x
 
-1. Add Graph::EdgeFromVertice function that return an edge, if one exists,
+1. Add Graph::EdgeFromVertices function that return an edge, if one exists,
    between two vertices.
-    * [Pull request 253](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/253)
+    * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
 1. Added multiply assign operator to Matrix4. 
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
