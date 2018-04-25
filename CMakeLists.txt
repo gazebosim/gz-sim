@@ -39,8 +39,8 @@ link_directories(${IGNITION-GUI_LIBRARY_DIRS})
 
 #--------------------------------------
 # Find ignition-math
-set(IGN_MSGS_VER 5)
-ign_find_package(ignition-math${IGN_MSGS_VER} REQUIRED)
+set(IGN_MATH_VER 5)
+ign_find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-msgs
