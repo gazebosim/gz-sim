@@ -2,10 +2,16 @@
 
 ### Ignition Math 4.x.x
 
+1. Added multiply assign operator to Matrix4. 
+    * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
+
+
 1. Add Plane copy constructor and fix cppcheck on artful
     * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
 
-
+1. Added MovingWindowFilter, a copy from Ignition Common. This version will
+   replace the version found in Ignition Common.
+    * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/239)
 
 ### Ignition Math 4.0.0 (2017-12-26)
 
