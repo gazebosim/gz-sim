@@ -145,8 +145,8 @@ TEST(FrustumTest, PyramidXAxisPos)
   EXPECT_TRUE(frustum.Contains(Vector3d(10, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(10.1, 0, 0)));
 
-  EXPECT_TRUE(frustum.Contains(Box(Vector3d(1, 0, 0), Vector3d(5, 5, 5))));
-  EXPECT_FALSE(frustum.Contains(Box(Vector3d(-1, 0, 0), Vector3d(.1, .2, .3))));
+  EXPECT_TRUE(frustum.Contains(AxisAlignedBox(Vector3d(1, 0, 0), Vector3d(5, 5, 5))));
+  EXPECT_FALSE(frustum.Contains(AxisAlignedBox(Vector3d(-1, 0, 0), Vector3d(.1, .2, .3))));
 }
 
 /////////////////////////////////////////////////
@@ -173,8 +173,8 @@ TEST(FrustumTest, PyramidXAxisNeg)
   EXPECT_TRUE(frustum.Contains(Vector3d(-2, 0, 0)));
   EXPECT_TRUE(frustum.Contains(Vector3d(-10, 0, 0)));
 
-  EXPECT_FALSE(frustum.Contains(Box(Vector3d(1, 0, 0), Vector3d(5, 5, 5))));
-  EXPECT_TRUE(frustum.Contains(Box(Vector3d(-1, 0, 0), Vector3d(.1, .2, .3))));
+  EXPECT_FALSE(frustum.Contains(AxisAlignedBox(Vector3d(1, 0, 0), Vector3d(5, 5, 5))));
+  EXPECT_TRUE(frustum.Contains(AxisAlignedBox(Vector3d(-1, 0, 0), Vector3d(.1, .2, .3))));
 }
 
 /////////////////////////////////////////////////
@@ -201,8 +201,8 @@ TEST(FrustumTest, PyramidYAxis)
   EXPECT_TRUE(frustum.Contains(Vector3d(0, 1, 0)));
   EXPECT_TRUE(frustum.Contains(Vector3d(0, 5, 0)));
 
-  EXPECT_TRUE(frustum.Contains(Box(Vector3d(0, 1, 0), Vector3d(5, 5, 5))));
-  EXPECT_FALSE(frustum.Contains(Box(Vector3d(0, -1, 0), Vector3d(.1, 0, .3))));
+  EXPECT_TRUE(frustum.Contains(AxisAlignedBox(Vector3d(0, 1, 0), Vector3d(5, 5, 5))));
+  EXPECT_FALSE(frustum.Contains(AxisAlignedBox(Vector3d(0, -1, 0), Vector3d(.1, 0, .3))));
 }
 
 /////////////////////////////////////////////////
@@ -231,8 +231,8 @@ TEST(FrustumTest, PyramidZAxis)
   EXPECT_TRUE(frustum.Contains(Vector3d(0.5, 0.5, -5.5)));
   EXPECT_TRUE(frustum.Contains(Vector3d(0, 0, -10)));
 
-  EXPECT_FALSE(frustum.Contains(Box(Vector3d(0, 0, 0), Vector3d(5, 5, 5))));
-  EXPECT_TRUE(frustum.Contains(Box(Vector3d(0, 0, -1), Vector3d(.1, 0, .3))));
+  EXPECT_FALSE(frustum.Contains(AxisAlignedBox(Vector3d(0, 0, 0), Vector3d(5, 5, 5))));
+  EXPECT_TRUE(frustum.Contains(AxisAlignedBox(Vector3d(0, 0, -1), Vector3d(.1, 0, .3))));
 }
 
 /////////////////////////////////////////////////
@@ -481,21 +481,21 @@ TEST(FrustumTest, ContainsAABBNoOverlap)
   frustum.SetAspectRatio(1.8);
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
-  // Boxes that don't overlapp any planes
+  // AxisAlignedBoxes that don't overlapp any planes
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1.45, -0.05, 1.95), Vector3d(1.55, 0.05, 2.05))));
+        AxisAlignedBox(Vector3d(1.45, -0.05, 1.95), Vector3d(1.55, 0.05, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(2.55, -0.05, 1.95), Vector3d(2.65, 0.05, 2.05))));
+      AxisAlignedBox(Vector3d(2.55, -0.05, 1.95), Vector3d(2.65, 0.05, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(0.35, -0.05, 1.95), Vector3d(0.45, 0.05, 2.05))));
+      AxisAlignedBox(Vector3d(0.35, -0.05, 1.95), Vector3d(0.45, 0.05, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(1.45, -0.05, 2.55), Vector3d(1.55, 0.05, 2.65))));
+      AxisAlignedBox(Vector3d(1.45, -0.05, 2.55), Vector3d(1.55, 0.05, 2.65))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(1.45, -0.05, 1.35), Vector3d(1.55, 0.05, 1.45))));
+      AxisAlignedBox(Vector3d(1.45, -0.05, 1.35), Vector3d(1.55, 0.05, 1.45))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(1.45, -1.05, 1.95), Vector3d(1.55, -0.95, 2.05))));
+      AxisAlignedBox(Vector3d(1.45, -1.05, 1.95), Vector3d(1.55, -0.95, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(1.45, 0.95, 1.95), Vector3d(1.55, 1.05, 2.05))));
+      AxisAlignedBox(Vector3d(1.45, 0.95, 1.95), Vector3d(1.55, 1.05, 2.05))));
 }
 
 //////////////////////////////////////////////////
@@ -508,19 +508,19 @@ TEST(FrustumTest, ContainsAABBOverlapOnePlane)
   frustum.SetAspectRatio(1.8);
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
-  // Boxes overlapping one plane
+  // AxisAlignedBoxes overlapping one plane
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.43, -0.05, 1.95), Vector3d(2.53, 0.05, 2.05))));
+        AxisAlignedBox(Vector3d(2.43, -0.05, 1.95), Vector3d(2.53, 0.05, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.05, 1.95), Vector3d(0.595, 0.05, 2.05))));
+        AxisAlignedBox(Vector3d(0.495, -0.05, 1.95), Vector3d(0.595, 0.05, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1.45, -0.05, 2.42), Vector3d(1.55, 0.05, 2.52))));
+        AxisAlignedBox(Vector3d(1.45, -0.05, 2.42), Vector3d(1.55, 0.05, 2.52))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1.45, -0.05, 1.48), Vector3d(1.55, 0.05, 1.58))));
+        AxisAlignedBox(Vector3d(1.45, -0.05, 1.48), Vector3d(1.55, 0.05, 1.58))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1.45, -0.9, 1.95), Vector3d(1.55, -0.8, 2.05))));
+        AxisAlignedBox(Vector3d(1.45, -0.9, 1.95), Vector3d(1.55, -0.8, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1.45, 0.8, 1.95), Vector3d(1.55, 0.9, 2.05))));
+        AxisAlignedBox(Vector3d(1.45, 0.8, 1.95), Vector3d(1.55, 0.9, 2.05))));
 }
 
 
@@ -534,31 +534,31 @@ TEST(FrustumTest, ContainsAABBOverlapTwoPlanes)
   frustum.SetAspectRatio(1.8);
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
-  // Boxes overlapping two planes
+  // AxisAlignedBoxes overlapping two planes
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, -0.05, 2.7), Vector3d(2.52, 0.05, 2.8))));
+        AxisAlignedBox(Vector3d(2.42, -0.05, 2.7), Vector3d(2.52, 0.05, 2.8))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, -0.05, 1.2), Vector3d(2.52, 0.05, 1.3))));
+        AxisAlignedBox(Vector3d(2.42, -0.05, 1.2), Vector3d(2.52, 0.05, 1.3))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, -1.44, 1.95), Vector3d(2.52, -1.34, 2.05))));
+        AxisAlignedBox(Vector3d(2.42, -1.44, 1.95), Vector3d(2.52, -1.34, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, 1.34, 1.95), Vector3d(2.52, 1.44, 2.05))));
+        AxisAlignedBox(Vector3d(2.42, 1.34, 1.95), Vector3d(2.52, 1.44, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.05, 2.1), Vector3d(0.595, 0.05, 2.2))));
+        AxisAlignedBox(Vector3d(0.495, -0.05, 2.1), Vector3d(0.595, 0.05, 2.2))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.05, 1.8), Vector3d(0.595, 0.05, 1.9))));
+        AxisAlignedBox(Vector3d(0.495, -0.05, 1.8), Vector3d(0.595, 0.05, 1.9))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, 0.25, 1.95), Vector3d(0.595, 0.35, 2.05))));
+        AxisAlignedBox(Vector3d(0.495, 0.25, 1.95), Vector3d(0.595, 0.35, 2.05))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.35, 1.95), Vector3d(0.595, -0.25, 2.05))));
+        AxisAlignedBox(Vector3d(0.495, -0.35, 1.95), Vector3d(0.595, -0.25, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-        Box(Vector3d(2.48, -0.05, 2.81), Vector3d(2.58, 0.05, 2.91))));
+        AxisAlignedBox(Vector3d(2.48, -0.05, 2.81), Vector3d(2.58, 0.05, 2.91))));
   EXPECT_FALSE(frustum.Contains(
-        Box(Vector3d(2.48, -0.05, 1.09), Vector3d(2.58, 0.05, 1.19))));
+        AxisAlignedBox(Vector3d(2.48, -0.05, 1.09), Vector3d(2.58, 0.05, 1.19))));
   EXPECT_FALSE(frustum.Contains(
-        Box(Vector3d(2.48, -1.55, 1.95), Vector3d(2.58, -1.45, 2.05))));
+        AxisAlignedBox(Vector3d(2.48, -1.55, 1.95), Vector3d(2.58, -1.45, 2.05))));
   EXPECT_FALSE(frustum.Contains(
-        Box(Vector3d(2.48, 1.45, 1.95), Vector3d(2.58, 1.55, 2.05))));
+        AxisAlignedBox(Vector3d(2.48, 1.45, 1.95), Vector3d(2.58, 1.55, 2.05))));
 }
 
 //////////////////////////////////////////////////
@@ -571,31 +571,31 @@ TEST(FrustumTest, ContainsAABBOverlapThreePlanes)
   frustum.SetAspectRatio(1.8);
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
-  // Boxes overlapping three planes
+  // AxisAlignedBoxes overlapping three planes
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, 0.25, 2.1), Vector3d(0.595, 0.35, 2.2))));
+        AxisAlignedBox(Vector3d(0.495, 0.25, 2.1), Vector3d(0.595, 0.35, 2.2))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, 0.25, 1.8), Vector3d(0.595, 0.35, 1.9))));
+        AxisAlignedBox(Vector3d(0.495, 0.25, 1.8), Vector3d(0.595, 0.35, 1.9))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.35, 2.1), Vector3d(0.595, -0.25, 2.2))));
+        AxisAlignedBox(Vector3d(0.495, -0.35, 2.1), Vector3d(0.595, -0.25, 2.2))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(0.495, -0.35, 1.8), Vector3d(0.595, -0.25, 1.9))));
+        AxisAlignedBox(Vector3d(0.495, -0.35, 1.8), Vector3d(0.595, -0.25, 1.9))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, 1.34, 2.7), Vector3d(2.52, 1.44, 2.8))));
+        AxisAlignedBox(Vector3d(2.42, 1.34, 2.7), Vector3d(2.52, 1.44, 2.8))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, 1.34, 1.2), Vector3d(2.52, 1.44, 1.3))));
+        AxisAlignedBox(Vector3d(2.42, 1.34, 1.2), Vector3d(2.52, 1.44, 1.3))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, -1.44, 2.7), Vector3d(2.52, -1.34, 2.8))));
+        AxisAlignedBox(Vector3d(2.42, -1.44, 2.7), Vector3d(2.52, -1.34, 2.8))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(2.42, -1.44, 1.2), Vector3d(2.52, -1.34, 1.3))));
+        AxisAlignedBox(Vector3d(2.42, -1.44, 1.2), Vector3d(2.52, -1.34, 1.3))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(2.48, 1.45, 2.81), Vector3d(2.58, 1.55, 2.91))));
+      AxisAlignedBox(Vector3d(2.48, 1.45, 2.81), Vector3d(2.58, 1.55, 2.91))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(2.48, -1.55, 2.81), Vector3d(2.58, -1.45, 2.91))));
+      AxisAlignedBox(Vector3d(2.48, -1.55, 2.81), Vector3d(2.58, -1.45, 2.91))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(2.48, 1.45, 1.09), Vector3d(2.58, 1.55, 1.19))));
+      AxisAlignedBox(Vector3d(2.48, 1.45, 1.09), Vector3d(2.58, 1.55, 1.19))));
   EXPECT_FALSE(frustum.Contains(
-      Box(Vector3d(2.48, -1.55, 1.09), Vector3d(2.58, -1.45, 1.19))));
+      AxisAlignedBox(Vector3d(2.48, -1.55, 1.09), Vector3d(2.58, -1.45, 1.19))));
 }
 
 //////////////////////////////////////////////////
@@ -609,7 +609,7 @@ TEST(FrustumTest, AABBContainsFrustum)
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(-100, -100, -100), Vector3d(100, 100, 100))));
+        AxisAlignedBox(Vector3d(-100, -100, -100), Vector3d(100, 100, 100))));
 }
 
 //////////////////////////////////////////////////
@@ -628,7 +628,7 @@ TEST(FrustumTest, AABBFrustumEdgeOverlap)
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1, -ybounds, 0), Vector3d(2, ybounds, 2))));
+        AxisAlignedBox(Vector3d(1, -ybounds, 0), Vector3d(2, ybounds, 2))));
 }
 
 //////////////////////////////////////////////////
@@ -644,9 +644,9 @@ TEST(FrustumTest, AABBBFWall)
   frustum.SetPose(Pose3d(0, 0, 2, 0, 0, 0));
 
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(1, -10, -10), Vector3d(2, 10, 10))));
+        AxisAlignedBox(Vector3d(1, -10, -10), Vector3d(2, 10, 10))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(-10, 1, -10), Vector3d(10, 1.1, 10))));
+        AxisAlignedBox(Vector3d(-10, 1, -10), Vector3d(10, 1.1, 10))));
   EXPECT_TRUE(frustum.Contains(
-        Box(Vector3d(-10, -10, 1.95), Vector3d(10, 10, 2.05))));
+        AxisAlignedBox(Vector3d(-10, -10, 1.95), Vector3d(10, 10, 2.05))));
 }

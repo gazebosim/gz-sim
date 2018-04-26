@@ -16,9 +16,10 @@
 */
 #include <cmath>
 
+#include "ignition/math/Frustum.hh"
+#include "ignition/math/AxisAlignedBox.hh"
 #include "ignition/math/Matrix4.hh"
 #include "FrustumPrivate.hh"
-#include "ignition/math/Frustum.hh"
 
 using namespace ignition;
 using namespace math;
@@ -65,7 +66,7 @@ Planed Frustum::Plane(const FrustumPlane _plane) const
 }
 
 /////////////////////////////////////////////////
-bool Frustum::Contains(const Box &_b) const
+bool Frustum::Contains(const AxisAlignedBox &_b) const
 {
   // This is a fast test used for culling.
   // If the box is on the negative side of a plane, then the box is not

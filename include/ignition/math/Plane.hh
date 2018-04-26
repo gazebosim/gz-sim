@@ -17,7 +17,7 @@
 #ifndef IGNITION_MATH_PLANE_HH_
 #define IGNITION_MATH_PLANE_HH_
 
-#include <ignition/math/Box.hh>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/config.hh>
@@ -144,7 +144,7 @@ namespace ignition
       /// plane is negative, Plane::POSITIVE_SIDE if the distance from the
       /// box to the plane is positive, or Plane::BOTH_SIDE if the
       /// box is on the plane.
-      public: PlaneSide Side(const math::Box &_box) const
+      public: PlaneSide Side(const math::AxisAlignedBox &_box) const
       {
         double dist = this->Distance(_box.Center());
         double maxAbsDist = this->normal.AbsDot(_box.Size()/2.0);

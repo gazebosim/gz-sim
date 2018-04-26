@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@
 #ifndef IGNITION_MATH_BOX_HH_
 #define IGNITION_MATH_BOX_HH_
 
-#include <iostream>
-#include <tuple>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Line3.hh>
 #include <ignition/math/config.hh>
+#include <ignition/math/MassMatrix3.hh>
+#include <ignition/math/Material.hh>
+#include <ignition/math/Vector3.hh>
 
 namespace ignition
 {
@@ -31,211 +29,158 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    // Forward declaration of private data
-    class BoxPrivate;
-
     /// \class Box Box.hh ignition/math/Box.hh
-    /// \brief Mathematical representation of a box and related functions.
+    /// \brief A representation of a box.
+    ///
+    /// The box class supports defining a size and material properties.
+    /// See Material for more on material properties.
+    ///
+    /// By default, a box's size (length, width, and height)  is zero.
+    ///
+    /// See AxisAlignedBox for an axis aligned box implementation.
+    template<typename Precision>
     class IGNITION_MATH_VISIBLE Box
     {
-      /// \brief Default constructor. This constructor will set the box's
-      /// minimum and maximum corners to the highest (max) and lowest
-      /// floating point values available to indicate that it is uninitialized.
-      /// The default box does not intersect any other boxes or contain any
-      /// points since it has no extent. Its center is the origin and its side
-      /// lengths are 0.
-      public: Box();
+      /// \brief Default constructor.
+      public: Box() = default;
 
-      /// \brief Constructor. This constructor will compute the box's
-      /// minimum and maximum corners based on the two arguments.
-      /// \param[in] _vec1 One corner of the box
-      /// \param[in] _vec2 Another corner of the box
-      public: Box(const Vector3d &_vec1, const Vector3d &_vec2);
+      /// \brief Construct a box with specified dimensions.
+      /// \param[in] _length Length of the box.
+      /// \param[in] _width Width of the box.
+      /// \param[in] _height Height of the box.
+      public: Box(Precision _length, Precision _width, Precision _height);
 
-      /// \brief Constructor. This constructor will compute the box's
-      /// minimum and maximum corners based on the arguments.
-      /// \param[in] _vec1X One corner's X position
-      /// \param[in] _vec1Y One corner's Y position
-      /// \param[in] _vec1Z One corner's Z position
-      /// \param[in] _vec2X Other corner's X position
-      /// \param[in] _vec2Y Other corner's Y position
-      /// \param[in] _vec2Z Other corner's Z position
-      public: Box(double _vec1X, double _vec1Y, double _vec1Z,
-                  double _vec2X, double _vec2Y, double _vec2Z);
+      /// \brief Construct a box with specified dimensions and a material.
+      /// \param[in] _length Length of the box.
+      /// \param[in] _width Width of the box.
+      /// \param[in] _height Height of the box.
+      /// \param[in] _mat Material property for the box.
+      public: Box(Precision _length, Precision _width, Precision _height,
+                  const Material &_mat);
 
-      /// \brief Copy Constructor
-      /// \param[in]  _b Box to copy
-      public: Box(const Box &_b);
-
-      /// \brief Destructor
-      public: virtual ~Box();
-
-      /// \brief Get the length along the x dimension
-      /// \return Double value of the length in the x dimension
-      public: double XLength() const;
-
-      /// \brief Get the length along the y dimension
-      /// \return Double value of the length in the y dimension
-      public: double YLength() const;
-
-      /// \brief Get the length along the z dimension
-      /// \return Double value of the length in the z dimension
-      public: double ZLength() const;
-
-      /// \brief Get the size of the box
-      /// \return Size of the box
-      public: math::Vector3d Size() const;
-
-      /// \brief Get the box center
-      /// \return The center position of the box
-      public: math::Vector3d Center() const;
-
-      /// \brief Merge a box with this box
-      /// \param[in]  _box Box to add to this box
-      public: void Merge(const Box &_box);
-
-      /// \brief Assignment operator. Set this box to the parameter
-      /// \param[in]  _b Box to copy
-      /// \return The new box.
-      public: Box &operator=(const Box &_b);
-
-      /// \brief Addition operator. result = this + _b
-      /// \param[in] _b Box to add
-      /// \return The new box
-      public: Box operator+(const Box &_b) const;
-
-      /// \brief Addition set operator. this = this + _b
-      /// \param[in] _b Box to add
-      /// \return This new box
-      public: const Box &operator+=(const Box &_b);
-
-      /// \brief Equality test operator
-      /// \param[in] _b Box to test
-      /// \return True if equal
-      public: bool operator==(const Box &_b) const;
-
-      /// \brief Inequality test operator
-      /// \param[in] _b Box to test
-      /// \return True if not equal
-      public: bool operator!=(const Box &_b) const;
-
-      /// \brief Subtract a vector from the min and max values
-      /// \param _v The vector to use during subtraction
-      /// \return The new box
-      public: Box operator-(const Vector3d &_v);
-
-      /// \brief Output operator
-      /// \param[in] _out Output stream
-      /// \param[in] _b Box to output to the stream
-      /// \return The stream
-      public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ignition::math::Box &_b)
-      {
-        _out << "Min[" << _b.Min() << "] Max[" << _b.Max() << "]";
-        return _out;
-      }
-
-      /// \brief Get the minimum corner.
-      /// \return The Vector3d that is the minimum corner of the box.
-      public: const Vector3d &Min() const;
-
-      /// \brief Get the maximum corner.
-      /// \return The Vector3d that is the maximum corner of the box.
-      public: const Vector3d &Max() const;
-
-      /// \brief Get a mutable version of the minimum corner.
-      /// \return The Vector3d that is the minimum corner of the box.
-      public: Vector3d &Min();
-
-      /// \brief Get a mutable version of the maximum corner.
-      /// \return The Vector3d that is the maximum corner of the box.
-      public: Vector3d &Max();
-
-      /// \brief Test box intersection. This test will only work if
-      /// both box's minimum corner is less than or equal to their
-      /// maximum corner.
-      /// \param[in] _box Box to check for intersection with this box.
-      /// \return True if this box intersects _box.
-      public: bool Intersects(const Box &_box) const;
-
-      /// \brief Check if a point lies inside the box.
-      /// \param[in] _p Point to check.
-      /// \return True if the point is inside the box.
-      public: bool Contains(const Vector3d &_p) const;
-
-      /// \brief Check if a ray (origin, direction) intersects the box.
-      /// \param[in] _origin Origin of the ray.
-      /// \param[in] _dir Direction of the ray. This ray will be normalized.
-      /// \param[in] _min Minimum allowed distance.
-      /// \param[in] _max Maximum allowed distance.
-      /// \return A boolean
-      public: bool IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
-                  const double _min, const double _max) const;
-
-      /// \brief Check if a ray (origin, direction) intersects the box.
-      /// \param[in] _origin Origin of the ray.
-      /// \param[in] _dir Direction of the ray. This ray will be normalized.
-      /// \param[in] _min Minimum allowed distance.
-      /// \param[in] _max Maximum allowed distance.
-      /// \return A boolean and double tuple. The boolean value is true
-      /// if the line intersects the box.
+      /// \brief Construct a box with specified dimensions, in vector form.
+      /// \param[in] _size Size of the box. The vector _size has the following
+      /// mapping:
       ///
-      /// The double is the distance from
-      /// the ray's start  to the closest intersection point on the box,
-      /// minus the _min distance. For example, if _min == 0.5 and the
-      /// intersection happens at a distance of 2.0 from _origin then returned
-      /// distance is 1.5.
+      /// * _size.X() == length
+      /// * _size.Y() == width
+      /// * _size.Z() == height
+      public: explicit Box(const Vector3<Precision> &_size);
+
+      /// \brief Construct a box with specified dimensions, in vector form
+      /// and a material.
+      /// \param[in] _size Size of the box. The vector _size has the following
+      /// mapping:
       ///
-      /// The double value is zero when the boolean value is false.
-      public: std::tuple<bool, double> IntersectDist(
-                  const Vector3d &_origin, const Vector3d &_dir,
-                  const double _min, const double _max) const;
+      /// * _size.X() == length
+      /// * _size.Y() == width
+      /// * _size.Z() == height
+      /// \param[in] _mat Material property for the box.
+      public: Box(const Vector3<Precision> &_size, const Material &_mat);
 
-      /// \brief Check if a ray (origin, direction) intersects the box.
-      /// \param[in] _origin Origin of the ray.
-      /// \param[in] _dir Direction of the ray. This ray will be normalized.
-      /// \param[in] _min Minimum allowed distance.
-      /// \param[in] _max Maximum allowed distance.
-      /// \return A boolean, double, Vector3d tuple. The boolean value is true
-      /// if the line intersects the box.
+      /// \brief Copy Constructor.
+      /// \param[in]  _b Box to copy.
+      public: Box(const Box<Precision> &_b);
+
+      /// \brief Destructor.
+      public: virtual ~Box() = default;
+
+      /// \brief Get the size of the box.
+      /// \return Size of the box.
+      public: math::Vector3<Precision> Size() const;
+
+      /// \brief Set the size of the box.
+      /// \param[in] _size Size of the box. The vector _size has the following
+      /// mapping:
       ///
-      /// The double is the distance from the ray's start to the closest
-      /// intersection point on the box,
-      /// minus the _min distance. For example, if _min == 0.5 and the
-      /// intersection happens at a distance of 2.0 from _origin then returned
-      /// distance is 1.5.
-      /// The double value is zero when the boolean value is false. The
-      ///
-      /// Vector3d is the intersection point on the box. The Vector3d value
-      /// is zero if the boolean value is false.
-      public: std::tuple<bool, double, Vector3d> Intersect(
-                  const Vector3d &_origin, const Vector3d &_dir,
-                  const double _min, const double _max) const;
+      /// * _size.X() == length
+      /// * _size.Y() == width
+      /// * _size.Z() == height
+      public: void SetSize(const math::Vector3<Precision> &_size);
 
-      /// \brief Check if a line intersects the box.
-      /// \param[in] _line The line to check against this box.
-      /// \return A boolean, double, Vector3d tuple. The boolean value is true
-      /// if the line intersects the box. The double is the distance from
-      /// the line's start to the closest intersection point on the box.
-      /// The double value is zero when the boolean value is false. The
-      /// Vector3d is the intersection point on the box. The Vector3d value
-      /// is zero if the boolean value is false.
-      public: std::tuple<bool, double, Vector3d> Intersect(
-                  const Line3d &_line) const;
+      /// \brief Set the size of the box.
+      /// \param[in] _length Length of the box.
+      /// \param[in] _width Width of the box.
+      /// \param[in] _height Height of the box.
+      public: void SetSize(Precision _length,
+                           Precision _width,
+                           Precision _height);
 
-      /// \brief Clip a line to a dimension of the box.
-      /// This is a helper function to Intersects
-      /// \param[in] _d Dimension of the box(0, 1, or 2).
-      /// \param[in] _line Line to clip
-      /// \param[in,out] _low Close distance
-      /// \param[in,out] _high Far distance
-      private: bool ClipLine(const int _d, const Line3d &_line,
-                   double &_low, double &_high) const;
+      /// \brief Equality test operator.
+      /// \param[in] _b Box to test.
+      /// \return True if equal.
+      public: bool operator==(const Box<Precision> &_b) const;
 
-      /// \brief Private data pointer
-      private: BoxPrivate *dataPtr;
+      /// \brief Inequality test operator.
+      /// \param[in] _b Box to test.
+      /// \return True if not equal.
+      public: bool operator!=(const Box<Precision> &_b) const;
+
+      /// \brief Get the material associated with this box.
+      /// \return The material assigned to this box.
+      public: const Material &Mat() const;
+
+      /// \brief Set the material associated with this box.
+      /// \param[in] _mat The material assigned to this box.
+      public: void SetMat(const Material &_mat);
+
+      /// \brief Get the volume of the box in m^3.
+      /// \return Volume of the box in m^3.
+      public: Precision Volume() const;
+
+      /// \brief Compute the box's density given a mass value. The
+      /// box is assumed to be solid with uniform density. This
+      /// function requires the box's size to be set to
+      /// values greater than zero. The Material of the box is ignored.
+      /// \param[in] _mass Mass of the box, in kg. This value should be
+      /// greater than zero.
+      /// \return Density of the box in kg/m^3. A negative value is
+      /// returned if the size or _mass is <= 0.
+      public: Precision DensityFromMass(const Precision _mass) const;
+
+      /// \brief Set the density of this box based on a mass value.
+      /// Density is computed using
+      /// double DensityFromMass(const double _mass) const. The
+      /// box is assumed to be solid with uniform density. This
+      /// function requires the box's size to be set to
+      /// values greater than zero. The existing Material density value is
+      /// overwritten only if the return value from this true.
+      /// \param[in] _mass Mass of the box, in kg. This value should be
+      /// greater than zero.
+      /// \return True if the density was set. False is returned if the
+      /// box's size or the _mass value are <= 0.
+      /// \sa double DensityFromMass(const double _mass) const
+      public: bool SetDensityFromMass(const Precision _mass);
+
+      /// \brief Get the mass matrix for this box. This function
+      /// is only meaningful if the box's size and material
+      /// have been set.
+      /// \param[out] _massMatrix The computed mass matrix will be stored
+      /// here.
+      /// \return False if computation of the mass matrix failed, which
+      /// could be due to an invalid size (<=0) or density (<=0).
+      public: bool MassMatrix(MassMatrix3<Precision> &_massMat) const;
+
+      /// \brief Size of the box.
+      private: Vector3<Precision> size = Vector3<Precision>::Zero;
+
+      /// \brief The box's material.
+      private: Material material;
     };
+
+    /// \typedef Box<int> Boxi
+    /// \brief Box with integer precision.
+    typedef Box<int> Boxi;
+
+    /// \typedef Box<double> Boxd
+    /// \brief Box with double precision.
+    typedef Box<double> Boxd;
+
+    /// \typedef Box<float> Boxf
+    /// \brief Box with float precision.
+    typedef Box<float> Boxf;
     }
   }
 }
+#include "ignition/math/detail/Box.hh"
 #endif
