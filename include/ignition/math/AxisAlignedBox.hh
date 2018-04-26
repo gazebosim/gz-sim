@@ -156,7 +156,8 @@ namespace ignition
       /// \brief Test box intersection. This test will only work if
       /// both box's minimum corner is less than or equal to their
       /// maximum corner.
-      /// \param[in] _box AxisAlignedBox to check for intersection with this box.
+      /// \param[in] _box AxisAlignedBox to check for intersection with
+      /// this box.
       /// \return True if this box intersects _box.
       public: bool Intersects(const AxisAlignedBox &_box) const;
 

@@ -253,7 +253,8 @@ bool AxisAlignedBox::ClipLine(const int _d, const Line3d &_line,
 }
 
 /////////////////////////////////////////////////
-bool AxisAlignedBox::IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
+bool AxisAlignedBox::IntersectCheck(
+    const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
   return std::get<0>(this->Intersect(_origin, _dir, _min, _max));
@@ -281,7 +282,8 @@ std::tuple<bool, double, Vector3d>  AxisAlignedBox::Intersect(
 /////////////////////////////////////////////////
 // Find the intersection of a line from v0 to v1 and an
 // axis-aligned bounding box http://www.youtube.com/watch?v=USjbg5QXk3g
-std::tuple<bool, double, Vector3d> AxisAlignedBox::Intersect(const Line3d &_line) const
+std::tuple<bool, double, Vector3d> AxisAlignedBox::Intersect(
+    const Line3d &_line) const
 {
   // low and high are the results from all clipping so far.
   // We'll write our results back out to those parameters.
