@@ -636,16 +636,30 @@ namespace graph
     /// \return A reference to the first edge found, or NullEdge if
     /// not found.
     public: const EdgeType &EdgeFromVertices(
-                const VertexId &_sourceId,
-                const VertexId &_destId) const
+                const VertexId _sourceId, const VertexId _destId) const
     {
-      for (typename std::map<EdgeId, EdgeType>::const_iterator iter =
-           this->edges.begin(); iter != this->edges.end(); ++iter)
+      // Get the adjacency iterator for the source vertex.
+      const typename std::map<VertexId, EdgeId_S>::const_iterator &adjIt =
+        this->adjList.find(_sourceId);
+
+      // Quit early if there is no adjacency entry
+      if (adjIt == this->adjList.end())
+        return EdgeType::NullEdge;
+
+      // Loop over the edges in the source vertex's adjacency list
+      for (std::set<EdgeId>::const_iterator edgIt = adjIt->second.begin();
+           edgIt != adjIt->second.end(); ++edgIt)
       {
-        if (iter->second.From(_sourceId) == _destId &&
-            iter->second.To(_destId) == _sourceId)
+        // Get an iterator to the actual edge
+        const typename std::map<EdgeId, EdgeType>::const_iterator edgeIter =
+          this->edges.find(*edgIt);
+
+        // Check if the edge has the correct source and destination.
+        if (edgeIter != this->edges.end() &&
+            edgeIter->second.From(_sourceId) == _destId &&
+            edgeIter->second.To(_destId) == _sourceId)
         {
-          return iter->second;
+          return edgeIter->second;
         }
       }
 
