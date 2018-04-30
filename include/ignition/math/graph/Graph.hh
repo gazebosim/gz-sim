@@ -657,9 +657,9 @@ namespace graph
 
         // Check if the edge has the correct source and destination.
         if (edgeIter != this->edges.end() &&
-            edgeIter->second.From(_sourceId) == _destId &&
-            edgeIter->second.To(_destId) == _sourceId)
+            edgeIter->second.From(_sourceId) == _destId)
         {
+          assert(edgeIter->second.To(_destId) == _sourceId);
           return edgeIter->second;
         }
       }
