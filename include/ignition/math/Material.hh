@@ -40,7 +40,9 @@ namespace ignition
     /// The list of built-in materials can be found in the ::MaterialType
     /// enum.
     ///
-    /// This class will replace the [MaterialDensity class](https://bitbucket.org/ignitionrobotics/ign-common/src/ign-common1/include/ignition/common/MaterialDensity.hh) found in the Ignition Common library, which was at version 1 at the
+    /// This class will replace the
+    /// [MaterialDensity class](https://bitbucket.org/ignitionrobotics/ign-common/src/ign-common1/include/ignition/common/MaterialDensity.hh)
+    /// found in the Ignition Common library, which was at version 1 at the
     /// time of this writing.
     ///
     /// **How to create a wood material:**
