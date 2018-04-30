@@ -27,13 +27,6 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
-    // Remove this diagnostic push,ignore,pop after gcc 6. The issue is with
-    // the visibility attributes in enum classes.
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43407
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-#endif
     /// \enum MaterialType
     /// \brief This enum lists the supported material types. A value can be
     /// used to create a Material instance.
@@ -41,7 +34,7 @@ namespace ignition
     /// \sa Material
     // Developer Note: When modifying this enum, make sure to also modify
     // the kMaterials map in src/MaterialTypes.hh.
-    enum class IGNITION_MATH_VISIBLE MaterialType
+    enum class MaterialType: int IGNITION_MATH_VISIBLE
     {
       /// \brief Styrofoam, density = 75.0 kg/m^3
       /// String name = "styrofoam"
@@ -108,9 +101,6 @@ namespace ignition
       // MaterialDensity_TEST.
       INVALID_MATERIAL
     };
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
     }
   }
 }
