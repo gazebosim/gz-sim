@@ -22,7 +22,7 @@
 #include <string>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
-#include <ignition/math/MaterialTypes.hh>
+#include <ignition/math/MaterialType.hh>
 
 namespace ignition
 {
@@ -40,7 +40,9 @@ namespace ignition
     /// The list of built-in materials can be found in the ::MaterialType
     /// enum.
     ///
-    /// This class will replace the [MaterialDensity class](https://bitbucket.org/ignitionrobotics/ign-common/src/ign-common1/include/ignition/common/MaterialDensity.hh) found in the Ignition Common library, which was at version 1 at the
+    /// This class will replace the
+    /// [MaterialDensity class](https://bitbucket.org/ignitionrobotics/ign-common/src/ign-common1/include/ignition/common/MaterialDensity.hh)
+    /// found in the Ignition Common library, which was at version 1 at the
     /// time of this writing.
     ///
     /// **How to create a wood material:**
@@ -93,7 +95,7 @@ namespace ignition
       /// \brief Get all the built-in materials.
       /// \return A map of all the materials. The map's key is
       /// material type and the map's value is the material object.
-      public: static const std::map<MaterialType, Material> &Materials();
+      public: static const std::map<MaterialType, Material> &Predefined();
 
       /// \brief Set this Material to the built-in Material with
       /// the nearest density value within _epsilon. If a built-in material
@@ -116,10 +118,15 @@ namespace ignition
       /// \return Reference to this Material.
       public: Material &operator=(Material &&_material);
 
-      /// \brief Equality operator.
+      /// \brief Equality operator. This compares type and density values.
       /// \param[in] _material Material to evaluate this object against.
       /// \return True if this material is equal to the given _material.
       public: bool operator==(const Material &_material) const;
+
+      /// \brief Inequality operator. This compares type and density values.
+      /// \param[in] _material Material to evaluate this object against.
+      /// \return True if this material is not equal to the given _material.
+      public: bool operator!=(const Material &_material) const;
 
       /// \brief Get the material's type.
       /// \return The material's type.
