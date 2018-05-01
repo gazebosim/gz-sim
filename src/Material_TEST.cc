@@ -48,8 +48,8 @@ TEST(MaterialTest, Init)
 
     // The density should be less than the max double value and greater than
     // zero.
-    EXPECT_GT(MAX_D, mats.find(static_cast<MaterialType>(i))->second.Density());
-    EXPECT_LT(0.0, mats.find(static_cast<MaterialType>(i))->second.Density());
+    EXPECT_LT(mats.find(static_cast<MaterialType>(i))->second.Density(), MAX_D);
+    EXPECT_GT(mats.find(static_cast<MaterialType>(i))->second.Density(), 0.0);
   }
 
   Material malicious(static_cast<MaterialType>(42));
