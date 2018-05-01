@@ -43,7 +43,7 @@ static const std::map<MaterialType, Material> kMaterials = []()
 class ignition::math::MaterialPrivate
 {
   /// \brief The material type.
-  public: MaterialType type = MaterialType::INVALID_MATERIAL;
+  public: MaterialType type = MaterialType::UNKNOWN_MATERIAL;
 
   /// \brief Name of the material. This will match the names
   /// used in MaterialType, but in lowercase.
@@ -201,6 +201,6 @@ void Material::SetToNearestDensity(const double _value, const double _epsilon)
     }
   }
 
-  if (result.Type() != MaterialType::INVALID_MATERIAL)
+  if (result.Type() != MaterialType::UNKNOWN_MATERIAL)
     *this = result;
 }

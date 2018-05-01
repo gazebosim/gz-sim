@@ -31,11 +31,11 @@ TEST(MaterialTest, Init)
 
   // Make sure that the number of elements in the MaterialType enum matches
   // the number of elements in the MaterialDensity::materials map.
-  EXPECT_EQ(static_cast<size_t>(MaterialType::INVALID_MATERIAL), mats.size());
+  EXPECT_EQ(static_cast<size_t>(MaterialType::UNKNOWN_MATERIAL), mats.size());
 
   // Iterate over each element in the enum. Check the that enum value
   // matches the type value in the mats map.
-  for (size_t i = 0; i < static_cast<size_t>(MaterialType::INVALID_MATERIAL);
+  for (size_t i = 0; i < static_cast<size_t>(MaterialType::UNKNOWN_MATERIAL);
        ++i)
   {
     // Get the type of the material for MaterialType i.
@@ -109,7 +109,7 @@ TEST(MaterialTest, Accessors)
   {
     Material mat("Notfoundium");
     EXPECT_GT(0.0, mat.Density());
-    EXPECT_EQ(MaterialType::INVALID_MATERIAL, mat.Type());
+    EXPECT_EQ(MaterialType::UNKNOWN_MATERIAL, mat.Type());
     EXPECT_TRUE(mat.Name().empty());
   }
 
@@ -123,7 +123,7 @@ TEST(MaterialTest, Accessors)
   {
     Material material;
     material.SetToNearestDensity(1001001.001, 1e-3);
-    EXPECT_EQ(MaterialType::INVALID_MATERIAL, material.Type());
+    EXPECT_EQ(MaterialType::UNKNOWN_MATERIAL, material.Type());
     EXPECT_GT(0.0, material.Density());
   }
   {

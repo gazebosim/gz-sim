@@ -91,7 +91,7 @@ namespace ignition
       /// \brief Represents an invalid or unknown material.
       // This value should always be last in the enum; it is used in
       // MaterialDensity_TEST.
-      INVALID_MATERIAL
+      UNKNOWN_MATERIAL
     };
     }
   }
