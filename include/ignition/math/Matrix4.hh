@@ -619,6 +619,16 @@ namespace ignition
         return *this;
       }
 
+      /// \brief Multiplication assignment operator. This matrix will
+      /// become equal to this * _m2.
+      /// \param _mat Incoming matrix.
+      /// \return This matrix * _mat.
+      public: Matrix4<T> operator*=(const Matrix4<T> &_m2)
+      {
+        (*this) = (*this) * _m2;
+        return *this;
+      }
+
       /// \brief Multiplication operator
       /// \param _mat Incoming matrix
       /// \return This matrix * _mat
