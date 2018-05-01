@@ -58,7 +58,7 @@ TEST(MassMatrix3dTest, Constructors)
     const double mass = 5.0;
     const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
     const math::Vector3d Ixyxzyz(0.2, 0.3, 0.4);
-    const math::Matrix3d Moi(2.0, 0.2, 0.3,
+    const math::Matrix3d moi(2.0, 0.2, 0.3,
                              0.2, 3.0, 0.4,
                              0.3, 0.4, 4.0);
     math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
@@ -79,7 +79,7 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-    EXPECT_EQ(m.Moi(), Moi);
+    EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
 
@@ -97,7 +97,7 @@ TEST(MassMatrix3dTest, Setters)
   const double mass = 5.0;
   const math::Vector3d Ixxyyzz(2.0, 3.0, 4.0);
   const math::Vector3d Ixyxzyz(0.2, 0.3, 0.4);
-  const math::Matrix3d Moi(2.0, 0.2, 0.3,
+  const math::Matrix3d moi(2.0, 0.2, 0.3,
                            0.2, 3.0, 0.4,
                            0.3, 0.4, 4.0);
 
@@ -129,7 +129,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-    EXPECT_EQ(m.Moi(), Moi);
+    EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
 
@@ -160,7 +160,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-    EXPECT_EQ(m.Moi(), Moi);
+    EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
 
@@ -178,7 +178,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.SetMass(mass));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.SetMoi(Moi));
+    EXPECT_TRUE(m.SetMoi(moi));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
@@ -190,7 +190,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-    EXPECT_EQ(m.Moi(), Moi);
+    EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
 
@@ -220,7 +220,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
-    EXPECT_EQ(m.Moi(), Moi);
+    EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
   }

@@ -94,8 +94,7 @@ namespace ignition
       /// \deprecated Matrix3<T> Moi() const
       public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
       {
-        auto R = Matrix3<T>(this->pose.Rot());
-        return R * this->massMatrix.Moi() * R.Transposed();
+        return this->Moi();
       }
 
       /// \brief Get the moment of inertia matrix expressed in the

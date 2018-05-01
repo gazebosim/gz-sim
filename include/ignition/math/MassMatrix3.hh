@@ -333,10 +333,7 @@ namespace ignition
       /// \deprecated Matrix3<T> Moi() const
       public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
       {
-        return Matrix3<T>(
-          this->Ixxyyzz[0], this->Ixyxzyz[0], this->Ixyxzyz[1],
-          this->Ixyxzyz[0], this->Ixxyyzz[1], this->Ixyxzyz[2],
-          this->Ixyxzyz[1], this->Ixyxzyz[2], this->Ixxyyzz[2]);
+        return this->Moi();
       }
 
       /// \brief returns Moments of Inertia as a Matrix3
