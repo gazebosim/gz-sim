@@ -58,6 +58,27 @@ TEST(SphereTest, Constructor)
 }
 
 //////////////////////////////////////////////////
+TEST(SphereTest, Comparison)
+{
+  const math::Sphered wood(0.1, math::Material(math::MaterialType::WOOD));
+  {
+    math::Sphered modified = wood;
+    EXPECT_EQ(wood, modified);
+
+    modified.SetRadius(1.0);
+    EXPECT_NE(wood, modified);
+  }
+
+  {
+    math::Sphered modified = wood;
+    EXPECT_EQ(wood, modified);
+
+    modified.SetMaterial(math::Material(math::MaterialType::PINE));
+    EXPECT_NE(wood, modified);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST(SphereTest, Mutators)
 {
   math::Sphered sphere;

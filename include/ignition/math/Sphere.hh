@@ -83,6 +83,10 @@ namespace ignition
       /// Radius and material properties will be checked.
       public: bool operator==(const Sphere &_sphere) const;
 
+      /// \brief Check if this sphere is not equal to the provided sphere.
+      /// Radius and material properties will be checked.
+      public: bool operator!=(const Sphere &_sphere) const;
+
       /// \brief Get the volume of the sphere in m^3.
       /// \return Volume of the sphere in m^3.
       public: Precision Volume() const;

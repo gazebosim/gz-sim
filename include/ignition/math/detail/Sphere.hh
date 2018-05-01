@@ -73,6 +73,13 @@ bool Sphere<T>::operator==(const Sphere &_sphere) const
 
 //////////////////////////////////////////////////
 template<typename T>
+bool Sphere<T>::operator!=(const Sphere &_sphere) const
+{
+  return !(*this == _sphere);
+}
+
+//////////////////////////////////////////////////
+template<typename T>
 bool Sphere<T>::MassMatrix(MassMatrix3d &_massMat) const
 {
   return _massMat.SetFromSphere(this->material, this->radius);
