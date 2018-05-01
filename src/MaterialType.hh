@@ -42,8 +42,6 @@ static std::map<MaterialType, MaterialData> kMaterialData =
   {MaterialType::PINE, {"pine", 373.0}},
   {MaterialType::WOOD, {"wood", 700.0}},
   {MaterialType::OAK, {"oak", 710.0}},
-  {MaterialType::ICE, {"ice", 916.0}},
-  {MaterialType::WATER, {"water", 1000.0}},
   {MaterialType::PLASTIC, {"plastic", 1175.0}},
   {MaterialType::CONCRETE, {"concrete", 2000.0}},
   {MaterialType::ALUMINUM, {"aluminum", 2700.0}},

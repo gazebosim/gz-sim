@@ -52,14 +52,6 @@ namespace ignition
       /// String name = "oak"
       OAK,
 
-      /// \brief Ice, density = 916.0 kg/m^3
-      /// String name = "ice"
-      ICE,
-
-      /// \brief Water, density = 1000.0 kg/m^3
-      /// String name = "water"
-      WATER,
-
       /// \brief Plastic, density = 1175.0 kg/m^3
       /// String name = "plastic"
       PLASTIC,
