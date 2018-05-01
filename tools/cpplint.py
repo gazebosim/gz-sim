@@ -3400,12 +3400,18 @@ def CheckRValueReference(filename, clean_lines, linenum, nesting_state, error):
   # if what's to the left of "&&" is a type or not.
   and_pos = len(match.group(1))
   if IsRValueType(clean_lines, nesting_state, linenum, and_pos):
-    if not IsRValueAllowed(clean_lines, linenum):
+    if False and not IsRValueAllowed(clean_lines, linenum):
       error(filename, linenum, 'build/c++11', 3,
             'RValue references are an unapproved C++ feature.')
   else:
-    error(filename, linenum, 'whitespace/operators', 3,
-          'Missing spaces around &&')
+    # Custom hack that assumes a line containing '&&' with a semicolon at
+    # the end is function definition instead of an "if/while/for/etc". This
+    # could be better, but I'm going for simple solution. ign-math5+ will use
+    # an updated cpplint.py script that handles this case properly.
+    match = Match(r'.*;$', line)
+    if not match:
+      error(filename, linenum, 'whitespace/operators', 3,
+            'Missing spaces around &&')
 
 
 def CheckSectionSpacing(filename, clean_lines, class_info, linenum, error):
@@ -4042,9 +4048,10 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
     line_width = GetLineWidth(line)
     extended_length = int((_line_length * 1.25))
     if line_width > extended_length:
-      error(filename, linenum, 'whitespace/line_length', 4,
-            'Lines should very rarely be longer than %i characters' %
-            extended_length)
+      if not Match(r'.*http(s?)://.*', line):
+        error(filename, linenum, 'whitespace/line_length', 4,
+              'Lines should very rarely be longer than %i characters' %
+              extended_length)
     elif line_width > _line_length:
       error(filename, linenum, 'whitespace/line_length', 2,
             'Lines should be <= %i characters long' % _line_length)
