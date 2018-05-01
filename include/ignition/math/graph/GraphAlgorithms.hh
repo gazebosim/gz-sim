@@ -183,6 +183,7 @@ namespace graph
   ///
   /// This is the resut of Dijkstra(g, 0):
   ///
+  /// \code
   /// ================================
   /// | Dst | Cost | Previous vertex |
   /// ================================
@@ -192,9 +193,11 @@ namespace graph
   /// |  3  |  1   |        0        |
   /// |  4  |  2   |        3        |
   /// ================================
+  /// \endcode
   ///
   /// This is the result of Dijkstra(g, 0, 3):
   ///
+  /// \code
   /// ================================
   /// | Dst | Cost | Previous vertex |
   /// ================================
@@ -204,6 +207,8 @@ namespace graph
   /// |  3  |  1   |        0        |
   /// |  4  |ignore|     ignore      |
   /// ================================
+  /// \endcode
+  ///
   template<typename V, typename E, typename EdgeType>
   std::map<VertexId, CostInfo> Dijkstra(const Graph<V, E, EdgeType> &_graph,
                                         const VertexId &_from,
