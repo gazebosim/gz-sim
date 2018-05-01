@@ -929,8 +929,8 @@ namespace ignition
           return false;
         }
         double volume = IGN_PI * _radius * _radius * _length;
-        this->SetMass(_mat.Density() * volume);
-        return this->SetFromCylinderZ(_length, _radius, _rot);
+        return this->SetFromCylinderZ(_mat.Density() * volume,
+                                      _length, _radius, _rot);
       }
 
       /// \brief Set inertial properties based on mass and equivalent cylinder
