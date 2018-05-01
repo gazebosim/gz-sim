@@ -85,6 +85,9 @@ TEST(SphereTest, VolumeAndDensity)
   // Bad density
   math::Sphered sphere2;
   EXPECT_GT(0.0, sphere2.DensityFromMass(mass));
+  sphere2.SetRadius(1.0);
+  EXPECT_GT(0.0, sphere2.DensityFromMass(0.0));
+  EXPECT_FALSE(sphere.SetDensityFromMass(0.0));
 }
 
 //////////////////////////////////////////////////
@@ -93,7 +96,7 @@ TEST(SphereTest, Mass)
   double mass = 2.0;
   double r = 0.1;
   math::Sphered sphere(r);
-  sphere.SetDensityFromMass(mass);
+  EXPECT_TRUE(sphere.SetDensityFromMass(mass));
 
   math::MassMatrix3d massMat;
   double ixxIyyIzz = 0.4 * mass * r * r;
