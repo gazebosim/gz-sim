@@ -7,7 +7,7 @@
     * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
 
 1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
-    * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
+    * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
 
 
 ## Ignition Math 4.x
