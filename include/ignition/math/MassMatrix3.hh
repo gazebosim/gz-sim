@@ -974,8 +974,7 @@ namespace ignition
         }
 
         double volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
-        this->SetMass(_mat.Density() * volume);
-        return this->SetFromSphere(_radius);
+        return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 
       /// \brief Set inertial properties based on mass and equivalent sphere.
