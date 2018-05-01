@@ -2,10 +2,9 @@
 
 ### Ignition Math 4.x.x
 
-1. Updated the MassMatrix3 ValidMomemnts() function to take into
-   account machine precision, and also relaxed the restrictions to accept
-   plausible moments.
-    * [Pull request 249](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/249)
+1. Updated the MassMatrix3 ValidMomemnts() function to take a tolerance
+   parameter.
+    * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
 
 1. Add Plane copy constructor and fix cppcheck on artful
     * [Pull request 230](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/230)
