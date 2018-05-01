@@ -17,6 +17,10 @@
    replace the version found in Ignition Common.
     * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/239)
 
+1. Added a Material class, which holds information about materials like wood,
+   steel, and iron.
+    * [Pull request 243](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/243)
+
 ### Ignition Math 4.0.0 (2017-12-26)
 
 1. Use std::stoi and std::stod in math::parse* functions to reduce code
