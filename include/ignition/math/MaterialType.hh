@@ -34,7 +34,7 @@ namespace ignition
     /// \sa Material
     // Developer Note: When modifying this enum, make sure to also modify
     // the kMaterials map in src/MaterialTypes.hh.
-    enum class MaterialType: int IGNITION_MATH_VISIBLE
+    enum class MaterialType
     {
       /// \brief Styrofoam, density = 75.0 kg/m^3
       /// String name = "styrofoam"
@@ -91,7 +91,7 @@ namespace ignition
       /// \brief Represents an invalid or unknown material.
       // This value should always be last in the enum; it is used in
       // MaterialDensity_TEST.
-      INVALID_MATERIAL
+      UNKNOWN_MATERIAL
     };
     }
   }
