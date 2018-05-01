@@ -29,7 +29,7 @@ Sphere<T>::Sphere(const T _radius)
 
 //////////////////////////////////////////////////
 template<typename T>
-Sphere<T>::Sphere(const T _radius, const Material &_mat)
+Sphere<T>::Sphere(const T _radius, const ignition::math::Material &_mat)
 {
   this->radius = _radius;
   this->material = _mat;
@@ -51,14 +51,14 @@ void Sphere<T>::SetRadius(const T _radius)
 
 //////////////////////////////////////////////////
 template<typename T>
-const Material &Sphere<T>::Mat() const
+const ignition::math::Material &Sphere<T>::Material() const
 {
   return this->material;
 }
 
 //////////////////////////////////////////////////
 template<typename T>
-void Sphere<T>::SetMat(const Material &_mat)
+void Sphere<T>::SetMaterial(const ignition::math::Material &_mat)
 {
   this->material = _mat;
 }
@@ -68,7 +68,7 @@ template<typename T>
 bool Sphere<T>::operator==(const Sphere &_sphere) const
 {
   return equal(this->radius, _sphere.Radius()) &&
-    this->material == _sphere.Mat();
+    this->material == _sphere.Material();
 }
 
 //////////////////////////////////////////////////

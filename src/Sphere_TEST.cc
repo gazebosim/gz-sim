@@ -21,6 +21,7 @@
 #include "ignition/math/Sphere.hh"
 
 using namespace ignition;
+using namespace math;
 
 /////////////////////////////////////////////////
 TEST(SphereTest, Constructor)
@@ -29,7 +30,7 @@ TEST(SphereTest, Constructor)
   {
     math::Sphered sphere;
     EXPECT_DOUBLE_EQ(0.0, sphere.Radius());
-    EXPECT_EQ(math::Material(), sphere.Mat());
+    EXPECT_EQ(math::Material(), sphere.Material());
 
     math::Sphered sphere2;
     EXPECT_EQ(sphere, sphere2);
@@ -39,7 +40,7 @@ TEST(SphereTest, Constructor)
   {
     math::Sphered sphere(1.0);
     EXPECT_DOUBLE_EQ(1.0, sphere.Radius());
-    EXPECT_EQ(math::Material(), sphere.Mat());
+    EXPECT_EQ(math::Material(), sphere.Material());
 
     math::Sphered sphere2(1.0);
     EXPECT_EQ(sphere, sphere2);
@@ -49,7 +50,7 @@ TEST(SphereTest, Constructor)
   {
     math::Sphered sphere(1.0, math::Material(math::MaterialType::WOOD));
     EXPECT_DOUBLE_EQ(1.0, sphere.Radius());
-    EXPECT_EQ(math::Material(math::MaterialType::WOOD), sphere.Mat());
+    EXPECT_EQ(math::Material(math::MaterialType::WOOD), sphere.Material());
 
     math::Sphered sphere2(1.0, math::Material(math::MaterialType::WOOD));
     EXPECT_EQ(sphere, sphere2);
@@ -61,13 +62,13 @@ TEST(SphereTest, Mutators)
 {
   math::Sphered sphere;
   EXPECT_DOUBLE_EQ(0.0, sphere.Radius());
-  EXPECT_EQ(math::Material(), sphere.Mat());
+  EXPECT_EQ(math::Material(), sphere.Material());
 
   sphere.SetRadius(.123);
-  sphere.SetMat(math::Material(math::MaterialType::PINE));
+  sphere.SetMaterial(math::Material(math::MaterialType::PINE));
 
   EXPECT_DOUBLE_EQ(.123, sphere.Radius());
-  EXPECT_EQ(math::Material(math::MaterialType::PINE), sphere.Mat());
+  EXPECT_EQ(math::Material(math::MaterialType::PINE), sphere.Material());
 }
 
 //////////////////////////////////////////////////

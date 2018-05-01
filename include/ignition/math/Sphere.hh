@@ -67,11 +67,11 @@ namespace ignition
 
       /// \brief Get the material associated with this sphere.
       /// \return The material assigned to this sphere
-      public: const Material &Mat() const;
+      public: const ignition::math::Material &Material() const;
 
       /// \brief Set the material associated with this sphere.
       /// \param[in] _mat The material assigned to this sphere
-      public: void SetMat(const Material &_mat);
+      public: void SetMaterial(const ignition::math::Material &_mat);
 
       /// \brief Get the mass matrix for this sphere. This function
       /// is only meaningful if the sphere's radius and material
@@ -118,7 +118,7 @@ namespace ignition
       private: Precision radius = 0.0;
 
       /// \brief the sphere's material.
-      private: Material material;
+      private: ignition::math::Material material;
     };
 
     /// \typedef Sphere<int> Spherei
