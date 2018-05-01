@@ -58,6 +58,28 @@ TEST(MaterialTest, Init)
 }
 
 /////////////////////////////////////////////////
+TEST(MaterialTest, Comparison)
+{
+  const Material aluminum(MaterialType::ALUMINUM);
+
+  {
+    Material modified = aluminum;
+    EXPECT_EQ(modified, aluminum);
+
+    modified.SetDensity(1234.0);
+    EXPECT_NE(modified, aluminum);
+  }
+
+  {
+    Material modified = aluminum;
+    EXPECT_EQ(modified, aluminum);
+
+    modified.SetType(MaterialType::PINE);
+    EXPECT_NE(modified, aluminum);
+  }
+}
+
+/////////////////////////////////////////////////
 TEST(MaterialTest, Accessors)
 {
   {

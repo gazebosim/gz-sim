@@ -126,6 +126,12 @@ bool Material::operator==(const Material &_material) const
 }
 
 ///////////////////////////////
+bool Material::operator!=(const Material &_material) const
+{
+  return !(*this == _material);
+}
+
+///////////////////////////////
 Material &Material::operator=(const Material &_material)
 {
   this->dataPtr->name = _material.Name();
