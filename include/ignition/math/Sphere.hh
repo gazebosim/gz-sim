@@ -32,20 +32,18 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Sphere Sphere.hh ignition/math/Sphere.hh
-    /// \brief A represntation of a sphere.
+    /// \brief A representation of a sphere.
     ///
-    /// The sphere class supports defining a sphere with a radius,
-    /// length, rotational offset, and material properties. Radius and
-    /// length are in meters. See Material for more on material properties.
-    /// By default, a sphere's length is aligned with the Z axis. The
-    /// rotational offset encodes a rotation from the z axis.
+    /// The sphere class supports defining a sphere with a radius and
+    /// material properties. Radius is in meters.
+    /// See Material for more on material properties.
     template<typename Precision>
     class IGNITION_MATH_VISIBLE Sphere
     {
       /// \brief Default constructor. The default radius is zero.
       public: Sphere() = default;
 
-      /// \brief Construct a sphere with a radiust.
+      /// \brief Construct a sphere with a radius.
       /// \param[in] _radius Radius of the sphere.
       public: explicit Sphere(const Precision _radius);
 
@@ -74,8 +72,7 @@ namespace ignition
       public: void SetMaterial(const ignition::math::Material &_mat);
 
       /// \brief Get the mass matrix for this sphere. This function
-      /// is only meaningful if the sphere's radius and material
-      /// have been set. Optionally, set the rotational offset.
+      /// is only meaningful if the sphere's radius and material have been set.
       /// \param[out] _massMatrix The computed mass matrix will be stored
       /// here.
       /// \return False if computation of the mass matrix failed, which
