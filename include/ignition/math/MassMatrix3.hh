@@ -284,7 +284,7 @@ namespace ignition
 
       /// \brief Verify that inertia values are positive definite
       /// \param[in] _tolerance The amount of tolerance to accept when
-      /// checking whether this MassMatrix3 represents a valid mass and moments
+      /// checking whether this MassMatrix3 has a valid mass and moment
       /// of inertia.
       /// \return True if mass is positive and moment of inertia matrix
       /// is positive definite.
@@ -302,7 +302,7 @@ namespace ignition
       /// \brief Verify that inertia values are positive definite
       /// and satisfy the triangle inequality.
       /// \param[in] _tolerance The amount of tolerance to accept when
-      /// checking whether the MassMatrix3 represents a valid mass and moments
+      /// checking whether the MassMatrix3 has a valid mass and moment
       /// of inertia. This value is passed on to IsPositive and
       /// ValidMoments.
       /// \return True if IsPositive and moment of inertia satisfies

@@ -58,8 +58,9 @@ namespace ignition
 
       /// \brief Set the mass and inertia matrix.
       /// \param[in] _m New MassMatrix3 object.
-      /// \param[in] _tolernace Tolerance is passed to MassMatrix3::IsValid and is
-      /// the amount of tolerance to accept when checking whether the MassMatrix3 is valid.
+      /// \param[in] _tolerance Tolerance is passed to
+      /// MassMatrix3::IsValid and is the amount of tolerance
+      /// to accept when checking whether the MassMatrix3 _m is valid.
       /// \return True if the MassMatrix3 is valid.
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
                                  const T _tolerance = 0)
