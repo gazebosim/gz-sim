@@ -65,7 +65,8 @@ namespace ignition
         return this->massMatrix.IsValid();
       }
 
-      /// \brief Get the mass and inertia matrix.
+      /// \brief Get the mass and inertia matrix. The mass matrix is
+      /// expressed in the inertial frame.
       /// \return The MassMatrix3 object.
       public: const MassMatrix3<T> &MassMatrix() const
       {
@@ -88,8 +89,10 @@ namespace ignition
         return this->pose;
       }
 
-      /// \brief Get the moment of inertia matrix expressed in the
-      /// base coordinate frame.
+      /// \brief Get the moment of inertia matrix transformed by the
+      /// rotational component of the pose (Inertial::Pose()) associated
+      /// with this Inertial object. It is up to the user to define what
+      /// the Pose of an Inertial object represents.
       /// \return Rotated moment of inertia matrix.
       public: Matrix3<T> MOI() const
       {
