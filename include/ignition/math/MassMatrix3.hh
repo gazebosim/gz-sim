@@ -18,7 +18,6 @@
 #define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -284,6 +283,9 @@ namespace ignition
       }
 
       /// \brief Verify that inertia values are positive definite
+      /// \param[in] _tolerance The amount of tolerance to accept when
+      /// checking whether this MassMatrix3 represents a valid mass and moments
+      /// of inertia.
       /// \return True if mass is positive and moment of inertia matrix
       /// is positive definite.
       public: bool IsPositive(const T _tolerance = 0) const
@@ -314,6 +316,9 @@ namespace ignition
       /// \brief Verify that principal moments are positive
       /// and satisfy the triangle inequality.
       /// \param[in] _moments Principal moments of inertia.
+      /// \param[in] _tolerance The amount of tolerance to accept when
+      /// checking whether the moments are positive and satisfy the triangle
+      /// inequality.
       /// \return True if moments of inertia are positive
       /// and satisfy the triangle inequality.
       public: static bool ValidMoments(const Vector3<T> &_moments,
