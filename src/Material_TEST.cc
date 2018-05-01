@@ -26,7 +26,7 @@ using namespace math;
 /////////////////////////////////////////////////
 TEST(MaterialTest, Init)
 {
-  const std::map<MaterialType, Material> &mats = Material::Materials();
+  const std::map<MaterialType, Material> &mats = Material::Predefined();
   EXPECT_FALSE(mats.empty());
 
   // Make sure that the number of elements in the MaterialType enum matches
