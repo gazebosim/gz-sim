@@ -96,6 +96,16 @@ TEST(Inertiald_Test, CoverageExtra)
 }
 
 /////////////////////////////////////////////////
+TEST(Inertiald_Test, SetMassMatrix)
+{
+  math::Inertiald inertial;
+  math::MassMatrix3d m;
+
+  EXPECT_FALSE(inertial.SetMassMatrix(m));
+  EXPECT_TRUE(inertial.SetMassMatrix(m, 1e-6));
+}
+
+/////////////////////////////////////////////////
 TEST(Inertiald_Test, Setters)
 {
   const double mass = 5.0;

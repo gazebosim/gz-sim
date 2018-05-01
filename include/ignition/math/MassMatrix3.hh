@@ -286,23 +286,29 @@ namespace ignition
       /// \brief Verify that inertia values are positive definite
       /// \return True if mass is positive and moment of inertia matrix
       /// is positive definite.
-      public: bool IsPositive() const
+      public: bool IsPositive(const T _tolerance = 0) const
       {
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
-        return (this->mass > 0) &&
-               (this->IXX() > 0) &&
-               (this->IXX()*this->IYY() - std::pow(this->IXY(), 2) > 0) &&
-               (this->MOI().Determinant() > 0);
+        return (this->mass + _tolerance > 0) &&
+               (this->IXX() + _tolerance  > 0) &&
+               (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+                _tolerance > 0) &&
+               (this->MOI().Determinant() + _tolerance > 0);
       }
 
       /// \brief Verify that inertia values are positive definite
       /// and satisfy the triangle inequality.
+      /// \param[in] _tolerance The amount of tolerance to accept when
+      /// checking whether the MassMatrix3 represents a valid mass and moments
+      /// of inertia. This value is passed on to IsPositive and
+      /// ValidMoments.
       /// \return True if IsPositive and moment of inertia satisfies
       /// the triangle inequality.
-      public: bool IsValid() const
+      public: bool IsValid(const T _tolerance = 0) const
       {
-        return this->IsPositive() && ValidMoments(this->PrincipalMoments());
+        return this->IsPositive(_tolerance) &&
+               ValidMoments(this->PrincipalMoments(), _tolerance);
       }
 
       /// \brief Verify that principal moments are positive
@@ -313,12 +319,12 @@ namespace ignition
       public: static bool ValidMoments(const Vector3<T> &_moments,
                                        const T _tolerance = 0)
       {
-        return _moments[0] + epsilon > 0 &&
-               _moments[1] + epsilon > 0 &&
-               _moments[2] + epsilon > 0 &&
-               _moments[0] + _moments[1] + epsilon > _moments[2] &&
-               _moments[1] + _moments[2] + epsilon > _moments[0] &&
-               _moments[2] + _moments[0] + epsilon > _moments[1];
+        return _moments[0] + _tolerance > 0 &&
+               _moments[1] + _tolerance > 0 &&
+               _moments[2] + _tolerance > 0 &&
+               _moments[0] + _moments[1] + _tolerance > _moments[2] &&
+               _moments[1] + _moments[2] + _tolerance > _moments[0] &&
+               _moments[2] + _moments[0] + _tolerance > _moments[1];
       }
 
       /// \brief Compute principal moments of inertia,

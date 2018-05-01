@@ -1,10 +1,12 @@
-## Ignition Math 4.x
-
-### Ignition Math 4.x.x
+## Ignition Math 5.x
 
 1. Updated the MassMatrix3 ValidMoments() function to take a tolerance
    parameter.
     * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
+
+## Ignition Math 4.x
+
+### Ignition Math 4.x.x
 
 1. Add Graph::EdgeFromVertices function that return an edge, if one exists,
    between two vertices.

@@ -856,3 +856,14 @@ TEST(MassMatrix3dTest, SetFromSphere)
   }
 }
 
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, ValidMomentsTolerance)
+{
+  math::Vector3d moments;
+  EXPECT_FALSE(math::MassMatrix3d::ValidMoments(moments));
+  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments, 1e-6));
+
+  math::MassMatrix3d massMatrix;
+  EXPECT_FALSE(massMatrix.IsValid());
+  EXPECT_TRUE(massMatrix.IsValid(1e-6));
+}
