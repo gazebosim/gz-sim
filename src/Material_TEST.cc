@@ -58,6 +58,7 @@ TEST(MaterialTest, Init)
 
   Material byDensity(42.2);
   EXPECT_DOUBLE_EQ(42.2, byDensity.Density());
+  EXPECT_EQ(MaterialType::UNKNOWN_MATERIAL, byDensity.Type());
 }
 
 /////////////////////////////////////////////////
