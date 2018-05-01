@@ -19,13 +19,13 @@
 #include "ignition/math/Helpers.hh"
 
 // Placing the kMaterialData in a separate file for conveniece and clarity.
-#include "MaterialTypes.hh"
+#include "MaterialType.hh"
 
 using namespace ignition;
 using namespace math;
 
 // Initialize the static map of Material objects based on the kMaterialData.
-static std::map<MaterialType, Material> kMaterials = []()
+static const std::map<MaterialType, Material> kMaterials = []()
 {
   std::map<MaterialType, Material> matMap;
 
@@ -43,7 +43,7 @@ static std::map<MaterialType, Material> kMaterials = []()
 class ignition::math::MaterialPrivate
 {
   /// \brief The material type.
-  public: MaterialType type = MaterialType::INVALID;
+  public: MaterialType type = MaterialType::UNKNOWN_MATERIAL;
 
   /// \brief Name of the material. This will match the names
   /// used in MaterialType, but in lowercase.
@@ -63,9 +63,12 @@ Material::Material()
 Material::Material(const MaterialType _type)
 : dataPtr(new MaterialPrivate)
 {
-  this->dataPtr->type = _type;
-  this->dataPtr->name = kMaterials[_type].Name();
-  this->dataPtr->density = kMaterials[_type].Density();
+  if (kMaterials.find(_type) != kMaterials.end())
+  {
+    this->dataPtr->type = _type;
+    this->dataPtr->name = kMaterials.at(_type).Name();
+    this->dataPtr->density = kMaterials.at(_type).Density();
+  }
 }
 
 ///////////////////////////////
@@ -104,7 +107,7 @@ Material::Material(const Material &_material)
 ///////////////////////////////
 Material::Material(Material &&_material)
 {
-  this->dataPtr = std::move(_material.dataPtr);
+  this->dataPtr = _material.dataPtr;
   _material.dataPtr = new MaterialPrivate;
 }
 
@@ -116,7 +119,7 @@ Material::~Material()
 }
 
 ///////////////////////////////
-const std::map<MaterialType, Material> &Material::Materials()
+const std::map<MaterialType, Material> &Material::Predefined()
 {
   return kMaterials;
 }
@@ -127,6 +130,12 @@ bool Material::operator==(const Material &_material) const
   // Not checking the name, because type should be enough.
   return this->dataPtr->type == _material.dataPtr->type &&
          equal(this->dataPtr->density, _material.dataPtr->density);
+}
+
+///////////////////////////////
+bool Material::operator!=(const Material &_material) const
+{
+  return !(*this == _material);
 }
 
 ///////////////////////////////
@@ -142,7 +151,7 @@ Material &Material::operator=(const Material &_material)
 Material &Material::operator=(Material &&_material)
 {
   delete this->dataPtr;
-  this->dataPtr = std::move(_material.dataPtr);
+  this->dataPtr = _material.dataPtr;
   _material.dataPtr = new MaterialPrivate;
   return *this;
 }
@@ -199,6 +208,6 @@ void Material::SetToNearestDensity(const double _value, const double _epsilon)
     }
   }
 
-  if (result.Type() != MaterialType::INVALID)
+  if (result.Type() != MaterialType::UNKNOWN_MATERIAL)
     *this = result;
 }
