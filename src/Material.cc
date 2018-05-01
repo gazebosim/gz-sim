@@ -112,7 +112,7 @@ Material::~Material()
 }
 
 ///////////////////////////////
-const std::map<MaterialType, Material> &Material::Materials()
+const std::map<MaterialType, Material> &Material::Predefined()
 {
   return kMaterials;
 }

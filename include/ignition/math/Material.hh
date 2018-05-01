@@ -91,7 +91,7 @@ namespace ignition
       /// \brief Get all the built-in materials.
       /// \return A map of all the materials. The map's key is
       /// material type and the map's value is the material object.
-      public: static const std::map<MaterialType, Material> &Materials();
+      public: static const std::map<MaterialType, Material> &Predefined();
 
       /// \brief Set this Material to the built-in Material with
       /// the nearest density value within _epsilon. If a built-in material
