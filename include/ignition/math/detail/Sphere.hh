@@ -16,6 +16,9 @@
 */
 #ifndef IGNITION_MATH_DETAIL_SPHERE_HH_
 #define IGNITION_MATH_DETAIL_SPHERE_HH_
+
+#include "ignition/math/Sphere.hh"
+
 namespace ignition
 {
 namespace math
