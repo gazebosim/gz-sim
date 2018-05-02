@@ -38,7 +38,7 @@ namespace ignition
     /// material properties. Radius is in meters.
     /// See Material for more on material properties.
     template<typename Precision>
-    class IGNITION_MATH_VISIBLE Sphere
+    class Sphere
     {
       /// \brief Default constructor. The default radius is zero.
       public: Sphere() = default;
