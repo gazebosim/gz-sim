@@ -95,10 +95,19 @@ namespace ignition
       /// \brief Get the moment of inertia matrix expressed in the
       /// base coordinate frame.
       /// \return Rotated moment of inertia matrix.
-      public: Matrix3<T> MOI() const
+      /// \deprecated Matrix3<T> Moi() const
+      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
+      {
+        return this->Moi();
+      }
+
+      /// \brief Get the moment of inertia matrix expressed in the
+      /// base coordinate frame.
+      /// \return Rotated moment of inertia matrix.
+      public: Matrix3<T> Moi() const
       {
         auto R = Matrix3<T>(this->pose.Rot());
-        return R * this->massMatrix.MOI() * R.Transposed();
+        return R * this->massMatrix.Moi() * R.Transposed();
       }
 
       /// \brief Set the inertial pose rotation without affecting the
@@ -107,10 +116,10 @@ namespace ignition
       /// \return True if the MassMatrix3 is valid.
       public: bool SetInertialRotation(const Quaternion<T> &_q)
       {
-        auto moi = this->MOI();
+        auto moi = this->Moi();
         this->pose.Rot() = _q;
         auto R = Matrix3<T>(_q);
-        return this->massMatrix.MOI(R.Transposed() * moi * R);
+        return this->massMatrix.SetMoi(R.Transposed() * moi * R);
       }
 
       /// \brief Set the MassMatrix rotation (eigenvectors of inertia matrix)
@@ -136,7 +145,7 @@ namespace ignition
             0, moments[1], 0,
             0, 0, moments[2]);
         const auto R = Matrix3<T>(_q);
-        return this->massMatrix.MOI(R * diag * R.Transposed());
+        return this->massMatrix.SetMoi(R * diag * R.Transposed());
       }
 
       /// \brief Equal operator.
@@ -197,7 +206,7 @@ namespace ignition
         Vector3<T> ixyxzyz;
         // First add matrices in base frame
         {
-          auto moi = this->MOI() + _inertial.MOI();
+          auto moi = this->Moi() + _inertial.Moi();
           ixxyyzz = Vector3<T>(moi(0, 0), moi(1, 1), moi(2, 2));
           ixyxzyz = Vector3<T>(moi(0, 1), moi(0, 2), moi(1, 2));
         }

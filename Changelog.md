@@ -1,5 +1,10 @@
 ## Ignition Math 5.x
 
+### Ignition Math 5.x.x
+
+1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
+    * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
+
 1. Updated the MassMatrix3::ValidMoments(), MassMatrix3::IsValid(), MassMatrix3::IsPositive(),
  and Inertial::SetMassMatrix functions to accept a tolerance parameter.
     * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
