@@ -7,7 +7,7 @@
 
 1. Updated the MassMatrix3::ValidMoments(), MassMatrix3::IsValid(), MassMatrix3::IsPositive(),
  and Inertial::SetMassMatrix functions to accept a tolerance parameter.
-    * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
+    * [Pull request 264](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/264)
 
 ## Ignition Math 4.x
 
