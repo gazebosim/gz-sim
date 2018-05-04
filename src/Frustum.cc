@@ -138,7 +138,7 @@ bool Frustum::Contains(const Box &_b) const
       }
       else
       {
-        // TODO prove or disprove that Frustum must penetrate AABB???
+        // TODO(anyone) prove or disprove that Frustum must penetrate AABB???
         return true;
       }
     }
