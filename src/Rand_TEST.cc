@@ -25,7 +25,7 @@ using namespace ignition;
 //////////////////////////////////////////////////
 TEST(RandTest, Rand)
 {
-  // TODO: implement a proper random number generator test
+  // TODO(anyone): implement a proper random number generator test
 
   double d = math::Rand::DblUniform(1, 2);
   EXPECT_GE(d, 1);
