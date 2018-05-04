@@ -1,6 +1,18 @@
+## Ignition Math 5.x
+
+### Ignition Math 5.x.x
+
+1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
+    * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
+
+
 ## Ignition Math 4.x
 
 ### Ignition Math 4.x.x
+
+1. Add Graph::EdgeFromVertices function that return an edge, if one exists,
+   between two vertices.
+    * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
 1. Added multiply assign operator to Matrix4. 
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
@@ -12,6 +24,10 @@
 1. Added MovingWindowFilter, a copy from Ignition Common. This version will
    replace the version found in Ignition Common.
     * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/239)
+
+1. Added a Material class, which holds information about materials like wood,
+   steel, and iron.
+    * [Pull request 243](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/243)
 
 ### Ignition Math 4.0.0 (2017-12-26)
 
