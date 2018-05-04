@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-
+//! [complete]
 #include <iostream>
 #include <ignition/math.hh>
 
@@ -64,3 +64,4 @@ int main(int argc, char **argv)
   // There are more functions in Vector2. Take a look at the API;
   // http://ignitionrobotics.org/libraries/ign_mat/api
 }
+//! [complete]

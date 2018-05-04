@@ -64,4 +64,11 @@ ign_create_packages()
 #============================================================================
 # Configure documentation
 #============================================================================
+set (IGN_PROJECT_ABOUT
+"Ignition Math is a component in the Ignition framework, a set of libraries
+designed to rapidly develop robot applications. The library defines math
+classes and functions used in other Ignition libraries and programs.")
+configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
+configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
+
 ign_create_docs()
