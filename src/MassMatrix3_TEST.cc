@@ -108,8 +108,8 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
     EXPECT_FALSE(m.SetIXX(Ixxyyzz[0]));
     EXPECT_FALSE(m.SetIYY(Ixxyyzz[1]));
 
@@ -143,8 +143,8 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetDiagonalMoments(Ixxyyzz));
@@ -174,8 +174,8 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetMoi(moi));
@@ -205,7 +205,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_FALSE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetInertiaMatrix(2, 3, 4, 0.2, 0.3, 0.4));
@@ -307,7 +307,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
     const math::Vector3d Ieigen(0, 1, 2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
-    EXPECT_FALSE(m.IsPositive());
+    EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
   }
 
@@ -860,10 +860,12 @@ TEST(MassMatrix3dTest, SetFromSphere)
 TEST(MassMatrix3dTest, ValidMomentsTolerance)
 {
   math::Vector3d moments;
-  EXPECT_FALSE(math::MassMatrix3d::ValidMoments(moments));
-  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments, 1e-6));
+  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments, 0));
+  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments));
 
   math::MassMatrix3d massMatrix;
-  EXPECT_FALSE(massMatrix.IsValid());
-  EXPECT_TRUE(massMatrix.IsValid(1e-6));
+  EXPECT_FALSE(massMatrix.IsValid(0));
+  EXPECT_FALSE(massMatrix.IsValid(10));
+  massMatrix.SetMass(0.1);
+  EXPECT_TRUE(massMatrix.IsValid());
 }

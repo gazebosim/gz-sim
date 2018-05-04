@@ -18,6 +18,7 @@
 #define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -42,7 +43,8 @@ namespace ignition
     template<typename T>
     class MassMatrix3
     {
-      /// \brief Default Constructor
+      /// \brief Default Constructor, which inializes the mass and moments
+      /// to zero.
       public: MassMatrix3() : mass(0)
       {}
 
@@ -404,42 +406,112 @@ namespace ignition
       }
 
       /// \brief Verify that inertia values are positive definite
-      /// \param[in] _tolerance The amount of tolerance to accept when
-      /// checking whether this MassMatrix3 has a valid mass and moment
-      /// of inertia. The following is how the return value is determined
-      /// using _tolerance:
       ///
-      /// \code
-      /// return (this->mass + _tolerance > 0) &&
-      ///         (this->IXX() + _tolerance  > 0) &&
-      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
-      ///          _tolerance > 0) &&
-      ///         (this->Moi().Determinant() + _tolerance > 0);
-      /// \endcode
+      /// \param[in] _tolerance The amount of error to accept when
+      /// checking whether this MassMatrix3 has a valid mass and moment
+      /// of inertia. Refer to Epsilon() for a description of _tolerance.
       ///
       /// \return True if mass is positive and moment of inertia matrix
-      /// is positive definite.
-      public: bool IsPositive(const T _tolerance = 0) const
+      /// is positive definite. The following is how the return value is
+      /// calculated
+      ///
+      /// \code
+      /// const double epsilon = this->Epsilon(_tolerance);
+      /// return (this->mass + epsilon > 0) &&
+      ///         (this->IXX() + epsilon  > 0) &&
+      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+      ///          epsilon > 0) &&
+      ///         (this->Moi().Determinant() + epsilon > 0);
+      /// \endcode
+      ///
+      public: bool IsPositive(const double _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
+        const double epsilon = this->Epsilon(_tolerance);
+
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
-        return (this->mass + _tolerance > 0) &&
-               (this->IXX() + _tolerance  > 0) &&
+        return (this->mass > 0) &&
+               (this->IXX() + epsilon >= 0) &&
                (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
-                _tolerance > 0) &&
-               (this->Moi().Determinant() + _tolerance > 0);
+                epsilon >= 0) &&
+               (this->Moi().Determinant() + epsilon >= 0);
+      }
+
+      ///
+      /// \brief \copybrief Epsilon(const Vector3<T>&,const double)
+      ///
+      /// \param[in] _tolerance A factor that is used to adjust the return
+      /// value. A value of zero will cause the return value to be zero.
+      /// A good value is 10, which is also the
+      /// MASSMATRIX3_DEFAULT_TOLERANCE.
+      public: double Epsilon(const double _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+      {
+        return Epsilon(this->PrincipalMoments(), _tolerance);
+      }
+
+      /// \brief Get an epsilon value that represents the amount of
+      /// acceptable error in a MassMatrix3. The epsilon value
+      /// is related to machine precision multiplied by the largest possible
+      /// moment of inertia.
+      ///
+      /// This function is used by IsValid(), IsPositive(), and ValidMoments().
+      ///
+      /// \param[in] _moments Principal moments of inertia.
+      /// \param[in] _tolerance A factor that is used to adjust the return
+      /// value. A value of zero will cause the return value to be zero.
+      /// A good value is 10, which is also the
+      /// MASSMATRIX3_DEFAULT_TOLERANCE.
+      ///
+      /// \return The epsilon value computed using:
+      ///
+      /// \code
+      /// double maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+      /// return _tolerance *
+      ///   std::numeric_limits<double>::epsilon() * maxPossibleMoI;
+      /// \endcode
+      public: static double Epsilon(const Vector3<T> &_moments,
+                  const double _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+      {
+        // The following was borrowed heavily from:
+        // https://github.com/RobotLocomotion/drake/blob/master/multibody/multibody_tree/rotational_inertia.h
+
+        // Compute the maximum possible moment of inertia, which will be
+        // used to compute whether the moments are valid.
+        //
+        // The maximum moment of inertia is bounded by:
+        // trace / 3 <= maxPossibleMoi <= trace / 2.
+        //
+        // The trace of a matrix is the sum of the coefficients on the
+        // main diagonal. For a mass matrix, this is equal to
+        // ixx + iyy + izz, or _moments.Sum() for this function's
+        // implementation.
+        //
+        // It is okay if maxPossibleMoi == zero.
+        double maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+
+        // In order to check validity of the moments we need to use an
+        // epsilon value that is related to machine precision
+        // multiplied by the largest possible moment of inertia.
+        return _tolerance *
+          std::numeric_limits<double>::epsilon() * maxPossibleMoI;
       }
 
       /// \brief Verify that inertia values are positive definite
       /// and satisfy the triangle inequality.
-      /// \param[in] _tolerance The amount of tolerance to accept when
+      ///
+      /// \param[in] _tolerance The amount of error to accept when
       /// checking whether the MassMatrix3 has a valid mass and moment
-      /// of inertia. This value is passed on to IsPositive and
-      /// ValidMoments. Refer to those functions for exact usage of
-      /// _tolerance.
-      /// \return True if IsPositive and moment of inertia satisfies
-      /// the triangle inequality.
-      public: bool IsValid(const T _tolerance = 0) const
+      /// of inertia. This value is passed on to IsPositive() and
+      /// ValidMoments(), which in turn pass the tolerance value to
+      /// Epsilon(). Refer to Epsilon() for a description of _tolerance.
+      ///
+      /// \return True if IsPositive(_tolerance) and
+      /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
+      public: bool IsValid(const double _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
         return this->IsPositive(_tolerance) &&
                ValidMoments(this->PrincipalMoments(), _tolerance);
@@ -448,21 +520,35 @@ namespace ignition
       /// \brief Verify that principal moments are positive
       /// and satisfy the triangle inequality.
       /// \param[in] _moments Principal moments of inertia.
-      /// \param[in] _tolerance The amount of tolerance to accept when
+      /// \param[in] _tolerance The amount of error to accept when
       /// checking whether the moments are positive and satisfy the triangle
-      /// inequality.
+      /// inequality. Refer to Epsilon() for a description of _tolerance.
       /// \return True if moments of inertia are positive
-      /// and satisfy the triangle inequality.
+      /// and satisfy the triangle inequality. The following is how the
+      /// return value is calculated.
+      ///
+      /// \code
+      /// double epsilon = this->Epsilon(_tolerance);
+      ///
+      /// return _moments[0] + epsilon >= 0 &&
+      ///   _moments[1] + epsilon >= 0 &&
+      ///   _moments[2] + epsilon >= 0 &&
+      ///   _moments[0] + _moments[1] + epsilon >= _moments[2] &&
+      ///   _moments[1] + _moments[2] + epsilon >= _moments[0] &&
+      ///   _moments[2] + _moments[0] + epsilon >= _moments[1];
+      /// \endcode
       public: static bool ValidMoments(const Vector3<T> &_moments,
-                                       const T _tolerance = 0)
-      {
-        return _moments[0] + _tolerance > 0 &&
-               _moments[1] + _tolerance > 0 &&
-               _moments[2] + _tolerance > 0 &&
-               _moments[0] + _moments[1] + _tolerance > _moments[2] &&
-               _moments[1] + _moments[2] + _tolerance > _moments[0] &&
-               _moments[2] + _moments[0] + _tolerance > _moments[1];
-      }
+                  const double _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+              {
+                double epsilon = Epsilon(_moments, _tolerance);
+
+                return _moments[0] + epsilon >= 0 &&
+                       _moments[1] + epsilon >= 0 &&
+                       _moments[2] + epsilon >= 0 &&
+                       _moments[0] + _moments[1] + epsilon >= _moments[2] &&
+                       _moments[1] + _moments[2] + epsilon >= _moments[0] &&
+                       _moments[2] + _moments[0] + epsilon >= _moments[1];
+              }
 
       /// \brief Compute principal moments of inertia,
       /// which are the eigenvalues of the moment of inertia matrix.

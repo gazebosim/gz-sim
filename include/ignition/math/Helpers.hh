@@ -30,6 +30,10 @@
 #include <ignition/math/config.hh>
 #include "ignition/math/Export.hh"
 
+/// \brief The default tolerance value used by MassMatrix3::IsValid(),
+/// MassMatrix3::IsPositive(), and MassMatrix3::ValidMoments()
+#define IGN_MASSMATRIX3_DEFAULT_TOLERANCE 10
+
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 /// \deprecated Use static const value instead.
 #define IGN_DBL_MAX ignition::math::DPRCT_MAX_D

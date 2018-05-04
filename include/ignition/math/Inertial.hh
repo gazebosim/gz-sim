@@ -57,13 +57,17 @@ namespace ignition
       public: virtual ~Inertial() {}
 
       /// \brief Set the mass and inertia matrix.
+      ///
       /// \param[in] _m New MassMatrix3 object.
       /// \param[in] _tolerance Tolerance is passed to
-      /// MassMatrix3::IsValid and is the amount of tolerance
+      /// MassMatrix3::IsValid and is the amount of error
       /// to accept when checking whether the MassMatrix3 _m is valid.
+      /// Refer to MassMatrix3::Epsilon for detailed description of
+      /// _tolerance.
+      ///
       /// \return True if the MassMatrix3 is valid.
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
-                                 const T _tolerance = 0)
+                  const double _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
       {
         this->massMatrix = _m;
         return this->massMatrix.IsValid(_tolerance);

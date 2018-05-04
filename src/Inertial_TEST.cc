@@ -101,8 +101,9 @@ TEST(Inertiald_Test, SetMassMatrix)
   math::Inertiald inertial;
   math::MassMatrix3d m;
 
-  EXPECT_FALSE(inertial.SetMassMatrix(m));
-  EXPECT_TRUE(inertial.SetMassMatrix(m, 1e-6));
+  EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
+  m.SetMass(1);
+  EXPECT_TRUE(inertial.SetMassMatrix(m, 10));
 }
 
 /////////////////////////////////////////////////
@@ -187,7 +188,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
     // double check with a second MassMatrix3 instance
     // that has the same base frame MOI but no pose rotation
     math::MassMatrix3d m2;
-    EXPECT_FALSE(m2.SetMass(mass));
+    EXPECT_TRUE(m2.SetMass(mass));
     EXPECT_TRUE(m2.SetMoi(expectedMOI));
     EXPECT_EQ(inertial.Moi(), m2.Moi());
     // There are multiple correct rotations due to symmetry
