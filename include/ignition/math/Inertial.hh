@@ -79,7 +79,9 @@ namespace ignition
         return this->massMatrix;
       }
 
-      /// \brief Set the pose of center of mass reference frame.
+      /// \brief Set the pose of the center of mass reference frame.
+      /// For example in [SDF](http://sdformat.org), this will set the pose of
+      /// the inertial frame in the link frame.
       /// \param[in] _pose New pose.
       /// \return True if the MassMatrix3 is valid.
       public: bool SetPose(const Pose3<T> &_pose)
@@ -88,8 +90,11 @@ namespace ignition
         return this->massMatrix.IsValid();
       }
 
-      /// \brief Get the pose of center of mass reference frame.
-      /// \return The pose of center of mass reference frame.
+      /// \brief Get the pose of the center of mass reference frame.
+      /// For example in
+      /// [SDF](http://sdformat.org), this will get the pose of the inertial
+      /// frame in the link frame.
+      /// \return The pose of inertial frame.
       public: const Pose3<T> &Pose() const
       {
         return this->pose;
