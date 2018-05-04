@@ -95,6 +95,12 @@ namespace ignition
         return this->pose;
       }
 
+      /// \copydoc Moi() const
+      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
+      {
+        return this->Moi();
+      }
+
       /// \brief Get the moment of inertia matrix transformed by the
       /// rotational component of the pose (Inertial::Pose()) associated
       /// with this Inertial object. It is up to the user to define what
@@ -105,14 +111,6 @@ namespace ignition
       /// expressed in the frame of that same link.
       /// \return Rotated moment of inertia matrix.
       /// \deprecated Matrix3<T> Moi() const
-      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
-      {
-        return this->Moi();
-      }
-
-      /// \brief Get the moment of inertia matrix expressed in the
-      /// base coordinate frame.
-      /// \return Rotated moment of inertia matrix.
       public: Matrix3<T> Moi() const
       {
         auto R = Matrix3<T>(this->pose.Rot());
