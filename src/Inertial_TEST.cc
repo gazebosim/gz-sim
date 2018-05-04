@@ -101,9 +101,11 @@ TEST(Inertiald_Test, SetMassMatrix)
   math::Inertiald inertial;
   math::MassMatrix3d m;
 
+  // This will be false because the default mass is zero
   EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
+  // Set the mass, and the result of SetMassMatrix should workd.
   m.SetMass(1);
-  EXPECT_TRUE(inertial.SetMassMatrix(m, 10));
+  EXPECT_TRUE(inertial.SetMassMatrix(m, 0));
 }
 
 /////////////////////////////////////////////////
