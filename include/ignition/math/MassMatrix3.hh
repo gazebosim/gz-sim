@@ -406,7 +406,17 @@ namespace ignition
       /// \brief Verify that inertia values are positive definite
       /// \param[in] _tolerance The amount of tolerance to accept when
       /// checking whether this MassMatrix3 has a valid mass and moment
-      /// of inertia.
+      /// of inertia. The following is how the return value is determined
+      /// using _tolerance:
+      ///
+      /// \code
+      /// return (this->mass + _tolerance > 0) &&
+      ///         (this->IXX() + _tolerance  > 0) &&
+      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+      ///          _tolerance > 0) &&
+      ///         (this->Moi().Determinant() + _tolerance > 0);
+      /// \endcode
+      ///
       /// \return True if mass is positive and moment of inertia matrix
       /// is positive definite.
       public: bool IsPositive(const T _tolerance = 0) const
@@ -425,7 +435,8 @@ namespace ignition
       /// \param[in] _tolerance The amount of tolerance to accept when
       /// checking whether the MassMatrix3 has a valid mass and moment
       /// of inertia. This value is passed on to IsPositive and
-      /// ValidMoments.
+      /// ValidMoments. Refer to those functions for exact usage of
+      /// _tolerance.
       /// \return True if IsPositive and moment of inertia satisfies
       /// the triangle inequality.
       public: bool IsValid(const T _tolerance = 0) const
