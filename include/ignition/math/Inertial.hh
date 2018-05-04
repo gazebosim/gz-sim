@@ -67,7 +67,13 @@ namespace ignition
 
       /// \brief Get the mass and inertia matrix. The mass matrix is
       /// expressed in the inertial frame.
-      /// \return The MassMatrix3 object.
+      /// \return The MassMatrix3 object computed about the center of mass
+      /// and expressed in the interial frame.
+      ///
+      /// For example, [SDF](http://sdformat.org) uses this return value as
+      /// the MassMatrix3 computed
+      /// about the center of mass of the link it corresponds to and expressed
+      /// in the interial frame of the link.
       public: const MassMatrix3<T> &MassMatrix() const
       {
         return this->massMatrix;
@@ -92,7 +98,11 @@ namespace ignition
       /// \brief Get the moment of inertia matrix transformed by the
       /// rotational component of the pose (Inertial::Pose()) associated
       /// with this Inertial object. It is up to the user to define what
-      /// the Pose of an Inertial object represents.
+      /// the Pose of an Inertial object represents. For example,
+      /// [SDF](http://sdformat.org) makes use of Inertia and has chosen to
+      /// interpret the return value of this function as the inertia matrix
+      /// for a link as computed about the center of mass of that link and
+      /// expressed in the frame of that same link.
       /// \return Rotated moment of inertia matrix.
       public: Matrix3<T> MOI() const
       {
