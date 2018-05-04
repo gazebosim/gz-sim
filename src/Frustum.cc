@@ -139,7 +139,7 @@ bool Frustum::Contains(const AxisAlignedBox &_b) const
       }
       else
       {
-        // TODO prove or disprove that Frustum must penetrate AABB???
+        // TODO(anyone) prove or disprove that Frustum must penetrate AABB???
         return true;
       }
     }

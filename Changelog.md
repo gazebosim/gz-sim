@@ -12,12 +12,16 @@
     * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
 
 1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
-    * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
+    * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
 
 
 ## Ignition Math 4.x
 
 ### Ignition Math 4.x.x
+
+1. Add Graph::EdgeFromVertices function that return an edge, if one exists,
+   between two vertices.
+    * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
 1. Added multiply assign operator to Matrix4. 
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)

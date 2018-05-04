@@ -331,7 +331,15 @@ namespace ignition
 
       /// \brief returns Moments of Inertia as a Matrix3
       /// \return Moments of Inertia as a Matrix3
-      public: Matrix3<T> MOI() const
+      /// \deprecated Matrix3<T> Moi() const
+      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
+      {
+        return this->Moi();
+      }
+
+      /// \brief returns Moments of Inertia as a Matrix3
+      /// \return Moments of Inertia as a Matrix3
+      public: Matrix3<T> Moi() const
       {
         return Matrix3<T>(
           this->Ixxyyzz[0], this->Ixyxzyz[0], this->Ixyxzyz[1],
@@ -344,10 +352,10 @@ namespace ignition
       /// off-axis terms.
       /// \param[in] Moments of Inertia as a Matrix3
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated See SetMOI(const Matrix3<T> &_moi)
+      /// \deprecated See SetMoi(const Matrix3<T> &_moi)
       public: bool IGN_DEPRECATED(5.0) MOI(const Matrix3<T> &_moi)
       {
-        return this->SetMOI(_moi);
+        return this->SetMoi(_moi);
       }
 
       /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
@@ -355,7 +363,7 @@ namespace ignition
       /// off-axis terms.
       /// \param[in] Moments of Inertia as a Matrix3
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetMOI(const Matrix3<T> &_moi)
+      public: bool SetMoi(const Matrix3<T> &_moi)
       {
         this->Ixxyyzz.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
         this->Ixyxzyz.Set(
@@ -406,7 +414,7 @@ namespace ignition
         return (this->mass > 0) &&
                (this->IXX() > 0) &&
                (this->IXX()*this->IYY() - std::pow(this->IXY(), 2) > 0) &&
-               (this->MOI().Determinant() > 0);
+               (this->Moi().Determinant() > 0);
       }
 
       /// \brief Verify that inertia values are positive definite
@@ -905,7 +913,7 @@ namespace ignition
         L(1, 1) = this->mass / 12.0 * (z2 + x2);
         L(2, 2) = this->mass / 12.0 * (x2 + y2);
         Matrix3<T> R(_rot);
-        return this->SetMOI(R * L * R.Transposed());
+        return this->SetMoi(R * L * R.Transposed());
       }
 
       /// \brief Set inertial properties based on mass and equivalent cylinder
@@ -956,7 +964,7 @@ namespace ignition
         L(1, 1) = L(0, 0);
         L(2, 2) = this->mass / 2.0 * radius2;
         Matrix3<T> R(_rot);
-        return this->SetMOI(R * L * R.Transposed());
+        return this->SetMoi(R * L * R.Transposed());
       }
 
       /// \brief Set inertial properties based on mass and equivalent sphere.
@@ -992,7 +1000,7 @@ namespace ignition
         L(0, 0) = 0.4 * this->mass * radius2;
         L(1, 1) = 0.4 * this->mass * radius2;
         L(2, 2) = 0.4 * this->mass * radius2;
-        return this->SetMOI(L);
+        return this->SetMoi(L);
       }
 
       /// \brief Square root of positive numbers, otherwise zero.
