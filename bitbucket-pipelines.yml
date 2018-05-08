@@ -5,7 +5,10 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev libtinyxml-dev libxml2-utils ruby-dev libboost-dev qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev protobuf-compiler libprotobuf-dev libogre-1.9-dev libglew-dev libfreeimage-dev doxygen ruby-ronn freeglut3-dev libxmu-dev libxi-dev libzmq3-dev uuid-dev libsqlite3-dev
+          - apt-get -y install
+            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev doxygen ruby-ronn
+            qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+            libogre-1.9-dev
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
@@ -23,6 +26,22 @@ pipelines:
             libignition-cmake-dev
             libignition-msgs-dev
             libignition-transport4-dev
+          # Ignition rendering
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          - cd ign-rendering
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition gui
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b default
+          - cd ign-gui
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
