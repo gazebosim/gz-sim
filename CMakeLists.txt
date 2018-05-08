@@ -36,6 +36,12 @@ set(IGN_COMMON_VER 1)
 ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 
 #--------------------------------------
+# Find ignition-gui
+set(IGN_GUI_VER 0)
+ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
+find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
+
+#--------------------------------------
 # Find gflags
 find_library(gflags_LIBRARIES NAMES gflags)
 find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)

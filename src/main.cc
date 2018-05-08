@@ -16,7 +16,11 @@
 */
 #include <signal.h>
 #include <gflags/gflags.h>
+
 #include <ignition/common/Console.hh>
+
+#include <ignition/gui/Iface.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include <iostream>
 
@@ -118,7 +122,29 @@ int main(int _argc, char **_argv)
     ignition::common::Console::SetVerbosity(FLAGS_verbose);
     ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
 
-    /// \todo(nkoenig) Run the server and/or gui
+    /// \todo(nkoenig) Run the server
+
+    // Initialize app
+    ignition::gui::initApp();
+
+    // Load configuration file
+    auto configPath = ignition::common::joinPaths(
+        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+    ignition::gui::loadConfig(configPath);
+
+    // Create main window
+    ignition::gui::createMainWindow();
+
+    // Customize window
+    auto win = ignition::gui::mainWindow();
+    win->setWindowTitle("Ignition Gazebo");
+
+    // Run main window - this blocks until the window is closed or we receive a
+    // SIGINT
+    ignition::gui::runMainWindow();
+
+    // Cleanup once main window is closed
+    ignition::gui::stop();
   }
 
   igndbg << "Shutting down" << std::endl;
