@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <utility>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
