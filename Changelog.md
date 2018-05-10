@@ -2,6 +2,10 @@
 
 ### Ignition Math 5.x.x
 
+1. Added a `MassMatrix3::SetFromBox` function that uses a `Material` to specify
+   a density.
+    * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
+
 1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
     * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
 
