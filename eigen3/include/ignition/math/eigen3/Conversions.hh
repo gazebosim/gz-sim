@@ -18,11 +18,11 @@
 #ifndef IGNITION_MATH_EIGEN3_CONVERSIONS_HH_
 #define IGNITION_MATH_EIGEN3_CONVERSIONS_HH_
 
+#include <Eigen/Geometry>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
-#include <Eigen/Geometry>
 
 namespace ignition
 {
