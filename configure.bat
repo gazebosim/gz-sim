@@ -4,7 +4,7 @@
 
 :: Install dependencies
 call %win_lib% :download_unzip_install eigen3-3.3.4.zip
-call %win_lib% :install_ign_project ign-cmake default
+call %win_lib% :install_ign_project ign-cmake eigen3
 
 :: Set configuration variables
 @set build_type=Release
