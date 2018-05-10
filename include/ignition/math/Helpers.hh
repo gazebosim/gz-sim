@@ -24,6 +24,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <utility>
 #include <cstdint>
 
 #include <ignition/math/config.hh>

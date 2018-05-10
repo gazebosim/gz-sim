@@ -31,12 +31,12 @@ TEST(MassMatrix3dTest, Constructors)
   {
     math::MassMatrix3d m;
     EXPECT_DOUBLE_EQ(m.Mass(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IXX(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IYY(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IZZ(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IXY(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IXZ(), 0.0);
-    EXPECT_DOUBLE_EQ(m.IYZ(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Ixx(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Iyy(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Izz(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Ixy(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Ixz(), 0.0);
+    EXPECT_DOUBLE_EQ(m.Iyz(), 0.0);
     EXPECT_EQ(m.DiagonalMoments(), math::Vector3d::Zero);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
     EXPECT_EQ(m.Moi(), math::Matrix3d::Zero);
@@ -72,12 +72,12 @@ TEST(MassMatrix3dTest, Constructors)
 
     // Test accessors
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
-    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixx(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.Iyy(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.Izz(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixy(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.Ixz(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.Iyz(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
@@ -111,23 +111,23 @@ TEST(MassMatrix3dTest, Setters)
 
     // Initially invalid
     EXPECT_FALSE(m.SetMass(mass));
-    EXPECT_FALSE(m.SetIXX(Ixxyyzz[0]));
-    EXPECT_FALSE(m.SetIYY(Ixxyyzz[1]));
+    EXPECT_FALSE(m.SetIxx(Ixxyyzz[0]));
+    EXPECT_FALSE(m.SetIyy(Ixxyyzz[1]));
 
     // Valid once enough properties are set
-    EXPECT_TRUE(m.SetIZZ(Ixxyyzz[2]));
-    EXPECT_TRUE(m.SetIXY(Ixyxzyz[0]));
-    EXPECT_TRUE(m.SetIXZ(Ixyxzyz[1]));
-    EXPECT_TRUE(m.SetIYZ(Ixyxzyz[2]));
+    EXPECT_TRUE(m.SetIzz(Ixxyyzz[2]));
+    EXPECT_TRUE(m.SetIxy(Ixyxzyz[0]));
+    EXPECT_TRUE(m.SetIxz(Ixyxzyz[1]));
+    EXPECT_TRUE(m.SetIyz(Ixyxzyz[2]));
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
-    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixx(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.Iyy(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.Izz(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixy(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.Ixz(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.Iyz(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
@@ -153,12 +153,12 @@ TEST(MassMatrix3dTest, Setters)
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
-    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixx(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.Iyy(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.Izz(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixy(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.Ixz(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.Iyz(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
@@ -166,7 +166,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_TRUE(m.IsValid());
 
     // Invalid if an invalid inertia is set
-    EXPECT_FALSE(m.SetIXX(-1));
+    EXPECT_FALSE(m.SetIxx(-1));
   }
 
   // Test Matrix3 setter for moment of inertia
@@ -183,12 +183,12 @@ TEST(MassMatrix3dTest, Setters)
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
-    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixx(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.Iyy(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.Izz(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixy(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.Ixz(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.Iyz(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
@@ -196,7 +196,7 @@ TEST(MassMatrix3dTest, Setters)
     EXPECT_TRUE(m.IsValid());
 
     // Invalid if an excessive off-diagonal inertia is set
-    EXPECT_FALSE(m.SetIXY(1e3));
+    EXPECT_FALSE(m.SetIxy(1e3));
   }
 
   // // Test atomic InertiaMatrix setter
@@ -213,12 +213,12 @@ TEST(MassMatrix3dTest, Setters)
 
     // Verify values
     EXPECT_DOUBLE_EQ(m.Mass(), mass);
-    EXPECT_DOUBLE_EQ(m.IXX(), Ixxyyzz[0]);
-    EXPECT_DOUBLE_EQ(m.IYY(), Ixxyyzz[1]);
-    EXPECT_DOUBLE_EQ(m.IZZ(), Ixxyyzz[2]);
-    EXPECT_DOUBLE_EQ(m.IXY(), Ixyxzyz[0]);
-    EXPECT_DOUBLE_EQ(m.IXZ(), Ixyxzyz[1]);
-    EXPECT_DOUBLE_EQ(m.IYZ(), Ixyxzyz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixx(), Ixxyyzz[0]);
+    EXPECT_DOUBLE_EQ(m.Iyy(), Ixxyyzz[1]);
+    EXPECT_DOUBLE_EQ(m.Izz(), Ixxyyzz[2]);
+    EXPECT_DOUBLE_EQ(m.Ixy(), Ixyxzyz[0]);
+    EXPECT_DOUBLE_EQ(m.Ixz(), Ixyxzyz[1]);
+    EXPECT_DOUBLE_EQ(m.Iyz(), Ixyxzyz[2]);
     EXPECT_EQ(m.DiagonalMoments(), Ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
@@ -247,9 +247,9 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     // Minor perturbations of product moments
     // shouldn't affect PrincipalMoments, given the tolerance
     // of the Vector3 equality operator
-    EXPECT_TRUE(m.SetIXY(1e-10));
-    EXPECT_TRUE(m.SetIXZ(2e-10));
-    EXPECT_TRUE(m.SetIYZ(3e-10));
+    EXPECT_TRUE(m.SetIxy(1e-10));
+    EXPECT_TRUE(m.SetIxz(2e-10));
+    EXPECT_TRUE(m.SetIyz(3e-10));
     EXPECT_EQ(m.PrincipalMoments(), math::Vector3d::One);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
@@ -263,9 +263,9 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
 
     // Minor perturbation of product moments
-    EXPECT_TRUE(m.SetIXY(1e-10));
-    EXPECT_TRUE(m.SetIXZ(2e-10));
-    EXPECT_TRUE(m.SetIYZ(3e-10));
+    EXPECT_TRUE(m.SetIxy(1e-10));
+    EXPECT_TRUE(m.SetIxz(2e-10));
+    EXPECT_TRUE(m.SetIyz(3e-10));
     EXPECT_EQ(m.PrincipalMoments(), Ixxyyzz);
     EXPECT_TRUE(m.IsPositive());
     EXPECT_TRUE(m.IsValid());
