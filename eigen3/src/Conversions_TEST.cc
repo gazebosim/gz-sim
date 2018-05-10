@@ -26,21 +26,21 @@ TEST(EigenConversions, ConvertVector3)
 {
   {
     ignition::math::Vector3d iVec, iVec2;
-    Eigen::Vector3d eVec = ignition::physics::eigen3::convert(iVec);
-    EXPECT_DOUBLE_EQ(0, v[0]);
-    EXPECT_DOUBLE_EQ(0, v[1]);
-    EXPECT_DOUBLE_EQ(0, v[2]);
-    iVec2 = ignition::physics::eigen3::convert(eVec);
+    Eigen::Vector3d eVec = ignition::math::eigen3::convert(iVec);
+    EXPECT_DOUBLE_EQ(0, eVec[0]);
+    EXPECT_DOUBLE_EQ(0, eVec[1]);
+    EXPECT_DOUBLE_EQ(0, eVec[2]);
+    iVec2 = ignition::math::eigen3::convert(eVec);
     EXPECT_EQ(iVec, iVec2);
   }
 
   {
     ignition::math::Vector3d iVec(100.5, -2.314, 42), iVec2;
-    Eigen::Vector3d eVec = ignition::physics::eigen3::convert(iVec);
-    EXPECT_DOUBLE_EQ(iVec[0], v[0]);
-    EXPECT_DOUBLE_EQ(iVec[1], v[1]);
-    EXPECT_DOUBLE_EQ(iVec[2], v[2]);
-    iVec2 = ignition::physics::eigen3::convert(eVec);
+    Eigen::Vector3d eVec = ignition::math::eigen3::convert(iVec);
+    EXPECT_DOUBLE_EQ(iVec[0], eVec[0]);
+    EXPECT_DOUBLE_EQ(iVec[1], eVec[1]);
+    EXPECT_DOUBLE_EQ(iVec[2], eVec[2]);
+    iVec2 = ignition::math::eigen3::convert(eVec);
     EXPECT_EQ(iVec, iVec2);
   }
 }

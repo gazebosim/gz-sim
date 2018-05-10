@@ -9,5 +9,6 @@ target_link_libraries(${component} INTERFACE Eigen3::Eigen)
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Build the unit tests
-ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+ign_build_tests(TYPE UNIT SOURCES ${gtest_sources}
+  LIB_DEPS ${component})
 
