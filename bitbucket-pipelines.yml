@@ -19,7 +19,7 @@ pipelines:
           # Ignition cmake
           - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
           - cd ign-cmake
-          - hg up eigen3
+          - hg up default
           - mkdir build
           - cd build
           - cmake .. -DBUILD_TESTING=OFF
