@@ -7,6 +7,17 @@
    `AxisAlignedBox` class.
     * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
 
+1. Added a `MassMatrix3::SetFromCylinder` function that uses a `Material`
+to specify a density.
+    * [Pull request 248](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/248)
+
+1. Added a Sphere class.
+    * [Pull request 255](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/255)
+
+1. Added a `MassMatrix3::SetFromSphere` function that uses a `Material` to
+specify a density.
+    * [Pull request 247](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/247)
+
 1. Added a `MassMatrix3::SetFromBox` function that uses a `Material` to specify
    a density.
     * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)

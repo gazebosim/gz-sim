@@ -964,6 +964,31 @@ namespace ignition
         return this->SetMoi(R * L * R.Transposed());
       }
 
+      /// \brief Set inertial properties based on a Material and equivalent
+      /// cylinder aligned with Z axis.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const Material &_mat,
+                                    const T _length,
+                                    const T _radius,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+      {
+        // Check that density, _radius and _length are strictly positive
+        // and that quatenion is valid
+        if (_mat.Density() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        double volume = IGN_PI * _radius * _radius * _length;
+        return this->SetFromCylinderZ(_mat.Density() * volume,
+                                      _length, _radius, _rot);
+      }
+
       /// \brief Set inertial properties based on mass and equivalent cylinder
       /// aligned with Z axis.
       /// \param[in] _mass Mass to set.
@@ -1013,6 +1038,24 @@ namespace ignition
         L(2, 2) = this->mass / 2.0 * radius2;
         Matrix3<T> R(_rot);
         return this->SetMoi(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on a material and
+      /// equivalent sphere.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const Material &_mat, const T _radius)
+      {
+        // Check that the density and _radius are strictly positive
+        if (_mat.Density() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        double volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 
       /// \brief Set inertial properties based on mass and equivalent sphere.
