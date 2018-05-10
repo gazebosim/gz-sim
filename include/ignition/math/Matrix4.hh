@@ -18,6 +18,7 @@
 #define IGNITION_MATH_MATRIX4_HH_
 
 #include <algorithm>
+#include <utility>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Vector3.hh>
@@ -616,6 +617,16 @@ namespace ignition
         this->data[2][1] = _mat(2, 1);
         this->data[2][2] = _mat(2, 2);
 
+        return *this;
+      }
+
+      /// \brief Multiplication assignment operator. This matrix will
+      /// become equal to this * _m2.
+      /// \param _mat Incoming matrix.
+      /// \return This matrix * _mat.
+      public: Matrix4<T> operator*=(const Matrix4<T> &_m2)
+      {
+        (*this) = (*this) * _m2;
         return *this;
       }
 

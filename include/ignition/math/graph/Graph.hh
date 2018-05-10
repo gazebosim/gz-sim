@@ -20,7 +20,9 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ignition/math/config.hh>
@@ -624,6 +626,45 @@ namespace graph
         return Vertex<V>::NullVertex;
 
       return iter->second;
+    }
+
+    /// \brief Get a reference to an edge based on two vertices. A NullEdge
+    /// object reference is returned if an edge with the two vertices is not
+    /// found. If there are multiple edges that match the provided vertices,
+    /// then first is returned.
+    /// \param[in] _sourceId Source vertex Id.
+    /// \param[in] _destId Destination vertex Id.
+    /// \return A reference to the first edge found, or NullEdge if
+    /// not found.
+    public: const EdgeType &EdgeFromVertices(
+                const VertexId _sourceId, const VertexId _destId) const
+    {
+      // Get the adjacency iterator for the source vertex.
+      const typename std::map<VertexId, EdgeId_S>::const_iterator &adjIt =
+        this->adjList.find(_sourceId);
+
+      // Quit early if there is no adjacency entry
+      if (adjIt == this->adjList.end())
+        return EdgeType::NullEdge;
+
+      // Loop over the edges in the source vertex's adjacency list
+      for (std::set<EdgeId>::const_iterator edgIt = adjIt->second.begin();
+           edgIt != adjIt->second.end(); ++edgIt)
+      {
+        // Get an iterator to the actual edge
+        const typename std::map<EdgeId, EdgeType>::const_iterator edgeIter =
+          this->edges.find(*edgIt);
+
+        // Check if the edge has the correct source and destination.
+        if (edgeIter != this->edges.end() &&
+            edgeIter->second.From(_sourceId) == _destId)
+        {
+          assert(edgeIter->second.To(_destId) == _sourceId);
+          return edgeIter->second;
+        }
+      }
+
+      return EdgeType::NullEdge;
     }
 
     /// \brief Get a reference to an edge using its Id.
