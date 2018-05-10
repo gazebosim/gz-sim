@@ -866,9 +866,17 @@ TEST(MassMatrix3dTest, SetFromSphere)
     EXPECT_EQ(m.DiagonalMoments(), ixxyyzz);
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
 
+    double density = mass / ((4.0/3.0) * IGN_PI * std::pow(radius, 3));
+    math::Material mat(density);
+    EXPECT_DOUBLE_EQ(density, mat.Density());
+    math::MassMatrix3d m1;
+    EXPECT_FALSE(m1.SetFromSphere(mat, 0));
+    EXPECT_FALSE(m1.SetFromSphere(math::Material(0), 0));
+    EXPECT_TRUE(m1.SetFromSphere(mat, radius));
+    EXPECT_EQ(m, m1);
+
     // double the radius
     EXPECT_TRUE(m.SetFromSphere(mass, 2*radius));
     EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
   }
 }
-
