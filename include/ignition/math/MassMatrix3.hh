@@ -24,6 +24,7 @@
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Helpers.hh"
+#include "ignition/math/Material.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
@@ -182,42 +183,90 @@ namespace ignition
 
       /// \brief Get IXX
       /// \return IXX value
-      public: T IXX() const
+      /// \deprecated See T Ixx() const
+      public: T IGN_DEPRECATED(5.0) IXX() const
+      {
+        return this->Ixx();
+      }
+
+      /// \brief Get IXX
+      /// \return IXX value
+      public: T Ixx() const
       {
         return this->Ixxyyzz[0];
       }
 
       /// \brief Get IYY
       /// \return IYY value
-      public: T IYY() const
+      /// \deprecated See T Iyy() const
+      public: T IGN_DEPRECATED(5.0) IYY() const
+      {
+        return this->Iyy();
+      }
+
+      /// \brief Get IYY
+      /// \return IYY value
+      public: T Iyy() const
       {
         return this->Ixxyyzz[1];
       }
 
       /// \brief Get IZZ
       /// \return IZZ value
-      public: T IZZ() const
+      /// \deprecated See T Izz() const
+      public: T IGN_DEPRECATED(5.0) IZZ() const
+      {
+        return this->IZZ();
+      }
+
+      /// \brief Get IZZ
+      /// \return IZZ value
+      public: T Izz() const
       {
         return this->Ixxyyzz[2];
       }
 
       /// \brief Get IXY
       /// \return IXY value
-      public: T IXY() const
+      /// \deprecated See T Ixy() const
+      public: T IGN_DEPRECATED(5.0) IXY() const
+      {
+        return this->Ixy();
+      }
+
+      /// \brief Get IXY
+      /// \return IXY value
+      public: T Ixy() const
       {
         return this->Ixyxzyz[0];
       }
 
       /// \brief Get IXZ
       /// \return IXZ value
-      public: T IXZ() const
+      /// \deprecated See T Ixz() const
+      public: T IGN_DEPRECATED(5.0) IXZ() const
+      {
+        return this->Ixz();
+      }
+
+      /// \brief Get IXZ
+      /// \return IXZ value
+      public: T Ixz() const
       {
         return this->Ixyxzyz[1];
       }
 
       /// \brief Get IYZ
       /// \return IYZ value
-      public: T IYZ() const
+      /// \deprecated See T Iyz() const
+      public: T IGN_DEPRECATED(5.0) IYZ() const
+      {
+        return this->Iyz();
+      }
+
+      /// \brief Get IYZ
+      /// \return IYZ value
+      public: T Iyz() const
       {
         return this->Ixyxzyz[2];
       }
@@ -225,16 +274,16 @@ namespace ignition
       /// \brief Set IXX
       /// \param[in] _v IXX value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIXX(const T &_v)
+      /// \deprecated See bool SetIxx(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IXX(const T &_v)
       {
-        return this->SetIXX(_v);
+        return this->SetIxx(_v);
       }
 
       /// \brief Set IXX
       /// \param[in] _v IXX value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIXX(const T &_v)
+      public: bool SetIxx(const T &_v)
       {
         this->Ixxyyzz.X(_v);
         return this->IsValid();
@@ -243,16 +292,16 @@ namespace ignition
       /// \brief Set IYY
       /// \param[in] _v IYY value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIYY(const T &_v)
+      /// \deprecated see bool SetIyy(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IYY(const T &_v)
       {
-        return this->SetIYY(_v);
+        return this->SetIyy(_v);
       }
 
       /// \brief Set IYY
       /// \param[in] _v IYY value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIYY(const T &_v)
+      public: bool SetIyy(const T &_v)
       {
         this->Ixxyyzz.Y(_v);
         return this->IsValid();
@@ -261,16 +310,16 @@ namespace ignition
       /// \brief Set IZZ
       /// \param[in] _v IZZ value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIZZ(const T &_v)
+      /// \deprecated See bool SetIzz(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IZZ(const T &_v)
       {
-        return this->SetIZZ(_v);
+        return this->SetIzz(_v);
       }
 
       /// \brief Set IZZ
       /// \param[in] _v IZZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIZZ(const T &_v)
+      public: bool SetIzz(const T &_v)
       {
         this->Ixxyyzz.Z(_v);
         return this->IsValid();
@@ -279,16 +328,16 @@ namespace ignition
       /// \brief Set IXY
       /// \param[in] _v IXY value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIXY(const T &_v)
+      /// \deprecated See bool SetIxy(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IXY(const T &_v)
       {
-        return this->SetIXY(_v);
+        return this->SetIxy(_v);
       }
 
       /// \brief Set IXY
       /// \param[in] _v IXY value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIXY(const T &_v)
+      public: bool SetIxy(const T &_v)
       {
         this->Ixyxzyz.X(_v);
         return this->IsValid();
@@ -297,16 +346,16 @@ namespace ignition
       /// \brief Set IXZ
       /// \param[in] _v IXZ value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIXZ(const T &_v)
+      /// \deprecated See bool SetIxz(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IXZ(const T &_v)
       {
-        return this->SetIXZ(_v);
+        return this->SetIxz(_v);
       }
 
       /// \brief Set IXZ
       /// \param[in] _v IXZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIXZ(const T &_v)
+      public: bool SetIxz(const T &_v)
       {
         this->Ixyxzyz.Y(_v);
         return this->IsValid();
@@ -315,16 +364,16 @@ namespace ignition
       /// \brief Set IYZ
       /// \param[in] _v IYZ value
       /// \return True if the MassMatrix3 is valid.
-      /// \deprecated bool SetIXZ(const T &_v)
+      /// \deprecated See bool SetIyz(const T &_v)
       public: bool IGN_DEPRECATED(5.0) IYZ(const T &_v)
       {
-        return this->SetIYZ(_v);
+        return this->SetIyz(_v);
       }
 
       /// \brief Set IYZ
       /// \param[in] _v IYZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool SetIYZ(const T &_v)
+      public: bool SetIyz(const T &_v)
       {
         this->Ixyxzyz.Z(_v);
         return this->IsValid();
@@ -332,7 +381,7 @@ namespace ignition
 
       /// \brief returns Moments of Inertia as a Matrix3
       /// \return Moments of Inertia as a Matrix3
-      /// \deprecated Matrix3<T> Moi() const
+      /// \deprecated See Matrix3<T> Moi() const
       public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
       {
         return this->Moi();
@@ -432,8 +481,8 @@ namespace ignition
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
         return (this->mass > 0) &&
-               (this->IXX() + epsilon >= 0) &&
-               (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+               (this->Ixx() + epsilon >= 0) &&
+               (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
                 epsilon >= 0) &&
                (this->Moi().Determinant() + epsilon >= 0);
       }
@@ -964,6 +1013,20 @@ namespace ignition
         return true;
       }
 
+      /// \brief Set inertial properties based on a Material and equivalent box.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const Material &_mat,
+                              const Vector3<T> &_size,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+     {
+        double volume = _size.X() * _size.Y() * _size.Z();
+        return this->SetFromBox(_mat.Density() * volume, _size, _rot);
+     }
+
       /// \brief Set inertial properties based on mass and equivalent box.
       /// \param[in] _mass Mass to set.
       /// \param[in] _size Size of equivalent box.
@@ -1009,6 +1072,31 @@ namespace ignition
         L(2, 2) = this->mass / 12.0 * (x2 + y2);
         Matrix3<T> R(_rot);
         return this->SetMoi(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on a Material and equivalent
+      /// cylinder aligned with Z axis.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const Material &_mat,
+                                    const T _length,
+                                    const T _radius,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+      {
+        // Check that density, _radius and _length are strictly positive
+        // and that quatenion is valid
+        if (_mat.Density() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        double volume = IGN_PI * _radius * _radius * _length;
+        return this->SetFromCylinderZ(_mat.Density() * volume,
+                                      _length, _radius, _rot);
       }
 
       /// \brief Set inertial properties based on mass and equivalent cylinder
@@ -1060,6 +1148,24 @@ namespace ignition
         L(2, 2) = this->mass / 2.0 * radius2;
         Matrix3<T> R(_rot);
         return this->SetMoi(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on a material and
+      /// equivalent sphere.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const Material &_mat, const T _radius)
+      {
+        // Check that the density and _radius are strictly positive
+        if (_mat.Density() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        double volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 
       /// \brief Set inertial properties based on mass and equivalent sphere.
