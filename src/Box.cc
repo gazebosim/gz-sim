@@ -15,6 +15,7 @@
  *
 */
 #include <cmath>
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Box.hh>
 
 #include "BoxPrivate.hh"
@@ -235,10 +236,10 @@ bool Box::ClipLine(const int _d, const Line3d &_line,
 
   // Add the clip from this dimension to the previous results
   // http://youtu.be/USjbg5QXk3g?t=5m32s
-  if (std::isfinite(dimLow))
+  if (isFinite(dimLow))
     _low = std::max(dimLow, _low);
 
-  if (std::isfinite(dimHigh))
+  if (isFinite(dimHigh))
     _high = std::min(dimHigh, _high);
 
   return true;

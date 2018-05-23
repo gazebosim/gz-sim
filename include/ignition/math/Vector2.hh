@@ -365,10 +365,10 @@ namespace ignition
       /// \return true if finite, false otherwise
       public: bool IsFinite() const
       {
-        // std::isfinite works with floating point values,
+        // isFinite works with floating point values,
         // need to explicit cast to avoid ambiguity in vc++.
-        return std::isfinite(static_cast<double>(this->data[0])) &&
-               std::isfinite(static_cast<double>(this->data[1]));
+        return isFinite(static_cast<double>(this->data[0])) &&
+               isFinite(static_cast<double>(this->data[1]));
       }
 
       /// \brief Array subscript operator

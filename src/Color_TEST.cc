@@ -15,7 +15,7 @@
  *
 */
 
-#include <math.h>
+#include <cmath>
 #include <gtest/gtest.h>
 
 #include <ignition/math/Color.hh>

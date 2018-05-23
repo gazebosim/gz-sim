@@ -585,23 +585,23 @@ namespace ignition
       /// \return true if is finite or false otherwise
       public: bool IsFinite() const
       {
-        // std::isfinite works with floating point values,
+        // isFinite works with floating point values,
         // need to explicit cast to avoid ambiguity in vc++.
-        return std::isfinite(static_cast<double>(this->data[0])) &&
-               std::isfinite(static_cast<double>(this->data[1])) &&
-               std::isfinite(static_cast<double>(this->data[2]));
+        return isFinite(static_cast<double>(this->data[0])) &&
+               isFinite(static_cast<double>(this->data[1])) &&
+               isFinite(static_cast<double>(this->data[2]));
       }
 
       /// \brief Corrects any nan values
       public: inline void Correct()
       {
-        // std::isfinite works with floating point values,
+        // isFinite works with floating point values,
         // need to explicit cast to avoid ambiguity in vc++.
-        if (!std::isfinite(static_cast<double>(this->data[0])))
+        if (!isFinite(static_cast<double>(this->data[0])))
           this->data[0] = 0;
-        if (!std::isfinite(static_cast<double>(this->data[1])))
+        if (!isFinite(static_cast<double>(this->data[1])))
           this->data[1] = 0;
-        if (!std::isfinite(static_cast<double>(this->data[2])))
+        if (!isFinite(static_cast<double>(this->data[2])))
           this->data[2] = 0;
       }
 

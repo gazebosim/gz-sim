@@ -4,8 +4,8 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
-# Turn on C++14 support for the library
-set (c++standard 14)
+# Turn on C++17 support for the library
+set (c++standard 17)
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
 
 # Build the unit tests
@@ -53,7 +53,9 @@ if (RUBY_FOUND)
   set_source_files_properties(${swig_i_files} PROPERTIES CPLUSPLUS ON)
 
   # Create the ruby library
-  SWIG_ADD_MODULE(math ruby ruby.i ${swig_i_files} ${sources})
+  SWIG_ADD_LIBRARY(math TYPE SHARED
+    LANGUAGE ruby
+    SOURCES ruby.i ${swig_i_files} ${sources})
   SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
   target_compile_features(math PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
   install(TARGETS math DESTINATION ${IGN_LIB_INSTALL_DIR}/ruby/ignition)
