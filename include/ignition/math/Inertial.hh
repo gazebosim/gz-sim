@@ -29,9 +29,15 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Inertial Inertial.hh ignition/math/Inertial.hh
-    /// \brief A class for inertial information about a rigid body
-    /// consisting of the scalar mass, a 3x3 symmetric moment
-    /// of inertia matrix, and center of mass reference frame pose.
+    /// \brief The Inertial object provides a representation for the mass and
+    /// inertia matrix of a body B. The components of the inertia matrix are
+    /// expressed in what we call the "inertial" frame Bi of the body, i.e.
+    /// the frame in which these inertia components are measured. The inertial
+    /// frame Bi must be located at the center of mass of the body, but not
+    /// necessarily aligned with the body’s frame. In addition, this class
+    /// allows users to specify a frame F for these inertial properties by
+    /// specifying the pose X_FBi of the inertial frame Bi in the
+    /// inertial object frame F.
     template<typename T>
     class Inertial
     {
@@ -39,7 +45,13 @@ namespace ignition
       public: Inertial()
       {}
 
-      /// \brief Constructor.
+      /// \brief Constructs an inertial object from the mass matrix for a body
+      /// B, about its center of mass Bcm, and expressed in a frame that we’ll
+      /// call the "inertial" frame Bi, i.e. the frame in which the components
+      /// of the mass matrix are specified (see this class’s documentation for
+      /// details). The pose object specifies the pose X_FBi of the inertial
+      /// frame Bi in the frame F of this inertial object
+      /// (see class’s documentation).
       /// \param[in] _massMatrix Mass and inertia matrix.
       /// \param[in] _pose Pose of center of mass reference frame.
       public: Inertial(const MassMatrix3<T> &_massMatrix,
@@ -65,23 +77,16 @@ namespace ignition
         return this->massMatrix.IsValid();
       }
 
-      /// \brief Get the mass and inertia matrix. The mass matrix is
-      /// expressed in the inertial frame.
-      /// \return The MassMatrix3 object computed about the center of mass
-      /// and expressed in the interial frame.
-      ///
-      /// For example, [SDF](http://sdformat.org) uses this return value as
-      /// the MassMatrix3 computed
-      /// about the center of mass of the link it corresponds to and expressed
-      /// in the interial frame of the link.
+      /// \brief Get the mass and inertia matrix.
+      /// \return The mass matrix about the body’s center of mass and
+      /// expressed in the inertial frame Bi as defined by this class’s
+      /// documentation
       public: const MassMatrix3<T> &MassMatrix() const
       {
         return this->massMatrix;
       }
 
       /// \brief Set the pose of the center of mass reference frame.
-      /// For example in [SDF](http://sdformat.org), this will set the pose of
-      /// the inertial frame in the link frame.
       /// \param[in] _pose New pose.
       /// \return True if the MassMatrix3 is valid.
       public: bool SetPose(const Pose3<T> &_pose)
@@ -91,31 +96,25 @@ namespace ignition
       }
 
       /// \brief Get the pose of the center of mass reference frame.
-      /// For example in
-      /// [SDF](http://sdformat.org), this will get the pose of the inertial
-      /// frame in the link frame.
-      /// \return The pose of inertial frame.
+      /// \return The pose of the inertial frame Bi in the frame F of this
+      /// Inertial object as defined by this class’s documentation.
       public: const Pose3<T> &Pose() const
       {
         return this->pose;
       }
 
       /// \copydoc Moi() const
+      /// \deprecated See Matrix3<T> Moi() const
       public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
       {
         return this->Moi();
       }
 
-      /// \brief Get the moment of inertia matrix transformed by the
-      /// rotational component of the pose (Inertial::Pose()) associated
-      /// with this Inertial object. It is up to the user to define what
-      /// the Pose of an Inertial object represents. For example,
-      /// [SDF](http://sdformat.org) makes use of Inertia and has chosen to
-      /// interpret the return value of this function as the inertia matrix
-      /// for a link as computed about the center of mass of that link and
-      /// expressed in the frame of that same link.
-      /// \return Rotated moment of inertia matrix.
-      /// \deprecated Matrix3<T> Moi() const
+      /// \brief Get the moment of inertia matrix computer about the body's
+      /// center of mass and expressed in this Inertial object’s frame F.
+      /// \return The inertia matrix computed about the body’s center of
+      /// mass and expressed in this Inertial object’s frame F, as defined
+      /// in this class’s documentation.
       public: Matrix3<T> Moi() const
       {
         auto R = Matrix3<T>(this->pose.Rot());
