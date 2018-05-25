@@ -37,7 +37,8 @@ namespace ignition
     class AxisAlignedBoxPrivate;
 
     /// \class AxisAlignedBox AxisAlignedBox.hh ignition/math/AxisAlignedBox.hh
-    /// \brief Mathematical representation of a box and related functions.
+    /// \brief Mathematical representation of a box that is aligned along
+    /// an X,Y,Z axis.
     class IGNITION_MATH_VISIBLE AxisAlignedBox
     {
       /// \brief Default constructor. This constructor will set the box's
