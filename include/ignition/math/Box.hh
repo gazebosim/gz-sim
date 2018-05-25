@@ -48,15 +48,17 @@ namespace ignition
       /// \param[in] _length Length of the box.
       /// \param[in] _width Width of the box.
       /// \param[in] _height Height of the box.
-      public: Box(Precision _length, Precision _width, Precision _height);
+      public: Box(const Precision _length,
+                  const Precision _width,
+                  const Precision _height);
 
       /// \brief Construct a box with specified dimensions and a material.
       /// \param[in] _length Length of the box.
       /// \param[in] _width Width of the box.
       /// \param[in] _height Height of the box.
       /// \param[in] _mat Material property for the box.
-      public: Box(Precision _length, Precision _width, Precision _height,
-                  const Material &_mat);
+      public: Box(const Precision _length, const Precision _width,
+                  const Precision _height, const Material &_mat);
 
       /// \brief Construct a box with specified dimensions, in vector form.
       /// \param[in] _size Size of the box. The vector _size has the following
