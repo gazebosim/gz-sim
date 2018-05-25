@@ -1,3 +1,10 @@
+## Ignition Math 6.x
+
+### Ignition Math 6.x.x
+
+1. Upgrade to c++17.
+    * [Pull request 268](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/268)
+
 ## Ignition Math 5.x
 
 ### Ignition Math 5.x.x
