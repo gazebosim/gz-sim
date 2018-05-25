@@ -102,9 +102,9 @@ namespace ignition
       /// \param[in] _length Length of the box.
       /// \param[in] _width Width of the box.
       /// \param[in] _height Height of the box.
-      public: void SetSize(Precision _length,
-                           Precision _width,
-                           Precision _height);
+      public: void SetSize(const Precision _length,
+                           const Precision _width,
+                           const Precision _height);
 
       /// \brief Equality test operator.
       /// \param[in] _b Box to test.
