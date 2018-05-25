@@ -335,7 +335,7 @@ TEST(OrientedBoxTest, OperatorStreamOut)
 }
 
 //////////////////////////////////////////////////
-TEST(BoxTest, VolumeAndDensity)
+TEST(OrientedBoxTest, VolumeAndDensity)
 {
   double mass = 1.0;
   math::OrientedBoxd box(Vector3d(1.0, 0.1, 10.4));
@@ -351,7 +351,7 @@ TEST(BoxTest, VolumeAndDensity)
 }
 
 //////////////////////////////////////////////////
-TEST(BoxTest, Mass)
+TEST(OrientedBoxTest, Mass)
 {
   double mass = 2.0;
   double l = 2.0;
