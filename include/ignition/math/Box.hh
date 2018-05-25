@@ -64,9 +64,9 @@ namespace ignition
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
       ///
-      /// * _size.X() == length
-      /// * _size.Y() == width
-      /// * _size.Z() == height
+      /// * _size[0] == length
+      /// * _size[1] == width
+      /// * _size[2] == height
       public: explicit Box(const Vector3<Precision> &_size);
 
       /// \brief Construct a box with specified dimensions, in vector form
@@ -74,9 +74,9 @@ namespace ignition
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
       ///
-      /// * _size.X() == length
-      /// * _size.Y() == width
-      /// * _size.Z() == height
+      /// * _size[0] == length
+      /// * _size[1] == width
+      /// * _size[2] == height
       /// \param[in] _mat Material property for the box.
       public: Box(const Vector3<Precision> &_size, const Material &_mat);
 
@@ -95,9 +95,9 @@ namespace ignition
       /// \param[in] _size Size of the box. The vector _size has the following
       /// mapping:
       ///
-      /// * _size.X() == length
-      /// * _size.Y() == width
-      /// * _size.Z() == height
+      /// * _size[0] == length
+      /// * _size[1] == width
+      /// * _size[2] == height
       public: void SetSize(const math::Vector3<Precision> &_size);
 
       /// \brief Set the size of the box.
