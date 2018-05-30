@@ -53,7 +53,7 @@ if (RUBY_FOUND)
   set_source_files_properties(${swig_i_files} PROPERTIES CPLUSPLUS ON)
 
   # Create the ruby library
-  SWIG_ADD_MODULE(math ruby ruby.i ${swig_i_files} ${sources})
+  SWIG_ADD_LIBRARY(math LANGUAGE ruby SOURCES ruby.i ${swig_i_files} ${sources})
   SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
   target_compile_features(math PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
   install(TARGETS math DESTINATION ${IGN_LIB_INSTALL_DIR}/ruby/ignition)
