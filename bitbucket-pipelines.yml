@@ -1,4 +1,4 @@
-image: ubuntu:xenial
+image: ubuntu:bionic
 
 pipelines:
   default:
