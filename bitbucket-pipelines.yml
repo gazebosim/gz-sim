@@ -9,6 +9,7 @@ pipelines:
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
+          - gcov -v
           # Ignition cmake
           - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b c++17
           - cd ign-cmake
