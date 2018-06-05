@@ -30,7 +30,8 @@ pipelines:
           - make
           - make test
           - make coverage
-          - bash <(curl -s https://codecov.io/bash)
+          # Disable codecov, which doesn't seem to like the output from gcc8
+          # - bash <(curl -s https://codecov.io/bash)
           - make codecheck
           - make install
           # Examples
