@@ -236,10 +236,10 @@ bool Box::ClipLine(const int _d, const Line3d &_line,
 
   // Add the clip from this dimension to the previous results
   // http://youtu.be/USjbg5QXk3g?t=5m32s
-  if (isFinite(dimLow))
+  if (std::isfinite(dimLow))
     _low = std::max(dimLow, _low);
 
-  if (isFinite(dimHigh))
+  if (std::isfinite(dimHigh))
     _high = std::min(dimHigh, _high);
 
   return true;

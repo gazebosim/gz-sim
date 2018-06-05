@@ -15,6 +15,12 @@
  *
 */
 
+#ifdef SWIGRUBY
+%begin %{
+#define HAVE_ISFINITE 1
+%}
+#endif
+
 %module vector2
 %{
 #include <ignition/math/Vector2.hh>

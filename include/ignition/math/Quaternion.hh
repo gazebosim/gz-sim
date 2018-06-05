@@ -736,26 +736,26 @@ namespace ignition
       /// \return True if quaternion is finite
       public: bool IsFinite() const
       {
-        // isFinite works with floating point values, need to explicit
+        // std::isfinite works with floating point values, need to explicit
         // cast to avoid ambiguity in vc++.
-        return isFinite(static_cast<double>(this->qw)) &&
-               isFinite(static_cast<double>(this->qx)) &&
-               isFinite(static_cast<double>(this->qy)) &&
-               isFinite(static_cast<double>(this->qz));
+        return std::isfinite(static_cast<double>(this->qw)) &&
+               std::isfinite(static_cast<double>(this->qx)) &&
+               std::isfinite(static_cast<double>(this->qy)) &&
+               std::isfinite(static_cast<double>(this->qz));
       }
 
       /// \brief Correct any nan values in this quaternion
       public: inline void Correct()
       {
-        // isFinite works with floating point values, need to explicit
+        // std::isfinite works with floating point values, need to explicit
         // cast to avoid ambiguity in vc++.
-        if (!isFinite(static_cast<double>(this->qx)))
+        if (!std::isfinite(static_cast<double>(this->qx)))
           this->qx = 0;
-        if (!isFinite(static_cast<double>(this->qy)))
+        if (!std::isfinite(static_cast<double>(this->qy)))
           this->qy = 0;
-        if (!isFinite(static_cast<double>(this->qz)))
+        if (!std::isfinite(static_cast<double>(this->qz)))
           this->qz = 0;
-        if (!isFinite(static_cast<double>(this->qw)))
+        if (!std::isfinite(static_cast<double>(this->qw)))
           this->qw = 1;
 
         if (equal(this->qw, static_cast<T>(0)) &&

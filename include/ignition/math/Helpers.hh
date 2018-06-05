@@ -463,28 +463,6 @@ namespace ignition
       return (_v % 2) != 0;
     }
 
-    /// \brief Wrapper around std::isfinite. This wrapper solves
-    /// an issue with gcc-8 and swig+ruby. This solution was
-    /// found here: https://github.com/open-source-parsers/jsoncpp/issues/214#issuecomment-77936298
-    /// \param[in] _v Value that is passed on to std::isfinite.
-    /// \return See std::isfinite()
-    inline bool isFinite(const double _v)
-    {
-      using namespace std;
-      return isfinite(_v);
-    }
-
-    /// \brief Wrapper around std::isfinite. This wrapper solves
-    /// an issue with gcc-8 and swig+ruby. This solution was
-    /// found here: https://github.com/open-source-parsers/jsoncpp/issues/214#issuecomment-77936298
-    /// \param[in] _v Value that is passed on to std::isfinite.
-    /// \return See std::isfinite()
-    inline bool isFinite(const float _v)
-    {
-      using namespace std;
-      return isfinite(_v);
-    }
-
     /// \brief The signum function.
     ///
     /// Returns 0 for zero values, -1 for negative values,
