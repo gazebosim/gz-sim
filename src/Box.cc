@@ -15,7 +15,6 @@
  *
 */
 #include <cmath>
-#include <ignition/math/Helpers.hh>
 #include <ignition/math/Box.hh>
 
 #include "BoxPrivate.hh"
