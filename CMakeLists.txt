@@ -9,7 +9,7 @@ project(ignition-gazebo VERSION 0.1.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake1 REQUIRED)
+find_package(ignition-cmake2 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -30,7 +30,7 @@ include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-gui
-find_package(ignition-gui0 0.1 REQUIRED)
+find_package(ignition-gui1 REQUIRED)
 # Find Qt5
 find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
 
@@ -39,22 +39,22 @@ link_directories(${IGNITION-GUI_LIBRARY_DIRS})
 
 #--------------------------------------
 # Find ignition-math
-set(IGN_MATH_VER 5)
+set(IGN_MATH_VER 6)
 ign_find_package(ignition-math${IGN_MATH_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-msgs
-set(IGN_MSGS_VER 2)
+set(IGN_MSGS_VER 3)
 ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-transport
-set(IGN_TRANSPORT_VER 4)
+set(IGN_TRANSPORT_VER 6)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-common
-set(IGN_COMMON_VER 1)
+set(IGN_COMMON_VER 3)
 ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 
 #--------------------------------------

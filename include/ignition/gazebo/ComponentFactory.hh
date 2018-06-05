@@ -57,10 +57,14 @@ namespace ignition
                       this->components.back());
 
             // Fix the id mapping.
-            for (std::pair<ComponentId, int> &id : this->idMap)
+            for (std::map<ComponentId, int>::iterator idIter =
+                 this->idMap.begin(); idIter != this->idMap.end(); ++idIter)
             {
-              if (id.second == this->components.size()-1)
-                id.second = iter->second;
+              if (static_cast<unsigned int>(idIter->second) ==
+                  this->components.size()-1)
+              {
+                idIter->second = iter->second;
+              }
             }
           }
           // Remove the component.
