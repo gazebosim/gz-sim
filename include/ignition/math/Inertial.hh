@@ -38,6 +38,9 @@ namespace ignition
     /// allows users to specify a frame F for these inertial properties by
     /// specifying the pose X_FBi of the inertial frame Bi in the
     /// inertial object frame F.
+    ///
+    /// For information about the X_FBi notation, see
+    /// http://drake.mit.edu/doxygen_cxx/group__multibody__spatial__pose.html
     template<typename T>
     class Inertial
     {
