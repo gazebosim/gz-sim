@@ -32,6 +32,7 @@ pipelines:
           - make coverage
           # Disable codecov, which doesn't seem to like the output from gcc8
           # - bash <(curl -s https://codecov.io/bash)
+          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
           - make install
           # Examples
