@@ -1,1 +1,1 @@
-ign_install_all_headers(EXCLUDE detail/Sphere.hh detail/Cylinder.hh)
+ign_install_all_headers(EXCLUDE_DIRS detail)
