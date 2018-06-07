@@ -37,7 +37,7 @@ macro(fix_default_compiler_settings_)
 
       # We prefer more strict warning checking for building Google Test.
       # Replaces /W3 with /W4 in defaults.
-      string(REPLACE "/W3" "-W4" ${flag_var} "${${flag_var}}")
+      string(REPLACE "/W3" "/W4" ${flag_var} "${${flag_var}}")
     endforeach()
   endif()
 endmacro()
@@ -46,17 +46,24 @@ endmacro()
 # Google Mock.  You can tweak these definitions to suit your need.  A
 # variable's value is empty before it's explicitly assigned to.
 macro(config_compiler_and_linker)
-  if (NOT gtest_disable_pthreads)
+  # Note: pthreads on MinGW is not supported, even if available
+  # instead, we use windows threading primitives
+  unset(GTEST_HAS_PTHREAD)
+  if (NOT gtest_disable_pthreads AND NOT MINGW)
     # Defines CMAKE_USE_PTHREADS_INIT and CMAKE_THREAD_LIBS_INIT.
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads)
+    if (CMAKE_USE_PTHREADS_INIT)
+      set(GTEST_HAS_PTHREAD ON)
+    endif()
   endif()
 
   fix_default_compiler_settings_()
   if (MSVC)
     # Newlines inside flags variables break CMake's NMake generator.
     # TODO(vladl@google.com): Add -RTCs and -RTCu to debug builds.
-    set(cxx_base_flags "-GS -W4 -WX -wd4127 -wd4251 -wd4275 -nologo -J -Zi")
-    if (MSVC_VERSION LESS 1400)
+    set(cxx_base_flags "-GS -W4 -WX -wd4251 -wd4275 -nologo -J -Zi")
+    if (MSVC_VERSION LESS 1400)  # 1400 is Visual Studio 2005
       # Suppress spurious warnings MSVC 7.1 sometimes issues.
       # Forcing value to bool.
       set(cxx_base_flags "${cxx_base_flags} -wd4800")
@@ -66,13 +73,31 @@ macro(config_compiler_and_linker)
       # Resolved overload was found by argument-dependent lookup.
       set(cxx_base_flags "${cxx_base_flags} -wd4675")
     endif()
+    if (MSVC_VERSION LESS 1500)  # 1500 is Visual Studio 2008
+      # Conditional expression is constant.
+      # When compiling with /W4, we get several instances of C4127
+      # (Conditional expression is constant). In our code, we disable that
+      # warning on a case-by-case basis. However, on Visual Studio 2005,
+      # the warning fires on std::list. Therefore on that compiler and earlier,
+      # we disable the warning project-wide.
+      set(cxx_base_flags "${cxx_base_flags} -wd4127")
+    endif()
+    if (NOT (MSVC_VERSION LESS 1700))  # 1700 is Visual Studio 2012.
+      # Suppress "unreachable code" warning on VS 2012 and later.
+      # http://stackoverflow.com/questions/3232669 explains the issue.
+      set(cxx_base_flags "${cxx_base_flags} -wd4702")
+    endif()
+
     set(cxx_base_flags "${cxx_base_flags} -D_UNICODE -DUNICODE -DWIN32 -D_WIN32")
     set(cxx_base_flags "${cxx_base_flags} -DSTRICT -DWIN32_LEAN_AND_MEAN")
     set(cxx_exception_flags "-EHsc -D_HAS_EXCEPTIONS=1")
-    set(cxx_no_exception_flags "-D_HAS_EXCEPTIONS=0")
+    set(cxx_no_exception_flags "-EHs-c- -D_HAS_EXCEPTIONS=0")
     set(cxx_no_rtti_flags "-GR-")
   elseif (CMAKE_COMPILER_IS_GNUCXX)
-    set(cxx_base_flags "-Wall -Wshadow")
+    set(cxx_base_flags "-Wall -Wshadow -Werror")
+    if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0.0)
+      set(cxx_base_flags "${cxx_base_flags} -Wno-error=dangling-else")
+    endif()
     set(cxx_exception_flags "-fexceptions")
     set(cxx_no_exception_flags "-fno-exceptions")
     # Until version 4.3.2, GCC doesn't define a macro to indicate
@@ -104,11 +129,13 @@ macro(config_compiler_and_linker)
     set(cxx_no_rtti_flags "")
   endif()
 
-  if (CMAKE_USE_PTHREADS_INIT)  # The pthreads library is available and allowed.
-    set(cxx_base_flags "${cxx_base_flags} -DGTEST_HAS_PTHREAD=1")
+  # The pthreads library is available and allowed?
+  if (DEFINED GTEST_HAS_PTHREAD)
+    set(GTEST_HAS_PTHREAD_MACRO "-DGTEST_HAS_PTHREAD=1")
   else()
-    set(cxx_base_flags "${cxx_base_flags} -DGTEST_HAS_PTHREAD=0")
+    set(GTEST_HAS_PTHREAD_MACRO "-DGTEST_HAS_PTHREAD=0")
   endif()
+  set(cxx_base_flags "${cxx_base_flags} ${GTEST_HAS_PTHREAD_MACRO}")
 
   # For building gtest's own tests and samples.
   set(cxx_exception "${CMAKE_CXX_FLAGS} ${cxx_base_flags} ${cxx_exception_flags}")
@@ -131,12 +158,16 @@ function(cxx_library_with_type name type cxx_flags)
   set_target_properties(${name}
     PROPERTIES
     COMPILE_FLAGS "${cxx_flags}")
+  # Generate debug library name with a postfix.
+  set_target_properties(${name}
+    PROPERTIES
+    DEBUG_POSTFIX "d")
   if (BUILD_SHARED_LIBS OR type STREQUAL "SHARED")
     set_target_properties(${name}
       PROPERTIES
       COMPILE_DEFINITIONS "GTEST_CREATE_SHARED_LIBRARY=1")
   endif()
-  if (CMAKE_USE_PTHREADS_INIT)
+  if (DEFINED GTEST_HAS_PTHREAD)
     target_link_libraries(${name} ${CMAKE_THREAD_LIBS_INIT})
   endif()
 endfunction()
@@ -159,6 +190,10 @@ endfunction()
 # is built from the given source files with the given compiler flags.
 function(cxx_executable_with_flags name cxx_flags libs)
   add_executable(${name} ${ARGN})
+  if (MSVC AND (NOT (MSVC_VERSION LESS 1700)))  # 1700 is Visual Studio 2012.
+    # BigObj required for tests.
+    set(cxx_flags "${cxx_flags} -bigobj")
+  endif()
   if (cxx_flags)
     set_target_properties(${name}
       PROPERTIES
@@ -213,15 +248,33 @@ endfunction()
 # creates a Python test with the given name whose main module is in
 # test/name.py.  It does nothing if Python is not installed.
 function(py_test name)
-  # We are not supporting Python tests on Linux yet as they consider
-  # all Linux environments to be google3 and try to use google3 features.
   if (PYTHONINTERP_FOUND)
-    # ${CMAKE_BINARY_DIR} is known at configuration time, so we can
-    # directly bind it from cmake. ${CTEST_CONFIGURATION_TYPE} is known
-    # only at ctest runtime (by calling ctest -c <Configuration>), so
-    # we have to escape $ to delay variable substitution here.
-    add_test(${name}
-      ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/${name}.py
+    if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+      if (CMAKE_CONFIGURATION_TYPES)
+	# Multi-configuration build generators as for Visual Studio save
+	# output in a subdirectory of CMAKE_CURRENT_BINARY_DIR (Debug,
+	# Release etc.), so we have to provide it here.
+        add_test(
+          NAME ${name}
+          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/${name}.py
+              --build_dir=${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)
+      else (CMAKE_CONFIGURATION_TYPES)
+	# Single-configuration build generators like Makefile generators
+	# don't have subdirs below CMAKE_CURRENT_BINARY_DIR.
+        add_test(
+          NAME ${name}
+          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/${name}.py
+              --build_dir=${CMAKE_CURRENT_BINARY_DIR})
+      endif (CMAKE_CONFIGURATION_TYPES)
+    else (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+      # ${CMAKE_CURRENT_BINARY_DIR} is known at configuration time, so we can
+      # directly bind it from cmake. ${CTEST_CONFIGURATION_TYPE} is known
+      # only at ctest runtime (by calling ctest -c <Configuration>), so
+      # we have to escape $ to delay variable substitution here.
+      add_test(
+        ${name}
+        ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/${name}.py
           --build_dir=${CMAKE_CURRENT_BINARY_DIR}/\${CTEST_CONFIGURATION_TYPE})
-  endif()
+    endif (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+  endif(PYTHONINTERP_FOUND)
 endfunction()
