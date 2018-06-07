@@ -43,6 +43,10 @@
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 
+#ifndef _WIN32
+#pragma GCC system_header
+#endif
+
 // Environment-describing macros
 // -----------------------------
 //

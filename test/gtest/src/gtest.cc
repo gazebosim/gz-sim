@@ -35,6 +35,10 @@
 #include "gtest/internal/custom/gtest.h"
 #include "gtest/gtest-spi.h"
 
+#ifndef _WIN32
+#pragma GCC system_header
+#endif
+
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
