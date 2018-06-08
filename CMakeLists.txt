@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-math5 VERSION 5.0.0)
+project(ignition-math6 VERSION 6.0.0)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake1 1.0.0 REQUIRED)
+find_package(ignition-cmake2 2.0.0 REQUIRED)
 
 #============================================================================
 # Configure the project

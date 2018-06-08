@@ -110,7 +110,7 @@ elif [ $QUICK_CHECK -eq 1 ]; then
       DO_CPPCHECK=1
     elif [ $CPPCHECK_LT_157 -eq 0 ]; then
       DO_CPPCHECK=1
-    fi 
+    fi
 
     if [ $DO_CPPCHECK -eq 1 ]; then
       $CPPCHECK_BASE $CPPCHECK_CMD1A $CPPCHECK_RULES $tmp2 2>&1 \

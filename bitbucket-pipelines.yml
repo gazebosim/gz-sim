@@ -5,10 +5,16 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt-get -y install cmake build-essential lcov curl mercurial cppcheck ruby-dev swig g++-8
-          - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+          - apt-get -y install cmake build-essential curl git mercurial cppcheck ruby-dev swig g++-8
+          - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
+          - gcov -v
+          # lcov
+          - git clone https://github.com/linux-test-project/lcov.git
+          - cd lcov
+          - make install
+          - cd ..
           # Ignition cmake
           - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
           - cd ign-cmake
@@ -24,7 +30,8 @@ pipelines:
           - make
           - make test
           - make coverage
-          - bash <(curl -s https://codecov.io/bash)
+          # Use a special version of codecov for handling gcc8 output.
+          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
           - make install
           # Examples
