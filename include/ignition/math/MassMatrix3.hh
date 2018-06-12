@@ -216,7 +216,7 @@ namespace ignition
       /// \deprecated See T Izz() const
       public: T IGN_DEPRECATED(5.0) IZZ() const
       {
-        return this->IZZ();
+        return this->Izz();
       }
 
       /// \brief Get IZZ
