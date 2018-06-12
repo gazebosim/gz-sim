@@ -520,7 +520,7 @@ namespace ignition
       /// return _tolerance *
       ///   std::numeric_limits<double>::epsilon() * maxPossibleMoI;
       /// \endcode
-      public: static double Epsilon(const Vector3<T> &_moments,
+      public: static T Epsilon(const Vector3<T> &_moments,
                   const double _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
       {
@@ -539,13 +539,13 @@ namespace ignition
         // implementation.
         //
         // It is okay if maxPossibleMoi == zero.
-        double maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+        T maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
 
         // In order to check validity of the moments we need to use an
         // epsilon value that is related to machine precision
         // multiplied by the largest possible moment of inertia.
         return _tolerance *
-          std::numeric_limits<double>::epsilon() * maxPossibleMoI;
+          std::numeric_limits<T>::epsilon() * maxPossibleMoI;
       }
 
       /// \brief Verify that inertia values are positive definite
