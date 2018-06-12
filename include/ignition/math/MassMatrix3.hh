@@ -465,7 +465,7 @@ namespace ignition
       /// calculated
       ///
       /// \code
-      /// const double epsilon = this->Epsilon(_tolerance);
+      /// const T epsilon = this->Epsilon(_tolerance);
       /// return (this->mass + epsilon > 0) &&
       ///         (this->IXX() + epsilon  > 0) &&
       ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
@@ -473,10 +473,10 @@ namespace ignition
       ///         (this->Moi().Determinant() + epsilon > 0);
       /// \endcode
       ///
-      public: bool IsPositive(const double _tolerance =
+      public: bool IsPositive(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
-        const double epsilon = this->Epsilon(_tolerance);
+        const T epsilon = this->Epsilon(_tolerance);
 
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
@@ -488,13 +488,13 @@ namespace ignition
       }
 
       ///
-      /// \brief \copybrief Epsilon(const Vector3<T>&,const double)
+      /// \brief \copybrief Epsilon(const Vector3<T>&,const T)
       ///
       /// \param[in] _tolerance A factor that is used to adjust the return
       /// value. A value of zero will cause the return value to be zero.
       /// A good value is 10, which is also the
       /// MASSMATRIX3_DEFAULT_TOLERANCE.
-      public: double Epsilon(const double _tolerance =
+      public: T Epsilon(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
         return Epsilon(this->PrincipalMoments(), _tolerance);
@@ -516,12 +516,12 @@ namespace ignition
       /// \return The epsilon value computed using:
       ///
       /// \code
-      /// double maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+      /// T maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
       /// return _tolerance *
-      ///   std::numeric_limits<double>::epsilon() * maxPossibleMoI;
+      ///   std::numeric_limits<T>::epsilon() * maxPossibleMoI;
       /// \endcode
       public: static T Epsilon(const Vector3<T> &_moments,
-                  const double _tolerance =
+                  const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
       {
         // The following was borrowed heavily from:
@@ -559,7 +559,7 @@ namespace ignition
       ///
       /// \return True if IsPositive(_tolerance) and
       /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
-      public: bool IsValid(const double _tolerance =
+      public: bool IsValid(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
         return this->IsPositive(_tolerance) &&
@@ -577,7 +577,7 @@ namespace ignition
       /// return value is calculated.
       ///
       /// \code
-      /// double epsilon = this->Epsilon(_tolerance);
+      /// T epsilon = this->Epsilon(_tolerance);
       ///
       /// return _moments[0] + epsilon >= 0 &&
       ///   _moments[1] + epsilon >= 0 &&
@@ -587,9 +587,9 @@ namespace ignition
       ///   _moments[2] + _moments[0] + epsilon >= _moments[1];
       /// \endcode
       public: static bool ValidMoments(const Vector3<T> &_moments,
-                  const double _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
               {
-                double epsilon = Epsilon(_moments, _tolerance);
+                T epsilon = Epsilon(_moments, _tolerance);
 
                 return _moments[0] + epsilon >= 0 &&
                        _moments[1] + epsilon >= 0 &&
@@ -1023,7 +1023,7 @@ namespace ignition
                               const Vector3<T> &_size,
                             const Quaternion<T> &_rot = Quaternion<T>::Identity)
      {
-        double volume = _size.X() * _size.Y() * _size.Z();
+        T volume = _size.X() * _size.Y() * _size.Z();
         return this->SetFromBox(_mat.Density() * volume, _size, _rot);
      }
 
@@ -1094,7 +1094,7 @@ namespace ignition
         {
           return false;
         }
-        double volume = IGN_PI * _radius * _radius * _length;
+        T volume = IGN_PI * _radius * _radius * _length;
         return this->SetFromCylinderZ(_mat.Density() * volume,
                                       _length, _radius, _rot);
       }
@@ -1164,7 +1164,7 @@ namespace ignition
           return false;
         }
 
-        double volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        T volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
         return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 

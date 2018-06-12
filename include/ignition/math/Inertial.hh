@@ -67,7 +67,7 @@ namespace ignition
       ///
       /// \return True if the MassMatrix3 is valid.
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
-                  const double _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
       {
         this->massMatrix = _m;
         return this->massMatrix.IsValid(_tolerance);
