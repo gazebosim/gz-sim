@@ -1,1 +1,1 @@
-ign_install_all_headers(EXCLUDE_DIRS detail)
+ign_install_all_headers()
