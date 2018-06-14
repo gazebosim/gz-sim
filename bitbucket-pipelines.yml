@@ -52,7 +52,7 @@ pipelines:
           - cd ../..
           # Ignition msgs
           - apt install -y
-            protobuf-compiler
+            protobuf-compiler libprotoc-dev libprotobuf-dev
           - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
           - cd ign-msgs
           - mkdir build
@@ -84,7 +84,7 @@ pipelines:
           - cd ../..
           # Ignition gui
           - apt install -y
-            qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+            qtbase5-dev libtinyxml2-dev
             qtdeclarative5-dev
             qtquickcontrols2-5-dev
             qml-module-qtquick2
