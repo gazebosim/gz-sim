@@ -27,19 +27,24 @@ ign_configure_project()
 
 #--------------------------------------
 # Find ignition-transport
-set(IGN_TRANSPORT_VER 4)
+set(IGN_TRANSPORT_VER 5)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-common
-set(IGN_COMMON_VER 1)
+set(IGN_COMMON_VER 2)
 ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-gui
 set(IGN_GUI_VER 0)
 ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
-find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package (Qt5
+  COMPONENTS
+    Core
+    Quick
+    QuickControls2
+  REQUIRED)
 
 #--------------------------------------
 # Find gflags

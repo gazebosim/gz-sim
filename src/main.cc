@@ -137,7 +137,7 @@ int main(int _argc, char **_argv)
 
     // Customize window
     auto win = ignition::gui::mainWindow();
-    win->setWindowTitle("Ignition Gazebo");
+    win->QuickWindow()->setProperty("title", "Gazebo");
 
     // Run main window - this blocks until the window is closed or we receive a
     // SIGINT
