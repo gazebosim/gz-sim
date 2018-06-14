@@ -1,4 +1,4 @@
-image: ubuntu:xenial
+image: ubuntu:bionic
 
 pipelines:
   default:
@@ -6,28 +6,76 @@ pipelines:
         script:
           - apt-get update
           - apt-get -y install
-            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev doxygen ruby-ronn
-            qtbase5-dev libqwt-qt5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
-            libogre-1.9-dev
+            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev
+            doxygen ruby-ronn
           - gcc -v
           - g++ -v
           # Static checking before building - fail fast
           - sh tools/code_check.sh
-          # Ignition depends
-          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
-          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
-          - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
-          - apt-get update
-          - apt-get -y install
-            libignition-cmake1-dev
-            libignition-common-dev
-          # Packages to remove or update to a newer version
-          - apt-get -y install
-            libignition-cmake-dev
-            libignition-msgs-dev
-            libignition-transport4-dev
+          # Ignition tools
+          - apt install -y
+            ruby-ronn ruby-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-tools -b default
+          - cd ign-tools
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition cmake
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b default
+          - cd ign-cmake
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition math
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b default
+          - cd ign-math
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition common
+          - apt install -y
+            uuid-dev
+            libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev
+            libfreeimage-dev libgts-dev libswscale-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-common -b default
+          - cd ign-common
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition msgs
+          - apt install -y
+            protobuf-compiler
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
+          - cd ign-msgs
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
+          # Ignition transport
+          - apt install -y
+            libzmq3-dev
+            libsqlite3-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b default
+          - cd ign-transport
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
           # Ignition rendering
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          - apt install -y
+            libogre-1.9-dev
+            libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b glrendertexture
           - cd ign-rendering
           - mkdir build
           - cd build
@@ -35,7 +83,17 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition gui
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b default
+          - apt install -y
+            qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+            qtdeclarative5-dev
+            qtquickcontrols2-5-dev
+            qml-module-qtquick2
+            qml-module-qtquick-controls
+            qml-module-qtquick-controls2
+            qml-module-qtquick-dialogs
+            qml-module-qtquick-layouts
+            qml-module-qt-labs-folderlistmodel
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11_louise
           - cd ign-gui
           - mkdir build
           - cd build
