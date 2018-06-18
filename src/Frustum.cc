@@ -16,8 +16,8 @@
 */
 #include <cmath>
 
-#include "ignition/math/Frustum.hh"
 #include "ignition/math/AxisAlignedBox.hh"
+#include "ignition/math/Frustum.hh"
 #include "ignition/math/Matrix4.hh"
 #include "FrustumPrivate.hh"
 

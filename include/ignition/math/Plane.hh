@@ -18,8 +18,8 @@
 #define IGNITION_MATH_PLANE_HH_
 
 #include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Vector3.hh>
 #include <ignition/math/Vector2.hh>
+#include <ignition/math/Vector3.hh>
 #include <ignition/math/config.hh>
 
 namespace ignition

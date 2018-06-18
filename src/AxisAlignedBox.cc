@@ -26,7 +26,7 @@ class ignition::math::AxisAlignedBoxPrivate
   /// \brief Minimum corner of the box
   public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
 
-          /// \brief Maximum corner of the box
+  /// \brief Maximum corner of the box
   public: Vector3d max = Vector3d(LOW_D, LOW_D, LOW_D);
 };
 

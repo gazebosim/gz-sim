@@ -17,9 +17,9 @@
 #ifndef IGNITION_MATH_FRUSTUM_HH_
 #define IGNITION_MATH_FRUSTUM_HH_
 
+#include <ignition/math/Angle.hh>
 #include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/Plane.hh>
-#include <ignition/math/Angle.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/config.hh>
 
