@@ -266,8 +266,7 @@ namespace ignition
       /// \brief Get the mass matrix for this box. This function
       /// is only meaningful if the box's size and material
       /// have been set.
-      /// \param[out] _massMatrix The computed mass matrix will be stored
-      /// here.
+      /// \param[out] _massMat The computed mass matrix will be stored here.
       /// \return False if computation of the mass matrix failed, which
       /// could be due to an invalid size (<=0) or density (<=0).
       public: bool MassMatrix(MassMatrix3<T> &_massMat) const
