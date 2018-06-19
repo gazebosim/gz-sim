@@ -16,15 +16,12 @@
 */
 #include <signal.h>
 #include <gflags/gflags.h>
+
 #include <ignition/common/Console.hh>
 
+#include <ignition/gui/Iface.hh>
+#include <ignition/gui/MainWindow.hh>
 #include <iostream>
-
-#ifndef Q_MOC_RUN
-  #include <ignition/gui/qt.h>
-  #include <ignition/gui/Iface.hh>
-  #include <ignition/gui/MainWindow.hh>
-#endif
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -44,9 +41,9 @@ DEFINE_string(f, "", "Load an SDF file on start.");
 void Help()
 {
   std::cout
-  << "gazebo -- Run the Gazebo server and GUI." << std::endl
+  << "ign-gazebo -- Run the Gazebo server and GUI." << std::endl
   << std::endl
-  << "`gazebo` [options] <world_file>" << std::endl
+  << "`ign-gazebo` [options] <world_file>" << std::endl
   << std::endl
   << std::endl
   << "Options:" << std::endl
@@ -169,30 +166,29 @@ int main(int _argc, char **_argv)
         // Run the server, and don't block.
         server->Run(FLAGS_iterations, false);
       }
+    /// \todo(nkoenig) Run the server
 
-      // Initialize app
-      ignition::gui::initApp();
+    // Initialize app
+    ignition::gui::initApp();
 
-      // Look for all plugins in the same place
-      ignition::gui::setPluginPathEnv("GAZEBO_PLUGIN_PATH");
+    // Load configuration file
+    auto configPath = ignition::common::joinPaths(
+        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+    ignition::gui::loadConfig(configPath);
 
-      // Create main window
-      ignition::gui::createMainWindow();
+    // Create main window
+    ignition::gui::createMainWindow();
 
-      // Customize window
-      ignition::gui::MainWindow *win = ignition::gui::mainWindow();
-      win->setWindowTitle("Gazebo");
+    // Customize window
+    auto win = ignition::gui::mainWindow();
+    win->setWindowTitle("Ignition Gazebo");
 
-      // Then look for plugins on compile-time defined path.
-      // Plugins installed by gazebo end up here
-      // ignition::gui::addPluginPath(GAZEBO_PLUGIN_INSTALL_PATH);
+    // Run main window - this blocks until the window is closed or we receive a
+    // SIGINT
+    ignition::gui::runMainWindow();
 
-      // Run main window - this blocks until the window is closed or we
-      // receive a SIGINT
-      ignition::gui::runMainWindow();
-
-      // Cleanup once main window is closed
-      ignition::gui::stop();
+    // Cleanup once main window is closed
+    ignition::gui::stop();
     }
   }
 
