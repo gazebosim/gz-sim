@@ -48,10 +48,8 @@ namespace ignition
       /// value will be taken, so the size is non-negative.
       /// \param[in] _pose Box pose.
       public: OrientedBox(const Vector3<T> &_size, const Pose3<T> &_pose)
-          : size(_size), pose(_pose)
+          : size(_size.Abs()), pose(_pose)
       {
-        // Enforce non-negative size
-        this->size = this->size.Abs();
       }
 
       /// \brief Constructor which takes size, pose, and material.
@@ -61,20 +59,16 @@ namespace ignition
       /// \param[in] _mat Material property for the box.
       public: OrientedBox(const Vector3<T> &_size, const Pose3<T> &_pose,
                   const Material &_mat)
-          : size(_size), pose(_pose), material(_mat)
+          : size(_size.Abs()), pose(_pose), material(_mat)
       {
-        // Enforce non-negative size
-        this->size = this->size.Abs();
       }
 
       /// \brief Constructor which takes only the size.
       /// \param[in] _size Box size, in its own coordinate frame. Its absolute
       /// value will be taken, so the size is non-negative.
       public: explicit OrientedBox(const Vector3<T> &_size)
-          : size(_size), pose(Pose3<T>::Zero)
+          : size(_size.Abs()), pose(Pose3<T>::Zero)
       {
-        // Enforce non-negative size
-        this->size = this->size.Abs();
       }
 
       /// \brief Constructor which takes only the size.
@@ -83,10 +77,8 @@ namespace ignition
       /// \param[in] _mat Material property for the box.
       public: explicit OrientedBox(const Vector3<T> &_size,
                                    const Material &_mat)
-          : size(_size), pose(Pose3<T>::Zero), material(_mat)
+          : size(_size.Abs()), pose(Pose3<T>::Zero), material(_mat)
       {
-        // Enforce non-negative size
-        this->size = this->size.Abs();
       }
 
       /// \brief Copy constructor.
@@ -188,7 +180,8 @@ namespace ignition
       public: friend std::ostream &operator<<(std::ostream &_out,
                                               const OrientedBox<T> &_b)
       {
-        _out << "Size[" << _b.Size() << "] Pose[" << _b.Pose() << "]";
+        _out << "Size[" << _b.Size() << "] Pose[" << _b.Pose() << "] "
+          << "Material[" << _b.Material().Name() << "]";
         return _out;
       }
 
@@ -208,14 +201,14 @@ namespace ignition
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const Material &Mat() const
+      public: const ignition::math::Material &Material() const
       {
         return this->material;
       }
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box.
-      public: void SetMat(const Material &_mat)
+      public: void SetMaterial(const ignition::math::Material &_mat)
       {
         this->material = _mat;
       }
@@ -281,7 +274,7 @@ namespace ignition
       private: Pose3<T> pose;
 
       /// \brief The box's material.
-      private: Material material;
+      private: ignition::math::Material material;
     };
 
     typedef OrientedBox<int> OrientedBoxi;

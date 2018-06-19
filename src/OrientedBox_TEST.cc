@@ -37,7 +37,7 @@ TEST(OrientedBoxTest, EmptyConstructorNew)
 
   EXPECT_TRUE(box->Size() == Vector3d::Zero);
   EXPECT_TRUE(box->Pose() == Pose3d::Zero);
-  EXPECT_EQ(math::Material(), box->Mat());
+  EXPECT_EQ(math::Material(), box->Material());
 
   {
     delete box;
@@ -331,7 +331,7 @@ TEST(OrientedBoxTest, OperatorStreamOut)
                   Pose3d(3.4, 4.5, 5.6, 0.0, -0.1, 0.2));
   std::ostringstream stream;
   stream << b;
-  EXPECT_EQ(stream.str(), "Size[0.1 1.2 2.3] Pose[3.4 4.5 5.6 0 -0.1 0.2]");
+  EXPECT_EQ(stream.str(), "Size[0.1 1.2 2.3] Pose[3.4 4.5 5.6 0 -0.1 0.2] Material[]");
 }
 
 //////////////////////////////////////////////////
