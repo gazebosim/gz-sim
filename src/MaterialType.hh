@@ -30,6 +30,7 @@ struct MaterialData
   std::string name;
 
   // Density of the material
+  // cppcheck-suppress unusedStructMember
   double density;
 };
 
