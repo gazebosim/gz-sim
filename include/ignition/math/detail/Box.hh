@@ -31,7 +31,8 @@ Box<T>::Box(T _length, T _width, T _height)
 
 //////////////////////////////////////////////////
 template<typename T>
-Box<T>::Box(T _length, T _width, T _height, const Material &_mat)
+Box<T>::Box(T _length, T _width, T _height,
+    const ignition::math::Material &_mat)
 {
   this->size.X(_length);
   this->size.Y(_width);
@@ -48,7 +49,7 @@ Box<T>::Box(const Vector3<T> &_size)
 
 //////////////////////////////////////////////////
 template<typename T>
-Box<T>::Box(const Vector3<T> &_size, const Material &_mat)
+Box<T>::Box(const Vector3<T> &_size, const ignition::math::Material &_mat)
 {
   this->size = _size;
   this->material = _mat;
@@ -79,14 +80,14 @@ void Box<T>::SetSize(const math::Vector3<T> &_size)
 
 //////////////////////////////////////////////////
 template<typename T>
-const Material &Box<T>::Mat() const
+const ignition::math::Material &Box<T>::Material() const
 {
   return this->material;
 }
 
 //////////////////////////////////////////////////
 template<typename T>
-void Box<T>::SetMat(const Material &_mat)
+void Box<T>::SetMaterial(const ignition::math::Material &_mat)
 {
   this->material = _mat;
 }

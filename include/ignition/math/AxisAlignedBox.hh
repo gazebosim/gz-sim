@@ -257,11 +257,11 @@ namespace ignition
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const Material &Mat() const;
+      public: const ignition::math::Material &Material() const;
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box
-      public: void SetMat(const Material &_mat);
+      public: void SetMaterial(const ignition::math::Material &_mat);
 
       /// \brief Get the mass matrix for this box. This function
       /// is only meaningful if the box's size and material

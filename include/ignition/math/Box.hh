@@ -58,7 +58,8 @@ namespace ignition
       /// \param[in] _height Height of the box.
       /// \param[in] _mat Material property for the box.
       public: Box(const Precision _length, const Precision _width,
-                  const Precision _height, const Material &_mat);
+                  const Precision _height,
+                  const ignition::math::Material &_mat);
 
       /// \brief Construct a box with specified dimensions, in vector form.
       /// \param[in] _size Size of the box. The vector _size has the following
@@ -78,7 +79,8 @@ namespace ignition
       /// * _size[1] == width in meters
       /// * _size[2] == height in meters
       /// \param[in] _mat Material property for the box.
-      public: Box(const Vector3<Precision> &_size, const Material &_mat);
+      public: Box(const Vector3<Precision> &_size,
+                  const ignition::math::Material &_mat);
 
       /// \brief Copy Constructor.
       /// \param[in]  _b Box to copy.
@@ -120,11 +122,11 @@ namespace ignition
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const Material &Mat() const;
+      public: const ignition::math::Material &Material() const;
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box.
-      public: void SetMat(const Material &_mat);
+      public: void SetMaterial(const ignition::math::Material &_mat);
 
       /// \brief Get the volume of the box in m^3.
       /// \return Volume of the box in m^3.
@@ -167,7 +169,7 @@ namespace ignition
       private: Vector3<Precision> size = Vector3<Precision>::Zero;
 
       /// \brief The box's material.
-      private: Material material;
+      private: ignition::math::Material material;
     };
 
     /// \typedef Box<int> Boxi

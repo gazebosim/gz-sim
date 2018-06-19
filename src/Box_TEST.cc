@@ -28,7 +28,7 @@ TEST(BoxTest, Constructor)
   {
     math::Boxd box;
     EXPECT_EQ(math::Vector3d::Zero, box.Size());
-    EXPECT_EQ(math::Material(), box.Mat());
+    EXPECT_EQ(math::Material(), box.Material());
 
     math::Boxd box2;
     EXPECT_EQ(box, box2);
@@ -38,7 +38,7 @@ TEST(BoxTest, Constructor)
   {
     math::Boxd box(1.0, 2.0, 3.0);
     EXPECT_EQ(math::Vector3d(1.0, 2.0, 3.0), box.Size());
-    EXPECT_EQ(math::Material(), box.Mat());
+    EXPECT_EQ(math::Material(), box.Material());
 
     math::Boxd box2(1.0, 2.0, 3.0);
     EXPECT_EQ(box, box2);
@@ -48,7 +48,7 @@ TEST(BoxTest, Constructor)
   {
     math::Boxd box(math::Vector3d(1.3, 2.5, 4.6));
     EXPECT_EQ(math::Vector3d(1.3, 2.5, 4.6), box.Size());
-    EXPECT_EQ(math::Material(), box.Mat());
+    EXPECT_EQ(math::Material(), box.Material());
 
     math::Boxd box2(math::Vector3d(1.3, 2.5, 4.6));
     EXPECT_EQ(box, box2);
@@ -59,7 +59,7 @@ TEST(BoxTest, Constructor)
     math::Boxd box(1.0, 2.0, 5.0,
         math::Material(math::MaterialType::WOOD));
     EXPECT_EQ(math::Vector3d(1.0, 2.0, 5.0), box.Size());
-    EXPECT_EQ(math::Material(math::MaterialType::WOOD), box.Mat());
+    EXPECT_EQ(math::Material(math::MaterialType::WOOD), box.Material());
 
     math::Boxd box2(1.0, 2.0, 5.0,
         math::Material(math::MaterialType::WOOD));
@@ -71,7 +71,7 @@ TEST(BoxTest, Constructor)
     math::Boxd box(math::Vector3d(2.2, 2.0, 10.0),
         math::Material(math::MaterialType::WOOD));
     EXPECT_EQ(math::Vector3d(2.2, 2.0, 10.0), box.Size());
-    EXPECT_EQ(math::Material(math::MaterialType::WOOD), box.Mat());
+    EXPECT_EQ(math::Material(math::MaterialType::WOOD), box.Material());
 
     math::Boxd box2(math::Vector3d(2.2, 2.0, 10.0),
         math::Material(math::MaterialType::WOOD));
@@ -84,12 +84,12 @@ TEST(BoxTest, Mutators)
 {
   math::Boxd box;
   box.SetSize(100.1, 2.3, 5.6);
-  box.SetMat(math::Material(math::MaterialType::PINE));
+  box.SetMaterial(math::Material(math::MaterialType::PINE));
 
   EXPECT_DOUBLE_EQ(100.1, box.Size().X());
   EXPECT_DOUBLE_EQ(2.3, box.Size().Y());
   EXPECT_DOUBLE_EQ(5.6, box.Size().Z());
-  EXPECT_EQ(math::Material(math::MaterialType::PINE), box.Mat());
+  EXPECT_EQ(math::Material(math::MaterialType::PINE), box.Material());
 
   box.SetSize(math::Vector3d(3.4, 1.2, 0.5));
   EXPECT_DOUBLE_EQ(3.4, box.Size().X());
