@@ -2,6 +2,9 @@
 
 ### Ignition Math 5.x.x
 
+1. Added a Cylinder class.
+    * [Pull request 250](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/250)
+
 1. The `Box` class has been changed to a templatized class that is not
    axis-aligned. The previous `Box` functionality is now in the
    `AxisAlignedBox` class.
