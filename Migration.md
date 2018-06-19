@@ -12,6 +12,12 @@ release will remove the deprecated code.
 1. **Plane.hh**
     + Added copy constructor.
 
+### Breaking Changes
+
+1. The `Box` class has been changed to a templatized class that is not
+   axis-aligned. The previous `Box` functionality is now in the
+   `AxisAlignedBox` class.
+
 ### Deprecations
 
 1. **MassMatrix3.hh**
