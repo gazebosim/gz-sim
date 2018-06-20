@@ -25,7 +25,7 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
-find_package(SDFormat REQUIRED)
+find_package(SDFormat REQUIRED VERSION 7.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
@@ -61,7 +61,8 @@ ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 # Find ignition-gui
 set(IGN_GUI_VER 1)
 ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
-find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package (Qt5
+  COMPONENTS Core Quick QuickControls2 REQUIRED)
 
 #--------------------------------------
 # Find gflags

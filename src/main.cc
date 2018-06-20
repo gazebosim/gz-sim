@@ -166,29 +166,30 @@ int main(int _argc, char **_argv)
         // Run the server, and don't block.
         server->Run(FLAGS_iterations, false);
       }
-    /// \todo(nkoenig) Run the server
 
-    // Initialize app
-    ignition::gui::initApp();
+      // Initialize app
+      ignition::gui::initApp();
 
-    // Load configuration file
-    auto configPath = ignition::common::joinPaths(
-        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-    ignition::gui::loadConfig(configPath);
+      // Load configuration file
+      auto configPath = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      ignition::gui::loadConfig(configPath);
 
-    // Create main window
-    ignition::gui::createMainWindow();
+      // Create main window
+      ignition::gui::createMainWindow();
 
-    // Customize window
-    auto win = ignition::gui::mainWindow();
-    win->setWindowTitle("Ignition Gazebo");
+      // Customize window
+      // auto win = ignition::gui::mainWindow();
+      // win->setWindowTitle("Ignition Gazebo");
 
-    // Run main window - this blocks until the window is closed or we receive a
-    // SIGINT
-    ignition::gui::runMainWindow();
+      // Run main window - this blocks until the window is
+      // closed or we receive a
 
-    // Cleanup once main window is closed
-    ignition::gui::stop();
+      // SIGINT
+      ignition::gui::runMainWindow();
+
+      // Cleanup once main window is closed
+      ignition::gui::stop();
     }
   }
 
