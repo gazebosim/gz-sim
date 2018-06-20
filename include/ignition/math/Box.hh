@@ -39,7 +39,7 @@ namespace ignition
     ///
     /// See AxisAlignedBox for an axis aligned box implementation.
     template<typename Precision>
-    class IGNITION_MATH_VISIBLE Box
+    class Box
     {
       /// \brief Default constructor.
       public: Box() = default;
