@@ -40,7 +40,7 @@ namespace ignition
     /// By default, a cylinder's length is aligned with the Z axis. The
     /// rotational offset encodes a rotation from the z axis.
     template<typename Precision>
-    class IGNITION_MATH_VISIBLE Cylinder
+    class Cylinder
     {
       /// \brief Default constructor. The default radius and length are both
       /// zero. The default rotational offset is
