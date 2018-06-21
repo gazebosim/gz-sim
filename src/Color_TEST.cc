@@ -76,7 +76,7 @@ TEST(Color, Color)
   EXPECT_FLOAT_EQ(1.0f, clr0.A());
   EXPECT_EQ(clr0.AsRGBA(), 255u);
   clr0.A(0.0);
-  EXPECT_EQ(clr0.AsRGBA(), 0);
+  EXPECT_EQ(clr0.AsRGBA(), 0u);
 
   math::Color clr(.1f, .2f, .3f, 1.0f);
   EXPECT_FLOAT_EQ(0.1f, clr.R());
