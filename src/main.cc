@@ -19,8 +19,7 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gui/Iface.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Application.hh>
 
 #include <iostream>
 
@@ -124,27 +123,27 @@ int main(int _argc, char **_argv)
 
     /// \todo(nkoenig) Run the server
 
-    // Initialize app
-    ignition::gui::initApp();
+    // Initialize Qt app
+    ignition::gui::Application app(_argc, _argv);
 
     // Load configuration file
     auto configPath = ignition::common::joinPaths(
         IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-    ignition::gui::loadConfig(configPath);
+
+    if (!app.LoadConfig(configPath))
+      return 1;
 
     // Create main window
-    ignition::gui::createMainWindow();
+    if (!app.InitializeMainWindow())
+      return 1;
 
     // Customize window
-    auto win = ignition::gui::mainWindow();
-    win->QuickWindow()->setProperty("title", "Gazebo");
+    auto win = app.allWindows()[0];
+    win->setProperty("title", "Gazebo");
 
     // Run main window - this blocks until the window is closed or we receive a
     // SIGINT
-    ignition::gui::runMainWindow();
-
-    // Cleanup once main window is closed
-    ignition::gui::stop();
+    app.exec();
   }
 
   igndbg << "Shutting down" << std::endl;
