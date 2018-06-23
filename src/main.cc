@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/TmpIface.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -122,6 +123,9 @@ int main(int _argc, char **_argv)
     ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
 
     /// \todo(nkoenig) Run the server
+
+    // Temporary transport interface
+    new ignition::gazebo::TmpIface();
 
     // Initialize Qt app
     ignition::gui::Application app(_argc, _argv);
