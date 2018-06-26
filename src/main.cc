@@ -171,18 +171,16 @@ int main(int _argc, char **_argv)
     // Temporary transport interface
     new ignition::gazebo::TmpIface();
 
-    // Initialize Qt app
-    ignition::gui::Application app(_argc, _argv);
-
     // Load configuration file
     auto configPath = ignition::common::joinPaths(
         IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
-    if (!app.LoadConfig(configPath))
-      return 1;
+    // Initialize Qt app
+    ignition::gui::Application app(_argc, _argv);
 
     // Create main window
-    if (!app.InitializeMainWindow())
+    if (!app.Initialize(ignition::gui::InitializeType::kMainWindow,
+          configPath))
       return 1;
 
     // Customize window
