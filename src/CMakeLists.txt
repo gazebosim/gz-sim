@@ -7,6 +7,7 @@ set (sources
   SignalHandler.cc
   System.cc
   TestSystem.cc
+  TmpIface.cc
 )
 
 set (gtest_sources

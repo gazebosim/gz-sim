@@ -19,11 +19,12 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gui/Iface.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <ignition/gui/Application.hh>
+
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -167,29 +168,30 @@ int main(int _argc, char **_argv)
         server->Run(FLAGS_iterations, false);
       }
 
-      // Initialize app
-      ignition::gui::initApp();
+    // Temporary transport interface
+    new ignition::gazebo::TmpIface();
 
-      // Load configuration file
-      auto configPath = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-      ignition::gui::loadConfig(configPath);
+    // Initialize Qt app
+    ignition::gui::Application app(_argc, _argv);
 
-      // Create main window
-      ignition::gui::createMainWindow();
+    // Load configuration file
+    auto configPath = ignition::common::joinPaths(
+        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
-      // Customize window
-      // auto win = ignition::gui::mainWindow();
-      // win->setWindowTitle("Ignition Gazebo");
+    if (!app.LoadConfig(configPath))
+      return 1;
 
-      // Run main window - this blocks until the window is
-      // closed or we receive a
+    // Create main window
+    if (!app.InitializeMainWindow())
+      return 1;
 
-      // SIGINT
-      ignition::gui::runMainWindow();
+    // Customize window
+    auto win = app.allWindows()[0];
+    win->setProperty("title", "Gazebo");
 
-      // Cleanup once main window is closed
-      ignition::gui::stop();
+    // Run main window - this blocks until the window is closed or we receive a
+    // SIGINT
+    app.exec();
     }
   }
 

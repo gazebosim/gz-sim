@@ -29,15 +29,6 @@ find_package(SDFormat REQUIRED VERSION 7.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
-# Find ignition-gui
-find_package(ignition-gui1 REQUIRED)
-# Find Qt5
-find_package (Qt5 COMPONENTS Core Widgets REQUIRED)
-
-include_directories(${IGNITION-GUI_INCLUDE_DIRS} ${Qt5Core_INCLUDE_DIRS})
-link_directories(${IGNITION-GUI_LIBRARY_DIRS})
-
-#--------------------------------------
 # Find ignition-math
 set(IGN_MATH_VER 6)
 ign_find_package(ignition-math${IGN_MATH_VER} REQUIRED)
@@ -62,7 +53,11 @@ ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 set(IGN_GUI_VER 1)
 ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
 find_package (Qt5
-  COMPONENTS Core Quick QuickControls2 REQUIRED)
+  COMPONENTS
+    Core
+    Quick
+    QuickControls2
+  REQUIRED)
 
 #--------------------------------------
 # Find gflags
