@@ -20,19 +20,19 @@
 #include <sdf/Model.hh>
 
 namespace ign = ignition;
-namespace gz = ignition::gazebo;
 
 int main()
 {
+  // Create an SDF model programmatically.
   sdf::Model model;
   model.SetName("ball");
   sdf::Link *link = model.AddLink({"link", ign::math::Pose3d::Zero});
 
   // Create the Gazebo server
-  ignition::gazebo::Server server;
+  ign::gazebo::Server server;
 
   // Add a ball model to the server
-  gz::Entity ball = server.CreateEntity(model);
+  ign::gazebo::Entity ball = server.CreateEntity(model);
 
   // Run the server
   return server.Step(1);

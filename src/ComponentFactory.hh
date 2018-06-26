@@ -17,12 +17,13 @@
 #ifndef IGNITION_GAZEBO_COMPONENTFACTORY_HH_
 #define IGNITION_GAZEBO_COMPONENTFACTORY_HH_
 
-#include <iostream>
+#include <any>
 #include <map>
 #include <memory>
 #include <typeinfo>
 #include <utility>
 #include <vector>
+#include <ignition/common/Console.hh>
 #include "ignition/gazebo/Export.hh"
 
 namespace ignition
@@ -37,12 +38,11 @@ namespace ignition
 
     class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
     {
-      public: virtual ComponentId Create(const void *_data) = 0;
+      public: virtual ComponentId Create(const std::any &_data) = 0;
       public: virtual void Remove(const ComponentId _id) = 0;
       public: virtual const void *Component(const ComponentId _id) const = 0;
     };
 
-    // I hate the use of void*. Its all kinds of dangerous.
     template<typename ComponentType>
     class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
@@ -76,30 +76,24 @@ namespace ignition
         }
       }
 
-      public: ComponentId Create(const void *_data) override final
+      public: ComponentId Create(const std::any &_data) override final
       {
         ComponentId result = kComponentIdInvalid;
 
-        if (_data)
+        // lock!
+        /// \todo(nkoenig) Is this try necessary?
+        try
         {
-          // lock!
-          /// \todo(nkoenig) Is this try necessary?
-          try
-          {
-            const ComponentType *data =
-              static_cast<const ComponentType*>(_data);
-
-            result = idCounter++;
-            this->idMap[result] = this->components.size();
-            this->components.push_back(std::move(ComponentType(*data)));
-          }
-          catch(...)
-          {
-            --idCounter;
-            if (result != kComponentIdInvalid)
-              this->idMap.erase(this->idMap.find(result));
-            result = kComponentIdInvalid;
-          }
+          const ComponentType &data = std::any_cast<ComponentType>(_data);
+          result = idCounter++;
+          this->idMap[result] = this->components.size();
+          this->components.push_back(std::move(ComponentType(data)));
+        }
+        catch(std::bad_any_cast &_cast)
+        {
+          ignerr << "Unable to create a component. "
+                 << _cast.what() << std::endl;
+          return result;
         }
 
         return result;
@@ -138,8 +132,7 @@ namespace ignition
                 }
 
                 // Instantiate the new component.
-                ComponentId id = this->components[typeId]->Create(
-                    static_cast<const void *>(&_component));
+                ComponentId id = this->components[typeId]->Create(_component);
 
                 return std::make_pair(typeId, id);
               }

@@ -31,8 +31,8 @@
 #include <ignition/common/SignalHandler.hh>
 
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/ComponentFactory.hh"
 #include "ignition/gazebo/System.hh"
+#include "ComponentFactory.hh"
 
 namespace ignition
 {

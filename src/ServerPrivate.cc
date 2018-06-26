@@ -24,7 +24,6 @@
 #include <sdf/Root.hh>
 
 #include "ignition/gazebo/TestSystem.hh"
-#include "ignition/gazebo/ComponentFactory.hh"
 
 using namespace ignition;
 using namespace gazebo;

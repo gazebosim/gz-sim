@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/ComponentFactory.hh"
+#include "ComponentFactory.hh"
 #include <map>
 #include <memory>
 
