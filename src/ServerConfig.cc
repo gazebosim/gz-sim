@@ -22,6 +22,7 @@ using namespace gazebo;
 
 class ignition::gazebo::ServerConfigPrivate
 {
+  // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
 };
 
@@ -34,8 +35,6 @@ ServerConfig::ServerConfig()
 //////////////////////////////////////////////////
 ServerConfig::~ServerConfig()
 {
-  delete this->dataPtr;
-  this->dataPtr = nullptr;
 }
 
 //////////////////////////////////////////////////

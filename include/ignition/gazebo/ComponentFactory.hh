@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <typeinfo>
+#include <utility>
 #include <vector>
 #include "ignition/gazebo/Export.hh"
 

@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_SERVERCONFIG_HH_
 #define IGNITION_GAZEBO_SERVERCONFIG_HH_
 
+#include <memory>
 #include <string>
 #include <ignition/gazebo/Export.hh>
 
@@ -47,11 +48,13 @@ namespace ignition
       /// parsed, false otherwise.
       public: bool SetSdfFile(const std::string &_file);
 
+      /// \brief Get the SDF file that has been set. An empty string will be
+      /// returned if an SDF file has not been set.
+      /// \return The SDF file, or empty string.
       public: std::string SdfFile() const;
 
-
       /// \brief Private data pointer
-      private: ServerConfigPrivate *dataPtr;
+      private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
   }
 }
