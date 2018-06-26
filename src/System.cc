@@ -15,7 +15,6 @@
  *
 */
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
 

@@ -28,11 +28,11 @@
 
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/common/SignalHandler.hh>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/ComponentFactory.hh"
 #include "ignition/gazebo/System.hh"
-#include "SignalHandler.hh"
 
 namespace ignition
 {
@@ -53,11 +53,6 @@ namespace ignition
       /// \brief Run the server.
       /// \param[in] _iterations Number of iterations.
       public: void Run(const uint64_t _iterations);
-
-      /// \brief Transport service that responds with the scene graph.
-      /// \param[out] _rep Scene reply message.
-      /// \return True if the service successfully completed.
-      public: bool SceneService(ignition::msgs::Scene &_rep);
 
       public: void EraseEntities();
 
@@ -86,13 +81,13 @@ namespace ignition
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
-      public: std::atomic<bool> running;
+      public: std::atomic<bool> running{false};
 
       /// \brief Mutex to protect the Run operation.
       public: std::mutex runMutex;
 
       /// \brief Our signal handler.
-      public: SignalHandler sigHandler;
+      public: ignition::common::SignalHandler sigHandler;
 
       public: ComponentFactory componentFactory;
     };

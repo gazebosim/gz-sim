@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <signal.h>
+#include <csignal>
 #include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/common/Util.hh>
@@ -44,7 +44,7 @@ TEST(Server, RunBlocking)
   for (uint64_t i = 1; i < 100; ++i)
   {
     EXPECT_FALSE(server.Running());
-    server.Run(i, true);
+    server.Run(true, i);
     EXPECT_FALSE(server.Running());
 
     expectedIters += i;
@@ -59,7 +59,7 @@ TEST(Server, RunNonBlocking)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
 
-  server.Run(100, false);
+  server.Run(false, 100);
   while (server.IterationCount() < 100)
     IGN_SLEEP_MS(100);
 
@@ -74,32 +74,14 @@ TEST(Server, RunNonBlockingMultiple)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
 
-  server.Run(100, false);
-  server.Run(100, false);
+  server.Run(false, 100);
+  server.Run(false, 100);
 
   while (server.IterationCount() < 100)
     IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, server.IterationCount());
   EXPECT_FALSE(server.Running());
-}
-
-/////////////////////////////////////////////////
-TEST(Server, SceneService)
-{
-  gazebo::Server server;
-  EXPECT_FALSE(server.Running());
-  transport::Node node;
-
-  msgs::Scene response;
-  unsigned int timeout = 100;
-  bool result;
-  node.Request("/ign/gazebo/scene", timeout, response, result);
-  EXPECT_TRUE(result);
-
-  // This value is hardcoded in the service. Change this when we can load
-  // the server with an SDF world.
-  EXPECT_EQ("gazebo", response.name());
 }
 
 /////////////////////////////////////////////////
@@ -115,7 +97,7 @@ TEST(Server, SigInt)
 
   EXPECT_TRUE(server.Running());
 
-  raise(SIGINT);
+  std::raise(SIGTERM);
 
   EXPECT_FALSE(server.Running());
 }
@@ -130,8 +112,8 @@ TEST(Server, TwoServersNonBlocking)
   EXPECT_EQ(0u, server1.IterationCount());
   EXPECT_EQ(0u, server2.IterationCount());
 
-  server1.Run(100, false);
-  server2.Run(500, false);
+  server1.Run(false, 100);
+  server2.Run(false, 500);
 
   while (server1.IterationCount() < 100 || server2.IterationCount() < 500)
     IGN_SLEEP_MS(100);
@@ -152,8 +134,8 @@ TEST(Server, TwoServersMixedBlocking)
   EXPECT_EQ(0u, server1.IterationCount());
   EXPECT_EQ(0u, server2.IterationCount());
 
-  server1.Run(10, false);
-  server2.Run(1000, true);
+  server1.Run(false, 10);
+  server2.Run(true, 1000);
 
   while (server1.IterationCount() < 10)
     IGN_SLEEP_MS(100);

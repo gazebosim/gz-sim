@@ -48,7 +48,7 @@ Server::~Server()
 }
 
 /////////////////////////////////////////////////
-void Server::Run(const uint64_t _iterations, const bool _blocking)
+void Server::Run(const bool _blocking, const uint64_t _iterations)
 {
   if (_blocking)
   {

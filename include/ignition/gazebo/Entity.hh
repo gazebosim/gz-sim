@@ -42,7 +42,10 @@ namespace ignition
     /// components.
     class Entity
     {
+      /// \brief Default constructor
       public: Entity() = default;
+
+      /// \brief Construct an Entity with an id value.
       public: explicit Entity(const EntityId _id);
 
       /// \brief Equality operator. Checks if this Entity is equivalent to

@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_TMPIFACE_HH_
 #define IGNITION_GAZEBO_TMPIFACE_HH_
 
+#include <memory>
 #include <ignition/msgs.hh>
 
 #include "ignition/gazebo/Export.hh"
@@ -54,6 +55,11 @@ namespace ignition
       /// \return True for success
       private: bool OnServerControl(const msgs::ServerControl &_req,
                                           msgs::Boolean &_res);
+
+      /// \brief Transport service that responds with the scene graph.
+      /// \param[out] _rep Scene reply message.
+      /// \return True if the service successfully completed.
+      private: bool SceneService(ignition::msgs::Scene &_rep);
 
       /// \internal
       /// \brief Private data pointer
