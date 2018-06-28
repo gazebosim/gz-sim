@@ -497,7 +497,7 @@ namespace ignition
       public: T Epsilon(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
-        return Epsilon(this->PrincipalMoments(), _tolerance);
+        return Epsilon(this->DiagonalMoments(), _tolerance);
       }
 
       /// \brief Get an epsilon value that represents the amount of
