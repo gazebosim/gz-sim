@@ -20,11 +20,12 @@
 #include <ignition/common/Console.hh>
 
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/TmpIface.hh"
+#include "ignition/gazebo/gui/TmpIface.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -125,7 +126,7 @@ int main(int _argc, char **_argv)
     /// \todo(nkoenig) Run the server
 
     // Temporary transport interface
-    new ignition::gazebo::TmpIface();
+    auto tmp = new ignition::gazebo::TmpIface();
 
     // Initialize Qt app
     ignition::gui::Application app(_argc, _argv);
@@ -138,12 +139,35 @@ int main(int _argc, char **_argv)
       return 1;
 
     // Create main window
-    if (!app.InitializeMainWindow())
+    if (!app.Initialize(ignition::gui::WindowType::kMainWindow))
       return 1;
 
     // Customize window
-    auto win = app.allWindows()[0];
+    auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
     win->setProperty("title", "Gazebo");
+
+    // Let QML files use TmpIface' functions and properties
+    auto context = new QQmlContext(app.Engine()->rootContext());
+    context->setContextProperty("TmpIface", tmp);
+
+    // Instantiate GazeboDrawer.qml file into a component
+    QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
+    auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
+    if (gzDrawerItem)
+    {
+      // C++ ownership
+      QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
+
+      // Add to main window
+      auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
+      gzDrawerItem->setParentItem(parentDrawerItem);
+      gzDrawerItem->setParent(app.Engine());
+    }
+    else
+    {
+      ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+             << std::endl;
+    }
 
     // Run main window - this blocks until the window is closed or we receive a
     // SIGINT

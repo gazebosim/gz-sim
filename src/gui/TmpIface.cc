@@ -17,38 +17,21 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/transport/Node.hh>
-
-#include "ignition/gazebo/TmpIface.hh"
-
-namespace ignition
-{
-  namespace gazebo
-  {
-    class TmpIfacePrivate
-    {
-      /// \brief Communication node
-      public: transport::Node node;
-
-      /// \brief Publisher
-      public: ignition::transport::Node::Publisher worldStatsPub;
-    };
-  }
-}
+#include "ignition/gazebo/gui/TmpIface.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TmpIface::TmpIface() : dataPtr(new TmpIfacePrivate)
+TmpIface::TmpIface()// : dataPtr(new TmpIfacePrivate)
 {
   // World control
-  this->dataPtr->node.Advertise("/world_control",
+  this->node.Advertise("/world_control",
         &TmpIface::OnWorldControl, this);
 
   // World statistics
-  this->dataPtr->worldStatsPub =
-      this->dataPtr->node.Advertise<msgs::WorldStatistics>("/world_stats");
+  this->worldStatsPub =
+      this->node.Advertise<msgs::WorldStatistics>("/world_stats");
 
   std::thread([this]()
   {
@@ -60,7 +43,7 @@ TmpIface::TmpIface() : dataPtr(new TmpIfacePrivate)
       auto time = msg.mutable_sim_time();
       time->set_sec(sec++);
 
-      this->dataPtr->worldStatsPub.Publish(msg);
+      this->worldStatsPub.Publish(msg);
 
       std::this_thread::sleep_for(
           std::chrono::milliseconds(1000));
@@ -68,7 +51,7 @@ TmpIface::TmpIface() : dataPtr(new TmpIfacePrivate)
   }).detach();
 
   // Server control
-  this->dataPtr->node.Advertise("/server_control",
+  this->node.Advertise("/server_control",
       &TmpIface::OnServerControl, this);
 }
 
@@ -77,10 +60,10 @@ bool TmpIface::OnWorldControl(const msgs::WorldControl &_req,
                                     msgs::Boolean &_res)
 {
   igndbg << "OnWorldControl: request" << std::endl;
-  ignmsg << _req.DebugString() << std::endl;
+  igndbg << _req.DebugString() << std::endl;
 
   igndbg << "OnWorldControl: response" << std::endl;
-  ignmsg << _res.DebugString() << std::endl;
+  igndbg << _res.DebugString() << std::endl;
 
   return true;
 }
@@ -90,13 +73,33 @@ bool TmpIface::OnServerControl(const msgs::ServerControl &_req,
                                      msgs::Boolean &_res)
 {
   igndbg << "OnServerControl: request" << std::endl;
-  ignmsg << _req.DebugString() << std::endl;
+  igndbg << _req.DebugString() << std::endl;
 
   _res.set_data(true);
 
   igndbg << "OnServerControl: response" << std::endl;
-  ignmsg << _res.DebugString() << std::endl;
+  igndbg << _res.DebugString() << std::endl;
 
   return true;
+}
+
+/////////////////////////////////////////////////
+void TmpIface::OnLoadWorld(const QString &_path)
+{
+  auto localPath = QUrl(_path).toLocalFile();
+  if (localPath.isEmpty())
+    localPath = _path;
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    igndbg << "LoadWorld callback: result: " << _result << std::endl;
+    igndbg << "LoadWorld callback: response: " << _res.DebugString()
+           << std::endl;
+  };
+
+  msgs::ServerControl req;
+  req.set_open_filename(localPath.toStdString());
+  this->node.Request("/server_control", req, cb);
 }
 

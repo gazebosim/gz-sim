@@ -14,10 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TMPIFACE_HH_
-#define IGNITION_GAZEBO_TMPIFACE_HH_
+#ifndef IGNITION_GAZEBO_GUI_TMPIFACE_HH_
+#define IGNITION_GAZEBO_GUI_TMPIFACE_HH_
+
+#ifndef Q_MOC_RUN
+  #include <ignition/gui/qt.h>
+#endif
 
 #include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 #include "ignition/gazebo/Export.hh"
 
@@ -25,21 +30,25 @@ namespace ignition
 {
   namespace gazebo
   {
-    class TmpIfacePrivate;
-
     /// \brief Temporary place to prototype transport interfaces while it's not
     /// clear where they will live.
     ///
     /// Move API from here to their appropriate locations once that's known.
     ///
     /// This class should be removed before releasing!
-    class IGNITION_GAZEBO_VISIBLE TmpIface
+    class IGNITION_GAZEBO_VISIBLE TmpIface : public QObject
     {
+      Q_OBJECT
+
       /// \brief Constructor: advertize services and topics
       public: TmpIface();
 
       /// \brief Destructor
       public: ~TmpIface() = default;
+
+      /// \brief Callback when user asks to load a world file.
+      /// \param[in] _path Path to world file.
+      public slots: void OnLoadWorld(const QString &_path);
 
       /// \brief World control service callback
       /// \param[in] _req Request
@@ -55,9 +64,11 @@ namespace ignition
       private: bool OnServerControl(const msgs::ServerControl &_req,
                                           msgs::Boolean &_res);
 
-      /// \internal
-      /// \brief Private data pointer
-      private: std::unique_ptr<TmpIfacePrivate> dataPtr;
+      /// \brief Communication node
+      private: transport::Node node;
+
+      /// \brief Publisher
+      private: transport::Node::Publisher worldStatsPub;
     };
   }
 }
