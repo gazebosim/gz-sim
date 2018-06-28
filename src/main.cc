@@ -138,10 +138,6 @@ int main(int _argc, char **_argv)
     if (!app.LoadConfig(configPath))
       return 1;
 
-    // Create main window
-    if (!app.Initialize(ignition::gui::WindowType::kMainWindow))
-      return 1;
-
     // Customize window
     auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
     win->setProperty("title", "Gazebo");
