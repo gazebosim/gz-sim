@@ -481,10 +481,10 @@ namespace ignition
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
         return (this->mass > 0) &&
-               (this->Ixx() + epsilon >= 0) &&
+               (this->Ixx() + epsilon > 0) &&
                (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
-                epsilon >= 0) &&
-               (this->Moi().Determinant() + epsilon >= 0);
+                epsilon > 0) &&
+               (this->Moi().Determinant() + epsilon > 0);
       }
 
       ///
