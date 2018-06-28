@@ -1,8 +1,14 @@
+add_subdirectory(gui)
+
+set(gui_sources
+  ${gui_sources}
+  PARENT_SCOPE
+)
+
 set (sources
   Entity.cc
   System.cc
   TestSystem.cc
-  TmpIface.cc
 )
 
 set (gtest_sources
@@ -14,6 +20,7 @@ set (gtest_sources
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
+  ign-gazebo-gui
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
