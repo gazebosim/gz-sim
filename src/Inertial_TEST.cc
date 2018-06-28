@@ -101,11 +101,11 @@ TEST(Inertiald_Test, SetMassMatrix)
   math::Inertiald inertial;
   math::MassMatrix3d m;
 
-  // This will be false because the default mass is zero
-  EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
-  // Set the mass, and the result of SetMassMatrix should workd.
-  m.SetMass(1);
+  // This will be true because the default mass of zero is considered valid
   EXPECT_TRUE(inertial.SetMassMatrix(m, 0));
+  // Set the mass to a negative value, and SetMassMatrix should complain.
+  m.SetMass(-1);
+  EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
 }
 
 /////////////////////////////////////////////////
@@ -120,8 +120,8 @@ TEST(Inertiald_Test, Setters)
   const math::Pose3d pose(1, 2, 3, IGN_PI/6, 0, 0);
   math::Inertiald inertial;
 
-  // Initially invalid
-  EXPECT_FALSE(inertial.SetPose(pose));
+  // Initially valid
+  EXPECT_TRUE(inertial.SetPose(pose));
 
   // Valid once valid mass matrix is set
   EXPECT_TRUE(inertial.SetMassMatrix(m));
@@ -485,7 +485,8 @@ TEST(Inertiald_Test, AdditionInvalid)
   // inertias all zero
   const math::MassMatrix3d m0(0.0, math::Vector3d::Zero, math::Vector3d::Zero);
   EXPECT_FALSE(m0.IsPositive());
-  EXPECT_FALSE(m0.IsValid());
+  EXPECT_TRUE(m0.IsNearPositive());
+  EXPECT_TRUE(m0.IsValid());
 
   // both inertials with zero mass
   {

@@ -9,8 +9,25 @@ release will remove the deprecated code.
 
 ### Additions
 
+1. **MassMatrix.hh**
+    + Epsilon(const T), Epsilon(const Vector3<T>, const T)
+      return relative tolerance proportional to machine
+      precision and largest possible moment of inertia.
+    * IsNearPositive(const T) is similar to IsPositive(const T)
+      but it checks for positive semidefinite inertia
+      using >= instead of >.
 1. **Plane.hh**
     + Added copy constructor.
+
+### Modifications
+
+1. **Inertial.hh**
+    + SetMassMatrix now accepts a relative tolerance parameter.
+1. **MassMatrix.hh**
+    + IsPositive, IsValid, ValidMoments now accept a relative tolerance
+      parameter based on Epsilon function.
+    + IsValid now uses IsNearPositive instead of IsPositive
+    + ValidMoments now uses >= in comparisons instead of >
 
 ### Deprecations
 
