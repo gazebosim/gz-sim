@@ -979,7 +979,7 @@ namespace ignition
                                  Quaternion<T> &_rot,
                                  const T _tol = 1e-6) const
       {
-        if (!this->IsPositive())
+        if (!this->IsPositive(0))
         {
           // inertia is not positive, cannot compute equivalent box
           return false;
