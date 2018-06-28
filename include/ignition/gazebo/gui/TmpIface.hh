@@ -46,11 +46,26 @@ namespace ignition
       /// \brief Destructor
       public: ~TmpIface() = default;
 
+      /// \brief Callback when user asks to start a new world.
+      /// This is the client-side logic which requests the server_control
+      /// service.
+      public slots: void OnNewWorld();
+
       /// \brief Callback when user asks to load a world file.
+      /// This is the client-side logic which requests the server_control
+      /// service.
       /// \param[in] _path Path to world file.
       public slots: void OnLoadWorld(const QString &_path);
 
+      /// \brief Callback when user asks to save a world file providing a path.
+      /// This is the client-side logic which requests the server_control
+      /// service.
+      /// \param[in] _path Path to world file.
+      public slots: void OnSaveWorldAs(const QString &_path);
+
       /// \brief World control service callback
+      /// This is the server-side logic which provides the world_control
+      /// service.
       /// \param[in] _req Request
       /// \param[out] _res Response
       /// \return True for success
@@ -58,6 +73,8 @@ namespace ignition
                                          msgs::Boolean &_res);
 
       /// \brief Server control service callback
+      /// This is the server-side logic which provides the world_control
+      /// service.
       /// \param[in] _req Request
       /// \param[out] _res Response
       /// \return True for success

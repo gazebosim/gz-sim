@@ -23,7 +23,7 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TmpIface::TmpIface()// : dataPtr(new TmpIfacePrivate)
+TmpIface::TmpIface()
 {
   // World control
   this->node.Advertise("/world_control",
@@ -84,6 +84,22 @@ bool TmpIface::OnServerControl(const msgs::ServerControl &_req,
 }
 
 /////////////////////////////////////////////////
+void TmpIface::OnNewWorld()
+{
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    igndbg << "NewWorld callback: result: " << _result << std::endl;
+    igndbg << "NewWorld callback: response: " << _res.DebugString()
+           << std::endl;
+  };
+
+  msgs::ServerControl req;
+  req.set_new_world(true);
+  this->node.Request("/server_control", req, cb);
+}
+
+/////////////////////////////////////////////////
 void TmpIface::OnLoadWorld(const QString &_path)
 {
   auto localPath = QUrl(_path).toLocalFile();
@@ -100,6 +116,26 @@ void TmpIface::OnLoadWorld(const QString &_path)
 
   msgs::ServerControl req;
   req.set_open_filename(localPath.toStdString());
+  this->node.Request("/server_control", req, cb);
+}
+
+/////////////////////////////////////////////////
+void TmpIface::OnSaveWorldAs(const QString &_path)
+{
+  auto localPath = QUrl(_path).toLocalFile();
+  if (localPath.isEmpty())
+    localPath = _path;
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    igndbg << "SaveWorldAs callback: result: " << _result << std::endl;
+    igndbg << "SaveWorldAs callback: response: " << _res.DebugString()
+           << std::endl;
+  };
+
+  msgs::ServerControl req;
+  req.set_save_filename(localPath.toStdString());
   this->node.Request("/server_control", req, cb);
 }
 
