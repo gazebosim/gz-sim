@@ -10,12 +10,26 @@ Rectangle {
   id: customDrawer
   anchors.fill: parent
 
+  property string saveWorldName: "";
+
   /**
    * Callback for list items
    */
   function onAction(_action) {
     switch(_action) {
       // Handle custom actions
+      case "newWorld":
+        TmpIface.OnNewWorld();
+        break
+      case "saveWorld":
+        if (saveWorldName.length !== 0)
+          TmpIface.OnSaveWorldAs(saveWorldName)
+        else
+          saveWorldDialog.open();
+        break
+      case "saveWorldAs":
+        saveWorldDialog.open();
+        break
       case "loadWorld":
         loadWorldDialog.open();
         break
@@ -31,31 +45,91 @@ Rectangle {
 
     // Custom action which calls custom C++ code
     ListElement {
+      title: "New world"
+      action: "newWorld"
+      type: "world"
+    }
+    ListElement {
       title: "Load world"
       action: "loadWorld"
+      type: "world"
+    }
+    ListElement {
+      title: "Save world"
+      action: "saveWorld"
+      enabled: false
+      type: "world"
+    }
+    ListElement {
+      title: "Save world as..."
+      action: "saveWorldAs"
+      type: "world"
     }
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
+      title: "Load client configuration"
+      action: "loadConfig"
+      type: "config"
+    }
+    ListElement {
+      title: "Save client configuration"
+      action: "saveConfig"
+      type: "config"
+    }
+    ListElement {
+      title: "Save client configuration as"
+      action: "saveConfigAs"
+      type: "config"
+    }
+    ListElement {
       title: "Style settings"
       action: "styleSettings"
+      type: "settings"
     }
 
     ListElement {
       title: "Quit"
       action: "close"
+      type: "window"
     }
   }
 
+  /**
+   * Delegate for the section headings
+   */
+  Component {
+    id: sectionHeading
+    Rectangle {
+      height: 1
+      width: parent.width
+      color: Material.foreground
+
+      Text {
+        text: ""
+        font.bold: true
+        font.pixelSize: 20
+      }
+    }
+  }
+
+  /**
+   * The list view
+   */
   ListView {
     id: listView
     anchors.fill: parent
+
+    section.property: "type"
+    section.criteria: ViewSection.FullString
+    section.delegate: sectionHeading
 
     delegate: ItemDelegate {
       Material.theme: Material.theme
       width: parent.width
       text: title
       highlighted: ListView.isCurrentItem
+
       onClicked: {
         customDrawer.onAction(action);
         customDrawer.parent.closeDrawer();
@@ -72,13 +146,29 @@ Rectangle {
    */
   FileDialog {
     id: loadWorldDialog
-    title: "Load Gazebo world"
+    title: "Load world"
     folder: shortcuts.home
     nameFilters: [ "World files (*.world)" ]
     selectMultiple: false
     selectExisting: true
     onAccepted: {
       TmpIface.OnLoadWorld(fileUrl)
+    }
+  }
+
+  /**
+   * Save world dialog
+   */
+  FileDialog {
+    id: saveWorldDialog
+    title: "Save world"
+    folder: shortcuts.home
+    nameFilters: [ "World files (*.world)" ]
+    selectMultiple: false
+    selectExisting: false
+    onAccepted: {
+      saveWorldName = fileUrl;
+      TmpIface.OnSaveWorldAs(fileUrl);
     }
   }
 }
