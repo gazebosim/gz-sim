@@ -40,8 +40,17 @@ TmpIface::TmpIface()
       static int sec{0};
 
       msgs::WorldStatistics msg;
-      auto time = msg.mutable_sim_time();
-      time->set_sec(sec++);
+      {
+        auto time = msg.mutable_sim_time();
+        time->set_sec(++sec);
+      }
+      {
+        auto time = msg.mutable_real_time();
+        time->set_sec(sec);
+      }
+      msg.set_iterations(sec);
+      msg.set_paused(false);
+      msg.set_real_time_factor(1.0);
 
       this->worldStatsPub.Publish(msg);
 
@@ -61,6 +70,8 @@ bool TmpIface::OnWorldControl(const msgs::WorldControl &_req,
 {
   igndbg << "OnWorldControl: request" << std::endl;
   igndbg << _req.DebugString() << std::endl;
+
+  _res.set_data(true);
 
   igndbg << "OnWorldControl: response" << std::endl;
   igndbg << _res.DebugString() << std::endl;
