@@ -27,12 +27,12 @@ ign_configure_project()
 
 #--------------------------------------
 # Find ignition-transport
-set(IGN_TRANSPORT_VER 5)
+set(IGN_TRANSPORT_VER 6)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
 
 #--------------------------------------
 # Find ignition-common
-set(IGN_COMMON_VER 2)
+set(IGN_COMMON_VER 3)
 ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
 
 #--------------------------------------
