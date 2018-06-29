@@ -454,6 +454,39 @@ namespace ignition
         return !(*this == _m);
       }
 
+      /// \brief Verify that inertia values are positive semidefinite
+      ///
+      /// \param[in] _tolerance The amount of relative error to accept when
+      /// checking whether this MassMatrix3 has a valid mass and moment
+      /// of inertia. Refer to Epsilon() for a description of _tolerance.
+      ///
+      /// \return True if mass is nonnegative and moment of inertia matrix
+      /// is positive semidefinite. The following is how the return value is
+      /// calculated
+      ///
+      /// \code
+      /// const T epsilon = this->Epsilon(_tolerance);
+      /// return (this->mass + epsilon >= 0) &&
+      ///         (this->IXX() + epsilon  >= 0) &&
+      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+      ///          epsilon >= 0) &&
+      ///         (this->Moi().Determinant() + epsilon >= 0);
+      /// \endcode
+      ///
+      public: bool IsNearPositive(const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+      {
+        const T epsilon = this->Epsilon(_tolerance);
+
+        // Check if mass and determinants of all upper left submatrices
+        // of moment of inertia matrix are positive
+        return (this->mass >= 0) &&
+               (this->Ixx() + epsilon >= 0) &&
+               (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
+                epsilon >= 0) &&
+               (this->Moi().Determinant() + epsilon >= 0);
+      }
+
       /// \brief Verify that inertia values are positive definite
       ///
       /// \param[in] _tolerance The amount of error to accept when
@@ -481,10 +514,10 @@ namespace ignition
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
         return (this->mass > 0) &&
-               (this->Ixx() + epsilon >= 0) &&
+               (this->Ixx() + epsilon > 0) &&
                (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
-                epsilon >= 0) &&
-               (this->Moi().Determinant() + epsilon >= 0);
+                epsilon > 0) &&
+               (this->Moi().Determinant() + epsilon > 0);
       }
 
       ///
@@ -497,7 +530,7 @@ namespace ignition
       public: T Epsilon(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
-        return Epsilon(this->PrincipalMoments(), _tolerance);
+        return Epsilon(this->DiagonalMoments(), _tolerance);
       }
 
       /// \brief Get an epsilon value that represents the amount of
@@ -505,7 +538,8 @@ namespace ignition
       /// is related to machine precision multiplied by the largest possible
       /// moment of inertia.
       ///
-      /// This function is used by IsValid(), IsPositive(), and ValidMoments().
+      /// This function is used by IsValid(), IsNearPositive(), IsPositive(),
+      /// and ValidMoments().
       ///
       /// \param[in] _moments Principal moments of inertia.
       /// \param[in] _tolerance A factor that is used to adjust the return
@@ -553,16 +587,16 @@ namespace ignition
       ///
       /// \param[in] _tolerance The amount of error to accept when
       /// checking whether the MassMatrix3 has a valid mass and moment
-      /// of inertia. This value is passed on to IsPositive() and
+      /// of inertia. This value is passed on to IsNearPositive() and
       /// ValidMoments(), which in turn pass the tolerance value to
       /// Epsilon(). Refer to Epsilon() for a description of _tolerance.
       ///
-      /// \return True if IsPositive(_tolerance) and
+      /// \return True if IsNearPositive(_tolerance) and
       /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
       public: bool IsValid(const T _tolerance =
                   IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
       {
-        return this->IsPositive(_tolerance) &&
+        return this->IsNearPositive(_tolerance) &&
                ValidMoments(this->PrincipalMoments(), _tolerance);
       }
 
@@ -979,7 +1013,7 @@ namespace ignition
                                  Quaternion<T> &_rot,
                                  const T _tol = 1e-6) const
       {
-        if (!this->IsPositive())
+        if (!this->IsPositive(0))
         {
           // inertia is not positive, cannot compute equivalent box
           return false;
