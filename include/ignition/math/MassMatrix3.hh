@@ -582,7 +582,7 @@ namespace ignition
           std::numeric_limits<T>::epsilon() * maxPossibleMoI;
       }
 
-      /// \brief Verify that inertia values are positive definite
+      /// \brief Verify that inertia values are positive semi-definite
       /// and satisfy the triangle inequality.
       ///
       /// \param[in] _tolerance The amount of error to accept when
