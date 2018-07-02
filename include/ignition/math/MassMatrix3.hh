@@ -474,7 +474,7 @@ namespace ignition
       /// \endcode
       ///
       public: bool IsNearPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         const T epsilon = this->Epsilon(_tolerance);
 
@@ -507,7 +507,7 @@ namespace ignition
       /// \endcode
       ///
       public: bool IsPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         const T epsilon = this->Epsilon(_tolerance);
 
@@ -528,7 +528,7 @@ namespace ignition
       /// A good value is 10, which is also the
       /// MASSMATRIX3_DEFAULT_TOLERANCE.
       public: T Epsilon(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         return Epsilon(this->DiagonalMoments(), _tolerance);
       }
@@ -556,7 +556,7 @@ namespace ignition
       /// \endcode
       public: static T Epsilon(const Vector3<T> &_moments,
                   const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
       {
         // The following was borrowed heavily from:
         // https://github.com/RobotLocomotion/drake/blob/master/multibody/multibody_tree/rotational_inertia.h
@@ -594,7 +594,7 @@ namespace ignition
       /// \return True if IsNearPositive(_tolerance) and
       /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
       public: bool IsValid(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE) const
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         return this->IsNearPositive(_tolerance) &&
                ValidMoments(this->PrincipalMoments(), _tolerance);
@@ -621,7 +621,7 @@ namespace ignition
       ///   _moments[2] + _moments[0] + epsilon >= _moments[1];
       /// \endcode
       public: static bool ValidMoments(const Vector3<T> &_moments,
-                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE)
+                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
               {
                 T epsilon = Epsilon(_moments, _tolerance);
 
