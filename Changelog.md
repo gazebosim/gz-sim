@@ -31,6 +31,13 @@ specify a density.
 1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
     * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
 
+1. Updated the MassMatrix3::ValidMoments(), MassMatrix3::IsValid(), MassMatrix3::IsPositive(),
+ and Inertial::SetMassMatrix functions to accept a tolerance parameter.
+    * [Pull request 264](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/264)
+
+1. Add MassMatrix3::IsNearPositive and use it in MassMatrix3::IsValid, use >= instead of >
+   in MassMatrix3::ValidMoments
+    * [Pull request 278](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/278)
 
 ## Ignition Math 4.x
 
