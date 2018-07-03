@@ -50,8 +50,6 @@ target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   ${Qt5Widgets_LIBRARIES}
 )
 
-target_compile_options(ign-gazebo-exec PRIVATE -fPIC)
-
 # Switch to ign_install_executable when it is fixed (https://bitbucket.org/ignitionrobotics/ign-cmake/issues/29)
 set_target_properties(ign-gazebo-exec
   PROPERTIES VERSION ${PROJECT_VERSION_FULL})

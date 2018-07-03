@@ -159,7 +159,7 @@ int main(int _argc, char **_argv)
     {
       std::unique_ptr<ignition::gazebo::Server> server;
 
-      // Run the server along with the GUI
+      // Run the server along with the GUI if FLAGS_g is not set.
       if (!FLAGS_g)
       {
         // Create the server
@@ -209,8 +209,8 @@ int main(int _argc, char **_argv)
                << std::endl;
       }
 
-      // Run main window - this blocks until the window is closed or we receive a
-      // SIGINT
+      // Run main window.
+      // This blocks until the window is closed or we receive a SIGINT
       app.exec();
     }
   }
