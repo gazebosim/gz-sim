@@ -17,14 +17,3 @@
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
-
-/////////////////////////////////////////////////
-void System::EntityCreated(const Entity &/*_entity*/)
-{
-}
-
-/////////////////////////////////////////////////
-bool System::Update()
-{
-  return false;
-}

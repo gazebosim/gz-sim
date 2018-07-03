@@ -23,8 +23,6 @@
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/TestSystem.hh"
-
 using namespace ignition;
 using namespace gazebo;
 
@@ -33,10 +31,6 @@ ServerPrivate::ServerPrivate()
 {
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
-
-  // \todo(nkoenig) Remove this once we can dynamically load systems.
-  // You'll need to update the Server_TEST as well.
-  this->systems.push_back(std::unique_ptr<System>(new TestSystem));
 }
 
 /////////////////////////////////////////////////
@@ -107,16 +101,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     // Create the pose component for the model.
     ComponentKey compKey = this->componentMgr.CreateComponent(model->Pose());
     this->entityComponents[entityId].push_back(compKey);
-  }
 
-  // Never compare to zero.
-  /*for (const std::pair<EntityId, std::vector<ComponentKey>> &ec :
-       this->entityComponents)
-  {
-    for (ComponentKey compKey : ec.second)
-    {
-      const ignition::math::Pose3d *pose =
-        this->componentMgr.Component<ignition::math::Pose3d>(compKey);
-    }
-  }*/
+    /// \todo(nkoenig) Notify systems that entities have been created.
+  }
 }

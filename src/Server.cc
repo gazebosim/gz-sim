@@ -17,7 +17,6 @@
 #include "ignition/gazebo/Server.hh"
 
 #include <sdf/Root.hh>
-#include "ignition/gazebo/Entity.hh"
 #include "ServerPrivate.hh"
 
 using namespace ignition::gazebo;

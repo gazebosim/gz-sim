@@ -28,7 +28,9 @@ namespace ignition
     // Forward declarations.
     class ServerConfigPrivate;
 
-    /// \brief Configuration parameters for a Server
+    /// \brief Configuration parameters for a Server. An instance of this
+    /// object can be used to construct a Server with a particular
+    /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
       /// \brief Constructor

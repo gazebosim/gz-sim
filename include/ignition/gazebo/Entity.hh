@@ -40,12 +40,16 @@ namespace ignition
     /// Systems process Entities based on their key. For example, a physics
     /// system may process only entities that have pose and inertia
     /// components.
+    ///
+    /// An Entity that needs to be identified and used by Systems should be
+    /// created through the Server.
     class Entity
     {
       /// \brief Default constructor
       public: Entity() = default;
 
       /// \brief Construct an Entity with an id value.
+      /// \param[in] _id Id of an entity to create.
       public: explicit Entity(const EntityId _id);
 
       /// \brief Equality operator. Checks if this Entity is equivalent to

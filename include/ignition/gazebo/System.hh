@@ -35,10 +35,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System() = default;
-
-      public: virtual void EntityCreated(const Entity &/*_entity*/);
-
-      public: virtual bool Update();
     };
   }
 }
