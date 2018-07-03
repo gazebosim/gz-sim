@@ -6,10 +6,13 @@ pipelines:
         script:
           - apt-get update
           - apt-get -y install
-            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev
+            cmake build-essential lcov curl mercurial cppcheck valgrind
+            libgflags-dev
             doxygen ruby-ronn
+          - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
+          - gcov -v
           # Static checking before building - fail fast
           - sh tools/code_check.sh
           # Ignition tools
@@ -93,6 +96,7 @@ pipelines:
             qml-module-qtquick-dialogs
             qml-module-qtquick-layouts
             qml-module-qt-labs-folderlistmodel
+            qml-module-qt-labs-settings
           - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
           - cd ign-gui
           - mkdir build
