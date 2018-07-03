@@ -151,7 +151,7 @@ int main(int _argc, char **_argv)
       ignition::gazebo::Server server(serverConfig);
 
       // Run the server, and block.
-      server.Run(FLAGS_iterations, true);
+      server.Run(true, FLAGS_iterations);
     }
     // Run the GUI, or GUI+server
     else
@@ -176,7 +176,7 @@ int main(int _argc, char **_argv)
         IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
     // Initialize Qt app
-    ignition::gui::Application app(_argc, _argv);
+    /*ignition::gui::Application app(_argc, _argv);
 
     // Create main window
     if (!app.Initialize(ignition::gui::InitializeType::kMainWindow,
@@ -190,6 +190,7 @@ int main(int _argc, char **_argv)
     // Run main window - this blocks until the window is closed or we receive a
     // SIGINT
     app.exec();
+    */
     }
   }
 

@@ -10,6 +10,7 @@ set (sources
 )
 
 set (gtest_sources
+  ComponentFactory_TEST.cc
   Entity_TEST.cc
   Server_TEST.cc
   System_TEST.cc
