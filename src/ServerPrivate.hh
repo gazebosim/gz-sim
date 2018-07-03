@@ -53,11 +53,16 @@ namespace ignition
 
       /// \brief Run the server.
       /// \param[in] _iterations Number of iterations.
+      /// \param[in] _cond Optional condition variable. This condition is
+      /// notified when the server has started running.
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
+      /// \brief Erase all entities
       public: void EraseEntities();
 
+      /// \brief Create all entities that exist in the sdf::Root object.
+      /// \param[in] _root SDF root object.
       public: void CreateEntities(const sdf::Root &_root);
 
       /// \brief Signal handler callback
@@ -70,6 +75,7 @@ namespace ignition
       /// \brief All of the entities.
       public: std::vector<Entity> entities;
 
+      /// \brief Map of entities to components.
       public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
       /// \brief All of the systems.
@@ -91,6 +97,7 @@ namespace ignition
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;
 
+      /// \brief Manager of all components.
       public: ComponentManager componentMgr;
     };
   }
