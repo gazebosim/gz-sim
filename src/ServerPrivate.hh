@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SERVERPRIVATE_HH_
 
 #include <atomic>
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -32,7 +33,7 @@
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
-#include "ComponentFactory.hh"
+#include "ComponentManager.hh"
 
 namespace ignition
 {
@@ -52,7 +53,8 @@ namespace ignition
 
       /// \brief Run the server.
       /// \param[in] _iterations Number of iterations.
-      public: void Run(const uint64_t _iterations);
+      public: bool Run(const uint64_t _iterations,
+                 std::optional<std::condition_variable *> _cond = std::nullopt);
 
       public: void EraseEntities();
 
@@ -89,7 +91,7 @@ namespace ignition
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;
 
-      public: ComponentFactory componentFactory;
+      public: ComponentManager componentMgr;
     };
   }
 }

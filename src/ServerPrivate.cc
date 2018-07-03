@@ -35,6 +35,7 @@ ServerPrivate::ServerPrivate()
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
   // \todo(nkoenig) Remove this once we can dynamically load systems.
+  // You'll need to update the Server_TEST as well.
   this->systems.push_back(std::unique_ptr<System>(new TestSystem));
 }
 
@@ -55,24 +56,13 @@ void ServerPrivate::UpdateSystems()
 }
 
 /////////////////////////////////////////////////
-void ServerPrivate::Run(const uint64_t _iterations)
+bool ServerPrivate::Run(const uint64_t _iterations,
+    std::optional<std::condition_variable *> _cond)
 {
-  if (!this->sigHandler.Initialized())
-  {
-    ignerr << "Signal handlers were not created. The server won't run.\n";
-    return;
-  }
-
   this->runMutex.lock();
-
-  // Do not allow running more than once.
-  if (this->running)
-  {
-    ignwarn << "The server is already runnnng.\n";
-    return;
-  }
-
   this->running = true;
+  if (_cond)
+    _cond.value()->notify_all();
   this->runMutex.unlock();
 
   // Execute all the systems until we are told to stop, or the number of
@@ -85,9 +75,8 @@ void ServerPrivate::Run(const uint64_t _iterations)
     this->UpdateSystems();
   }
 
-  this->runMutex.lock();
   this->running = false;
-  this->runMutex.unlock();
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -116,27 +105,18 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     const sdf::Model *model = _root.ModelByIndex(i);
 
     // Create the pose component for the model.
-    ComponentKey compKey = this->componentFactory.CreateComponent(
-        model->Pose());
-    std::cout << "Created component[" << compKey.first << ":"
-              << compKey.second << "]\n";
-
+    ComponentKey compKey = this->componentMgr.CreateComponent(model->Pose());
     this->entityComponents[entityId].push_back(compKey);
   }
 
   // Never compare to zero.
-  for (const std::pair<EntityId, std::vector<ComponentKey>> &ec :
+  /*for (const std::pair<EntityId, std::vector<ComponentKey>> &ec :
        this->entityComponents)
   {
     for (ComponentKey compKey : ec.second)
     {
-      std::cout << sizeof(ignition::math::Pose3d) << std::endl;
-      std::cout << sizeof(ignition::math::Vector3d) << std::endl;
-      std::cout << sizeof(double) << std::endl;
       const ignition::math::Pose3d *pose =
-        this->componentFactory.Component<ignition::math::Pose3d>(compKey);
-
-      std::cout << *pose << "Address[" << pose  << "]" << std::endl;
+        this->componentMgr.Component<ignition::math::Pose3d>(compKey);
     }
-  }
+  }*/
 }

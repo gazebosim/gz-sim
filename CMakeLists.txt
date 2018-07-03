@@ -29,16 +29,6 @@ find_package(SDFormat REQUIRED VERSION 7.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
-# Find ignition-math
-set(IGN_MATH_VER 6)
-ign_find_package(ignition-math${IGN_MATH_VER} REQUIRED)
-
-#--------------------------------------
-# Find ignition-msgs
-set(IGN_MSGS_VER 3)
-ign_find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
-
-#--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 6)
 ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)

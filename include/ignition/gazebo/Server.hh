@@ -61,7 +61,7 @@ namespace ignition
       /// to run the server in the current thread.
       /// \param[in] _iterations Number of steps to perform. A value of
       /// zero will run indefinitely.
-      public: void Run(const bool _blocking = false,
+      public: bool Run(const bool _blocking = false,
                        const uint64_t _iterations = 0);
 
       /// \brief Get whether this server is running. When running is true,
@@ -72,6 +72,14 @@ namespace ignition
       /// \brief Get the number of iterations the server has executed.
       /// \return The current iteration count.
       public: uint64_t IterationCount() const;
+
+      /// \brief Get the number of entities on the server.
+      /// \return Entity count.
+      public: size_t EntityCount() const;
+
+      /// \brief Get the number of systems on the server.
+      /// \return System count.
+      public: size_t SystemCount() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
