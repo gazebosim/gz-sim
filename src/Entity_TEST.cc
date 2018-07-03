@@ -35,7 +35,7 @@ TEST(Entity, Constructor)
 
   gazebo::Entity entity5;
   entity5 = std::move(entity2);
-  EXPECT_TRUE(entity5 == entity);
+  EXPECT_EQ(gazebo::kNullEntity, entity5.Id());
 }
 
 /////////////////////////////////////////////////
