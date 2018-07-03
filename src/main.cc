@@ -20,11 +20,12 @@
 #include <ignition/common/Console.hh>
 
 #include <ignition/gui/Application.hh>
+#include <ignition/gui/MainWindow.hh>
 
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/TmpIface.hh"
+#include "ignition/gazebo/gui/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -168,29 +169,49 @@ int main(int _argc, char **_argv)
         server->Run(FLAGS_iterations, false);
       }
 
-    // Temporary transport interface
-    new ignition::gazebo::TmpIface();
+      // Temporary transport interface
+      auto tmp = new ignition::gazebo::TmpIface();
 
-    // Load configuration file
-    auto configPath = ignition::common::joinPaths(
-        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      // Initialize Qt app
+      ignition::gui::Application app(_argc, _argv);
 
-    // Initialize Qt app
-    /*ignition::gui::Application app(_argc, _argv);
+      // Load configuration file
+      auto configPath = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
-    // Create main window
-    if (!app.Initialize(ignition::gui::InitializeType::kMainWindow,
-          configPath))
-      return 1;
+      if (!app.LoadConfig(configPath))
+        return 1;
 
-    // Customize window
-    auto win = app.allWindows()[0];
-    win->setProperty("title", "Gazebo");
+      // Customize window
+      auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+      win->setProperty("title", "Gazebo");
 
-    // Run main window - this blocks until the window is closed or we receive a
-    // SIGINT
-    app.exec();
-    */
+      // Let QML files use TmpIface' functions and properties
+      auto context = new QQmlContext(app.Engine()->rootContext());
+      context->setContextProperty("TmpIface", tmp);
+
+      // Instantiate GazeboDrawer.qml file into a component
+      QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
+      auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
+      if (gzDrawerItem)
+      {
+        // C++ ownership
+        QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
+
+        // Add to main window
+        auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
+        gzDrawerItem->setParentItem(parentDrawerItem);
+        gzDrawerItem->setParent(app.Engine());
+      }
+      else
+      {
+        ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+               << std::endl;
+      }
+
+      // Run main window - this blocks until the window is closed or we receive a
+      // SIGINT
+      app.exec();
     }
   }
 
