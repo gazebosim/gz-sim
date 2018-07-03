@@ -11,7 +11,6 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   System.cc
-  TestSystem.cc
 )
 
 set (gtest_sources
