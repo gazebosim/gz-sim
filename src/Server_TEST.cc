@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/test_config.hh"
 
 using namespace ignition;
 
@@ -29,6 +30,28 @@ using namespace ignition;
 TEST(Server, Constructor)
 {
   gazebo::Server server;
+  EXPECT_FALSE(server.Running());
+  EXPECT_EQ(0u, server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST(Server, DefaultServerConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_EQ(0u, server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST(Server, SdfServerConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
 }
