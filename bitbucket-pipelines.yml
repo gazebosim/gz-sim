@@ -23,7 +23,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
           - cd ign-cmake
           - mkdir build
           - cd build
@@ -31,7 +31,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition math
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b gz11
           - cd ign-math
           - mkdir build
           - cd build
@@ -43,7 +43,7 @@ pipelines:
             uuid-dev
             libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev
             libfreeimage-dev libgts-dev libswscale-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-common -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-common -b gz11
           - cd ign-common
           - mkdir build
           - cd build
@@ -53,7 +53,7 @@ pipelines:
           # Ignition msgs
           - apt install -y
             protobuf-compiler libprotoc-dev libprotobuf-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
           - cd ign-msgs
           - mkdir build
           - cd build
@@ -64,7 +64,7 @@ pipelines:
           - apt install -y
             libzmq3-dev
             libsqlite3-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b default
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b gz11
           - cd ign-transport
           - mkdir build
           - cd build
@@ -75,7 +75,7 @@ pipelines:
           - apt install -y
             libogre-1.9-dev
             libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b glrendertexture
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b gz11
           - cd ign-rendering
           - mkdir build
           - cd build
@@ -93,7 +93,7 @@ pipelines:
             qml-module-qtquick-dialogs
             qml-module-qtquick-layouts
             qml-module-qt-labs-folderlistmodel
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11_louise
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
           - cd ign-gui
           - mkdir build
           - cd build
