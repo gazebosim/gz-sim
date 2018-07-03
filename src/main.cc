@@ -19,12 +19,13 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gui/Iface.hh>
+#include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/gui/TmpIface.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -124,27 +125,49 @@ int main(int _argc, char **_argv)
 
     /// \todo(nkoenig) Run the server
 
-    // Initialize app
-    ignition::gui::initApp();
+    // Temporary transport interface
+    auto tmp = new ignition::gazebo::TmpIface();
+
+    // Initialize Qt app
+    ignition::gui::Application app(_argc, _argv);
 
     // Load configuration file
     auto configPath = ignition::common::joinPaths(
         IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-    ignition::gui::loadConfig(configPath);
 
-    // Create main window
-    ignition::gui::createMainWindow();
+    if (!app.LoadConfig(configPath))
+      return 1;
 
     // Customize window
-    auto win = ignition::gui::mainWindow();
-    win->setWindowTitle("Ignition Gazebo");
+    auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+    win->setProperty("title", "Gazebo");
+
+    // Let QML files use TmpIface' functions and properties
+    auto context = new QQmlContext(app.Engine()->rootContext());
+    context->setContextProperty("TmpIface", tmp);
+
+    // Instantiate GazeboDrawer.qml file into a component
+    QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
+    auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
+    if (gzDrawerItem)
+    {
+      // C++ ownership
+      QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
+
+      // Add to main window
+      auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
+      gzDrawerItem->setParentItem(parentDrawerItem);
+      gzDrawerItem->setParent(app.Engine());
+    }
+    else
+    {
+      ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+             << std::endl;
+    }
 
     // Run main window - this blocks until the window is closed or we receive a
     // SIGINT
-    ignition::gui::runMainWindow();
-
-    // Cleanup once main window is closed
-    ignition::gui::stop();
+    app.exec();
   }
 
   igndbg << "Shutting down" << std::endl;

@@ -1,4 +1,4 @@
 ign_install_all_headers()
 
-install (FILES gui.config DESTINATION
-  ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/ignition/${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+add_subdirectory(gui)
+
