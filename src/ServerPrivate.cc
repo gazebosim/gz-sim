@@ -75,12 +75,11 @@ void ServerPrivate::Run(const uint64_t _iterations)
   this->running = true;
   this->runMutex.unlock();
 
-  uint64_t startingIterations = this->iterations;
-
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (; this->running && (_iterations == 0 ||
-                           this->iterations < _iterations + startingIterations);
+  for (uint64_t startingIterations = this->iterations;
+       this->running && (_iterations == 0 ||
+                         this->iterations < _iterations + startingIterations);
        ++this->iterations)
   {
     this->UpdateSystems();
@@ -131,8 +130,13 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
   {
     for (ComponentKey compKey : ec.second)
     {
-      std::cout << *this->componentFactory.Component<ignition::math::Pose3d>(
-          compKey) << std::endl;
+      std::cout << sizeof(ignition::math::Pose3d) << std::endl;
+      std::cout << sizeof(ignition::math::Vector3d) << std::endl;
+      std::cout << sizeof(double) << std::endl;
+      const ignition::math::Pose3d *pose =
+        this->componentFactory.Component<ignition::math::Pose3d>(compKey);
+
+      std::cout << *pose << "Address[" << pose  << "]" << std::endl;
     }
   }
 }

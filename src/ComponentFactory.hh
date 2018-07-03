@@ -34,6 +34,7 @@ namespace ignition
     using ComponentTypeId = std::size_t;
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
+    /// \brief Id that indicates an invalid component.
     const ComponentId kComponentIdInvalid = -1;
 
     class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
@@ -147,7 +148,6 @@ namespace ignition
                 }
                 return nullptr;
               }
-
 
       private: std::map<ComponentTypeId,
                std::unique_ptr<ComponentStorageBase>> components;

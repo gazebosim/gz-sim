@@ -6,7 +6,7 @@ pipelines:
         script:
           - apt-get update
           - apt-get -y install
-            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev
+            cmake build-essential lcov curl mercurial cppcheck valgrind libgflags-dev linux-tools-generic linux-tools-common linux-tools-`uname -r`
             doxygen ruby-ronn
           - gcc -v
           - g++ -v
