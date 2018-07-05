@@ -43,6 +43,14 @@ pipelines:
           - cmake ..
           - make -j4 install
           - cd ../..
+          # SDFormat
+          - hg clone http://bitbucket.org/osrf/sdformat -b gz11
+          - cd sdformat
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
           # Ignition common
           - apt install -y
             uuid-dev
