@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include "ignition/gazebo/Entity.hh"
-
 namespace ignition
 {
   namespace gazebo
