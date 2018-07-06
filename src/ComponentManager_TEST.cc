@@ -71,6 +71,7 @@ TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
       EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
                           reinterpret_cast<uintptr_t>(prevPose));
     }
+    prevPose = pose;
   }
 }
 
@@ -126,6 +127,7 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
       EXPECT_EQ(intSize, reinterpret_cast<uintptr_t>(it) -
           reinterpret_cast<uintptr_t>(prevIt));
     }
+    prevPose = pose;
   }
 }
 
@@ -176,6 +178,7 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
       EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
           reinterpret_cast<uintptr_t>(prevPose));
     }
+    prevPose = pose;
   }
 
   // Remove the middle component.
