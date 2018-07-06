@@ -25,14 +25,12 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(Stopwatch, Constructor)
 {
-  math::Stopwatch timeSys;
+  math::Stopwatch watch;
 
-  EXPECT_FALSE(timeSys.Running());
-  EXPECT_EQ(timeSys.StopTime(), timeSys.StartTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedRunTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedStopTime());
+  EXPECT_FALSE(watch.Running());
+  EXPECT_EQ(watch.StopTime(), watch.StartTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
 }
 
 /////////////////////////////////////////////////
@@ -94,27 +92,23 @@ void runTimer(math::Stopwatch &_time)
 /////////////////////////////////////////////////
 TEST(Stopwatch, StartStopReset)
 {
-  math::Stopwatch timeSys;
+  math::Stopwatch watch;
 
-  runTimer(timeSys);
+  runTimer(watch);
 
-  timeSys.Reset();
+  watch.Reset();
 
-  EXPECT_FALSE(timeSys.Running());
-  EXPECT_EQ(timeSys.StopTime(), timeSys.StartTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedRunTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedStopTime());
+  EXPECT_FALSE(watch.Running());
+  EXPECT_EQ(watch.StopTime(), watch.StartTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
 
-  runTimer(timeSys);
+  runTimer(watch);
 
-  EXPECT_TRUE(timeSys.Running());
-  timeSys.Start(true);
-  EXPECT_TRUE(timeSys.Running());
-  EXPECT_LT(timeSys.StopTime(), timeSys.StartTime());
-  EXPECT_NE(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedRunTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(),
-            timeSys.ElapsedStopTime());
+  EXPECT_TRUE(watch.Running());
+  watch.Start(true);
+  EXPECT_TRUE(watch.Running());
+  EXPECT_LT(watch.StopTime(), watch.StartTime());
+  EXPECT_NE(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
 }

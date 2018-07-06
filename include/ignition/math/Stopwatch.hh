@@ -20,6 +20,8 @@
 
 #include <chrono>
 #include <memory>
+#include <ignition/math/Export.hh>
+#include <ignition/math/config.hh>
 
 namespace ignition
 {
@@ -31,8 +33,31 @@ namespace ignition
     // Forward declarations.
     class StopwatchPrivate;
 
-    /// \brief A system that manages simulation time.
-    class Stopwatch
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
+    /// \class Stopwatch Stopwatch.hh ignition/math/Stopwatch.hh
+    /// \brief The Stopwatch keeps track of time spent in the run state,
+    /// accessed through ElapsedRunTime(), and time spent in the stop state,
+    /// accessed through ElapsedStopTime(). Elapsed run time start accumulating
+    /// after the first call to Start(). Elapsed stop time starts
+    /// accumulation after Start() has been called followed by Stop(). The
+    /// stopwatch can be reset with the Reset() function.
+    ///
+    /// # Example usage
+    ///
+    /// ```{.cpp}
+    /// ignition::math::Stopwatch watch;
+    /// watch.Start();
+    ///
+    /// // do something...
+    ///
+    /// std::cout << "Elapsed time is "
+    /// << std::chrono::duration_cast<std::chrono::milliseconds>(
+    ///   timeSys.ElapsedRunTime()).count() << " ms\n";
+    /// watch.Stop();
+    /// ```
+    class IGNITION_MATH_VISIBLE Stopwatch
     {
       /// \brief Constructor.
       public: Stopwatch();
@@ -88,6 +113,7 @@ namespace ignition
       /// \brief Private data pointer.
       private: std::unique_ptr<StopwatchPrivate> dataPtr;
     };
+  }
   }
 }
 #endif
