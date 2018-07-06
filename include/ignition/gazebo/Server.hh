@@ -51,14 +51,14 @@ namespace ignition
     /// server.Run();
     /// ```
     ///
-    /// ## Services
-    ///
-    /// The following are services provided by the Server.
-    /// List syntax: *topic_name(request_message) : response_message*
-    ///
-    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
-    ///   + Returns the current scene information.
-    ///
+    // ## Services
+    //
+    // The following are services provided by the Server.
+    // List syntax: *topic_name(request_message) : response_message*
+    //
+    // 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
+    //   + Returns the current scene information.
+    //
     class IGNITION_GAZEBO_VISIBLE Server
     {
       /// \brief Constructor

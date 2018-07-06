@@ -180,7 +180,7 @@ int main(int _argc, char **_argv)
           IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
 
       if (!app.LoadConfig(configPath))
-        return 1;
+        return -1;
 
       // Customize window
       auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
