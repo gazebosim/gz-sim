@@ -14,25 +14,9 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TESTSYSTEM_HH_
-#define IGNITION_GAZEBO_TESTSYSTEM_HH_
+#ifndef IGNITION_GAZEBO_TEST_CONFIG_HH_
+#define IGNITION_GAZEBO_TEST_CONFIG_HH_
 
-#include "ignition/gazebo/System.hh"
+#define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 
-namespace ignition
-{
-  namespace gazebo
-  {
-    /// \brief A stand-in system for testing and development.
-    /// This will go away in the near future.
-    class TestSystem : public System
-    {
-      /// \brief Constructor
-      public: TestSystem();
-
-      /// \brief Destructor
-      public: virtual ~TestSystem();
-    };
-  }
-}
 #endif

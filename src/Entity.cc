@@ -19,6 +19,12 @@
 using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
+Entity::Entity(const EntityId _id)
+  : id(_id)
+{
+}
+
+/////////////////////////////////////////////////
 bool Entity::operator==(const Entity &_entity) const
 {
   return this->id == _entity.id;

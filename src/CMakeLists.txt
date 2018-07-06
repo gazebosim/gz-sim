@@ -7,17 +7,21 @@ set(gui_sources
 
 set (sources
   Entity.cc
+  Server.cc
+  ServerConfig.cc
+  ServerPrivate.cc
   System.cc
-  TestSystem.cc
 )
 
 set (gtest_sources
+  ComponentManager_TEST.cc
   Entity_TEST.cc
+  Server_TEST.cc
   System_TEST.cc
 )
 
 # Create the library target
-ign_create_core_library(SOURCES ${sources} CXX_STANDARD 14)
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ign-gazebo-gui
@@ -26,6 +30,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   ${Qt5Core_LIBRARIES}
   ${Qt5Widgets_LIBRARIES}
+  ${SDFormat_LIBRARIES}
 )
 
 # Build the unit tests

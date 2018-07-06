@@ -14,17 +14,37 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/TestSystem.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition;
+using namespace gazebo;
+
+class ignition::gazebo::ServerConfigPrivate
+{
+  // \brief The SDF file that the server should load
+  public: std::string sdfFile = "";
+};
 
 //////////////////////////////////////////////////
-TestSystem::TestSystem()
-  : System()
+ServerConfig::ServerConfig()
+  : dataPtr(new ServerConfigPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-TestSystem::~TestSystem()
+ServerConfig::~ServerConfig()
 {
+}
+
+//////////////////////////////////////////////////
+bool ServerConfig::SetSdfFile(const std::string &_file)
+{
+  this->dataPtr->sdfFile = _file;
+  return true;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::SdfFile() const
+{
+  return this->dataPtr->sdfFile;
 }
