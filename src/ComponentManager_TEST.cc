@@ -128,6 +128,7 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
           reinterpret_cast<uintptr_t>(prevIt));
     }
     prevPose = pose;
+    prevIt = it;
   }
 }
 

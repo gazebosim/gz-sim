@@ -15,7 +15,6 @@
  *
 */
 #include "ignition/gazebo/ServerConfig.hh"
-#include <ignition/common/Console.hh>
 
 using namespace ignition;
 using namespace gazebo;

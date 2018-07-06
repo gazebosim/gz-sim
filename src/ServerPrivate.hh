@@ -27,7 +27,6 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/common/SignalHandler.hh>
 
