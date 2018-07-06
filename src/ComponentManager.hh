@@ -128,7 +128,6 @@ namespace ignition
         {
           ignerr << "Unable to create a component. "
                  << _cast.what() << std::endl;
-          return result;
         }
 
         return result;

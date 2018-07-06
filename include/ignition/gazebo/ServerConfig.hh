@@ -52,7 +52,7 @@ namespace ignition
 
       /// \brief Get the SDF file that has been set. An empty string will be
       /// returned if an SDF file has not been set.
-      /// \return The SDF file, or empty string.
+      /// \return The full path to the SDF file, or empty string.
       public: std::string SdfFile() const;
 
       /// \brief Private data pointer
