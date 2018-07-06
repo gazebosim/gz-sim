@@ -26,12 +26,18 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
+DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
+DEFINE_bool(s, false, "Run only the server (headless mode).");
+DEFINE_bool(g, false, "Run only the GUI.");
+DEFINE_string(f, "", "Load an SDF file on start.");
 
 //////////////////////////////////////////////////
 void Help()
@@ -49,6 +55,15 @@ void Help()
   << std::endl
   << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
   << " The default verbosity is 1"
+  << std::endl
+  << "  --iterations arg       Number of iterations to execute."
+  << std::endl
+  << "  -s                     Run only the server (headless mode). This will "
+  << " override -g, if it is also present."
+  << std::endl
+  << "  -g                     Run only the GUI."
+  << std::endl
+  << "  -f                     Load an SDF file on start. "
   << std::endl
   << std::endl;
 }
@@ -123,51 +138,81 @@ int main(int _argc, char **_argv)
     ignition::common::Console::SetVerbosity(FLAGS_verbose);
     ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
 
-    /// \todo(nkoenig) Run the server
-
-    // Temporary transport interface
-    auto tmp = new ignition::gazebo::TmpIface();
-
-    // Initialize Qt app
-    ignition::gui::Application app(_argc, _argv);
-
-    // Load configuration file
-    auto configPath = ignition::common::joinPaths(
-        IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-
-    if (!app.LoadConfig(configPath))
-      return 1;
-
-    // Customize window
-    auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
-    win->setProperty("title", "Gazebo");
-
-    // Let QML files use TmpIface' functions and properties
-    auto context = new QQmlContext(app.Engine()->rootContext());
-    context->setContextProperty("TmpIface", tmp);
-
-    // Instantiate GazeboDrawer.qml file into a component
-    QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
-    auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
-    if (gzDrawerItem)
+    ignition::gazebo::ServerConfig serverConfig;
+    if (!serverConfig.SetSdfFile(FLAGS_f))
     {
-      // C++ ownership
-      QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
-
-      // Add to main window
-      auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
-      gzDrawerItem->setParentItem(parentDrawerItem);
-      gzDrawerItem->setParent(app.Engine());
+      ignerr << "Failed to set SDF file[" << FLAGS_f << "]" << std::endl;
+      return -1;
     }
+
+    // Run only the server (headless)
+    if (FLAGS_s)
+    {
+      // Create the Gazebo server
+      ignition::gazebo::Server server(serverConfig);
+
+      // Run the server, and block.
+      server.Run(true, FLAGS_iterations);
+    }
+    // Run the GUI, or GUI+server
     else
     {
-      ignerr << "Failed to instantiate custom drawer, drawer will be empty"
-             << std::endl;
-    }
+      std::unique_ptr<ignition::gazebo::Server> server;
 
-    // Run main window - this blocks until the window is closed or we receive a
-    // SIGINT
-    app.exec();
+      // Run the server along with the GUI if FLAGS_g is not set.
+      if (!FLAGS_g)
+      {
+        // Create the server
+        server.reset(new ignition::gazebo::Server(serverConfig));
+
+        // Run the server, and don't block.
+        server->Run(false, FLAGS_iterations);
+      }
+
+      // Temporary transport interface
+      auto tmp = new ignition::gazebo::TmpIface();
+
+      // Initialize Qt app
+      ignition::gui::Application app(_argc, _argv);
+
+      // Load configuration file
+      auto configPath = ignition::common::joinPaths(
+          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+
+      if (!app.LoadConfig(configPath))
+        return -1;
+
+      // Customize window
+      auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
+      win->setProperty("title", "Gazebo");
+
+      // Let QML files use TmpIface' functions and properties
+      auto context = new QQmlContext(app.Engine()->rootContext());
+      context->setContextProperty("TmpIface", tmp);
+
+      // Instantiate GazeboDrawer.qml file into a component
+      QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
+      auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
+      if (gzDrawerItem)
+      {
+        // C++ ownership
+        QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
+
+        // Add to main window
+        auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
+        gzDrawerItem->setParentItem(parentDrawerItem);
+        gzDrawerItem->setParent(app.Engine());
+      }
+      else
+      {
+        ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+               << std::endl;
+      }
+
+      // Run main window.
+      // This blocks until the window is closed or we receive a SIGINT
+      app.exec();
+    }
   }
 
   igndbg << "Shutting down" << std::endl;

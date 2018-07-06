@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="box">
+    <pose>1 2 3 0 0 1</pose>
+    <link name="link">
+      <collision name="col">
+        <geometry>
+          <box>
+            <size>3 4 5</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="vis">
+        <geometry>
+          <box>
+            <size>1 2 3</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+
+  <model name="cylinder">
+    <pose>-1 -2 -3 0 0 1</pose>
+    <link name="link">
+      <collision name="col">
+        <geometry>
+          <cylinder>
+            <radius>0.2</radius>
+            <length>0.1</length>
+          </cylinder>
+        </geometry>
+      </collision>
+
+      <visual name="vis">
+        <geometry>
+          <cylinder>
+            <radius>2.1</radius>
+            <length>10.2</length>
+          </cylinder>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+
+  <model name="sphere">
+    <pose>0 0 0 0 0 1</pose>
+    <link name="link">
+      <collision name="col">
+        <geometry>
+          <sphere>
+            <radius>23.4</radius>
+          </sphere>
+        </geometry>
+      </collision>
+
+      <visual name="vis">
+        <geometry>
+          <sphere>
+            <radius>100.2</radius>
+          </sphere>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
