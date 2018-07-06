@@ -2,6 +2,9 @@
 
 ### Ignition Math 5.x.x
 
+1. Added a Stopwatch class
+    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/279)
+
 1. Added material properties to OrientedBox
     * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/269)
 
