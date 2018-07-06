@@ -30,17 +30,17 @@ namespace ignition
 {
   namespace gazebo
   {
-    /// \brief A unique identifier for a component instance. The uniquiness
+    /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
     /// See also ComponentKey.
     using ComponentId = int;
 
-    /// \brief A unique identifies for a component type. A component type
+    /// \brief A unique identifier for a component type. A component type
     /// can be plain data type or something more complex like
-    /// ignition::math::Pos3d.
+    /// ignition::math::Pose3d.
     using ComponentTypeId = std::size_t;
 
-    /// \brief A key that uniquely idenities, at the global scope, a component
+    /// \brief A key that uniquely identifies, at the global scope, a component
     /// instance
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
@@ -194,7 +194,7 @@ namespace ignition
               {
                 if (this->components.find(_key.first) != this->components.end())
                 {
-                  return static_cast<const ComponentType*>(
+                  return static_cast<const ComponentType *>(
                       this->components.at(_key.first)->Component(_key.second));
                 }
                 return nullptr;
