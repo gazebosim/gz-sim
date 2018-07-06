@@ -166,7 +166,7 @@ int main(int _argc, char **_argv)
         server.reset(new ignition::gazebo::Server(serverConfig));
 
         // Run the server, and don't block.
-        server->Run(FLAGS_iterations, false);
+        server->Run(false, FLAGS_iterations);
       }
 
       // Temporary transport interface
