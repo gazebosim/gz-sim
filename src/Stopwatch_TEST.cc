@@ -66,7 +66,7 @@ void runTimer(math::Stopwatch &_time)
 
   // The timer is now stopped, let's sleep some more.
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  // The elapsed stop time should not be greater than or equal to the time
+  // The elapsed stop time should be greater than or equal to the time
   // slept.
   EXPECT_GE(_time.ElapsedStopTime(), std::chrono::milliseconds(1000));
   // The elapsed time should be the same.
@@ -106,9 +106,36 @@ TEST(Stopwatch, StartStopReset)
   runTimer(watch);
 
   EXPECT_TRUE(watch.Running());
+
   watch.Start(true);
   EXPECT_TRUE(watch.Running());
   EXPECT_LT(watch.StopTime(), watch.StartTime());
   EXPECT_NE(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
   EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
+}
+
+/////////////////////////////////////////////////
+TEST(Stopwatch, FailStartStop)
+{
+  math::Stopwatch watch;
+
+  // Can't stop while not running
+  EXPECT_FALSE(watch.Stop());
+  EXPECT_FALSE(watch.Running());
+
+  // Can start while not running
+  EXPECT_TRUE(watch.Start());
+  EXPECT_TRUE(watch.Running());
+
+  // Can't start while running
+  EXPECT_FALSE(watch.Start());
+  EXPECT_TRUE(watch.Running());
+
+  // Can stop while running
+  EXPECT_TRUE(watch.Stop());
+  EXPECT_FALSE(watch.Running());
+
+  // Can start while not running
+  EXPECT_TRUE(watch.Start());
+  EXPECT_TRUE(watch.Running());
 }
