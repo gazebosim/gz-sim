@@ -50,7 +50,7 @@ Stopwatch::~Stopwatch()
 }
 
 //////////////////////////////////////////////////
-bool Stopwatch::Start(bool _reset)
+bool Stopwatch::Start(const bool _reset)
 {
   if (_reset)
     this->Reset();
@@ -72,7 +72,7 @@ bool Stopwatch::Start(bool _reset)
 }
 
 //////////////////////////////////////////////////
-clock::time_point Stopwatch::StartTime()
+clock::time_point Stopwatch::StartTime() const
 {
   return this->dataPtr->startTime;
 }
@@ -93,13 +93,13 @@ bool Stopwatch::Stop()
 }
 
 //////////////////////////////////////////////////
-clock::time_point Stopwatch::StopTime()
+clock::time_point Stopwatch::StopTime() const
 {
   return this->dataPtr->stopTime;
 }
 
 //////////////////////////////////////////////////
-bool Stopwatch::Running()
+bool Stopwatch::Running() const
 {
   return this->dataPtr->running;
 }

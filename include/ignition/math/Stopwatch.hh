@@ -39,7 +39,7 @@ namespace ignition
     /// \class Stopwatch Stopwatch.hh ignition/math/Stopwatch.hh
     /// \brief The Stopwatch keeps track of time spent in the run state,
     /// accessed through ElapsedRunTime(), and time spent in the stop state,
-    /// accessed through ElapsedStopTime(). Elapsed run time start accumulating
+    /// accessed through ElapsedStopTime(). Elapsed run time starts accumulating
     /// after the first call to Start(). Elapsed stop time starts
     /// accumulation after Start() has been called followed by Stop(). The
     /// stopwatch can be reset with the Reset() function.
@@ -69,13 +69,13 @@ namespace ignition
       /// \param[in] _reset If true the stopwatch is reset first.
       /// \return True if the the stopwatch was started. This will return
       /// false if the stopwatch was already running.
-      public: bool Start(bool _reset = false);
+      public: bool Start(const bool _reset = false);
 
       /// \brief Get the time when the stopwatch was started.
       /// \return The time when stopwatch was started, or
       /// std::chrono::steady_clock::time_point::min() if the stopwatch
       /// has not been started.
-      public: clock::time_point StartTime();
+      public: clock::time_point StartTime() const;
 
       /// \brief Stop the stopwatch
       /// \return True if the stopwatch was stopped. This will return false
@@ -86,11 +86,11 @@ namespace ignition
       /// \return The time when stopwatch was last stopped, or
       /// std::chrono::steady_clock::time_point::min() if the stopwatch
       /// has never been stopped.
-      public: clock::time_point StopTime();
+      public: clock::time_point StopTime() const;
 
       /// \brief Get whether the stopwatch is running.
       /// \return True if the stopwatch is running.
-      public: bool Running();
+      public: bool Running() const;
 
       /// \brief Reset the stopwatch. This resets the start time, stop time,
       /// elapsed duration and elapsed stop duration.
@@ -110,8 +110,17 @@ namespace ignition
       /// \return Total amount of elapsed stop time.
       public: clock::duration ElapsedStopTime() const;
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Private data pointer.
       private: std::unique_ptr<StopwatchPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
   }
   }
