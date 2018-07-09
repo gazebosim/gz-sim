@@ -79,6 +79,9 @@ TEST(AngleTest, Angle)
   EXPECT_TRUE(angle <= math::Angle(3));
 
   angle = 1.2;
+  EXPECT_EQ(angle, math::Angle(1.2));
+
+  angle = math::Angle(1.2);
   EXPECT_LE(angle, 1.21);
   EXPECT_FALSE(angle <= 1.19);
   EXPECT_TRUE(angle <= 1.2);
@@ -88,6 +91,9 @@ TEST(AngleTest, Angle)
   EXPECT_TRUE(math::Angle(1.2000000001) <= math::Angle(1.2));
 
   angle = 1.2;
+  EXPECT_EQ(angle, math::Angle(1.2));
+
+  angle = math::Angle(1.2);
   EXPECT_LE(angle, 1.21);
   EXPECT_TRUE(angle >= 1.19);
   EXPECT_TRUE(angle >= 1.2);
