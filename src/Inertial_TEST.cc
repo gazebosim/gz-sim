@@ -96,6 +96,19 @@ TEST(Inertiald_Test, CoverageExtra)
 }
 
 /////////////////////////////////////////////////
+TEST(Inertiald_Test, SetMassMatrix)
+{
+  math::Inertiald inertial;
+  math::MassMatrix3d m;
+
+  // This will be true because the default mass of zero is considered valid
+  EXPECT_TRUE(inertial.SetMassMatrix(m, 0));
+  // Set the mass to a negative value, and SetMassMatrix should complain.
+  m.SetMass(-1);
+  EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
+}
+
+/////////////////////////////////////////////////
 TEST(Inertiald_Test, Setters)
 {
   const double mass = 5.0;
@@ -107,8 +120,8 @@ TEST(Inertiald_Test, Setters)
   const math::Pose3d pose(1, 2, 3, IGN_PI/6, 0, 0);
   math::Inertiald inertial;
 
-  // Initially invalid
-  EXPECT_FALSE(inertial.SetPose(pose));
+  // Initially valid
+  EXPECT_TRUE(inertial.SetPose(pose));
 
   // Valid once valid mass matrix is set
   EXPECT_TRUE(inertial.SetMassMatrix(m));
@@ -177,7 +190,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
     // double check with a second MassMatrix3 instance
     // that has the same base frame MOI but no pose rotation
     math::MassMatrix3d m2;
-    EXPECT_FALSE(m2.SetMass(mass));
+    EXPECT_TRUE(m2.SetMass(mass));
     EXPECT_TRUE(m2.SetMoi(expectedMOI));
     EXPECT_EQ(inertial.Moi(), m2.Moi());
     // There are multiple correct rotations due to symmetry
@@ -472,7 +485,8 @@ TEST(Inertiald_Test, AdditionInvalid)
   // inertias all zero
   const math::MassMatrix3d m0(0.0, math::Vector3d::Zero, math::Vector3d::Zero);
   EXPECT_FALSE(m0.IsPositive());
-  EXPECT_FALSE(m0.IsValid());
+  EXPECT_TRUE(m0.IsNearPositive());
+  EXPECT_TRUE(m0.IsValid());
 
   // both inertials with zero mass
   {
