@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include <ignition/math/Pose3.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
@@ -31,6 +32,9 @@ ServerPrivate::ServerPrivate()
 {
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+
+  // Create a real time system
+  this->systems.push_back(std::make_unique<WorldStatisticsSystem>());
 }
 
 /////////////////////////////////////////////////
@@ -46,7 +50,10 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  /// \todo(nkoenig) Update systems
+  for (std::unique_ptr<System> &system : this->systems)
+  {
+    system->Update();
+  }
 }
 
 /////////////////////////////////////////////////

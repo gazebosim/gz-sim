@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
 
@@ -29,6 +30,10 @@ namespace ignition
     // Forware declarations
     class ServerPrivate;
 
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
+    /// \class Server Server.hh ignition/gazebo/Server.hh
     /// \brief The server instantiates and controls simulation.
     ///
     /// ## Example Usage
@@ -108,6 +113,7 @@ namespace ignition
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
+    }
   }
 }
 

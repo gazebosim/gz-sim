@@ -17,10 +17,16 @@
 #ifndef IGNITION_GAZEBO_ENTITY_HH_
 #define IGNITION_GAZEBO_ENTITY_HH_
 
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
 namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
     /// \brief An Entity is an id.
     using EntityId = int;
 
@@ -30,6 +36,7 @@ namespace ignition
     // Forward Declaration
     class EntityPrivate;
 
+    // \class Entity Entity.hh ignition/gazebo/Entity.hh
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
@@ -43,7 +50,7 @@ namespace ignition
     ///
     /// An Entity that needs to be identified and used by Systems should be
     /// created through the Server.
-    class Entity
+    class IGNITION_GAZEBO_VISIBLE Entity
     {
       /// \brief Default constructor
       public: Entity() = default;
@@ -68,6 +75,7 @@ namespace ignition
       /// \brief Id of the entity
       private: EntityId id = kNullEntity;
     };
+    }
   }
 }
 #endif

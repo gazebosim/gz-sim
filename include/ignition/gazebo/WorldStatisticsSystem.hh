@@ -14,39 +14,43 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_HH_
-#define IGNITION_GAZEBO_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
+#define IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
 
+#include <memory>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Forward declarations.
+    class WorldStatisticsSystemPrivate;
+
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
-    /// \class System System.hh ignition/gazebo/System.hh
+    /** \class WorldStatisticsSystem WorldStatisticsSystem.hh
+     * ignition/gazebo/WorldStatisticsSystem.hh
+    **/
     /// \brief Base class for a System.
-    ///
-    /// A System operates on Entities that have certain Components. A System
-    /// will only operate on an Entity if it has all of the required
-    /// Components.
-    class IGNITION_GAZEBO_VISIBLE System
+    class WorldStatisticsSystem : public System
     {
       /// \brief Constructor
-      public: System() = default;
+      public: WorldStatisticsSystem();
 
       /// \brief Destructor
-      public: virtual ~System() = default;
+      public: virtual ~WorldStatisticsSystem();
 
-      /// \brief Update function. The Server will periodically call this
-      /// function. A System subclass should override this
-      /// function to receive these periodic updates.
+      /// \brief Publish time.
       public: virtual void Update();
+
+      /// \brief Private data pointer.
+      private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
     };
-    }
+    //}
   }
 }
 #endif
