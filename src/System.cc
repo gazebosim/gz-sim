@@ -17,3 +17,8 @@
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
+
+//////////////////////////////////////////////////
+void System::Update()
+{
+}
