@@ -111,3 +111,9 @@ size_t Server::SystemCount() const
 {
   return this->dataPtr->systems.size();
 }
+
+/////////////////////////////////////////////////
+ComponentManager &Server::ComponentMgr() const
+{
+  return *(this->dataPtr->componentMgr.get());
+}

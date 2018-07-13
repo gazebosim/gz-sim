@@ -17,13 +17,19 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include <memory>
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/SystemConfig.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Forward declarations.
+    class SystemPrivate;
+
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
@@ -36,15 +42,23 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
-      public: System() = default;
+      public: System(const std::string &_name,
+                     const SystemConfig &_config);
 
       /// \brief Destructor
-      public: virtual ~System() = default;
+      public: virtual ~System();
 
-      /// \brief Update function. The Server will periodically call this
-      /// function. A System subclass should override this
-      /// function to receive these periodic updates.
-      public: virtual void Update();
+      public: virtual void Init();
+
+      /// \brief Get the name of the system.
+      public: const std::string &Name() const;
+
+      /// \brief Set the name of the System
+      public: void SetName(const std::string &_name) const;
+
+      protected: std::unique_ptr<SystemConfig> config;
+
+      private: std::unique_ptr<SystemPrivate> dataPtr;
     };
     }
   }

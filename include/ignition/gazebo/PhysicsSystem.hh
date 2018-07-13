@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
-#define IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
+#define IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -27,27 +27,24 @@ namespace ignition
   namespace gazebo
   {
     // Forward declarations.
-    class WorldStatisticsSystemPrivate;
+    class PhysicsSystemPrivate;
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
-    /** \class WorldStatisticsSystem WorldStatisticsSystem.hh \
-     * ignition/gazebo/WorldStatisticsSystem.hh
-    **/
+    /// \class PhysicsSystem PhysicsSystem.hh ignition/gazebo/PhysicsSystem.hh
     /// \brief Base class for a System.
-    class IGNITION_GAZEBO_VISIBLE WorldStatisticsSystem : public System
+    class IGNITION_GAZEBO_VISIBLE PhysicsSystem : public System
     {
       /// \brief Constructor
-      public: explicit WorldStatisticsSystem(const SystemConfig &_config);
+      public: explicit PhysicsSystem(const SystemConfig &_config);
 
       /// \brief Destructor
-      public: virtual ~WorldStatisticsSystem();
+      public: virtual ~PhysicsSystem();
 
       public: void Init() override final;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
+      private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
     };
     }
   }

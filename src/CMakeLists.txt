@@ -6,11 +6,17 @@ set(gui_sources
 )
 
 set (sources
+  ComponentManager.cc
+  ComponentType.cc
   Entity.cc
+  EntityQuery.cc
+  PhysicsSystem.cc
+  PoseComponentType.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
   System.cc
+  SystemConfig.cc
   WorldStatisticsSystem.cc
 )
 

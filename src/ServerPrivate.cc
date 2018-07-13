@@ -19,22 +19,34 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include <ignition/math/Pose3.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
+#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/PoseComponentType.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
+  : componentMgr(new ComponentManager())
 {
+  // \todo(nkoenig) Move this to a plugin
+  PoseComponentType(*(this->componentMgr.get()));
+
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
-  // Create a real time system
-  this->systems.push_back(std::make_unique<WorldStatisticsSystem>());
+  SystemConfig sysConfig(this->componentMgr);
+
+  // Create a world statistics system
+  this->systems.push_back(std::make_unique<WorldStatisticsSystem>(sysConfig));
+
+  // Create a physics system
+  this->systems.push_back(std::make_unique<PhysicsSystem>(sysConfig));
 }
 
 /////////////////////////////////////////////////
@@ -50,10 +62,10 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  for (std::unique_ptr<System> &system : this->systems)
+  /*for (std::unique_ptr<System> &system : this->systems)
   {
     system->Update();
-  }
+  }*/
 }
 
 /////////////////////////////////////////////////
@@ -65,6 +77,9 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   if (_cond)
     _cond.value()->notify_all();
   this->runMutex.unlock();
+
+  for (std::unique_ptr<System> &system : this->systems)
+    system->Init();
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
@@ -106,7 +121,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     const sdf::Model *model = _root.ModelByIndex(i);
 
     // Create the pose component for the model.
-    ComponentKey compKey = this->componentMgr.CreateComponent(model->Pose());
+    ComponentKey compKey = this->componentMgr->CreateComponent(model->Pose());
     this->entityComponents[entityId].push_back(compKey);
 
     /// \todo(nkoenig) Notify systems that entities have been created.

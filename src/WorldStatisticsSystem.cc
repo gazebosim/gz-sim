@@ -34,16 +34,16 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::WorldStatisticsSystem()
-  : dataPtr(new WorldStatisticsSystemPrivate)
+WorldStatisticsSystem::WorldStatisticsSystem(const SystemConfig &_config)
+  : System("WorldStatistics", _config),
+    dataPtr(new WorldStatisticsSystemPrivate)
 {
-  /*this->dataPtr->publisher =
-    this->dataPtr->node.Advertise<ignition::msgs:WorldStats>(
+  this->dataPtr->publisher =
+    this->dataPtr->node.Advertise<ignition::msgs::WorldStatistics>(
         "/ign/gazebo/stats");
-
+/*
    NEED TO GET the stopwatch PR into gz11 branch on ign-math
    CHECK condition wait, need to add lambda.
-  this->dataPtr->realTimeWatch.Start();
   */
 }
 
@@ -53,11 +53,18 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Update()
+void WorldStatisticsSystem::Init()
 {
-  /*ignition::msgs::WorldStats msg;
+}
+
+//////////////////////////////////////////////////
+/*void WorldStatisticsSystem::Update()
+{
+  if (!this->dataPtr->realTimeWatch.Running())
+    this->dataPtr->realTimeWatch.Start();
+  ignition::msgs::WorldStats msg;
   msg.mutable_real_time()->set_sec(0)
   msg.mutable_real_time()->set_nsec(0)
   this->dataPtr->node->Publish(msg);
-  */
 }
+  */

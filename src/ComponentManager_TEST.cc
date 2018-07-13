@@ -19,7 +19,8 @@
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
-#include "ComponentManager.hh"
+#include <ignition/common/Console.hh>
+#include "ignition/gazebo/ComponentManager.hh"
 
 using namespace ignition;
 
@@ -30,12 +31,15 @@ class ComponentManagerFixture : public ::testing::TestWithParam<int>
 /////////////////////////////////////////////////
 TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
 {
+  ignition::common::Console::SetVerbosity(4);
   gazebo::ComponentManager manager;
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
 
-  int count = 100000;
+  int count = 2;
+
+  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -86,6 +90,9 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   std::vector<gazebo::ComponentKey> intKeys;
 
   int count = 100000;
+
+  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
+  manager.Register<int>("int");
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -152,6 +159,7 @@ TEST_P(ComponentManagerFixture, InvalidComponentType)
 TEST_P(ComponentManagerFixture, RemoveAdjacent)
 {
   gazebo::ComponentManager manager;
+  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
@@ -204,6 +212,7 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
 TEST_P(ComponentManagerFixture, RemoveAddAdjacent)
 {
   gazebo::ComponentManager manager;
+  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
 
   std::vector<gazebo::ComponentKey> keys;
 
@@ -256,3 +265,4 @@ TEST_P(ComponentManagerFixture, RemoveAddAdjacent)
 // problems.
 INSTANTIATE_TEST_CASE_P(ComponentManagerRepeat, ComponentManagerFixture,
     ::testing::Range(1, 10));
+

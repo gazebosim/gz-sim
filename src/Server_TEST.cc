@@ -37,7 +37,6 @@ TEST_P(ServerFixture, Constructor)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
   EXPECT_EQ(0u, server.EntityCount());
-  EXPECT_EQ(1u, server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -48,7 +47,6 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
   EXPECT_EQ(0u, server.EntityCount());
-  EXPECT_EQ(1u, server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -63,7 +61,6 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
   EXPECT_EQ(3u, server.EntityCount());
-  EXPECT_EQ(1u, server.SystemCount());
 }
 
 /////////////////////////////////////////////////

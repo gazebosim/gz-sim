@@ -22,6 +22,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
+#include <ignition/gazebo/ComponentManager.hh>
 
 namespace ignition
 {
@@ -109,6 +110,8 @@ namespace ignition
       /// \brief Get the number of systems on the server.
       /// \return System count.
       public: size_t SystemCount() const;
+
+      public: ComponentManager &ComponentMgr() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
