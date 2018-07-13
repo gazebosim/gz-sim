@@ -14,40 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
-#define IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
+#define IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
 
-#include <memory>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/ComponentType.hh>
+#include <ignition/gazebo/ComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
-    // Forward declarations.
-    class WorldStatisticsSystemPrivate;
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
-    /** \class WorldStatisticsSystem WorldStatisticsSystem.hh \
-     * ignition/gazebo/WorldStatisticsSystem.hh
-    **/
-    /// \brief Base class for a System.
-    class IGNITION_GAZEBO_VISIBLE WorldStatisticsSystem : public System
+    class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
     {
-      /// \brief Constructor
-      public: explicit WorldStatisticsSystem(const SystemConfig &_config);
-
-      /// \brief Destructor
-      public: virtual ~WorldStatisticsSystem();
-
-      public: void Init() override final;
-
-      /// \brief Private data pointer.
-      private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
+      public: explicit PoseComponentType(ComponentManager &_compMgr);
+      public: virtual ~PoseComponentType();
     };
     }
   }

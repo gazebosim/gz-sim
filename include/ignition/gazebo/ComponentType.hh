@@ -14,40 +14,45 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
-#define IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_COMPONENT_TYPE_HH_
+#define IGNITION_GAZEBO_COMPONENT_TYPE_HH_
 
-#include <memory>
+#include <string>
+
 #include <ignition/gazebo/config.hh>
+#include <ignition/common/Console.hh>
+#include <ignition/gazebo/ComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
-    // Forward declarations.
-    class WorldStatisticsSystemPrivate;
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
-    /** \class WorldStatisticsSystem WorldStatisticsSystem.hh \
-     * ignition/gazebo/WorldStatisticsSystem.hh
-    **/
-    /// \brief Base class for a System.
-    class IGNITION_GAZEBO_VISIBLE WorldStatisticsSystem : public System
+    class IGNITION_GAZEBO_VISIBLE ComponentType
     {
-      /// \brief Constructor
-      public: explicit WorldStatisticsSystem(const SystemConfig &_config);
+      public: ComponentType();
 
-      /// \brief Destructor
-      public: virtual ~WorldStatisticsSystem();
+      public: virtual ~ComponentType();
 
-      public: void Init() override final;
+      public: template<typename Type>
+              bool Init(const std::string &_name, ComponentManager &_compMgr)
+      {
+        this->typeId = _compMgr.Register<Type>(_name);
+        this->name = _name;
+        return this->Valid();
+      }
 
-      /// \brief Private data pointer.
-      private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
+      public: const std::string &Name() const;
+      public: const ComponentTypeId &TypeId() const;
+
+      public: bool Valid() const;
+
+      private: ComponentTypeId typeId;
+      private: std::string name;
     };
     }
   }

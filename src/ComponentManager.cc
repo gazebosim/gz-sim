@@ -14,19 +14,7 @@
  * limitations under the License.
  *
 */
-
-#include <gtest/gtest.h>
-
-#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/ComponentManager.hh"
 
 using namespace ignition;
-
-/////////////////////////////////////////////////
-TEST(System, Constructor)
-{
-  std::shared_ptr<gazebo::ComponentManager> compMgr(
-      new gazebo::ComponentManager());
-  /// \todo(nkoenig) Add more tests here.
-  gazebo::SystemConfig config(compMgr);
-  gazebo::System system("test", config);
-}
+using namespace gazebo;

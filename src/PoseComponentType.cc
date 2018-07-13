@@ -14,19 +14,21 @@
  * limitations under the License.
  *
 */
-
-#include <gtest/gtest.h>
-
-#include "ignition/gazebo/System.hh"
+#include <ignition/math/Pose3.hh>
+#include "ignition/gazebo/PoseComponentType.hh"
+#include "ignition/gazebo/ComponentType.hh"
 
 using namespace ignition;
+using namespace gazebo;
 
-/////////////////////////////////////////////////
-TEST(System, Constructor)
+//////////////////////////////////////////////////
+PoseComponentType::PoseComponentType(ComponentManager &_compMgr)
+  : ComponentType()
 {
-  std::shared_ptr<gazebo::ComponentManager> compMgr(
-      new gazebo::ComponentManager());
-  /// \todo(nkoenig) Add more tests here.
-  gazebo::SystemConfig config(compMgr);
-  gazebo::System system("test", config);
+  this->Init<ignition::math::Pose3d>("ignition::math::Pose3d", _compMgr);
+}
+
+//////////////////////////////////////////////////
+PoseComponentType::~PoseComponentType()
+{
 }

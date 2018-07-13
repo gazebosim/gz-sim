@@ -14,50 +14,36 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/ComponentType.hh"
 
-using namespace ignition::gazebo;
-
-class ignition::gazebo::SystemPrivate
-{
-  public: explicit SystemPrivate(const std::string &_name)
-          : name(_name)
-  {
-  }
-
-  /// \brief Name of the system.
-  public: std::string name{""};
-};
+using namespace ignition;
+using namespace gazebo;
 
 //////////////////////////////////////////////////
-System::System(const std::string &_name, const SystemConfig &_config)
-  : config(new SystemConfig(_config)), dataPtr(new SystemPrivate(_name))
+ComponentType::ComponentType()
 {
 }
 
 //////////////////////////////////////////////////
-System::~System()
+ComponentType::~ComponentType()
 {
-}
-//////////////////////////////////////////////////
-void System::Init()
-{
+  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const std::string &System::Name() const
+const std::string &ComponentType::Name() const
 {
-  return this->dataPtr->name;
+  return this->name;
 }
 
-// NEED TO GET ENTITIES BASED ON COMPONENTS.
-
-// NEED TO STRUCTURE SYSTEM UPDATES - priorties, dependency chain...
-
-// TWO-PHASE UPDATE
+//////////////////////////////////////////////////
+bool ComponentType::Valid() const
+{
+  return this->typeId != kComponentTypeIdInvalid;
+}
 
 //////////////////////////////////////////////////
-void System::SetName(const std::string &_name) const
+const ComponentTypeId &ComponentType::TypeId() const
 {
-  this->dataPtr->name = _name;
+  return this->typeId;
 }

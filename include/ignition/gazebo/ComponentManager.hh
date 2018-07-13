@@ -20,38 +20,28 @@
 #include <any>
 #include <map>
 #include <memory>
+#include <string>
 #include <typeinfo>
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Types.hh"
 
 namespace ignition
 {
   namespace gazebo
   {
-    /// \brief A unique identifier for a component instance. The uniqueness
-    /// of a ComponentId is scoped to the component's type.
-    /// See also ComponentKey.
-    using ComponentId = int;
-
-    /// \brief A unique identifier for a component type. A component type
-    /// can be plain data type or something more complex like
-    /// ignition::math::Pose3d.
-    using ComponentTypeId = std::size_t;
-
-    /// \brief A key that uniquely identifies, at the global scope, a component
-    /// instance
-    using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
-
-    /// \brief Id that indicates an invalid component.
-    const ComponentId kComponentIdInvalid = -1;
-
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
     /// of a particular type.
     class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
     {
+      public: ComponentStorageBase(const std::string &_name)
+              : name(_name)
+      {
+      }
+
       /// \brief Create a new component using the provided data.
       /// \param[in] _data Data used to construct the component.
       /// \return Id of the new component. kComponentIdInvalid is returned
@@ -69,14 +59,27 @@ namespace ignition
       /// could not be found.
       public: virtual const void *Component(const ComponentId _id) const = 0;
 
+      public: const std::string &Name() const
+      {
+        return this->name;
+      }
+
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
+
+      /// \brief Name of the component.
+      private: std::string name;
     };
 
     /// \brief Templated implementation of component storage.
     template<typename ComponentType>
     class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
+      public: explicit ComponentStorage(const std::string &_name)
+              : ComponentStorageBase(_name)
+      {
+      }
+
       // Documentation inherited.
       public: bool Remove(const ComponentId _id) override final
       {
@@ -159,8 +162,41 @@ namespace ignition
     };
 
     /// \brief The ComponentManager constructs, deletes, and returns components.
-    class IGNITION_GAZEBO_HIDDEN ComponentManager
+    class IGNITION_GAZEBO_VISIBLE ComponentManager
     {
+      /// \brief Create a component of a particular type.
+      /// \param[in] _component Data used to construct the component.
+      /// \return Key that uniquely identifies the component.
+      public: template<typename ComponentType>
+              ComponentTypeId Register(const std::string &_typeName)
+      {
+        // Get a unique identifier to the component type
+        const ComponentTypeId typeId = typeid(ComponentType).hash_code();
+
+        // Create the component storage if one does not exist for
+        // the component type.
+        if (this->components.find(typeId) == this->components.end())
+        {
+          // Make sure that two types do not share the same name.
+          if (this->componentNameMap.find(_typeName) ==
+              this->componentNameMap.end())
+          {
+            igndbg << "Registering " << _typeName << " component type.\n";
+            this->components[typeId].reset(
+                new ComponentStorage<ComponentType>(_typeName));
+            this->componentNameMap[_typeName] = typeId;
+          }
+          else
+          {
+            igndbg << "A component with the name [" << _typeName
+                   << "] is already registered with a different type.\n";
+            return kComponentTypeIdInvalid;
+          }
+        }
+
+        return typeId;
+      }
+
       /// \brief Create a component of a particular type.
       /// \param[in] _component Data used to construct the component.
       /// \return Key that uniquely identifies the component.
@@ -170,13 +206,13 @@ namespace ignition
                 // Get a unique identifier to the component type
                 const ComponentTypeId typeId =
                   typeid(ComponentType).hash_code();
+                std::cout << "Create type[" << typeId << "]\n";
 
-                // Create the component storage if one does not exist for
-                // the component type.
+                // Make sure the component has been registered.
                 if (this->components.find(typeId) == this->components.end())
                 {
-                  this->components[typeId].reset(
-                      new ComponentStorage<ComponentType>());
+                  igndbg << "Unable to create unregistered component.\n";
+                  return {kComponentTypeIdInvalid, kComponentIdInvalid};
                 }
 
                 // Instantiate the new component.
@@ -213,10 +249,24 @@ namespace ignition
                 return false;
               }
 
+      public: ComponentTypeId Type(const std::string &_name)
+      {
+        std::map<std::string, ComponentTypeId>::const_iterator iter =
+          this->componentNameMap.find(_name);
+
+        if (iter != this->componentNameMap.end())
+        {
+          return iter->second;
+        }
+        return kComponentTypeIdInvalid;
+      }
+
       /// \brief Map of component storage classes. The key is a component
       /// type id, and the value is a pointer to the component storage.
       private: std::map<ComponentTypeId,
                std::unique_ptr<ComponentStorageBase>> components;
+
+      private: std::map<std::string, ComponentTypeId> componentNameMap;
     };
   }
 }

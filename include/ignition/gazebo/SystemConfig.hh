@@ -14,40 +14,43 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
-#define IGNITION_GAZEBO_WORLD_STATISTICS_SYSTEM_HH_
+
+#ifndef IGNITION_GAZEBO_SYSTEM_CONFIG_HH_
+#define IGNITION_GAZEBO_SYSTEM_CONFIG_HH_
 
 #include <memory>
+#include <ignition/gazebo/ComponentManager.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
-    // Forward declarations.
-    class WorldStatisticsSystemPrivate;
+    /// \brief Forward declaration
+    class SystemConfigPrivate;
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
-    /** \class WorldStatisticsSystem WorldStatisticsSystem.hh \
-     * ignition/gazebo/WorldStatisticsSystem.hh
-    **/
-    /// \brief Base class for a System.
-    class IGNITION_GAZEBO_VISIBLE WorldStatisticsSystem : public System
+    /// \class SystemConfig SystemConfig.hh ignition/gazebo/SystemConfig.hh
+    /// \brief ...
+    class IGNITION_GAZEBO_VISIBLE SystemConfig
     {
       /// \brief Constructor
-      public: explicit WorldStatisticsSystem(const SystemConfig &_config);
+      public: explicit SystemConfig(std::shared_ptr<ComponentManager> _compMgr);
+
+      public: SystemConfig(const SystemConfig &_config);
 
       /// \brief Destructor
-      public: virtual ~WorldStatisticsSystem();
+      public: ~SystemConfig();
 
-      public: void Init() override final;
+      public: ComponentManager &ComponentMgr() const;
 
-      /// \brief Private data pointer.
-      private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
+      public: SystemConfig &operator=(const SystemConfig &_config);
+
+      /// \brief Private data pointer
+      private: std::unique_ptr<SystemConfigPrivate> dataPtr;
     };
     }
   }

@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -32,7 +33,7 @@
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/System.hh"
-#include "ComponentManager.hh"
+#include "ignition/gazebo/ComponentManager.hh"
 
 namespace ignition
 {
@@ -80,6 +81,8 @@ namespace ignition
       /// \brief All of the systems.
       public: std::vector<std::unique_ptr<System>> systems;
 
+      public: std::map<std::string, size_t> systemsNameMap;
+
       /// \brief Communication node.
       public: ignition::transport::Node node;
 
@@ -97,7 +100,7 @@ namespace ignition
       public: ignition::common::SignalHandler sigHandler;
 
       /// \brief Manager of all components.
-      public: ComponentManager componentMgr;
+      public: std::shared_ptr<ComponentManager> componentMgr;
     };
   }
 }
