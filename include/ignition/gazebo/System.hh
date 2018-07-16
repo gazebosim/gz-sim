@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/SystemConfig.hh>
 
@@ -48,7 +49,7 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~System();
 
-      public: virtual void Init();
+      public: virtual void Init(EntityQueryRegistrar &_registrar);
 
       /// \brief Get the name of the system.
       public: const std::string &Name() const;

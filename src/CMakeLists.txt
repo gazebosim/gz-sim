@@ -10,6 +10,7 @@ set (sources
   ComponentType.cc
   Entity.cc
   EntityQuery.cc
+  EntityQueryRegistrar.cc
   PhysicsSystem.cc
   PoseComponentType.cc
   Server.cc

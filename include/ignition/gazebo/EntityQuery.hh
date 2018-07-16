@@ -39,10 +39,18 @@ namespace ignition
     /// \brief a Class for querying entities from a manager
     class IGNITION_GAZEBO_VISIBLE EntityQuery
     {
-      /// \brief Constructor
+      /// \brief Constructor.
       public: EntityQuery();
 
-      /// \brief Destructor
+      /// \brief Copy constructor.
+      /// \param[in] _query Query to copy.
+      public: EntityQuery(const EntityQuery &_query);
+
+      /// \brief Move constructor.
+      /// \param[in] _query Query to move.
+      public: EntityQuery(EntityQuery &&_query);
+
+      /// \brief Destructor.
       public: ~EntityQuery();
 
       /// \brief Return true if this is an empty query.
@@ -63,6 +71,11 @@ namespace ignition
       /// \param[in] _query The query to compare
       /// \return True if this query matches _query.
       public: bool operator==(const EntityQuery &_query) const;
+
+      /// \brief Assignment operator.
+      /// \param[in] _query Query to copy.
+      /// \return Reference to this object.
+      public: EntityQuery &operator=(const EntityQuery &_query);
 
       /// \brief Private data pointer
       private: std::unique_ptr<EntityQueryPrivate> dataPtr;

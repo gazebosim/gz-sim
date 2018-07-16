@@ -37,9 +37,17 @@ PhysicsSystem::~PhysicsSystem()
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::Init()
+void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 {
   /// \todo(nkoenig) support curly-bracket initialization.
   EntityQuery query;
   query.AddComponentType(PoseComponentType(this->config->ComponentMgr()));
+  _registrar.Register(query,
+      std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1));
+}
+
+//////////////////////////////////////////////////
+void PhysicsSystem::OnUpdate(const EntityQueryResult &/*_result*/)
+{
+  std::cout << "Physics System on update\n";
 }

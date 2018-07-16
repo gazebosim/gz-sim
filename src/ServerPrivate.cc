@@ -78,8 +78,18 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     _cond.value()->notify_all();
   this->runMutex.unlock();
 
+  // Initialize all the systems.
   for (std::unique_ptr<System> &system : this->systems)
-    system->Init();
+  {
+    EntityQueryRegistrar registrar;
+    system->Init(registrar);
+    for (EntityQueryRegistration &registration : registrar.Registrations())
+    {
+      EntityQuery &query = registration.first;
+      EntityQueryCallback &cb = registration.second;
+      HERE. Look at the database
+    }
+  }
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
