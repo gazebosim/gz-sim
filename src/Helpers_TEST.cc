@@ -384,7 +384,7 @@ TEST(HelpersTest, Pair)
 
     auto key = math::Pair(static_cast<math::PairInput>(a),
                           static_cast<math::PairInput>(b));
-    EXPECT_EQ(key, 410);
+    EXPECT_EQ(key, 410u);
     EXPECT_TRUE(key != maxKey);
     EXPECT_TRUE(key != minKey);
 
