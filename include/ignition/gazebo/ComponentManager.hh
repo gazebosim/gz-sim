@@ -32,11 +32,14 @@ namespace ignition
 {
   namespace gazebo
   {
+    /// \cond
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
     /// of a particular type.
     class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
     {
+      /// \brief Constructor
+      /// \param[in] _name Name associated with the component storage type.
       public: ComponentStorageBase(const std::string &_name)
               : name(_name)
       {
@@ -59,6 +62,8 @@ namespace ignition
       /// could not be found.
       public: virtual const void *Component(const ComponentId _id) const = 0;
 
+      /// \brief Get the name associated with the component storage type.
+      /// \return Name associated with the component storage type.
       public: const std::string &Name() const
       {
         return this->name;
@@ -75,6 +80,8 @@ namespace ignition
     template<typename ComponentType>
     class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
+      /// \brief Constructor
+      /// \param[in] _name Name associated with the component storage type.
       public: explicit ComponentStorage(const std::string &_name)
               : ComponentStorageBase(_name)
       {
@@ -160,6 +167,7 @@ namespace ignition
       /// \brief Sequential storage of components.
       public: std::vector<ComponentType> components;
     };
+    /// \endcond
 
     /// \brief The ComponentManager constructs, deletes, and returns components.
     class IGNITION_GAZEBO_VISIBLE ComponentManager
@@ -249,6 +257,10 @@ namespace ignition
                 return false;
               }
 
+      /// \brief Get the ComponentTypeId associated with a string name.
+      /// \param[in] _name Name of the component type.
+      /// \return The ComponentTypeId if _name is Registered,
+      /// kComponentTypeIdInvalid otherwise.
       public: ComponentTypeId Type(const std::string &_name)
       {
         std::map<std::string, ComponentTypeId>::const_iterator iter =
@@ -266,6 +278,7 @@ namespace ignition
       private: std::map<ComponentTypeId,
                std::unique_ptr<ComponentStorageBase>> components;
 
+      /// \brief Map of component names to component type ids.
       private: std::map<std::string, ComponentTypeId> componentNameMap;
     };
   }

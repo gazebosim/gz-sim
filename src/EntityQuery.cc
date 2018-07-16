@@ -26,6 +26,15 @@ using namespace gazebo;
 // Private data class
 class ignition::gazebo::EntityQueryPrivate
 {
+  // \brief Default constructor
+  public: EntityQueryPrivate() = default;
+
+  /// \brief Copy constructor
+  public: EntityQueryPrivate(const EntityQueryPrivate &_clone)
+          : componentTypes(_clone.componentTypes)
+  {
+  }
+
   /// \brief list of component types that must be present on entities
   public: std::set<ComponentTypeId> componentTypes;
 };
@@ -33,6 +42,18 @@ class ignition::gazebo::EntityQueryPrivate
 /////////////////////////////////////////////////
 EntityQuery::EntityQuery()
 : dataPtr(new EntityQueryPrivate())
+{
+}
+
+/////////////////////////////////////////////////
+EntityQuery::EntityQuery(const EntityQuery &_query)
+: dataPtr(new EntityQueryPrivate(*(_query.dataPtr.get())))
+{
+}
+
+/////////////////////////////////////////////////
+EntityQuery::EntityQuery(EntityQuery &&_query)
+: dataPtr(std::move(_query.dataPtr))
 {
 }
 
@@ -65,6 +86,13 @@ bool EntityQuery::operator==(const EntityQuery &_query) const
   return std::equal(this->dataPtr->componentTypes.begin(),
                     this->dataPtr->componentTypes.end(),
                     _query.dataPtr->componentTypes.begin());
+}
+
+/////////////////////////////////////////////////
+EntityQuery &EntityQuery::operator=(const EntityQuery &_query)
+{
+  this->dataPtr.reset(new EntityQueryPrivate(*(_query.dataPtr.get())));
+  return *this;
 }
 
 /////////////////////////////////////////////////

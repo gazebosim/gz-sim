@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -44,7 +45,7 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~WorldStatisticsSystem();
 
-      public: void Init() override final;
+      public: void Init(EntityQueryRegistrar &_registrar) override final;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;

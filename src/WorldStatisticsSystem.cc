@@ -53,7 +53,7 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Init()
+void WorldStatisticsSystem::Init(EntityQueryRegistrar &/*_registrar*/)
 {
 }
 

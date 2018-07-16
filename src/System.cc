@@ -40,7 +40,7 @@ System::~System()
 {
 }
 //////////////////////////////////////////////////
-void System::Init()
+void System::Init(EntityQueryRegistrar &/*_registrar*/)
 {
 }
 

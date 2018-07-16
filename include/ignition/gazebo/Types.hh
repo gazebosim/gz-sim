@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_TYPES_HH_
 
 #include <utility>
+#include <functional>
 
 namespace ignition
 {
@@ -26,6 +27,9 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
+    class EntityQueryResult;
+    class EntityQuery;
+
     /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
     /// See also ComponentKey.
@@ -40,11 +44,19 @@ namespace ignition
     /// instance
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
+    /// \brief typedef for query callbacks
+    using EntityQueryCallback =
+      std::function<void (const EntityQueryResult &_r)>;
+
+    /// \brief typedef for long registration type
+    using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;
+
     /// \brief Id that indicates an invalid component.
     static const ComponentId kComponentIdInvalid = -1;
 
     /// \brief Id that indicates an invalid component type.
     static const ComponentId kComponentTypeIdInvalid = -1;
+
     }
   }
 }
