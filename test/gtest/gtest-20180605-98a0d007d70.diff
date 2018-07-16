@@ -1,0 +1,28 @@
+diff -r 142c19af194c test/gtest/include/gtest/internal/gtest-port.h
+--- a/test/gtest/include/gtest/internal/gtest-port.h	Thu Jun 07 13:05:44 2018 -0700
++++ b/test/gtest/include/gtest/internal/gtest-port.h	Thu Jun 07 14:17:57 2018 -0700
+@@ -43,6 +43,10 @@
+ #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
+ #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
+ 
++#ifndef _WIN32
++#pragma GCC system_header
++#endif
++
+ // Environment-describing macros
+ // -----------------------------
+ //
+diff -r 142c19af194c test/gtest/src/gtest.cc
+--- a/test/gtest/src/gtest.cc	Thu Jun 07 13:05:44 2018 -0700
++++ b/test/gtest/src/gtest.cc	Thu Jun 07 14:17:57 2018 -0700
+@@ -35,6 +35,10 @@
+ #include "gtest/internal/custom/gtest.h"
+ #include "gtest/gtest-spi.h"
+ 
++#ifndef _WIN32
++#pragma GCC system_header
++#endif
++
+ #include <ctype.h>
+ #include <math.h>
+ #include <stdarg.h>
