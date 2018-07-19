@@ -2,11 +2,6 @@
 
 @IGN_PROJECT_ABOUT@
 
-**Useful links**
-
-* [Tutorials](https://ignitionrobotics.org/tutorials/@IGN_DESIGNATION@/@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@/index.html)
-* [Code Repository](https://bitbucket.org/ignitionrobotics/ign-@IGN_DESIGNATION@)
-
 ## License
 
 The code associated with this documentation is licensed under an [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
