@@ -361,6 +361,30 @@ TYPED_TEST(GraphTestFixture, AddVertex)
 }
 
 /////////////////////////////////////////////////
+TYPED_TEST(GraphTestFixture, EdgeFromVertices)
+{
+  TypeParam graph(
+      {
+      {{"0", 0}, {"1", 1}, {"2", 2}},
+      {{{0, 1}, 2.0}, {{1, 2}, 3}}
+      });
+
+  const auto &edge = graph.EdgeFromVertices(0, 1);
+  EXPECT_NE(kNullId, edge.Id());
+  EXPECT_DOUBLE_EQ(2.0, edge.Data());
+
+  {
+    const auto &noEdge = graph.EdgeFromVertices(0, 2);
+    EXPECT_EQ(kNullId, noEdge.Id());
+  }
+
+  {
+    const auto &noEdge = graph.EdgeFromVertices(4, 5);
+    EXPECT_EQ(kNullId, noEdge.Id());
+  }
+}
+
+/////////////////////////////////////////////////
 TYPED_TEST(GraphTestFixture, EdgeFromId)
 {
   // Mutable version of EdgeFromId().

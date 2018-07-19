@@ -1,6 +1,54 @@
+## Ignition Math 5.x
+
+### Ignition Math 5.x.x
+
+1. Added a Stopwatch class
+    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/279)
+
+1. Added material properties to OrientedBox
+    * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/269)
+
+1. Added a Cylinder class.
+    * [Pull request 250](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/250)
+
+1. The `Box` class has been changed to a templatized class that is not
+   axis-aligned. The previous `Box` functionality is now in the
+   `AxisAlignedBox` class.
+    * [Pull request 257](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/257)
+
+1. Added a `MassMatrix3::SetFromCylinder` function that uses a `Material`
+to specify a density.
+    * [Pull request 248](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/248)
+
+1. Added a Sphere class.
+    * [Pull request 255](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/255)
+
+1. Added a `MassMatrix3::SetFromSphere` function that uses a `Material` to
+specify a density.
+    * [Pull request 247](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/247)
+
+1. Added a `MassMatrix3::SetFromBox` function that uses a `Material` to specify
+   a density.
+    * [Pull request 246](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/246)
+
+1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
+    * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
+
+1. Updated the MassMatrix3::ValidMoments(), MassMatrix3::IsValid(), MassMatrix3::IsPositive(),
+ and Inertial::SetMassMatrix functions to accept a tolerance parameter.
+    * [Pull request 264](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/264)
+
+1. Add MassMatrix3::IsNearPositive and use it in MassMatrix3::IsValid, use >= instead of >
+   in MassMatrix3::ValidMoments
+    * [Pull request 278](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/278)
+
 ## Ignition Math 4.x
 
 ### Ignition Math 4.x.x
+
+1. Add Graph::EdgeFromVertices function that return an edge, if one exists,
+   between two vertices.
+    * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
 1. Added multiply assign operator to Matrix4. 
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
@@ -12,6 +60,10 @@
 1. Added MovingWindowFilter, a copy from Ignition Common. This version will
    replace the version found in Ignition Common.
     * [Pull request 239](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/239)
+
+1. Added a Material class, which holds information about materials like wood,
+   steel, and iron.
+    * [Pull request 243](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/243)
 
 ### Ignition Math 4.0.0 (2017-12-26)
 

@@ -8,8 +8,6 @@ pipelines:
           - apt-get -y install cmake build-essential lcov curl mercurial cppcheck ruby-dev swig
           - gcc -v
           - g++ -v
-          # Static checking before building - fail fast
-          - sh tools/code_check.sh
           # Ignition cmake
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable xenial main" > /etc/apt/sources.list.d/gazebo-stable.list
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease xenial main" > /etc/apt/sources.list.d/gazebo-prerelease.list
@@ -25,6 +23,7 @@ pipelines:
           - make test
           - make coverage
           - bash <(curl -s https://codecov.io/bash)
+          - make codecheck
           - make install
           # Examples
           - cd ..

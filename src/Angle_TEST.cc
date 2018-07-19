@@ -79,26 +79,24 @@ TEST(AngleTest, Angle)
   EXPECT_TRUE(angle <= math::Angle(3));
 
   angle = 1.2;
-  // cppcheck-suppress knownConditionTrueFalse
+  EXPECT_EQ(angle, math::Angle(1.2));
+
+  angle = math::Angle(1.2);
   EXPECT_TRUE(angle <= 1.21);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_FALSE(angle <= 1.19);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(angle <= 1.2);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_FALSE(angle <= -1.19);
 
   EXPECT_TRUE(math::Angle(1.2) <= math::Angle(1.2000000001));
   EXPECT_TRUE(math::Angle(1.2000000001) <= math::Angle(1.2));
 
   angle = 1.2;
-  // cppcheck-suppress knownConditionTrueFalse
+  EXPECT_EQ(angle, math::Angle(1.2));
+
+  angle = math::Angle(1.2);
   EXPECT_FALSE(angle >= 1.21);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(angle >= 1.19);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(angle >= 1.2);
-  // cppcheck-suppress knownConditionTrueFalse
   EXPECT_TRUE(angle >= -1.19);
 
   EXPECT_TRUE(math::Angle(1.2) >= math::Angle(1.2000000001));
