@@ -22,6 +22,7 @@
 #include <set>
 #include <ignition/gazebo/ComponentType.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
@@ -66,6 +67,27 @@ namespace ignition
       /// \brief Get the components that have been added to the query.
       /// \return A const reference to the set of components in this query.
       public: const std::set<ComponentTypeId> &ComponentTypes() const;
+
+      /// \brief Add an entity to the query result.
+      /// \param[in] _id Id of the entity to add.
+      /// \return True if the entity was added.
+      public: bool AddEntity(const EntityId _id);
+
+      /// \brief Remove an entity from the query result.
+      /// \param[in] _id Id of the entity
+      /// \return True if the entity was removed.
+      public: void RemoveEntity(const EntityId _id);
+
+      /// \brief Get the entity ids that match this query.
+      /// \todo ordered results matching component placement in memory
+      /// \return The entities that match the components in this query.
+      /// \sa AddEntity
+      /// \sa RemoveEntity
+      public: const std::set<EntityId> &EntityIds() const;
+
+      /// \brief Clear results of a query. This will keep the set of
+      /// components, and clear the set of entities.
+      private: void Clear();
 
       /// \brief Returns true if these are the same queries.
       /// \param[in] _query The query to compare
