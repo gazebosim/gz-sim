@@ -87,7 +87,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     {
       EntityQuery &query = registration.first;
       EntityQueryCallback &cb = registration.second;
-      HERE. Look at the database
+      // HERE. Look at the database
     }
   }
 

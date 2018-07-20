@@ -25,9 +25,24 @@ Entity::Entity(const EntityId _id)
 }
 
 /////////////////////////////////////////////////
+Entity::Entity(Entity &&_entity)
+  : id(_entity.id)
+{
+  _entity.id = kNullEntity;
+}
+
+/////////////////////////////////////////////////
 bool Entity::operator==(const Entity &_entity) const
 {
   return this->id == _entity.id;
+}
+
+/////////////////////////////////////////////////
+Entity &Entity::operator=(Entity &&_entity)
+{
+  this->id = _entity.id;
+  _entity.id = kNullEntity;
+  return *this;
 }
 
 /////////////////////////////////////////////////
@@ -35,3 +50,4 @@ EntityId Entity::Id() const
 {
   return this->id;
 }
+

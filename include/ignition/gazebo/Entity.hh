@@ -59,11 +59,20 @@ namespace ignition
       /// \param[in] _id Id of an entity to create.
       public: explicit Entity(const EntityId _id);
 
+      /// \brief Move constructor.
+      /// \param[in] _entity Entity ID to copy.
+      public: explicit Entity(Entity &&_entity);
+
       /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.
       /// \param[in] _entity Entity to compare.
       /// \returns true if the Entity Id's are the same.
       public: bool operator==(const Entity &_entity) const;
+
+      /// \brief Move assignment operator.
+      /// \param[in] _entity Entity to move.
+      /// \return Reference to this object.
+      public: Entity &operator=(Entity &&_entity);
 
       /// \brief Return id of entity.
       /// \return Id of this Entity.

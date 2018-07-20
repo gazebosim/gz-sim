@@ -37,6 +37,9 @@ class ignition::gazebo::EntityQueryPrivate
 
   /// \brief list of component types that must be present on entities
   public: std::set<ComponentTypeId> componentTypes;
+
+  /// \brief list of component types that must be present on entities
+  public: std::set<EntityId> entityIds;
 };
 
 /////////////////////////////////////////////////
@@ -85,7 +88,11 @@ bool EntityQuery::operator==(const EntityQuery &_query) const
 {
   return std::equal(this->dataPtr->componentTypes.begin(),
                     this->dataPtr->componentTypes.end(),
-                    _query.dataPtr->componentTypes.begin());
+                    _query.dataPtr->componentTypes.begin()) &&
+         std::equal(this->dataPtr->entityIds.begin(),
+                    this->dataPtr->entityIds.end(),
+                    _query.dataPtr->entityIds.begin());
+
 }
 
 /////////////////////////////////////////////////
@@ -105,4 +112,25 @@ const std::set<ComponentTypeId> &EntityQuery::ComponentTypes() const
 bool EntityQuery::Empty() const
 {
   return this->dataPtr->componentTypes.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityQuery::AddEntity(const EntityId _id)
+{
+  std::pair<std::set<EntityId>::iterator, bool> result =
+    this->dataPtr->entityIds.insert(_id);
+
+  return result.second;
+}
+
+/////////////////////////////////////////////////
+void EntityQuery::RemoveEntity(const EntityId _id)
+{
+  this->dataPtr->entityIds.erase(_id);
+}
+
+/////////////////////////////////////////////////
+void EntityQuery::Clear()
+{
+  this->dataPtr->entityIds.clear();
 }

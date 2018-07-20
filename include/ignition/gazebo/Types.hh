@@ -56,7 +56,6 @@ namespace ignition
 
     /// \brief Id that indicates an invalid component type.
     static const ComponentId kComponentTypeIdInvalid = -1;
-
     }
   }
 }

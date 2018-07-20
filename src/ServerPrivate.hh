@@ -74,10 +74,10 @@ namespace ignition
       public: std::thread runThread;
 
       /// \brief All of the entities.
-      public: std::vector<Entity> entities;
+      //public: std::vector<Entity> entities;
 
       /// \brief Map of entities to components.
-      public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
+      //public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
       /// \brief All of the systems.
       public: std::vector<std::unique_ptr<System>> systems;
