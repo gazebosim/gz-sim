@@ -64,22 +64,9 @@ ign_create_packages()
 #============================================================================
 # Configure documentation
 #============================================================================
-set (IGN_PROJECT_ABOUT
-  "Ignition Math is a component in Ignition Robotics, a set of libraries
-  designed to rapidly develop robot and simulation applications. 
-  This library defines a general set of math classes and functions with an
-  eye toward simulation and robotics.
-
-  ## Features
-
-  1. Templated data types including multi-dimensional vectors, and rotational and position data types.
-  2. Geometric shapes such as boxes, cylinders, spheres, and planes.
-  3. A generic graph class with supporting algorithms including breadth and depth first sorting, and Dijkstra.
-  4. Convenience classes such as Color, KMeans, PID, StopWatch, Spline, and Temperature.
-  5. Helper functions that can clamp values, check for equality between floating point values, and more.
-")
-
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
 
-ign_create_docs()
+ign_create_docs(
+  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md")
