@@ -10,10 +10,6 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 1. \subpage install "Installation"
 2. \subpage cppgetstarted "C++ Get Started"
 
-## What is Ignition @IGN_DESIGNATION_CAP@
-
-@IGN_PROJECT_ABOUT@
-
 ## License
 
 The code associated with this documentation is licensed under an [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
