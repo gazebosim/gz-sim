@@ -83,13 +83,14 @@ namespace ignition
       /// \return The entities that match the components in this query.
       /// \sa AddEntity
       /// \sa RemoveEntity
-      public: const std::set<EntityId> &EntityIds() const;
+      public: const std::set<EntityId> &Entities() const;
 
       /// \brief Clear results of a query. This will keep the set of
       /// components, and clear the set of entities.
       private: void Clear();
 
-      /// \brief Returns true if these are the same queries.
+      /// \brief Returns true if these are the same queries. This will
+      /// return true only if the ComponentTypes match.
       /// \param[in] _query The query to compare
       /// \return True if this query matches _query.
       public: bool operator==(const EntityQuery &_query) const;
@@ -98,6 +99,11 @@ namespace ignition
       /// \param[in] _query Query to copy.
       /// \return Reference to this object.
       public: EntityQuery &operator=(const EntityQuery &_query);
+
+      /// \brief Move assignment operator.
+      /// \param[in] _query Query to copy.
+      /// \return Reference to this object.
+      public: EntityQuery &operator=(EntityQuery &&_query);
 
       /// \brief Private data pointer
       private: std::unique_ptr<EntityQueryPrivate> dataPtr;

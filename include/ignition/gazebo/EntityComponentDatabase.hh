@@ -63,14 +63,6 @@ namespace ignition
       /// \return True if query was successfully removed
       public: bool RemoveQuery(const EntityQueryId _id);
 
-      /// \brief Creates a new Entity.
-      /// \return An id for the Entity, or kNullEntity on failure.
-      public: EntityId CreateEntity();
-
-      /// \brief Delete an existing Entity.
-      /// \returns True iff the Entity existed.
-      public: bool DeleteEntity(const EntityId _id);
-
       /// \brief Database clears changed components
       public: void Update();
 
@@ -78,25 +70,7 @@ namespace ignition
       /// \return Reference to the entity.
       // public: ::ignition::gazebo::Entity &Entity(EntityId _id) const;
 
-      /// \brief Add a new component to an Entity by actual type
-      /*public: template <typename T>
-              T *AddComponent(EntityId _id)
-              {
-                ComponentTypeId type = ComponentManager::Type<T>();
-                return static_cast<T*>(this->AddComponent(_id, type));
-              }
-
-      /// \brief remove a component from an entity by actual type
-      public: template <typename T>
-              bool RemoveComponent(EntityId _id)
-              {
-                ComponentType type = ComponentFactory::Type<T>();
-                return this->RemoveComponent(_id, type);
-              }
-
-      /// \brief remove a component from an entity
-      public: bool RemoveComponent(EntityId _id, ComponentType _type);
-
+     /*
       /// \brief Get a component that's on an entity for reading only
       public: template <typename T>
               T const *EntityComponent(EntityId _id) const

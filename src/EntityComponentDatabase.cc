@@ -26,10 +26,18 @@
 
 using namespace ignition::gazebo;
 
-typedef std::pair<EntityId, ComponentType> StorageKey;
+typedef std::pair<EntityId, ComponentType> EntityComponentKey;
 
 class ignition::gazebo::EntityComponentDatabasePrivate
 {
+  /// \brief update queries because this entity's components have changed
+  public: void UpdateQueries(EntityId _id);
+
+  /// \brief check if an entity has these components
+  /// \returns true iff entity has all components in the set
+  public: bool EntityMatches(EntityId _id,
+              const std::set<ComponentTypeId> &_types) const;
+
   /// \brief entities that are to be created next update
   // public: std::vector<EntityId> toCreateEntities;
 
@@ -37,46 +45,30 @@ class ignition::gazebo::EntityComponentDatabasePrivate
   // public: std::set<EntityId> toDeleteEntities;
 
   /// \brief components that are to be created next update
-  // public: std::map<StorageKey, char*> toAddComponents;
+  // public: std::map<EntityComponentKey, char*> toAddComponents;
 
   /// \brief components that are to be modified next update
-  // public: std::map<StorageKey, char*> toModifyComponents;
+  // public: std::map<EntityComponentKey, char*> toModifyComponents;
 
   /// \brief components that are to be deleted next update
-  // public: std::vector<StorageKey> toRemoveComponents;
+  // public: std::vector<EntityComponentKey> toRemoveComponents;
 
   /// \brief components that were deleted before this update
-  // public: std::vector<StorageKey> removedComponents;
+  // public: std::vector<EntityComponentKey> removedComponents;
 
-  /// \brief instances of entities
-  public: std::vector<Entity> entities;
-
-  /// \brief deleted entity ids that can be reused
-  public: std::set<EntityId> freeEntityIds;
 
   /// \brief deleted entity ids that can't yet be reused
   // public: std::set<EntityId> deletedIds;
 
+  public: std::map<EntitId, std::set<ComponentId
   // TODO better storage of components
   // Map EntityId/ComponentType pair to an index in this->components
-  // public: std::map<StorageKey, int> componentIndices;
+  // public: std::map<EntityComponentKey, int> componentIndices;
   // public: std::vector<char*> components;
   // Map EntityId/ComponentType pair to the state of a component
-  // public: std::map<StorageKey, Difference> differences;
+  // public: std::map<EntityComponentKey, Difference> differences;
 
-  /// \brief update queries because this entity's components have changed
-  public: void UpdateQueries(EntityId _id);
 
-  /// \brief return true iff the entity exists
-  public: bool EntityExists(EntityId _id) const;
-
-  /// \brief check if an entity has these components
-  /// \returns true iff entity has all components in the set
-  public: bool EntityMatches(EntityId _id,
-              const std::set<ComponentTypeId> &_types) const;
-
-  /// \brief Queries on this manager
-  public: std::vector<EntityQuery> queries;
 };
 
 /////////////////////////////////////////////////
@@ -88,36 +80,6 @@ EntityComponentDatabase::EntityComponentDatabase()
 /////////////////////////////////////////////////
 EntityComponentDatabase::~EntityComponentDatabase()
 {
-}
-
-/////////////////////////////////////////////////
-std::pair<EntityQueryId, bool> EntityComponentDatabase::AddQuery(
-    const EntityQuery &_query)
-{
-  for (size_t i = 0; i < this->dataPtr->queries.size(); ++i)
-  {
-    if (this->dataPtr->queries[i] == _query)
-    {
-      // Already have this query, bail
-      return {i, false};
-    }
-  }
-
-  const std::set<ComponentTypeId> &types = _query.ComponentTypes();
-  this->dataPtr->queries.push_back(_query);
-  EntityQueryId result = this->dataPtr->queries.size() - 1;
-  EntityQuery &query = this->dataPtr->queries.back();
-
-  for (size_t id = 0; id < this->dataPtr->entities.size(); ++id)
-  {
-    // Check that the entity has the required components
-    if (this->dataPtr->EntityMatches(id, types))
-    {
-      query.AddEntity(id);
-    }
-  }
-
-  return {result, true};
 }
 
 /////////////////////////////////////////////////
@@ -137,42 +99,6 @@ bool EntityComponentDatabase::RemoveQuery(const EntityQueryId /*_id*/)
 }
 
 /////////////////////////////////////////////////
-EntityId EntityComponentDatabase::CreateEntity()
-{
-  EntityId id;
-  if (!this->dataPtr->freeEntityIds.empty())
-  {
-    // Reuse the smallest deleted EntityId
-    id = *(this->dataPtr->freeEntityIds.begin());
-    this->dataPtr->freeEntityIds.erase(this->dataPtr->freeEntityIds.begin());
-    this->dataPtr->entities[id] = std::move(Entity(id));
-  }
-  else
-  {
-    // Create a brand new Id
-    id = this->dataPtr->entities.size();
-    this->dataPtr->entities.push_back(std::move(Entity(id)));
-  }
-
-  return id;
-}
-
-/////////////////////////////////////////////////
-bool EntityComponentDatabase::DeleteEntity(EntityId _id)
-{
-  bool success = false;
-  if (this->dataPtr->EntityExists(_id))
-  {
-    // \todo(nkoenig) Remove the entity at a good point in the update cycle
-    // (aka "toDeleteEntities"), and delete the components associated with
-    // the entity.
-    success = true;
-  }
-  return success;
-}
-
-
-/////////////////////////////////////////////////
 /*ignition::gazebo::Entity &EntityComponentDatabase::Entity(EntityId _id) const
 {
   if (this->dataPtr->EntityExists(_id))
@@ -183,35 +109,11 @@ bool EntityComponentDatabase::DeleteEntity(EntityId _id)
   }
 }*/
 
-/////////////////////////////////////////////////
-/*void *EntityComponentDatabase::AddComponent(EntityId _id, ComponentType _type)
-{
-  void *component = nullptr;
-  StorageKey key = std::make_pair(_id, _type);
-  // if component has not been added already
-  if (this->dataPtr->componentIndices.find(key) ==
-      this->dataPtr->componentIndices.end() &&
-      this->dataPtr->toAddComponents.find(key) ==
-      this->dataPtr->toAddComponents.end())
-  {
-    // Allocate memory and call constructor
-    ComponentTypeInfo info = ComponentFactory::TypeInfo(_type);
-    // TODO store components of same type in adjacent memory
-    char *storage = new char[info.size];
-    component = static_cast<void *>(storage);
-    info.constructor(component);
-
-    this->dataPtr->toAddComponents[key] = storage;
-  }
-
-  return component;
-}
-
-/////////////////////////////////////////////////
+/*/////////////////////////////////////////////////
 bool EntityComponentDatabase::RemoveComponent(EntityId _id, ComponentType _type)
 {
   bool success = false;
-  StorageKey key = std::make_pair(_id, _type);
+  EntityComponentKey key = std::make_pair(_id, _type);
   auto kvIter = this->dataPtr->componentIndices.find(key);
   if (kvIter != this->dataPtr->componentIndices.end())
   {
@@ -235,7 +137,7 @@ void const *EntityComponentDatabase::EntityComponent(EntityId _id,
     ComponentType _type) const
 {
   void const *component = nullptr;
-  StorageKey key = std::make_pair(_id, _type);
+  EntityComponentKey key = std::make_pair(_id, _type);
   if (this->dataPtr->componentIndices.find(key) !=
       this->dataPtr->componentIndices.end())
   {
@@ -251,7 +153,7 @@ void *EntityComponentDatabase::EntityComponentMutable(EntityId _id,
     ComponentType _type)
 {
   void *component = nullptr;
-  StorageKey key = std::make_pair(_id, _type);
+  EntityComponentKey key = std::make_pair(_id, _type);
   auto compIter = this->dataPtr->componentIndices.find(key);
   if (compIter != this->dataPtr->componentIndices.end())
   {
@@ -290,21 +192,13 @@ void EntityComponentDatabase::InstantQuery(EntityQuery &_query)
 }
 */
 
-/////////////////////////////////////////////////
-/*const EntityQuery &EntityComponentDatabase::Query(
-    const EntityQueryId _index) const
-{
-  if (_index >= 0 && _index < this->dataPtr->queries.size())
-    return this->dataPtr->queries[_index];
-  return kEntityQueryNull;
-}*/
 
 /////////////////////////////////////////////////
 /*Difference EntityComponentDatabase::IsDifferent(EntityId _id,
     ComponentType _type) const
 {
   Difference d = NO_DIFFERENCE;
-  StorageKey key = std::make_pair(_id, _type);
+  EntityComponentKey key = std::make_pair(_id, _type);
   auto iter = this->dataPtr->differences.find(key);
   if (iter != this->dataPtr->differences.end())
   {
@@ -329,7 +223,7 @@ void EntityComponentDatabase::Update()
   // Modify components
   /*for (auto const &kv : this->dataPtr->toModifyComponents)
   {
-    StorageKey key = kv.first;
+    EntityComponentKey key = kv.first;
     this->dataPtr->differences[key] = WAS_MODIFIED;
     ComponentTypeInfo info = ComponentFactory::TypeInfo(key.second);
 
@@ -353,7 +247,7 @@ void EntityComponentDatabase::Update()
   this->dataPtr->toModifyComponents.clear();
 
   // Remove the components for real
-  for (StorageKey key : this->dataPtr->toRemoveComponents)
+  for (EntityComponentKey key : this->dataPtr->toRemoveComponents)
   {
     int index = this->dataPtr->componentIndices.find(key)->second;
     // call destructor
@@ -378,7 +272,7 @@ void EntityComponentDatabase::Update()
   }
 
   // Update queries with components removed more than 1 update ago
-  for (StorageKey key : this->dataPtr->removedComponents)
+  for (EntityComponentKey key : this->dataPtr->removedComponents)
   {
     for (auto &query : this->dataPtr->queries)
     {
@@ -394,7 +288,7 @@ void EntityComponentDatabase::Update()
   for (auto kv : this->dataPtr->toAddComponents)
   {
     char *storage = kv.second;
-    StorageKey key = kv.first;
+    EntityComponentKey key = kv.first;
     EntityId id = key.first;
     this->dataPtr->differences[key] = WAS_CREATED;
     // Add to main storage
@@ -414,19 +308,6 @@ void EntityComponentDatabase::Update()
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentDatabasePrivate::EntityExists(EntityId _id) const
-{
-  // True if the vector is big enough to have used this id
-  bool isWithinRange = _id >= 0 &&
-    _id < static_cast<EntityId>(this->entities.size());
-  /*bool isNotDeleted = this->freeEntityIds.find(_id) ==
-                      this->freeEntityIds.end() &&
-                      this->deletedIds.find(_id) == this->deletedIds.end();
-                      */
-  return isWithinRange;// && isNotDeleted;
-}
-
-/////////////////////////////////////////////////
 void EntityComponentDatabasePrivate::UpdateQueries(EntityId _id)
 {
   // \todo(nkoenig) remove entity from query if the entity's components no
@@ -436,23 +317,4 @@ void EntityComponentDatabasePrivate::UpdateQueries(EntityId _id)
     if (this->EntityMatches(_id, query.ComponentTypes()))
       query.AddEntity(_id);
   }
-}
-
-/////////////////////////////////////////////////
-bool EntityComponentDatabasePrivate::EntityMatches(EntityId /*_id*/,
-    const std::set<ComponentTypeId> &/*_types*/) const
-{
-  bool found = true;
-  /*for (const ComponentTypeId &type : _types)
-  {
-    StorageKey key = std::make_pair(_id, type);
-    if (this->componentIndices.find(key) == this->componentIndices.end() &&
-        std::find(this->removedComponents.begin(),
-          this->removedComponents.end(), key) == this->removedComponents.end())
-    {
-      found = false;
-      break;
-    }
-  }*/
-  return found;
 }

@@ -43,10 +43,12 @@ ServerPrivate::ServerPrivate()
   SystemConfig sysConfig(this->componentMgr);
 
   // Create a world statistics system
-  this->systems.push_back(std::make_unique<WorldStatisticsSystem>(sysConfig));
+  this->systems.push_back(SystemInternal(
+        std::move(std::make_unique<WorldStatisticsSystem>(sysConfig))));
 
   // Create a physics system
-  this->systems.push_back(std::make_unique<PhysicsSystem>(sysConfig));
+  this->systems.push_back(SystemInternal(
+      std::move(std::make_unique<PhysicsSystem>(sysConfig))));
 }
 
 /////////////////////////////////////////////////
@@ -62,10 +64,18 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  /*for (std::unique_ptr<System> &system : this->systems)
+  for (SystemInternal &system : this->systems)
   {
-    system->Update();
-  }*/
+    for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+    {
+      const std::optional<std::reference_wrapper<EntityQuery>> query =
+        this->componentMgr->Query(cb.first);
+      if (query)
+      {
+        cb.second(query->get());
+      }
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -79,15 +89,16 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   this->runMutex.unlock();
 
   // Initialize all the systems.
-  for (std::unique_ptr<System> &system : this->systems)
+  for (SystemInternal &system : this->systems)
   {
     EntityQueryRegistrar registrar;
-    system->Init(registrar);
+    system.system->Init(registrar);
     for (EntityQueryRegistration &registration : registrar.Registrations())
     {
       EntityQuery &query = registration.first;
       EntityQueryCallback &cb = registration.second;
-      // HERE. Look at the database
+      EntityQueryId queryId = this->componentMgr->AddQuery(query);
+      system.updates.push_back({queryId, cb});
     }
   }
 
@@ -115,7 +126,7 @@ void ServerPrivate::OnSignal(int _sig)
 //////////////////////////////////////////////////
 void ServerPrivate::EraseEntities()
 {
-  this->entities.clear();
+  this->componentMgr->EraseEntities();
 }
 
 //////////////////////////////////////////////////
@@ -123,17 +134,13 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
   for (uint64_t i = 0; i < _root.ModelCount(); ++i)
   {
-    /// \todo(nkoenig) This should use free entity slots.
-    EntityId entityId = this->entities.size();
-    this->entities.push_back(Entity(entityId));
-
     // Get the SDF model
     const sdf::Model *model = _root.ModelByIndex(i);
 
-    // Create the pose component for the model.
-    ComponentKey compKey = this->componentMgr->CreateComponent(model->Pose());
-    this->entityComponents[entityId].push_back(compKey);
+    // Create an entity for the model.
+    EntityId entityId = this->componentMgr->CreateEntity();
 
-    /// \todo(nkoenig) Notify systems that entities have been created.
+    // Create the pose component for the model.
+    this->componentMgr->CreateComponent(entityId, model->Pose());
   }
 }

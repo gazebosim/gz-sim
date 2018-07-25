@@ -33,13 +33,29 @@
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityQueryRegistrar.hh"
-#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/ComponentManager.hh"
+#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/Types.hh"
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Private data for Server
+    class IGNITION_GAZEBO_HIDDEN SystemInternal
+    {
+      public: SystemInternal(std::unique_ptr<System> _system)
+              : system(std::move(_system))
+              {
+              }
+
+      /// \brief All of the systems.
+      public: std::unique_ptr<System> system;
+
+      public: std::vector<
+              std::pair<EntityQueryId, EntityQueryCallback>> updates;
+    };
+
     // Private data for Server
     class IGNITION_GAZEBO_HIDDEN ServerPrivate
     {
@@ -79,9 +95,6 @@ namespace ignition
       /// \brief Map of entities to components.
       //public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
-      /// \brief All of the systems.
-      public: std::vector<std::unique_ptr<System>> systems;
-
       public: std::map<std::string, size_t> systemsNameMap;
 
       /// \brief Communication node.
@@ -104,6 +117,8 @@ namespace ignition
       public: std::shared_ptr<ComponentManager> componentMgr;
 
       public: EntityQueryRegistrar entityQueryRegistrar;
+
+      public: std::vector<SystemInternal> systems;
     };
   }
 }

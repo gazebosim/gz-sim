@@ -21,7 +21,6 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/common/Console.hh>
-#include <ignition/gazebo/ComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
@@ -39,9 +38,10 @@ namespace ignition
       public: virtual ~ComponentType();
 
       public: template<typename Type>
-              bool Init(const std::string &_name, ComponentManager &_compMgr)
+              bool Init(const std::string &_name,
+                        const ComponentTypeId _typeId)
       {
-        this->typeId = _compMgr.Register<Type>(_name);
+        this->typeId = _typeId;
         this->name = _name;
         return this->Valid();
       }
