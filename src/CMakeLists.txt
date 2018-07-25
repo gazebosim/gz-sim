@@ -9,7 +9,6 @@ set (sources
   ComponentManager.cc
   ComponentType.cc
   Entity.cc
-  EntityComponentDatabase.cc
   EntityQuery.cc
   EntityQueryRegistrar.cc
   PhysicsSystem.cc

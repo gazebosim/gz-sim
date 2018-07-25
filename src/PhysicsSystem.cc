@@ -40,6 +40,8 @@ PhysicsSystem::~PhysicsSystem()
 void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 {
   /// \todo(nkoenig) support curly-bracket initialization.
+  /// \todo(nkoenig) It would be nice to fix the ComponentMgr shared pointer
+  /// issue.
   EntityQuery query;
   query.AddComponentType(PoseComponentType(this->config->ComponentMgr()));
   _registrar.Register(query,
@@ -47,7 +49,12 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::OnUpdate(const EntityQueryResult &/*_result*/)
+void PhysicsSystem::OnUpdate(const EntityQuery &_result)
 {
-  std::cout << "Physics System on update\n";
+  std::cout << "Physics System on update Entities[";
+  for (const EntityId &entity : _result.Entities())
+  {
+    std::cout << entity << ", ";
+  }
+  std::cout << "]\n";
 }

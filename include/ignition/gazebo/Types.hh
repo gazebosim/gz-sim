@@ -45,11 +45,12 @@ namespace ignition
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
     /// \brief typedef for query callbacks
-    using EntityQueryCallback =
-      std::function<void (const EntityQueryResult &_r)>;
+    using EntityQueryCallback = std::function<void (const EntityQuery&_r)>;
 
     /// \brief typedef for long registration type
     using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;
+
+    using EntityQueryId = int;
 
     /// \brief Id that indicates an invalid component.
     static const ComponentId kComponentIdInvalid = -1;

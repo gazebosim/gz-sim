@@ -36,7 +36,6 @@ Server::Server(const ServerConfig &_config)
     sdf::Root root;
     root.Load(_config.SdfFile());
 
-    this->dataPtr->EraseEntities();
     this->dataPtr->CreateEntities(root);
   }
 }
@@ -103,7 +102,7 @@ uint64_t Server::IterationCount() const
 /////////////////////////////////////////////////
 size_t Server::EntityCount() const
 {
-  return this->dataPtr->entities.size();
+  return this->dataPtr->componentMgr->EntityCount();
 }
 
 /////////////////////////////////////////////////

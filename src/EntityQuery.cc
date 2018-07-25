@@ -88,11 +88,7 @@ bool EntityQuery::operator==(const EntityQuery &_query) const
 {
   return std::equal(this->dataPtr->componentTypes.begin(),
                     this->dataPtr->componentTypes.end(),
-                    _query.dataPtr->componentTypes.begin()) &&
-         std::equal(this->dataPtr->entityIds.begin(),
-                    this->dataPtr->entityIds.end(),
-                    _query.dataPtr->entityIds.begin());
-
+                    _query.dataPtr->componentTypes.begin());
 }
 
 /////////////////////////////////////////////////
@@ -101,6 +97,14 @@ EntityQuery &EntityQuery::operator=(const EntityQuery &_query)
   this->dataPtr.reset(new EntityQueryPrivate(*(_query.dataPtr.get())));
   return *this;
 }
+
+/////////////////////////////////////////////////
+EntityQuery &EntityQuery::operator=(EntityQuery &&_query)
+{
+  this->dataPtr = std::move(_query.dataPtr);
+  return *this;
+}
+
 
 /////////////////////////////////////////////////
 const std::set<ComponentTypeId> &EntityQuery::ComponentTypes() const
@@ -133,4 +137,10 @@ void EntityQuery::RemoveEntity(const EntityId _id)
 void EntityQuery::Clear()
 {
   this->dataPtr->entityIds.clear();
+}
+
+/////////////////////////////////////////////////
+const std::set<EntityId> &EntityQuery::Entities() const
+{
+  return this->dataPtr->entityIds;
 }

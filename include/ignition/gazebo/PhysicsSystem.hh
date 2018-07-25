@@ -20,7 +20,6 @@
 #include <memory>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
-#include <ignition/gazebo/EntityQueryResult.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -45,7 +44,7 @@ namespace ignition
 
       public: void Init(EntityQueryRegistrar &_registrar) override final;
 
-      private: void OnUpdate(const EntityQueryResult &_result);
+      private: void OnUpdate(const EntityQuery &_result);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;

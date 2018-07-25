@@ -39,7 +39,10 @@ TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
 
   int count = 2;
 
-  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
+  manager.RegisterComponentType<ignition::math::Pose3d>(
+      "ignition::math::Pose3d");
+
+  gazebo::EntityId entityId = manager.CreateEntity();
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -48,7 +51,7 @@ TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
           math::Rand::IntNormal(10, 5),
           math::Rand::IntNormal(100, 50),
           math::Rand::IntNormal(-100, 30), 0, 0, 0));
-    keys.push_back(manager.CreateComponent(poses.back()));
+    keys.push_back(manager.CreateComponent(entityId, poses.back()));
 
     // The component ids should increment by one for each component.
     EXPECT_EQ(keys.back().second, i);
@@ -91,8 +94,10 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
 
   int count = 100000;
 
-  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
-  manager.Register<int>("int");
+  manager.RegisterComponentType<ignition::math::Pose3d>(
+      "ignition::math::Pose3d");
+  manager.RegisterComponentType<int>("int");
+  gazebo::EntityId entityId = manager.CreateEntity();
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -100,8 +105,8 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
     poses.push_back(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
     ints.push_back(i);
 
-    poseKeys.push_back(manager.CreateComponent(poses.back()));
-    intKeys.push_back(manager.CreateComponent(ints.back()));
+    poseKeys.push_back(manager.CreateComponent(entityId, poses.back()));
+    intKeys.push_back(manager.CreateComponent(entityId, ints.back()));
 
     // The component ids should increment by one for each component.
     EXPECT_EQ(poseKeys.back().second, i);
@@ -147,7 +152,7 @@ TEST_P(ComponentManagerFixture, InvalidComponentType)
   gazebo::ComponentKey key{999, 0};
 
   // Can't remove the component type that doesn't exist.
-  EXPECT_FALSE(manager.Remove(key));
+  EXPECT_FALSE(manager.RemoveComponent(1, key));
 
   // We should get a nullptr if the component type doesn't exist.
   EXPECT_EQ(nullptr, manager.Component<int>(key));
@@ -159,10 +164,13 @@ TEST_P(ComponentManagerFixture, InvalidComponentType)
 TEST_P(ComponentManagerFixture, RemoveAdjacent)
 {
   gazebo::ComponentManager manager;
-  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
+  manager.RegisterComponentType<ignition::math::Pose3d>(
+      "ignition::math::Pose3d");
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
+
+  gazebo::EntityId entityId = manager.CreateEntity();
 
   int count = 3;
 
@@ -170,7 +178,7 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
   for (int i = 0; i < count; ++i)
   {
     poses.push_back(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
-    keys.push_back(manager.CreateComponent(poses.back()));
+    keys.push_back(manager.CreateComponent(entityId, poses.back()));
     EXPECT_EQ(keys.back().second, i);
   }
   ASSERT_EQ(poses.size(), keys.size());
@@ -191,10 +199,10 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
   }
 
   // Remove the middle component.
-  EXPECT_TRUE(manager.Remove(keys[1]));
+  EXPECT_TRUE(manager.RemoveComponent(entityId, keys[1]));
 
   // Can't remove the component twice.
-  EXPECT_FALSE(manager.Remove(keys[1]));
+  EXPECT_FALSE(manager.RemoveComponent(entityId, keys[1]));
 
   // Check that the two remaining components are still adjacent in memory
   const ignition::math::Pose3d *pose1 =
@@ -212,27 +220,30 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
 TEST_P(ComponentManagerFixture, RemoveAddAdjacent)
 {
   gazebo::ComponentManager manager;
-  manager.Register<ignition::math::Pose3d>("ignition::math::Pose3d");
+  manager.RegisterComponentType<ignition::math::Pose3d>(
+      "ignition::math::Pose3d");
+
+  gazebo::EntityId entityId = manager.CreateEntity();
 
   std::vector<gazebo::ComponentKey> keys;
 
-  keys.push_back(manager.CreateComponent(
+  keys.push_back(manager.CreateComponent(entityId,
         ignition::math::Pose3d(1, 2, 3, 0, 0, 0)));
-  keys.push_back(manager.CreateComponent(
+  keys.push_back(manager.CreateComponent(entityId,
         ignition::math::Pose3d(3, 1, 2, 0, 0, 0)));
-  keys.push_back(manager.CreateComponent(
+  keys.push_back(manager.CreateComponent(entityId,
         ignition::math::Pose3d(0, 10, 20, 0, 0, 0)));
 
   uintptr_t poseSize = sizeof(ignition::math::Pose3d);
 
   // Remove the middle component.
-  EXPECT_TRUE(manager.Remove(keys[1]));
+  EXPECT_TRUE(manager.RemoveComponent(entityId, keys[1]));
 
   // Add two more new component
-  keys.push_back(manager.CreateComponent(
+  keys.push_back(manager.CreateComponent(entityId,
         ignition::math::Pose3d(101, 51, 520, 0, 0, 0)));
 
-  keys.push_back(manager.CreateComponent(
+  keys.push_back(manager.CreateComponent(entityId,
         ignition::math::Pose3d(1010, 81, 821, 0, 0, 0)));
 
   // Check that the components are all adjacent in memory

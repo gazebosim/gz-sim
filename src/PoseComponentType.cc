@@ -25,7 +25,9 @@ using namespace gazebo;
 PoseComponentType::PoseComponentType(ComponentManager &_compMgr)
   : ComponentType()
 {
-  this->Init<ignition::math::Pose3d>("ignition::math::Pose3d", _compMgr);
+  std::string typeName = "ignition::math::Pose3d";
+  this->Init<ignition::math::Pose3d>(typeName,
+      _compMgr.RegisterComponentType<ignition::math::Pose3d>(typeName));
 }
 
 //////////////////////////////////////////////////
