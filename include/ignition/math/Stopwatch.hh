@@ -32,7 +32,7 @@ namespace ignition
 
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
-
+    //
     // Forward declarations.
     class StopwatchPrivate;
 
