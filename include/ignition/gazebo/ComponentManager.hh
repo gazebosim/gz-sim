@@ -309,6 +309,20 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentType>
+              const ComponentType *Component(const EntityId _id) const
+      {
+        // Get a unique identifier to the component type
+        const ComponentTypeId typeId = typeid(ComponentType).hash_code();
+
+        return static_cast<const ComponentType*>(
+            this->ComponentImplementation(_id, typeId));
+      }
+
+      /// \brief Get a component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      public: template<typename ComponentType>
               const ComponentType *Component(const ComponentKey &_key) const
       {
         if (this->components.find(_key.first) != this->components.end())
@@ -329,6 +343,9 @@ namespace ignition
                    const EntityId _entityId,
                    const ComponentTypeId _componentTypeId,
                    const std::any &_data);
+
+      private: const void *ComponentImplementation(const EntityId _id,
+                   const ComponentTypeId _type) const;
 
       /// \brief Map of component storage classes. The key is a component
       /// type id, and the value is a pointer to the component storage.

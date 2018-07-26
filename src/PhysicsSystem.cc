@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/PoseComponentType.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/EntityQuery.hh"
@@ -54,7 +55,9 @@ void PhysicsSystem::OnUpdate(const EntityQuery &_result)
   std::cout << "Physics System on update Entities[";
   for (const EntityId &entity : _result.Entities())
   {
-    std::cout << entity << ", ";
+    const ignition::math::Pose3d *pose =
+      this->config->ComponentMgr().Component<ignition::math::Pose3d>(entity);
+    std::cout << *pose << std::endl;
   }
   std::cout << "]\n";
 }
