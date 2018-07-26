@@ -30,11 +30,12 @@ namespace ignition
     // Use a steady clock
     using clock = std::chrono::steady_clock;
 
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    //
     // Forward declarations.
     class StopwatchPrivate;
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     /// \class Stopwatch Stopwatch.hh ignition/math/Stopwatch.hh
     /// \brief The Stopwatch keeps track of time spent in the run state,
