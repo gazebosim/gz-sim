@@ -34,11 +34,12 @@ using namespace gazebo;
 ServerPrivate::ServerPrivate()
   : componentMgr(new ComponentManager())
 {
-  // \todo(nkoenig) Move this to a plugin
-  PoseComponentType(*(this->componentMgr.get()));
-
+  // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+
+  // \todo(nkoenig) Move this to a plugin
+  PoseComponentType(*(this->componentMgr.get()));
 
   SystemConfig sysConfig(this->componentMgr);
 
@@ -64,6 +65,7 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
+  // \todo(nkoenig) Update the systems in parallel
   for (SystemInternal &system : this->systems)
   {
     for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)

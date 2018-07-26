@@ -273,3 +273,18 @@ ComponentTypeId ComponentManager::Type(const std::string &_name) const
     return iter->second;
   return kComponentTypeIdInvalid;
 }
+
+/////////////////////////////////////////////////
+const void *ComponentManager::ComponentImplementation(
+    const EntityId _id, const ComponentTypeId _type) const
+{
+  std::vector<ComponentKey>::const_iterator iter=
+    std::find_if(this->dataPtr->entityComponents.at(_id).begin(),
+                 this->dataPtr->entityComponents.at(_id).end(),
+                 [&] (const ComponentKey &_key) {return _key.first == _type;});
+
+  if (iter != this->dataPtr->entityComponents.at(_id).end())
+    return this->components.at(iter->first)->Component(iter->second);
+
+  return nullptr;
+}
