@@ -42,8 +42,6 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar,
     EntityComponentManager &_ecMgr)
 {
   /// \todo(nkoenig) support curly-bracket initialization.
-  /// \todo(nkoenig) It would be nice to fix the ComponentMgr shared pointer
-  /// issue.
   EntityQuery query;
   query.AddComponentType(PoseComponentType(_ecMgr));
   _registrar.Register(query,
