@@ -152,15 +152,15 @@ bool ComponentManager::EntityHasComponentType(const EntityId _id,
 /////////////////////////////////////////////////
 bool ComponentManager::HasEntity(EntityId _id) const
 {
-  //\todo(nkoenig) This function needs to be fixed/implemented.
+  // \todo(nkoenig) This function needs to be fixed/implemented.
   // True if the vector is big enough to have used this id
   bool isWithinRange = _id >= 0 &&
     _id < static_cast<EntityId>(this->dataPtr->entities.size());
-  /*bool isNotDeleted = this->freeEntityIds.find(_id) ==
+  /* bool isNotDeleted = this->freeEntityIds.find(_id) ==
                       this->freeEntityIds.end() &&
                       this->deletedIds.find(_id) == this->deletedIds.end();
-                      */
-  return isWithinRange;// && isNotDeleted;
+  */
+  return isWithinRange;  // && isNotDeleted;
 }
 
 /////////////////////////////////////////////////
@@ -278,7 +278,7 @@ ComponentTypeId ComponentManager::Type(const std::string &_name) const
 const void *ComponentManager::ComponentImplementation(
     const EntityId _id, const ComponentTypeId _type) const
 {
-  std::vector<ComponentKey>::const_iterator iter=
+  std::vector<ComponentKey>::const_iterator iter =
     std::find_if(this->dataPtr->entityComponents.at(_id).begin(),
                  this->dataPtr->entityComponents.at(_id).end(),
                  [&] (const ComponentKey &_key) {return _key.first == _type;});
