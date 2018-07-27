@@ -6,9 +6,9 @@ set(gui_sources
 )
 
 set (sources
-  ComponentManager.cc
   ComponentType.cc
   Entity.cc
+  EntityComponentManager.cc
   EntityQuery.cc
   EntityQueryRegistrar.cc
   PhysicsSystem.cc
@@ -22,7 +22,7 @@ set (sources
 )
 
 set (gtest_sources
-  ComponentManager_TEST.cc
+  EntityComponentManager_TEST.cc
   Entity_TEST.cc
   Server_TEST.cc
   System_TEST.cc

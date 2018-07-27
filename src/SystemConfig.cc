@@ -22,7 +22,7 @@ using namespace gazebo;
 class ignition::gazebo::SystemConfigPrivate
 {
   public: explicit SystemConfigPrivate(
-              std::shared_ptr<ComponentManager> _compMgr)
+              std::shared_ptr<EntityComponentManager> _compMgr)
           : compMgr(_compMgr)
   {
   }
@@ -32,11 +32,11 @@ class ignition::gazebo::SystemConfigPrivate
   {
   }
 
-  public: std::shared_ptr<ComponentManager> compMgr;
+  public: std::shared_ptr<EntityComponentManager> compMgr;
 };
 
 //////////////////////////////////////////////////
-SystemConfig::SystemConfig(std::shared_ptr<ComponentManager> _compMgr)
+SystemConfig::SystemConfig(std::shared_ptr<EntityComponentManager> _compMgr)
   : dataPtr(new SystemConfigPrivate(_compMgr))
 {
 }
@@ -53,7 +53,7 @@ SystemConfig::~SystemConfig()
 }
 
 //////////////////////////////////////////////////
-ComponentManager &SystemConfig::ComponentMgr() const
+EntityComponentManager &SystemConfig::EntityComponentMgr() const
 {
   IGN_ASSERT(this->dataPtr->compMgr != nullptr,
       "SystemConfig does not ave a valid ComponentManager pointer.");

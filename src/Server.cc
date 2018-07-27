@@ -102,7 +102,7 @@ uint64_t Server::IterationCount() const
 /////////////////////////////////////////////////
 size_t Server::EntityCount() const
 {
-  return this->dataPtr->componentMgr->EntityCount();
+  return this->dataPtr->entityCompMgr->EntityCount();
 }
 
 /////////////////////////////////////////////////
@@ -112,7 +112,7 @@ size_t Server::SystemCount() const
 }
 
 /////////////////////////////////////////////////
-ComponentManager &Server::ComponentMgr() const
+EntityComponentManager &Server::EntityComponentMgr() const
 {
-  return *(this->dataPtr->componentMgr.get());
+  return *(this->dataPtr->entityCompMgr.get());
 }

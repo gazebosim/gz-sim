@@ -19,7 +19,7 @@
 #define IGNITION_GAZEBO_SYSTEM_CONFIG_HH_
 
 #include <memory>
-#include <ignition/gazebo/ComponentManager.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -38,14 +38,15 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE SystemConfig
     {
       /// \brief Constructor
-      public: explicit SystemConfig(std::shared_ptr<ComponentManager> _compMgr);
+      public: explicit SystemConfig(
+                  std::shared_ptr<EntityComponentManager> _compMgr);
 
       public: SystemConfig(const SystemConfig &_config);
 
       /// \brief Destructor
       public: ~SystemConfig();
 
-      public: ComponentManager &ComponentMgr() const;
+      public: EntityComponentManager &EntityComponentMgr() const;
 
       public: SystemConfig &operator=(const SystemConfig &_config);
 

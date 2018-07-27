@@ -32,16 +32,16 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
-  : componentMgr(new ComponentManager())
+  : entityCompMgr(new EntityComponentManager())
 {
   // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
   // \todo(nkoenig) Move this to a plugin
-  PoseComponentType(*(this->componentMgr.get()));
+  PoseComponentType(*(this->entityCompMgr.get()));
 
-  SystemConfig sysConfig(this->componentMgr);
+  SystemConfig sysConfig(this->entityCompMgr);
 
   // Create a world statistics system
   this->systems.push_back(SystemInternal(
@@ -71,7 +71,7 @@ void ServerPrivate::UpdateSystems()
     for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
     {
       const std::optional<std::reference_wrapper<EntityQuery>> query =
-        this->componentMgr->Query(cb.first);
+        this->entityCompMgr->Query(cb.first);
       if (query)
       {
         cb.second(query->get());
@@ -99,7 +99,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     {
       EntityQuery &query = registration.first;
       EntityQueryCallback &cb = registration.second;
-      EntityQueryId queryId = this->componentMgr->AddQuery(query);
+      EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
       system.updates.push_back({queryId, cb});
     }
   }
@@ -128,7 +128,7 @@ void ServerPrivate::OnSignal(int _sig)
 //////////////////////////////////////////////////
 void ServerPrivate::EraseEntities()
 {
-  this->componentMgr->EraseEntities();
+  this->entityCompMgr->EraseEntities();
 }
 
 //////////////////////////////////////////////////
@@ -140,9 +140,9 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     const sdf::Model *model = _root.ModelByIndex(i);
 
     // Create an entity for the model.
-    EntityId entityId = this->componentMgr->CreateEntity();
+    EntityId entityId = this->entityCompMgr->CreateEntity();
 
     // Create the pose component for the model.
-    this->componentMgr->CreateComponent(entityId, model->Pose());
+    this->entityCompMgr->CreateComponent(entityId, model->Pose());
   }
 }

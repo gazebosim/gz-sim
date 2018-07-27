@@ -24,8 +24,8 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(System, Constructor)
 {
-  std::shared_ptr<gazebo::ComponentManager> compMgr(
-      new gazebo::ComponentManager());
+  std::shared_ptr<gazebo::EntityComponentManager> compMgr(
+      new gazebo::EntityComponentManager());
   /// \todo(nkoenig) Add more tests here.
   gazebo::SystemConfig config(compMgr);
   gazebo::System system("test", config);
