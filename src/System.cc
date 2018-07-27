@@ -41,7 +41,7 @@ System::~System()
 }
 //////////////////////////////////////////////////
 void System::Init(EntityQueryRegistrar &/*_registrar*/,
-    EntityComponentManager */*_ecMgr*/)
+    EntityComponentManager &/*_ecMgr*/)
 {
 }
 

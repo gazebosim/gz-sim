@@ -46,7 +46,7 @@ namespace ignition
       public: virtual ~WorldStatisticsSystem();
 
       public: void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager *_ecMgr) override final;
+                  EntityComponentManager &_ecMgr) override final;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;

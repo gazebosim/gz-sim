@@ -48,7 +48,7 @@ namespace ignition
       public: virtual ~System();
 
       public: virtual void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager *_ecMgr);
+                  EntityComponentManager &_ecMgr);
 
       /// \brief Get the name of the system.
       public: const std::string &Name() const;

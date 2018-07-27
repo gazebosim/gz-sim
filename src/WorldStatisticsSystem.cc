@@ -54,7 +54,7 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 
 //////////////////////////////////////////////////
 void WorldStatisticsSystem::Init(EntityQueryRegistrar &,
-    EntityComponentManager *)
+    EntityComponentManager &)
 {
 }
 

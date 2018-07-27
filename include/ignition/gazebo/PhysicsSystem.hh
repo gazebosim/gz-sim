@@ -44,10 +44,10 @@ namespace ignition
       public: virtual ~PhysicsSystem();
 
       public: void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager *_ecMgr) override final;
+                  EntityComponentManager &_ecMgr) override final;
 
       private: void OnUpdate(const EntityQuery &_result,
-                   EntityComponentManager *_ecMgr);
+                   EntityComponentManager &_ecMgr);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
