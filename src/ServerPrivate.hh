@@ -24,6 +24,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <sdf/Root.hh>
@@ -44,7 +45,7 @@ namespace ignition
     // Private data for Server
     class IGNITION_GAZEBO_HIDDEN SystemInternal
     {
-      public: SystemInternal(std::unique_ptr<System> _system)
+      public: explicit SystemInternal(std::unique_ptr<System> _system)
               : system(std::move(_system))
               {
               }
@@ -88,14 +89,6 @@ namespace ignition
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
-
-      /// \brief All of the entities.
-      //public: std::vector<Entity> entities;
-
-      /// \brief Map of entities to components.
-      //public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
-
-      public: std::map<std::string, size_t> systemsNameMap;
 
       /// \brief Communication node.
       public: ignition::transport::Node node;

@@ -30,7 +30,7 @@ class ignition::gazebo::EntityQueryPrivate
   public: EntityQueryPrivate() = default;
 
   /// \brief Copy constructor
-  public: EntityQueryPrivate(const EntityQueryPrivate &_clone)
+  public: explicit EntityQueryPrivate(const EntityQueryPrivate &_clone)
           : componentTypes(_clone.componentTypes)
   {
   }
