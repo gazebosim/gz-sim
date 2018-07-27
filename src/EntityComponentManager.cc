@@ -199,7 +199,6 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
     }
   }
 
-  // \todo(nkoenig) Do we really want to copy the query?
   this->dataPtr->queries.push_back(_query);
   EntityQuery &query = this->dataPtr->queries.back();
 
