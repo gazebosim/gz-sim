@@ -39,7 +39,7 @@ ServerPrivate::ServerPrivate()
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
   // \todo(nkoenig) Move this to a plugin
-  PoseComponentType(this->entityCompMgr.get());
+  PoseComponentType(*this->entityCompMgr.get());
 
   // Create a world statistics system
   this->systems.push_back(SystemInternal(
@@ -72,7 +72,7 @@ void ServerPrivate::UpdateSystems()
         this->entityCompMgr->Query(cb.first);
       if (query)
       {
-        cb.second(query->get(), this->entityCompMgr.get());
+        cb.second(query->get(), *this->entityCompMgr.get());
       }
     }
   }
@@ -92,7 +92,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   for (SystemInternal &system : this->systems)
   {
     EntityQueryRegistrar registrar;
-    system.system->Init(registrar, this->entityCompMgr.get());
+    system.system->Init(registrar, *this->entityCompMgr.get());
     for (EntityQueryRegistration &registration : registrar.Registrations())
     {
       EntityQuery &query = registration.first;

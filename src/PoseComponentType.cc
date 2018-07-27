@@ -22,12 +22,12 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-PoseComponentType::PoseComponentType(EntityComponentManager *_compMgr)
+PoseComponentType::PoseComponentType(EntityComponentManager &_compMgr)
   : ComponentType()
 {
   std::string typeName = "ignition::math::Pose3d";
   this->Init<ignition::math::Pose3d>(typeName,
-      _compMgr->RegisterComponentType<ignition::math::Pose3d>(typeName));
+      _compMgr.RegisterComponentType<ignition::math::Pose3d>(typeName));
 }
 
 //////////////////////////////////////////////////

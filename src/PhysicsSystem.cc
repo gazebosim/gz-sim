@@ -39,7 +39,7 @@ PhysicsSystem::~PhysicsSystem()
 
 //////////////////////////////////////////////////
 void PhysicsSystem::Init(EntityQueryRegistrar &_registrar,
-    EntityComponentManager *_ecMgr)
+    EntityComponentManager &_ecMgr)
 {
   /// \todo(nkoenig) support curly-bracket initialization.
   /// \todo(nkoenig) It would be nice to fix the ComponentMgr shared pointer
@@ -53,13 +53,13 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar,
 
 //////////////////////////////////////////////////
 void PhysicsSystem::OnUpdate(const EntityQuery &_result,
-    EntityComponentManager *_ecMgr)
+    EntityComponentManager &_ecMgr)
 {
   std::cout << "Physics System on update Entities[";
   for (const EntityId &entity : _result.Entities())
   {
     const ignition::math::Pose3d *pose =
-      _ecMgr->Component<ignition::math::Pose3d>(entity);
+      _ecMgr.Component<ignition::math::Pose3d>(entity);
     std::cout << *pose << std::endl;
   }
   std::cout << "]\n";
