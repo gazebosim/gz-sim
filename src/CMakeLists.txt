@@ -17,7 +17,6 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   System.cc
-  SystemConfig.cc
   WorldStatisticsSystem.cc
 )
 

@@ -22,7 +22,6 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/SystemConfig.hh>
 
 namespace ignition
 {
@@ -43,21 +42,19 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
-      public: System(const std::string &_name,
-                     const SystemConfig &_config);
+      public: System(const std::string &_name);
 
       /// \brief Destructor
       public: virtual ~System();
 
-      public: virtual void Init(EntityQueryRegistrar &_registrar);
+      public: virtual void Init(EntityQueryRegistrar &_registrar,
+                  EntityComponentManager *_ecMgr);
 
       /// \brief Get the name of the system.
       public: const std::string &Name() const;
 
       /// \brief Set the name of the System
       public: void SetName(const std::string &_name) const;
-
-      protected: std::unique_ptr<SystemConfig> config;
 
       private: std::unique_ptr<SystemPrivate> dataPtr;
     };

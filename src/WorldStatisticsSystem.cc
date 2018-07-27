@@ -34,8 +34,8 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::WorldStatisticsSystem(const SystemConfig &_config)
-  : System("WorldStatistics", _config),
+WorldStatisticsSystem::WorldStatisticsSystem()
+  : System("WorldStatistics"),
     dataPtr(new WorldStatisticsSystemPrivate)
 {
   this->dataPtr->publisher =
@@ -53,7 +53,8 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Init(EntityQueryRegistrar &/*_registrar*/)
+void WorldStatisticsSystem::Init(EntityQueryRegistrar &,
+    EntityComponentManager *)
 {
 }
 

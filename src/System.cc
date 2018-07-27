@@ -30,8 +30,8 @@ class ignition::gazebo::SystemPrivate
 };
 
 //////////////////////////////////////////////////
-System::System(const std::string &_name, const SystemConfig &_config)
-  : config(new SystemConfig(_config)), dataPtr(new SystemPrivate(_name))
+System::System(const std::string &_name)
+  : dataPtr(new SystemPrivate(_name))
 {
 }
 
@@ -40,7 +40,8 @@ System::~System()
 {
 }
 //////////////////////////////////////////////////
-void System::Init(EntityQueryRegistrar &/*_registrar*/)
+void System::Init(EntityQueryRegistrar &/*_registrar*/,
+    EntityComponentManager */*_ecMgr*/)
 {
 }
 
@@ -49,8 +50,6 @@ const std::string &System::Name() const
 {
   return this->dataPtr->name;
 }
-
-// NEED TO GET ENTITIES BASED ON COMPONENTS.
 
 // NEED TO STRUCTURE SYSTEM UPDATES - priorties, dependency chain...
 
