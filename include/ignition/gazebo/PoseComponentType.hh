@@ -19,7 +19,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/ComponentType.hh>
-#include <ignition/gazebo/ComponentManager.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -31,7 +31,7 @@ namespace ignition
     //
     class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
     {
-      public: explicit PoseComponentType(ComponentManager &_compMgr);
+      public: explicit PoseComponentType(EntityComponentManager &_compMgr);
       public: virtual ~PoseComponentType();
     };
     }

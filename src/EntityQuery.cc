@@ -18,7 +18,7 @@
 #include <set>
 
 #include "ignition/gazebo/EntityQuery.hh"
-#include "ignition/gazebo/ComponentManager.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;

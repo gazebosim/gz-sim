@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/ComponentManager.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 #include <map>
 #include <set>
@@ -23,7 +23,7 @@
 using namespace ignition;
 using namespace gazebo;
 
-class ignition::gazebo::ComponentManagerPrivate
+class ignition::gazebo::EntityComponentManagerPrivate
 {
   public: bool EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const;
@@ -41,24 +41,24 @@ class ignition::gazebo::ComponentManagerPrivate
 };
 
 //////////////////////////////////////////////////
-ComponentManager::ComponentManager()
-  : dataPtr(new ComponentManagerPrivate)
+EntityComponentManager::EntityComponentManager()
+  : dataPtr(new EntityComponentManagerPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-ComponentManager::~ComponentManager()
+EntityComponentManager::~EntityComponentManager()
 {
 }
 
 //////////////////////////////////////////////////
-size_t ComponentManager::EntityCount() const
+size_t EntityComponentManager::EntityCount() const
 {
   return this->dataPtr->entities.size();
 }
 
 /////////////////////////////////////////////////
-EntityId ComponentManager::CreateEntity()
+EntityId EntityComponentManager::CreateEntity()
 {
   EntityId id = kNullEntity;
 
@@ -81,7 +81,7 @@ EntityId ComponentManager::CreateEntity()
 }
 
 /////////////////////////////////////////////////
-bool ComponentManager::EraseEntity(EntityId _id)
+bool EntityComponentManager::EraseEntity(EntityId _id)
 {
   bool success = false;
   if (this->HasEntity(_id))
@@ -95,7 +95,7 @@ bool ComponentManager::EraseEntity(EntityId _id)
 }
 
 /////////////////////////////////////////////////
-void ComponentManager::EraseEntities()
+void EntityComponentManager::EraseEntities()
 {
   this->dataPtr->entities.clear();
   this->dataPtr->entityComponents.clear();
@@ -109,7 +109,7 @@ void ComponentManager::EraseEntities()
 }
 
 /////////////////////////////////////////////////
-bool ComponentManager::RemoveComponent(
+bool EntityComponentManager::RemoveComponent(
     const EntityId _id, const ComponentKey &_key)
 {
   // Make sure the entity exists and has the component.
@@ -127,7 +127,7 @@ bool ComponentManager::RemoveComponent(
 }
 
 /////////////////////////////////////////////////
-bool ComponentManager::EntityHasComponent(EntityId _id,
+bool EntityComponentManager::EntityHasComponent(EntityId _id,
     const ComponentKey &_key) const
 {
   return this->HasEntity(_id) &&
@@ -137,7 +137,7 @@ bool ComponentManager::EntityHasComponent(EntityId _id,
 }
 
 /////////////////////////////////////////////////
-bool ComponentManager::EntityHasComponentType(const EntityId _id,
+bool EntityComponentManager::EntityHasComponentType(const EntityId _id,
     const ComponentTypeId &_typeId) const
 {
   if (!this->HasEntity(_id))
@@ -150,7 +150,7 @@ bool ComponentManager::EntityHasComponentType(const EntityId _id,
 }
 
 /////////////////////////////////////////////////
-bool ComponentManager::HasEntity(EntityId _id) const
+bool EntityComponentManager::HasEntity(EntityId _id) const
 {
   // \todo(nkoenig) This function needs to be fixed/implemented.
   // True if the vector is big enough to have used this id
@@ -164,7 +164,7 @@ bool ComponentManager::HasEntity(EntityId _id) const
 }
 
 /////////////////////////////////////////////////
-ComponentKey ComponentManager::CreateComponentImplementation(
+ComponentKey EntityComponentManager::CreateComponentImplementation(
     const EntityId _entityId, const ComponentTypeId _componentTypeId,
     const std::any &_data)
 {
@@ -186,7 +186,7 @@ ComponentKey ComponentManager::CreateComponentImplementation(
 }
 
 //////////////////////////////////////////////////
-EntityQueryId ComponentManager::AddQuery(const EntityQuery &_query)
+EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 {
   std::cout << "Adding query\n";
 
@@ -223,7 +223,7 @@ EntityQueryId ComponentManager::AddQuery(const EntityQuery &_query)
 }
 
 /////////////////////////////////////////////////
-bool ComponentManagerPrivate::EntityMatches(EntityId _id,
+bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const
 {
   const std::vector<ComponentKey> &components = this->entityComponents.at(_id);
@@ -253,7 +253,7 @@ bool ComponentManagerPrivate::EntityMatches(EntityId _id,
 
 /////////////////////////////////////////////////
 const std::optional<std::reference_wrapper<EntityQuery>>
-ComponentManager::Query(const EntityQueryId _index) const
+EntityComponentManager::Query(const EntityQueryId _index) const
 {
   if (_index >= 0 && _index < this->dataPtr->queries.size())
   {
@@ -264,7 +264,7 @@ ComponentManager::Query(const EntityQueryId _index) const
 }
 
 /////////////////////////////////////////////////
-ComponentTypeId ComponentManager::Type(const std::string &_name) const
+ComponentTypeId EntityComponentManager::Type(const std::string &_name) const
 {
   std::map<std::string, ComponentTypeId>::const_iterator iter =
     this->componentNameMap.find(_name);
@@ -275,7 +275,7 @@ ComponentTypeId ComponentManager::Type(const std::string &_name) const
 }
 
 /////////////////////////////////////////////////
-const void *ComponentManager::ComponentImplementation(
+const void *EntityComponentManager::ComponentImplementation(
     const EntityId _id, const ComponentTypeId _type) const
 {
   std::vector<ComponentKey>::const_iterator iter =

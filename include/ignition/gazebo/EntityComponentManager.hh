@@ -35,7 +35,7 @@ namespace ignition
   namespace gazebo
   {
     // Forward declarations.
-    class ComponentManagerPrivate;
+    class EntityComponentManagerPrivate;
 
     /// \cond
     /// \brief All component instances of the same type are stored
@@ -185,14 +185,15 @@ namespace ignition
     };
     /// \endcond
 
-    /// \brief The ComponentManager constructs, deletes, and returns components.
-    class IGNITION_GAZEBO_VISIBLE ComponentManager
+    /// \brief The EntityComponentManager constructs, deletes, and returns
+    /// components.
+    class IGNITION_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
-      public: ComponentManager();
+      public: EntityComponentManager();
 
       /// \brief Destructor
-      public: ~ComponentManager();
+      public: ~EntityComponentManager();
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
@@ -356,7 +357,7 @@ namespace ignition
       private: std::map<std::string, ComponentTypeId> componentNameMap;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<ComponentManagerPrivate> dataPtr;
+      private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
     };
   }
 }

@@ -22,7 +22,7 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-PoseComponentType::PoseComponentType(ComponentManager &_compMgr)
+PoseComponentType::PoseComponentType(EntityComponentManager &_compMgr)
   : ComponentType()
 {
   std::string typeName = "ignition::math::Pose3d";

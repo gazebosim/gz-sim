@@ -33,8 +33,8 @@
 #include <ignition/common/SignalHandler.hh>
 
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EntityQueryRegistrar.hh"
-#include "ignition/gazebo/ComponentManager.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
 
@@ -107,7 +107,7 @@ namespace ignition
       public: ignition::common::SignalHandler sigHandler;
 
       /// \brief Manager of all components.
-      public: std::shared_ptr<ComponentManager> componentMgr;
+      public: std::shared_ptr<EntityComponentManager> entityCompMgr;
 
       public: EntityQueryRegistrar entityQueryRegistrar;
 

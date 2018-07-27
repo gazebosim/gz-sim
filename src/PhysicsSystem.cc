@@ -44,7 +44,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
   /// \todo(nkoenig) It would be nice to fix the ComponentMgr shared pointer
   /// issue.
   EntityQuery query;
-  query.AddComponentType(PoseComponentType(this->config->ComponentMgr()));
+  query.AddComponentType(PoseComponentType(this->config->EntityComponentMgr()));
   _registrar.Register(query,
       std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1));
 }
@@ -56,7 +56,8 @@ void PhysicsSystem::OnUpdate(const EntityQuery &_result)
   for (const EntityId &entity : _result.Entities())
   {
     const ignition::math::Pose3d *pose =
-      this->config->ComponentMgr().Component<ignition::math::Pose3d>(entity);
+      this->config->EntityComponentMgr().Component<
+      ignition::math::Pose3d>(entity);
     std::cout << *pose << std::endl;
   }
   std::cout << "]\n";

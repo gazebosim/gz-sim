@@ -20,19 +20,19 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/common/Console.hh>
-#include "ignition/gazebo/ComponentManager.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 
-class ComponentManagerFixture : public ::testing::TestWithParam<int>
+class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
 {
 };
 
 /////////////////////////////////////////////////
-TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
+TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
 {
   ignition::common::Console::SetVerbosity(4);
-  gazebo::ComponentManager manager;
+  gazebo::EntityComponentManager manager;
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
@@ -81,12 +81,11 @@ TEST_P(ComponentManagerFixture, AdjacentMemorySingleComponentType)
     prevPose = pose;
   }
 }
-/*
 
 /////////////////////////////////////////////////
-TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
+TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
 {
-  gazebo::ComponentManager manager;
+  gazebo::EntityComponentManager manager;
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<int> ints;
@@ -146,9 +145,9 @@ TEST_P(ComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ComponentManagerFixture, InvalidComponentType)
+TEST_P(EntityComponentManagerFixture, InvalidComponentType)
 {
-  gazebo::ComponentManager manager;
+  gazebo::EntityComponentManager manager;
 
   gazebo::ComponentKey key{999, 0};
 
@@ -162,9 +161,9 @@ TEST_P(ComponentManagerFixture, InvalidComponentType)
 /////////////////////////////////////////////////
 // Removing a component should guarantee that existing components remain
 // adjacent to each other.
-TEST_P(ComponentManagerFixture, RemoveAdjacent)
+TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
 {
-  gazebo::ComponentManager manager;
+  gazebo::EntityComponentManager manager;
   manager.RegisterComponentType<ignition::math::Pose3d>(
       "ignition::math::Pose3d");
 
@@ -218,9 +217,9 @@ TEST_P(ComponentManagerFixture, RemoveAdjacent)
 // Removing a component should guarantee that existing components remain
 // adjacent to each other, and addition of a new component is adjacent to
 // the last element.
-TEST_P(ComponentManagerFixture, RemoveAddAdjacent)
+TEST_P(EntityComponentManagerFixture, RemoveAddAdjacent)
 {
-  gazebo::ComponentManager manager;
+  gazebo::EntityComponentManager manager;
   manager.RegisterComponentType<ignition::math::Pose3d>(
       "ignition::math::Pose3d");
 
@@ -273,9 +272,7 @@ TEST_P(ComponentManagerFixture, RemoveAddAdjacent)
   EXPECT_EQ(ignition::math::Pose3d(1010, 81, 821, 0, 0, 0), *pose4);
 }
 
-*/
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ComponentManagerRepeat, ComponentManagerFixture,
-    ::testing::Range(1, 10));
-
+INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
+    EntityComponentManagerFixture, ::testing::Range(1, 10));
