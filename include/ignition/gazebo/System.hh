@@ -42,7 +42,7 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
-      public: System(const std::string &_name);
+      public: explicit System(const std::string &_name);
 
       /// \brief Destructor
       public: virtual ~System();
