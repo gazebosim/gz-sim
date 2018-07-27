@@ -31,7 +31,7 @@ namespace ignition
     //
     class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
     {
-      public: explicit PoseComponentType(EntityComponentManager &_compMgr);
+      public: explicit PoseComponentType(EntityComponentManager *_compMgr);
       public: virtual ~PoseComponentType();
     };
     }

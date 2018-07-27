@@ -24,6 +24,8 @@ namespace ignition
 {
   namespace gazebo
   {
+    class EntityComponentManager;
+
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
@@ -45,7 +47,8 @@ namespace ignition
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
     /// \brief typedef for query callbacks
-    using EntityQueryCallback = std::function<void (const EntityQuery&_r)>;
+    using EntityQueryCallback = std::function<void (const EntityQuery &,
+        EntityComponentManager *)>;
 
     /// \brief typedef for long registration type
     using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;

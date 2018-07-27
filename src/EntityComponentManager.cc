@@ -255,7 +255,8 @@ bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
 const std::optional<std::reference_wrapper<EntityQuery>>
 EntityComponentManager::Query(const EntityQueryId _index) const
 {
-  if (_index >= 0 && _index < this->dataPtr->queries.size())
+  if (_index >= 0 &&
+      _index < static_cast<EntityQueryId>(this->dataPtr->queries.size()))
   {
     return std::optional<std::reference_wrapper<EntityQuery>>(
         this->dataPtr->queries[_index]);

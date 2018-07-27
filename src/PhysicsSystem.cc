@@ -27,8 +27,8 @@ class ignition::gazebo::PhysicsSystemPrivate
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-PhysicsSystem::PhysicsSystem(const SystemConfig &_config)
-  : System("Physics", _config), dataPtr(new PhysicsSystemPrivate)
+PhysicsSystem::PhysicsSystem()
+  : System("Physics"), dataPtr(new PhysicsSystemPrivate)
 {
 }
 
@@ -38,26 +38,28 @@ PhysicsSystem::~PhysicsSystem()
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
+void PhysicsSystem::Init(EntityQueryRegistrar &_registrar,
+    EntityComponentManager *_ecMgr)
 {
   /// \todo(nkoenig) support curly-bracket initialization.
   /// \todo(nkoenig) It would be nice to fix the ComponentMgr shared pointer
   /// issue.
   EntityQuery query;
-  query.AddComponentType(PoseComponentType(this->config->EntityComponentMgr()));
+  query.AddComponentType(PoseComponentType(_ecMgr));
   _registrar.Register(query,
-      std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1));
+      std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
+        std::placeholders::_2));
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::OnUpdate(const EntityQuery &_result)
+void PhysicsSystem::OnUpdate(const EntityQuery &_result,
+    EntityComponentManager *_ecMgr)
 {
   std::cout << "Physics System on update Entities[";
   for (const EntityId &entity : _result.Entities())
   {
     const ignition::math::Pose3d *pose =
-      this->config->EntityComponentMgr().Component<
-      ignition::math::Pose3d>(entity);
+      _ecMgr->Component<ignition::math::Pose3d>(entity);
     std::cout << *pose << std::endl;
   }
   std::cout << "]\n";

@@ -40,12 +40,13 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE WorldStatisticsSystem : public System
     {
       /// \brief Constructor
-      public: explicit WorldStatisticsSystem(const SystemConfig &_config);
+      public: explicit WorldStatisticsSystem();
 
       /// \brief Destructor
       public: virtual ~WorldStatisticsSystem();
 
-      public: void Init(EntityQueryRegistrar &_registrar) override final;
+      public: void Init(EntityQueryRegistrar &_registrar,
+                  EntityComponentManager *_ecMgr) override final;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
