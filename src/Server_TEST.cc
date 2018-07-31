@@ -37,7 +37,7 @@ TEST_P(ServerFixture, Constructor)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
   EXPECT_EQ(0u, server.EntityCount());
-  EXPECT_EQ(2u, server.SystemCount());
+  EXPECT_EQ(1u, server.SystemCount());
 
   gazebo::EntityComponentManager &mgr = server.EntityComponentMgr();
   EXPECT_EQ(0u, mgr.EntityCount());
