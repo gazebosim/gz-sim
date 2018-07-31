@@ -30,81 +30,109 @@ namespace ignition
   {
     namespace eigen3
     {
-      // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-      // ---------------- Converting to Eigen ----------------------
-      inline Eigen::Vector3d convert(const ignition::math::Vector3d &v)
+      /// \brief Convert from ignition::math::Vector3d to Eigen::Vector3d.
+      /// \param[in] _v ignition::math::Vector3d to convert
+      /// \return The equivalent Eigen::Vector3d.
+      inline Eigen::Vector3d convert(const ignition::math::Vector3d &_v)
       {
-        return Eigen::Vector3d(v[0], v[1], v[2]);
+        return Eigen::Vector3d(_v[0], _v[1], _v[2]);
       }
 
-      inline Eigen::Matrix3d convert(const ignition::math::Matrix3d &m)
+      /// \brief Convert from ignition::math::Matrix3d to Eigen::Matrix3d.
+      /// \param[in] _m ignition::math::Matrix3d to convert.
+      /// \return The equivalent Eigen::Matrix3d.
+      inline Eigen::Matrix3d convert(const ignition::math::Matrix3d &_m)
       {
         Eigen::Matrix3d matrix;
         for (std::size_t i=0; i < 3; ++i)
+        {
           for (std::size_t j=0; j < 3; ++j)
-            matrix(i, j) = m(i, j);
+          {
+            matrix(i, j) = _m(i, j);
+          }
+        }
 
         return matrix;
       }
 
-      inline Eigen::Quaterniond convert(const ignition::math::Quaterniond &q)
+      /// \brief Convert ignition::math::Quaterniond to Eigen::Quaterniond.
+      /// \param[in] _q ignition::math::Quaterniond to convert.
+      /// \return The equivalent Eigen::Quaterniond.
+      inline Eigen::Quaterniond convert(const ignition::math::Quaterniond &_q)
       {
         Eigen::Quaterniond quat;
-        quat.w() = q.W();
-        quat.x() = q.X();
-        quat.y() = q.Y();
-        quat.z() = q.Z();
+        quat.w() = _q.W();
+        quat.x() = _q.X();
+        quat.y() = _q.Y();
+        quat.z() = _q.Z();
 
         return quat;
       }
 
-      inline Eigen::Isometry3d convert(const ignition::math::Pose3d &pose)
+      /// \brief Convert ignition::math::Pose3d to Eigen::Isometry3d.
+      /// \param[in] _pose ignition::math::Pose3d to convert.
+      /// \return The equivalent Eigen::Isometry3d.
+      inline Eigen::Isometry3d convert(const ignition::math::Pose3d &_pose)
       {
         Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
-        tf.translation() = convert(pose.Pos());
-        tf.linear() = Eigen::Matrix3d(convert(pose.Rot()));
+        tf.translation() = convert(_pose.Pos());
+        tf.linear() = Eigen::Matrix3d(convert(_pose.Rot()));
 
         return tf;
       }
 
-      // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-      // ---------------- Converting to ignition -------------------
-      inline ignition::math::Vector3d convert(const Eigen::Vector3d &v)
+      /// \brief Convert Eigen::Vector3d to ignition::math::Vector3d.
+      /// \param[in] _v Eigen::Vector3d to convert.
+      /// \return The equivalent ignition::math::Vector3d.
+      inline ignition::math::Vector3d convert(const Eigen::Vector3d &_v)
       {
         ignition::math::Vector3d vec;
-        vec.X() = v[0];
-        vec.Y() = v[1];
-        vec.Z() = v[2];
+        vec.X() = _v[0];
+        vec.Y() = _v[1];
+        vec.Z() = _v[2];
 
         return vec;
       }
 
-      inline ignition::math::Matrix3d convert(const Eigen::Matrix3d &m)
+      /// \brief Convert Eigen::Matrix3d to ignition::math::Matrix3d.
+      /// \param[in] _m Eigen::Matrix3d to convert.
+      /// \return The equivalent ignition::math::Matrix3d.
+      inline ignition::math::Matrix3d convert(const Eigen::Matrix3d &_m)
       {
         ignition::math::Matrix3d matrix;
         for (std::size_t i=0; i < 3; ++i)
+        {
           for (std::size_t j=0; j < 3; ++j)
-            matrix(i, j) = m(i, j);
+          {
+            matrix(i, j) = _m(i, j);
+          }
+        }
 
         return matrix;
       }
 
-      inline ignition::math::Quaterniond convert(const Eigen::Quaterniond &q)
+      /// \brief Convert Eigen::Quaterniond to ignition::math::Quaterniond.
+      /// \param[in] _q Eigen::Quaterniond to convert.
+      /// \return The equivalent ignition::math::Quaterniond.
+      inline ignition::math::Quaterniond convert(const Eigen::Quaterniond &_q)
       {
         ignition::math::Quaterniond quat;
-        quat.W() = q.w();
-        quat.X() = q.x();
-        quat.Y() = q.y();
-        quat.Z() = q.z();
+        quat.W() = _q.w();
+        quat.X() = _q.x();
+        quat.Y() = _q.y();
+        quat.Z() = _q.z();
 
         return quat;
       }
 
-      inline ignition::math::Pose3d convert(const Eigen::Isometry3d &tf)
+      /// \brief Convert Eigen::Isometry3d to ignition::math::Pose3d.
+      /// \param[in] _tf Eigen::Isometry3d to convert.
+      /// \return The equivalent ignition::math::Pose3d.
+      inline ignition::math::Pose3d convert(const Eigen::Isometry3d &_tf)
       {
         ignition::math::Pose3d pose;
-        pose.Pos() = convert(Eigen::Vector3d(tf.translation()));
-        pose.Rot() = convert(Eigen::Quaterniond(tf.rotation()));
+        pose.Pos() = convert(Eigen::Vector3d(_tf.translation()));
+        pose.Rot() = convert(Eigen::Quaterniond(_tf.rotation()));
 
         return pose;
       }
