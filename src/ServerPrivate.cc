@@ -22,7 +22,6 @@
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/PoseComponentType.hh"
 
@@ -36,10 +35,6 @@ ServerPrivate::ServerPrivate()
   // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
-
-  // Create a world statistics system
-  this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<WorldStatisticsSystem>())));
 
   // Create a physics system
   this->systems.push_back(SystemInternal(

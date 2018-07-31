@@ -44,6 +44,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
   EntityQuery query;
   query.AddComponentType(
       EntityComponentManager::ComponentType<PoseComponentType>());
+
   _registrar.Register(query,
       std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
         std::placeholders::_2));
@@ -56,6 +57,7 @@ void PhysicsSystem::OnUpdate(const EntityQuery &_result,
   std::cout << "Physics System on update Entities[";
   for (const EntityId &entity : _result.Entities())
   {
+    // \todo(nkoenig) Support modification of components.
     const auto pose = _ecMgr.Component<PoseComponentType>(entity);
     std::cout << pose->Pose() << std::endl;
   }
