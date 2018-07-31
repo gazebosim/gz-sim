@@ -26,5 +26,5 @@ Install Ignition Math:
 
 ```
 sudo apt-get update
-sudo apt-get install libignition-math4-dev
+sudo apt-get install libignition-math5-dev
 ```
