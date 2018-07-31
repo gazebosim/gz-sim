@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include <string>
+
 #include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/PoseComponentType.hh"
 #include "ignition/gazebo/ComponentType.hh"
@@ -21,16 +23,72 @@
 using namespace ignition;
 using namespace gazebo;
 
-//////////////////////////////////////////////////
-PoseComponentType::PoseComponentType(EntityComponentManager &_compMgr)
-  : ComponentType()
+class ignition::gazebo::PoseComponentTypePrivate
 {
-  std::string typeName = "ignition::math::Pose3d";
-  this->Init<ignition::math::Pose3d>(typeName,
-      _compMgr.RegisterComponentType<ignition::math::Pose3d>(typeName));
+  /// \brief Constructor.
+  /// \param[in] _pose Pose data.
+  public: explicit PoseComponentTypePrivate(const ignition::math::Pose3d &_pose)
+          : pose(_pose)
+  {
+  }
+
+  /// \brief Name of the component.
+  public: std::string name{"PoseComponent"};
+
+  /// \brief The pose data.
+  public: ignition::math::Pose3d pose;
+};
+
+//////////////////////////////////////////////////
+PoseComponentType::PoseComponentType(const ignition::math::Pose3d &_pose)
+: ComponentType(EntityComponentManager::ComponentType<PoseComponentType>()),
+  dataPtr(new PoseComponentTypePrivate(_pose))
+{
+}
+
+//////////////////////////////////////////////////
+PoseComponentType::PoseComponentType(const PoseComponentType &_pose)
+  : ComponentType(_pose.TypeId()),
+    dataPtr(new PoseComponentTypePrivate(_pose.Pose()))
+{
+}
+
+//////////////////////////////////////////////////
+PoseComponentType::PoseComponentType(PoseComponentType &&_pose)
+  : ComponentType(_pose.TypeId()),
+    dataPtr(std::move(_pose.dataPtr))
+{
 }
 
 //////////////////////////////////////////////////
 PoseComponentType::~PoseComponentType()
 {
+  // \todo(nkoenig) Add ability to unregister a component type.
+  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
+}
+
+//////////////////////////////////////////////////
+const ignition::math::Pose3d &PoseComponentType::Pose() const
+{
+  return this->dataPtr->pose;
+}
+
+//////////////////////////////////////////////////
+const std::string &PoseComponentType::Name() const
+{
+  return this->dataPtr->name;
+}
+
+//////////////////////////////////////////////////
+PoseComponentType &PoseComponentType::operator=(PoseComponentType &&_pose)
+{
+  this->dataPtr = std::move(_pose.dataPtr);
+  return *this;
+}
+
+//////////////////////////////////////////////////
+PoseComponentType &PoseComponentType::operator=(const PoseComponentType &_pose)
+{
+  this->dataPtr->pose = _pose.Pose();
+  return *this;
 }

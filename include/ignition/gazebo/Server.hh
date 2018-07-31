@@ -28,12 +28,11 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forware declarations
     class ServerPrivate;
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     /// \class Server Server.hh ignition/gazebo/Server.hh
     /// \brief The server instantiates and controls simulation.
     ///

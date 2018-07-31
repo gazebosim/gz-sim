@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <set>
-#include <ignition/gazebo/ComponentType.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/Export.hh>
@@ -30,12 +29,11 @@ namespace ignition
 {
   namespace gazebo
   {
-    /// \brief Forward declaration
-    class EntityQueryPrivate;
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
+    // Forward declarations
+    class EntityQueryPrivate;
+
     /// \class EntityQuery EntityQuery.hh ignition/gazebo/EntityQuery.hh
     /// \brief a Class for querying entities from a manager
     class IGNITION_GAZEBO_VISIBLE EntityQuery
@@ -56,8 +54,6 @@ namespace ignition
 
       /// \brief Return true if this is an empty query.
       public: bool Empty() const;
-
-      public: bool AddComponentType(const ComponentType &_type);
 
       /// \brief Add a component based on a component type.
       /// \param[in] _type Type of component to add.
@@ -87,13 +83,19 @@ namespace ignition
 
       /// \brief Clear results of a query. This will keep the set of
       /// components, and clear the set of entities.
-      private: void Clear();
+      public: void Clear();
 
       /// \brief Returns true if these are the same queries. This will
       /// return true only if the ComponentTypes match.
       /// \param[in] _query The query to compare
       /// \return True if this query matches _query.
       public: bool operator==(const EntityQuery &_query) const;
+
+      /// \brief Returns true if these are not the same queries. This will
+      /// return true only if the ComponentTypes do not match.
+      /// \param[in] _query The query to compare
+      /// \return True if this query does not match _query.
+      public: bool operator!=(const EntityQuery &_query) const;
 
       /// \brief Assignment operator.
       /// \param[in] _query Query to copy.

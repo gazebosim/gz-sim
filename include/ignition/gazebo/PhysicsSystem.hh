@@ -27,12 +27,12 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class PhysicsSystemPrivate;
     class EntityComponentManager;
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class PhysicsSystem PhysicsSystem.hh ignition/gazebo/PhysicsSystem.hh
     /// \brief Base class for a System.
     class IGNITION_GAZEBO_VISIBLE PhysicsSystem : public System
@@ -43,8 +43,7 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~PhysicsSystem();
 
-      public: void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager &_ecMgr) override final;
+      public: void Init(EntityQueryRegistrar &_registrar) override final;
 
       private: void OnUpdate(const EntityQuery &_result,
                    EntityComponentManager &_ecMgr);

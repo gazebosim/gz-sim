@@ -19,7 +19,6 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 
@@ -37,9 +36,6 @@ ServerPrivate::ServerPrivate()
   // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
-
-  // \todo(nkoenig) Move this to a plugin
-  PoseComponentType(*this->entityCompMgr.get());
 
   // Create a world statistics system
   this->systems.push_back(SystemInternal(
@@ -92,7 +88,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   for (SystemInternal &system : this->systems)
   {
     EntityQueryRegistrar registrar;
-    system.system->Init(registrar, *this->entityCompMgr.get());
+    system.system->Init(registrar);
     for (EntityQueryRegistration &registration : registrar.Registrations())
     {
       EntityQuery &query = registration.first;
@@ -101,6 +97,12 @@ bool ServerPrivate::Run(const uint64_t _iterations,
       system.updates.push_back({queryId, cb});
     }
   }
+
+  // \todo(nkoenig) Systems will need a an update structure, such as
+  // priorties, or a dependency chain.
+  //
+  // \todo(nkoenig) We should implement the two-phase update detailed
+  // in the design.
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
@@ -124,12 +126,6 @@ void ServerPrivate::OnSignal(int _sig)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::EraseEntities()
-{
-  this->entityCompMgr->EraseEntities();
-}
-
-//////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
   for (uint64_t i = 0; i < _root.ModelCount(); ++i)
@@ -141,6 +137,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     EntityId entityId = this->entityCompMgr->CreateEntity();
 
     // Create the pose component for the model.
-    this->entityCompMgr->CreateComponent(entityId, model->Pose());
+    this->entityCompMgr->CreateComponent(
+        entityId, PoseComponentType(model->Pose()));
   }
 }

@@ -53,12 +53,6 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Init(EntityQueryRegistrar &,
-    EntityComponentManager &)
-{
-}
-
-//////////////////////////////////////////////////
 /*void WorldStatisticsSystem::Update()
 {
   if (!this->dataPtr->realTimeWatch.Running())

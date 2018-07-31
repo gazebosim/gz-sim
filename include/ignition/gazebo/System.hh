@@ -27,12 +27,11 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SystemPrivate;
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     /// \class System System.hh ignition/gazebo/System.hh
     /// \brief Base class for a System.
     ///
@@ -47,8 +46,7 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~System();
 
-      public: virtual void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager &_ecMgr);
+      public: virtual void Init(EntityQueryRegistrar &_registrar);
 
       /// \brief Get the name of the system.
       public: const std::string &Name() const;
