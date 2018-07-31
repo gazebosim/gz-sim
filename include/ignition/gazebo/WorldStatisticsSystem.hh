@@ -27,12 +27,11 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class WorldStatisticsSystemPrivate;
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     /** \class WorldStatisticsSystem WorldStatisticsSystem.hh \
      * ignition/gazebo/WorldStatisticsSystem.hh
     **/
@@ -44,9 +43,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~WorldStatisticsSystem();
-
-      public: void Init(EntityQueryRegistrar &_registrar,
-                  EntityComponentManager &_ecMgr) override final;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;

@@ -28,12 +28,11 @@ namespace ignition
 {
   namespace gazebo
   {
-    /// \brief forward declaration
-    class EntityQueryRegistrarPrivate;
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
+    // Forward declarations
+    class EntityQueryRegistrarPrivate;
+
     /// \brief Registers callbacks for Entity query results
     class IGNITION_GAZEBO_VISIBLE EntityQueryRegistrar
     {

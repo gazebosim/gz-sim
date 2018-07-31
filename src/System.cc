@@ -39,9 +39,9 @@ System::System(const std::string &_name)
 System::~System()
 {
 }
+
 //////////////////////////////////////////////////
-void System::Init(EntityQueryRegistrar &/*_registrar*/,
-    EntityComponentManager &/*_ecMgr*/)
+void System::Init(EntityQueryRegistrar &/*_registrar*/)
 {
 }
 
@@ -50,10 +50,6 @@ const std::string &System::Name() const
 {
   return this->dataPtr->name;
 }
-
-// NEED TO STRUCTURE SYSTEM UPDATES - priorties, dependency chain...
-
-// TWO-PHASE UPDATE
 
 //////////////////////////////////////////////////
 void System::SetName(const std::string &_name) const

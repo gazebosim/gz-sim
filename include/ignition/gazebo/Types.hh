@@ -24,11 +24,10 @@ namespace ignition
 {
   namespace gazebo
   {
-    class EntityComponentManager;
-
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
+    // Forward declarations.
+    class EntityComponentManager;
     class EntityQuery;
 
     /// \brief A unique identifier for a component instance. The uniqueness
@@ -58,7 +57,7 @@ namespace ignition
     static const ComponentId kComponentIdInvalid = -1;
 
     /// \brief Id that indicates an invalid component type.
-    static const ComponentId kComponentTypeIdInvalid = -1;
+    static const ComponentTypeId kComponentTypeIdInvalid = -1;
     }
   }
 }

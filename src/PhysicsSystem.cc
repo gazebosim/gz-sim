@@ -38,12 +38,12 @@ PhysicsSystem::~PhysicsSystem()
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::Init(EntityQueryRegistrar &_registrar,
-    EntityComponentManager &_ecMgr)
+void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 {
-  /// \todo(nkoenig) support curly-bracket initialization.
+  /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
   EntityQuery query;
-  query.AddComponentType(PoseComponentType(_ecMgr));
+  query.AddComponentType(
+      EntityComponentManager::ComponentType<PoseComponentType>());
   _registrar.Register(query,
       std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
         std::placeholders::_2));
@@ -56,9 +56,8 @@ void PhysicsSystem::OnUpdate(const EntityQuery &_result,
   std::cout << "Physics System on update Entities[";
   for (const EntityId &entity : _result.Entities())
   {
-    const ignition::math::Pose3d *pose =
-      _ecMgr.Component<ignition::math::Pose3d>(entity);
-    std::cout << *pose << std::endl;
+    const auto pose = _ecMgr.Component<PoseComponentType>(entity);
+    std::cout << pose->Pose() << std::endl;
   }
   std::cout << "]\n";
 }

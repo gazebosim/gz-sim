@@ -17,22 +17,33 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/ComponentType.hh"
 
 using namespace ignition;
 
-/////////////////////////////////////////////////
-TEST(System, Constructor)
+class TestComponentType : public gazebo::ComponentType
 {
-  /// \todo(nkoenig) Add more tests here.
-  gazebo::System system("test");
-  EXPECT_EQ("test", system.Name());
+  public: explicit TestComponentType(const gazebo::ComponentTypeId &_typeId)
+          : ComponentType(_typeId)
+  {
+  }
 
-  // This doesn't do anything, but should still be valid.
-  gazebo::EntityQueryRegistrar registrar;
-  system.Init(registrar);
-  EXPECT_TRUE(registrar.Registrations().empty());
+  public: const std::string &Name() const override final
+  {
+    return this->name;
+  }
+  private: std::string name{"TestComponentType"};
+};
 
-  system.SetName("another");
-  EXPECT_EQ("another", system.Name());
+/////////////////////////////////////////////////
+TEST(ComponentType, Constructor)
+{
+  TestComponentType type(gazebo::kComponentTypeIdInvalid);
+  EXPECT_EQ(gazebo::kComponentTypeIdInvalid, type.TypeId());
+  EXPECT_EQ("TestComponentType", type.Name());
+  EXPECT_FALSE(type.Valid());
+
+  TestComponentType type2(1);
+  EXPECT_EQ(1, type2.TypeId());
+  EXPECT_TRUE(type2.Valid());
 }

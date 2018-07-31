@@ -19,31 +19,39 @@
 using namespace ignition;
 using namespace gazebo;
 
+// Private data class
+class ignition::gazebo::ComponentTypePrivate
+{
+  /// \brief Constructor
+  /// \param[in] _typeId Component type id of this component.
+  public: explicit ComponentTypePrivate(const ComponentTypeId &_typeId)
+          : typeId(_typeId)
+  {
+  }
+
+  /// \brief Type id of the component
+  public: ComponentTypeId typeId;
+};
+
 //////////////////////////////////////////////////
-ComponentType::ComponentType()
+ComponentType::ComponentType(const ComponentTypeId &_typeId)
+  : dataPtr(new ComponentTypePrivate(_typeId))
 {
 }
 
 //////////////////////////////////////////////////
 ComponentType::~ComponentType()
 {
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
-}
-
-//////////////////////////////////////////////////
-const std::string &ComponentType::Name() const
-{
-  return this->name;
 }
 
 //////////////////////////////////////////////////
 bool ComponentType::Valid() const
 {
-  return this->typeId != kComponentTypeIdInvalid;
+  return this->dataPtr->typeId != kComponentTypeIdInvalid;
 }
 
 //////////////////////////////////////////////////
 const ComponentTypeId &ComponentType::TypeId() const
 {
-  return this->typeId;
+  return this->dataPtr->typeId;
 }

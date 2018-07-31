@@ -42,6 +42,8 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Private data for Server
     class IGNITION_GAZEBO_HIDDEN SystemInternal
     {
@@ -75,9 +77,6 @@ namespace ignition
       /// notified when the server has started running.
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
-
-      /// \brief Erase all entities
-      public: void EraseEntities();
 
       /// \brief Create all entities that exist in the sdf::Root object.
       /// \param[in] _root SDF root object.
@@ -113,6 +112,7 @@ namespace ignition
 
       public: std::vector<SystemInternal> systems;
     };
+    }
   }
 }
 #endif

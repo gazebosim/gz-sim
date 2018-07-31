@@ -39,9 +39,6 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
 
   int count = 2;
 
-  manager.RegisterComponentType<ignition::math::Pose3d>(
-      "ignition::math::Pose3d");
-
   gazebo::EntityId entityId = manager.CreateEntity();
 
   // Create the components.
@@ -94,9 +91,6 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
 
   int count = 100000;
 
-  manager.RegisterComponentType<ignition::math::Pose3d>(
-      "ignition::math::Pose3d");
-  manager.RegisterComponentType<int>("int");
   gazebo::EntityId entityId = manager.CreateEntity();
 
   // Create the components.
@@ -164,8 +158,6 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
 TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
 {
   gazebo::EntityComponentManager manager;
-  manager.RegisterComponentType<ignition::math::Pose3d>(
-      "ignition::math::Pose3d");
 
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
@@ -220,8 +212,6 @@ TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
 TEST_P(EntityComponentManagerFixture, RemoveAddAdjacent)
 {
   gazebo::EntityComponentManager manager;
-  manager.RegisterComponentType<ignition::math::Pose3d>(
-      "ignition::math::Pose3d");
 
   gazebo::EntityId entityId = manager.CreateEntity();
 
@@ -270,6 +260,71 @@ TEST_P(EntityComponentManagerFixture, RemoveAddAdjacent)
   EXPECT_EQ(ignition::math::Pose3d(0, 10, 20, 0, 0, 0), *pose2);
   EXPECT_EQ(ignition::math::Pose3d(101, 51, 520, 0, 0, 0), *pose3);
   EXPECT_EQ(ignition::math::Pose3d(1010, 81, 821, 0, 0, 0), *pose4);
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
+{
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::EntityComponentManager manager;
+  EXPECT_EQ(0u, manager.EntityCount());
+
+  // Create a few entities
+  gazebo::EntityId entityId = manager.CreateEntity();
+  gazebo::EntityId entityId2 = manager.CreateEntity();
+  manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add a component to an entity
+  manager.CreateComponent<int>(entityId, 123);
+  EXPECT_TRUE(manager.HasComponentType(
+        gazebo::EntityComponentManager::ComponentType<int>()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entityId,
+        gazebo::EntityComponentManager::ComponentType<int>()));
+  EXPECT_FALSE(manager.EntityHasComponentType(entityId2,
+        gazebo::EntityComponentManager::ComponentType<int>()));
+
+  manager.EraseEntities();
+
+  EXPECT_EQ(0u, manager.EntityCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, Query)
+{
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::EntityComponentManager manager;
+
+  // Create a new entity
+  gazebo::EntityId entityId = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Add a component to an entity
+  manager.CreateComponent<int>(entityId, 123);
+
+  gazebo::EntityQuery query;
+  query.AddComponentType(
+      gazebo::EntityComponentManager::ComponentType<int>());
+
+  gazebo::EntityQueryId queryId = manager.AddQuery(query);
+  EXPECT_LT(-1, queryId);
+
+  const auto optQuery = manager.Query(queryId);
+  ASSERT_NE(std::nullopt, optQuery);
+  const std::set<gazebo::EntityId> queryEntities =
+    optQuery.value().get().Entities();
+  EXPECT_EQ(1u, queryEntities.size());
+  EXPECT_TRUE(queryEntities.find(entityId) != queryEntities.end());
+
+  const int *intComponent = manager.Component<int>(entityId);
+  ASSERT_NE(nullptr, intComponent);
+  EXPECT_EQ(123, *intComponent);
+
+  const int *badIntComponent = manager.Component<int>(entityId+1);
+  ASSERT_EQ(nullptr, badIntComponent);
+
+  const double *badDoubleComponent = manager.Component<double>(entityId);
+  ASSERT_EQ(nullptr, badDoubleComponent);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

@@ -66,12 +66,6 @@ EntityQuery::~EntityQuery()
 }
 
 /////////////////////////////////////////////////
-bool EntityQuery::AddComponentType(const ComponentType &_type)
-{
-  return this->AddComponentType(_type.TypeId());
-}
-
-/////////////////////////////////////////////////
 bool EntityQuery::AddComponentType(const ComponentTypeId _type)
 {
   if (_type != kComponentTypeIdInvalid)
@@ -89,6 +83,12 @@ bool EntityQuery::operator==(const EntityQuery &_query) const
   return std::equal(this->dataPtr->componentTypes.begin(),
                     this->dataPtr->componentTypes.end(),
                     _query.dataPtr->componentTypes.begin());
+}
+
+/////////////////////////////////////////////////
+bool EntityQuery::operator!=(const EntityQuery &_query) const
+{
+  return !(*this == _query);
 }
 
 /////////////////////////////////////////////////

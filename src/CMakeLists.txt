@@ -21,8 +21,10 @@ set (sources
 )
 
 set (gtest_sources
+  ComponentType_TEST.cc
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
+  EntityQuery_TEST.cc
   Server_TEST.cc
   System_TEST.cc
 )

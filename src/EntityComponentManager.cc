@@ -25,20 +25,32 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
+  /// \brief Get whether and entity has the given component types.
+  /// \param[in] _id Id of the Entity to check.
+  /// \param[in] _types Component types to check that the Entity has.
+  /// \return True if the given entity has the given types.
   public: bool EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const;
+
+  /// \brief Map of component storage classes. The key is a component
+  /// type id, and the value is a pointer to the component storage.
+  public: std::map<ComponentTypeId,
+          std::unique_ptr<ComponentStorageBase>> components;
 
   /// \brief instances of entities
   public: std::vector<Entity> entities;
 
   /// \brief deleted entity ids that can be reused
-  public: std::set<EntityId> availableEntityIds;
+  // \todo(nkoenig) Add this back in when implementing EraseEntity.
+  // public: std::set<EntityId> availableEntityIds;
 
+  /// \brief The set of components that each entity has
   public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
   /// \brief Set of known Entity queries.
   public: std::vector<EntityQuery> queries;
 };
+
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
@@ -62,47 +74,49 @@ EntityId EntityComponentManager::CreateEntity()
 {
   EntityId id = kNullEntity;
 
-  if (!this->dataPtr->availableEntityIds.empty())
-  {
-    // Reuse the smallest available EntityId
-    id = *(this->dataPtr->availableEntityIds.begin());
-    this->dataPtr->availableEntityIds.erase(
-        this->dataPtr->availableEntityIds.begin());
-    this->dataPtr->entities[id] = std::move(Entity(id));
-  }
-  else
-  {
+  // \todo(nkoenig) Add this back in when implementing EraseEntity.
+  // if (!this->dataPtr->availableEntityIds.empty())
+  // {
+  //   // Reuse the smallest available EntityId
+  //   id = *(this->dataPtr->availableEntityIds.begin());
+  //   this->dataPtr->availableEntityIds.erase(
+  //       this->dataPtr->availableEntityIds.begin());
+  //   this->dataPtr->entities[id] = std::move(Entity(id));
+  // }
+  // else
+  // {
     // Create a brand new Id
     id = this->dataPtr->entities.size();
     this->dataPtr->entities.push_back(std::move(Entity(id)));
-  }
+  // }
 
   return id;
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::EraseEntity(EntityId _id)
-{
-  bool success = false;
-  if (this->HasEntity(_id))
-  {
-    // \todo(nkoenig) Remove the entity at a good point in the update cycle
-    // (aka "toDeleteEntities"), and delete the components associated with
-    // the entity.
-    success = true;
-  }
-  return success;
-}
+// bool EntityComponentManager::EraseEntity(EntityId _id)
+// {
+//   bool success = false;
+//   if (this->HasEntity(_id))
+//   {
+//     // \todo(nkoenig) Remove the entity at a good point in the update cycle
+//     // (aka "toDeleteEntities"), and delete the components associated with
+//     // the entity.
+//     success = true;
+//   }
+//   return success;
+// }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::EraseEntities()
 {
   this->dataPtr->entities.clear();
   this->dataPtr->entityComponents.clear();
-  this->dataPtr->availableEntityIds.clear();
+  // \todo(nkoenig) Add this back in when implementing EraseEntity.
+  // this->dataPtr->availableEntityIds.clear();
 
   for (std::pair<const ComponentTypeId,
-       std::unique_ptr<ComponentStorageBase>> &comp: this->components)
+       std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
   {
     comp.second->RemoveAll();
   }
@@ -119,7 +133,7 @@ bool EntityComponentManager::RemoveComponent(
         this->dataPtr->entityComponents[_id].begin(),
         this->dataPtr->entityComponents[_id].end(), _key);
 
-    this->components.at(_key.first)->Remove(_key.second);
+    this->dataPtr->components.at(_key.first)->Remove(_key.second);
     this->dataPtr->entityComponents[_id].erase(entityComponentIter);
     return true;
   }
@@ -143,10 +157,15 @@ bool EntityComponentManager::EntityHasComponentType(const EntityId _id,
   if (!this->HasEntity(_id))
     return false;
 
-  return std::find_if(this->dataPtr->entityComponents.at(_id).begin(),
-      this->dataPtr->entityComponents.at(_id).end(),
+  std::map<EntityId, std::vector<ComponentKey>>::const_iterator iter =
+    this->dataPtr->entityComponents.find(_id);
+
+  if (iter == this->dataPtr->entityComponents.end())
+    return false;
+
+  return std::find_if(iter->second.begin(), iter->second.end(),
       [&] (const ComponentKey &_key) {return _key.first == _typeId;}) !=
-    this->dataPtr->entityComponents.at(_id).end();
+    iter->second.end();
 }
 
 /////////////////////////////////////////////////
@@ -168,15 +187,9 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const EntityId _entityId, const ComponentTypeId _componentTypeId,
     const std::any &_data)
 {
-  // Make sure the component has been registered.
-  if (this->components.find(_componentTypeId) == this->components.end())
-  {
-    igndbg << "Unable to create unregistered component.\n";
-    return {kComponentTypeIdInvalid, kComponentIdInvalid};
-  }
-
   // Instantiate the new component.
-  ComponentId componentId = this->components[_componentTypeId]->Create(_data);
+  ComponentId componentId =
+    this->dataPtr->components[_componentTypeId]->Create(_data);
 
   ComponentKey componentKey{_componentTypeId, componentId};
 
@@ -188,8 +201,6 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 //////////////////////////////////////////////////
 EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 {
-  std::cout << "Adding query\n";
-
   for (size_t i = 0; i < this->dataPtr->queries.size(); ++i)
   {
     if (_query == this->dataPtr->queries.at(i))
@@ -213,7 +224,6 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
     // Check that the entity has the required components
     if (this->dataPtr->EntityMatches(id, types))
     {
-      std::cout << "Added Entity[" << id << "] To Query\n";
       query.AddEntity(id);
     }
   }
@@ -225,7 +235,7 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const
 {
-  const std::vector<ComponentKey> &components = this->entityComponents.at(_id);
+  const std::vector<ComponentKey> &comps = this->entityComponents.at(_id);
 
   // \todo(nkoenig) The performance of this coude be improved. Ideally we
   // wouldn't need two loops to confirm that an entity matches a set of
@@ -235,7 +245,7 @@ bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
   for (const ComponentTypeId &type : _types)
   {
     bool found = false;
-    for (const ComponentKey &comp : components)
+    for (const ComponentKey &comp : comps)
     {
       if (comp.first == type)
       {
@@ -264,27 +274,49 @@ EntityComponentManager::Query(const EntityQueryId _index) const
 }
 
 /////////////////////////////////////////////////
-ComponentTypeId EntityComponentManager::Type(const std::string &_name) const
+const void *EntityComponentManager::ComponentImplementation(
+    const EntityId _id, const ComponentTypeId _type) const
 {
-  std::map<std::string, ComponentTypeId>::const_iterator iter =
-    this->componentNameMap.find(_name);
+  std::map<EntityId, std::vector<ComponentKey>>::const_iterator ecIter =
+    this->dataPtr->entityComponents.find(_id);
 
-  if (iter != this->componentNameMap.end())
-    return iter->second;
-  return kComponentTypeIdInvalid;
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return nullptr;
+
+  std::vector<ComponentKey>::const_iterator iter =
+    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key) {return _key.first == _type;});
+
+  if (iter != ecIter->second.end())
+    return this->dataPtr->components.at(iter->first)->Component(iter->second);
+
+  return nullptr;
 }
 
 /////////////////////////////////////////////////
 const void *EntityComponentManager::ComponentImplementation(
-    const EntityId _id, const ComponentTypeId _type) const
+    const ComponentKey &_key) const
 {
-  std::vector<ComponentKey>::const_iterator iter =
-    std::find_if(this->dataPtr->entityComponents.at(_id).begin(),
-                 this->dataPtr->entityComponents.at(_id).end(),
-                 [&] (const ComponentKey &_key) {return _key.first == _type;});
-
-  if (iter != this->dataPtr->entityComponents.at(_id).end())
-    return this->components.at(iter->first)->Component(iter->second);
-
+  if (this->dataPtr->components.find(_key.first) !=
+      this->dataPtr->components.end())
+  {
+    return this->dataPtr->components.at(_key.first)->Component(_key.second);
+  }
   return nullptr;
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasComponentType(const ComponentTypeId _typeId)
+{
+  return this->dataPtr->components.find(_typeId) !=
+    this->dataPtr->components.end();
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::RegisterComponentType(
+    const ComponentTypeId _typeId,
+    ComponentStorageBase *_type)
+{
+  igndbg << "Register new component type " << _typeId << ".\n";
+  this->dataPtr->components[_typeId].reset(_type);
 }

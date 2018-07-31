@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENT_TYPE_HH_
 #define IGNITION_GAZEBO_COMPONENT_TYPE_HH_
 
+#include <memory>
 #include <string>
 
 #include <ignition/gazebo/config.hh>
@@ -31,28 +32,38 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
+    // Forward declarations.
+    class ComponentTypePrivate;
+
+    /// \brief Base class for all component types. A component should
+    /// consist of only data. Multiple components can be assigned to an
+    /// Entity. Systems, such as a physics system, will read and potentially
+    /// modify components.
     class IGNITION_GAZEBO_VISIBLE ComponentType
     {
-      public: ComponentType();
+      /// \brief Constructor.
+      /// \param[in] _typeId Component Type Id, which can be retrieved from
+      /// EntityComponentManager::Register().
+      public: explicit ComponentType(const ComponentTypeId &_typeId);
 
+      /// \brief Destructor.
       public: virtual ~ComponentType();
 
-      public: template<typename Type>
-              bool Init(const std::string &_name,
-                        const ComponentTypeId _typeId)
-      {
-        this->typeId = _typeId;
-        this->name = _name;
-        return this->Valid();
-      }
+      /// \brief Get the name of the component type.
+      /// \return Name of the component type
+      public: virtual const std::string &Name() const = 0;
 
-      public: const std::string &Name() const;
+      /// \brief Get the component type id.
+      /// \return Component type id.
       public: const ComponentTypeId &TypeId() const;
 
+      /// \brief Returns whether or not this component is valid. This is
+      /// equalivent to TypeId() != kComponentTypeIdInvalid.
+      /// \return True if the component is valid.
       public: bool Valid() const;
 
-      private: ComponentTypeId typeId;
-      private: std::string name;
+      /// \brief Private data pointer.
+      private: std::unique_ptr<ComponentTypePrivate> dataPtr;
     };
     }
   }
