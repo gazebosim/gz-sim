@@ -1,0 +1,20 @@
+## Ignition @IGN_DESIGNATION_CAP@
+
+Ignition @IGN_DESIGNATION_CAP@ is a component in Ignition Robotics, a set of
+libraries designed to rapidly develop robot and simulation applications.
+This library defines a general set of math classes and functions with an eye
+toward simulation and robotics.
+
+## Features
+
+  1. Templated data types including multi-dimensional vectors, and rotational and position data types.
+  2. Geometric shapes such as boxes, cylinders, spheres, and planes.
+  3. A generic graph class with supporting algorithms including breadth and depth first sorting, and Dijkstra.
+  4. Convenience classes such as Color, KMeans, PID, StopWatch, Spline, and Temperature.
+  5. Helper functions that can clamp values, check for equality between floating point values, and more.
+
+## License
+
+The code associated with this documentation is licensed under an [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+
+This documentation is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
