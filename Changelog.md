@@ -2,6 +2,20 @@
 
 ### Ignition Math 5.x.x
 
+1. Added a Stopwatch class
+    * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/279)
+
+1. Added material properties to OrientedBox
+    * [Pull request 269](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/269)
+
+1. Added a Cylinder class.
+    * [Pull request 250](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/250)
+
+1. The `Box` class has been changed to a templatized class that is not
+   axis-aligned. The previous `Box` functionality is now in the
+   `AxisAlignedBox` class.
+    * [Pull request 257](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/257)
+
 1. Added a `MassMatrix3::SetFromCylinder` function that uses a `Material`
 to specify a density.
     * [Pull request 248](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/248)
@@ -20,6 +34,13 @@ specify a density.
 1. Deprecated mutator functions in MassMatrix3 that lacked a `Set` prefix.
     * [Pull request 262](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/262)
 
+1. Updated the MassMatrix3::ValidMoments(), MassMatrix3::IsValid(), MassMatrix3::IsPositive(),
+ and Inertial::SetMassMatrix functions to accept a tolerance parameter.
+    * [Pull request 264](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/264)
+
+1. Add MassMatrix3::IsNearPositive and use it in MassMatrix3::IsValid, use >= instead of >
+   in MassMatrix3::ValidMoments
+    * [Pull request 278](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/278)
 
 ## Ignition Math 4.x
 

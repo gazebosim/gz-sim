@@ -41,7 +41,8 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_EQ(m.OffDiagonalMoments(), math::Vector3d::Zero);
     EXPECT_EQ(m.Moi(), math::Matrix3d::Zero);
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
   }
 
   // Constructor with default arguments
@@ -51,7 +52,8 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_EQ(m, math::MassMatrix3d());
     EXPECT_EQ(m, math::MassMatrix3d(m));
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
   }
 
   // Constructor with non-default arguments
@@ -82,6 +84,7 @@ TEST(MassMatrix3dTest, Constructors)
     EXPECT_EQ(m.OffDiagonalMoments(), Ixyxzyz);
     EXPECT_EQ(m.Moi(), moi);
     EXPECT_TRUE(m.IsPositive());
+    EXPECT_TRUE(m.IsNearPositive());
     EXPECT_TRUE(m.IsValid());
 
     // Test assignment operator
@@ -107,10 +110,11 @@ TEST(MassMatrix3dTest, Setters)
   {
     math::MassMatrix3d m;
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
     EXPECT_FALSE(m.SetIxx(Ixxyyzz[0]));
     EXPECT_FALSE(m.SetIyy(Ixxyyzz[1]));
 
@@ -142,10 +146,11 @@ TEST(MassMatrix3dTest, Setters)
   {
     math::MassMatrix3d m;
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetDiagonalMoments(Ixxyyzz));
@@ -173,10 +178,11 @@ TEST(MassMatrix3dTest, Setters)
   {
     math::MassMatrix3d m;
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
 
-    // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    // Valid when mass is set
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetMoi(moi));
@@ -203,10 +209,11 @@ TEST(MassMatrix3dTest, Setters)
   {
     math::MassMatrix3d m;
     EXPECT_FALSE(m.IsPositive());
-    EXPECT_FALSE(m.IsValid());
+    EXPECT_TRUE(m.IsNearPositive());
+    EXPECT_TRUE(m.IsValid());
 
     // Initially invalid
-    EXPECT_FALSE(m.SetMass(mass));
+    EXPECT_TRUE(m.SetMass(mass));
 
     // Valid once enough properties are set
     EXPECT_TRUE(m.SetInertiaMatrix(2, 3, 4, 0.2, 0.3, 0.4));
@@ -308,7 +315,7 @@ TEST(MassMatrix3dTest, PrincipalMoments)
     math::MassMatrix3d m(1.0, Ixxyyzz, Ixyxzyz);
     const math::Vector3d Ieigen(0, 1, 2);
     EXPECT_EQ(m.PrincipalMoments(), Ieigen);
-    EXPECT_FALSE(m.IsPositive());
+    EXPECT_TRUE(m.IsPositive());
     EXPECT_FALSE(m.IsValid());
   }
 
@@ -642,7 +649,7 @@ TEST(MassMatrix3dTest, PrincipalAxesOffsetNoRepeat)
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, EquivalentBox)
 {
-  // Default mass matrix with non-positive inertia
+  // Default mass matrix with non-negative inertia
   {
     math::MassMatrix3d m;
     math::Vector3d size;
@@ -879,4 +886,51 @@ TEST(MassMatrix3dTest, SetFromSphere)
     EXPECT_TRUE(m.SetFromSphere(mass, 2*radius));
     EXPECT_EQ(m.DiagonalMoments(), 4*ixxyyzz);
   }
+}
+
+/////////////////////////////////////////////////
+TEST(MassMatrix3dTest, ValidMomentsTolerance)
+{
+  math::Vector3d moments;
+  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments, 0));
+  EXPECT_TRUE(math::MassMatrix3d::ValidMoments(moments));
+
+  math::MassMatrix3d massMatrix;
+  // Default inertia matrix is all zeros.
+  // Since the tolerance is relative to the max inertia,
+  // it has no effect when max inertia is zero.
+  // IsValid and IsNearPositive will be true
+  EXPECT_TRUE(massMatrix.IsValid());
+  EXPECT_TRUE(massMatrix.IsValid(10));
+  EXPECT_TRUE(massMatrix.IsValid(0));
+  EXPECT_TRUE(massMatrix.IsValid(-1));
+  EXPECT_TRUE(massMatrix.IsNearPositive());
+  EXPECT_TRUE(massMatrix.IsNearPositive(10));
+  EXPECT_TRUE(massMatrix.IsNearPositive(0));
+  EXPECT_TRUE(massMatrix.IsNearPositive(-1));
+  // and IsPositive will be false
+  EXPECT_FALSE(massMatrix.IsPositive());
+  EXPECT_FALSE(massMatrix.IsPositive(10));
+  EXPECT_FALSE(massMatrix.IsPositive(0));
+  EXPECT_FALSE(massMatrix.IsPositive(-1));
+
+  // setting Ixx = Iyy > 0 with Izz = 0
+  // satisfies the triangle inequality
+  massMatrix.SetIxx(0.1);
+  massMatrix.SetIyy(0.1);
+  // IsValid, IsNearPositive, and IsPositive will have same
+  // behavior if tolerance >= 0
+  EXPECT_TRUE(massMatrix.IsValid());
+  EXPECT_TRUE(massMatrix.IsValid(10));
+  EXPECT_TRUE(massMatrix.IsValid(0));
+  EXPECT_TRUE(massMatrix.IsNearPositive());
+  EXPECT_TRUE(massMatrix.IsNearPositive(10));
+  EXPECT_TRUE(massMatrix.IsNearPositive(0));
+  EXPECT_FALSE(massMatrix.IsPositive());
+  EXPECT_FALSE(massMatrix.IsPositive(10));
+  EXPECT_FALSE(massMatrix.IsPositive(0));
+  // but they are all false if the tolerance is negative
+  EXPECT_FALSE(massMatrix.IsValid(-1));
+  EXPECT_FALSE(massMatrix.IsNearPositive(-1));
+  EXPECT_FALSE(massMatrix.IsPositive(-1));
 }
