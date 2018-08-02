@@ -69,7 +69,7 @@ namespace ignition
 
       /// \brief Move constructor
       /// \param[in] _watch The stop watch to move.
-      public: Stopwatch(Stopwatch &&_watch);
+      public: Stopwatch(Stopwatch &&_watch) noexcept;
 
       /// \brief Destructor.
       public: virtual ~Stopwatch();
