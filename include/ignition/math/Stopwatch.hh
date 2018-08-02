@@ -63,6 +63,14 @@ namespace ignition
       /// \brief Constructor.
       public: Stopwatch();
 
+      /// \brief Copy constructor
+      /// \param[in] _watch The stop watch to copy.
+      public: Stopwatch(const Stopwatch &_watch);
+
+      /// \brief Move constructor
+      /// \param[in] _watch The stop watch to move.
+      public: Stopwatch(Stopwatch &&_watch);
+
       /// \brief Destructor.
       public: virtual ~Stopwatch();
 
@@ -110,6 +118,26 @@ namespace ignition
       /// function will reset this value.
       /// \return Total amount of elapsed stop time.
       public: clock::duration ElapsedStopTime() const;
+
+      /// \brief Equality operator.
+      /// \param[in] _watch The watch to compare.
+      /// \return True if this watch equals the provided watch.
+      public: bool operator==(const Stopwatch &_watch) const;
+
+      /// \brief Inequality operator.
+      /// \param[in] _watch The watch to compare.
+      /// \return True if this watch does not equal the provided watch.
+      public: bool operator!=(const Stopwatch &_watch) const;
+
+      /// \brief Copy assignment operator
+      /// \param[in] _watch The stop watch to copy.
+      /// \return Reference to this.
+      public: Stopwatch &operator=(const Stopwatch &_watch);
+
+      /// \brief Move assignment operator
+      /// \param[in] _watch The stop watch to move.
+      /// \return Reference to this.
+      public: Stopwatch &operator=(Stopwatch &&_watch);
 
 #ifdef _WIN32
 // Disable warning C4251 which is triggered by

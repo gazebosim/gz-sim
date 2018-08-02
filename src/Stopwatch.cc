@@ -22,6 +22,20 @@ using namespace ignition::math;
 // Private data class
 class ignition::math::StopwatchPrivate
 {
+  /// \brief Default constructor.
+  public: StopwatchPrivate() = default;
+
+  /// \brief Copy constructor.
+  /// \param[in] _watch Watch to copy.
+  public: explicit StopwatchPrivate(const StopwatchPrivate &_watch)
+          : running(_watch.running),
+            startTime(_watch.startTime),
+            stopTime(_watch.stopTime),
+            stopDuration(_watch.stopDuration),
+            runDuration(_watch.runDuration)
+  {
+  }
+
   /// \brief True if the real time clock is running.
   public: bool running = false;
 
@@ -41,6 +55,18 @@ class ignition::math::StopwatchPrivate
 //////////////////////////////////////////////////
 Stopwatch::Stopwatch()
   : dataPtr(new StopwatchPrivate)
+{
+}
+
+//////////////////////////////////////////////////
+Stopwatch::Stopwatch(const Stopwatch &_watch)
+  : dataPtr(new StopwatchPrivate(*_watch.dataPtr))
+{
+}
+
+//////////////////////////////////////////////////
+Stopwatch::Stopwatch(Stopwatch &&_watch)
+  : dataPtr(std::move(_watch.dataPtr))
 {
 }
 
@@ -144,4 +170,34 @@ clock::duration Stopwatch::ElapsedStopTime() const
 
   // Otherwise, the stopwatch has been reset or never started.
   return clock::duration::zero();
+}
+
+//////////////////////////////////////////////////
+bool Stopwatch::operator==(const Stopwatch &_watch) const
+{
+  return this->dataPtr->running == _watch.dataPtr->running &&
+    this->dataPtr->startTime == _watch.dataPtr->startTime &&
+    this->dataPtr->stopTime == _watch.dataPtr->stopTime &&
+    this->dataPtr->stopDuration == _watch.dataPtr->stopDuration &&
+    this->dataPtr->runDuration == _watch.dataPtr->runDuration;
+}
+
+//////////////////////////////////////////////////
+bool Stopwatch::operator!=(const Stopwatch &_watch) const
+{
+  return !(*this == _watch);
+}
+
+//////////////////////////////////////////////////
+Stopwatch &Stopwatch::operator=(const Stopwatch &_watch)
+{
+  this->dataPtr.reset(new StopwatchPrivate(*_watch.dataPtr));
+  return *this;
+}
+
+//////////////////////////////////////////////////
+Stopwatch &Stopwatch::operator=(Stopwatch &&_watch)
+{
+  this->dataPtr = std::move(_watch.dataPtr);
+  return *this;
 }

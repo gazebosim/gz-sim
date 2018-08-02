@@ -23,17 +23,6 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(Stopwatch, Constructor)
-{
-  math::Stopwatch watch;
-
-  EXPECT_FALSE(watch.Running());
-  EXPECT_EQ(watch.StopTime(), watch.StartTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
-}
-
-/////////////////////////////////////////////////
 // Helper function that runs a few tests
 void runTimer(math::Stopwatch &_time)
 {
@@ -87,6 +76,48 @@ void runTimer(math::Stopwatch &_time)
   // The elapsed time should be greater than or equal to the the previous
   // two sleep times.
   EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(2000));
+}
+
+/////////////////////////////////////////////////
+TEST(Stopwatch, Constructor)
+{
+  math::Stopwatch watch;
+
+  EXPECT_FALSE(watch.Running());
+  EXPECT_EQ(watch.StopTime(), watch.StartTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
+
+  runTimer(watch);
+
+  math::Stopwatch watch2(watch);
+  EXPECT_EQ(watch, watch2);
+
+  math::Stopwatch watch3(std::move(watch2));
+  EXPECT_EQ(watch, watch3);
+}
+
+/////////////////////////////////////////////////
+TEST(Stopwatch, EqualOperator)
+{
+  math::Stopwatch watch;
+  math::Stopwatch watch2;
+  math::Stopwatch watch3;
+  EXPECT_EQ(watch, watch2);
+  EXPECT_EQ(watch, watch3);
+
+  runTimer(watch);
+  runTimer(watch2);
+  runTimer(watch3);
+
+  EXPECT_NE(watch, watch2);
+  EXPECT_NE(watch, watch3);
+
+  watch2 = watch;
+  EXPECT_EQ(watch, watch2);
+
+  watch3 = std::move(watch2);
+  EXPECT_EQ(watch, watch3);
 }
 
 /////////////////////////////////////////////////
