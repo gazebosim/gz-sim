@@ -25,6 +25,7 @@
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/PoseComponentType.hh"
+#include "WorldStatisticsComponentType.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -37,13 +38,13 @@ ServerPrivate::ServerPrivate()
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
-  // Create a world statistics system
-  this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<WorldStatisticsSystem>())));
-
   // Create a physics system
   this->systems.push_back(SystemInternal(
       std::move(std::make_unique<PhysicsSystem>())));
+
+  // Create a world statistics system
+  this->systems.push_back(SystemInternal(
+        std::move(std::make_unique<WorldStatisticsSystem>())));
 }
 
 /////////////////////////////////////////////////
@@ -66,12 +67,13 @@ void ServerPrivate::UpdateSystems()
     {
       const std::optional<std::reference_wrapper<EntityQuery>> query =
         this->entityCompMgr->Query(cb.first);
-      if (query)
+      if (query && query->get().EntityCount() > 0)
       {
         cb.second(query->get(), *this->entityCompMgr.get());
       }
     }
   }
+  exit(0);
 }
 
 /////////////////////////////////////////////////
@@ -89,10 +91,11 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   {
     EntityQueryRegistrar registrar;
     system.system->Init(registrar);
-    for (EntityQueryRegistration &registration : registrar.Registrations())
+    for (const EntityQueryRegistration &registration :
+         registrar.Registrations())
     {
-      EntityQuery &query = registration.first;
-      EntityQueryCallback &cb = registration.second;
+      const EntityQuery &query = registration.first;
+      const EntityQueryCallback &cb = registration.second;
       EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
       system.updates.push_back({queryId, cb});
     }
@@ -128,6 +131,13 @@ void ServerPrivate::OnSignal(int _sig)
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
+  EntityId worldEntity = this->entityCompMgr->CreateEntity();
+
+  std::cout << "CreateCOmponent\n";
+  // Create the world statistcs component for the world.
+  this->entityCompMgr->CreateComponent(
+        worldEntity, WorldStatisticsComponentType());
+
   for (uint64_t i = 0; i < _root.ModelCount(); ++i)
   {
     // Get the SDF model

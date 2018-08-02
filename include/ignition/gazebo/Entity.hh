@@ -61,7 +61,7 @@ namespace ignition
 
       /// \brief Move constructor.
       /// \param[in] _entity Entity ID to copy.
-      public: explicit Entity(Entity &&_entity);
+      public: explicit Entity(Entity &&_entity) noexcept;
 
       /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.

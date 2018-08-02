@@ -14,14 +14,20 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include <ignition/msgs.hh>
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
+#include "WorldStatisticsComponentType.hh"
+
 // Private data class.
 class ignition::gazebo::WorldStatisticsSystemPrivate
 {
+  public: void OnUpdate(const EntityQuery &_result,
+              EntityComponentManager &_ecMgr);
+
   /// \brief Realtime watch.
   public: ignition::math::Stopwatch realTimeWatch;
 
@@ -41,10 +47,6 @@ WorldStatisticsSystem::WorldStatisticsSystem()
   this->dataPtr->publisher =
     this->dataPtr->node.Advertise<ignition::msgs::WorldStatistics>(
         "/ign/gazebo/stats");
-/*
-   NEED TO GET the stopwatch PR into gz11 branch on ign-math
-   CHECK condition wait, need to add lambda.
-  */
 }
 
 //////////////////////////////////////////////////
@@ -53,13 +55,23 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 }
 
 //////////////////////////////////////////////////
-/*void WorldStatisticsSystem::Update()
+void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 {
-  if (!this->dataPtr->realTimeWatch.Running())
-    this->dataPtr->realTimeWatch.Start();
-  ignition::msgs::WorldStats msg;
-  msg.mutable_real_time()->set_sec(0)
-  msg.mutable_real_time()->set_nsec(0)
-  this->dataPtr->node->Publish(msg);
+  EntityQuery query;
+  query.AddComponentType(
+      EntityComponentManager::ComponentType<WorldStatisticsComponentType>());
+  _registrar.Register(query,
+      std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
+        std::placeholders::_1, std::placeholders::_2));
 }
-  */
+
+//////////////////////////////////////////////////
+void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
+    EntityComponentManager &/*_ecMgr*/)
+{
+  std::cout << "WorldStatsUpdate[" << _result.Entities().size() << "]\n";
+  ignition::msgs::WorldStatistics msg;
+  msg.mutable_real_time()->set_sec(0);
+  msg.mutable_real_time()->set_nsec(0);
+  this->publisher.Publish(msg);
+}

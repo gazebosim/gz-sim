@@ -47,7 +47,7 @@ namespace ignition
 
       /// \brief Move constructor.
       /// \param[in] _query Query to move.
-      public: EntityQuery(EntityQuery &&_query);
+      public: EntityQuery(EntityQuery &&_query) noexcept;
 
       /// \brief Destructor.
       public: ~EntityQuery();
@@ -80,6 +80,10 @@ namespace ignition
       /// \sa AddEntity
       /// \sa RemoveEntity
       public: const std::set<EntityId> &Entities() const;
+
+      /// \brief Get the number of entities in this query's result.
+      /// \return Count of the entities that match the specified components.
+      public: size_t EntityCount() const;
 
       /// \brief Clear results of a query. This will keep the set of
       /// components, and clear the set of entities.

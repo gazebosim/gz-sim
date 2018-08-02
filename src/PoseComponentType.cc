@@ -54,7 +54,7 @@ PoseComponentType::PoseComponentType(const PoseComponentType &_pose)
 }
 
 //////////////////////////////////////////////////
-PoseComponentType::PoseComponentType(PoseComponentType &&_pose)
+PoseComponentType::PoseComponentType(PoseComponentType &&_pose) noexcept
   : ComponentType(_pose.TypeId()),
     dataPtr(std::move(_pose.dataPtr))
 {
