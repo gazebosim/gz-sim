@@ -14,17 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
-#define IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
+#ifndef IGNITION_GAZEBO_WORLD_STATISTICS_COMPONENT_TYPE_HH_
+#define IGNITION_GAZEBO_WORLD_STATISTICS_COMPONENT_TYPE_HH_
 
 #include <memory>
 #include <string>
 
-#include <ignition/math/Pose3.hh>
+#include <ignition/math/Stopwatch.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/ComponentType.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -34,47 +33,51 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class PoseComponentTypePrivate;
+    class WorldStatisticsComponentTypePrivate;
 
-    /// \brief A component type that contains pose, ignition::math::Pose3d,
-    /// information.
-    class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
+    /// \brief A component type that contains world statistic information.
+    class IGNITION_GAZEBO_VISIBLE WorldStatisticsComponentType
+      : public ComponentType
     {
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
       /// register the component type.
-      public: explicit PoseComponentType(const ignition::math::Pose3d &_pose);
+      public: explicit WorldStatisticsComponentType();
 
       /// \brief Copy Constructor
-      /// \param[in] _pose Pose component to copy.
-      public: PoseComponentType(const PoseComponentType &_pose);
+      /// \param[in] _stats WorldStatisticsComponentType to copy.
+      public: WorldStatisticsComponentType(
+                  const WorldStatisticsComponentType &_stats);
 
       /// \brief Move Constructor
-      /// \param[in] _pose Pose component to move.
-      public: PoseComponentType(PoseComponentType &&_pose) noexcept;
+      /// \param[in] _stats WorldStatisticsComponentType to move.
+      public: WorldStatisticsComponentType(
+                  WorldStatisticsComponentType &&_stats) noexcept;
 
       /// \brief Destructor.
-      public: virtual ~PoseComponentType();
+      public: virtual ~WorldStatisticsComponentType();
 
       // Documentation inherited
       public: const std::string &Name() const override final;
 
       /// \brief Move assignment operator.
-      /// \param[in] _pose Pose component to move.
+      /// \param[in] _stats WorldStatistics component to move.
       /// \return Reference to this.
-      public: PoseComponentType &operator=(PoseComponentType &&_pose);
+      public: WorldStatisticsComponentType &operator=(
+                  WorldStatisticsComponentType &&_stats);
 
       /// \brief Copy assignment operator.
-      /// \param[in] _pose Pose component to copy.
+      /// \param[in] _stats WorldStatistics component to copy.
       /// \return Reference to this.
-      public: PoseComponentType &operator=(const PoseComponentType &_pose);
+      public: WorldStatisticsComponentType &operator=(
+                  const WorldStatisticsComponentType &_stats);
 
-      /// \brief Get the pose data.
-      /// \return The actual pose information.
-      public: const ignition::math::Pose3d &Pose() const;
+      /// \brief Get the elapsed real time.
+      /// \return The elapsed real time.
+      public: ignition::math::clock::duration RealTime() const;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<PoseComponentTypePrivate> dataPtr;
+      private: std::unique_ptr<WorldStatisticsComponentTypePrivate> dataPtr;
     };
     }
   }

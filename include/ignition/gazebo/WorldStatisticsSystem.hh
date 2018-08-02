@@ -44,6 +44,10 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~WorldStatisticsSystem();
 
+      // Documentation inherited.
+      public: virtual void Init(
+                  EntityQueryRegistrar &_registrar) override final;
+
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsSystemPrivate> dataPtr;
     };
