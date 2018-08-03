@@ -57,7 +57,8 @@ void runTimer(math::Stopwatch &_time)
   // The stop time should be greater than the start time.
   EXPECT_GT(_time.StopTime(), _time.StartTime());
   // The elapsed time should still be greater than the time slept.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
 
   // Save the elapsed time.
   auto elapsedTime = _time.ElapsedRunTime();
