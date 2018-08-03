@@ -15,7 +15,6 @@
  *
 */
 
-#include <utility>
 #include <vector>
 
 #include "ignition/gazebo/EntityQueryRegistrar.hh"

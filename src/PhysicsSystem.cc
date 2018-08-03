@@ -15,9 +15,9 @@
  *
 */
 #include <ignition/math/Pose3.hh>
+#include "ignition/gazebo/EntityQuery.hh"
 #include "ignition/gazebo/PoseComponentType.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
-#include "ignition/gazebo/EntityQuery.hh"
 
 // Private data class.
 class ignition::gazebo::PhysicsSystemPrivate

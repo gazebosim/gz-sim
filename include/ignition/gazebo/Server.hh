@@ -20,9 +20,9 @@
 #include <cstdint>
 #include <memory>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
 
 namespace ignition
 {
@@ -110,6 +110,8 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
+      /// \brief Return the entity component manager.
+      /// \return The manager.
       public: EntityComponentManager &EntityComponentMgr() const;
 
       /// \brief Private data

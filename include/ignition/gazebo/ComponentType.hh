@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
@@ -31,7 +31,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     // Forward declarations.
     class ComponentTypePrivate;
 
