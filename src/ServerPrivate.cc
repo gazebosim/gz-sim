@@ -23,7 +23,7 @@
 #include <sdf/Root.hh>
 
 #include "ignition/gazebo/PhysicsSystem.hh"
-#include "ignition/gazebo/PoseComponentType.hh"
+#include "ignition/gazebo/PoseComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -133,6 +133,6 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 
     // Create the pose component for the model.
     this->entityCompMgr->CreateComponent(
-        entityId, PoseComponentType(model->Pose()));
+        entityId, PoseComponent(model->Pose()));
   }
 }

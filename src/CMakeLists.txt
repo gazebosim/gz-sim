@@ -11,7 +11,7 @@ set (sources
   EntityQuery.cc
   EntityQueryRegistrar.cc
   PhysicsSystem.cc
-  PoseComponentType.cc
+  PoseComponent.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc

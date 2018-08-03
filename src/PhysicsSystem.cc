@@ -15,7 +15,7 @@
  *
 */
 #include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/PoseComponentType.hh"
+#include "ignition/gazebo/PoseComponent.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/EntityQuery.hh"
 
@@ -43,7 +43,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
   /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
   EntityQuery query;
   query.AddComponentType(
-      EntityComponentManager::ComponentType<PoseComponentType>());
+      EntityComponentManager::ComponentType<PoseComponent>());
 
   _registrar.Register(query,
       std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
@@ -58,7 +58,7 @@ void PhysicsSystem::OnUpdate(const EntityQuery &_result,
   for (const EntityId &entity : _result.Entities())
   {
     // \todo(nkoenig) Support modification of components.
-    const auto pose = _ecMgr.Component<PoseComponentType>(entity);
+    const auto pose = _ecMgr.Component<PoseComponent>(entity);
     std::cout << pose->Pose() << std::endl;
   }
   std::cout << "]\n";
