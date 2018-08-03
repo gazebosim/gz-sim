@@ -18,7 +18,6 @@
 
 #include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/PoseComponentType.hh"
-#include "ignition/gazebo/ComponentType.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -41,22 +40,19 @@ class ignition::gazebo::PoseComponentTypePrivate
 
 //////////////////////////////////////////////////
 PoseComponentType::PoseComponentType(const ignition::math::Pose3d &_pose)
-: ComponentType(EntityComponentManager::ComponentType<PoseComponentType>()),
-  dataPtr(new PoseComponentTypePrivate(_pose))
+  : dataPtr(new PoseComponentTypePrivate(_pose))
 {
 }
 
 //////////////////////////////////////////////////
 PoseComponentType::PoseComponentType(const PoseComponentType &_pose)
-  : ComponentType(_pose.TypeId()),
-    dataPtr(new PoseComponentTypePrivate(_pose.Pose()))
+  : dataPtr(new PoseComponentTypePrivate(_pose.Pose()))
 {
 }
 
 //////////////////////////////////////////////////
 PoseComponentType::PoseComponentType(PoseComponentType &&_pose)
-  : ComponentType(_pose.TypeId()),
-    dataPtr(std::move(_pose.dataPtr))
+  : dataPtr(std::move(_pose.dataPtr))
 {
 }
 

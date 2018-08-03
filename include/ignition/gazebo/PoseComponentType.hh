@@ -23,7 +23,6 @@
 #include <ignition/math/Pose3.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/ComponentType.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -38,7 +37,7 @@ namespace ignition
 
     /// \brief A component type that contains pose, ignition::math::Pose3d,
     /// information.
-    class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
+    class IGNITION_GAZEBO_VISIBLE PoseComponentType
     {
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
@@ -57,7 +56,7 @@ namespace ignition
       public: virtual ~PoseComponentType();
 
       // Documentation inherited
-      public: const std::string &Name() const override final;
+      public: const std::string &Name() const;
 
       /// \brief Move assignment operator.
       /// \param[in] _pose Pose component to move.
