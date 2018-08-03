@@ -13,7 +13,7 @@ install:
   - hg summary
   - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
   - cd ign-cmake
-  - hg up default
+  - hg up gz11
   - md build
   - cd build
   - cmake .. -DBUILD_TESTING:BOOL=False

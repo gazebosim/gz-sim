@@ -23,20 +23,17 @@
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(Stopwatch, Constructor)
-{
-  math::Stopwatch watch;
-
-  EXPECT_FALSE(watch.Running());
-  EXPECT_EQ(watch.StopTime(), watch.StartTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
-  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
-}
-
-/////////////////////////////////////////////////
 // Helper function that runs a few tests
 void runTimer(math::Stopwatch &_time)
 {
+  // Windows uses a system_clock for std::this_thread::sleep_for. This can
+  // cause incorrect sleep durations. So, we add some room for error on
+  // windows.
+  std::chrono::duration handleSteadyClock = std::chrono::milliseconds(0);
+#ifdef _WIN32
+  handleSteadyClock = std::chrono::milliseconds(100);
+#endif
+
   // Start the timer
   EXPECT_TRUE(_time.Start());
   // The timer should be running.
@@ -50,7 +47,8 @@ void runTimer(math::Stopwatch &_time)
   // Wait for some time...
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   // Now the elapsed time should be greater than or equal to the time slept.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
 
   // Stop the timer.
   EXPECT_TRUE(_time.Stop());
@@ -59,7 +57,8 @@ void runTimer(math::Stopwatch &_time)
   // The stop time should be greater than the start time.
   EXPECT_GT(_time.StopTime(), _time.StartTime());
   // The elapsed time should still be greater than the time slept.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
 
   // Save the elapsed time.
   auto elapsedTime = _time.ElapsedRunTime();
@@ -68,7 +67,8 @@ void runTimer(math::Stopwatch &_time)
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   // The elapsed stop time should be greater than or equal to the time
   // slept.
-  EXPECT_GE(_time.ElapsedStopTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedStopTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
   // The elapsed time should be the same.
   EXPECT_EQ(elapsedTime, _time.ElapsedRunTime());
 
@@ -86,7 +86,50 @@ void runTimer(math::Stopwatch &_time)
   EXPECT_GT(_time.ElapsedRunTime(), elapsedTime);
   // The elapsed time should be greater than or equal to the the previous
   // two sleep times.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(2000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(2000));
+}
+
+/////////////////////////////////////////////////
+TEST(Stopwatch, Constructor)
+{
+  math::Stopwatch watch;
+
+  EXPECT_FALSE(watch.Running());
+  EXPECT_EQ(watch.StopTime(), watch.StartTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedRunTime());
+  EXPECT_EQ(ignition::math::clock::duration::zero(), watch.ElapsedStopTime());
+
+  runTimer(watch);
+
+  math::Stopwatch watch2(watch);
+  EXPECT_EQ(watch, watch2);
+
+  math::Stopwatch watch3(std::move(watch2));
+  EXPECT_EQ(watch, watch3);
+}
+
+/////////////////////////////////////////////////
+TEST(Stopwatch, EqualOperator)
+{
+  math::Stopwatch watch;
+  math::Stopwatch watch2;
+  math::Stopwatch watch3;
+  EXPECT_EQ(watch, watch2);
+  EXPECT_EQ(watch, watch3);
+
+  runTimer(watch);
+  runTimer(watch2);
+  runTimer(watch3);
+
+  EXPECT_NE(watch, watch2);
+  EXPECT_NE(watch, watch3);
+
+  watch2 = watch;
+  EXPECT_EQ(watch, watch2);
+
+  watch3 = std::move(watch2);
+  EXPECT_EQ(watch, watch3);
 }
 
 /////////////////////////////////////////////////
