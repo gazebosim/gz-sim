@@ -26,6 +26,14 @@ using namespace ignition;
 // Helper function that runs a few tests
 void runTimer(math::Stopwatch &_time)
 {
+  // Windows uses a system_clock for std::this_thread::sleep_for. This can
+  // cause incorrect sleep durations. So, we add some room for error on
+  // windows.
+  std::chrono::duration handleSteadyClock = std::chrono::milliseconds(0);
+#ifdef _WIN32
+  handleSteadyClock = std::chrono::milliseconds(100);
+#endif
+
   // Start the timer
   EXPECT_TRUE(_time.Start());
   // The timer should be running.
@@ -39,7 +47,8 @@ void runTimer(math::Stopwatch &_time)
   // Wait for some time...
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   // Now the elapsed time should be greater than or equal to the time slept.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
 
   // Stop the timer.
   EXPECT_TRUE(_time.Stop());
@@ -57,7 +66,8 @@ void runTimer(math::Stopwatch &_time)
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   // The elapsed stop time should be greater than or equal to the time
   // slept.
-  EXPECT_GE(_time.ElapsedStopTime(), std::chrono::milliseconds(1000));
+  EXPECT_GE(_time.ElapsedStopTime() + handleSteadyClock,
+      std::chrono::milliseconds(1000));
   // The elapsed time should be the same.
   EXPECT_EQ(elapsedTime, _time.ElapsedRunTime());
 
@@ -75,7 +85,8 @@ void runTimer(math::Stopwatch &_time)
   EXPECT_GT(_time.ElapsedRunTime(), elapsedTime);
   // The elapsed time should be greater than or equal to the the previous
   // two sleep times.
-  EXPECT_GE(_time.ElapsedRunTime(), std::chrono::milliseconds(2000));
+  EXPECT_GE(_time.ElapsedRunTime() + handleSteadyClock,
+      std::chrono::milliseconds(2000));
 }
 
 /////////////////////////////////////////////////

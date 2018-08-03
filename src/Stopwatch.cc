@@ -65,7 +65,7 @@ Stopwatch::Stopwatch(const Stopwatch &_watch)
 }
 
 //////////////////////////////////////////////////
-Stopwatch::Stopwatch(Stopwatch &&_watch)
+Stopwatch::Stopwatch(Stopwatch &&_watch) noexcept
   : dataPtr(std::move(_watch.dataPtr))
 {
 }
