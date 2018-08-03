@@ -2,6 +2,10 @@
 
 ### Ignition Math 6.x.x
 
+1. Helper function that converts from std::chrono::steady_clock::duration to
+   {seconds, nanoseconds}.
+    * [Pull request XXX](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/XXX)
+
 1. Upgrade to c++17.
     * [Pull request 268](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/268)
 
