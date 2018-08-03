@@ -33,27 +33,27 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class PoseComponentTypePrivate;
+    class PoseComponentPrivate;
 
     /// \brief A component type that contains pose, ignition::math::Pose3d,
     /// information.
-    class IGNITION_GAZEBO_VISIBLE PoseComponentType
+    class IGNITION_GAZEBO_VISIBLE PoseComponent
     {
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
       /// register the component type.
-      public: explicit PoseComponentType(const ignition::math::Pose3d &_pose);
+      public: explicit PoseComponent(const ignition::math::Pose3d &_pose);
 
       /// \brief Copy Constructor
       /// \param[in] _pose Pose component to copy.
-      public: PoseComponentType(const PoseComponentType &_pose);
+      public: PoseComponent(const PoseComponent &_pose);
 
       /// \brief Move Constructor
       /// \param[in] _pose Pose component to move.
-      public: PoseComponentType(PoseComponentType &&_pose);
+      public: PoseComponent(PoseComponent &&_pose);
 
       /// \brief Destructor.
-      public: virtual ~PoseComponentType();
+      public: virtual ~PoseComponent();
 
       // Documentation inherited
       public: const std::string &Name() const;
@@ -61,19 +61,19 @@ namespace ignition
       /// \brief Move assignment operator.
       /// \param[in] _pose Pose component to move.
       /// \return Reference to this.
-      public: PoseComponentType &operator=(PoseComponentType &&_pose);
+      public: PoseComponent &operator=(PoseComponent &&_pose);
 
       /// \brief Copy assignment operator.
       /// \param[in] _pose Pose component to copy.
       /// \return Reference to this.
-      public: PoseComponentType &operator=(const PoseComponentType &_pose);
+      public: PoseComponent &operator=(const PoseComponent &_pose);
 
       /// \brief Get the pose data.
       /// \return The actual pose information.
       public: const ignition::math::Pose3d &Pose() const;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<PoseComponentTypePrivate> dataPtr;
+      private: std::unique_ptr<PoseComponentPrivate> dataPtr;
     };
     }
   }
