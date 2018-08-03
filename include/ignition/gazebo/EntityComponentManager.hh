@@ -87,15 +87,22 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
+        // Get an iterator to the component that should be removed.
         std::map<ComponentId, int>::iterator iter = this->idMap.find(_id);
+
+        // Make sure the component exists.
         if (iter != this->idMap.end())
         {
+          // Handle the case where there are more components than the
+          // component to be removed
           if (this->components.size() > 1)
           {
+            // Swap the component to be removed with the component at the
+            // back of the vector.
             std::swap(this->components[iter->second],
                       this->components.back());
 
-            // Fix the id mapping.
+            // After the swap, we have to fix all the id mappings.
             for (std::map<ComponentId, int>::iterator idIter =
                  this->idMap.begin(); idIter != this->idMap.end(); ++idIter)
             {
@@ -106,6 +113,7 @@ namespace ignition
               }
             }
           }
+
           // Remove the component.
           this->components.pop_back();
 
