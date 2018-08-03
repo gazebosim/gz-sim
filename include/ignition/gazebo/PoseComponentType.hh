@@ -41,8 +41,7 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE PoseComponentType : public ComponentType
     {
       /// \brief Constructor
-      /// \param[in] _compMgr The entity component manager, which is used to
-      /// register the component type.
+      /// \param[in] _pose The Ignition Math pose.
       public: explicit PoseComponentType(const ignition::math::Pose3d &_pose);
 
       /// \brief Copy Constructor

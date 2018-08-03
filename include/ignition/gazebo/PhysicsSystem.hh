@@ -43,8 +43,12 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~PhysicsSystem();
 
+      // Documentation inherited
       public: void Init(EntityQueryRegistrar &_registrar) override final;
 
+      /// \brief Callback when the result of an entity query is received.
+      /// \param[in] _result Query result
+      /// \param[in] _ecMgr Manager
       private: void OnUpdate(const EntityQuery &_result,
                    EntityComponentManager &_ecMgr);
 

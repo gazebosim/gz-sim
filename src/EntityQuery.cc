@@ -35,10 +35,10 @@ class ignition::gazebo::EntityQueryPrivate
   {
   }
 
-  /// \brief list of component types that must be present on entities
+  /// \brief List of component types that must be present on entities
   public: std::set<ComponentTypeId> componentTypes;
 
-  /// \brief list of component types that must be present on entities
+  /// \brief List of entity ids which fulfill the query requirements.
   public: std::set<EntityId> entityIds;
 };
 

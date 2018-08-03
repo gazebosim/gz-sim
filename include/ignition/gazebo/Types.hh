@@ -17,8 +17,8 @@
 #ifndef IGNITION_GAZEBO_TYPES_HH_
 #define IGNITION_GAZEBO_TYPES_HH_
 
-#include <utility>
 #include <functional>
+#include <utility>
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ namespace ignition
 
     /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
-    /// See also ComponentKey.
+    /// \sa ComponentKey.
     using ComponentId = int;
 
     /// \brief A unique identifier for a component type. A component type
@@ -51,6 +51,7 @@ namespace ignition
     /// \brief typedef for long registration type
     using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;
 
+    /// \brief (louise) A unique identifier for an entity query within a manager?
     using EntityQueryId = int;
 
     /// \brief Id that indicates an invalid component.

@@ -25,10 +25,10 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
-  /// \brief Get whether and entity has the given component types.
+  /// \brief Get whether an entity has all the given component types.
   /// \param[in] _id Id of the Entity to check.
   /// \param[in] _types Component types to check that the Entity has.
-  /// \return True if the given entity has the given types.
+  /// \return True if the given entity has all the given types.
   public: bool EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const;
 
@@ -37,7 +37,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
-  /// \brief instances of entities
+  /// \brief Instances of entities
   public: std::vector<Entity> entities;
 
   /// \brief deleted entity ids that can be reused
@@ -127,21 +127,20 @@ bool EntityComponentManager::RemoveComponent(
     const EntityId _id, const ComponentKey &_key)
 {
   // Make sure the entity exists and has the component.
-  if (this->EntityHasComponent(_id, _key))
-  {
-    auto entityComponentIter = std::find(
-        this->dataPtr->entityComponents[_id].begin(),
-        this->dataPtr->entityComponents[_id].end(), _key);
+  if (!this->EntityHasComponent(_id, _key))
+    return false;
 
-    this->dataPtr->components.at(_key.first)->Remove(_key.second);
-    this->dataPtr->entityComponents[_id].erase(entityComponentIter);
-    return true;
-  }
-  return false;
+  auto entityComponentIter = std::find(
+      this->dataPtr->entityComponents[_id].begin(),
+      this->dataPtr->entityComponents[_id].end(), _key);
+
+  this->dataPtr->components.at(_key.first)->Remove(_key.second);
+  this->dataPtr->entityComponents[_id].erase(entityComponentIter);
+  return true;
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::EntityHasComponent(EntityId _id,
+bool EntityComponentManager::EntityHasComponent(const EntityId _id,
     const ComponentKey &_key) const
 {
   return this->HasEntity(_id) &&
@@ -164,12 +163,14 @@ bool EntityComponentManager::EntityHasComponentType(const EntityId _id,
     return false;
 
   return std::find_if(iter->second.begin(), iter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _typeId;}) !=
-    iter->second.end();
+      [&] (const ComponentKey &_key)
+      {
+        return _key.first == _typeId;
+      }) != iter->second.end();
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::HasEntity(EntityId _id) const
+bool EntityComponentManager::HasEntity(const EntityId _id) const
 {
   // \todo(nkoenig) This function needs to be fixed/implemented.
   // True if the vector is big enough to have used this id
@@ -237,10 +238,10 @@ bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
 {
   const std::vector<ComponentKey> &comps = this->entityComponents.at(_id);
 
-  // \todo(nkoenig) The performance of this coude be improved. Ideally we
+  // \todo(nkoenig) The performance of this could be improved. Ideally we
   // wouldn't need two loops to confirm that an entity matches a set of
-  // types. Itmight be possible to create bitmask for component sets.
-  // Fixing this might not be hight priority, unless we expect frequent
+  // types. It might be possible to create bitmask for component sets.
+  // Fixing this might not be high priority, unless we expect frequent
   // creation of entities and/or queries.
   for (const ComponentTypeId &type : _types)
   {

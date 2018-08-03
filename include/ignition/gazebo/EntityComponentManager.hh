@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENT_MANAGER_HH_
-#define IGNITION_GAZEBO_COMPONENT_MANAGER_HH_
+#ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <any>
 #include <map>
@@ -76,7 +76,6 @@ namespace ignition
     class  IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
       /// \brief Constructor
-      /// \param[in] _name Name associated with the component storage type.
       public: explicit ComponentStorage()
               : ComponentStorageBase()
       {
@@ -199,7 +198,7 @@ namespace ignition
       /// \brief Get whether an Entity exists.
       /// \param[in] _id Entity id to confirm.
       /// \return True if the Entity exists.
-      public: bool HasEntity(EntityId _id) const;
+      public: bool HasEntity(const EntityId _id) const;
 
       /// \brief Get whether a component type has been created.
       /// \param[in] _typeId ID of the component type to check.
@@ -228,16 +227,17 @@ namespace ignition
       public: EntityQueryId AddQuery(const EntityQuery &_query);
 
       /// \brief Get an entity query.
-      /// \param[in] _id Id of the EntityQuery to retrieved.
+      /// \param[in] _id Id of the EntityQuery to retrieve.
       /// \return Optional reference to the query. The return value will be
       /// std::nullopt if the entity query does not exist.
       public: const std::optional<std::reference_wrapper<EntityQuery>> Query(
                   const EntityQueryId _id) const;
 
-      /// \brief Remove a component based on a key.
+      /// \brief Remove a component from an entity based on a key.
       /// \param[in] _id Id of the entity.
       /// \param[in] _key A key that uniquely identifies a component.
-      /// \return True if the entity and component existed and was removed.
+      /// \return True if the entity and component existed and the component was
+      ///  removed.
       public: bool RemoveComponent(
                   const EntityId _id, const ComponentKey &_key);
 
@@ -312,10 +312,11 @@ namespace ignition
                    const ComponentTypeId _componentTypeId,
                    const std::any &_data);
 
-      /// \brief Get a component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
+      /// \brief Get a component based on a component type.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _type Id of the component type.
+      /// \return The component of the specified type assigned to specified
+      /// Entity, or nullptr if the component could not be found.
       private: const void *ComponentImplementation(const EntityId _id,
                    const ComponentTypeId _type) const;
 
