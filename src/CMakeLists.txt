@@ -6,9 +6,7 @@ ign_get_libsources_and_unittests(sources gtest_sources)
 # Create the library target
 ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
 
-set (c++standard 14)
-
-# Turn on C++14 support for the library
+# Set CXX standard
 ign_set_project_public_cxx_standard(${c++standard})
 
 # Create installation instructions for the library target. This must be called
