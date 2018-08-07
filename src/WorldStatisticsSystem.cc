@@ -14,13 +14,17 @@
  * limitations under the License.
  *
 */
+#include <list>
 #include <ignition/msgs.hh>
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
-#include "WorldStatisticsComponentType.hh"
+#include "WorldStatisticsComponent.hh"
+
+using namespace ignition::gazebo;
+using namespace std::chrono_literals;
 
 // Private data class.
 class ignition::gazebo::WorldStatisticsSystemPrivate
@@ -28,8 +32,11 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
   public: void OnUpdate(const EntityQuery &_result,
               EntityComponentManager &_ecMgr);
 
-  /// \brief Realtime watch.
-  public: ignition::math::Stopwatch realTimeWatch;
+  /// \brief List of simulation times used to compute averages.
+  public: std::list<std::chrono::steady_clock::duration> simTimes;
+
+  /// \brief List of real times used to compute averages.
+  public: std::list<std::chrono::steady_clock::duration> realTimes;
 
   /// \brief Node for communication.
   public: ignition::transport::Node node;
@@ -37,16 +44,16 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
   public: ignition::transport::Node::Publisher publisher;
 };
 
-using namespace ignition::gazebo;
-
 //////////////////////////////////////////////////
 WorldStatisticsSystem::WorldStatisticsSystem()
   : System("WorldStatistics"),
     dataPtr(new WorldStatisticsSystemPrivate)
 {
+  transport::AdvertiseMessageOptions advertOpts;
+  advertOpts.SetMsgsPerSec(5);
   this->dataPtr->publisher =
     this->dataPtr->node.Advertise<ignition::msgs::WorldStatistics>(
-        "/ign/gazebo/stats");
+        "/world_stats", advertOpts);
 }
 
 //////////////////////////////////////////////////
@@ -59,7 +66,7 @@ void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 {
   EntityQuery query;
   query.AddComponentType(
-      EntityComponentManager::ComponentType<WorldStatisticsComponentType>());
+      EntityComponentManager::ComponentType<WorldStatisticsComponent>());
   _registrar.Register(query,
       std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
         std::placeholders::_1, std::placeholders::_2));
@@ -67,11 +74,65 @@ void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 
 //////////////////////////////////////////////////
 void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
-    EntityComponentManager &/*_ecMgr*/)
+    EntityComponentManager &_ecMgr)
 {
-  std::cout << "WorldStatsUpdate[" << _result.Entities().size() << "]\n";
-  ignition::msgs::WorldStatistics msg;
-  msg.mutable_real_time()->set_sec(0);
-  msg.mutable_real_time()->set_nsec(0);
-  this->publisher.Publish(msg);
+  // Get the world stats component.
+  const auto *worldStats = _ecMgr.ComponentMutable<WorldStatisticsComponent>(
+        *_result.Entities().begin());
+
+  // Get the real time duration
+  const std::chrono::steady_clock::duration &realTime =
+    worldStats->RealTime().ElapsedRunTime();
+
+  // Get the sim time duration
+  const std::chrono::steady_clock::duration &simTime = worldStats->SimTime();
+
+  // Store the real time, and maintain a list size of 20.
+  this->realTimes.push_back(realTime);
+  if (this->realTimes.size() > 20)
+    this->realTimes.pop_front();
+
+  // Store the sim time, and maintain a window size of 20.
+  this->simTimes.push_back(simTime);
+  if (this->simTimes.size() > 20)
+    this->simTimes.pop_front();
+
+  // Compute the average sim ang real times.
+  std::chrono::steady_clock::duration simAvg, realAvg;
+  std::list<std::chrono::steady_clock::duration>::iterator simIter, realIter;
+  simIter = ++(this->simTimes.begin());
+  realIter = ++(this->realTimes.begin());
+  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
+  {
+    simAvg += ((*simIter) - this->simTimes.front());
+    realAvg += ((*realIter) - this->realTimes.front());
+    ++simIter;
+    ++realIter;
+  }
+
+  if (this->publisher.WillPublish())
+  {
+    // Create the world statistics message.
+    ignition::msgs::WorldStatistics msg;
+    if (realAvg != 0ns)
+    {
+      msg.set_real_time_factor(
+          static_cast<double>(simAvg.count()) / realAvg.count());
+    }
+
+    std::pair<int64_t, int64_t> realTimeSecNsec =
+      ignition::math::durationToSecNsec(realTime);
+
+    std::pair<int64_t, int64_t> simTimeSecNsec =
+      ignition::math::durationToSecNsec(simTime);
+
+    msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+    msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+    msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+    msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+    // Publish the message
+    this->publisher.Publish(msg);
+  }
 }

@@ -15,16 +15,24 @@
  *
 */
 #include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/PoseComponentType.hh"
+#include "ignition/gazebo/PoseComponent.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "WorldStatisticsComponent.hh"
 #include "ignition/gazebo/EntityQuery.hh"
+
+using namespace ignition::gazebo;
+using namespace std::chrono_literals;
 
 // Private data class.
 class ignition::gazebo::PhysicsSystemPrivate
 {
-};
+  public: void OnUpdate(const EntityQuery &_result,
+                        EntityComponentManager &_ecMgr);
 
-using namespace ignition::gazebo;
+  public: void OnUpdateTime(const EntityQuery &_result,
+                            EntityComponentManager &_ecMgr);
+};
 
 //////////////////////////////////////////////////
 PhysicsSystem::PhysicsSystem()
@@ -40,24 +48,49 @@ PhysicsSystem::~PhysicsSystem()
 //////////////////////////////////////////////////
 void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 {
-  /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
-  EntityQuery query;
-  query.AddComponentType(
-      EntityComponentManager::ComponentType<PoseComponentType>());
-  _registrar.Register(query,
-      std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
-        std::placeholders::_2));
+  {
+    /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
+    EntityQuery query;
+    query.AddComponentType(
+        EntityComponentManager::ComponentType<PoseComponent>());
+
+    _registrar.Register(query,
+        std::bind(&PhysicsSystemPrivate::OnUpdate, this->dataPtr.get(),
+          std::placeholders::_1, std::placeholders::_2));
+  }
+
+  {
+    EntityQuery query;
+    query.AddComponentType(
+        EntityComponentManager::ComponentType<WorldStatisticsComponent>());
+    _registrar.Register(query,
+        std::bind(&PhysicsSystemPrivate::OnUpdateTime, this->dataPtr.get(),
+          std::placeholders::_1, std::placeholders::_2));
+  }
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::OnUpdate(const EntityQuery &_result,
+void PhysicsSystemPrivate::OnUpdateTime(const EntityQuery &_result,
     EntityComponentManager &_ecMgr)
 {
-  std::cout << "Physics System on update Entities[";
-  for (const EntityId &entity : _result.Entities())
-  {
-    const auto pose = _ecMgr.Component<PoseComponentType>(entity);
-    std::cout << pose->Pose() << std::endl;
-  }
-  std::cout << "]\n";
+  auto *worldStats = _ecMgr.ComponentMutable<WorldStatisticsComponent>(
+      *_result.Entities().begin());
+  worldStats->AddSimTime(10ms);
+}
+
+//////////////////////////////////////////////////
+void PhysicsSystemPrivate::OnUpdate(const EntityQuery & /*_result*/,
+    EntityComponentManager & /*_ecMgr*/)
+{
+  // \todo(nkoenig) Update dynamics
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+  // \todo(nkoenig) Update collisions
+
+  // Move all the entities.
+  // for (const EntityId &entity : _result.Entities())
+  // {
+  //   // \todo(nkoenig) Support modification of components.
+  //   const auto *pose = _ecMgr.Component<PoseComponent>(entity);
+  // }
 }
