@@ -236,7 +236,7 @@ bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
 {
   const std::vector<ComponentKey> &comps = this->entityComponents.at(_id);
 
-  // \todo(nkoenig) The performance of this coude be improved. Ideally we
+  // \todo(nkoenig) The performance of this could be improved. Ideally we
   // wouldn't need two loops to confirm that an entity matches a set of
   // types. Itmight be possible to create bitmask for component sets.
   // Fixing this might not be hight priority, unless we expect frequent

@@ -66,6 +66,12 @@ namespace ignition
       /// could not be found.
       public: virtual const void *Component(const ComponentId _id) const = 0;
 
+      /// \brief Get a mutable component based on an id.
+      /// \param[in] _id Id of the component to get.
+      /// \return A pointer to the component, or nullptr if the component
+      /// could not be found.
+      public: virtual void *ComponentMutable(const ComponentId _id) const = 0;
+
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
     };
@@ -86,15 +92,22 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
+        // Get an iterator to the component that should be removed.
         std::map<ComponentId, int>::iterator iter = this->idMap.find(_id);
+
+        // Make sure the component exists.
         if (iter != this->idMap.end())
         {
+          // Handle the case where there are more components than the
+          // component to be removed
           if (this->components.size() > 1)
           {
+            // Swap the component to be removed with the component at the
+            // back of the vector.
             std::swap(this->components[iter->second],
                       this->components.back());
 
-            // Fix the id mapping.
+            // After the swap, we have to fix all the id mappings.
             for (std::map<ComponentId, int>::iterator idIter =
                  this->idMap.begin(); idIter != this->idMap.end(); ++idIter)
             {
@@ -105,6 +118,7 @@ namespace ignition
               }
             }
           }
+
           // Remove the component.
           this->components.pop_back();
 
@@ -136,6 +150,12 @@ namespace ignition
               ComponentTypeT(*static_cast<const ComponentTypeT*>(_data))));
 
         return result;
+      }
+
+      // Documentation inherited.
+      public: void *ComponentMutable(const ComponentId _id) const override final
+      {
+        return const_cast<void *>(this->Component(_id));
       }
 
       // Documentation inherited.
@@ -284,6 +304,18 @@ namespace ignition
             this->ComponentImplementation(_id, typeId));
       }
 
+      /// \brief Get a mutable component assigned to an entity based on a
+      /// component type.
+      /// \param[in] _id Id of the entity.
+      /// \return The component of the specified type assigned to specified
+      /// Entity, or nullptr if the component could not be found.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentMutable(const EntityId _id) const
+      {
+        return const_cast<ComponentTypeT*>(
+            this->Component<ComponentTypeT>(_id));
+      }
+
       /// \brief Get a component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
@@ -293,6 +325,17 @@ namespace ignition
       {
         return static_cast<const ComponentTypeT *>(
             this->ComponentImplementation(_key));
+      }
+
+      /// \brief Get a mutable component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentMutable(const ComponentKey &_key) const
+      {
+        return const_cast<ComponentTypeT*>(
+            this->Component<ComponentTypeT>(_key));
       }
 
       /// \brief Implmentation of CreateComponent.

@@ -23,7 +23,6 @@
 #include <ignition/math/Stopwatch.hh>
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/ComponentType.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -33,51 +32,68 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class WorldStatisticsComponentTypePrivate;
+    class WorldStatisticsComponentPrivate;
 
     /// \brief A component type that contains world statistic information.
-    class IGNITION_GAZEBO_VISIBLE WorldStatisticsComponentType
-      : public ComponentType
+    class IGNITION_GAZEBO_VISIBLE WorldStatisticsComponent
     {
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
       /// register the component type.
-      public: explicit WorldStatisticsComponentType();
+      public: explicit WorldStatisticsComponent();
 
       /// \brief Copy Constructor
-      /// \param[in] _stats WorldStatisticsComponentType to copy.
-      public: WorldStatisticsComponentType(
-                  const WorldStatisticsComponentType &_stats);
+      /// \param[in] _stats WorldStatisticsComponent to copy.
+      public: WorldStatisticsComponent(
+                  const WorldStatisticsComponent &_stats);
 
       /// \brief Move Constructor
-      /// \param[in] _stats WorldStatisticsComponentType to move.
-      public: WorldStatisticsComponentType(
-                  WorldStatisticsComponentType &&_stats) noexcept;
+      /// \param[in] _stats WorldStatisticsComponent to move.
+      public: WorldStatisticsComponent(
+                  WorldStatisticsComponent &&_stats) noexcept;
 
       /// \brief Destructor.
-      public: virtual ~WorldStatisticsComponentType();
+      public: virtual ~WorldStatisticsComponent();
 
       // Documentation inherited
-      public: const std::string &Name() const override final;
+      public: const std::string &Name() const;
 
       /// \brief Move assignment operator.
       /// \param[in] _stats WorldStatistics component to move.
       /// \return Reference to this.
-      public: WorldStatisticsComponentType &operator=(
-                  WorldStatisticsComponentType &&_stats);
+      public: WorldStatisticsComponent &operator=(
+                  WorldStatisticsComponent &&_stats);
 
       /// \brief Copy assignment operator.
       /// \param[in] _stats WorldStatistics component to copy.
       /// \return Reference to this.
-      public: WorldStatisticsComponentType &operator=(
-                  const WorldStatisticsComponentType &_stats);
+      public: WorldStatisticsComponent &operator=(
+                  const WorldStatisticsComponent &_stats);
+
+      /// \brief Get the number of iterations.
+      /// \return The elapsed real time.
+      public: uint64_t Iterations() const;
+      public: void SetIterations(uint64_t _iters);
 
       /// \brief Get the elapsed real time.
       /// \return The elapsed real time.
-      public: ignition::math::clock::duration RealTime() const;
+      public: const ignition::math::clock::duration &SimTime() const;
+
+      public: void AddSimTime(const ignition::math::clock::duration &_sim);
+
+      public: void SetSimTime(const ignition::math::clock::duration &_sim);
+
+      /// \brief Get the elapsed real time.
+      /// \return The elapsed real time.
+      public: const ignition::math::Stopwatch &RealTime() const;
+
+      public: ignition::math::Stopwatch &RealTime();
+
+      public: void SetRealTime(
+                  const ignition::math::clock::duration &_realTime) const;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<WorldStatisticsComponentTypePrivate> dataPtr;
+      private: std::unique_ptr<WorldStatisticsComponentPrivate> dataPtr;
     };
     }
   }

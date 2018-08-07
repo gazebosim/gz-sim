@@ -108,9 +108,17 @@ namespace ignition
       /// \brief Manager of all components.
       public: std::shared_ptr<EntityComponentManager> entityCompMgr;
 
-      public: EntityQueryRegistrar entityQueryRegistrar;
-
+      /// \brief All the systems.
       public: std::vector<SystemInternal> systems;
+
+      /// \brief This is used to keep track of the world entity for
+      /// convenience.
+      public: EntityId worldEntity;
+
+      public: ComponentKey worldStatsComp;
+
+      public: std::chrono::steady_clock::time_point prevStepWallTime;
+      public: std::chrono::steady_clock::duration sleepOffset{0};
     };
     }
   }

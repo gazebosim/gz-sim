@@ -29,36 +29,6 @@ TmpIface::TmpIface()
   this->node.Advertise("/world_control",
         &TmpIface::OnWorldControl, this);
 
-  // World statistics
-  this->worldStatsPub =
-      this->node.Advertise<msgs::WorldStatistics>("/world_stats");
-
-  std::thread([this]()
-  {
-    while (true)
-    {
-      static int sec{0};
-
-      msgs::WorldStatistics msg;
-      {
-        auto time = msg.mutable_sim_time();
-        time->set_sec(++sec);
-      }
-      {
-        auto time = msg.mutable_real_time();
-        time->set_sec(sec);
-      }
-      msg.set_iterations(sec);
-      msg.set_paused(false);
-      msg.set_real_time_factor(1.0);
-
-      this->worldStatsPub.Publish(msg);
-
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(1000));
-    }
-  }).detach();
-
   // Server control
   this->node.Advertise("/server_control",
       &TmpIface::OnServerControl, this);
@@ -149,4 +119,3 @@ void TmpIface::OnSaveWorldAs(const QString &_path)
   req.set_save_filename(localPath.toStdString());
   this->node.Request("/server_control", req, cb);
 }
-

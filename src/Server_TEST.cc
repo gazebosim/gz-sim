@@ -64,7 +64,7 @@ TEST_P(ServerFixture, SdfServerConfig)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
-  EXPECT_EQ(3u, server.EntityCount());
+  EXPECT_EQ(4u, server.EntityCount());
 }
 
 /////////////////////////////////////////////////
