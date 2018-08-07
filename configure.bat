@@ -3,6 +3,7 @@
 :: Users and developers should build and install this library using cmake and Visual Studio
 
 :: Install dependencies
+call %win_lib% :download_unzip_install eigen3-3.3.4.zip
 call %win_lib% :install_ign_project ign-cmake default
 
 :: Set configuration variables

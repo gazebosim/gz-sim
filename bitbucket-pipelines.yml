@@ -6,6 +6,7 @@ pipelines:
         script:
           - apt-get update
           - apt-get -y install cmake build-essential lcov curl mercurial cppcheck ruby-dev swig
+            libeigen3-dev
           - gcc -v
           - g++ -v
           # Ignition cmake
