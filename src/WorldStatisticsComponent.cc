@@ -75,7 +75,13 @@ uint64_t WorldStatisticsComponent::Iterations() const
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsComponent::SetIterations(uint64_t _iters)
+void WorldStatisticsComponent::AddIterations(const uint64_t _iters)
+{
+  this->dataPtr->iterations += _iters;
+}
+
+//////////////////////////////////////////////////
+void WorldStatisticsComponent::SetIterations(const uint64_t _iters)
 {
   this->dataPtr->iterations = _iters;
 }

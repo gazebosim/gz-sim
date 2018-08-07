@@ -26,6 +26,7 @@
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/PoseComponent.hh"
+#include "WorldComponent.hh"
 #include "WorldStatisticsComponent.hh"
 
 using namespace ignition;
@@ -52,11 +53,14 @@ ServerPrivate::ServerPrivate()
   this->worldEntity = this->entityCompMgr->CreateEntity();
 
   // Create the world statistcs component for the world entity.
-  this->worldStatsComp = this->entityCompMgr->CreateComponent(
+  auto worldStatsComp = this->entityCompMgr->CreateComponent(
         this->worldEntity, WorldStatisticsComponent());
+  this->entityCompMgr->CreateComponent(
+      this->worldEntity, WorldComponent("default"));
+
   auto *worldStats =
     this->entityCompMgr->ComponentMutable<WorldStatisticsComponent>(
-        this->worldStatsComp);
+        worldStatsComp);
   worldStats->RealTime().Start();
 }
 
@@ -73,7 +77,6 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  std::cout << "==========================\n";
   // \todo(nkoenig) Update the systems in parallel
   for (SystemInternal &system : this->systems)
   {

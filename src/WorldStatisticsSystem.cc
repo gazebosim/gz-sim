@@ -21,6 +21,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
+#include "WorldComponent.hh"
 #include "WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
@@ -29,19 +30,30 @@ using namespace std::chrono_literals;
 // Private data class.
 class ignition::gazebo::WorldStatisticsSystemPrivate
 {
+  /// \brief Entity query callback for all worlds.
+  /// \param[in] _result Result of the entity query.
+  /// \param[in] _ecMgr The entity component manager.
   public: void OnUpdate(const EntityQuery &_result,
               EntityComponentManager &_ecMgr);
 
-  /// \brief List of simulation times used to compute averages.
-  public: std::list<std::chrono::steady_clock::duration> simTimes;
+  /// \brief Local storage for statistics computation and publication.
+  public: class Stats
+  {
+    /// \brief List of simulation times used to compute averages.
+    public: std::list<std::chrono::steady_clock::duration> simTimes;
 
-  /// \brief List of real times used to compute averages.
-  public: std::list<std::chrono::steady_clock::duration> realTimes;
+    /// \brief List of real times used to compute averages.
+    public: std::list<std::chrono::steady_clock::duration> realTimes;
+
+    /// \brief Publisher for this data.
+    public: ignition::transport::Node::Publisher publisher;
+  };
 
   /// \brief Node for communication.
   public: ignition::transport::Node node;
 
-  public: ignition::transport::Node::Publisher publisher;
+  /// \brief All the stats.
+  public: std::map<std::string, Stats> stats;
 };
 
 //////////////////////////////////////////////////
@@ -49,11 +61,6 @@ WorldStatisticsSystem::WorldStatisticsSystem()
   : System("WorldStatistics"),
     dataPtr(new WorldStatisticsSystemPrivate)
 {
-  transport::AdvertiseMessageOptions advertOpts;
-  advertOpts.SetMsgsPerSec(5);
-  this->dataPtr->publisher =
-    this->dataPtr->node.Advertise<ignition::msgs::WorldStatistics>(
-        "/world_stats", advertOpts);
 }
 
 //////////////////////////////////////////////////
@@ -64,6 +71,9 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 //////////////////////////////////////////////////
 void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 {
+  // Register a query that will get all entities with
+  // a WorldStatisticsComponent. This should be just world entities, which
+  // is usually a single entity on the server.
   EntityQuery query;
   query.AddComponentType(
       EntityComponentManager::ComponentType<WorldStatisticsComponent>());
@@ -76,63 +86,111 @@ void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
     EntityComponentManager &_ecMgr)
 {
-  // Get the world stats component.
-  const auto *worldStats = _ecMgr.ComponentMutable<WorldStatisticsComponent>(
-        *_result.Entities().begin());
+  std::map<std::string, Stats>::iterator iter;
 
-  // Get the real time duration
-  const std::chrono::steady_clock::duration &realTime =
-    worldStats->RealTime().ElapsedRunTime();
-
-  // Get the sim time duration
-  const std::chrono::steady_clock::duration &simTime = worldStats->SimTime();
-
-  // Store the real time, and maintain a list size of 20.
-  this->realTimes.push_back(realTime);
-  if (this->realTimes.size() > 20)
-    this->realTimes.pop_front();
-
-  // Store the sim time, and maintain a window size of 20.
-  this->simTimes.push_back(simTime);
-  if (this->simTimes.size() > 20)
-    this->simTimes.pop_front();
-
-  // Compute the average sim ang real times.
-  std::chrono::steady_clock::duration simAvg, realAvg;
-  std::list<std::chrono::steady_clock::duration>::iterator simIter, realIter;
-  simIter = ++(this->simTimes.begin());
-  realIter = ++(this->realTimes.begin());
-  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
+  // Process each entity.
+  for (const EntityId &entity : _result.Entities())
   {
-    simAvg += ((*simIter) - this->simTimes.front());
-    realAvg += ((*realIter) - this->realTimes.front());
-    ++simIter;
-    ++realIter;
-  }
+    // Get the world stats component.
+    const auto *worldStats =
+      _ecMgr.ComponentMutable<WorldStatisticsComponent>(entity);
 
-  if (this->publisher.WillPublish())
-  {
-    // Create the world statistics message.
-    ignition::msgs::WorldStatistics msg;
-    if (realAvg != 0ns)
+    if (!worldStats)
     {
-      msg.set_real_time_factor(
-          static_cast<double>(simAvg.count()) / realAvg.count());
+      ignerr << "A world entity does not have a WorldStatisticsComponent.\n"
+        << std::endl;
+      continue;
     }
 
-    std::pair<int64_t, int64_t> realTimeSecNsec =
-      ignition::math::durationToSecNsec(realTime);
+    // Get the world component.
+    const auto *world =
+      _ecMgr.ComponentMutable<WorldComponent>(entity);
 
-    std::pair<int64_t, int64_t> simTimeSecNsec =
-      ignition::math::durationToSecNsec(simTime);
+    if (!world)
+    {
+      ignerr << "A world entity does not have a WorldComponent.\n"
+        << std::endl;
+      continue;
+    }
 
-    msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
-    msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+    // Find the local world stats information.
+    iter = this->stats.find(world->Name());
 
-    msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
-    msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+    // Create a world stats if it doesn't exist.
+    if (iter == this->stats.end())
+    {
+      // Create the world statistics publisher.
+      transport::AdvertiseMessageOptions advertOpts;
+      advertOpts.SetMsgsPerSec(5);
+      this->stats[world->Name()].publisher =
+        this->node.Advertise<ignition::msgs::WorldStatistics>(
+            "/world/" + world->Name() + "/stats", advertOpts);
+      iter = this->stats.find(world->Name());
+    }
 
-    // Publish the message
-    this->publisher.Publish(msg);
+    // Get the real time duration
+    const std::chrono::steady_clock::duration &realTime =
+      worldStats->RealTime().ElapsedRunTime();
+
+    // Get the sim time duration
+    const std::chrono::steady_clock::duration &simTime = worldStats->SimTime();
+
+    Stats &entityStats = iter->second;
+
+    // Store the real time, and maintain a list size of 20.
+    entityStats.realTimes.push_back(realTime);
+    if (entityStats.realTimes.size() > 20)
+      entityStats.realTimes.pop_front();
+
+    // Store the sim time, and maintain a window size of 20.
+    entityStats.simTimes.push_back(simTime);
+    if (entityStats.simTimes.size() > 20)
+      entityStats.simTimes.pop_front();
+
+    // Check if the message will be published. If not, then do no bother
+    // creating thte message.
+    if (entityStats.publisher.WillPublish())
+    {
+      // Compute the average sim ang real times.
+      std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
+      std::list<std::chrono::steady_clock::duration>::iterator simIter,
+        realIter;
+
+      simIter = ++(entityStats.simTimes.begin());
+      realIter = ++(entityStats.realTimes.begin());
+      while (simIter != entityStats.simTimes.end() &&
+             realIter != entityStats.realTimes.end())
+      {
+        simAvg += ((*simIter) - entityStats.simTimes.front());
+        realAvg += ((*realIter) - entityStats.realTimes.front());
+        ++simIter;
+        ++realIter;
+      }
+
+      // Create the world statistics message.
+      ignition::msgs::WorldStatistics msg;
+      if (realAvg != 0ns)
+      {
+        msg.set_real_time_factor(
+            static_cast<double>(simAvg.count()) / realAvg.count());
+      }
+
+      std::pair<int64_t, int64_t> realTimeSecNsec =
+        ignition::math::durationToSecNsec(realTime);
+
+      std::pair<int64_t, int64_t> simTimeSecNsec =
+        ignition::math::durationToSecNsec(simTime);
+
+      msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+      msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+      msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+      msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+      msg.set_iterations(worldStats->Iterations());
+
+      // Publish the message
+      entityStats.publisher.Publish(msg);
+    }
   }
 }

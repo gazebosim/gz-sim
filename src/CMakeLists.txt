@@ -16,6 +16,7 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   System.cc
+  WorldComponent.cc
   WorldStatisticsComponent.cc
   WorldStatisticsSystem.cc
 )
