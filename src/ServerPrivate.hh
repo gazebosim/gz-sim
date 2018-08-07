@@ -115,8 +115,6 @@ namespace ignition
       /// convenience.
       public: EntityId worldEntity;
 
-      public: ComponentKey worldStatsComp;
-
       public: std::chrono::steady_clock::time_point prevStepWallTime;
       public: std::chrono::steady_clock::duration sleepOffset{0};
     };

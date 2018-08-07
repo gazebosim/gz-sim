@@ -76,6 +76,7 @@ void PhysicsSystemPrivate::OnUpdateTime(const EntityQuery &_result,
   auto *worldStats = _ecMgr.ComponentMutable<WorldStatisticsComponent>(
       *_result.Entities().begin());
   worldStats->AddSimTime(10ms);
+  worldStats->AddIterations(1u);
 }
 
 //////////////////////////////////////////////////

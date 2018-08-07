@@ -73,7 +73,8 @@ namespace ignition
       /// \brief Get the number of iterations.
       /// \return The elapsed real time.
       public: uint64_t Iterations() const;
-      public: void SetIterations(uint64_t _iters);
+      public: void SetIterations(const uint64_t _iters);
+      public: void AddIterations(const uint64_t _iters);
 
       /// \brief Get the elapsed real time.
       /// \return The elapsed real time.
