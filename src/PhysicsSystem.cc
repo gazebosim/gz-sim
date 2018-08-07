@@ -15,11 +15,13 @@
  *
 */
 #include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/PoseComponent.hh"
+
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "WorldStatisticsComponent.hh"
 #include "ignition/gazebo/EntityQuery.hh"
+
+#include "PoseComponent.hh"
+#include "WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;

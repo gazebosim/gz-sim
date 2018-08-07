@@ -25,7 +25,7 @@
 
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
-#include "ignition/gazebo/PoseComponent.hh"
+#include "PoseComponent.hh"
 #include "WorldComponent.hh"
 #include "WorldStatisticsComponent.hh"
 
