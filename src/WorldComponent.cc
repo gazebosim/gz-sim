@@ -14,77 +14,73 @@
  * limitations under the License.
  *
 */
-#include <string>
-
-#include <ignition/math/Pose3.hh>
-#include "PoseComponent.hh"
+#include "WorldComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class ignition::gazebo::PoseComponentPrivate
+class ignition::gazebo::WorldComponentPrivate
 {
   /// \brief Constructor.
   /// \param[in] _pose Pose data.
-  public: explicit PoseComponentPrivate(const ignition::math::Pose3d &_pose)
-          : pose(_pose)
+  public: explicit WorldComponentPrivate(const std::string &_name)
+          : name(_name)
   {
   }
 
   /// \brief Name of the component.
-  public: std::string name{"PoseComponent"};
+  public: std::string componentName{"WorldComponent"};
 
-  /// \brief The pose data.
-  public: ignition::math::Pose3d pose;
+  /// \brief Name of the world.
+  public: std::string name{"default"};
 };
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(const ignition::math::Pose3d &_pose)
-  : dataPtr(new PoseComponentPrivate(_pose))
+WorldComponent::WorldComponent(const std::string &_name)
+  : dataPtr(new WorldComponentPrivate(_name))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(const PoseComponent &_pose)
-  : dataPtr(new PoseComponentPrivate(_pose.Pose()))
+WorldComponent::WorldComponent(const WorldComponent &_world)
+  : dataPtr(new WorldComponentPrivate(_world.Name()))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(PoseComponent &&_pose) noexcept
-  : dataPtr(std::move(_pose.dataPtr))
+WorldComponent::WorldComponent(WorldComponent &&_world) noexcept
+  : dataPtr(std::move(_world.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::~PoseComponent()
+WorldComponent::~WorldComponent()
 {
   // \todo(nkoenig) Add ability to unregister a component type.
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Pose3d &PoseComponent::Pose() const
+const std::string &WorldComponent::ComponentName() const
 {
-  return this->dataPtr->pose;
+  return this->dataPtr->componentName;
 }
 
 //////////////////////////////////////////////////
-const std::string &PoseComponent::Name() const
+const std::string &WorldComponent::Name() const
 {
   return this->dataPtr->name;
 }
 
 //////////////////////////////////////////////////
-PoseComponent &PoseComponent::operator=(PoseComponent &&_pose)
+WorldComponent &WorldComponent::operator=(WorldComponent &&_world)
 {
-  this->dataPtr = std::move(_pose.dataPtr);
+  this->dataPtr = std::move(_world.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-PoseComponent &PoseComponent::operator=(const PoseComponent &_pose)
+WorldComponent &WorldComponent::operator=(const WorldComponent &_world)
 {
-  this->dataPtr->pose = _pose.Pose();
+  this->dataPtr->name = _world.dataPtr->name;
   return *this;
 }
