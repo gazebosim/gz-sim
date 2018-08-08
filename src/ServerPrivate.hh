@@ -19,10 +19,8 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -44,9 +42,10 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    // Private data for Server
+    /// \brief Class to hold systems internally.
     class IGNITION_GAZEBO_HIDDEN SystemInternal
     {
+      /// \brief Constructor
       public: explicit SystemInternal(std::unique_ptr<System> _system)
               : system(std::move(_system))
               {
@@ -55,6 +54,7 @@ namespace ignition
       /// \brief All of the systems.
       public: std::unique_ptr<System> system;
 
+      /// \brief Vector of queries and callbacks
       public: std::vector<
               std::pair<EntityQueryId, EntityQueryCallback>> updates;
     };
@@ -108,8 +108,10 @@ namespace ignition
       /// \brief Manager of all components.
       public: std::shared_ptr<EntityComponentManager> entityCompMgr;
 
+      /// \brief Entity query registrar.
       public: EntityQueryRegistrar entityQueryRegistrar;
 
+      /// \brief Keep internal reference to systems.
       public: std::vector<SystemInternal> systems;
     };
     }
