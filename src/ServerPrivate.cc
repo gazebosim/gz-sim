@@ -82,8 +82,13 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // Initialize all the systems.
   for (SystemInternal &system : this->systems)
   {
+    // Create a new registrar
     EntityQueryRegistrar registrar;
+
+    // Initialize the system, which may register new callbacks
     system.system->Init(registrar);
+
+    // Iterate over registered callbacks and create queries
     for (EntityQueryRegistration &registration : registrar.Registrations())
     {
       EntityQuery &query = registration.first;
