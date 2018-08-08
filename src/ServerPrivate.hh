@@ -31,6 +31,7 @@
 
 #include <ignition/transport/Node.hh>
 #include <ignition/common/SignalHandler.hh>
+#include <ignition/common/WorkerPool.hh>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -82,6 +83,9 @@ namespace ignition
       /// \param[in] _root SDF root object.
       public: void CreateEntities(const sdf::Root &_root);
 
+      /// \brief Initialize all the systems.
+      public: void InitSystems();
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -110,6 +114,9 @@ namespace ignition
 
       /// \brief All the systems.
       public: std::vector<SystemInternal> systems;
+
+      /// \brief A pool of worker threads.
+      public: common::WorkerPool workerPool;
 
       /// \brief This is used to keep track of the world entity for
       /// convenience.

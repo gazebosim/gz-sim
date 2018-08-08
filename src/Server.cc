@@ -38,6 +38,8 @@ Server::Server(const ServerConfig &_config)
 
     this->dataPtr->CreateEntities(root);
   }
+
+  this->dataPtr->InitSystems();
 }
 
 /////////////////////////////////////////////////
