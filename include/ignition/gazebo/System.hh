@@ -42,15 +42,13 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] A name for the system.
-      /// (louise) Does it need to be unique? Check what it's used for.
       public: explicit System(const std::string &_name);
 
       /// \brief Destructor
       public: virtual ~System();
 
       /// \brief Initialize the system.
-      /// (louise) Is the system useful before calling init? Can Init be called
-      /// twice? Good to add more tests.
+      /// \param[out] _registrar Registrar which should be filled by the system.
       public: virtual void Init(EntityQueryRegistrar &_registrar);
 
       /// \brief Get the name of the system.

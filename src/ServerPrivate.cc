@@ -54,19 +54,51 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  // \todo(nkoenig) Update the systems in parallel
+  // Update all the systems in parallel
   for (SystemInternal &system : this->systems)
   {
-    for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+    this->workerPool.AddWork([&system, this] ()
     {
-      const std::optional<std::reference_wrapper<EntityQuery>> query =
-        this->entityCompMgr->Query(cb.first);
-      if (query)
+      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
       {
-        cb.second(query->get(), *this->entityCompMgr.get());
+        const std::optional<std::reference_wrapper<EntityQuery>> query =
+          this->entityCompMgr->Query(cb.first);
+        if (query)
+        {
+          cb.second(query->get(), *this->entityCompMgr.get());
+        }
       }
-    }
+    });
   }
+  this->workerPool.WaitForResults();
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::InitSystems()
+{
+  // Initialize all the systems in parallel.
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&system, this] ()
+    {
+      // Create a new registrar
+      EntityQueryRegistrar registrar;
+
+      // Initialize the system, which may register new callbacks
+      system.system->Init(registrar);
+
+      // Iterate over registered callbacks and create queries
+      for (EntityQueryRegistration &registration : registrar.Registrations())
+      {
+        EntityQuery &query = registration.first;
+        EntityQueryCallback &cb = registration.second;
+        EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
+        system.updates.push_back({queryId, cb});
+      }
+    });
+  }
+
+  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
@@ -78,25 +110,6 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   if (_cond)
     _cond.value()->notify_all();
   this->runMutex.unlock();
-
-  // Initialize all the systems.
-  for (SystemInternal &system : this->systems)
-  {
-    // Create a new registrar
-    EntityQueryRegistrar registrar;
-
-    // Initialize the system, which may register new callbacks
-    system.system->Init(registrar);
-
-    // Iterate over registered callbacks and create queries
-    for (EntityQueryRegistration &registration : registrar.Registrations())
-    {
-      EntityQuery &query = registration.first;
-      EntityQueryCallback &cb = registration.second;
-      EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
-      system.updates.push_back({queryId, cb});
-    }
-  }
 
   // \todo(nkoenig) Systems will need a an update structure, such as
   // priorties, or a dependency chain.
