@@ -6,13 +6,12 @@ set(gui_sources
 )
 
 set (sources
-  ComponentType.cc
   Entity.cc
   EntityComponentManager.cc
   EntityQuery.cc
   EntityQueryRegistrar.cc
   PhysicsSystem.cc
-  PoseComponentType.cc
+  PoseComponent.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -20,7 +19,6 @@ set (sources
 )
 
 set (gtest_sources
-  ComponentType_TEST.cc
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
   EntityQuery_TEST.cc
