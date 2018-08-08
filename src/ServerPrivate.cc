@@ -77,19 +77,47 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  // \todo(nkoenig) Update the systems in parallel
+  // Update all the systems in parallel
   for (SystemInternal &system : this->systems)
   {
-    for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+    this->workerPool.AddWork([&system, this] ()
     {
-      const std::optional<std::reference_wrapper<EntityQuery>> query =
-        this->entityCompMgr->Query(cb.first);
-      if (query && query->get().EntityCount() > 0)
+      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
       {
-        cb.second(query->get(), *this->entityCompMgr.get());
+        const std::optional<std::reference_wrapper<EntityQuery>> query =
+          this->entityCompMgr->Query(cb.first);
+        if (query && query->get().EntityCount() > 0)
+        {
+          cb.second(query->get(), *this->entityCompMgr.get());
+        }
       }
-    }
+    });
   }
+  this->workerPool.WaitForResults();
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::InitSystems()
+{
+  // Initialize all the systems in parallel.
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&system, this] ()
+    {
+      EntityQueryRegistrar registrar;
+      system.system->Init(registrar);
+      for (const EntityQueryRegistration &registration :
+           registrar.Registrations())
+      {
+        const EntityQuery &query = registration.first;
+        const EntityQueryCallback &cb = registration.second;
+        EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
+        system.updates.push_back({queryId, cb});
+      }
+    });
+  }
+
+  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
@@ -102,27 +130,11 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     _cond.value()->notify_all();
   this->runMutex.unlock();
 
-  // Initialize all the systems.
-  for (SystemInternal &system : this->systems)
-  {
-    EntityQueryRegistrar registrar;
-    system.system->Init(registrar);
-    for (const EntityQueryRegistration &registration :
-         registrar.Registrations())
-    {
-      const EntityQuery &query = registration.first;
-      const EntityQueryCallback &cb = registration.second;
-      EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
-      system.updates.push_back({queryId, cb});
-    }
-  }
-
-  // Duration that each step simulates.
-  std::chrono::steady_clock::duration stepTime = 10ms;
-
   // Update period. If this matches stepTime, then simulation should run
   // in realtime. If this is less than stepTime, then simulation should
   // faster than real time.
+  // \todo(nkoenig) This needs to be read from SDF, and we need to create
+  // a service to modify it..
   std::chrono::steady_clock::duration updatePeriod = 10ms;
 
   // \todo(nkoenig) Systems will need a an update structure, such as
@@ -131,6 +143,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
 
+  // Variables for time keeping.
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::duration sleepTime;
   std::chrono::steady_clock::duration actualSleep;
@@ -161,6 +174,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     // Record when the update step starts.
     this->prevStepWallTime = std::chrono::steady_clock::now();
 
+    // Update all the systems.
     this->UpdateSystems();
   }
 
