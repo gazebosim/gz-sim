@@ -73,7 +73,7 @@ namespace ignition
 
     /// \brief Templated implementation of component storage.
     template<typename ComponentTypeT>
-    class  IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
+    class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
       /// \brief Constructor
       public: explicit ComponentStorage()
@@ -178,7 +178,7 @@ namespace ignition
       public: std::vector<ComponentTypeT> components;
     };
     /// \brief The EntityComponentManager constructs, deletes, and returns
-    /// components.
+    /// components and entities.
     class IGNITION_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
@@ -209,6 +209,8 @@ namespace ignition
       public: bool HasEntity(const EntityId _id) const;
 
       /// \brief Get whether a component type has been created.
+      /// \remark Will still return true even if there are no components of this
+      /// type.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
       public: bool HasComponentType(const ComponentTypeId _typeId);
