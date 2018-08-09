@@ -41,19 +41,27 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
+      /// \param[in] A name for the system.
+      /// (louise) Does it need to be unique? Check what it's used for.
       public: explicit System(const std::string &_name);
 
       /// \brief Destructor
       public: virtual ~System();
 
+      /// \brief Initialize the system.
+      /// (louise) Is the system useful before calling init? Can Init be called
+      /// twice? Good to add more tests.
       public: virtual void Init(EntityQueryRegistrar &_registrar);
 
       /// \brief Get the name of the system.
+      /// \return The name.
       public: const std::string &Name() const;
 
       /// \brief Set the name of the System
+      /// \param[in] _name The name.
       public: void SetName(const std::string &_name) const;
 
+      /// \brief Pointer to private data.
       private: std::unique_ptr<SystemPrivate> dataPtr;
     };
     }
