@@ -29,6 +29,12 @@ find_package(SDFormat REQUIRED VERSION 7.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
+# Find ignition-plugin
+set(IGN_PLUGIN_VER 0)
+ign_find_package(ignition-plugin0 REQUIRED)
+ign_find_package(ignition-plugin0-loader REQUIRED)
+
+#--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 6)
 ign_find_package(ignition-transport6 REQUIRED)

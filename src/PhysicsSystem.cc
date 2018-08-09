@@ -28,7 +28,7 @@ using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 PhysicsSystem::PhysicsSystem()
-  : System("Physics"), dataPtr(new PhysicsSystemPrivate)
+  : System("Physics", SystemTypeId::PHYSICS), dataPtr(new PhysicsSystemPrivate)
 {
 }
 
