@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_HH_
-#define IGNITION_GAZEBO_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
+#define IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
 
 #include <memory>
-#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -30,31 +30,26 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class SystemPrivate;
+    class PhysicsSystemPrivate;
+    class EntityComponentManager;
 
-    /// \class System System.hh ignition/gazebo/System.hh
+    /// \class PhysicsSystem PhysicsSystem.hh ignition/gazebo/PhysicsSystem.hh
     /// \brief Base class for a System.
-    ///
-    /// A System operates on Entities that have certain Components. A System
-    /// will only operate on an Entity if it has all of the required
-    /// Components.
-    class IGNITION_GAZEBO_VISIBLE System
+    class IGNITION_GAZEBO_VISIBLE PhysicsSystem : public System
     {
       /// \brief Constructor
-      public: explicit System(const std::string &_name);
+      public: explicit PhysicsSystem();
 
       /// \brief Destructor
-      public: virtual ~System();
+      public: virtual ~PhysicsSystem();
 
-      public: virtual void Init(EntityQueryRegistrar &_registrar);
+      public: void Init(EntityQueryRegistrar &_registrar) override final;
 
-      /// \brief Get the name of the system.
-      public: const std::string &Name() const;
+      private: void OnUpdate(const EntityQuery &_result,
+                   EntityComponentManager &_ecMgr);
 
-      /// \brief Set the name of the System
-      public: void SetName(const std::string &_name) const;
-
-      private: std::unique_ptr<SystemPrivate> dataPtr;
+      /// \brief Private data pointer.
+      private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
     };
     }
   }

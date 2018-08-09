@@ -22,22 +22,44 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <sdf/Root.hh>
 
 #include <ignition/transport/Node.hh>
 #include <ignition/common/SignalHandler.hh>
+#include <ignition/common/WorkerPool.hh>
 
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EntityQueryRegistrar.hh"
 #include "ignition/gazebo/System.hh"
-#include "ComponentManager.hh"
+#include "ignition/gazebo/Types.hh"
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    // Private data for Server
+    class IGNITION_GAZEBO_HIDDEN SystemInternal
+    {
+      public: explicit SystemInternal(std::unique_ptr<System> _system)
+              : system(std::move(_system))
+              {
+              }
+
+      /// \brief All of the systems.
+      public: std::unique_ptr<System> system;
+
+      public: std::vector<
+              std::pair<EntityQueryId, EntityQueryCallback>> updates;
+    };
+
     // Private data for Server
     class IGNITION_GAZEBO_HIDDEN ServerPrivate
     {
@@ -57,12 +79,12 @@ namespace ignition
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
-      /// \brief Erase all entities
-      public: void EraseEntities();
-
       /// \brief Create all entities that exist in the sdf::Root object.
       /// \param[in] _root SDF root object.
       public: void CreateEntities(const sdf::Root &_root);
+
+      /// \brief Initialize all the systems.
+      public: void InitSystems();
 
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
@@ -70,15 +92,6 @@ namespace ignition
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
-
-      /// \brief All of the entities.
-      public: std::vector<Entity> entities;
-
-      /// \brief Map of entities to components.
-      public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
-
-      /// \brief All of the systems.
-      public: std::vector<std::unique_ptr<System>> systems;
 
       /// \brief Communication node.
       public: ignition::transport::Node node;
@@ -97,8 +110,15 @@ namespace ignition
       public: ignition::common::SignalHandler sigHandler;
 
       /// \brief Manager of all components.
-      public: ComponentManager componentMgr;
+      public: std::shared_ptr<EntityComponentManager> entityCompMgr;
+
+      /// \brief All the systems.
+      public: std::vector<SystemInternal> systems;
+
+      /// \brief A pool of worker threads.
+      public: common::WorkerPool workerPool;
     };
+    }
   }
 }
 #endif

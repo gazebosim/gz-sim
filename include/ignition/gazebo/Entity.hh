@@ -17,10 +17,16 @@
 #ifndef IGNITION_GAZEBO_ENTITY_HH_
 #define IGNITION_GAZEBO_ENTITY_HH_
 
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
 namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
     /// \brief An Entity is an id.
     using EntityId = int;
 
@@ -30,6 +36,7 @@ namespace ignition
     // Forward Declaration
     class EntityPrivate;
 
+    // \class Entity Entity.hh ignition/gazebo/Entity.hh
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
@@ -43,7 +50,7 @@ namespace ignition
     ///
     /// An Entity that needs to be identified and used by Systems should be
     /// created through the Server.
-    class Entity
+    class IGNITION_GAZEBO_VISIBLE Entity
     {
       /// \brief Default constructor
       public: Entity() = default;
@@ -52,11 +59,20 @@ namespace ignition
       /// \param[in] _id Id of an entity to create.
       public: explicit Entity(const EntityId _id);
 
+      /// \brief Move constructor.
+      /// \param[in] _entity Entity ID to copy.
+      public: explicit Entity(Entity &&_entity);
+
       /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.
       /// \param[in] _entity Entity to compare.
       /// \returns true if the Entity Id's are the same.
       public: bool operator==(const Entity &_entity) const;
+
+      /// \brief Move assignment operator.
+      /// \param[in] _entity Entity to move.
+      /// \return Reference to this object.
+      public: Entity &operator=(Entity &&_entity);
 
       /// \brief Return id of entity.
       /// \return Id of this Entity.
@@ -68,6 +84,7 @@ namespace ignition
       /// \brief Id of the entity
       private: EntityId id = kNullEntity;
     };
+    }
   }
 }
 #endif
