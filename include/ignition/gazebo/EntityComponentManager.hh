@@ -38,6 +38,9 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
+    /// \brief A unique identifier for an entity query.
+    using EntityQueryId = int;
+
     /// \cond
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
