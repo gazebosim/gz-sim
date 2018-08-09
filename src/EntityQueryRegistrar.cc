@@ -14,40 +14,41 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/Entity.hh"
+
+#include <utility>
+#include <vector>
+
+#include "ignition/gazebo/EntityQueryRegistrar.hh"
 
 using namespace ignition::gazebo;
 
+class ignition::gazebo::EntityQueryRegistrarPrivate
+{
+  /// \brief queries and callbacks that have been registered
+  public: std::vector<EntityQueryRegistration> queryCallbacks;
+};
+
 /////////////////////////////////////////////////
-Entity::Entity(const EntityId _id)
-  : id(_id)
+EntityQueryRegistrar::EntityQueryRegistrar() :
+  dataPtr(new EntityQueryRegistrarPrivate)
 {
 }
 
 /////////////////////////////////////////////////
-Entity::Entity(Entity &&_entity)
-  : id(_entity.id)
+EntityQueryRegistrar::~EntityQueryRegistrar()
 {
-  _entity.id = kNullEntity;
 }
 
 /////////////////////////////////////////////////
-bool Entity::operator==(const Entity &_entity) const
+void EntityQueryRegistrar::Register(const EntityQuery &_q,
+    EntityQueryCallback _cb)
 {
-  return this->id == _entity.id;
+  this->dataPtr->queryCallbacks.push_back({_q, _cb});
 }
 
 /////////////////////////////////////////////////
-Entity &Entity::operator=(Entity &&_entity)
+std::vector<EntityQueryRegistration> EntityQueryRegistrar::Registrations() const
 {
-  this->id = _entity.id;
-  _entity.id = kNullEntity;
-  return *this;
-}
-
-/////////////////////////////////////////////////
-EntityId Entity::Id() const
-{
-  return this->id;
+  return this->dataPtr->queryCallbacks;
 }
 

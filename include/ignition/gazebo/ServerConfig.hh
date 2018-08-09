@@ -19,15 +19,20 @@
 
 #include <memory>
 #include <string>
+#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
     // Forward declarations.
     class ServerConfigPrivate;
 
+    /// \class ServerConfig ServerConfig.hh ignition/gazebo/ServerConfig.hh
     /// \brief Configuration parameters for a Server. An instance of this
     /// object can be used to construct a Server with a particular
     /// configuration.
@@ -58,6 +63,7 @@ namespace ignition
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
+    }
   }
 }
 

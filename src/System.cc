@@ -17,3 +17,42 @@
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
+
+class ignition::gazebo::SystemPrivate
+{
+  public: explicit SystemPrivate(const std::string &_name)
+          : name(_name)
+  {
+  }
+
+  /// \brief Name of the system.
+  public: std::string name{""};
+};
+
+//////////////////////////////////////////////////
+System::System(const std::string &_name)
+  : dataPtr(new SystemPrivate(_name))
+{
+}
+
+//////////////////////////////////////////////////
+System::~System()
+{
+}
+
+//////////////////////////////////////////////////
+void System::Init(EntityQueryRegistrar &/*_registrar*/)
+{
+}
+
+//////////////////////////////////////////////////
+const std::string &System::Name() const
+{
+  return this->dataPtr->name;
+}
+
+//////////////////////////////////////////////////
+void System::SetName(const std::string &_name) const
+{
+  this->dataPtr->name = _name;
+}

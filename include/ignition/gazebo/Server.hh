@@ -19,16 +19,21 @@
 
 #include <cstdint>
 #include <memory>
+#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forware declarations
     class ServerPrivate;
 
+    /// \class Server Server.hh ignition/gazebo/Server.hh
     /// \brief The server instantiates and controls simulation.
     ///
     /// ## Example Usage
@@ -105,9 +110,12 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
+      public: EntityComponentManager &EntityComponentMgr() const;
+
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
+    }
   }
 }
 

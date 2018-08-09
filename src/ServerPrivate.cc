@@ -19,18 +19,26 @@
 
 #include <functional>
 #include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+
+#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/PoseComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
+  : entityCompMgr(new EntityComponentManager())
 {
+  // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+
+  // Create a physics system
+  this->systems.push_back(SystemInternal(
+      std::move(std::make_unique<PhysicsSystem>())));
 }
 
 /////////////////////////////////////////////////
@@ -46,7 +54,46 @@ ServerPrivate::~ServerPrivate()
 /////////////////////////////////////////////////
 void ServerPrivate::UpdateSystems()
 {
-  /// \todo(nkoenig) Update systems
+  // Update all the systems in parallel
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&system, this] ()
+    {
+      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+      {
+        const std::optional<std::reference_wrapper<EntityQuery>> query =
+          this->entityCompMgr->Query(cb.first);
+        if (query)
+        {
+          cb.second(query->get(), *this->entityCompMgr.get());
+        }
+      }
+    });
+  }
+  this->workerPool.WaitForResults();
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::InitSystems()
+{
+  // Initialize all the systems in parallel.
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&system, this] ()
+    {
+      EntityQueryRegistrar registrar;
+      system.system->Init(registrar);
+      for (EntityQueryRegistration &registration : registrar.Registrations())
+      {
+        EntityQuery &query = registration.first;
+        EntityQueryCallback &cb = registration.second;
+        EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
+        system.updates.push_back({queryId, cb});
+      }
+    });
+  }
+
+  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
@@ -58,6 +105,12 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   if (_cond)
     _cond.value()->notify_all();
   this->runMutex.unlock();
+
+  // \todo(nkoenig) Systems will need a an update structure, such as
+  // priorties, or a dependency chain.
+  //
+  // \todo(nkoenig) We should implement the two-phase update detailed
+  // in the design.
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
@@ -81,27 +134,18 @@ void ServerPrivate::OnSignal(int _sig)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::EraseEntities()
-{
-  this->entities.clear();
-}
-
-//////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
   for (uint64_t i = 0; i < _root.ModelCount(); ++i)
   {
-    /// \todo(nkoenig) This should use free entity slots.
-    EntityId entityId = this->entities.size();
-    this->entities.push_back(Entity(entityId));
-
     // Get the SDF model
     const sdf::Model *model = _root.ModelByIndex(i);
 
-    // Create the pose component for the model.
-    ComponentKey compKey = this->componentMgr.CreateComponent(model->Pose());
-    this->entityComponents[entityId].push_back(compKey);
+    // Create an entity for the model.
+    EntityId entityId = this->entityCompMgr->CreateEntity();
 
-    /// \todo(nkoenig) Notify systems that entities have been created.
+    // Create the pose component for the model.
+    this->entityCompMgr->CreateComponent(
+        entityId, PoseComponent(model->Pose()));
   }
 }
