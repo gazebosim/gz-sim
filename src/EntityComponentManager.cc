@@ -49,8 +49,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Set of known Entity queries.
   public: std::vector<EntityQuery> queries;
-};
 
+  /// \brief Just a mutex for thread safety.
+  public: std::mutex mutex;
+};
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
@@ -201,6 +203,8 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 //////////////////////////////////////////////////
 EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
   for (size_t i = 0; i < this->dataPtr->queries.size(); ++i)
   {
     if (_query == this->dataPtr->queries.at(i))
@@ -212,10 +216,9 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 
   this->dataPtr->queries.push_back(_query);
   EntityQuery &query = this->dataPtr->queries.back();
-
   EntityQueryId result = this->dataPtr->queries.size() - 1;
-  const std::set<ComponentTypeId> &types = _query.ComponentTypes();
 
+  const std::set<ComponentTypeId> &types = _query.ComponentTypes();
   // \todo(nkoenig) Check that the entities vector is always compact,
   // otherwise this loop could check removed entities.
   for (size_t id = 0; id < this->dataPtr->entities.size(); ++id)

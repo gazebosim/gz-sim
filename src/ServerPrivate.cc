@@ -22,16 +22,17 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+#include <sdf/World.hh>
 
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/SystemQueryResponse.hh"
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "PoseComponent.hh"
 #include "WorldComponent.hh"
 #include "WorldStatisticsComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
-using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
@@ -48,20 +49,6 @@ ServerPrivate::ServerPrivate()
   // Create a physics system
   this->systems.push_back(SystemInternal(
       std::move(std::make_unique<PhysicsSystem>())));
-
-  // The server needs at least one world, so create it here.
-  this->worldEntity = this->entityCompMgr->CreateEntity();
-
-  // Create the world statistcs component for the world entity.
-  auto worldStatsComp = this->entityCompMgr->CreateComponent(
-        this->worldEntity, WorldStatisticsComponent());
-  this->entityCompMgr->CreateComponent(
-      this->worldEntity, WorldComponent("default"));
-
-  auto *worldStats =
-    this->entityCompMgr->ComponentMutable<WorldStatisticsComponent>(
-        worldStatsComp);
-  worldStats->RealTime().Start();
 }
 
 /////////////////////////////////////////////////
@@ -88,7 +75,9 @@ void ServerPrivate::UpdateSystems()
           this->entityCompMgr->Query(cb.first);
         if (query && query->get().EntityCount() > 0)
         {
-          cb.second(query->get(), *this->entityCompMgr.get());
+          SystemQueryResponse response(query->get(),
+              *this->entityCompMgr.get());
+          cb.second(response);
         }
       }
     });
@@ -130,13 +119,6 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     _cond.value()->notify_all();
   this->runMutex.unlock();
 
-  // Update period. If this matches stepTime, then simulation should run
-  // in realtime. If this is less than stepTime, then simulation should
-  // faster than real time.
-  // \todo(nkoenig) This needs to be read from SDF, and we need to create
-  // a service to modify it..
-  std::chrono::steady_clock::duration updatePeriod = 10ms;
-
   // \todo(nkoenig) Systems will need a an update structure, such as
   // priorties, or a dependency chain.
   //
@@ -157,14 +139,22 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
-    sleepTime = std::max(0ns, this->prevStepWallTime + updatePeriod -
+    sleepTime = std::max(0ns, this->prevStepWallTime + this->updatePeriod -
         std::chrono::steady_clock::now() - this->sleepOffset);
 
-    // Get the current time, sleep for the duration needed to match the
-    // updatePeriod, and then record the actual time slept.
-    startTime = std::chrono::steady_clock::now();
-    std::this_thread::sleep_for(sleepTime);
-    actualSleep = std::chrono::steady_clock::now() - startTime;
+    if (sleepTime > 0ns)
+    {
+      // Get the current time, sleep for the duration needed to match the
+      // updatePeriod, and then record the actual time slept.
+      startTime = std::chrono::steady_clock::now();
+      std::this_thread::sleep_for(sleepTime);
+      actualSleep = std::chrono::steady_clock::now() - startTime;
+    }
+    else
+    {
+      sleepTime = 0ns;
+      actualSleep = 0ns;
+    }
 
     // Exponentially average out the different between expected sleep time
     // and actual sleep time.
@@ -192,16 +182,35 @@ void ServerPrivate::OnSignal(int _sig)
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
-  for (uint64_t i = 0; i < _root.ModelCount(); ++i)
+  // Process each world.
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
-    // Get the SDF model
-    const sdf::Model *model = _root.ModelByIndex(i);
+    const sdf::World *world = _root.WorldByIndex(worldIndex);
 
-    // Create an entity for the model.
-    EntityId entityId = this->entityCompMgr->CreateEntity();
+    // The server needs at least one world, so create it here.
+    EntityId worldEntity = this->entityCompMgr->CreateEntity();
 
-    // Create the pose component for the model.
+    // Create the world component for the world entity.
     this->entityCompMgr->CreateComponent(
-        entityId, PoseComponent(model->Pose()));
+        worldEntity, WorldComponent(world->Name()));
+
+    // Create the world statistcs component for the world entity.
+    this->entityCompMgr->CreateComponent(
+        worldEntity, WorldStatisticsComponent());
+
+    // Process each model in the world
+    for (uint64_t modelIndex = 0; modelIndex < world->ModelCount();
+         ++modelIndex)
+    {
+      // Get the SDF model
+      const sdf::Model *model = world->ModelByIndex(modelIndex);
+
+      // Create an entity for the model.
+      EntityId entityId = this->entityCompMgr->CreateEntity();
+
+      // Create the pose component for the model.
+      this->entityCompMgr->CreateComponent(
+          entityId, PoseComponent(model->Pose()));
+    }
   }
 }

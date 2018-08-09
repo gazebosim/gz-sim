@@ -39,6 +39,8 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
 
+using namespace std::chrono_literals;
+
 namespace ignition
 {
   namespace gazebo
@@ -118,12 +120,10 @@ namespace ignition
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
 
-      /// \brief This is used to keep track of the world entity for
-      /// convenience.
-      public: EntityId worldEntity;
-
       public: std::chrono::steady_clock::time_point prevStepWallTime;
       public: std::chrono::steady_clock::duration sleepOffset{0};
+
+      public: std::chrono::steady_clock::duration updatePeriod{2ms};
     };
     }
   }

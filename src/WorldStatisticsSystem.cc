@@ -20,6 +20,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "WorldComponent.hh"
 #include "WorldStatisticsComponent.hh"
@@ -31,10 +32,8 @@ using namespace std::chrono_literals;
 class ignition::gazebo::WorldStatisticsSystemPrivate
 {
   /// \brief Entity query callback for all worlds.
-  /// \param[in] _result Result of the entity query.
-  /// \param[in] _ecMgr The entity component manager.
-  public: void OnUpdate(const EntityQuery &_result,
-              EntityComponentManager &_ecMgr);
+  /// \param[in] _response The system query response data.
+  public: void OnUpdate(SystemQueryResponse &_response);
 
   /// \brief Local storage for statistics computation and publication.
   public: class Stats
@@ -79,21 +78,21 @@ void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
       EntityComponentManager::ComponentType<WorldStatisticsComponent>());
   _registrar.Register(query,
       std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
-        std::placeholders::_1, std::placeholders::_2));
+        std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
-    EntityComponentManager &_ecMgr)
+void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   std::map<std::string, Stats>::iterator iter;
 
   // Process each entity.
-  for (const EntityId &entity : _result.Entities())
+  for (const EntityId &entity : _response.Query().Entities())
   {
     // Get the world stats component.
-    const auto *worldStats =
-      _ecMgr.ComponentMutable<WorldStatisticsComponent>(entity);
+    auto *worldStats =
+      _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
+          entity);
 
     if (!worldStats)
     {
@@ -104,7 +103,7 @@ void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
 
     // Get the world component.
     const auto *world =
-      _ecMgr.ComponentMutable<WorldComponent>(entity);
+      _response.EntityComponentMgr().Component<WorldComponent>(entity);
 
     if (!world)
     {
@@ -112,6 +111,8 @@ void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
         << std::endl;
       continue;
     }
+
+    worldStats->RealTime().Start();
 
     // Find the local world stats information.
     iter = this->stats.find(world->Name());
@@ -171,8 +172,8 @@ void WorldStatisticsSystemPrivate::OnUpdate(const EntityQuery &_result,
       ignition::msgs::WorldStatistics msg;
       if (realAvg != 0ns)
       {
-        msg.set_real_time_factor(
-            static_cast<double>(simAvg.count()) / realAvg.count());
+        msg.set_real_time_factor(math::precision(
+            static_cast<double>(simAvg.count()) / realAvg.count(), 4));
       }
 
       std::pair<int64_t, int64_t> realTimeSecNsec =
