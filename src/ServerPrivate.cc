@@ -139,7 +139,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
-    sleepTime = std::max(0ns, this->prevStepWallTime + this->updatePeriod -
+    sleepTime = std::max(0ns, this->prevUpdateWallTime + this->updatePeriod -
         std::chrono::steady_clock::now() - this->sleepOffset);
     actualSleep = 0ns;
 
@@ -159,7 +159,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
         (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
     // Record when the update step starts.
-    this->prevStepWallTime = std::chrono::steady_clock::now();
+    this->prevUpdateWallTime = std::chrono::steady_clock::now();
 
     // Update all the systems.
     this->UpdateSystems();

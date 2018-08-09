@@ -120,7 +120,11 @@ namespace ignition
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
 
-      public: std::chrono::steady_clock::time_point prevStepWallTime;
+      /// \brief Time of the previous update.
+      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
+
+      /// \brief A duration used to account for inaccuracies associated with
+      /// sleep durations.
       public: std::chrono::steady_clock::duration sleepOffset{0};
 
       /// \brief The default update rate is 500hz, which is a period of 2ms.
