@@ -21,8 +21,8 @@
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
-#include "PoseComponent.hh"
-#include "WorldStatisticsComponent.hh"
+#include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
@@ -87,8 +87,11 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
 //////////////////////////////////////////////////
 void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &/*_response*/)
 {
-  // \todo(nkoenig) Update dynamics
+  // Sleep for some amount of time to simulate the computation needed to
+  // update physics.
   std::this_thread::sleep_for(8ms);
+
+  // \todo(nkoenig) AcutallyUpdate dynamics
 
   // \todo(nkoenig) Update collisions
 

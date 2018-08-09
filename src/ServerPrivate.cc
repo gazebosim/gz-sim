@@ -27,9 +27,9 @@
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
-#include "PoseComponent.hh"
-#include "WorldComponent.hh"
-#include "WorldStatisticsComponent.hh"
+#include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/WorldComponent.hh"
+#include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -141,7 +141,9 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     // the update period.
     sleepTime = std::max(0ns, this->prevStepWallTime + this->updatePeriod -
         std::chrono::steady_clock::now() - this->sleepOffset);
+    actualSleep = 0ns;
 
+    // Only sleep if needed.
     if (sleepTime > 0ns)
     {
       // Get the current time, sleep for the duration needed to match the
@@ -149,11 +151,6 @@ bool ServerPrivate::Run(const uint64_t _iterations,
       startTime = std::chrono::steady_clock::now();
       std::this_thread::sleep_for(sleepTime);
       actualSleep = std::chrono::steady_clock::now() - startTime;
-    }
-    else
-    {
-      sleepTime = 0ns;
-      actualSleep = 0ns;
     }
 
     // Exponentially average out the different between expected sleep time

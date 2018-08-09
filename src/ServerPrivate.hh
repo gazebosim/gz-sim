@@ -123,6 +123,7 @@ namespace ignition
       public: std::chrono::steady_clock::time_point prevStepWallTime;
       public: std::chrono::steady_clock::duration sleepOffset{0};
 
+      /// \brief The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration updatePeriod{2ms};
     };
     }

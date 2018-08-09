@@ -17,7 +17,7 @@
 #include <string>
 
 #include <ignition/math/Pose3.hh>
-#include "PoseComponent.hh"
+#include "ignition/gazebo/PoseComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;
