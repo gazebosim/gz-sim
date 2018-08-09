@@ -50,9 +50,6 @@ namespace ignition
     /// \brief typedef for long registration type
     using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;
 
-    /// \brief (louise) A unique identifier for an entity query within a manager?
-    using EntityQueryId = int;
-
     /// \brief Id that indicates an invalid component.
     static const ComponentId kComponentIdInvalid = -1;
 
