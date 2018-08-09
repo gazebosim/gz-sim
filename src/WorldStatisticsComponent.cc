@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "WorldStatisticsComponent.hh"
+#include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition;
 using namespace gazebo;

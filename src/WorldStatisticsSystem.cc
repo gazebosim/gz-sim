@@ -22,8 +22,8 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
-#include "WorldComponent.hh"
-#include "WorldStatisticsComponent.hh"
+#include "ignition/gazebo/WorldComponent.hh"
+#include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
