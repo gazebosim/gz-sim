@@ -22,7 +22,6 @@
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/PoseComponent.hh"
 
 using namespace ignition;
@@ -37,8 +36,10 @@ ServerPrivate::ServerPrivate()
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
 
   // Create a physics system
+  /*
   this->systems.push_back(SystemInternal(
       std::move(std::make_unique<PhysicsSystem>())));
+  */
 }
 
 /////////////////////////////////////////////////

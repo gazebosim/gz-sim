@@ -22,6 +22,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
+
+#include <ignition/plugin/PluginMacros.hh>
 
 namespace ignition
 {
@@ -32,6 +35,15 @@ namespace ignition
     // Forward declarations.
     class SystemPrivate;
 
+    enum class IGNITION_GAZEBO_VISIBLE SystemTypeId {
+      UNKNOWN = 10,
+      PHYSICS = 20,
+      RENDERING = 30,
+      NETWORKING = 40,
+      LOGGING = 50
+    };
+
+
     /// \class System System.hh ignition/gazebo/System.hh
     /// \brief Base class for a System.
     ///
@@ -40,8 +52,10 @@ namespace ignition
     /// Components.
     class IGNITION_GAZEBO_VISIBLE System
     {
+      public: IGN_PLUGIN_SPECIALIZE_INTERFACE(ignition::gazebo::System)
+
       /// \brief Constructor
-      public: explicit System(const std::string &_name);
+      public: System(const std::string &_name, const SystemTypeId &_type=SystemTypeId::UNKNOWN);
 
       /// \brief Destructor
       public: virtual ~System();
@@ -54,7 +68,14 @@ namespace ignition
       /// \brief Set the name of the System
       public: void SetName(const std::string &_name) const;
 
+      /// \brief Get the type of the system.
+      public: const SystemTypeId &SystemType() const;
+
+      /// \brief Set the type of the System
+      public: void SetSystemType(const SystemTypeId& _system_type);
+
       private: std::unique_ptr<SystemPrivate> dataPtr;
+
     };
     }
   }

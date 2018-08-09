@@ -20,18 +20,23 @@ using namespace ignition::gazebo;
 
 class ignition::gazebo::SystemPrivate
 {
-  public: explicit SystemPrivate(const std::string &_name)
-          : name(_name)
+  public: explicit SystemPrivate(const std::string &_name,
+                                 const SystemTypeId &_system_type)
+          : name(_name),
+            system_type(_system_type)
   {
   }
 
   /// \brief Name of the system.
   public: std::string name{""};
+
+  /// \brief Type/Priority of the system.
+  public: SystemTypeId system_type{SystemTypeId::UNKNOWN};
 };
 
 //////////////////////////////////////////////////
-System::System(const std::string &_name)
-  : dataPtr(new SystemPrivate(_name))
+System::System(const std::string &_name, const SystemTypeId &_system_type)
+  : dataPtr(new SystemPrivate(_name, _system_type))
 {
 }
 
@@ -56,3 +61,16 @@ void System::SetName(const std::string &_name) const
 {
   this->dataPtr->name = _name;
 }
+
+//////////////////////////////////////////////////
+const SystemTypeId &System::SystemType() const
+{
+  return this->dataPtr->system_type;
+}
+
+//////////////////////////////////////////////////
+void System::SetSystemType(const SystemTypeId &_system_type)
+{
+  this->dataPtr->system_type = _system_type;
+}
+
