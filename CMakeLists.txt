@@ -31,23 +31,25 @@ include_directories(${SDFormat_INCLUDE_DIRS})
 #--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 6)
-ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
+ign_find_package(ignition-transport6 REQUIRED)
 
 #--------------------------------------
 # Find ignition-common
 set(IGN_COMMON_VER 3)
-ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
+ign_find_package(ignition-common3 REQUIRED)
 
 #--------------------------------------
 # Find ignition-gui
 set(IGN_GUI_VER 1)
-ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
+ign_find_package(ignition-gui1 REQUIRED)
 find_package (Qt5
   COMPONENTS
     Core
     Quick
     QuickControls2
   REQUIRED)
+
+
 
 #--------------------------------------
 # Find gflags
