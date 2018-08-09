@@ -38,6 +38,7 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
+    /// \cond
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
     /// of a particular type.
@@ -182,7 +183,11 @@ namespace ignition
       /// \brief Sequential storage of components.
       public: std::vector<ComponentTypeT> components;
     };
+    /// \endcond
 
+    /** \class EntityComponentManager EntityComponentManager.hh \
+     * ignition/gazebo/EntityComponentManager.hh
+    **/
     /// \brief The EntityComponentManager constructs, deletes, and returns
     /// components.
     class IGNITION_GAZEBO_VISIBLE EntityComponentManager

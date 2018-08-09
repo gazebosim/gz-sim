@@ -25,6 +25,7 @@
 #include "ignition/gazebo/test_config.hh"
 
 using namespace ignition;
+using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
 {
@@ -74,6 +75,9 @@ TEST_P(ServerFixture, RunBlocking)
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
 
+  // Make the server run fast.
+  server.SetUpdatePeriod(1ns);
+
   uint64_t expectedIters = 0;
   for (uint64_t i = 1; i < 100; ++i)
   {
@@ -92,6 +96,9 @@ TEST_P(ServerFixture, RunNonBlocking)
   gazebo::Server server;
   EXPECT_FALSE(server.Running());
   EXPECT_EQ(0u, server.IterationCount());
+
+  // Make the server run fast.
+  server.SetUpdatePeriod(1ns);
 
   server.Run(false, 100);
   while (server.IterationCount() < 100)
@@ -147,6 +154,10 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   EXPECT_EQ(0u, server1.IterationCount());
   EXPECT_EQ(0u, server2.IterationCount());
 
+  // Make the servers run fast.
+  server1.SetUpdatePeriod(1ns);
+  server2.SetUpdatePeriod(1ns);
+
   // Start non-blocking
   EXPECT_TRUE(server1.Run(false, 999999));
 
@@ -174,6 +185,10 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
   EXPECT_FALSE(server2.Running());
   EXPECT_EQ(0u, server1.IterationCount());
   EXPECT_EQ(0u, server2.IterationCount());
+
+  // Make the servers run fast.
+  server1.SetUpdatePeriod(1ns);
+  server2.SetUpdatePeriod(1ns);
 
   server1.Run(false, 10);
   server2.Run(true, 1000);
