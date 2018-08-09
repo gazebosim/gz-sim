@@ -37,9 +37,10 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   std::vector<ignition::math::Pose3d> poses;
   std::vector<gazebo::ComponentKey> keys;
 
-  int count = 2;
+  int count = 10;
 
   gazebo::EntityId entityId = manager.CreateEntity();
+  EXPECT_EQ(0, entityId);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -92,6 +93,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   int count = 100000;
 
   gazebo::EntityId entityId = manager.CreateEntity();
+  EXPECT_EQ(0, entityId);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -146,6 +148,7 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
   gazebo::ComponentKey key{999, 0};
 
   // Can't remove the component type that doesn't exist.
+  // FIXME: this is actually showing that the entity doesn't exist
   EXPECT_FALSE(manager.RemoveComponent(1, key));
 
   // We should get a nullptr if the component type doesn't exist.

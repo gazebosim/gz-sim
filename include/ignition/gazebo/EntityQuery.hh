@@ -35,7 +35,9 @@ namespace ignition
     class EntityQueryPrivate;
 
     /// \class EntityQuery EntityQuery.hh ignition/gazebo/EntityQuery.hh
-    /// \brief a Class for querying entities from a manager
+    /// \brief A class for querying entities from a manager
+    /// (louise) Is it used for both querying and responding? Maybe it makes
+    /// sense to decouple these?
     class IGNITION_GAZEBO_VISIBLE EntityQuery
     {
       /// \brief Constructor.

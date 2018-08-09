@@ -43,7 +43,9 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~PhysicsSystem();
 
+      // Documentation inherited
       public: void Init(EntityQueryRegistrar &_registrar) override final;
+
       /// \brief Private data pointer.
       private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
     };
