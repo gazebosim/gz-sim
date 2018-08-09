@@ -31,6 +31,12 @@ Server::Server()
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Set the desired update period.
+  if (_config.UpdatePeriod())
+  {
+    this->dataPtr->updatePeriod = _config.UpdatePeriod().value();
+  }
+
   if (!_config.SdfFile().empty())
   {
     sdf::Root root;

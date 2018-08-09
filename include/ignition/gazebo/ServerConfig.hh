@@ -17,7 +17,9 @@
 #ifndef IGNITION_GAZEBO_SERVERCONFIG_HH_
 #define IGNITION_GAZEBO_SERVERCONFIG_HH_
 
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -59,6 +61,21 @@ namespace ignition
       /// returned if an SDF file has not been set.
       /// \return The full path to the SDF file, or empty string.
       public: std::string SdfFile() const;
+
+      /// \brief Set the update rate in Hertz.
+      /// \param[in] _hz The desired update rate of the server in Hertz.
+      public: void SetUpdateRate(const uint32_t &_hz);
+
+      /// \brief Get the update rate in Hertz.
+      /// \return The desired update rate of the server in Hertz, or nullopt if
+      /// an UpdateRate has not been set.
+      public: std::optional<uint32_t> UpdateRate() const;
+
+      /// \brief Get the update period duration.
+      /// \return The desired update period, or nullopt if
+      /// an UpdateRate has not been set.
+      public: std::optional<std::chrono::steady_clock::duration>
+              UpdatePeriod() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
