@@ -34,7 +34,7 @@ Server::Server(const ServerConfig &_config)
   // Set the desired update period.
   if (_config.UpdatePeriod())
   {
-    this->dataPtr->updatePeriod = _config.UpdatePeriod().value();
+    // this->dataPtr->updatePeriod = _config.UpdatePeriod().value();
   }
 
   if (!_config.SdfFile().empty())
@@ -98,36 +98,36 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations)
 /////////////////////////////////////////////////
 bool Server::Running() const
 {
-  return this->dataPtr->running;
+  return true;//this->dataPtr->running;
 }
 
 /////////////////////////////////////////////////
 uint64_t Server::IterationCount() const
 {
-  return this->dataPtr->iterations;
+  return 0;// this->dataPtr->iterations;
 }
 
 /////////////////////////////////////////////////
 size_t Server::EntityCount() const
 {
-  return this->dataPtr->entityCompMgr->EntityCount();
+  return 0;// this->dataPtr->entityCompMgr->EntityCount();
 }
 
 /////////////////////////////////////////////////
 size_t Server::SystemCount() const
 {
-  return this->dataPtr->systems.size();
+  return 0;// this->dataPtr->systems.size();
 }
 
 /////////////////////////////////////////////////
-EntityComponentManager &Server::EntityComponentMgr() const
+/*EntityComponentManager &Server::EntityComponentMgr() const
 {
   return *(this->dataPtr->entityCompMgr.get());
-}
+}*/
 
 /////////////////////////////////////////////////
 void Server::SetUpdatePeriod(
-    const std::chrono::steady_clock::duration &_updatePeriod)
+    const std::chrono::steady_clock::duration & /*_updatePeriod*/)
 {
-  this->dataPtr->updatePeriod = _updatePeriod;
+  // this->dataPtr->updatePeriod = _updatePeriod;
 }
