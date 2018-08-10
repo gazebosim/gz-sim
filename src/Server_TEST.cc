@@ -40,8 +40,8 @@ TEST_P(ServerFixture, Constructor)
   EXPECT_EQ(0u, server.EntityCount());
   EXPECT_EQ(2u, server.SystemCount());
 
-  gazebo::EntityComponentManager &mgr = server.EntityComponentMgr();
-  EXPECT_EQ(0u, mgr.EntityCount());
+  // gazebo::EntityComponentManager &mgr = server.EntityComponentMgr();
+  // EXPECT_EQ(0u, mgr.EntityCount());
 }
 
 /////////////////////////////////////////////////

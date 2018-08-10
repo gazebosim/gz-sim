@@ -118,7 +118,7 @@ namespace ignition
 
       /// \brief Return the entity component manager.
       /// \return The manager.
-      public: EntityComponentManager &EntityComponentMgr() const;
+      // public: EntityComponentManager &EntityComponentMgr() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

@@ -47,20 +47,8 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    // Private data for Server
-    class IGNITION_GAZEBO_HIDDEN SystemInternal
-    {
-      public: explicit SystemInternal(std::unique_ptr<System> _system)
-              : system(std::move(_system))
-              {
-              }
-
-      /// \brief All of the systems.
-      public: std::unique_ptr<System> system;
-
-      public: std::vector<
-              std::pair<EntityQueryId, EntityQueryCallback>> updates;
-    };
+    //
+    class SimulationRunner;
 
     // Private data for Server
     class IGNITION_GAZEBO_HIDDEN ServerPrivate
@@ -70,9 +58,6 @@ namespace ignition
 
       /// \brief Destructor
       public: ~ServerPrivate();
-
-      /// \brief Update all the systems
-      public: void UpdateSystems();
 
       /// \brief Run the server.
       /// \param[in] _iterations Number of iterations.
@@ -88,47 +73,29 @@ namespace ignition
       /// \brief Initialize all the systems.
       public: void InitSystems();
 
+      public: void Stop();
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
 
-      /// \brief Thread that executes systems.
-      public: std::thread runThread;
+      /// \brief A pool of worker threads.
+      public: common::WorkerPool workerPool;
 
-      /// \brief Communication node.
-      public: ignition::transport::Node node;
+      public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;
 
-      /// \brief Number of iterations.
-      public: uint64_t iterations = 0;
+      /// \brief Mutex to protect the Run operation.
+      public: std::mutex runMutex;
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
 
-      /// \brief Mutex to protect the Run operation.
-      public: std::mutex runMutex;
+      /// \brief Thread that executes systems.
+      public: std::thread runThread;
 
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;
-
-      /// \brief Manager of all components.
-      public: std::shared_ptr<EntityComponentManager> entityCompMgr;
-
-      /// \brief All the systems.
-      public: std::vector<SystemInternal> systems;
-
-      /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool;
-
-      /// \brief Time of the previous update.
-      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
-
-      /// \brief A duration used to account for inaccuracies associated with
-      /// sleep durations.
-      public: std::chrono::steady_clock::duration sleepOffset{0};
-
-      /// \brief The default update rate is 500hz, which is a period of 2ms.
-      public: std::chrono::steady_clock::duration updatePeriod{2ms};
     };
     }
   }
