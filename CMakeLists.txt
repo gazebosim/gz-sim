@@ -25,7 +25,7 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
-find_package(SDFormat REQUIRED VERSION 7.0.0)
+find_package(SDFormat REQUIRED VERSION 8.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
