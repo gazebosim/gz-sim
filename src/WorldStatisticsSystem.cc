@@ -148,50 +148,45 @@ void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
     if (entityStats.simTimes.size() > 20)
       entityStats.simTimes.pop_front();
 
-    // Check if the message will be published. If not, then do no bother
-    // creating thte message.
-    if (entityStats.publisher.WillPublish())
+    // Compute the average sim ang real times.
+    std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
+    std::list<std::chrono::steady_clock::duration>::iterator simIter,
+      realIter;
+
+    simIter = ++(entityStats.simTimes.begin());
+    realIter = ++(entityStats.realTimes.begin());
+    while (simIter != entityStats.simTimes.end() &&
+        realIter != entityStats.realTimes.end())
     {
-      // Compute the average sim ang real times.
-      std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
-      std::list<std::chrono::steady_clock::duration>::iterator simIter,
-        realIter;
-
-      simIter = ++(entityStats.simTimes.begin());
-      realIter = ++(entityStats.realTimes.begin());
-      while (simIter != entityStats.simTimes.end() &&
-             realIter != entityStats.realTimes.end())
-      {
-        simAvg += ((*simIter) - entityStats.simTimes.front());
-        realAvg += ((*realIter) - entityStats.realTimes.front());
-        ++simIter;
-        ++realIter;
-      }
-
-      // Create the world statistics message.
-      ignition::msgs::WorldStatistics msg;
-      if (realAvg != 0ns)
-      {
-        msg.set_real_time_factor(math::precision(
-            static_cast<double>(simAvg.count()) / realAvg.count(), 4));
-      }
-
-      std::pair<int64_t, int64_t> realTimeSecNsec =
-        ignition::math::durationToSecNsec(realTime);
-
-      std::pair<int64_t, int64_t> simTimeSecNsec =
-        ignition::math::durationToSecNsec(simTime);
-
-      msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
-      msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
-
-      msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
-      msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
-
-      msg.set_iterations(worldStats->Iterations());
-
-      // Publish the message
-      entityStats.publisher.Publish(msg);
+      simAvg += ((*simIter) - entityStats.simTimes.front());
+      realAvg += ((*realIter) - entityStats.realTimes.front());
+      ++simIter;
+      ++realIter;
     }
+
+    // Create the world statistics message.
+    ignition::msgs::WorldStatistics msg;
+    if (realAvg != 0ns)
+    {
+      msg.set_real_time_factor(math::precision(
+            static_cast<double>(simAvg.count()) / realAvg.count(), 4));
+    }
+
+    std::pair<int64_t, int64_t> realTimeSecNsec =
+      ignition::math::durationToSecNsec(realTime);
+
+    std::pair<int64_t, int64_t> simTimeSecNsec =
+      ignition::math::durationToSecNsec(simTime);
+
+    msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+    msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+    msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+    msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+    msg.set_iterations(worldStats->Iterations());
+
+    // Publish the message
+    entityStats.publisher.Publish(msg);
   }
 }
