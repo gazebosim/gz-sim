@@ -23,6 +23,11 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+namespace sdf
+{
+  class World;
+}
+
 namespace ignition
 {
   namespace gazebo
@@ -38,7 +43,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
       /// register the component type.
-      public: explicit WorldComponent(const std::string &_name);
+      public: explicit WorldComponent(const sdf::World *_world);
 
       /// \brief Copy Constructor
       /// \param[in] _world WorldComponent to copy.
@@ -66,6 +71,18 @@ namespace ignition
 
       // Documentation inherited
       public: const std::string &Name() const;
+
+      public: double DesiredRealTimeFactor() const;
+
+      public: void SetDesiredRealTimeFactor(const double _factor);
+
+      /// \brief Get the max step duration.
+      /// \return Physics max step duration.
+      public: std::chrono::steady_clock::duration MaxStep() const;
+
+      /// \brief Set the max step duration.
+      /// \param[in] _step Physics max step duration.
+      public: void SetMaxStep(const std::chrono::steady_clock::duration _step);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldComponentPrivate> dataPtr;
