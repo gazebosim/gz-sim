@@ -29,7 +29,7 @@ void runTimer(math::Stopwatch &_time)
   // Windows uses a system_clock for std::this_thread::sleep_for. This can
   // cause incorrect sleep durations. So, we add some room for error on
   // windows.
-  std::chrono::duration handleSteadyClock = std::chrono::milliseconds(0);
+  std::chrono::duration::milliseconds handleSteadyClock = std::chrono::milliseconds(0);
 #ifdef _WIN32
   handleSteadyClock = std::chrono::milliseconds(100);
 #endif
