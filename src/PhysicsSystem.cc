@@ -22,6 +22,7 @@
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/WorldComponent.hh"
 #include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
@@ -80,7 +81,13 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   auto *worldStats =
     _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
       *_response.Query().Entities().begin());
-  worldStats->AddSimTime(10ms);
+
+  // \todo(nkoenig) HACK which assumes the first entity is the world. Need
+  // to implement the next version of entity/query accessors.
+  auto *worldComponent =
+    _response.EntityComponentMgr().Component<WorldComponent>(0);
+  worldStats->AddSimTime(worldComponent->MaxStep());
+
   worldStats->AddIterations(1u);
 }
 

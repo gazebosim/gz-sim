@@ -172,7 +172,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
   // Create the world component for the world entity.
   this->entityCompMgr.CreateComponent(
-      worldEntity, WorldComponent(_world->Name()));
+      worldEntity, WorldComponent(_world));
 
   // Create the world statistcs component for the world entity.
   this->entityCompMgr.CreateComponent(
