@@ -326,3 +326,16 @@ void EntityComponentManager::RegisterComponentType(
   igndbg << "Register new component type " << _typeId << ".\n";
   this->dataPtr->components[_typeId].reset(_type);
 }
+
+/////////////////////////////////////////////////
+void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
+{
+ std::map<ComponentTypeId,
+   std::unique_ptr<ComponentStorageBase>>::iterator iter =
+     this->dataPtr->components.find(_componentTypeId);
+ if (iter != this->dataPtr->components.end())
+ {
+   return iter->second->First();
+ }
+ return nullptr;
+}

@@ -79,8 +79,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
 {
   auto *worldStats =
-    _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
-      *_response.Query().Entities().begin());
+    _response.EntityComponentMgr().First<WorldStatisticsComponent>();
 
   // \todo(nkoenig) HACK which assumes the first entity is the world. Need
   // to implement the next version of entity/query accessors.
