@@ -38,14 +38,15 @@ ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ign-gazebo-gui
-  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  ignition-plugin${IGN_PLUGIN_VER}::loader
+  ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   ${Qt5Core_LIBRARIES}
   ${Qt5Widgets_LIBRARIES}
   ${SDFormat_LIBRARIES}
+  PRIVATE
+  ignition-plugin${IGN_PLUGIN_VER}::loader
 )
 
 ign_add_component(systems
@@ -55,8 +56,9 @@ ign_add_component(systems
 
 target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
-  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  PRIVATE
+  ignition-plugin${IGN_PLUGIN_VER}::register
 )
 
 # Build the unit tests

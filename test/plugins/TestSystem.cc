@@ -33,5 +33,10 @@ TestSystem::~TestSystem()
 {
 }
 
+void TestSystem::Init(EntityQueryRegistrar &_registrar)
+{
+  (void)_registrar;
+}
+
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)

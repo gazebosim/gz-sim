@@ -41,5 +41,7 @@ TEST(SystemManager, Constructor)
   // Load test config file
   auto testSourcePath = std::string(PROJECT_SOURCE_PATH) + "/test/";
   EXPECT_TRUE(sm.loadSystemConfig(testSourcePath + "config/test.config"));
+
+  ignmsg << sm.PrettyStr() << std::endl;
 }
 
