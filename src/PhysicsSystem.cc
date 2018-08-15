@@ -92,11 +92,19 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &/*_response*/)
+void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  std::this_thread::sleep_for(1ms);
+  _response.EntityComponentMgr().Each<PoseComponent>(
+    [&](const EntityId &_entity, const PoseComponent *_pose)
+    {
+      if (_pose)
+      {
+        std::cout << "Pose[" << _pose->Pose() << "]\n";
+        std::this_thread::sleep_for(50us);
+      }
+    });
 
   // \todo(nkoenig) AcutallyUpdate dynamics
 
