@@ -93,8 +93,13 @@ void ServerPrivate::InitSystems()
   {
     this->workerPool.AddWork([&system, this] ()
     {
+      // Create a new registrar
       EntityQueryRegistrar registrar;
+
+      // Initialize the system, which may register new callbacks
       system.system->Init(registrar);
+
+      // Iterate over registered callbacks and create queries
       for (const EntityQueryRegistration &registration :
            registrar.Registrations())
       {
