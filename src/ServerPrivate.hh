@@ -19,10 +19,8 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
