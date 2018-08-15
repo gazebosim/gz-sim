@@ -54,7 +54,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~PoseComponent();
 
-      // Documentation inherited
+      /// \brief Get the component's name.
+      /// \return The name.
       public: const std::string &Name() const;
 
       /// \brief Move assignment operator.
