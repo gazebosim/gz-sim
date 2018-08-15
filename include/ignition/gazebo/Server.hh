@@ -66,22 +66,22 @@ namespace ignition
     //
     class IGNITION_GAZEBO_VISIBLE Server
     {
-      /// \brief Constructor
-      public: Server();
-
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.
-      /// \param[in] _config Server configuration parameters.
-      public: explicit Server(const ServerConfig &_config);
+      /// \param[in] _config Server configuration parameters. If this
+      /// parameter is omitted, then an empty world is loaded.
+      public: explicit Server(const ServerConfig &_config = ServerConfig());
 
       /// \brief Destructor
       public: ~Server();
 
       /// \brief Set the update period. The update period is the wall-clock time
       /// between updates.
+      /// \param[in] _worldIndex Index of the world to query.
       /// \param[in] _updatePeriod Duration between updates.
       public: void SetUpdatePeriod(
-                  const std::chrono::steady_clock::duration &_updatePeriod);
+                  const std::chrono::steady_clock::duration &_updatePeriod,
+                  const unsigned int _worldIndex = 0);
 
       /// \brief Run the server. By default this is a non-blocking call,
       /// which means the server runs simulation in a separate thread. Pass
@@ -101,24 +101,30 @@ namespace ignition
 
       /// \brief Get whether this server is running. When running is true,
       /// then simulation is stepping forward.
-      /// \return True if the server is running.
-      public: bool Running() const;
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the server is running, or std::nullopt
+      ///  if _worldIndex is invalid.
+      public: std::optional<bool> Running(
+                  const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the number of iterations the server has executed.
-      /// \return The current iteration count.
-      public: uint64_t IterationCount() const;
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return The current iteration count,
+      /// or std::nullopt if _worldIndex is invalid.
+      public: std::optional<uint64_t> IterationCount(
+                  const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the number of entities on the server.
-      /// \return Entity count.
-      public: size_t EntityCount() const;
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Entity count, or std::nullopt if _worldIndex is invalid.
+      public: std::optional<size_t> EntityCount(
+                  const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the number of systems on the server.
-      /// \return System count.
-      public: size_t SystemCount() const;
-
-      /// \brief Return the entity component manager.
-      /// \return The manager.
-      // public: EntityComponentManager &EntityComponentMgr() const;
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return System count, or std::nullopt if _worldIndex is invalid.
+      public: std::optional<size_t> SystemCount(
+                  const unsigned int _worldIndex = 0) const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

@@ -102,15 +102,8 @@ void SimulationRunner::Stop()
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::Run(const uint64_t _iterations,
-    std::optional<std::condition_variable *> _cond)
+bool SimulationRunner::Run(const uint64_t _iterations)
 {
-  this->runMutex.lock();
-  this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
-
   // \todo(nkoenig) Systems will need a an update structure, such as
   // priorties, or a dependency chain.
   //
@@ -122,7 +115,8 @@ bool SimulationRunner::Run(const uint64_t _iterations,
   std::chrono::steady_clock::duration sleepTime;
   std::chrono::steady_clock::duration actualSleep;
 
-  std::cout << "Running simulation runner\n";
+  this->running = true;
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (uint64_t startingIterations = this->iterations;
@@ -170,9 +164,16 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   // The server needs at least one world, so create it here.
   EntityId worldEntity = this->entityCompMgr.CreateEntity();
 
+  /// \todo(nkoenig) Computing the desired update period here is a bit
+  /// hacky.
+  WorldComponent worldComponent(_world);
+  std::chrono::steady_clock::duration stepSize = worldComponent.MaxStep();
+  double rtf = worldComponent.DesiredRealTimeFactor();
+  this->updatePeriod = std::chrono::nanoseconds(
+      static_cast<int>(stepSize.count() / rtf));
+
   // Create the world component for the world entity.
-  this->entityCompMgr.CreateComponent(
-      worldEntity, WorldComponent(_world));
+  this->entityCompMgr.CreateComponent(worldEntity, worldComponent);
 
   // Create the world statistcs component for the world entity.
   this->entityCompMgr.CreateComponent(
@@ -192,4 +193,35 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
     this->entityCompMgr.CreateComponent(
         entityId, PoseComponent(model->Pose()));
   }
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Running() const
+{
+  return this->running;
+}
+
+/////////////////////////////////////////////////
+uint64_t SimulationRunner::IterationCount() const
+{
+  return this->iterations;
+}
+
+/////////////////////////////////////////////////
+size_t SimulationRunner::EntityCount() const
+{
+  return this->entityCompMgr.EntityCount();
+}
+
+/////////////////////////////////////////////////
+size_t SimulationRunner::SystemCount() const
+{
+  return this->systems.size();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetUpdatePeriod(
+    const std::chrono::steady_clock::duration &_updatePeriod)
+{
+  this->updatePeriod = _updatePeriod;
 }

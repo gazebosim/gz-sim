@@ -59,7 +59,7 @@ namespace ignition
       /// \brief Destructor
       public: ~ServerPrivate();
 
-      /// \brief Run the server.
+      /// \brief Run the server, and all the simulation runners.
       /// \param[in] _iterations Number of iterations.
       /// \param[in] _cond Optional condition variable. This condition is
       /// notified when the server has started running.
@@ -82,6 +82,7 @@ namespace ignition
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
 
+      /// \brief All the simulation runners.
       public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;
 
       /// \brief Mutex to protect the Run operation.

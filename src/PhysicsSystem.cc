@@ -96,7 +96,7 @@ void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &/*_response*/)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  std::this_thread::sleep_for(8ms);
+  std::this_thread::sleep_for(1ms);
 
   // \todo(nkoenig) AcutallyUpdate dynamics
 

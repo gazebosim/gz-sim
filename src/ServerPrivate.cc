@@ -37,6 +37,11 @@ ServerPrivate::~ServerPrivate()
 {
   this->Stop();
   this->workerPool.WaitForResults();
+  if (this->runThread.joinable())
+  {
+    this->running = false;
+    this->runThread.join();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -68,16 +73,24 @@ void ServerPrivate::InitSystems()
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {
+  this->runMutex.lock();
+  this->running = true;
+  if (_cond)
+    _cond.value()->notify_all();
+  this->runMutex.unlock();
+
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
-    this->workerPool.AddWork([&runner, &_iterations, &_cond] ()
+    this->workerPool.AddWork([&runner, &_iterations] ()
     {
-      runner->Run(_iterations, _cond);
+      runner->Run(_iterations);
     });
   }
 
   // Wait for the runner to complete.
-  return this->workerPool.WaitForResults();
+  bool result = this->workerPool.WaitForResults();
+  this->running = false;
+  return result;
 }
 
 //////////////////////////////////////////////////
