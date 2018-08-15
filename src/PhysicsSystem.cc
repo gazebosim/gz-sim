@@ -30,7 +30,7 @@ using namespace std::chrono_literals;
 // Private data class.
 class ignition::gazebo::PhysicsSystemPrivate
 {
-  /// \brief Query callback for entity that have physics components.
+  /// \brief Query callback for entity that has physics components.
   /// \param[in] _response The system query response data.
   public: void OnUpdate(SystemQueryResponse &_response);
 

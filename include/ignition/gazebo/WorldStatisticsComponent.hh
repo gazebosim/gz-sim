@@ -38,8 +38,6 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE WorldStatisticsComponent
     {
       /// \brief Constructor
-      /// \param[in] _compMgr The entity component manager, which is used to
-      /// register the component type.
       public: explicit WorldStatisticsComponent();
 
       /// \brief Copy Constructor
@@ -55,7 +53,8 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~WorldStatisticsComponent();
 
-      // Documentation inherited
+      /// \brief Component's name
+      /// \return The component's name.
       public: const std::string &Name() const;
 
       /// \brief Move assignment operator.
@@ -71,27 +70,41 @@ namespace ignition
                   const WorldStatisticsComponent &_stats);
 
       /// \brief Get the number of iterations.
-      /// \return The elapsed real time.
+      /// \return The elapsed number of iterations.
       public: uint64_t Iterations() const;
+
+      /// \brief Set the total number of iterations.
+      /// \param[in] _iters The elapsed number of iterations.
       public: void SetIterations(const uint64_t _iters);
+
+      /// \brief Add iterations to the current total.
+      /// \param[in] _iters Iterations to add.
       public: void AddIterations(const uint64_t _iters);
 
-      /// \brief Get the elapsed real time.
-      /// \return The elapsed real time.
+      /// \brief Get the elapsed sim time.
+      /// \return The elapsed sim time.
       public: const ignition::math::clock::duration &SimTime() const;
 
+      /// \brief Add sim time.
+      /// \param[in] _sim The amount of time to add.
       public: void AddSimTime(const ignition::math::clock::duration &_sim);
 
+      /// \brief Set sim time.
+      /// \param[in] _sim The total sim time.
       public: void SetSimTime(const ignition::math::clock::duration &_sim);
 
       /// \brief Get the elapsed real time.
       /// \return The elapsed real time.
       public: const ignition::math::Stopwatch &RealTime() const;
 
+      /// \brief Get a mutable real time.
+      /// \return The elapsed real time.
       public: ignition::math::Stopwatch &RealTime();
 
+      /// \brief Set real time.
+      /// \param[in] _realTime The total reak time.
       public: void SetRealTime(
-                  const ignition::math::clock::duration &_realTime) const;
+                  const ignition::math::clock::duration &_realTime);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsComponentPrivate> dataPtr;
