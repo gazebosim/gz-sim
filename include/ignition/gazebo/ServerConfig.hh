@@ -19,7 +19,7 @@
 
 #include <chrono>
 #include <memory>
-#include <optional>
+#include <optional> // NOLINT(*)
 #include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -62,14 +62,14 @@ namespace ignition
       /// \return The full path to the SDF file, or empty string.
       public: std::string SdfFile() const;
 
-      /// \brief Set the update rate in Hertz.
+      /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.
-      public: void SetUpdateRate(const uint32_t &_hz);
+      public: void SetUpdateRate(const double &_hz);
 
       /// \brief Get the update rate in Hertz.
       /// \return The desired update rate of the server in Hertz, or nullopt if
       /// an UpdateRate has not been set.
-      public: std::optional<uint32_t> UpdateRate() const;
+      public: std::optional<double> UpdateRate() const;
 
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if

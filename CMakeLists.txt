@@ -25,29 +25,31 @@ ign_configure_project()
 # Search for project-specific dependencies
 #============================================================================
 
-find_package(SDFormat REQUIRED VERSION 7.0.0)
+find_package(SDFormat REQUIRED VERSION 8.0.0)
 include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-transport
 set(IGN_TRANSPORT_VER 6)
-ign_find_package(ignition-transport${IGN_TRANSPORT_VER} REQUIRED)
+ign_find_package(ignition-transport6 REQUIRED)
 
 #--------------------------------------
 # Find ignition-common
 set(IGN_COMMON_VER 3)
-ign_find_package(ignition-common${IGN_COMMON_VER} REQUIRED)
+ign_find_package(ignition-common3 REQUIRED)
 
 #--------------------------------------
 # Find ignition-gui
 set(IGN_GUI_VER 1)
-ign_find_package(ignition-gui${IGN_GUI_VER} REQUIRED)
+ign_find_package(ignition-gui1 REQUIRED)
 find_package (Qt5
   COMPONENTS
     Core
     Quick
     QuickControls2
   REQUIRED)
+
+
 
 #--------------------------------------
 # Find gflags
@@ -74,4 +76,9 @@ ign_create_packages()
 #============================================================================
 # Configure documentation
 #============================================================================
-ign_create_docs()
+configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
+configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
+
+ign_create_docs(
+  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md")
