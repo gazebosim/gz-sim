@@ -37,6 +37,8 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
 
+using namespace std::chrono_literals;
+
 namespace ignition
 {
   namespace gazebo
@@ -117,6 +119,16 @@ namespace ignition
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
+
+      /// \brief Time of the previous update.
+      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
+
+      /// \brief A duration used to account for inaccuracies associated with
+      /// sleep durations.
+      public: std::chrono::steady_clock::duration sleepOffset{0};
+
+      /// \brief The default update rate is 500hz, which is a period of 2ms.
+      public: std::chrono::steady_clock::duration updatePeriod{2ms};
     };
     }
   }

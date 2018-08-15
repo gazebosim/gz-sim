@@ -31,6 +31,12 @@ Server::Server()
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Set the desired update period.
+  if (_config.UpdatePeriod())
+  {
+    this->dataPtr->updatePeriod = _config.UpdatePeriod().value();
+  }
+
   if (!_config.SdfFile().empty())
   {
     sdf::Root root;
@@ -117,4 +123,11 @@ size_t Server::SystemCount() const
 EntityComponentManager &Server::EntityComponentMgr() const
 {
   return *(this->dataPtr->entityCompMgr.get());
+}
+
+/////////////////////////////////////////////////
+void Server::SetUpdatePeriod(
+    const std::chrono::steady_clock::duration &_updatePeriod)
+{
+  this->dataPtr->updatePeriod = _updatePeriod;
 }

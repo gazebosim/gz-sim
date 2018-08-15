@@ -23,6 +23,9 @@ class ignition::gazebo::ServerConfigPrivate
 {
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
+
+  /// \brief An optional update rate.
+  public: std::optional<uint32_t> updateRate;
 };
 
 //////////////////////////////////////////////////
@@ -47,4 +50,30 @@ bool ServerConfig::SetSdfFile(const std::string &_file)
 std::string ServerConfig::SdfFile() const
 {
   return this->dataPtr->sdfFile;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetUpdateRate(const uint32_t &_hz)
+{
+  this->dataPtr->updateRate = _hz;
+}
+
+/////////////////////////////////////////////////
+std::optional<uint32_t> ServerConfig::UpdateRate() const
+{
+  return this->dataPtr->updateRate;
+}
+
+/////////////////////////////////////////////////
+std::optional<std::chrono::steady_clock::duration>
+    ServerConfig::UpdatePeriod() const
+{
+  if (this->dataPtr->updateRate)
+  {
+    std::chrono::duration<double, std::ratio<1>> seconds(
+        1.0 / this->dataPtr->updateRate.value());
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(seconds);
+  }
+
+  return std::nullopt;
 }
