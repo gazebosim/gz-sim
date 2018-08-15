@@ -80,6 +80,8 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   auto *worldStats =
     _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
       *_response.Query().Entities().begin());
+  /// \todo(nkoenig) We might want to prevent all system from modifying
+  /// simulation time.
   worldStats->AddSimTime(10ms);
   worldStats->AddIterations(1u);
 }
