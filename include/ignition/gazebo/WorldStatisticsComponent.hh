@@ -101,11 +101,6 @@ namespace ignition
       /// \return The elapsed real time.
       public: ignition::math::Stopwatch &RealTime();
 
-      /// \brief Set real time.
-      /// \param[in] _realTime The total reak time.
-      public: void SetRealTime(
-                  const ignition::math::clock::duration &_realTime);
-
       /// \brief Private data pointer.
       private: std::unique_ptr<WorldStatisticsComponentPrivate> dataPtr;
     };
