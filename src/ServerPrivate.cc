@@ -24,12 +24,12 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
+#include "ignition/gazebo/PoseComponent.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
-#include "ignition/gazebo/PoseComponent.hh"
 #include "ignition/gazebo/WorldComponent.hh"
 #include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -184,7 +184,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
   {
     const sdf::World *world = _root.WorldByIndex(worldIndex);
 
-    // The server needs at least one world, so create it here.
+    // Create the world entity
     EntityId worldEntity = this->entityCompMgr->CreateEntity();
 
     // Create the world component for the world entity.

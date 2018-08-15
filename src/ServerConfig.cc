@@ -66,7 +66,7 @@ std::optional<uint32_t> ServerConfig::UpdateRate() const
 
 /////////////////////////////////////////////////
 std::optional<std::chrono::steady_clock::duration>
-ServerConfig::UpdatePeriod() const
+    ServerConfig::UpdatePeriod() const
 {
   if (this->dataPtr->updateRate)
   {

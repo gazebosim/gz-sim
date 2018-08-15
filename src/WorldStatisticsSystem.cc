@@ -15,8 +15,8 @@
  *
 */
 #include <list>
-#include <ignition/msgs.hh>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/msgs/world_stats.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -51,7 +51,7 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
   /// \brief Node for communication.
   public: ignition::transport::Node node;
 
-  /// \brief All the stats.
+  /// \brief Stats for all the worlds, where the key is the world name.
   public: std::map<std::string, Stats> stats;
 };
 
@@ -138,7 +138,7 @@ void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
 
     Stats &entityStats = iter->second;
 
-    // Store the real time, and maintain a list size of 20.
+    // Store the real time, and maintain a window size of 20.
     entityStats.realTimes.push_back(realTime);
     if (entityStats.realTimes.size() > 20)
       entityStats.realTimes.pop_front();

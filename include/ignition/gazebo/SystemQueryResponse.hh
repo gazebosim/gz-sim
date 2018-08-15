@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQuery.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/EntityQuery.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -36,16 +36,12 @@ namespace ignition
     /** \class SystemQueryResponse SystemQueryResponse.hh \
      * ignition/gazebo/SystemQueryResponse.hh
     **/
-    /// \brief Base class for a System.
-    ///
-    /// A System operates on Entities that have certain Components. A System
-    /// will only operate on an Entity if it has all of the required
-    /// Components.
+    /// \brief TODO
     class IGNITION_GAZEBO_VISIBLE SystemQueryResponse
     {
       /// \brief Constructor
       /// \param[in] _query The entity query.
-      /// \param[in] _query The entity component component manager.
+      /// \param[in] _ecMgr The entity component manager
       public: SystemQueryResponse(const EntityQuery &_query,
                   EntityComponentManager &_ecMgr);
 

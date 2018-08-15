@@ -22,7 +22,6 @@ using namespace gazebo;
 class ignition::gazebo::WorldStatisticsComponentPrivate
 {
   /// \brief Constructor.
-  /// \param[in] _pose Pose data.
   public: explicit WorldStatisticsComponentPrivate()
   {
   }
