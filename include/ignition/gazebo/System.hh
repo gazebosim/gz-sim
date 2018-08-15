@@ -33,7 +33,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
     /// \class System System.hh ignition/gazebo/System.hh
     /// \brief Base class for a System.
     ///
