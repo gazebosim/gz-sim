@@ -238,7 +238,10 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const
 {
-  const std::vector<ComponentKey> &comps = this->entityComponents.at(_id);
+  std::map<EntityId, std::vector<ComponentKey>>::const_iterator iter =
+    this->entityComponents.find(_id);
+  if (iter == this->entityComponents.end())
+    return false;
 
   // \todo(nkoenig) The performance of this could be improved. Ideally we
   // wouldn't need two loops to confirm that an entity matches a set of
@@ -248,7 +251,7 @@ bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
   for (const ComponentTypeId &type : _types)
   {
     bool found = false;
-    for (const ComponentKey &comp : comps)
+    for (const ComponentKey &comp : iter->second)
     {
       if (comp.first == type)
       {
