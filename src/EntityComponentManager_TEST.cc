@@ -375,20 +375,18 @@ TEST_P(EntityComponentManagerFixture, Query)
   ASSERT_NE(std::nullopt, queryResult);
 
   auto queryEntities = queryResult.value().get().Entities();
-  // FIXME: why does it fail?
-  // EXPECT_EQ(2u, queryEntities.size());
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eInt));
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
+  EXPECT_EQ(2u, queryEntities.size());
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eInt));
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
 
   // Query for double
   queryResult = manager.Query(queryDoubleId);
   ASSERT_NE(std::nullopt, queryResult);
 
   queryEntities = queryResult.value().get().Entities();
-  // FIXME: why does it fail?
-  // EXPECT_EQ(2u, queryEntities.size());
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eDouble));
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
+  EXPECT_EQ(2u, queryEntities.size());
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eDouble));
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
 
   // Query for int and double
   queryResult = manager.Query(queryIntDoubleId);

@@ -48,7 +48,7 @@ namespace ignition
       public: void Register(const EntityQuery &_q, EntityQueryCallback _cb);
 
       /// \brief Return the registered callbacks
-      public: std::vector<EntityQueryRegistration> Registrations() const;
+      public: const std::vector<EntityQueryRegistration> &Registrations() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<EntityQueryRegistrarPrivate> dataPtr;

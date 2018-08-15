@@ -48,7 +48,8 @@ namespace ignition
       public: virtual ~System();
 
       /// \brief Initialize the system.
-      /// \param[out] _registrar Registrar which should be filled by the system.
+      /// \param[out] _registrar A registrar which should be filled with
+      /// queries and callbacks.
       public: virtual void Init(EntityQueryRegistrar &_registrar);
 
       /// \brief Get the name of the system.
