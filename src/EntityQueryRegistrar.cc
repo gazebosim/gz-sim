@@ -46,8 +46,8 @@ void EntityQueryRegistrar::Register(const EntityQuery &_q,
 }
 
 /////////////////////////////////////////////////
-const std::vector<EntityQueryRegistration> &
-EntityQueryRegistrar::Registrations() const
+const std::vector<EntityQueryRegistration>
+    &EntityQueryRegistrar::Registrations() const
 {
   return this->dataPtr->queryCallbacks;
 }

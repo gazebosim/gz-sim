@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 // Private data class.
 class ignition::gazebo::PhysicsSystemPrivate
 {
-  /// \brief Query callback for entity that have physics components.
+  /// \brief Query callback for entity that has physics components.
   /// \param[in] _response The system query response data.
   public: void OnUpdate(SystemQueryResponse &_response);
 
@@ -86,6 +86,8 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   // to implement the next version of entity/query accessors.
   auto *worldComponent =
     _response.EntityComponentMgr().Component<WorldComponent>(0);
+  /// \todo(nkoenig) We might want to prevent all system from modifying
+  /// simulation time.
   worldStats->AddSimTime(worldComponent->MaxStep());
 
   worldStats->AddIterations(1u);

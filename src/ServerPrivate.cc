@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
+#include "ServerPrivate.hh"
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
