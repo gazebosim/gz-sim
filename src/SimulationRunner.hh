@@ -23,6 +23,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ignition/common/WorkerPool.hh>
@@ -69,17 +70,21 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
       /// \brief Constructor
-      public: SimulationRunner(const sdf::World *_world);
+      /// \param[in] _world Pointer to the SDF world.
+      public: explicit SimulationRunner(const sdf::World *_world);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
 
+      /// \brief Initialize the systems
       public: void InitSystems();
 
+      /// \brief Stop running
       public: void Stop();
 
-      public: bool Run(const uint64_t _iterations,
-                  std::optional<std::condition_variable *> _cond);
+      /// \brief Run the simulationrunner.
+      /// \param[in] _iterations Number of iterations.
+      public: bool Run(const uint64_t _iterations);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -87,6 +92,29 @@ namespace ignition
       /// \brief Create all entities that exist in the sdf::World object.
       /// \param[in] _world SDF world object.
       public: void CreateEntities(const sdf::World *_world);
+
+      /// \brief Get whether this is running. When running is true,
+      /// then simulation is stepping forward.
+      /// \return True if the server is running.
+      public: bool Running() const;
+
+      /// \brief Get the number of iterations the server has executed.
+      /// \return The current iteration count.
+      public: uint64_t IterationCount() const;
+
+      /// \brief Get the number of entities on the runner.
+      /// \return Entity count.
+      public: size_t EntityCount() const;
+
+      /// \brief Get the number of systems on the runner.
+      /// \return System count.
+      public: size_t SystemCount() const;
+
+      /// \brief Set the update period. The update period is the wall-clock time
+      /// between updates.
+      /// \param[in] _updatePeriod Duration between updates.
+      public: void SetUpdatePeriod(
+                  const std::chrono::steady_clock::duration &_updatePeriod);
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
@@ -115,7 +143,7 @@ namespace ignition
       public: std::chrono::steady_clock::duration updatePeriod{2ms};
 
       /// \brief Number of iterations.
-      public: uint64_t iterations = 0;
+      public: uint64_t iterations{0};
     };
     }
   }

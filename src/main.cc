@@ -34,7 +34,7 @@
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
-DEFINE_uint32(z, 500, "Update rate in Hertz.");
+DEFINE_double(z, -1, "Update rate in Hertz.");
 DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_bool(s, false, "Run only the server (headless mode).");
 DEFINE_bool(g, false, "Run only the GUI.");
@@ -149,7 +149,7 @@ int main(int _argc, char **_argv)
     }
 
     // Set the update rate.
-    if (FLAGS_z)
+    if (FLAGS_z > 0.0)
       serverConfig.SetUpdateRate(FLAGS_z);
 
     // Run only the server (headless)

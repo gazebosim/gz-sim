@@ -3,7 +3,7 @@
   <world name="world_one">
     <physics name="default" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>2.1</real_time_factor>
+      <real_time_factor>2.0</real_time_factor>
     </physics>
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
