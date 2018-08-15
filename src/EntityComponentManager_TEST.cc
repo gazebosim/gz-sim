@@ -147,11 +147,11 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
 
   gazebo::ComponentKey key{999, 0};
 
-  // Can't remove component from an inexistent entity
+  // Can't remove component from an nonexistent entity
   EXPECT_FALSE(manager.HasEntity(1));
   EXPECT_FALSE(manager.RemoveComponent(1, key));
 
-  // Can't remove a component type that doesn't exist.
+  // Can't remove a component that doesn't exist.
   EXPECT_EQ(0, manager.CreateEntity());
   EXPECT_EQ(1, manager.CreateEntity());
   EXPECT_TRUE(manager.HasEntity(1));
@@ -324,10 +324,9 @@ TEST_P(EntityComponentManagerFixture, Query)
   gazebo::EntityId eInt = manager.CreateEntity();
   gazebo::EntityId eDouble = manager.CreateEntity();
   gazebo::EntityId eIntDouble = manager.CreateEntity();
-  // FIXME: adding eEmpty causes failure with
-  // "C++ exception with description "map::at" thrown in the test body."
-  // gazebo::EntityId eEmpty = manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
+  gazebo::EntityId eEmpty = manager.CreateEntity();
+  EXPECT_EQ(4u, manager.EntityCount());
+  EXPECT_EQ(3, eEmpty);
 
   // Add components of different types to each entity
   manager.CreateComponent<int>(eInt, 123);
@@ -406,18 +405,22 @@ TEST_P(EntityComponentManagerFixture, Query)
   // Create new entity
   gazebo::EntityId eInt2 = manager.CreateEntity();
   auto cInt2Key = manager.CreateComponent<int>(eInt2, 123123);
-  EXPECT_EQ(4u, manager.EntityCount());
+  EXPECT_EQ(5u, manager.EntityCount());
 
   // Query for int again and check the new entity shows
   queryResult = manager.Query(queryIntId);
   ASSERT_NE(std::nullopt, queryResult);
 
   queryEntities = queryResult.value().get().Entities();
-  // FIXME: why does it fail?
+
+  // \todo(nkoenig) Need to fix component manager so that creation of a new
+  // entity also refreshes/update existing queries. The following two lines
+  // should eventually work.
   // EXPECT_EQ(3u, queryEntities.size());
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eInt));
-  // EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
   // EXPECT_NE(queryEntities.end(), queryEntities.find(eInt2));
+
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eInt));
+  EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
 
   // Remove a component from an entity
   EXPECT_TRUE(manager.RemoveComponent(eInt2, cInt2Key));
@@ -429,7 +432,10 @@ TEST_P(EntityComponentManagerFixture, Query)
   ASSERT_NE(std::nullopt, queryResult);
 
   queryEntities = queryResult.value().get().Entities();
-  // FIXME: why does it fail?
+
+  // \todo(nkoenig) Need to fix component manager so that deletion of an
+  // entity also refreshes/update existing queries. The following two lines
+  // should eventually work.
   // EXPECT_EQ(2u, queryEntities.size());
   // EXPECT_NE(queryEntities.end(), queryEntities.find(eInt));
   // EXPECT_NE(queryEntities.end(), queryEntities.find(eIntDouble));
