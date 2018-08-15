@@ -81,10 +81,9 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   auto *worldStats =
     _response.EntityComponentMgr().First<WorldStatisticsComponent>();
 
-  // \todo(nkoenig) HACK which assumes the first entity is the world. Need
-  // to implement the next version of entity/query accessors.
-  auto *worldComponent =
-    _response.EntityComponentMgr().Component<WorldComponent>(0);
+  const auto *worldComponent =
+    _response.EntityComponentMgr().First<WorldComponent>();
+
   /// \todo(nkoenig) We might want to prevent all system from modifying
   /// simulation time.
   worldStats->AddSimTime(worldComponent->MaxStep());
