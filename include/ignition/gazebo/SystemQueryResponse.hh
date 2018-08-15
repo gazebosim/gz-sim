@@ -33,10 +33,8 @@ namespace ignition
     // Forward declarations.
     class SystemQueryResponsePrivate;
 
-    /** \class SystemQueryResponse SystemQueryResponse.hh \
-     * ignition/gazebo/SystemQueryResponse.hh
-    **/
-    /// \brief TODO
+    /// \todo(nkoenig) This is going away, along with all queries. In its
+    /// place will be a more elegant mechanism to get entities and components.
     class IGNITION_GAZEBO_VISIBLE SystemQueryResponse
     {
       /// \brief Constructor
