@@ -25,7 +25,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::string sdfFile = "";
 
   /// \brief An optional update rate.
-  public: std::optional<uint32_t> updateRate;
+  public: std::optional<double> updateRate;
 };
 
 //////////////////////////////////////////////////
@@ -53,13 +53,14 @@ std::string ServerConfig::SdfFile() const
 }
 
 //////////////////////////////////////////////////
-void ServerConfig::SetUpdateRate(const uint32_t &_hz)
+void ServerConfig::SetUpdateRate(const double &_hz)
 {
-  this->dataPtr->updateRate = _hz;
+  if (_hz > 0)
+    this->dataPtr->updateRate = _hz;
 }
 
 /////////////////////////////////////////////////
-std::optional<uint32_t> ServerConfig::UpdateRate() const
+std::optional<double> ServerConfig::UpdateRate() const
 {
   return this->dataPtr->updateRate;
 }
