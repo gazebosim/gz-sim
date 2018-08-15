@@ -17,30 +17,29 @@
 
 #include <gtest/gtest.h>
 
+#include "ignition/common/Console.hh"
+#include "ignition/common/Filesystem.hh"
+
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemPluginManager.hh"
+#include "ignition/gazebo/SystemManager.hh"
+
+#include "ignition/gazebo/test_config.hh" // NOLINT(build/include)
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(SystemPluginManager, Constructor)
+TEST(SystemManager, Constructor)
 {
-  gazebo::SystemPluginManager sm;
-  sm.LoadLibrary("libignition-gazebo-system_plugins.so");
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::SystemManager sm;
 
-  {
-    auto plugins = sm.PluginsByType(gazebo::SystemTypeId::UNKNOWN);
-    ASSERT_EQ(1u, plugins.size());
-  }
+  // Add test plugin to path (referenced in config)
+  auto testBuildPath = ignition::common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib");
+  sm.addSystemPluginPath(testBuildPath);
 
-  {
-    auto plugins = sm.PluginsByType(gazebo::SystemTypeId::PHYSICS);
-    ASSERT_EQ(1u, plugins.size());
-  }
-
-  {
-    auto plugins = sm.PluginsByType(gazebo::SystemTypeId::RENDERING);
-    ASSERT_EQ(0u, plugins.size());
-  }
+  // Load test config file
+  auto testSourcePath = std::string(PROJECT_SOURCE_PATH) + "/test/";
+  EXPECT_TRUE(sm.loadSystemConfig(testSourcePath + "config/test.config"));
 }
 

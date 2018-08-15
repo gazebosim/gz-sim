@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
-#define IGNITION_GAZEBO_PHYSICS_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
+#define IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
+#include <string>
+
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -30,26 +30,28 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class PhysicsSystemPrivate;
-    class EntityComponentManager;
+    class SystemManagerPrivate;
 
-    /// \class PhysicsSystem PhysicsSystem.hh ignition/gazebo/PhysicsSystem.hh
-    /// \brief Base class for a System.
-    class IGNITION_GAZEBO_VISIBLE PhysicsSystem : public System
+    /// \class SystemManager SystemManager.hh ignition/gazebo/SystemManager.hh
+    /// \brief Class for loading/unloading System plugins.
+    class IGNITION_GAZEBO_VISIBLE SystemManager
     {
       /// \brief Constructor
-      public: PhysicsSystem();
+      public: explicit SystemManager();
 
       /// \brief Destructor
-      public: virtual ~PhysicsSystem();
+      public: ~SystemManager();
 
-      public: void Init(EntityQueryRegistrar &_registrar) override final;
+      /// \brief Add path to search for plugins.
+      public: void addSystemPluginPath(const std::string& _path);
 
-      private: void OnUpdate(const EntityQuery &_result,
-                             EntityComponentManager &_ecMgr);
+      /// \brief Load system configuration.
+      public: bool loadSystemConfig(const std::string& _config);
 
-      /// \brief Private data pointer.
-      private: std::unique_ptr<PhysicsSystemPrivate> dataPtr;
+      /// \brief Load system configuration.
+      public: void listPlugins() const;
+
+      private: std::unique_ptr<SystemManagerPrivate> dataPtr;
     };
     }
   }

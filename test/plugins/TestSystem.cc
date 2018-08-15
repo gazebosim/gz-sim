@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2017 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,24 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
 
-using namespace ignition::gazebo;
+#include "TestSystem.hh"
 
-//////////////////////////////////////////////////
-System::System()
+#include <ignition/plugin/Register.hh>
+
+using namespace ignition;
+using namespace gazebo;
+
+/////////////////////////////////////////////////
+TestSystem::TestSystem()
+  : System()
 {
 }
 
-System::~System()
+/////////////////////////////////////////////////
+TestSystem::~TestSystem()
 {
 }
+
+// Register this plugin
+IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)

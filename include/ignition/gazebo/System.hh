@@ -24,7 +24,8 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
-#include <ignition/plugin/PluginMacros.hh>
+#include <ignition/plugin/Loader.hh>
+#include <ignition/plugin/PluginPtr.hh>
 
 namespace ignition
 {
@@ -32,17 +33,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    // Forward declarations.
-    class SystemPrivate;
-
-    enum class IGNITION_GAZEBO_VISIBLE SystemTypeId {
-      UNKNOWN = 10,
-      PHYSICS = 20,
-      RENDERING = 30,
-      NETWORKING = 40,
-      LOGGING = 50
-    };
-
 
     /// \class System System.hh ignition/gazebo/System.hh
     /// \brief Base class for a System.
@@ -52,30 +42,13 @@ namespace ignition
     /// Components.
     class IGNITION_GAZEBO_VISIBLE System
     {
-      public: IGN_PLUGIN_SPECIALIZE_INTERFACE(ignition::gazebo::System)
-
       /// \brief Constructor
-      public: System(const std::string &_name, const SystemTypeId &_type=SystemTypeId::UNKNOWN);
+      public: System();
 
       /// \brief Destructor
       public: virtual ~System();
 
-      public: virtual void Init(EntityQueryRegistrar &_registrar);
-
-      /// \brief Get the name of the system.
-      public: const std::string &Name() const;
-
-      /// \brief Set the name of the System
-      public: void SetName(const std::string &_name) const;
-
-      /// \brief Get the type of the system.
-      public: const SystemTypeId &SystemType() const;
-
-      /// \brief Set the type of the System
-      public: void SetSystemType(const SystemTypeId& _system_type);
-
-      private: std::unique_ptr<SystemPrivate> dataPtr;
-
+      public: virtual void Init(EntityQueryRegistrar &_registrar) = 0;
     };
     }
   }

@@ -21,7 +21,7 @@ using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 NullSystem::NullSystem()
-  : System("NullSystem", SystemTypeId::UNKNOWN)
+  : System()
 {
 }
 
