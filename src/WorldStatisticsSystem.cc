@@ -14,9 +14,10 @@
  * limitations under the License.
  *
 */
+#include <ignition/msgs/world_stats.pb.h>
+
 #include <list>
 #include <ignition/math/Stopwatch.hh>
-#include <ignition/msgs/world_stats.pb.h>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
