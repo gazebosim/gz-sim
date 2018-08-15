@@ -5,3 +5,4 @@ build_*
 .DS_Store
 *.swp
 *.qmlc
+.ycm_extra_conf.py

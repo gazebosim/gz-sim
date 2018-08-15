@@ -28,7 +28,7 @@ using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 PhysicsSystem::PhysicsSystem()
-  : System("Physics", SystemTypeId::PHYSICS), dataPtr(new PhysicsSystemPrivate)
+  : System(), dataPtr(new PhysicsSystemPrivate)
 {
 }
 
@@ -49,6 +49,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
       std::bind(&PhysicsSystem::OnUpdate, this, std::placeholders::_1,
         std::placeholders::_2));
 }
+
 
 //////////////////////////////////////////////////
 void PhysicsSystem::OnUpdate(const EntityQuery &_result,

@@ -15,10 +15,10 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   System.cc
-  SystemPluginManager.cc
+  SystemManager.cc
 )
 
-set (plugin_sources
+set (system_sources
   SystemPlugins.cc
   NullSystem.cc
   PhysicsSystem.cc
@@ -30,7 +30,7 @@ set (gtest_sources
   EntityQuery_TEST.cc
   Server_TEST.cc
   System_TEST.cc
-  SystemPluginManager_TEST.cc
+  SystemManager_TEST.cc
 )
 
 # Create the library target
@@ -48,12 +48,12 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ${SDFormat_LIBRARIES}
 )
 
-
-ign_add_component(system_plugins
-  SOURCES ${plugin_sources}
-  GET_TARGET_NAME PLUGIN_TARGET
+ign_add_component(systems
+  SOURCES ${system_sources}
+  GET_TARGET_NAME SYSTEMS_TARGET
   CXX_STANDARD 17)
-target_link_libraries(${PLUGIN_TARGET}
+
+target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
   ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}

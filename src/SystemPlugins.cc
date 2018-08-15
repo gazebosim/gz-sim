@@ -3,10 +3,8 @@
 #include "ignition/gazebo/NullSystem.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
 
-#include "ignition/plugin/PluginMacros.hh"
+#include "ignition/plugin/Register.hh"
 
-IGN_PLUGIN_BEGIN_ADDING_PLUGINS
-  IGN_PLUGIN_ADD_PLUGIN(ignition::gazebo::NullSystem, ignition::gazebo::System)
-  IGN_PLUGIN_ADD_PLUGIN(ignition::gazebo::PhysicsSystem, ignition::gazebo::System)
-IGN_PLUGIN_FINISH_ADDING_PLUGINS
+IGNITION_ADD_PLUGIN(ignition::gazebo::NullSystem, ignition::gazebo::System)
+IGNITION_ADD_PLUGIN(ignition::gazebo::PhysicsSystem, ignition::gazebo::System)
 

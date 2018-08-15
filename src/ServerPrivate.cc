@@ -83,13 +83,13 @@ void ServerPrivate::InitSystems()
     this->workerPool.AddWork([&system, this] ()
     {
       EntityQueryRegistrar registrar;
-      system.system->Init(registrar);
+      //system.system->Init(registrar);
       for (EntityQueryRegistration &registration : registrar.Registrations())
       {
         EntityQuery &query = registration.first;
         EntityQueryCallback &cb = registration.second;
         EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
-        system.updates.push_back({queryId, cb});
+        //system.updates.push_back({queryId, cb});
       }
     });
   }
