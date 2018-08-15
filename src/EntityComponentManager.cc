@@ -339,3 +339,8 @@ void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
  }
  return nullptr;
 }
+
+std::vector<Entity> &EntityComponentManager::Entities() const
+{
+  return this->dataPtr->entities;
+}
