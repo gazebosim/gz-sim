@@ -221,7 +221,7 @@ namespace ignition
       /// \return True if the Entity exists.
       public: bool HasEntity(const EntityId _id) const;
 
-      /// \brief Get whether a component type has been created.
+      /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
       public: bool HasComponentType(const ComponentTypeId _typeId);
