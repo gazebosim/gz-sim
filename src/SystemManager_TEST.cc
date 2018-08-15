@@ -23,7 +23,7 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemManager.hh"
 
-#include "ignition/gazebo/test_config.hh" // NOLINT(build/include)
+#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 using namespace ignition;
 

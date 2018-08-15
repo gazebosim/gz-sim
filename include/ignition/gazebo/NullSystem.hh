@@ -29,9 +29,8 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
-    /// \class PhysicsSystem PhysicsSystem.hh ignition/gazebo/PhysicsSystem.hh
-    /// \brief Base class for a System.
+    /// \class NullSystem NullSystem.hh ignition/gazebo/NullSystem.hh
+    /// \brief Minimal system implementation
     class IGNITION_GAZEBO_VISIBLE NullSystem: public System
     {
       /// \brief Constructor

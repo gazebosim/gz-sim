@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/SystemManager.hh"
+
 #include <tinyxml2.h>
 
 #include <string>
 #include <unordered_set>
-
-#include "ignition/gazebo/SystemManager.hh"
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
@@ -31,7 +31,7 @@
 
 using namespace ignition::gazebo;
 
-std::string g_systemPluginPathEnv = "IGN_GAZEBO_SYSTEM_PATH";
+constexpr const char *g_systemPluginPathEnv = "IGN_GAZEBO_SYSTEM_PATH";
 
 std::string homePath()
 {
@@ -47,11 +47,10 @@ std::string homePath()
 
 class ignition::gazebo::SystemManagerPrivate
 {
-
-  public: explicit SystemManagerPrivate()
+  public: explicit SystemManagerPrivate():
+          defaultConfigPath(ignition::common::joinPaths(homePath(), ".ignition",
+                            "gazebo", "default.config"))
   {
-    defaultConfigPath = ignition::common::joinPaths(
-                            homePath(), ".ignition", "gazebo", "default.config");
   }
 
   public: bool instantiateSystemPlugin(const std::string &_pathToLib,
@@ -77,8 +76,8 @@ class ignition::gazebo::SystemManagerPrivate
       return false;
     }
 
-    auto validPlugins = loader.PluginsImplementing<ignition::gazebo::System>();
-    if(validPlugins.count(_name) == 0) {
+    auto validPlugins = loader.PluginsImplementing<System>();
+    if (validPlugins.count(_name) == 0) {
       ignerr << "Failed to load system plugin [" << _name <<
                 "] : system not found in library  [" << _filename <<
                 "] from path [" << _pathToLib << "]." << std::endl;
@@ -128,7 +127,7 @@ class ignition::gazebo::SystemManagerPrivate
       return false;
     }
 
-    auto plugin = pluginPtr->QueryInterfaceSharedPtr<ignition::gazebo::System>();
+    auto plugin = pluginPtr->QueryInterfaceSharedPtr<System>();
     if (!plugin)
     {
       ignerr << "Failed to load system plugin [" << _filename <<
@@ -145,7 +144,7 @@ class ignition::gazebo::SystemManagerPrivate
 
   public: std::string defaultConfigPath;
   public: std::unordered_set<std::string> systemPluginPaths;
-  public: std::vector<std::shared_ptr<ignition::gazebo::System>> systemPluginsAdded;
+  public: std::vector<std::shared_ptr<System>> systemPluginsAdded;
   public: ignition::plugin::Loader loader;
 };
 
@@ -153,13 +152,11 @@ class ignition::gazebo::SystemManagerPrivate
 SystemManager::SystemManager()
   : dataPtr(new SystemManagerPrivate())
 {
-
 }
 
 //////////////////////////////////////////////////
 SystemManager::~SystemManager()
 {
-
 }
 
 void SystemManager::addSystemPluginPath(const std::string &_path)
@@ -167,21 +164,20 @@ void SystemManager::addSystemPluginPath(const std::string &_path)
   this->dataPtr->systemPluginPaths.insert(_path);
 }
 
-
 bool SystemManager::loadSystemConfig(const std::string& _config)
 {
-  if(_config.empty())
+  if (_config.empty())
   {
     ignerr << "Missing config file" << std::endl;
     return false;
   }
 
   tinyxml2::XMLDocument doc;
-  auto success= !doc.LoadFile(_config.c_str());
+  auto success = !doc.LoadFile(_config.c_str());
 
   if (!success)
   {
-    if(_config != this->dataPtr->defaultConfigPath)
+    if (_config != this->dataPtr->defaultConfigPath)
     {
       ignerr << "Failed to load file [" << _config << "]: XMLError"
              << std::endl;
