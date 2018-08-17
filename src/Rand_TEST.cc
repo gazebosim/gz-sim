@@ -58,18 +58,18 @@ TEST(RandTest, Rand)
 //////////////////////////////////////////////////
 TEST(RandTest, SetSeed)
 {
-  int N = 10;
+  unsigned int N = 10;
   std::vector<int> first;
   std::vector<int> second;
 
-  for (int i = 0; i < N; ++i)
+  for (unsigned int i = 0; i < N; ++i)
   {
     math::Rand::Seed(i);
     first.push_back(math::Rand::IntUniform(-10, 10));
     second.push_back(math::Rand::IntUniform(-10, 10));
   }
 
-  for (int i = 0; i < N; ++i)
+  for (unsigned int i = 0; i < N; ++i)
   {
     math::Rand::Seed(i);
     EXPECT_EQ(math::Rand::Seed(), static_cast<unsigned int>(i));
