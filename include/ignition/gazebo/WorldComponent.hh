@@ -14,13 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
-#define IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
+#ifndef IGNITION_GAZEBO_WORLD_COMPONENT_TYPE_HH_
+#define IGNITION_GAZEBO_WORLD_COMPONENT_TYPE_HH_
 
 #include <memory>
 #include <string>
-
-#include <ignition/math/Pose3.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -32,48 +30,45 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class PoseComponentPrivate;
+    class WorldComponentPrivate;
 
-    /// \brief A component type that contains pose, ignition::math::Pose3d,
-    /// information.
-    class IGNITION_GAZEBO_VISIBLE PoseComponent
+    /// \brief A component type that contains world statistic information.
+    class IGNITION_GAZEBO_VISIBLE WorldComponent
     {
       /// \brief Constructor
       /// \param[in] _compMgr The entity component manager, which is used to
       /// register the component type.
-      public: explicit PoseComponent(const ignition::math::Pose3d &_pose);
+      public: explicit WorldComponent(const std::string &_name);
 
       /// \brief Copy Constructor
-      /// \param[in] _pose Pose component to copy.
-      public: PoseComponent(const PoseComponent &_pose);
+      /// \param[in] _world WorldComponent to copy.
+      public: WorldComponent(const WorldComponent &_world);
 
       /// \brief Move Constructor
-      /// \param[in] _pose Pose component to move.
-      public: PoseComponent(PoseComponent &&_pose) noexcept;
+      /// \param[in] _world WorldComponent to move.
+      public: WorldComponent(WorldComponent &&_world) noexcept;
 
       /// \brief Destructor.
-      public: virtual ~PoseComponent();
+      public: virtual ~WorldComponent();
 
-      /// \brief Get the component's name.
-      /// \return The name.
-      public: const std::string &Name() const;
+      // Documentation inherited
+      public: const std::string &ComponentName() const;
 
       /// \brief Move assignment operator.
-      /// \param[in] _pose Pose component to move.
+      /// \param[in] _world WorldStatistics component to move.
       /// \return Reference to this.
-      public: PoseComponent &operator=(PoseComponent &&_pose);
+      public: WorldComponent &operator=(WorldComponent &&_world);
 
       /// \brief Copy assignment operator.
-      /// \param[in] _pose Pose component to copy.
+      /// \param[in] _world WorldStatistics component to copy.
       /// \return Reference to this.
-      public: PoseComponent &operator=(const PoseComponent &_pose);
+      public: WorldComponent &operator=(const WorldComponent &_world);
 
-      /// \brief Get the pose data.
-      /// \return The actual pose information.
-      public: const ignition::math::Pose3d &Pose() const;
+      // Documentation inherited
+      public: const std::string &Name() const;
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<PoseComponentPrivate> dataPtr;
+      private: std::unique_ptr<WorldComponentPrivate> dataPtr;
     };
     }
   }

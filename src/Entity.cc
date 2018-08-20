@@ -25,7 +25,7 @@ Entity::Entity(const EntityId _id)
 }
 
 /////////////////////////////////////////////////
-Entity::Entity(Entity &&_entity)
+Entity::Entity(Entity &&_entity) noexcept
   : id(_entity.id)
 {
   _entity.id = kNullEntity;
