@@ -15,6 +15,7 @@ set (sources
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
+  SimulationRunner.cc
   System.cc
   SystemQueryResponse.cc
   WorldComponent.cc

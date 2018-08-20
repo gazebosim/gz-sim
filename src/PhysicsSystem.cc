@@ -22,6 +22,7 @@
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/WorldComponent.hh"
 #include "ignition/gazebo/WorldStatisticsComponent.hh"
 
 using namespace ignition::gazebo;
@@ -80,9 +81,15 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   auto *worldStats =
     _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
       *_response.Query().Entities().begin());
-  /// \todo(nkoenig) We might want to prevent all system from modifying
+
+  auto *worldComponent =
+    _response.EntityComponentMgr().Component<WorldComponent>(
+      *_response.Query().Entities().begin());
+
+  /// \todo(nkoenig) We might want to prevent all systems from modifying
   /// simulation time.
-  worldStats->AddSimTime(10ms);
+  worldStats->AddSimTime(worldComponent->MaxStep());
+
   worldStats->AddIterations(1u);
 }
 
@@ -91,7 +98,7 @@ void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &/*_response*/)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  std::this_thread::sleep_for(8ms);
+  std::this_thread::sleep_for(1ms);
 
   // \todo(nkoenig) AcutallyUpdate dynamics
 
