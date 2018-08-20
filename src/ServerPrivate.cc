@@ -19,6 +19,8 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
+#include <ignition/common/Console.hh>
+
 #include "SimulationRunner.hh"
 
 using namespace ignition;
