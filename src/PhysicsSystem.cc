@@ -79,8 +79,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
 void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
 {
   auto *worldStats =
-    _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
-      *_response.Query().Entities().begin());
+    _response.EntityComponentMgr().First<WorldStatisticsComponent>();
 
   auto *worldComponent =
     _response.EntityComponentMgr().Component<WorldComponent>(

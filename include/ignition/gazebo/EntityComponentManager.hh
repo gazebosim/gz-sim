@@ -76,6 +76,10 @@ namespace ignition
       /// could not be found.
       public: virtual void *ComponentMutable(const ComponentId _id) const = 0;
 
+      /// \brief Get the first component.
+      /// \return First component or nullptr if there are no components.
+      public: virtual void *First() = 0;
+
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
     };
@@ -172,6 +176,15 @@ namespace ignition
         {
           return static_cast<const void *>(&this->components.at(iter->second));
         }
+        return nullptr;
+      }
+
+      // Documentation inherited.
+      public: void *First() override final
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        if (!this->components.empty())
+          return static_cast<void *>(&this->components[0]);
         return nullptr;
       }
 
@@ -345,6 +358,31 @@ namespace ignition
         return const_cast<ComponentTypeT*>(
             this->Component<ComponentTypeT>(_key));
       }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ComponentTypeT>
+              const ComponentTypeT *First() const
+      {
+        return static_cast<const ComponentTypeT *>(
+            this->First(this->ComponentType<ComponentTypeT>()));
+      }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *First()
+      {
+        return static_cast<ComponentTypeT *>(
+            this->First(this->ComponentType<ComponentTypeT>()));
+      }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      private: void *First(const ComponentTypeId _componentTypeId);
 
       /// \brief Implmentation of CreateComponent.
       /// \param[in] _entityId Id of the Entity that will be associated with
