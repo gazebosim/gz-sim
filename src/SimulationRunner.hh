@@ -14,12 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SIMULATION_RUNNER_HH_
-#define IGNITION_GAZEBO_SIMULATION_RUNNER_HH_
+#ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
+#define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <string>
@@ -28,12 +27,9 @@
 
 #include <ignition/common/WorkerPool.hh>
 
-#include <ignition/math/Pose3.hh>
-
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace std::chrono_literals;
@@ -52,9 +48,10 @@ namespace ignition
     // Forward declarations.
     class SimulationRunnerPrivate;
 
-    // Private data for Server
+    /// \brief Class to hold systems internally
     class SystemInternal
     {
+      /// \brief Constructor
       public: explicit SystemInternal(std::unique_ptr<System> _system)
               : system(std::move(_system))
       {
@@ -63,6 +60,7 @@ namespace ignition
       /// \brief All of the systems.
       public: std::unique_ptr<System> system;
 
+      /// \brief Vector of queries and callbacks
       public: std::vector<
               std::pair<EntityQueryId, EntityQueryCallback>> updates;
     };

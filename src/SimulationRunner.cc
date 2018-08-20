@@ -21,10 +21,11 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/PhysicsSystem.hh"
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/WorldComponent.hh"
 #include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
