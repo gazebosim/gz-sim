@@ -17,13 +17,19 @@
 
 #include "ServerPrivate.hh"
 
+#include <chrono>
 #include <functional>
 #include <ignition/common/Console.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+#include <sdf/World.hh>
 
-#include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/SystemQueryResponse.hh"
+#include "ignition/gazebo/WorldComponent.hh"
+#include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/WorldStatisticsSystem.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -35,6 +41,10 @@ ServerPrivate::ServerPrivate()
   // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
+
+  // Create a world statistics system
+  this->systems.push_back(SystemInternal(
+        std::move(std::make_unique<WorldStatisticsSystem>())));
 
   // Create a physics system
   this->systems.push_back(SystemInternal(
@@ -63,9 +73,11 @@ void ServerPrivate::UpdateSystems()
       {
         const std::optional<std::reference_wrapper<EntityQuery>> query =
           this->entityCompMgr->Query(cb.first);
-        if (query)
+        if (query && query->get().EntityCount() > 0)
         {
-          cb.second(query->get(), *this->entityCompMgr.get());
+          SystemQueryResponse response(query->get(),
+              *this->entityCompMgr.get());
+          cb.second(response);
         }
       }
     });
@@ -81,12 +93,18 @@ void ServerPrivate::InitSystems()
   {
     this->workerPool.AddWork([&system, this] ()
     {
+      // Create a new registrar
       EntityQueryRegistrar registrar;
+
+      // Initialize the system, which may register new callbacks
       system.system->Init(registrar);
-      for (EntityQueryRegistration &registration : registrar.Registrations())
+
+      // Iterate over registered callbacks and create queries
+      for (const EntityQueryRegistration &registration :
+           registrar.Registrations())
       {
-        EntityQuery &query = registration.first;
-        EntityQueryCallback &cb = registration.second;
+        const EntityQuery &query = registration.first;
+        const EntityQueryCallback &cb = registration.second;
         EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
         system.updates.push_back({queryId, cb});
       }
@@ -112,6 +130,11 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
 
+  // Variables for time keeping.
+  std::chrono::steady_clock::time_point startTime;
+  std::chrono::steady_clock::duration sleepTime;
+  std::chrono::steady_clock::duration actualSleep;
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (uint64_t startingIterations = this->iterations;
@@ -119,6 +142,31 @@ bool ServerPrivate::Run(const uint64_t _iterations,
                          this->iterations < _iterations + startingIterations);
        ++this->iterations)
   {
+    // Compute the time to sleep in order to match, as closely as possible,
+    // the update period.
+    sleepTime = std::max(0ns, this->prevUpdateWallTime + this->updatePeriod -
+        std::chrono::steady_clock::now() - this->sleepOffset);
+    actualSleep = 0ns;
+
+    // Only sleep if needed.
+    if (sleepTime > 0ns)
+    {
+      // Get the current time, sleep for the duration needed to match the
+      // updatePeriod, and then record the actual time slept.
+      startTime = std::chrono::steady_clock::now();
+      std::this_thread::sleep_for(sleepTime);
+      actualSleep = std::chrono::steady_clock::now() - startTime;
+    }
+
+    // Exponentially average out the different between expected sleep time
+    // and actual sleep time.
+    this->sleepOffset = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
+
+    // Record when the update step starts.
+    this->prevUpdateWallTime = std::chrono::steady_clock::now();
+
+    // Update all the systems.
     this->UpdateSystems();
   }
 
@@ -136,16 +184,35 @@ void ServerPrivate::OnSignal(int _sig)
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
-  for (uint64_t i = 0; i < _root.ModelCount(); ++i)
+  // Process each world.
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
-    // Get the SDF model
-    const sdf::Model *model = _root.ModelByIndex(i);
+    const sdf::World *world = _root.WorldByIndex(worldIndex);
 
-    // Create an entity for the model.
-    EntityId entityId = this->entityCompMgr->CreateEntity();
+    // Create the world entity
+    EntityId worldEntity = this->entityCompMgr->CreateEntity();
 
-    // Create the pose component for the model.
+    // Create the world component for the world entity.
     this->entityCompMgr->CreateComponent(
-        entityId, PoseComponent(model->Pose()));
+        worldEntity, WorldComponent(world->Name()));
+
+    // Create the world statistcs component for the world entity.
+    this->entityCompMgr->CreateComponent(
+        worldEntity, WorldStatisticsComponent());
+
+    // Process each model in the world
+    for (uint64_t modelIndex = 0; modelIndex < world->ModelCount();
+         ++modelIndex)
+    {
+      // Get the SDF model
+      const sdf::Model *model = world->ModelByIndex(modelIndex);
+
+      // Create an entity for the model.
+      EntityId entityId = this->entityCompMgr->CreateEntity();
+
+      // Create the pose component for the model.
+      this->entityCompMgr->CreateComponent(
+          entityId, PoseComponent(model->Pose()));
+    }
   }
 }

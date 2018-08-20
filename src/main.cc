@@ -34,6 +34,7 @@
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
+DEFINE_uint32(z, 500, "Update rate in Hertz; default of 500Hz.");
 DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_bool(s, false, "Run only the server (headless mode).");
 DEFINE_bool(g, false, "Run only the GUI.");
@@ -64,6 +65,8 @@ void Help()
   << "  -g                     Run only the GUI."
   << std::endl
   << "  -f                     Load an SDF file on start. "
+  << std::endl
+  << "  -z arg                 Update rate in Hertz; default of 500Hz."
   << std::endl
   << std::endl;
 }
@@ -144,6 +147,10 @@ int main(int _argc, char **_argv)
       ignerr << "Failed to set SDF file[" << FLAGS_f << "]" << std::endl;
       return -1;
     }
+
+    // Set the update rate.
+    if (FLAGS_z)
+      serverConfig.SetUpdateRate(FLAGS_z);
 
     // Run only the server (headless)
     if (FLAGS_s)

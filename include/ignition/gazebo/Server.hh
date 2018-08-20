@@ -20,9 +20,9 @@
 #include <cstdint>
 #include <memory>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
 
 namespace ignition
 {
@@ -77,6 +77,12 @@ namespace ignition
       /// \brief Destructor
       public: ~Server();
 
+      /// \brief Set the update period. The update period is the wall-clock time
+      /// between updates.
+      /// \param[in] _updatePeriod Duration between updates.
+      public: void SetUpdatePeriod(
+                  const std::chrono::steady_clock::duration &_updatePeriod);
+
       /// \brief Run the server. By default this is a non-blocking call,
       /// which means the server runs simulation in a separate thread. Pass
       /// in true to the _blocking argument to run the server in the current
@@ -110,6 +116,8 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
+      /// \brief Return the entity component manager.
+      /// \return The manager.
       public: EntityComponentManager &EntityComponentMgr() const;
 
       /// \brief Private data

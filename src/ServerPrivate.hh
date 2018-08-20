@@ -19,10 +19,8 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <map>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -39,15 +37,18 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
 
+using namespace std::chrono_literals;
+
 namespace ignition
 {
   namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    // Private data for Server
+    /// \brief Class to hold systems internally.
     class IGNITION_GAZEBO_HIDDEN SystemInternal
     {
+      /// \brief Constructor
       public: explicit SystemInternal(std::unique_ptr<System> _system)
               : system(std::move(_system))
               {
@@ -56,6 +57,7 @@ namespace ignition
       /// \brief All of the systems.
       public: std::unique_ptr<System> system;
 
+      /// \brief Vector of queries and callbacks
       public: std::vector<
               std::pair<EntityQueryId, EntityQueryCallback>> updates;
     };
@@ -117,6 +119,16 @@ namespace ignition
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
+
+      /// \brief Time of the previous update.
+      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
+
+      /// \brief A duration used to account for inaccuracies associated with
+      /// sleep durations.
+      public: std::chrono::steady_clock::duration sleepOffset{0};
+
+      /// \brief The default update rate is 500hz, which is a period of 2ms.
+      public: std::chrono::steady_clock::duration updatePeriod{2ms};
     };
     }
   }

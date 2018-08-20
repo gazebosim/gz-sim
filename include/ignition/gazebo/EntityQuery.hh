@@ -35,7 +35,7 @@ namespace ignition
     class EntityQueryPrivate;
 
     /// \class EntityQuery EntityQuery.hh ignition/gazebo/EntityQuery.hh
-    /// \brief a Class for querying entities from a manager
+    /// \brief A class for querying entities from a manager
     class IGNITION_GAZEBO_VISIBLE EntityQuery
     {
       /// \brief Constructor.
@@ -47,7 +47,7 @@ namespace ignition
 
       /// \brief Move constructor.
       /// \param[in] _query Query to move.
-      public: EntityQuery(EntityQuery &&_query);
+      public: EntityQuery(EntityQuery &&_query) noexcept;
 
       /// \brief Destructor.
       public: ~EntityQuery();
@@ -80,6 +80,10 @@ namespace ignition
       /// \sa AddEntity
       /// \sa RemoveEntity
       public: const std::set<EntityId> &Entities() const;
+
+      /// \brief Get the number of entities in this query's result.
+      /// \return Count of the entities that match the specified components.
+      public: size_t EntityCount() const;
 
       /// \brief Clear results of a query. This will keep the set of
       /// components, and clear the set of entities.
