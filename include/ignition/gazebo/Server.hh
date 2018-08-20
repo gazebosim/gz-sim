@@ -77,8 +77,8 @@ namespace ignition
 
       /// \brief Set the update period. The update period is the wall-clock time
       /// between updates.
-      /// \param[in] _worldIndex Index of the world to query.
       /// \param[in] _updatePeriod Duration between updates.
+      /// \param[in] _worldIndex Index of the world to query.
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod,
                   const unsigned int _worldIndex = 0);

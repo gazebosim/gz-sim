@@ -27,15 +27,11 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/transport/Node.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/WorkerPool.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EntityQueryRegistrar.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Export.hh"
 
 using namespace std::chrono_literals;
 
@@ -45,7 +41,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     class SimulationRunner;
 
     // Private data for Server
@@ -71,6 +66,7 @@ namespace ignition
       /// \brief Initialize all the systems.
       public: void InitSystems();
 
+      /// \brief Stop server.
       public: void Stop();
 
       /// \brief Signal handler callback
