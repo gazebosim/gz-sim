@@ -64,7 +64,7 @@ TEST_P(ServerFixture, RunBlocking)
   server.SetUpdatePeriod(1ns);
 
   uint64_t expectedIters = 0;
-  for (uint64_t i = 1; i < 2; ++i)
+  for (uint64_t i = 1; i < 10; ++i)
   {
     EXPECT_FALSE(*server.Running());
     server.Run(true, i);

@@ -84,7 +84,7 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
   const auto *worldComponent =
     _response.EntityComponentMgr().First<WorldComponent>();
 
-  /// \todo(nkoenig) We might want to prevent all system from modifying
+  /// \todo(nkoenig) We might want to prevent all systems from modifying
   /// simulation time.
   worldStats->AddSimTime(worldComponent->MaxStep());
 
@@ -97,7 +97,7 @@ void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
   _response.EntityComponentMgr().Each<PoseComponent>(
-    [&](const EntityId &_entity, const PoseComponent *_pose)
+    [&](const EntityId &/*_entity*/, const PoseComponent *_pose)
     {
       if (_pose)
       {
