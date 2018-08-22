@@ -379,6 +379,51 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
+      /// why is this required?
+      private: template <typename T> struct identity { typedef T type; };
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ...ComponentTypeTs>
+              void Each(typename identity<std::function<
+                  void(const EntityId &_entity,
+                       const ComponentTypeTs *...)>>::type _f) const
+      {
+        // \todo(louise) We should create Views, which will replace Queries.
+        // A View can be completely internal to EntityComponentManager.
+        // A View will store the entities that match the provided
+        // ComponenTypeTs.
+        //
+        // Instead of iterating over all the entities, this function can
+        // call Each(blah) on the appropriate View. If the View doesn't
+        // exist, then create the View.
+        //
+        // System's will then no longer create and register queries. The
+        // "InitSystem" code can go away. Instead, a System can call "Each"
+        // to get the desired entities.
+        //
+        // The reason to do this approach is:
+        // 1. It's cleaner - the concept of queries and all of that
+        // infrastructure can be hidden from the user.
+        // 2. Systems can alter the entities they need more easily at run
+        // time.
+        // 3. A System can process multiple entities with different
+        // component signatures in a single callback.
+        // 4. This opens the door to supporting more complex like:
+        // Each<ComponentTypeA, ComponentTypeB>().Or<ComponentTypeC>().
+        //
+        // Reference:
+        // https://github.com/alecthomas/entityx/blob/master/entityx/Entity.h
+        for (const Entity &entity : this->Entities())
+        {
+          //if (this->dataPtr->EntityMatches(entity.Id(), types))
+          {
+            _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
+          }
+        }
+      }
+
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
@@ -417,6 +462,8 @@ namespace ignition
       private: void RegisterComponentType(
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
+
+      private: std::vector<Entity> &Entities() const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
