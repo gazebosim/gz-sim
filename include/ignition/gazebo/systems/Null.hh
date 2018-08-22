@@ -25,24 +25,27 @@
 
 namespace ignition
 {
-  namespace gazebo
+namespace gazebo
+{
+namespace systems
+{
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  /// \class Null Null.hh ignition/gazebo/systems/Null.hh
+  /// \brief Minimal system implementation
+  class IGNITION_GAZEBO_VISIBLE Null: public System
   {
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    /// \class NullSystem NullSystem.hh ignition/gazebo/NullSystem.hh
-    /// \brief Minimal system implementation
-    class IGNITION_GAZEBO_VISIBLE NullSystem: public System
-    {
-      /// \brief Constructor
-      public: NullSystem();
+    /// \brief Constructor
+    public: Null();
 
-      /// \brief Destructor
-      public: virtual ~NullSystem();
+    /// \brief Destructor
+    public: virtual ~Null();
 
-      public: void Init(EntityQueryRegistrar &_registrar) override final;
-    };
-    }
+    public: void Init(EntityQueryRegistrar &_registrar) override final;
+  };
   }
+}
+}
 }
 #endif
 

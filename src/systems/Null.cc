@@ -14,12 +14,23 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/NullSystem.hh"
-#include "ignition/gazebo/PhysicsSystem.hh"
+#include "ignition/gazebo/EntityQuery.hh"
+#include "ignition/gazebo/systems/Null.hh"
 
-#include "ignition/plugin/Register.hh"
+using namespace ignition::gazebo::systems;
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::NullSystem, ignition::gazebo::System)
-IGNITION_ADD_PLUGIN(ignition::gazebo::PhysicsSystem, ignition::gazebo::System)
+//////////////////////////////////////////////////
+Null::Null()
+  : System()
+{
+}
 
+//////////////////////////////////////////////////
+Null::~Null()
+{
+}
+
+//////////////////////////////////////////////////
+void Null::Init(EntityQueryRegistrar &/*_registrar*/)
+{
+}
