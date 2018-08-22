@@ -47,6 +47,9 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~System();
 
+      /// \brief Initialize the system.
+      /// \param[out] _registrar A registrar which should be filled with
+      /// queries and callbacks.
       public: virtual void Init(EntityQueryRegistrar &_registrar) = 0;
     };
     }

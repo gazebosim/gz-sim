@@ -15,7 +15,6 @@
  *
 */
 
-#include <utility>
 #include <vector>
 
 #include "ignition/gazebo/EntityQueryRegistrar.hh"
@@ -47,8 +46,8 @@ void EntityQueryRegistrar::Register(const EntityQuery &_q,
 }
 
 /////////////////////////////////////////////////
-std::vector<EntityQueryRegistration> EntityQueryRegistrar::Registrations() const
+const std::vector<EntityQueryRegistration>
+    &EntityQueryRegistrar::Registrations() const
 {
   return this->dataPtr->queryCallbacks;
 }
-

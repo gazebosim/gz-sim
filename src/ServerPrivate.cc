@@ -14,37 +14,31 @@
  * limitations under the License.
  *
 */
-
 #include "ServerPrivate.hh"
 
-#include <functional>
-#include <ignition/common/Console.hh>
-#include <sdf/Model.hh>
 #include <sdf/Root.hh>
+#include <sdf/World.hh>
 
-#include "ignition/gazebo/PoseComponent.hh"
+#include <ignition/common/Console.hh>
+
+#include "SimulationRunner.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
-  : entityCompMgr(new EntityComponentManager())
 {
   // Add the signal handler
   this->sigHandler.AddCallback(
       std::bind(&ServerPrivate::OnSignal, this, std::placeholders::_1));
-
-  // Create a physics system
-  /*
-  this->systems.push_back(SystemInternal(
-      std::move(std::make_unique<PhysicsSystem>())));
-  */
 }
 
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
 {
+  this->Stop();
+  this->workerPool.WaitForResults();
   if (this->runThread.joinable())
   {
     this->running = false;
@@ -52,49 +46,29 @@ ServerPrivate::~ServerPrivate()
   }
 }
 
-/////////////////////////////////////////////////
-void ServerPrivate::UpdateSystems()
+//////////////////////////////////////////////////
+void ServerPrivate::OnSignal(int _sig)
 {
-  // Update all the systems in parallel
-  for (SystemInternal &system : this->systems)
+  igndbg << "Server received signal[" << _sig  << "]\n";
+  this->Stop();
+}
+
+/////////////////////////////////////////////////
+void ServerPrivate::Stop()
+{
+  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
-    this->workerPool.AddWork([&system, this] ()
-    {
-      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
-      {
-        const std::optional<std::reference_wrapper<EntityQuery>> query =
-          this->entityCompMgr->Query(cb.first);
-        if (query)
-        {
-          cb.second(query->get(), *this->entityCompMgr.get());
-        }
-      }
-    });
+    runner->Stop();
   }
-  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
 void ServerPrivate::InitSystems()
 {
-  // Initialize all the systems in parallel.
-  for (SystemInternal &system : this->systems)
+  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
-    this->workerPool.AddWork([&system, this] ()
-    {
-      EntityQueryRegistrar registrar;
-      // system.system->Init(registrar);
-      for (EntityQueryRegistration &registration : registrar.Registrations())
-      {
-        EntityQuery &query = registration.first;
-        EntityQueryCallback &cb = registration.second;
-        EntityQueryId queryId = this->entityCompMgr->AddQuery(query);
-        // system.updates.push_back({queryId, cb});
-      }
-    });
+    runner->InitSystems();
   }
-
-  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
@@ -107,46 +81,27 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     _cond.value()->notify_all();
   this->runMutex.unlock();
 
-  // \todo(nkoenig) Systems will need a an update structure, such as
-  // priorties, or a dependency chain.
-  //
-  // \todo(nkoenig) We should implement the two-phase update detailed
-  // in the design.
-
-  // Execute all the systems until we are told to stop, or the number of
-  // iterations is reached.
-  for (uint64_t startingIterations = this->iterations;
-       this->running && (_iterations == 0 ||
-                         this->iterations < _iterations + startingIterations);
-       ++this->iterations)
+  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
-    this->UpdateSystems();
+    this->workerPool.AddWork([&runner, &_iterations] ()
+    {
+      runner->Run(_iterations);
+    });
   }
 
+  // Wait for the runner to complete.
+  bool result = this->workerPool.WaitForResults();
   this->running = false;
-  return true;
-}
-
-//////////////////////////////////////////////////
-void ServerPrivate::OnSignal(int _sig)
-{
-  igndbg << "Server received signal[" << _sig  << "]\n";
-  this->running = false;
+  return result;
 }
 
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
-  for (uint64_t i = 0; i < _root.ModelCount(); ++i)
+  // Create a simulation runner for each world.
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
-    // Get the SDF model
-    const sdf::Model *model = _root.ModelByIndex(i);
-
-    // Create an entity for the model.
-    EntityId entityId = this->entityCompMgr->CreateEntity();
-
-    // Create the pose component for the model.
-    this->entityCompMgr->CreateComponent(
-        entityId, PoseComponent(model->Pose()));
+    this->simRunners.push_back(std::make_unique<SimulationRunner>(
+          _root.WorldByIndex(worldIndex)));
   }
 }

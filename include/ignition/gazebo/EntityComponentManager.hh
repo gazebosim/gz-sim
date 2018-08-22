@@ -14,10 +14,9 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENT_MANAGER_HH_
-#define IGNITION_GAZEBO_COMPONENT_MANAGER_HH_
+#ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <any>
 #include <map>
 #include <memory>
 #include <string>
@@ -39,6 +38,10 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
+    /// \brief A unique identifier for an entity query.
+    using EntityQueryId = int;
+
+    /// \cond
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
     /// of a particular type.
@@ -51,7 +54,7 @@ namespace ignition
       /// \param[in] _data Data used to construct the component.
       /// \return Id of the new component. kComponentIdInvalid is returned
       /// if the component could not be created.
-      public: virtual ComponentId Create(const std::any &_data) = 0;
+      public: virtual ComponentId Create(const void *_data) = 0;
 
       /// \brief Remove a component based on an id.
       /// \param[in] _id Id of the component to remove.
@@ -67,16 +70,25 @@ namespace ignition
       /// could not be found.
       public: virtual const void *Component(const ComponentId _id) const = 0;
 
+      /// \brief Get a mutable component based on an id.
+      /// \param[in] _id Id of the component to get.
+      /// \return A pointer to the component, or nullptr if the component
+      /// could not be found.
+      public: virtual void *ComponentMutable(const ComponentId _id) const = 0;
+
+      /// \brief Get the first component.
+      /// \return First component or nullptr if there are no components.
+      public: virtual void *First() = 0;
+
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
     };
 
     /// \brief Templated implementation of component storage.
     template<typename ComponentTypeT>
-    class  IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
+    class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
       /// \brief Constructor
-      /// \param[in] _name Name associated with the component storage type.
       public: explicit ComponentStorage()
               : ComponentStorageBase()
       {
@@ -133,25 +145,24 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: ComponentId Create(const std::any &_data) override final
+      public: ComponentId Create(const void *_data) override final
       {
         ComponentId result = kComponentIdInvalid;
 
-        try
-        {
-          std::lock_guard<std::mutex> lock(this->mutex);
-          const ComponentTypeT &data = std::any_cast<ComponentTypeT>(_data);
-          result = idCounter++;
-          this->idMap[result] = this->components.size();
-          this->components.push_back(std::move(ComponentTypeT(data)));
-        }
-        catch(std::bad_any_cast &_cast)
-        {
-          ignerr << "Unable to create a component. "
-                 << _cast.what() << std::endl;
-        }
+        std::lock_guard<std::mutex> lock(this->mutex);
+        result = idCounter++;
+        this->idMap[result] = this->components.size();
+        // Copy the component
+        this->components.push_back(std::move(
+              ComponentTypeT(*static_cast<const ComponentTypeT*>(_data))));
 
         return result;
+      }
+
+      // Documentation inherited.
+      public: void *ComponentMutable(const ComponentId _id) const override final
+      {
+        return const_cast<void *>(this->Component(_id));
       }
 
       // Documentation inherited.
@@ -168,6 +179,15 @@ namespace ignition
         return nullptr;
       }
 
+      // Documentation inherited.
+      public: void *First() override final
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        if (!this->components.empty())
+          return static_cast<void *>(&this->components[0]);
+        return nullptr;
+      }
+
       /// \brief The id counter is used to get unique ids within this
       /// storage class.
       private: ComponentId idCounter = 0;
@@ -178,8 +198,13 @@ namespace ignition
       /// \brief Sequential storage of components.
       public: std::vector<ComponentTypeT> components;
     };
+    /// \endcond
+
+    /** \class EntityComponentManager EntityComponentManager.hh \
+     * ignition/gazebo/EntityComponentManager.hh
+    **/
     /// \brief The EntityComponentManager constructs, deletes, and returns
-    /// components.
+    /// components and entities.
     class IGNITION_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
@@ -207,9 +232,9 @@ namespace ignition
       /// \brief Get whether an Entity exists.
       /// \param[in] _id Entity id to confirm.
       /// \return True if the Entity exists.
-      public: bool HasEntity(EntityId _id) const;
+      public: bool HasEntity(const EntityId _id) const;
 
-      /// \brief Get whether a component type has been created.
+      /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
       public: bool HasComponentType(const ComponentTypeId _typeId);
@@ -236,16 +261,17 @@ namespace ignition
       public: EntityQueryId AddQuery(const EntityQuery &_query);
 
       /// \brief Get an entity query.
-      /// \param[in] _id Id of the EntityQuery to retrieved.
+      /// \param[in] _id Id of the EntityQuery to retrieve.
       /// \return Optional reference to the query. The return value will be
       /// std::nullopt if the entity query does not exist.
       public: const std::optional<std::reference_wrapper<EntityQuery>> Query(
                   const EntityQueryId _id) const;
 
-      /// \brief Remove a component based on a key.
+      /// \brief Remove a component from an entity based on a key.
       /// \param[in] _id Id of the entity.
       /// \param[in] _key A key that uniquely identifies a component.
-      /// \return True if the entity and component existed and was removed.
+      /// \return True if the entity and component existed and the component was
+      ///  removed.
       public: bool RemoveComponent(
                   const EntityId _id, const ComponentKey &_key);
 
@@ -260,7 +286,8 @@ namespace ignition
         return typeid(ComponentTypeT).hash_code();
       }
 
-      /// \brief Create a component of a particular type.
+      /// \brief Create a component of a particular type. This will copy the
+      /// _data parameter.
       /// \param[in] _entityId Id of the Entity that will be associated with
       /// the component.
       /// \param[in] _data Data used to construct the component.
@@ -280,7 +307,7 @@ namespace ignition
                 new ComponentStorage<ComponentTypeT>());
         }
 
-        return this->CreateComponentImplementation(_entityId, typeId, _data);
+        return this->CreateComponentImplementation(_entityId, typeId, &_data);
       }
 
       /// \brief Get a component assigned to an entity based on a
@@ -298,6 +325,18 @@ namespace ignition
             this->ComponentImplementation(_id, typeId));
       }
 
+      /// \brief Get a mutable component assigned to an entity based on a
+      /// component type.
+      /// \param[in] _id Id of the entity.
+      /// \return The component of the specified type assigned to specified
+      /// Entity, or nullptr if the component could not be found.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentMutable(const EntityId _id) const
+      {
+        return const_cast<ComponentTypeT*>(
+            this->Component<ComponentTypeT>(_id));
+      }
+
       /// \brief Get a component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
@@ -309,6 +348,87 @@ namespace ignition
             this->ComponentImplementation(_key));
       }
 
+      /// \brief Get a mutable component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *ComponentMutable(const ComponentKey &_key) const
+      {
+        return const_cast<ComponentTypeT*>(
+            this->Component<ComponentTypeT>(_key));
+      }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ComponentTypeT>
+              const ComponentTypeT *First() const
+      {
+        return static_cast<const ComponentTypeT *>(
+            this->First(this->ComponentType<ComponentTypeT>()));
+      }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *First()
+      {
+        return static_cast<ComponentTypeT *>(
+            this->First(this->ComponentType<ComponentTypeT>()));
+      }
+
+      /// why is this required?
+      private: template <typename T> struct identity { typedef T type; };
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      public: template<typename ...ComponentTypeTs>
+              void Each(typename identity<std::function<
+                  void(const EntityId &_entity,
+                       const ComponentTypeTs *...)>>::type _f) const
+      {
+        // \todo(louise) We should create Views, which will replace Queries.
+        // A View can be completely internal to EntityComponentManager.
+        // A View will store the entities that match the provided
+        // ComponenTypeTs.
+        //
+        // Instead of iterating over all the entities, this function can
+        // call Each(blah) on the appropriate View. If the View doesn't
+        // exist, then create the View.
+        //
+        // System's will then no longer create and register queries. The
+        // "InitSystem" code can go away. Instead, a System can call "Each"
+        // to get the desired entities.
+        //
+        // The reason to do this approach is:
+        // 1. It's cleaner - the concept of queries and all of that
+        // infrastructure can be hidden from the user.
+        // 2. Systems can alter the entities they need more easily at run
+        // time.
+        // 3. A System can process multiple entities with different
+        // component signatures in a single callback.
+        // 4. This opens the door to supporting more complex like:
+        // Each<ComponentTypeA, ComponentTypeB>().Or<ComponentTypeC>().
+        //
+        // Reference:
+        // https://github.com/alecthomas/entityx/blob/master/entityx/Entity.h
+        for (const Entity &entity : this->Entities())
+        {
+          //if (this->dataPtr->EntityMatches(entity.Id(), types))
+          {
+            _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
+          }
+        }
+      }
+
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
+      private: void *First(const ComponentTypeId _componentTypeId);
+
       /// \brief Implmentation of CreateComponent.
       /// \param[in] _entityId Id of the Entity that will be associated with
       /// the component.
@@ -318,12 +438,13 @@ namespace ignition
       private: ComponentKey CreateComponentImplementation(
                    const EntityId _entityId,
                    const ComponentTypeId _componentTypeId,
-                   const std::any &_data);
+                   const void *_data);
 
-      /// \brief Get a component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
+      /// \brief Get a component based on a component type.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _type Id of the component type.
+      /// \return The component of the specified type assigned to specified
+      /// Entity, or nullptr if the component could not be found.
       private: const void *ComponentImplementation(const EntityId _id,
                    const ComponentTypeId _type) const;
 
@@ -341,6 +462,8 @@ namespace ignition
       private: void RegisterComponentType(
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
+
+      private: std::vector<Entity> &Entities() const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

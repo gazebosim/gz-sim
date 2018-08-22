@@ -18,25 +18,35 @@
 
 #include <sdf/Root.hh>
 #include "ServerPrivate.hh"
+#include "SimulationRunner.hh"
 
 using namespace ignition::gazebo;
-
-/////////////////////////////////////////////////
-Server::Server()
-  : dataPtr(new ServerPrivate)
-{
-}
 
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  sdf::Root root;
+
+  // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    sdf::Root root;
     root.Load(_config.SdfFile());
+  }
+  else
+  {
+    // Load an empty world.
+    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+    root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+        "<world name='default'></world></sdf>");
+  }
 
-    this->dataPtr->CreateEntities(root);
+  this->dataPtr->CreateEntities(root);
+
+  // Set the desired update period.
+  if (_config.UpdatePeriod())
+  {
+    this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
 
   this->dataPtr->InitSystems();
@@ -90,31 +100,43 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations)
 }
 
 /////////////////////////////////////////////////
-bool Server::Running() const
+void Server::SetUpdatePeriod(
+    const std::chrono::steady_clock::duration &_updatePeriod,
+    const unsigned int _worldIndex)
 {
-  return this->dataPtr->running;
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    this->dataPtr->simRunners[_worldIndex]->SetUpdatePeriod(_updatePeriod);
 }
 
-/////////////////////////////////////////////////
-uint64_t Server::IterationCount() const
+//////////////////////////////////////////////////
+std::optional<bool> Server::Running(const unsigned int _worldIndex) const
 {
-  return this->dataPtr->iterations;
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->Running();
+  return std::nullopt;
 }
 
-/////////////////////////////////////////////////
-size_t Server::EntityCount() const
+//////////////////////////////////////////////////
+std::optional<uint64_t> Server::IterationCount(
+    const unsigned int _worldIndex) const
 {
-  return this->dataPtr->entityCompMgr->EntityCount();
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->IterationCount();
+  return std::nullopt;
 }
 
-/////////////////////////////////////////////////
-size_t Server::SystemCount() const
+//////////////////////////////////////////////////
+std::optional<size_t> Server::EntityCount(const unsigned int _worldIndex) const
 {
-  return this->dataPtr->systems.size();
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->EntityCount();
+  return std::nullopt;
 }
 
-/////////////////////////////////////////////////
-EntityComponentManager &Server::EntityComponentMgr() const
+//////////////////////////////////////////////////
+std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 {
-  return *(this->dataPtr->entityCompMgr.get());
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->SystemCount();
+  return std::nullopt;
 }
