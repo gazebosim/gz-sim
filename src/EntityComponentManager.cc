@@ -330,14 +330,14 @@ void EntityComponentManager::RegisterComponentType(
 /////////////////////////////////////////////////
 void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 {
- std::map<ComponentTypeId,
-   std::unique_ptr<ComponentStorageBase>>::iterator iter =
+  std::map<ComponentTypeId,
+  std::unique_ptr<ComponentStorageBase>>::iterator iter =
      this->dataPtr->components.find(_componentTypeId);
- if (iter != this->dataPtr->components.end())
- {
-   return iter->second->First();
- }
- return nullptr;
+  if (iter != this->dataPtr->components.end())
+  {
+    return iter->second->First();
+  }
+  return nullptr;
 }
 
 std::vector<Entity> &EntityComponentManager::Entities() const

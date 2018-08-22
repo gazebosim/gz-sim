@@ -18,6 +18,7 @@
 
 #include <tinyxml2.h>
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 
@@ -30,6 +31,7 @@
 #include <ignition/plugin/Loader.hh>
 
 using namespace ignition::gazebo;
+using SystemPtr = SystemManager::SystemPtr;
 
 std::string homePath()
 {
@@ -147,7 +149,7 @@ class ignition::gazebo::SystemManagerPrivate
   public: std::string pluginPathEnv = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH";
   public: std::string defaultConfigPath;
   public: std::unordered_set<std::string> systemPluginPaths;
-  public: std::vector<std::shared_ptr<System>> systemPluginsAdded;
+  public: std::vector<SystemPtr> systemPluginsAdded;
   public: ignition::plugin::Loader loader;
 };
 
@@ -160,10 +162,9 @@ SystemManager::SystemManager()
 //////////////////////////////////////////////////
 SystemManager::~SystemManager()
 {
-
 }
 
-const std::vector<std::shared_ptr<System>>& SystemManager::GetLoadedSystems() const
+const std::vector<SystemPtr>& SystemManager::GetLoadedSystems() const
 {
   return this->dataPtr->systemPluginsAdded;
 }
