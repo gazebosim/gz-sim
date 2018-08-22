@@ -14,22 +14,24 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/systems/Physics.hh"
+
 #include <ignition/math/Pose3.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EntityQuery.hh"
-#include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition::gazebo::systems;
+
 using namespace std::chrono_literals;
 
 // Private data class.
-class ignition::gazebo::PhysicsSystemPrivate
+class ignition::gazebo::systems::PhysicsPrivate
 {
   /// \brief Query callback for entity that has physics components.
   /// \param[in] _response The system query response data.
@@ -41,18 +43,18 @@ class ignition::gazebo::PhysicsSystemPrivate
 };
 
 //////////////////////////////////////////////////
-PhysicsSystem::PhysicsSystem()
-  : System("Physics"), dataPtr(new PhysicsSystemPrivate)
+Physics::Physics()
+  : System("Physics"), dataPtr(new PhysicsPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-PhysicsSystem::~PhysicsSystem()
+Physics::~Physics()
 {
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
+void Physics::Init(EntityQueryRegistrar &_registrar)
 {
   {
     /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
@@ -61,7 +63,7 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
         EntityComponentManager::ComponentType<components::Pose>());
 
     _registrar.Register(query,
-        std::bind(&PhysicsSystemPrivate::OnUpdate, this->dataPtr.get(),
+        std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
           std::placeholders::_1));
   }
 
@@ -70,20 +72,19 @@ void PhysicsSystem::Init(EntityQueryRegistrar &_registrar)
     query.AddComponentType(
         EntityComponentManager::ComponentType<components::WorldStatistics>());
     _registrar.Register(query,
-        std::bind(&PhysicsSystemPrivate::OnUpdateTime, this->dataPtr.get(),
+        std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
           std::placeholders::_1));
   }
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
+void PhysicsPrivate::OnUpdateTime(SystemQueryResponse &_response)
 {
   auto *worldStats =
     _response.EntityComponentMgr().First<components::WorldStatistics>();
 
-  auto *worldComponent =
-    _response.EntityComponentMgr().Component<components::World>(
-      *_response.Query().Entities().begin());
+  const auto *worldComponent =
+    _response.EntityComponentMgr().First<components::World>();
 
   /// \todo(nkoenig) We might want to prevent all systems from modifying
   /// simulation time.
@@ -93,7 +94,7 @@ void PhysicsSystemPrivate::OnUpdateTime(SystemQueryResponse &_response)
 }
 
 //////////////////////////////////////////////////
-void PhysicsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
+void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
