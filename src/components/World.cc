@@ -16,18 +16,19 @@
 */
 #include <sdf/World.hh>
 #include <sdf/Physics.hh>
-#include "ignition/gazebo/WorldComponent.hh"
+#include "ignition/gazebo/components/World.hh"
 
 using namespace ignition;
 using namespace gazebo;
+using namespace components;
 using namespace std::chrono_literals;
 
 /// \brief Private data class.
-class ignition::gazebo::WorldComponentPrivate
+class ignition::gazebo::components::WorldPrivate
 {
   /// \brief Copy constructor
   /// \param[in] _data Data to copy.
-  public: explicit WorldComponentPrivate(const WorldComponentPrivate &_data)
+  public: explicit WorldPrivate(const WorldPrivate &_data)
           : name(_data.name),
             desiredRealTimeFactor(_data.desiredRealTimeFactor),
             maxStep(_data.maxStep)
@@ -35,10 +36,8 @@ class ignition::gazebo::WorldComponentPrivate
   }
 
   /// \brief Constructor.
-  /// \param[in] _name Name of the world
   /// \param[in] _physics SDF Physics data.
-  public: WorldComponentPrivate(const std::string &_name,
-              const sdf::Physics *_physics)
+  public: WorldPrivate(const std::string &_name, const sdf::Physics *_physics)
           : name(_name),
             desiredRealTimeFactor(_physics->RealTimeFactor())
   {
@@ -46,9 +45,6 @@ class ignition::gazebo::WorldComponentPrivate
     this->maxStep =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(dur);
   }
-
-  /// \brief Name of the component.
-  public: std::string componentName{"WorldComponent"};
 
   /// \brief Name of the world.
   public: std::string name{"default"};
@@ -61,77 +57,70 @@ class ignition::gazebo::WorldComponentPrivate
 };
 
 //////////////////////////////////////////////////
-WorldComponent::WorldComponent(const sdf::World *_world)
-  : dataPtr(new WorldComponentPrivate(
-        _world->Name(), _world->PhysicsDefault()))
+World::World(const sdf::World *_world)
+  : dataPtr(new WorldPrivate(_world->Name(),
+    _world->PhysicsDefault()))
 {
 }
 
 //////////////////////////////////////////////////
-WorldComponent::WorldComponent(const WorldComponent &_world)
-  : dataPtr(new WorldComponentPrivate(*_world.dataPtr))
+World::World(const World &_world)
+  : dataPtr(new WorldPrivate(*_world.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-WorldComponent::WorldComponent(WorldComponent &&_world) noexcept
+World::World(World &&_world) noexcept
   : dataPtr(std::move(_world.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-WorldComponent::~WorldComponent()
+World::~World()
 {
   // \todo(nkoenig) Add ability to unregister a component type.
 }
 
 //////////////////////////////////////////////////
-const std::string &WorldComponent::ComponentName() const
-{
-  return this->dataPtr->componentName;
-}
-
-//////////////////////////////////////////////////
-const std::string &WorldComponent::Name() const
+const std::string &World::Name() const
 {
   return this->dataPtr->name;
 }
 
 //////////////////////////////////////////////////
-double WorldComponent::DesiredRealTimeFactor() const
+double World::DesiredRealTimeFactor() const
 {
   return this->dataPtr->desiredRealTimeFactor;
 }
 
 //////////////////////////////////////////////////
-void WorldComponent::SetDesiredRealTimeFactor(const double _factor)
+void World::SetDesiredRealTimeFactor(const double _factor)
 {
   this->dataPtr->desiredRealTimeFactor = _factor;
 }
 
 //////////////////////////////////////////////////
-std::chrono::steady_clock::duration WorldComponent::MaxStep() const
+std::chrono::steady_clock::duration World::MaxStep() const
 {
   return this->dataPtr->maxStep;
 }
 
 //////////////////////////////////////////////////
-void WorldComponent::SetMaxStep(const std::chrono::steady_clock::duration _step)
+void World::SetMaxStep(const std::chrono::steady_clock::duration _step)
 {
   this->dataPtr->maxStep = _step;
 }
 
 //////////////////////////////////////////////////
-WorldComponent &WorldComponent::operator=(WorldComponent &&_world)
+World &World::operator=(World &&_world)
 {
   this->dataPtr = std::move(_world.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-WorldComponent &WorldComponent::operator=(const WorldComponent &_world)
+World &World::operator=(const World &_world)
 {
-  this->dataPtr->name = _world.dataPtr->name;
   this->dataPtr->desiredRealTimeFactor = _world.dataPtr->desiredRealTimeFactor;
   this->dataPtr->maxStep = _world.dataPtr->maxStep;
   return *this;
