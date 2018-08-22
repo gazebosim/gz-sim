@@ -20,11 +20,11 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/WorldStatistics.hh"
 #include "ignition/gazebo/PhysicsSystem.hh"
-#include "ignition/gazebo/PoseComponent.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-#include "ignition/gazebo/WorldComponent.hh"
-#include "ignition/gazebo/WorldStatisticsComponent.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
 
 using namespace ignition;
@@ -167,7 +167,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
   /// \todo(nkoenig) Computing the desired update period here is a bit
   /// hacky.
-  WorldComponent worldComponent(_world);
+  components::World worldComponent(_world);
   std::chrono::steady_clock::duration stepSize = worldComponent.MaxStep();
   double rtf = worldComponent.DesiredRealTimeFactor();
   this->updatePeriod = std::chrono::nanoseconds(
@@ -178,7 +178,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
   // Create the world statistcs component for the world entity.
   this->entityCompMgr.CreateComponent(
-      worldEntity, WorldStatisticsComponent());
+      worldEntity, components::WorldStatistics());
 
   // Process each model in the world
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
@@ -192,7 +192,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
     // Create the pose component for the model.
     this->entityCompMgr.CreateComponent(
-        entityId, PoseComponent(model->Pose()));
+        entityId, components::Pose(model->Pose()));
   }
 }
 
