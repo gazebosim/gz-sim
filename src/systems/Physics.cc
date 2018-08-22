@@ -22,11 +22,12 @@
 #include "ignition/gazebo/EntityQuery.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
-#include "ignition/gazebo/PoseComponent.hh"
-#include "ignition/gazebo/WorldComponent.hh"
-#include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/WorldStatistics.hh"
 
 using namespace ignition::gazebo::systems;
+
 using namespace std::chrono_literals;
 
 // Private data class.
@@ -59,7 +60,7 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
     /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
     EntityQuery query;
     query.AddComponentType(
-        EntityComponentManager::ComponentType<PoseComponent>());
+        EntityComponentManager::ComponentType<components::Pose>());
 
     _registrar.Register(query,
         std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
@@ -69,7 +70,7 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
   {
     EntityQuery query;
     query.AddComponentType(
-        EntityComponentManager::ComponentType<WorldStatisticsComponent>());
+        EntityComponentManager::ComponentType<components::WorldStatistics>());
     _registrar.Register(query,
         std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
           std::placeholders::_1));
@@ -80,10 +81,10 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
 void PhysicsPrivate::OnUpdateTime(SystemQueryResponse &_response)
 {
   auto *worldStats =
-    _response.EntityComponentMgr().First<WorldStatisticsComponent>();
+    _response.EntityComponentMgr().First<components::WorldStatistics>();
 
   const auto *worldComponent =
-    _response.EntityComponentMgr().First<WorldComponent>();
+    _response.EntityComponentMgr().First<components::World>();
 
   /// \todo(nkoenig) We might want to prevent all systems from modifying
   /// simulation time.
@@ -97,12 +98,12 @@ void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  _response.EntityComponentMgr().Each<PoseComponent>(
-    [&](const EntityId &/*_entity*/, const PoseComponent *_pose)
+  _response.EntityComponentMgr().Each<components::Pose>(
+    [&](const EntityId &/*_entity*/, const components::Pose *_pose)
     {
       if (_pose)
       {
-        std::cout << "Pose[" << _pose->Pose() << "]\n";
+        std::cout << "Pose[" << _pose->Data() << "]\n";
         std::this_thread::sleep_for(50us);
       }
     });

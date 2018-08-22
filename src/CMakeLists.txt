@@ -1,3 +1,4 @@
+add_subdirectory(components)
 add_subdirectory(gui)
 add_subdirectory(systems)
 
@@ -6,26 +7,19 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-set(systems_sources
-  ${systems_sources}
-  PARENT_SCOPE
-)
-
 set (sources
+  ${components_sources}
+  ${systems_sources}
   Entity.cc
   EntityComponentManager.cc
   EntityQuery.cc
   EntityQueryRegistrar.cc
-  PoseComponent.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
   System.cc
   SystemQueryResponse.cc
-  WorldComponent.cc
-  WorldStatisticsComponent.cc
-  ${systems_sources}
 )
 
 set (gtest_sources
