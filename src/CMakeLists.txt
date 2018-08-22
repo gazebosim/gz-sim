@@ -1,3 +1,4 @@
+add_subdirectory(components)
 add_subdirectory(gui)
 
 set(gui_sources
@@ -6,9 +7,7 @@ set(gui_sources
 )
 
 set (sources
-  components/Pose.cc
-  components/World.cc
-  components/WorldStatistics.cc
+  ${components_sources}
   Entity.cc
   EntityComponentManager.cc
   EntityQuery.cc
