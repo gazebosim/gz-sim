@@ -92,9 +92,9 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
   for (const EntityId &entity : _response.Query().Entities())
   {
     // Get the world stats component.
-    auto *worldStats =
-      _response.EntityComponentMgr().ComponentMutable<components::WorldStatistics>(
-          entity);
+    auto *worldStats = _response
+        .EntityComponentMgr()
+        .ComponentMutable<components::WorldStatistics>(entity);
 
     if (!worldStats)
     {

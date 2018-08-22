@@ -21,7 +21,9 @@
 
 #include "ignition/plugin/Register.hh"
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null, ignition::gazebo::System)
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics, ignition::gazebo::System)
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::WorldStatistics, ignition::gazebo::System)
+using namespace ignition::gazebo;
+
+IGNITION_ADD_PLUGIN(systems::Null, System)
+IGNITION_ADD_PLUGIN(systems::Physics, System)
+IGNITION_ADD_PLUGIN(systems::WorldStatistics, System)
 

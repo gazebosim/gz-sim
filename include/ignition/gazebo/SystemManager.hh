@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -36,6 +37,8 @@ namespace ignition
     /// \brief Class for loading/unloading System plugins.
     class IGNITION_GAZEBO_VISIBLE SystemManager
     {
+      public: using SystemPtr = std::shared_ptr<System>;
+
       /// \brief Constructor
       public: explicit SystemManager();
 
@@ -49,7 +52,7 @@ namespace ignition
       public: bool loadSystemConfig(const std::string& _config);
 
       /// \brief Return system plugins currently loaded by the manager
-      public: const std::vector<std::shared_ptr<System>>& GetLoadedSystems() const;
+      public: const std::vector<SystemPtr>& GetLoadedSystems() const;
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string

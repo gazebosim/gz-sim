@@ -417,7 +417,7 @@ namespace ignition
         // https://github.com/alecthomas/entityx/blob/master/entityx/Entity.h
         for (const Entity &entity : this->Entities())
         {
-          //if (this->dataPtr->EntityMatches(entity.Id(), types))
+          // if (this->dataPtr->EntityMatches(entity.Id(), types))
           {
             _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
           }

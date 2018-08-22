@@ -39,8 +39,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world)
       IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
   manager.loadSystemConfig(configPath);
 
-  for(auto& system: manager.GetLoadedSystems()) {
-      //this->systems.push_back(SystemInternal(system));
+  for (auto& system : manager.GetLoadedSystems()) {
+      // this->systems.push_back(SystemInternal(system));
   }
 
   this->CreateEntities(_world);
