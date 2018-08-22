@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_COMPONENT_TYPE_HH_
-#define IGNITION_GAZEBO_WORLD_COMPONENT_TYPE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_WORLD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_WORLD_HH_
 
 #include <memory>
 

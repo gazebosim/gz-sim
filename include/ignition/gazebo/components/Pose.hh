@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
-#define IGNITION_GAZEBO_POSE_COMPONENT_TYPE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_POSE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_POSE_HH_
 
 #include <memory>
 
