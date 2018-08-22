@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/systems/WorldStatistics.hh"
+
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <list>
@@ -22,15 +24,14 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition::gazebo::systems;
 using namespace std::chrono_literals;
 
 // Private data class.
-class ignition::gazebo::WorldStatisticsSystemPrivate
+class ignition::gazebo::systems::WorldStatisticsPrivate
 {
   /// \brief Entity query callback for all worlds.
   /// \param[in] _response The system query response data.
@@ -57,33 +58,33 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
 };
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::WorldStatisticsSystem()
+WorldStatistics::WorldStatistics()
   : System("WorldStatistics"),
-    dataPtr(new WorldStatisticsSystemPrivate)
+    dataPtr(new WorldStatisticsPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::~WorldStatisticsSystem()
+WorldStatistics::~WorldStatistics()
 {
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
+void WorldStatistics::Init(EntityQueryRegistrar &_registrar)
 {
   // Register a query that will get all entities with
-  // a WorldStatistics. This should be just world entities, which
+  // a WorldStatistics component. This should be just world entities, which
   // is usually a single entity on the server.
   EntityQuery query;
   query.AddComponentType(
       EntityComponentManager::ComponentType<components::WorldStatistics>());
   _registrar.Register(query,
-      std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
+      std::bind(&WorldStatisticsPrivate::OnUpdate, this->dataPtr.get(),
         std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
+void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   std::map<std::string, Stats>::iterator iter;
 
@@ -91,12 +92,13 @@ void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
   for (const EntityId &entity : _response.Query().Entities())
   {
     // Get the world stats component.
-    auto *worldStats = _response.EntityComponentMgr().ComponentMutable<
-        components::WorldStatistics>(entity);
+    auto *worldStats =
+      _response.EntityComponentMgr().ComponentMutable<components::WorldStatistics>(
+          entity);
 
     if (!worldStats)
     {
-      ignerr << "A world entity does not have a WorldStatistics.\n"
+      ignerr << "A world entity does not have a WorldStatistics component.\n"
         << std::endl;
       continue;
     }
@@ -107,7 +109,7 @@ void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
 
     if (!world)
     {
-      ignerr << "A world entity does not have a World.\n"
+      ignerr << "A world entity does not have a World component.\n"
         << std::endl;
       continue;
     }
