@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/systems/WorldStatistics.hh"
+
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <list>
@@ -22,15 +24,14 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
 #include "ignition/gazebo/WorldComponent.hh"
 #include "ignition/gazebo/WorldStatisticsComponent.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition::gazebo::systems;
 using namespace std::chrono_literals;
 
 // Private data class.
-class ignition::gazebo::WorldStatisticsSystemPrivate
+class ignition::gazebo::systems::WorldStatisticsPrivate
 {
   /// \brief Entity query callback for all worlds.
   /// \param[in] _response The system query response data.
@@ -57,19 +58,19 @@ class ignition::gazebo::WorldStatisticsSystemPrivate
 };
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::WorldStatisticsSystem()
+WorldStatistics::WorldStatistics()
   : System("WorldStatistics"),
-    dataPtr(new WorldStatisticsSystemPrivate)
+    dataPtr(new WorldStatisticsPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsSystem::~WorldStatisticsSystem()
+WorldStatistics::~WorldStatistics()
 {
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
+void WorldStatistics::Init(EntityQueryRegistrar &_registrar)
 {
   // Register a query that will get all entities with
   // a WorldStatisticsComponent. This should be just world entities, which
@@ -78,12 +79,12 @@ void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
   query.AddComponentType(
       EntityComponentManager::ComponentType<WorldStatisticsComponent>());
   _registrar.Register(query,
-      std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
+      std::bind(&WorldStatisticsPrivate::OnUpdate, this->dataPtr.get(),
         std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
+void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   std::map<std::string, Stats>::iterator iter;
 
