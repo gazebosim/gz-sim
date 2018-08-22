@@ -23,9 +23,10 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
-#include "ignition/gazebo/PhysicsSystem.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-#include "ignition/gazebo/WorldStatisticsSystem.hh"
+
+#include "ignition/gazebo/systems/Physics.hh"
+#include "ignition/gazebo/systems/WorldStatistics.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -35,11 +36,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world)
 {
   // Create a world statistics system
   this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<WorldStatisticsSystem>())));
+        std::move(std::make_unique<systems::WorldStatistics>())));
 
   // Create a physics system
   this->systems.push_back(SystemInternal(
-      std::move(std::make_unique<PhysicsSystem>())));
+      std::move(std::make_unique<systems::Physics>())));
 
   this->CreateEntities(_world);
 }
