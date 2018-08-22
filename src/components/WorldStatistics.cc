@@ -14,20 +14,18 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/components/WorldStatistics.hh"
 
 using namespace ignition;
 using namespace gazebo;
+using namespace components;
 
-class ignition::gazebo::WorldStatisticsComponentPrivate
+class ignition::gazebo::components::WorldStatisticsPrivate
 {
   /// \brief Constructor.
-  public: explicit WorldStatisticsComponentPrivate()
+  public: explicit WorldStatisticsPrivate()
   {
   }
-
-  /// \brief Name of the component.
-  public: std::string name{"WorldStatisticsComponent"};
 
   /// \brief The real time
   public: ignition::math::Stopwatch realTime;
@@ -40,100 +38,93 @@ class ignition::gazebo::WorldStatisticsComponentPrivate
 };
 
 //////////////////////////////////////////////////
-WorldStatisticsComponent::WorldStatisticsComponent()
-  : dataPtr(new WorldStatisticsComponentPrivate())
+WorldStatistics::WorldStatistics()
+  : dataPtr(new WorldStatisticsPrivate())
 {
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsComponent::WorldStatisticsComponent(
-    const WorldStatisticsComponent &_stats)
-  : dataPtr(new WorldStatisticsComponentPrivate())
+WorldStatistics::WorldStatistics(
+    const WorldStatistics &_stats)
+  : dataPtr(new WorldStatisticsPrivate())
 {
   this->dataPtr->realTime = _stats.dataPtr->realTime;
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsComponent::WorldStatisticsComponent(
-    WorldStatisticsComponent &&_stats) noexcept
+WorldStatistics::WorldStatistics(
+    WorldStatistics &&_stats) noexcept
   : dataPtr(std::move(_stats.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsComponent::~WorldStatisticsComponent()
+WorldStatistics::~WorldStatistics()
 {
   // \todo(nkoenig) Add ability to unregister a component type.
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-uint64_t WorldStatisticsComponent::Iterations() const
+uint64_t WorldStatistics::Iterations() const
 {
   return this->dataPtr->iterations;
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsComponent::AddIterations(const uint64_t _iters)
+void WorldStatistics::AddIterations(const uint64_t _iters)
 {
   this->dataPtr->iterations += _iters;
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsComponent::SetIterations(const uint64_t _iters)
+void WorldStatistics::SetIterations(const uint64_t _iters)
 {
   this->dataPtr->iterations = _iters;
 }
 
 //////////////////////////////////////////////////
-const ignition::math::clock::duration &WorldStatisticsComponent::SimTime() const
+const ignition::math::clock::duration &WorldStatistics::SimTime() const
 {
   return this->dataPtr->simTime;
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsComponent::AddSimTime(
+void WorldStatistics::AddSimTime(
     const ignition::math::clock::duration &_simTime)
 {
   this->dataPtr->simTime += _simTime;
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsComponent::SetSimTime(
+void WorldStatistics::SetSimTime(
     const ignition::math::clock::duration &_simTime)
 {
   this->dataPtr->simTime = _simTime;
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Stopwatch &WorldStatisticsComponent::RealTime() const
+const ignition::math::Stopwatch &WorldStatistics::RealTime() const
 {
   return this->dataPtr->realTime;
 }
 
 //////////////////////////////////////////////////
-ignition::math::Stopwatch &WorldStatisticsComponent::RealTime()
+ignition::math::Stopwatch &WorldStatistics::RealTime()
 {
   return this->dataPtr->realTime;
 }
 
 //////////////////////////////////////////////////
-const std::string &WorldStatisticsComponent::Name() const
-{
-  return this->dataPtr->name;
-}
-
-//////////////////////////////////////////////////
-WorldStatisticsComponent &WorldStatisticsComponent::operator=(
-  WorldStatisticsComponent &&_stats)
+WorldStatistics &WorldStatistics::operator=(
+  WorldStatistics &&_stats)
 {
   this->dataPtr = std::move(_stats.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-WorldStatisticsComponent &WorldStatisticsComponent::operator=(
-  const WorldStatisticsComponent &_stats)
+WorldStatistics &WorldStatistics::operator=(
+  const WorldStatistics &_stats)
 {
   this->dataPtr->realTime = _stats.dataPtr->realTime;
   return *this;

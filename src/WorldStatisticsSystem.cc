@@ -23,8 +23,8 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/WorldStatisticsSystem.hh"
-#include "ignition/gazebo/WorldComponent.hh"
-#include "ignition/gazebo/WorldStatisticsComponent.hh"
+#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/WorldStatistics.hh"
 
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
@@ -72,11 +72,11 @@ WorldStatisticsSystem::~WorldStatisticsSystem()
 void WorldStatisticsSystem::Init(EntityQueryRegistrar &_registrar)
 {
   // Register a query that will get all entities with
-  // a WorldStatisticsComponent. This should be just world entities, which
+  // a WorldStatistics. This should be just world entities, which
   // is usually a single entity on the server.
   EntityQuery query;
   query.AddComponentType(
-      EntityComponentManager::ComponentType<WorldStatisticsComponent>());
+      EntityComponentManager::ComponentType<components::WorldStatistics>());
   _registrar.Register(query,
       std::bind(&WorldStatisticsSystemPrivate::OnUpdate, this->dataPtr.get(),
         std::placeholders::_1));
@@ -91,24 +91,23 @@ void WorldStatisticsSystemPrivate::OnUpdate(SystemQueryResponse &_response)
   for (const EntityId &entity : _response.Query().Entities())
   {
     // Get the world stats component.
-    auto *worldStats =
-      _response.EntityComponentMgr().ComponentMutable<WorldStatisticsComponent>(
-          entity);
+    auto *worldStats = _response.EntityComponentMgr().ComponentMutable<
+        components::WorldStatistics>(entity);
 
     if (!worldStats)
     {
-      ignerr << "A world entity does not have a WorldStatisticsComponent.\n"
+      ignerr << "A world entity does not have a WorldStatistics.\n"
         << std::endl;
       continue;
     }
 
     // Get the world component.
     const auto *world =
-      _response.EntityComponentMgr().Component<WorldComponent>(entity);
+      _response.EntityComponentMgr().Component<components::World>(entity);
 
     if (!world)
     {
-      ignerr << "A world entity does not have a WorldComponent.\n"
+      ignerr << "A world entity does not have a World.\n"
         << std::endl;
       continue;
     }
