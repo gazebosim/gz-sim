@@ -36,7 +36,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition plugin
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-plugin -b gz11
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-plugin -b default
           - cd ign-plugin
           - mkdir build
           - cd build
