@@ -163,7 +163,7 @@ SystemManager::~SystemManager()
 
 }
 
-const std::vector<std::shared_ptr<System>>& SystemManager::GetLoadedSystems() const;
+const std::vector<std::shared_ptr<System>>& SystemManager::GetLoadedSystems() const
 {
   return this->dataPtr->systemPluginsAdded;
 }
