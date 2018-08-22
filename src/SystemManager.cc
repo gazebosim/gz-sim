@@ -31,8 +31,6 @@
 
 using namespace ignition::gazebo;
 
-constexpr const char *g_systemPluginPathEnv = "IGN_GAZEBO_SYSTEM_PATH";
-
 std::string homePath()
 {
   std::string homePath;
@@ -108,10 +106,14 @@ class ignition::gazebo::SystemManagerPrivate
     auto home = homePath();
 
     ignition::common::SystemPaths systemPaths;
-    systemPaths.SetPluginPathEnv(g_systemPluginPathEnv);
+    systemPaths.SetPluginPathEnv(pluginPathEnv);
 
     for (const auto &path : systemPluginPaths)
       systemPaths.AddPluginPaths(path);
+
+    std::cout << "paths checked" << std::endl;
+    for (const auto &path : systemPaths.PluginPaths())
+      std::cout << path << std::endl;
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
@@ -142,6 +144,7 @@ class ignition::gazebo::SystemManagerPrivate
     return true;
   }
 
+  public: std::string pluginPathEnv = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH";
   public: std::string defaultConfigPath;
   public: std::unordered_set<std::string> systemPluginPaths;
   public: std::vector<std::shared_ptr<System>> systemPluginsAdded;
@@ -157,6 +160,12 @@ SystemManager::SystemManager()
 //////////////////////////////////////////////////
 SystemManager::~SystemManager()
 {
+
+}
+
+const std::vector<std::shared_ptr<System>>& SystemManager::GetLoadedSystems() const;
+{
+  return this->dataPtr->systemPluginsAdded;
 }
 
 void SystemManager::addSystemPluginPath(const std::string &_path)

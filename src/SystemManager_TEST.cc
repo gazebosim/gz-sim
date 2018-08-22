@@ -30,7 +30,6 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(SystemManager, Constructor)
 {
-  ignition::common::Console::SetVerbosity(4);
   gazebo::SystemManager sm;
 
   // Add test plugin to path (referenced in config)

@@ -48,6 +48,9 @@ namespace ignition
       /// \brief Load system configuration.
       public: bool loadSystemConfig(const std::string& _config);
 
+      /// \brief Return system plugins currently loaded by the manager
+      public: const std::vector<std::shared_ptr<System>>& GetLoadedSystems() const;
+
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
       public: std::string PrettyStr() const;

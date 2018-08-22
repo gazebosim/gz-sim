@@ -20,6 +20,7 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
@@ -31,15 +32,16 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world)
 {
-  // Create a world statistics system
-  /*
-  this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<systems::WorldStatistics>())));
+  // TODO(mjcarroll) We need a way of defining per-world systems.
+  SystemManager manager;
 
-  // Create a physics system
-  this->systems.push_back(SystemInternal(
-      std::move(std::make_unique<systems::Physics>())));
-  */
+  auto configPath = ignition::common::joinPaths(
+      IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
+  manager.loadSystemConfig(configPath);
+
+  for(auto& system: manager.GetLoadedSystems()) {
+      //this->systems.push_back(SystemInternal(system));
+  }
 
   this->CreateEntities(_world);
 }
