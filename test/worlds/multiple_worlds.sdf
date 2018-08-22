@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="default">
+  <world name="world_one">
+    <physics name="default" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>2.0</real_time_factor>
+    </physics>
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
       <link name="link">
@@ -21,7 +25,13 @@
         </visual>
       </link>
     </model>
+  </world>
 
+  <world name="world_two">
+    <physics name="default" type="ode">
+      <max_step_size>0.005</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
     <model name="cylinder">
       <pose>-1 -2 -3 0 0 1</pose>
       <link name="link">
@@ -44,7 +54,13 @@
         </visual>
       </link>
     </model>
+  </world>
 
+  <world name="world_three">
+    <physics name="default" type="ode">
+      <max_step_size>0.02</max_step_size>
+      <real_time_factor>0.5</real_time_factor>
+    </physics>
     <model name="sphere">
       <pose>0 0 0 0 0 1</pose>
       <link name="link">

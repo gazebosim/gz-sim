@@ -26,7 +26,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    //
     /// \brief An Entity is an id.
     using EntityId = int;
 
@@ -36,7 +35,7 @@ namespace ignition
     // Forward Declaration
     class EntityPrivate;
 
-    // \class Entity Entity.hh ignition/gazebo/Entity.hh
+    /// \class Entity Entity.hh ignition/gazebo/Entity.hh
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
@@ -61,7 +60,7 @@ namespace ignition
 
       /// \brief Move constructor.
       /// \param[in] _entity Entity ID to copy.
-      public: explicit Entity(Entity &&_entity);
+      public: explicit Entity(Entity &&_entity) noexcept;
 
       /// \brief Equality operator. Checks if this Entity is equivalent to
       /// the provided Entity.

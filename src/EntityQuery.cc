@@ -31,14 +31,15 @@ class ignition::gazebo::EntityQueryPrivate
 
   /// \brief Copy constructor
   public: explicit EntityQueryPrivate(const EntityQueryPrivate &_clone)
-          : componentTypes(_clone.componentTypes)
+          : componentTypes(_clone.componentTypes),
+            entityIds(_clone.entityIds)
   {
   }
 
-  /// \brief list of component types that must be present on entities
+  /// \brief List of component types that must be present on entities
   public: std::set<ComponentTypeId> componentTypes;
 
-  /// \brief list of component types that must be present on entities
+  /// \brief List of entity ids which fulfill the query requirements.
   public: std::set<EntityId> entityIds;
 };
 
@@ -55,7 +56,7 @@ EntityQuery::EntityQuery(const EntityQuery &_query)
 }
 
 /////////////////////////////////////////////////
-EntityQuery::EntityQuery(EntityQuery &&_query)
+EntityQuery::EntityQuery(EntityQuery &&_query) noexcept
 : dataPtr(std::move(_query.dataPtr))
 {
 }
@@ -143,4 +144,10 @@ void EntityQuery::Clear()
 const std::set<EntityId> &EntityQuery::Entities() const
 {
   return this->dataPtr->entityIds;
+}
+
+/////////////////////////////////////////////////
+size_t EntityQuery::EntityCount() const
+{
+  return this->dataPtr->entityIds.size();
 }

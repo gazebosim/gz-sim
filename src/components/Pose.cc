@@ -14,77 +14,68 @@
  * limitations under the License.
  *
 */
-#include <string>
 
 #include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/PoseComponent.hh"
+#include "ignition/gazebo/components/Pose.hh"
 
 using namespace ignition;
 using namespace gazebo;
+using namespace components;
 
-class ignition::gazebo::PoseComponentPrivate
+class ignition::gazebo::components::PosePrivate
 {
   /// \brief Constructor.
   /// \param[in] _pose Pose data.
-  public: explicit PoseComponentPrivate(const ignition::math::Pose3d &_pose)
+  public: explicit PosePrivate(const ignition::math::Pose3d &_pose)
           : pose(_pose)
   {
   }
-
-  /// \brief Name of the component.
-  public: std::string name{"PoseComponent"};
 
   /// \brief The pose data.
   public: ignition::math::Pose3d pose;
 };
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(const ignition::math::Pose3d &_pose)
-  : dataPtr(new PoseComponentPrivate(_pose))
+Pose::Pose(const ignition::math::Pose3d &_pose)
+  : dataPtr(new PosePrivate(_pose))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(const PoseComponent &_pose)
-  : dataPtr(new PoseComponentPrivate(_pose.Pose()))
+Pose::Pose(const Pose &_pose)
+  : dataPtr(new PosePrivate(_pose.Data()))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::PoseComponent(PoseComponent &&_pose)
+Pose::Pose(Pose &&_pose) noexcept
   : dataPtr(std::move(_pose.dataPtr))
 {
 }
 
 //////////////////////////////////////////////////
-PoseComponent::~PoseComponent()
+Pose::~Pose()
 {
   // \todo(nkoenig) Add ability to unregister a component type.
   // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Pose3d &PoseComponent::Pose() const
+const ignition::math::Pose3d &Pose::Data() const
 {
   return this->dataPtr->pose;
 }
 
 //////////////////////////////////////////////////
-const std::string &PoseComponent::Name() const
-{
-  return this->dataPtr->name;
-}
-
-//////////////////////////////////////////////////
-PoseComponent &PoseComponent::operator=(PoseComponent &&_pose)
+Pose &Pose::operator=(Pose &&_pose)
 {
   this->dataPtr = std::move(_pose.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-PoseComponent &PoseComponent::operator=(const PoseComponent &_pose)
+Pose &Pose::operator=(const Pose &_pose)
 {
-  this->dataPtr->pose = _pose.Pose();
+  this->dataPtr->pose = _pose.Data();
   return *this;
 }
