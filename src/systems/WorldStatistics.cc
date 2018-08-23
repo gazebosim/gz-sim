@@ -24,6 +24,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
 
@@ -91,6 +92,17 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
   // Process each entity.
   for (const EntityId &entity : _response.Query().Entities())
   {
+    // Get the world component.
+    const auto *world =
+      _response.EntityComponentMgr().Component<components::World>(entity);
+
+    if (!world)
+    {
+      ignerr << "A world entity does not have a World component.\n"
+        << std::endl;
+      continue;
+    }
+
     // Get the world stats component.
     auto *worldStats =
       _response.EntityComponentMgr().ComponentMutable<components::WorldStatistics>(
@@ -103,13 +115,13 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
       continue;
     }
 
-    // Get the world component.
-    const auto *world =
-      _response.EntityComponentMgr().Component<components::World>(entity);
+    // Get the name component.
+    const auto *name =
+      _response.EntityComponentMgr().Component<components::Name>(entity);
 
-    if (!world)
+    if (!name)
     {
-      ignerr << "A world entity does not have a World component.\n"
+      ignerr << "A world entity does not have a Name component.\n"
         << std::endl;
       continue;
     }
@@ -117,7 +129,7 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
     worldStats->RealTime().Start();
 
     // Find the local world stats information.
-    iter = this->stats.find(world->Name());
+    iter = this->stats.find(name->Data());
 
     // Create a world stats if it doesn't exist.
     if (iter == this->stats.end())
@@ -125,10 +137,10 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
       // Create the world statistics publisher.
       transport::AdvertiseMessageOptions advertOpts;
       advertOpts.SetMsgsPerSec(5);
-      this->stats[world->Name()].publisher =
+      this->stats[name->Data()].publisher =
         this->node.Advertise<ignition::msgs::WorldStatistics>(
-            "/world/" + world->Name() + "/stats", advertOpts);
-      iter = this->stats.find(world->Name());
+            "/world/" + name->Data() + "/stats", advertOpts);
+      iter = this->stats.find(name->Data());
     }
 
     // Get the real time duration

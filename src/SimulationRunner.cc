@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -181,82 +182,78 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(stepSize.count() / rtf));
 
-  // Create the world component for the world entity.
+  // World components
   this->entityCompMgr.CreateComponent(worldEntity, worldComponent);
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::WorldStatistics());
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::Name(_world->Name()));
 
-  // Create the world statistcs component for the world entity.
-  this->entityCompMgr.CreateComponent(
-      worldEntity, components::WorldStatistics());
-
-  // Process each model in the world
+  // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
   {
-    // Get the SDF model
     auto model = _world->ModelByIndex(modelIndex);
 
-    // Create an entity for the model.
+    // Entity
     EntityId modelEntity = this->entityCompMgr.CreateEntity();
 
-    // Create the model component for the model.
+    // Components
     this->entityCompMgr.CreateComponent(modelEntity, components::Model());
-
-    // Create the pose component for the model.
-    this->entityCompMgr.CreateComponent(
-        modelEntity, components::Pose(model->Pose()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Pose(model->Pose()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Name(model->Name()));
 
     // Process each link in the model
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
         ++linkIndex)
     {
-      // Get the SDF link
       auto link = model->LinkByIndex(linkIndex);
 
-      // Create an entity for the link.
+      // Entity
       EntityId linkEntity = this->entityCompMgr.CreateEntity();
 
-      // Create the link component for the link.
+      // Components
       this->entityCompMgr.CreateComponent(linkEntity, components::Link());
-
-      // Create the pose component for the link.
-      this->entityCompMgr.CreateComponent(
-          linkEntity, components::Pose(link->Pose()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::Pose(link->Pose()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::Name(link->Name()));
 
       // Process each visual in the link
       for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();
           ++visualIndex)
       {
-        // Get the SDF visual
         auto visual = link->VisualByIndex(visualIndex);
 
-        // Create an entity for the visual.
+        // Entity
         EntityId visualEntity = this->entityCompMgr.CreateEntity();
 
-        // Create the visual component for the visual.
+        // Components
         this->entityCompMgr.CreateComponent(visualEntity, components::Visual());
-
-        // Create the pose component for the visual.
-        this->entityCompMgr.CreateComponent(
-            visualEntity, components::Pose(visual->Pose()));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::Pose(visual->Pose()));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::Name(visual->Name()));
       }
 
       // Process each collision in the link
       for (uint64_t collisionIndex = 0; collisionIndex < link->CollisionCount();
           ++collisionIndex)
       {
-        // Get the SDF collision
         auto collision = link->CollisionByIndex(collisionIndex);
 
-        // Create an entity for the collision.
+        // Entity
         EntityId collisionEntity = this->entityCompMgr.CreateEntity();
 
-        // Create the collision component for the collision.
+        // Components
         this->entityCompMgr.CreateComponent(collisionEntity,
-          components::Collision());
-
-        // Create the pose component for the collision.
-        this->entityCompMgr.CreateComponent(
-            collisionEntity, components::Pose(collision->Pose()));
+            components::Collision());
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Pose(collision->Pose()));
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Name(collision->Name()));
       }
     }
   }
