@@ -24,6 +24,7 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -243,6 +244,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Name(visual->Name()));
         this->entityCompMgr.CreateComponent(visualEntity,
             components::ParentEntity(linkEntity));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::Geometry(sdf::Geometry(*visual->Geom())));
       }
 
       // Collisions
@@ -263,6 +266,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Name(collision->Name()));
         this->entityCompMgr.CreateComponent(collisionEntity,
             components::ParentEntity(linkEntity));
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Geometry(sdf::Geometry(*collision->Geom())));
       }
     }
   }
