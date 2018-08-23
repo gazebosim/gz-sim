@@ -25,12 +25,6 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
-  /// \brief Get whether an entity has all the given component types.
-  /// \param[in] _id Id of the Entity to check.
-  /// \param[in] _types Component types to check that the Entity has.
-  /// \return True if the given entity has all the given types.
-  public: bool EntityMatches(EntityId _id,
-    const std::set<ComponentTypeId> &_types) const;
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -225,7 +219,7 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
   for (size_t id = 0; id < this->dataPtr->entities.size(); ++id)
   {
     // Check that the entity has the required components
-    if (this->dataPtr->EntityMatches(this->dataPtr->entities[id].Id(), types))
+    if (this->EntityMatches(this->dataPtr->entities[id].Id(), types))
     {
       query.AddEntity(this->dataPtr->entities[id].Id());
     }
@@ -235,12 +229,12 @@ EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManagerPrivate::EntityMatches(EntityId _id,
+bool EntityComponentManager::EntityMatches(EntityId _id,
     const std::set<ComponentTypeId> &_types) const
 {
   std::map<EntityId, std::vector<ComponentKey>>::const_iterator iter =
-    this->entityComponents.find(_id);
-  if (iter == this->entityComponents.end())
+    this->dataPtr->entityComponents.find(_id);
+  if (iter == this->dataPtr->entityComponents.end())
     return false;
 
   // \todo(nkoenig) The performance of this could be improved. Ideally we

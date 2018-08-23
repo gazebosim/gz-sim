@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <map>
+#include <set>
 #include <memory>
 #include <string>
 #include <typeinfo>
@@ -254,6 +255,13 @@ namespace ignition
       public: bool EntityHasComponentType(const EntityId _id,
                   const ComponentTypeId &_typeId) const;
 
+      /// \brief Get whether an entity has all the given component types.
+      /// \param[in] _id Id of the Entity to check.
+      /// \param[in] _types Component types to check that the Entity has.
+      /// \return True if the given entity has all the given types.
+      public: bool EntityMatches(EntityId _id,
+        const std::set<ComponentTypeId> &_types) const;
+
       /// \brief Add an entity query. An internal copy of the query is made,
       /// and an Id of the internal query is returned.
       /// \param[in] _query The query to add.
@@ -417,7 +425,10 @@ namespace ignition
         // https://github.com/alecthomas/entityx/blob/master/entityx/Entity.h
         for (const Entity &entity : this->Entities())
         {
-          //if (this->dataPtr->EntityMatches(entity.Id(), types))
+          auto types = std::set<ComponentTypeId>{
+              this->ComponentType<ComponentTypeTs>()...};
+
+          if (this->EntityMatches(entity.Id(), types))
           {
             _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
           }
