@@ -27,6 +27,7 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -204,8 +205,10 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Pose(model->Pose()));
     this->entityCompMgr.CreateComponent(modelEntity,
         components::Name(model->Name()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::ParentEntity(worldEntity));
 
-    // Process each link in the model
+    // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
         ++linkIndex)
     {
@@ -220,8 +223,10 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Pose(link->Pose()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::Name(link->Name()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::ParentEntity(modelEntity));
 
-      // Process each visual in the link
+      // Visuals
       for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();
           ++visualIndex)
       {
@@ -236,9 +241,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Pose(visual->Pose()));
         this->entityCompMgr.CreateComponent(visualEntity,
             components::Name(visual->Name()));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::ParentEntity(linkEntity));
       }
 
-      // Process each collision in the link
+      // Collisions
       for (uint64_t collisionIndex = 0; collisionIndex < link->CollisionCount();
           ++collisionIndex)
       {
@@ -254,6 +261,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Pose(collision->Pose()));
         this->entityCompMgr.CreateComponent(collisionEntity,
             components::Name(collision->Name()));
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::ParentEntity(linkEntity));
       }
     }
   }
