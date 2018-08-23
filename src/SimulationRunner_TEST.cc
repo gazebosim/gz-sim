@@ -78,9 +78,6 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::World *_world,
         const components::Name *_name)
     {
-      // \todo(louise) Fix Each so it only returns matching entities
-      if (!_world)
-        return;
       ASSERT_NE(nullptr, _world);
       ASSERT_NE(nullptr, _name);
 
@@ -109,10 +106,6 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
-      // \todo(louise) Fix Each so it only returns matching entities
-      if (!_model)
-        return;
-
       ASSERT_NE(nullptr, _model);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
@@ -164,10 +157,6 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
-      // \todo(louise) Fix Each so it only returns matching entities
-      if (!_link)
-        return;
-
       ASSERT_NE(nullptr, _link);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
@@ -218,10 +207,6 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
-      // \todo(louise) Fix Each so it only returns matching entities
-      if (!_collision)
-        return;
-
       ASSERT_NE(nullptr, _collision);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
@@ -266,10 +251,6 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
-      // \todo(louise) Fix Each so it only returns matching entities
-      if (!_visual)
-        return;
-
       ASSERT_NE(nullptr, _visual);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
