@@ -17,10 +17,14 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <sdf/Box.hh>
+#include <sdf/Cylinder.hh>
 #include <sdf/Root.hh>
+#include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -65,8 +69,11 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::Name>()));
   EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
+  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+      EntityComponentManager::ComponentType<components::Geometry>()));
 
   // Check entities
+  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual
   EXPECT_EQ(13u, runner.entityCompMgr.EntityCount());
 
   // Check worlds
@@ -198,16 +205,19 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   // Check collisions
   unsigned int collisionCount{0};
   runner.entityCompMgr.Each<components::Collision,
+                            components::Geometry,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
     [&](const EntityId &/*_entity*/,
         const components::Collision *_collision,
+        const components::Geometry *_geometry,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
       ASSERT_NE(nullptr, _collision);
+      ASSERT_NE(nullptr, _geometry);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
       ASSERT_NE(nullptr, _name);
@@ -218,22 +228,42 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("box_collision", _name->Data());
+
         EXPECT_EQ(boxLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_EQ(math::Vector3d(3, 4, 5),
+                  _geometry->Data().BoxShape()->Size());
       }
       else if (collisionCount == 2)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("cylinder_collision", _name->Data());
+
         EXPECT_EQ(cylLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
+        EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
       }
       else if (collisionCount == 3)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("sphere_collision", _name->Data());
+
         EXPECT_EQ(sphLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
       }
     });
 
@@ -242,16 +272,19 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   // Check visuals
   unsigned int visualCount{0};
   runner.entityCompMgr.Each<components::Visual,
+                            components::Geometry,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
     [&](const EntityId &/*_entity*/,
         const components::Visual *_visual,
+        const components::Geometry *_geometry,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
       ASSERT_NE(nullptr, _visual);
+      ASSERT_NE(nullptr, _geometry);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
       ASSERT_NE(nullptr, _name);
