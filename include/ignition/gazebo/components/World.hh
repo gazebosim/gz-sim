@@ -66,9 +66,6 @@ namespace components
     /// \return Reference to this.
     public: World &operator=(const World &_world);
 
-    // Documentation inherited
-    public: const std::string &Name() const;
-
     /// \brief Get the desired real time factor.
     /// \result The desired real time factor.
     public: double DesiredRealTimeFactor() const;

@@ -23,6 +23,8 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "SimulationRunner.hh"
@@ -64,13 +66,19 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check worlds
   unsigned int worldCount{0};
-  runner.entityCompMgr.Each<components::World>(
-    [&](const EntityId &/*_entity*/, const components::World *_world)
+  runner.entityCompMgr.Each<components::World,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::World *_world,
+        const components::Name *_name)
     {
       // \todo(louise) Fix Each so it only returns matching entities
       if (!_world)
         return;
       ASSERT_NE(nullptr, _world);
+      ASSERT_NE(nullptr, _name);
+
+      EXPECT_EQ("default", _name->Data());
 
       worldCount++;
     });
@@ -79,28 +87,71 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check models
   unsigned int modelCount{0};
-  runner.entityCompMgr.Each<components::Model>(
-    [&](const EntityId &/*_entity*/, const components::Model *_model)
+  EntityId boxModelEntity = kNullEntity;
+  EntityId cylModelEntity = kNullEntity;
+  EntityId sphModelEntity = kNullEntity;
+  runner.entityCompMgr.Each<components::Model,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::Model *_model,
+        const components::Pose *_pose,
+        const components::Name *_name)
     {
       // \todo(louise) Fix Each so it only returns matching entities
       if (!_model)
         return;
+
       ASSERT_NE(nullptr, _model);
+      ASSERT_NE(nullptr, _pose);
+      ASSERT_NE(nullptr, _name);
 
       modelCount++;
+
+      if (modelCount == 1)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1), _pose->Data());
+        EXPECT_EQ("box", _name->Data());
+        boxModelEntity = _entity;
+      }
+      else if (modelCount == 2)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(-1, -2, -3, 0, 0, 1), _pose->Data());
+        EXPECT_EQ("cylinder", _name->Data());
+        cylModelEntity = _entity;
+      }
+      else if (modelCount == 3)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 1), _pose->Data());
+        EXPECT_EQ("sphere", _name->Data());
+        sphModelEntity = _entity;
+      }
     });
 
   EXPECT_EQ(3u, modelCount);
+  EXPECT_NE(kNullEntity, boxModelEntity);
+  EXPECT_NE(kNullEntity, cylModelEntity);
+  EXPECT_NE(kNullEntity, sphModelEntity);
 
   // Check links
   unsigned int linkCount{0};
-  runner.entityCompMgr.Each<components::Link>(
-    [&](const EntityId &/*_entity*/, const components::Link *_link)
+  runner.entityCompMgr.Each<components::Link,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Link *_link,
+        const components::Pose *_pose,
+        const components::Name *_name)
     {
       // \todo(louise) Fix Each so it only returns matching entities
       if (!_link)
         return;
+
       ASSERT_NE(nullptr, _link);
+      ASSERT_NE(nullptr, _pose);
+      ASSERT_NE(nullptr, _name);
+
+      EXPECT_EQ("link", _name->Data());
 
       linkCount++;
     });
@@ -109,13 +160,23 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check collisions
   unsigned int collisionCount{0};
-  runner.entityCompMgr.Each<components::Collision>(
-    [&](const EntityId &/*_entity*/, const components::Collision *_collision)
+  runner.entityCompMgr.Each<components::Collision,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Collision *_collision,
+        const components::Pose *_pose,
+        const components::Name *_name)
     {
       // \todo(louise) Fix Each so it only returns matching entities
       if (!_collision)
         return;
+
       ASSERT_NE(nullptr, _collision);
+      ASSERT_NE(nullptr, _pose);
+      ASSERT_NE(nullptr, _name);
+
+      EXPECT_EQ("col", _name->Data());
 
       collisionCount++;
     });
@@ -124,13 +185,23 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check visuals
   unsigned int visualCount{0};
-  runner.entityCompMgr.Each<components::Visual>(
-    [&](const EntityId &/*_entity*/, const components::Visual *_visual)
+  runner.entityCompMgr.Each<components::Visual,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Visual *_visual,
+        const components::Pose *_pose,
+        const components::Name *_name)
     {
       // \todo(louise) Fix Each so it only returns matching entities
       if (!_visual)
         return;
+
       ASSERT_NE(nullptr, _visual);
+      ASSERT_NE(nullptr, _pose);
+      ASSERT_NE(nullptr, _name);
+
+      EXPECT_EQ("vis", _name->Data());
 
       visualCount++;
     });
