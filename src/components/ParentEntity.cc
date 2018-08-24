@@ -47,7 +47,7 @@ ParentEntity::~ParentEntity()
 
 //////////////////////////////////////////////////
 ParentEntity::ParentEntity(const ParentEntity &_parentEntity)
-  : dataPtr(new ParentEntityPrivate(_parentEntity.Id()))
+  : dataPtr(std::make_unique<ParentEntityPrivate>(_parentEntity.Id()))
 {
 }
 

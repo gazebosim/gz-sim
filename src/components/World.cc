@@ -36,7 +36,7 @@ class ignition::gazebo::components::WorldPrivate
 
   /// \brief Constructor.
   /// \param[in] _physics SDF Physics data.
-  public: WorldPrivate(const sdf::Physics *_physics)
+  public: explicit WorldPrivate(const sdf::Physics *_physics)
           : desiredRealTimeFactor(_physics->RealTimeFactor())
   {
     auto dur = std::chrono::duration<double>(_physics->MaxStepSize());
@@ -53,13 +53,13 @@ class ignition::gazebo::components::WorldPrivate
 
 //////////////////////////////////////////////////
 World::World(const sdf::World *_world)
-  : dataPtr(new WorldPrivate(_world->PhysicsDefault()))
+  : dataPtr(std::make_unique<WorldPrivate>(_world->PhysicsDefault()))
 {
 }
 
 //////////////////////////////////////////////////
 World::World(const World &_world)
-  : dataPtr(new WorldPrivate(*_world.dataPtr))
+  : dataPtr(std::make_unique<WorldPrivate>(*_world.dataPtr))
 {
 }
 
