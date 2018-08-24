@@ -59,6 +59,11 @@ target_link_libraries(${SYSTEMS_TARGET}
   ignition-plugin${IGN_PLUGIN_VER}::register
 )
 
+set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+)
+install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
