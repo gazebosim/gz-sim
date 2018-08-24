@@ -47,7 +47,7 @@ Material::~Material()
 
 //////////////////////////////////////////////////
 Material::Material(const Material &_material)
-  : dataPtr(new MaterialPrivate(_material.Data()))
+  : dataPtr(std::make_unique<MaterialPrivate>(_material.Data()))
 {
 }
 

@@ -53,13 +53,13 @@ class ignition::gazebo::components::WorldPrivate
 
 //////////////////////////////////////////////////
 World::World(const sdf::World *_world)
-  : dataPtr(new WorldPrivate(_world->PhysicsDefault()))
+  : dataPtr(std::make_unique<WorldPrivate>(_world->PhysicsDefault()))
 {
 }
 
 //////////////////////////////////////////////////
 World::World(const World &_world)
-  : dataPtr(new WorldPrivate(*_world.dataPtr))
+  : dataPtr(std::make_unique<WorldPrivate>(*_world.dataPtr))
 {
 }
 

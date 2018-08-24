@@ -39,14 +39,14 @@ class ignition::gazebo::components::WorldStatisticsPrivate
 
 //////////////////////////////////////////////////
 WorldStatistics::WorldStatistics()
-  : dataPtr(new WorldStatisticsPrivate())
+  : dataPtr(std::make_unique<WorldStatisticsPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
 WorldStatistics::WorldStatistics(
     const WorldStatistics &_stats)
-  : dataPtr(new WorldStatisticsPrivate())
+  : dataPtr(std::make_unique<WorldStatisticsPrivate>())
 {
   this->dataPtr->realTime = _stats.dataPtr->realTime;
 }
