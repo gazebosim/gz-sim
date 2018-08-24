@@ -15,67 +15,65 @@
  *
 */
 
-#include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Material.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace components;
 
-class ignition::gazebo::components::PosePrivate
+class ignition::gazebo::components::MaterialPrivate
 {
   /// \brief Constructor.
-  /// \param[in] _pose Pose data.
-  public: explicit PosePrivate(const ignition::math::Pose3d &_pose)
-          : pose(_pose)
+  /// \param[in] _material Material data.
+  public: explicit MaterialPrivate(const sdf::Material &_material)
+          : material(_material)
   {
   }
 
-  /// \brief The pose data.
-  public: ignition::math::Pose3d pose;
+  /// \brief The material data.
+  public: sdf::Material material;
 };
 
 //////////////////////////////////////////////////
-Pose::Pose(const ignition::math::Pose3d &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose))
+Material::Material(const sdf::Material &_material)
+  : dataPtr(std::make_unique<MaterialPrivate>(_material))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(const Pose &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose.Data()))
+Material::~Material()
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(Pose &&_pose) noexcept
-  : dataPtr(std::move(_pose.dataPtr))
+Material::Material(const Material &_material)
+  : dataPtr(std::make_unique<MaterialPrivate>(_material.Data()))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::~Pose()
+Material::Material(Material &&_material) noexcept
+  : dataPtr(std::move(_material.dataPtr))
 {
-  // \todo(nkoenig) Add ability to unregister a component type.
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Pose3d &Pose::Data() const
+Material &Material::operator=(Material &&_material)
 {
-  return this->dataPtr->pose;
-}
-
-//////////////////////////////////////////////////
-Pose &Pose::operator=(Pose &&_pose)
-{
-  this->dataPtr = std::move(_pose.dataPtr);
+  this->dataPtr = std::move(_material.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-Pose &Pose::operator=(const Pose &_pose)
+Material &Material::operator=(const Material &_material)
 {
-  this->dataPtr->pose = _pose.Data();
+  this->dataPtr->material = _material.Data();
   return *this;
 }
+
+//////////////////////////////////////////////////
+const sdf::Material &Material::Data() const
+{
+  return this->dataPtr->material;
+}
+

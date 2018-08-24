@@ -25,7 +25,6 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
-
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::map<ComponentTypeId,
@@ -324,14 +323,14 @@ void EntityComponentManager::RegisterComponentType(
 /////////////////////////////////////////////////
 void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 {
- std::map<ComponentTypeId,
-   std::unique_ptr<ComponentStorageBase>>::iterator iter =
-     this->dataPtr->components.find(_componentTypeId);
- if (iter != this->dataPtr->components.end())
- {
-   return iter->second->First();
- }
- return nullptr;
+  std::map<ComponentTypeId,
+    std::unique_ptr<ComponentStorageBase>>::iterator iter =
+      this->dataPtr->components.find(_componentTypeId);
+  if (iter != this->dataPtr->components.end())
+  {
+    return iter->second->First();
+  }
+  return nullptr;
 }
 
 std::vector<Entity> &EntityComponentManager::Entities() const

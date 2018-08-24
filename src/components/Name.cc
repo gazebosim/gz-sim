@@ -47,7 +47,7 @@ Name::~Name()
 
 //////////////////////////////////////////////////
 Name::Name(const Name &_name)
-  : dataPtr(new NamePrivate(_name.Data()))
+  : dataPtr(std::make_unique<NamePrivate>(_name.Data()))
 {
 }
 

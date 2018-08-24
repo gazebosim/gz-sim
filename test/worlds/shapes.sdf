@@ -21,6 +21,12 @@
               <size>1 2 3</size>
             </box>
           </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+            <emissive>1 0 0 1</emissive>
+          </material>
         </visual>
       </link>
     </model>
@@ -47,6 +53,12 @@
               <length>10.2</length>
             </cylinder>
           </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+            <emissive>0 1 0 1</emissive>
+          </material>
         </visual>
       </link>
     </model>
@@ -71,6 +83,12 @@
               <radius>100.2</radius>
             </sphere>
           </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+            <emissive>0 0 1 1</emissive>
+          </material>
         </visual>
       </link>
     </model>
