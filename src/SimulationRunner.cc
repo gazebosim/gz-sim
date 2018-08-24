@@ -249,14 +249,14 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         if (visual->Geom())
         {
           this->entityCompMgr.CreateComponent(visualEntity,
-              components::Geometry(sdf::Geometry(*visual->Geom())));
+              components::Geometry(*visual->Geom()));
         }
 
         // \todo(louise) Populate with default material if undefined
         if (visual->Material())
         {
           this->entityCompMgr.CreateComponent(visualEntity,
-              components::Material(sdf::Material(*visual->Material())));
+              components::Material(*visual->Material()));
         }
       }
 
@@ -282,7 +282,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         if (collision->Geom())
         {
           this->entityCompMgr.CreateComponent(collisionEntity,
-              components::Geometry(sdf::Geometry(*collision->Geom())));
+              components::Geometry(*collision->Geom()));
         }
       }
     }
