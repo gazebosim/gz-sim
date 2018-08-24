@@ -35,12 +35,13 @@ TEST(SystemManager, Constructor)
   // Add test plugin to path (referenced in config)
   auto testBuildPath = ignition::common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
-  sm.addSystemPluginPath(testBuildPath);
+  sm.AddSystemPluginPath(testBuildPath);
 
   // Load test config file
   auto testSourcePath = std::string(PROJECT_SOURCE_PATH) + "/test/";
-  EXPECT_TRUE(sm.loadSystemConfig(testSourcePath + "config/test.config"));
+  ASSERT_TRUE(sm.LoadSystemConfig(testSourcePath + "config/test.config"));
 
-  ignmsg << sm.PrettyStr() << std::endl;
+  auto system = sm.Instantiate("Null");
+  ASSERT_NE(nullptr, system);
 }
 

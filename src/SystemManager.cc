@@ -47,22 +47,37 @@ std::string homePath()
 
 class ignition::gazebo::SystemManagerPrivate
 {
+
+  struct SystemInfo {
+    std::string alias;
+    std::string classname;
+    std::string filename;
+    std::string path;
+  };
+
+
   public: explicit SystemManagerPrivate():
           defaultConfigPath(ignition::common::joinPaths(homePath(), ".ignition",
                             "gazebo", "default.config"))
   {
   }
 
-  public: bool instantiateSystemPlugin(const std::string &_pathToLib,
-                                       const std::string &_filename,
-                                       const std::string &_name,
+  public: bool instantiateSystemPlugin(const std::string &_alias,
                                        ignition::plugin::PluginPtr &_plugin)
   {
-    auto pluginNames = loader.LoadLibrary(_pathToLib);
+    const auto& it = knownSystems.find(_alias);
+    if(it == knownSystems.end()) {
+      ignerr << "Failed to load system plugin: "  <<
+                "unknown alias [" << _alias << "]." << std::endl;
+      return false;
+    }
+    const auto& info = it->second;
+
+    auto pluginNames = loader.LoadLibrary(info.path);
     if (pluginNames.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
-                "] : couldn't load library on path [" << _pathToLib <<
+      ignerr << "Failed to load system plugin [" << info.filename <<
+                "] : couldn't load library on path [" << info.path <<
                 "]." << std::endl;
       return false;
     }
@@ -70,40 +85,36 @@ class ignition::gazebo::SystemManagerPrivate
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
-                "] : couldn't load library on path [" << _pathToLib <<
+      ignerr << "Failed to load system plugin [" << info.filename <<
+                "] : couldn't load library on path [" << info.path <<
                 "]." << std::endl;
       return false;
     }
 
     auto validPlugins = loader.PluginsImplementing<System>();
-    if (validPlugins.count(_name) == 0) {
-      ignerr << "Failed to load system plugin [" << _name <<
-                "] : system not found in library  [" << _filename <<
-                "] from path [" << _pathToLib << "]." << std::endl;
+    if (validPlugins.count(info.classname) == 0) {
+      ignerr << "Failed to load system plugin [" << info.classname <<
+                "] : system not found in library  [" << info.filename <<
+                "] from path [" << info.path << "]." << std::endl;
       return false;
     }
 
-    _plugin = loader.Instantiate(_name);
+    _plugin = loader.Instantiate(info.classname);
     if (!_plugin)
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
-                "] : couldn't instantiate plugin on path [" << _pathToLib <<
+      ignerr << "Failed to load system plugin [" << info.filename <<
+                "] : couldn't instantiate plugin on path [" << info.path <<
                 "]." << std::endl;
       return false;
     }
-
+    systemPluginsAdded.insert(_plugin);
     return true;
   }
 
-  public: bool loadSystemPlugin(const std::string &_filename,
-                                const std::string &_name,
-                                const tinyxml2::XMLElement *_pluginElem)
+  public: bool addSystemPlugin(const std::string &_alias,
+                               const std::string &_filename,
+                               const std::string &_classname)
   {
-    (void) _pluginElem;
-    ignmsg << "Loading system [" << _name << "]"  <<
-              " from [" << _filename << "]" << std::endl;
-
     // Get full path
     auto home = homePath();
 
@@ -113,10 +124,6 @@ class ignition::gazebo::SystemManagerPrivate
     for (const auto &path : systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
-    std::cout << "paths checked" << std::endl;
-    for (const auto &path : systemPaths.PluginPaths())
-      std::cout << path << std::endl;
-
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
@@ -125,32 +132,29 @@ class ignition::gazebo::SystemManagerPrivate
       return false;
     }
 
-    ignition::plugin::PluginPtr pluginPtr;
-    if (!instantiateSystemPlugin(pathToLib, _filename, _name, pluginPtr))
-    {
-      return false;
-    }
+    SystemInfo info;
+    info.alias = _alias;
+    info.filename = _filename;
+    info.classname = _classname;
+    info.path = pathToLib;
 
-    auto plugin = pluginPtr->QueryInterfaceSharedPtr<System>();
-    if (!plugin)
-    {
+    if(knownSystems.find(_alias) != knownSystems.end()) {
       ignerr << "Failed to load system plugin [" << _filename <<
-                "] : couldn't get interface [ignition::gazebo::System]." <<
-                std::endl;
+                "] : duplicate system alias [" << _alias << "]" << std::endl;
       return false;
     }
 
-    // Store plugin in queue to be added to the window
-    systemPluginsAdded.push_back(plugin);
-
+    knownSystems[_alias] = info;
     return true;
   }
 
+
   public: std::string pluginPathEnv = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH";
   public: std::string defaultConfigPath;
-  public: std::unordered_set<std::string> systemPluginPaths;
-  public: std::vector<SystemPtr> systemPluginsAdded;
   public: ignition::plugin::Loader loader;
+  public: std::unordered_set<std::string> systemPluginPaths;
+  public: std::unordered_set<ignition::plugin::PluginPtr> systemPluginsAdded;
+  public: std::map<std::string, SystemInfo> knownSystems;
 };
 
 //////////////////////////////////////////////////
@@ -164,17 +168,12 @@ SystemManager::~SystemManager()
 {
 }
 
-const std::vector<SystemPtr>& SystemManager::GetLoadedSystems() const
-{
-  return this->dataPtr->systemPluginsAdded;
-}
-
-void SystemManager::addSystemPluginPath(const std::string &_path)
+void SystemManager::AddSystemPluginPath(const std::string &_path)
 {
   this->dataPtr->systemPluginPaths.insert(_path);
 }
 
-bool SystemManager::loadSystemConfig(const std::string& _config)
+bool SystemManager::LoadSystemConfig(const std::string& _config)
 {
   if (_config.empty())
   {
@@ -204,12 +203,21 @@ bool SystemManager::loadSystemConfig(const std::string& _config)
   for (auto systemElem = doc.FirstChildElement("system"); systemElem != nullptr;
       systemElem = systemElem->NextSiblingElement("system"))
   {
+    auto alias = systemElem->Attribute("alias");
     auto filename = systemElem->Attribute("filename");
-    auto name = systemElem->Attribute("name");
-    this->dataPtr->loadSystemPlugin(filename, name, systemElem);
+    auto classname = systemElem->Attribute("classname");
+
+    this->dataPtr->addSystemPlugin(alias, filename, classname);
   }
 
   return true;
+}
+
+SystemPtr SystemManager::Instantiate(const std::string &_alias)
+{
+  ignition::plugin::PluginPtr plugin;
+  this->dataPtr->instantiateSystemPlugin(_alias, plugin);
+  return plugin->QueryInterfaceSharedPtr<System>();
 }
 
 std::string SystemManager::PrettyStr() const
