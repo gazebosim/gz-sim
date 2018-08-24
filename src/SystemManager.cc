@@ -47,14 +47,19 @@ std::string homePath()
 
 class ignition::gazebo::SystemManagerPrivate
 {
-
   struct SystemInfo {
+    /// \brief Alias that this system is known as
     std::string alias;
+
+    /// \brief Fully namespaced class name to be instanced
     std::string classname;
+
+    /// \brief Shared library that this class is instanced from
     std::string filename;
+
+    /// \brief Fully resolved path to the library
     std::string path;
   };
-
 
   public: explicit SystemManagerPrivate():
           defaultConfigPath(ignition::common::joinPaths(homePath(), ".ignition",
@@ -66,7 +71,7 @@ class ignition::gazebo::SystemManagerPrivate
                                        ignition::plugin::PluginPtr &_plugin)
   {
     const auto& it = knownSystems.find(_alias);
-    if(it == knownSystems.end()) {
+    if (it == knownSystems.end()) {
       ignerr << "Failed to load system plugin: "  <<
                 "unknown alias [" << _alias << "]." << std::endl;
       return false;
@@ -138,7 +143,7 @@ class ignition::gazebo::SystemManagerPrivate
     info.classname = _classname;
     info.path = pathToLib;
 
-    if(knownSystems.find(_alias) != knownSystems.end()) {
+    if (knownSystems.find(_alias) != knownSystems.end()) {
       ignerr << "Failed to load system plugin [" << _filename <<
                 "] : duplicate system alias [" << _alias << "]" << std::endl;
       return false;

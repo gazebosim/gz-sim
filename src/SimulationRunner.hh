@@ -22,6 +22,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -53,7 +54,7 @@ namespace ignition
     class SystemInternal
     {
       /// \brief Constructor
-      public: explicit SystemInternal(std::shared_ptr<System> _system)
+      public: explicit SystemInternal(const std::shared_ptr<System>& _system)
               : system(_system)
       {
       }
@@ -71,8 +72,8 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        const std::unordered_set<std::string> &_systems,
-                                        SystemManager *_system_manager);
+                const std::unordered_set<std::string> &_systems,
+                SystemManager *_system_manager);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
