@@ -153,12 +153,23 @@ class ignition::gazebo::SystemManagerPrivate
     return true;
   }
 
-
+  // TODO(mjcarroll): Eliminate dependence on this plugin path or augment
+  // with a default search path.
   public: std::string pluginPathEnv = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH";
+
+  /// \brief Location of the default system plugin configuration
   public: std::string defaultConfigPath;
+
+  /// \brief Plugin loader instace
   public: ignition::plugin::Loader loader;
+
+  /// \brief Paths to search for system plugins.
   public: std::unordered_set<std::string> systemPluginPaths;
+
+  /// \brief System plugins that have instances loaded via the manager.
   public: std::unordered_set<ignition::plugin::PluginPtr> systemPluginsAdded;
+
+  /// \brief Information about known system plugins loaded from config.
   public: std::map<std::string, SystemInfo> knownSystems;
 };
 

@@ -52,6 +52,7 @@ namespace ignition
       public: bool LoadSystemConfig(const std::string& _config);
 
       /// \brief Instantiate a system based on alias.
+      /// \returns A shared pointer to a system instance loaded via plugin
       public: SystemPtr Instantiate(const std::string &_alias);
 
       /// \brief Makes a printable string with info about systems

@@ -98,10 +98,12 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
+  // TODO(mjcarroll) Support adding system plugin libraries via SDF.
   auto configPath = ignition::common::joinPaths(
     IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
   systemManager.LoadSystemConfig(configPath);
 
+  // TODO(mjcarroll) Support loading the systems from SDF on a per-world basis.
   std::unordered_set<std::string> defaultSystems{
     "Physics",
     "WorldStatistics"
