@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_NULL_SYSTEM_HH_
 #define IGNITION_GAZEBO_NULL_SYSTEM_HH_
 
-#include <memory>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
@@ -41,6 +40,7 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Null();
 
+    // Documentation inherited
     public: void Init(EntityQueryRegistrar &_registrar) override final;
   };
   }
