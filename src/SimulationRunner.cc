@@ -29,9 +29,11 @@
 using namespace ignition;
 using namespace gazebo;
 
+using StringSet = std::unordered_set<std::string>;
+
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const std::unordered_set<std::string> &_systems,
+                                   const StringSet &_systems,
                                    SystemManager *_system_manager)
 {
   for (auto& system : _systems) {
