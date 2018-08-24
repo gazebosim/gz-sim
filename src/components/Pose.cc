@@ -37,13 +37,13 @@ class ignition::gazebo::components::PosePrivate
 
 //////////////////////////////////////////////////
 Pose::Pose(const ignition::math::Pose3d &_pose)
-  : dataPtr(new PosePrivate(_pose))
+  : dataPtr(std::make_unique<PosePrivate>(_pose))
 {
 }
 
 //////////////////////////////////////////////////
 Pose::Pose(const Pose &_pose)
-  : dataPtr(new PosePrivate(_pose.Data()))
+  : dataPtr(std::make_unique<PosePrivate>(_pose.Data()))
 {
 }
 

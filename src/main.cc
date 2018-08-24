@@ -177,7 +177,7 @@ int main(int _argc, char **_argv)
       }
 
       // Temporary transport interface
-      auto tmp = new ignition::gazebo::TmpIface();
+      auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
       // Initialize Qt app
       ignition::gui::Application app(_argc, _argv);
@@ -188,7 +188,6 @@ int main(int _argc, char **_argv)
 
       if (!app.LoadConfig(configPath))
       {
-        delete tmp;
         return -1;
       }
 
@@ -198,7 +197,7 @@ int main(int _argc, char **_argv)
 
       // Let QML files use TmpIface' functions and properties
       auto context = new QQmlContext(app.Engine()->rootContext());
-      context->setContextProperty("TmpIface", tmp);
+      context->setContextProperty("TmpIface", tmp.get());
 
       // Instantiate GazeboDrawer.qml file into a component
       QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");

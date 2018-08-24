@@ -47,7 +47,7 @@ Geometry::~Geometry()
 
 //////////////////////////////////////////////////
 Geometry::Geometry(const Geometry &_geometry)
-  : dataPtr(new GeometryPrivate(_geometry.Data()))
+  : dataPtr(std::make_unique<GeometryPrivate>(_geometry.Data()))
 {
 }
 
