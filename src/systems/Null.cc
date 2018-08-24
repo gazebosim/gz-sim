@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EntityQuery.hh"
+
 #include "ignition/gazebo/systems/Null.hh"
 
 using namespace ignition::gazebo::systems;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,8 @@ TestSystem::~TestSystem()
 {
 }
 
-void TestSystem::Init(EntityQueryRegistrar &_registrar)
+void TestSystem::Init(EntityQueryRegistrar &/*_registrar*/)
 {
-  (void)_registrar;
 }
 
 // Register this plugin
