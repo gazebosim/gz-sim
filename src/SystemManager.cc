@@ -30,6 +30,8 @@
 
 #include <ignition/plugin/Loader.hh>
 
+#include <ignition/gazebo/config.hh>
+
 using namespace ignition::gazebo;
 using SystemPtr = SystemManager::SystemPtr;
 
@@ -120,14 +122,15 @@ class ignition::gazebo::SystemManagerPrivate
                                const std::string &_filename,
                                const std::string &_classname)
   {
-    // Get full path
-    auto home = homePath();
-
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
     for (const auto &path : systemPluginPaths)
       systemPaths.AddPluginPaths(path);
+
+    auto home = homePath();
+    systemPaths.AddPluginPaths(home + "/.ignition/gazebo/plugins");
+    systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
@@ -153,8 +156,7 @@ class ignition::gazebo::SystemManagerPrivate
     return true;
   }
 
-  // TODO(mjcarroll): Eliminate dependence on this plugin path or augment
-  // with a default search path.
+  // Default plugin search path environment variable
   public: std::string pluginPathEnv = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH";
 
   /// \brief Location of the default system plugin configuration
