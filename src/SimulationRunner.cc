@@ -30,17 +30,13 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-SimulationRunner::SimulationRunner(const sdf::World *_world)
+SimulationRunner::SimulationRunner(const sdf::World *_world,
+                                   const std::unordered_set<std::string> &_systems,
+                                   SystemManager *_system_manager)
 {
-  // TODO(mjcarroll) We need a way of defining per-world systems.
-  SystemManager manager;
-
-  auto configPath = ignition::common::joinPaths(
-      IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
-  manager.loadSystemConfig(configPath);
-
-  for (auto& system : manager.GetLoadedSystems()) {
-      // this->systems.push_back(SystemInternal(system));
+  for (auto& system : _systems) {
+    auto systemPlugin = _system_manager->Instantiate(system);
+    this->systems.push_back(SystemInternal(systemPlugin));
   }
 
   this->CreateEntities(_world);

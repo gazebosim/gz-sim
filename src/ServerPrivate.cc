@@ -98,10 +98,19 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
+  auto configPath = ignition::common::joinPaths(
+    IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
+  systemManager.LoadSystemConfig(configPath);
+
+  std::unordered_set<std::string> defaultSystems{
+    "Physics",
+    "WorldStatistics"
+  };
+
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex)));
+          _root.WorldByIndex(worldIndex), defaultSystems, &systemManager));
   }
 }

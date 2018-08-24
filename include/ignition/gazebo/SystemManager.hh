@@ -46,13 +46,13 @@ namespace ignition
       public: ~SystemManager();
 
       /// \brief Add path to search for plugins.
-      public: void addSystemPluginPath(const std::string& _path);
+      public: void AddSystemPluginPath(const std::string& _path);
 
       /// \brief Load system configuration.
-      public: bool loadSystemConfig(const std::string& _config);
+      public: bool LoadSystemConfig(const std::string& _config);
 
-      /// \brief Return system plugins currently loaded by the manager
-      public: const std::vector<SystemPtr>& GetLoadedSystems() const;
+      /// \brief Instantiate a system based on alias.
+      public: SystemPtr Instantiate(const std::string &_alias);
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
