@@ -16,13 +16,12 @@ pipelines:
           - make install
           - cd ..
           # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
-          - cd ign-cmake
-          - mkdir build
-          - cd build
-          - cmake .. # -DENABLE_TESTS_COMPILATION=false
-          - make -j4 install
-          - cd ../..
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable bionic main" > /etc/apt/sources.list.d/gazebo-stable.list
+          - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease bionic main" > /etc/apt/sources.list.d/gazebo-prerelease.list
+          - apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
+          - apt-get update
+          - apt-get -y install
+            libignition-cmake2-dev
           # Ignition math
           - mkdir build
           - cd build
