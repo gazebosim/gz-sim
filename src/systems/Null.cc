@@ -16,6 +16,7 @@
 */
 #include "ignition/gazebo/EntityQuery.hh"
 #include "ignition/gazebo/systems/Null.hh"
+#include <ignition/plugin/RegisterMore.hh>
 
 using namespace ignition::gazebo::systems;
 
@@ -34,3 +35,7 @@ Null::~Null()
 void Null::Init(EntityQueryRegistrar &/*_registrar*/)
 {
 }
+
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
+                    ignition::gazebo::System)
+

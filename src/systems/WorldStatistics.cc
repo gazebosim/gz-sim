@@ -16,10 +16,12 @@
 */
 #include "ignition/gazebo/systems/WorldStatistics.hh"
 
+
 #include <ignition/msgs/world_stats.pb.h>
 
 #include <list>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -192,3 +194,7 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
     entityStats.publisher.Publish(msg);
   }
 }
+
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::WorldStatistics,
+                    ignition::gazebo::System)
+
