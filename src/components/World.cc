@@ -29,25 +29,20 @@ class ignition::gazebo::components::WorldPrivate
   /// \brief Copy constructor
   /// \param[in] _data Data to copy.
   public: explicit WorldPrivate(const WorldPrivate &_data)
-          : name(_data.name),
-            desiredRealTimeFactor(_data.desiredRealTimeFactor),
+          : desiredRealTimeFactor(_data.desiredRealTimeFactor),
             maxStep(_data.maxStep)
   {
   }
 
   /// \brief Constructor.
   /// \param[in] _physics SDF Physics data.
-  public: WorldPrivate(const std::string &_name, const sdf::Physics *_physics)
-          : name(_name),
-            desiredRealTimeFactor(_physics->RealTimeFactor())
+  public: WorldPrivate(const sdf::Physics *_physics)
+          : desiredRealTimeFactor(_physics->RealTimeFactor())
   {
     auto dur = std::chrono::duration<double>(_physics->MaxStepSize());
     this->maxStep =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(dur);
   }
-
-  /// \brief Name of the world.
-  public: std::string name{"default"};
 
   /// \brief The desired real-time factor.
   public: double desiredRealTimeFactor{1.0};
@@ -58,8 +53,7 @@ class ignition::gazebo::components::WorldPrivate
 
 //////////////////////////////////////////////////
 World::World(const sdf::World *_world)
-  : dataPtr(new WorldPrivate(_world->Name(),
-    _world->PhysicsDefault()))
+  : dataPtr(new WorldPrivate(_world->PhysicsDefault()))
 {
 }
 
@@ -79,12 +73,6 @@ World::World(World &&_world) noexcept
 World::~World()
 {
   // \todo(nkoenig) Add ability to unregister a component type.
-}
-
-//////////////////////////////////////////////////
-const std::string &World::Name() const
-{
-  return this->dataPtr->name;
 }
 
 //////////////////////////////////////////////////

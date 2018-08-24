@@ -3,8 +3,10 @@
   <world name="default">
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
-      <link name="link">
-        <collision name="col">
+      <link name="box_link">
+        <pose>0.1 0.1 0.1 0 0 0</pose>
+        <collision name="box_collision">
+          <pose>0.11 0.11 0.11 0 0 0</pose>
           <geometry>
             <box>
               <size>3 4 5</size>
@@ -12,7 +14,8 @@
           </geometry>
         </collision>
 
-        <visual name="vis">
+        <visual name="box_visual">
+          <pose>0.12 0.12 0.12 0 0 0</pose>
           <geometry>
             <box>
               <size>1 2 3</size>
@@ -24,8 +27,10 @@
 
     <model name="cylinder">
       <pose>-1 -2 -3 0 0 1</pose>
-      <link name="link">
-        <collision name="col">
+      <link name="cylinder_link">
+        <pose>0.2 0.2 0.2 0 0 0</pose>
+        <collision name="cylinder_collision">
+          <pose>0.21 0.21 0.21 0 0 0</pose>
           <geometry>
             <cylinder>
               <radius>0.2</radius>
@@ -34,7 +39,8 @@
           </geometry>
         </collision>
 
-        <visual name="vis">
+        <visual name="cylinder_visual">
+          <pose>0.22 0.22 0.22 0 0 0</pose>
           <geometry>
             <cylinder>
               <radius>2.1</radius>
@@ -47,8 +53,10 @@
 
     <model name="sphere">
       <pose>0 0 0 0 0 1</pose>
-      <link name="link">
-        <collision name="col">
+      <link name="sphere_link">
+        <pose>0.3 0.3 0.3 0 0 0</pose>
+        <collision name="sphere_collision">
+          <pose>0.31 0.31 0.31 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>23.4</radius>
@@ -56,7 +64,8 @@
           </geometry>
         </collision>
 
-        <visual name="vis">
+        <visual name="sphere_visual">
+          <pose>0.32 0.32 0.32 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>100.2</radius>
