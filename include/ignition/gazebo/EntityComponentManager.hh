@@ -148,7 +148,7 @@ namespace ignition
       // Documentation inherited.
       public: ComponentId Create(const void *_data) override final
       {
-        ComponentId result = kComponentIdInvalid;
+        ComponentId result;  // = kComponentIdInvalid;
 
         std::lock_guard<std::mutex> lock(this->mutex);
         result = idCounter++;

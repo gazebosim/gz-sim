@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -71,6 +72,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::ParentEntity>()));
   EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
       EntityComponentManager::ComponentType<components::Geometry>()));
+  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+      EntityComponentManager::ComponentType<components::Material>()));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual
@@ -273,18 +276,21 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   unsigned int visualCount{0};
   runner.entityCompMgr.Each<components::Visual,
                             components::Geometry,
+                            components::Material,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
     [&](const EntityId &/*_entity*/,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
+        const components::Material *_material,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
         const components::Name *_name)
     {
       ASSERT_NE(nullptr, _visual);
       ASSERT_NE(nullptr, _geometry);
+      ASSERT_NE(nullptr, _material);
       ASSERT_NE(nullptr, _pose);
       ASSERT_NE(nullptr, _parent);
       ASSERT_NE(nullptr, _name);
@@ -295,22 +301,57 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("box_visual", _name->Data());
+
         EXPECT_EQ(boxLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_EQ(math::Vector3d(1, 2, 3),
+                  _geometry->Data().BoxShape()->Size());
+
+        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Specular());
       }
       else if (visualCount == 2)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("cylinder_visual", _name->Data());
+
         EXPECT_EQ(cylLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
+        EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
+
+        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
       }
       else if (visualCount == 3)
       {
         EXPECT_EQ(ignition::math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
             _pose->Data());
+
         EXPECT_EQ("sphere_visual", _name->Data());
+
         EXPECT_EQ(sphLinkEntity, _parent->Id());
+
+        EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
+        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_DOUBLE_EQ(100.2, _geometry->Data().SphereShape()->Radius());
+
+        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
+        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
+        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
       }
     });
 
@@ -319,4 +360,5 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest, ::testing::Range(1, 2));
+INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest,
+    ::testing::Range(1, 2));

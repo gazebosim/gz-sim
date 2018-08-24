@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -244,8 +245,19 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Name(visual->Name()));
         this->entityCompMgr.CreateComponent(visualEntity,
             components::ParentEntity(linkEntity));
-        this->entityCompMgr.CreateComponent(visualEntity,
-            components::Geometry(sdf::Geometry(*visual->Geom())));
+
+        if (visual->Geom())
+        {
+          this->entityCompMgr.CreateComponent(visualEntity,
+              components::Geometry(sdf::Geometry(*visual->Geom())));
+        }
+
+        // \todo(louise) Populate with default material if undefined
+        if (visual->Material())
+        {
+          this->entityCompMgr.CreateComponent(visualEntity,
+              components::Material(sdf::Material(*visual->Material())));
+        }
       }
 
       // Collisions
@@ -266,8 +278,12 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::Name(collision->Name()));
         this->entityCompMgr.CreateComponent(collisionEntity,
             components::ParentEntity(linkEntity));
-        this->entityCompMgr.CreateComponent(collisionEntity,
-            components::Geometry(sdf::Geometry(*collision->Geom())));
+
+        if (collision->Geom())
+        {
+          this->entityCompMgr.CreateComponent(collisionEntity,
+              components::Geometry(sdf::Geometry(*collision->Geom())));
+        }
       }
     }
   }
