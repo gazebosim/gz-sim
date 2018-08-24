@@ -33,12 +33,18 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const StringSet &_systems,
+                                   const StringSet &_systemAliases,
                                    SystemManager *_system_manager)
 {
-  for (auto& system : _systems) {
-    auto systemPlugin = _system_manager->Instantiate(system);
-    this->systems.push_back(SystemInternal(systemPlugin));
+  for (auto& systemAlias : _systemAliases) {
+    auto system = _system_manager->Instantiate(systemAlias);
+    if (system) {
+      this->systems.push_back(SystemInternal(system));
+    }
+    else
+    {
+      ignerr << "Failed to add system " << systemAlias << " to runner";
+    }
   }
 
   this->CreateEntities(_world);
