@@ -245,7 +245,15 @@ SystemPtr SystemManager::Instantiate(const std::string &_alias)
 {
   ignition::plugin::PluginPtr plugin;
   this->dataPtr->InstantiateSystemPlugin(_alias, plugin);
-  return plugin->QueryInterfaceSharedPtr<System>();
+
+  if (plugin)
+  {
+    return plugin->QueryInterfaceSharedPtr<System>();
+  }
+  else
+    return nullptr;
+  {
+  }
 }
 
 //////////////////////////////////////////////////

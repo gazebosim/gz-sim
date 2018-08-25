@@ -14,28 +14,26 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_GAZEBO_COMPONENTS_LINK_HH_
+#define IGNITION_GAZEBO_COMPONENTS_LINK_HH_
 
-#include "ignition/gazebo/systems/Null.hh"
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
-using namespace ignition::gazebo::systems;
-
-//////////////////////////////////////////////////
-Null::Null()
-  : System()
+namespace ignition
 {
-}
-
-//////////////////////////////////////////////////
-Null::~Null()
+namespace gazebo
 {
-}
-
-//////////////////////////////////////////////////
-void Null::Init(EntityQueryRegistrar &/*_registrar*/)
+namespace components
 {
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  /// \brief This component identifies an entity as being a link.
+  class IGNITION_GAZEBO_VISIBLE Link
+  {
+  };
+  }
 }
-
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
-                    ignition::gazebo::System)
-
+}
+}
+#endif

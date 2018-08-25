@@ -17,6 +17,7 @@
 #include "ignition/gazebo/systems/Physics.hh"
 
 #include <ignition/math/Pose3.hh>
+#include <ignition/plugin/RegisterMore.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EntityQuery.hh"
@@ -114,3 +115,8 @@ void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
 
   // \todo(nkoenig) Update entity pose information.
 }
+
+
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
+                    ignition::gazebo::System)
+
