@@ -12,6 +12,8 @@ pipelines:
           - gcc -v
           - g++ -v
           - gcov -v
+          # Static checking before building
+          - sh tools/code_check.sh
           # lcov
           - git clone https://github.com/linux-test-project/lcov.git
           - cd lcov

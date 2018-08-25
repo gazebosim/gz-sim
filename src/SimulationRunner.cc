@@ -15,15 +15,26 @@
  *
 */
 
+#include <sdf/Collision.hh>
+#include <sdf/Link.hh>
 #include <sdf/Model.hh>
+#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include "SimulationRunner.hh"
 
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
 using namespace ignition;
@@ -168,7 +179,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 //////////////////////////////////////////////////
 void SimulationRunner::CreateEntities(const sdf::World *_world)
 {
-  // The server needs at least one world, so create it here.
+  // World entity
   EntityId worldEntity = this->entityCompMgr.CreateEntity();
 
   /// \todo(nkoenig) Computing the desired update period here is a bit
@@ -179,26 +190,107 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(stepSize.count() / rtf));
 
-  // Create the world component for the world entity.
+  // World components
   this->entityCompMgr.CreateComponent(worldEntity, worldComponent);
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::WorldStatistics());
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::Name(_world->Name()));
 
-  // Create the world statistcs component for the world entity.
-  this->entityCompMgr.CreateComponent(
-      worldEntity, components::WorldStatistics());
-
-  // Process each model in the world
+  // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
   {
-    // Get the SDF model
-    const sdf::Model *model = _world->ModelByIndex(modelIndex);
+    auto model = _world->ModelByIndex(modelIndex);
 
-    // Create an entity for the model.
-    EntityId entityId = this->entityCompMgr.CreateEntity();
+    // Entity
+    EntityId modelEntity = this->entityCompMgr.CreateEntity();
 
-    // Create the pose component for the model.
-    this->entityCompMgr.CreateComponent(
-        entityId, components::Pose(model->Pose()));
+    // Components
+    this->entityCompMgr.CreateComponent(modelEntity, components::Model());
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Pose(model->Pose()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Name(model->Name()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::ParentEntity(worldEntity));
+
+    // Links
+    for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
+        ++linkIndex)
+    {
+      auto link = model->LinkByIndex(linkIndex);
+
+      // Entity
+      EntityId linkEntity = this->entityCompMgr.CreateEntity();
+
+      // Components
+      this->entityCompMgr.CreateComponent(linkEntity, components::Link());
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::Pose(link->Pose()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::Name(link->Name()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::ParentEntity(modelEntity));
+
+      // Visuals
+      for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();
+          ++visualIndex)
+      {
+        auto visual = link->VisualByIndex(visualIndex);
+
+        // Entity
+        EntityId visualEntity = this->entityCompMgr.CreateEntity();
+
+        // Components
+        this->entityCompMgr.CreateComponent(visualEntity, components::Visual());
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::Pose(visual->Pose()));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::Name(visual->Name()));
+        this->entityCompMgr.CreateComponent(visualEntity,
+            components::ParentEntity(linkEntity));
+
+        if (visual->Geom())
+        {
+          this->entityCompMgr.CreateComponent(visualEntity,
+              components::Geometry(*visual->Geom()));
+        }
+
+        // \todo(louise) Populate with default material if undefined
+        if (visual->Material())
+        {
+          this->entityCompMgr.CreateComponent(visualEntity,
+              components::Material(*visual->Material()));
+        }
+      }
+
+      // Collisions
+      for (uint64_t collisionIndex = 0; collisionIndex < link->CollisionCount();
+          ++collisionIndex)
+      {
+        auto collision = link->CollisionByIndex(collisionIndex);
+
+        // Entity
+        EntityId collisionEntity = this->entityCompMgr.CreateEntity();
+
+        // Components
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Collision());
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Pose(collision->Pose()));
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::Name(collision->Name()));
+        this->entityCompMgr.CreateComponent(collisionEntity,
+            components::ParentEntity(linkEntity));
+
+        if (collision->Geom())
+        {
+          this->entityCompMgr.CreateComponent(collisionEntity,
+              components::Geometry(*collision->Geom()));
+        }
+      }
+    }
   }
 }
 

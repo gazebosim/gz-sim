@@ -15,67 +15,65 @@
  *
 */
 
-#include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace components;
 
-class ignition::gazebo::components::PosePrivate
+class ignition::gazebo::components::ParentEntityPrivate
 {
   /// \brief Constructor.
-  /// \param[in] _pose Pose data.
-  public: explicit PosePrivate(const ignition::math::Pose3d &_pose)
-          : pose(_pose)
+  /// \param[in] _id ParentEntity data.
+  public: explicit ParentEntityPrivate(const EntityId &_id)
+          : id(_id)
   {
   }
 
-  /// \brief The pose data.
-  public: ignition::math::Pose3d pose;
+  /// \brief The id data.
+  public: EntityId id;
 };
 
 //////////////////////////////////////////////////
-Pose::Pose(const ignition::math::Pose3d &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose))
+ParentEntity::ParentEntity(const EntityId &_id)
+  : dataPtr(std::make_unique<ParentEntityPrivate>(_id))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(const Pose &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose.Data()))
+ParentEntity::~ParentEntity()
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(Pose &&_pose) noexcept
-  : dataPtr(std::move(_pose.dataPtr))
+ParentEntity::ParentEntity(const ParentEntity &_parentEntity)
+  : dataPtr(std::make_unique<ParentEntityPrivate>(_parentEntity.Id()))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::~Pose()
+ParentEntity::ParentEntity(ParentEntity &&_parentEntity) noexcept
+  : dataPtr(std::move(_parentEntity.dataPtr))
 {
-  // \todo(nkoenig) Add ability to unregister a component type.
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Pose3d &Pose::Data() const
+ParentEntity &ParentEntity::operator=(ParentEntity &&_parentEntity)
 {
-  return this->dataPtr->pose;
-}
-
-//////////////////////////////////////////////////
-Pose &Pose::operator=(Pose &&_pose)
-{
-  this->dataPtr = std::move(_pose.dataPtr);
+  this->dataPtr = std::move(_parentEntity.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-Pose &Pose::operator=(const Pose &_pose)
+ParentEntity &ParentEntity::operator=(const ParentEntity &_parentEntity)
 {
-  this->dataPtr->pose = _pose.Data();
+  this->dataPtr->id = _parentEntity.Id();
   return *this;
 }
+
+//////////////////////////////////////////////////
+const EntityId &ParentEntity::Id() const
+{
+  return this->dataPtr->id;
+}
+
