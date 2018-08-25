@@ -15,67 +15,65 @@
  *
 */
 
-#include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Geometry.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace components;
 
-class ignition::gazebo::components::PosePrivate
+class ignition::gazebo::components::GeometryPrivate
 {
   /// \brief Constructor.
-  /// \param[in] _pose Pose data.
-  public: explicit PosePrivate(const ignition::math::Pose3d &_pose)
-          : pose(_pose)
+  /// \param[in] _geometry Geometry data.
+  public: explicit GeometryPrivate(const sdf::Geometry &_geometry)
+          : geometry(_geometry)
   {
   }
 
-  /// \brief The pose data.
-  public: ignition::math::Pose3d pose;
+  /// \brief The geometry data.
+  public: sdf::Geometry geometry;
 };
 
 //////////////////////////////////////////////////
-Pose::Pose(const ignition::math::Pose3d &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose))
+Geometry::Geometry(const sdf::Geometry &_geometry)
+  : dataPtr(std::make_unique<GeometryPrivate>(_geometry))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(const Pose &_pose)
-  : dataPtr(std::make_unique<PosePrivate>(_pose.Data()))
+Geometry::~Geometry()
 {
 }
 
 //////////////////////////////////////////////////
-Pose::Pose(Pose &&_pose) noexcept
-  : dataPtr(std::move(_pose.dataPtr))
+Geometry::Geometry(const Geometry &_geometry)
+  : dataPtr(std::make_unique<GeometryPrivate>(_geometry.Data()))
 {
 }
 
 //////////////////////////////////////////////////
-Pose::~Pose()
+Geometry::Geometry(Geometry &&_geometry) noexcept
+  : dataPtr(std::move(_geometry.dataPtr))
 {
-  // \todo(nkoenig) Add ability to unregister a component type.
-  // _compMgr.Unregister<ignition::math::Pose3d>(this->Name());
 }
 
 //////////////////////////////////////////////////
-const ignition::math::Pose3d &Pose::Data() const
+Geometry &Geometry::operator=(Geometry &&_geometry)
 {
-  return this->dataPtr->pose;
-}
-
-//////////////////////////////////////////////////
-Pose &Pose::operator=(Pose &&_pose)
-{
-  this->dataPtr = std::move(_pose.dataPtr);
+  this->dataPtr = std::move(_geometry.dataPtr);
   return *this;
 }
 
 //////////////////////////////////////////////////
-Pose &Pose::operator=(const Pose &_pose)
+Geometry &Geometry::operator=(const Geometry &_geometry)
 {
-  this->dataPtr->pose = _pose.Data();
+  this->dataPtr->geometry = _geometry.Data();
   return *this;
 }
+
+//////////////////////////////////////////////////
+const sdf::Geometry &Geometry::Data() const
+{
+  return this->dataPtr->geometry;
+}
+

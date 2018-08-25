@@ -14,16 +14,4 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/systems/Null.hh"
-#include "ignition/gazebo/systems/Physics.hh"
-#include "ignition/gazebo/systems/WorldStatistics.hh"
-
 #include "ignition/plugin/Register.hh"
-
-using namespace ignition::gazebo;
-
-IGNITION_ADD_PLUGIN(systems::Null, System)
-IGNITION_ADD_PLUGIN(systems::Physics, System)
-IGNITION_ADD_PLUGIN(systems::WorldStatistics, System)
-
