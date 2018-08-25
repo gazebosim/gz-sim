@@ -27,6 +27,7 @@ set (gtest_sources
   Entity_TEST.cc
   EntityQuery_TEST.cc
   Server_TEST.cc
+  SimulationRunner_TEST.cc
   System_TEST.cc
   SystemManager_TEST.cc
 )
