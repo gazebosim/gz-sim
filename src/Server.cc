@@ -38,7 +38,14 @@ Server::Server(const ServerConfig &_config)
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
     root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
-        "<world name='default'></world></sdf>");
+        "<world name='default'>"
+        "<plugin filename='libignition-gazebo-systems.so'"
+        "        name='ignition::gazebo::systems::v0::Physics'>"
+        "</plugin>"
+        "<plugin filename='libignition-gazebo-systems.so'"
+        "        name='ignition::gazebo::systems::v0::WorldStatistics'>"
+        "</plugin>"
+        "</world></sdf>");
   }
 
   this->dataPtr->CreateEntities(root);

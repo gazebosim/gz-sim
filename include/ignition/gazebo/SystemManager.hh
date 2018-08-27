@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Element.hh>
+
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -49,14 +51,11 @@ namespace ignition
       /// \param[in] _path New path to be added.
       public: void AddSystemPluginPath(const std::string &_path);
 
-      /// \brief Load system configuration.
-      /// \param[in] _config Path to configuration file.
-      public: bool LoadSystemConfig(const std::string &_config);
+      public: SystemPtr LoadPlugin(sdf::ElementPtr _sdf);
 
-      /// \brief Instantiate a system based on alias.
-      /// \param[in] _alias System alias.
-      /// \returns A shared pointer to a system instance loaded via plugin
-      public: SystemPtr Instantiate(const std::string &_alias);
+      public: SystemPtr LoadPlugin(const std::string &_filename,
+                                   const std::string &_name,
+                                   sdf::ElementPtr _sdf);
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string

@@ -69,12 +69,13 @@ namespace ignition
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
+      public: using SystemPtr = std::shared_ptr<System>;
+
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systems Systems to be loaded
       public: explicit SimulationRunner(const sdf::World *_world,
-                const std::unordered_set<std::string> &_systems,
-                SystemManager *_systemManager);
+                std::vector<SystemPtr> &_systems);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();

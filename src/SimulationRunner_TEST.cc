@@ -53,9 +53,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::unordered_set<std::string> systems;
-  SystemManager sysManager;
-  SimulationRunner runner(root.WorldByIndex(0), systems, &sysManager);
+  std::vector<std::shared_ptr<System>> systems;
+  SimulationRunner runner(root.WorldByIndex(0), systems);
 
   // Check component types
   EXPECT_TRUE(runner.entityCompMgr.HasComponentType(

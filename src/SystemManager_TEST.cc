@@ -17,10 +17,12 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Filesystem.hh>
+#include <sdf/Root.hh>
+#include <sdf/World.hh>
 
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include <ignition/common/Filesystem.hh>
+#include <ignition/gazebo/System.hh>
+#include <ignition/gazebo/SystemManager.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -36,11 +38,26 @@ TEST(SystemManager, Constructor)
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
 
-  // Load test config file
-  auto testSourcePath = std::string(PROJECT_SOURCE_PATH) + "/test/";
-  ASSERT_TRUE(sm.LoadSystemConfig(testSourcePath + "config/test.config"));
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename='libignition-gazebo-systems.so'"
+      "        name='ignition::gazebo::systems::v0::Physics'>"
+      "</plugin>"
+      "<plugin filename='libignition-gazebo-systems.so'"
+      "        name='ignition::gazebo::systems::v0::WorldStatistics'>"
+      "</plugin>"
+      "</world></sdf>");
 
-  auto system = sm.Instantiate("Null");
-  ASSERT_NE(nullptr, system);
+  auto worldElem = root.WorldByIndex(0)->Element();
+  if (worldElem->HasElement("plugin")) {
+    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+    while (pluginElem)
+    {
+      auto system = sm.LoadPlugin(pluginElem);
+      ASSERT_NE(nullptr, system);
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
 }
 
