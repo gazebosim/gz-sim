@@ -41,23 +41,15 @@ using namespace ignition;
 using namespace gazebo;
 
 using StringSet = std::unordered_set<std::string>;
+using SystemPtr = SimulationRunner::SystemPtr;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const StringSet &_systemAliases,
-                                   SystemManager *_systemManager)
+                                   std::vector<SystemPtr> &_systems)
 {
-  for (auto &systemAlias : _systemAliases)
+  for (auto &system: _systems)
   {
-    auto system = _systemManager->Instantiate(systemAlias);
-    if (system)
-    {
-      this->systems.push_back(SystemInternal(system));
-    }
-    else
-    {
-      ignerr << "Failed to add system " << systemAlias << " to runner";
-    }
+    this->systems.push_back(SystemInternal(system));
   }
 
   this->CreateEntities(_world);

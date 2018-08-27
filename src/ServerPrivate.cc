@@ -98,21 +98,29 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::CreateEntities(const sdf::Root &_root)
 {
-  // TODO(mjcarroll) Support adding system plugin libraries via SDF.
-  auto configPath = ignition::common::joinPaths(
-    IGNITION_GAZEBO_SYSTEM_CONFIG_PATH, "systems.config");
-  systemManager.LoadSystemConfig(configPath);
-
-  // TODO(mjcarroll) Support loading the systems from SDF on a per-world basis.
-  std::unordered_set<std::string> defaultSystems{
-    "Physics",
-    "WorldStatistics"
-  };
-
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
+    auto world = _root.WorldByIndex(worldIndex);
+    auto element = world->Element();
+
+    std::vector<std::shared_ptr<System>> systems;
+
+    if (element->HasElement("plugin"))
+    {
+      sdf::ElementPtr pluginElem = element->GetElement("plugin");
+      while (pluginElem)
+      {
+        auto system = systemManager.LoadPlugin(pluginElem);
+        if (system)
+        {
+          systems.push_back(system);
+        }
+        pluginElem = pluginElem->GetNextElement("plugin");
+      }
+    }
+
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex), defaultSystems, &systemManager));
+          _root.WorldByIndex(worldIndex), systems));
   }
 }
