@@ -205,3 +205,7 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
     entityStats.publisher.Publish(msg);
   }
 }
+
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::WorldStatistics,
+                    ignition::gazebo::System)
+
