@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EntityQuery.hh"
+
 #include "ignition/gazebo/systems/Null.hh"
 #include <ignition/plugin/RegisterMore.hh>
 
