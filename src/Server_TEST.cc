@@ -29,6 +29,12 @@ using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
 {
+  protected:
+    virtual void SetUp() {
+      // Augment the system plugin path.  In SetUp to avoid test order issues.
+      setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+             (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+    }
 };
 
 /////////////////////////////////////////////////
