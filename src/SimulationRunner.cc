@@ -45,11 +45,13 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const StringSet &_systemAliases,
-                                   SystemManager *_system_manager)
+                                   SystemManager *_systemManager)
 {
-  for (auto& systemAlias : _systemAliases) {
-    auto system = _system_manager->Instantiate(systemAlias);
-    if (system) {
+  for (auto &systemAlias : _systemAliases)
+  {
+    auto system = _systemManager->Instantiate(systemAlias);
+    if (system)
+    {
       this->systems.push_back(SystemInternal(system));
     }
     else

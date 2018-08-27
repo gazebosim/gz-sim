@@ -46,12 +46,15 @@ namespace ignition
       public: ~SystemManager();
 
       /// \brief Add path to search for plugins.
-      public: void AddSystemPluginPath(const std::string& _path);
+      /// \param[in] _path New path to be added.
+      public: void AddSystemPluginPath(const std::string &_path);
 
       /// \brief Load system configuration.
-      public: bool LoadSystemConfig(const std::string& _config);
+      /// \param[in] _config Path to configuration file.
+      public: bool LoadSystemConfig(const std::string &_config);
 
       /// \brief Instantiate a system based on alias.
+      /// \param[in] _alias System alias.
       /// \returns A shared pointer to a system instance loaded via plugin
       public: SystemPtr Instantiate(const std::string &_alias);
 
@@ -59,6 +62,7 @@ namespace ignition
       /// \returns A pretty string
       public: std::string PrettyStr() const;
 
+      /// \brief Pointer to private data.
       private: std::unique_ptr<SystemManagerPrivate> dataPtr;
     };
     }

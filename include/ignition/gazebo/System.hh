@@ -17,15 +17,9 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include <memory>
-#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
-
-#include <ignition/plugin/Loader.hh>
-#include <ignition/plugin/PluginPtr.hh>
 
 namespace ignition
 {
