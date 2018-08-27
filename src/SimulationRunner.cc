@@ -47,7 +47,7 @@ using SystemPtr = SimulationRunner::SystemPtr;
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    std::vector<SystemPtr> &_systems)
 {
-  for (auto &system: _systems)
+  for (auto &system : _systems)
   {
     this->systems.push_back(SystemInternal(system));
   }

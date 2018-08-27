@@ -56,7 +56,7 @@ class ignition::gazebo::SystemManagerPrivate
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
                                        const std::string &_name,
-                                       sdf::ElementPtr _sdf,
+                                       sdf::ElementPtr /*_sdf*/,
                                        ignition::plugin::PluginPtr &_plugin)
   {
     ignition::common::SystemPaths systemPaths;
@@ -151,7 +151,9 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
                                     sdf::ElementPtr _sdf)
 {
   ignition::plugin::PluginPtr plugin;
-  auto ret = this->dataPtr->InstantiateSystemPlugin(_filename, _name, _sdf, plugin);
+  auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
+                                                    _name,
+                                                    _sdf, plugin);
   if (ret && plugin)
   {
     return plugin->QueryInterfaceSharedPtr<System>();
