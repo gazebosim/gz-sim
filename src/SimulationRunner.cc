@@ -34,24 +34,23 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-
-#include "ignition/gazebo/systems/Physics.hh"
-#include "ignition/gazebo/systems/WorldStatistics.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-//////////////////////////////////////////////////
-SimulationRunner::SimulationRunner(const sdf::World *_world)
-{
-  // Create a world statistics system
-  this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<systems::WorldStatistics>())));
+using StringSet = std::unordered_set<std::string>;
+using SystemPtr = SimulationRunner::SystemPtr;
 
-  // Create a physics system
-  this->systems.push_back(SystemInternal(
-      std::move(std::make_unique<systems::Physics>())));
+//////////////////////////////////////////////////
+SimulationRunner::SimulationRunner(const sdf::World *_world,
+                                   const std::vector<SystemPtr> &_systems)
+{
+  for (auto &system : _systems)
+  {
+    this->systems.push_back(SystemInternal(system));
+  }
 
   this->CreateEntities(_world);
 }

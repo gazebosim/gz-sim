@@ -53,7 +53,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  SimulationRunner runner(root.WorldByIndex(0));
+  std::vector<std::shared_ptr<System>> systems;
+  SimulationRunner runner(root.WorldByIndex(0), systems);
 
   // Check component types
   EXPECT_TRUE(runner.entityCompMgr.HasComponentType(

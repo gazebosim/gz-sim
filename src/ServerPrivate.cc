@@ -101,7 +101,26 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
+    auto world = _root.WorldByIndex(worldIndex);
+    auto element = world->Element();
+
+    std::vector<std::shared_ptr<System>> systems;
+
+    if (element->HasElement("plugin"))
+    {
+      sdf::ElementPtr pluginElem = element->GetElement("plugin");
+      while (pluginElem)
+      {
+        auto system = systemManager.LoadPlugin(pluginElem);
+        if (system)
+        {
+          systems.push_back(system);
+        }
+        pluginElem = pluginElem->GetNextElement("plugin");
+      }
+    }
+
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex)));
+          _root.WorldByIndex(worldIndex), systems));
   }
 }

@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include <memory>
-#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
@@ -29,9 +27,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    // Forward declarations.
-    class SystemPrivate;
-
     /// \class System System.hh ignition/gazebo/System.hh
     /// \brief Base class for a System.
     ///
@@ -41,8 +36,7 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
-      /// \param[in] A name for the system.
-      public: explicit System(const std::string &_name);
+      public: System();
 
       /// \brief Destructor
       public: virtual ~System();
@@ -50,18 +44,7 @@ namespace ignition
       /// \brief Initialize the system.
       /// \param[out] _registrar A registrar which should be filled with
       /// queries and callbacks.
-      public: virtual void Init(EntityQueryRegistrar &_registrar);
-
-      /// \brief Get the name of the system.
-      /// \return The name.
-      public: const std::string &Name() const;
-
-      /// \brief Set the name of the System
-      /// \param[in] _name The name.
-      public: void SetName(const std::string &_name) const;
-
-      /// \brief Pointer to private data.
-      private: std::unique_ptr<SystemPrivate> dataPtr;
+      public: virtual void Init(EntityQueryRegistrar &_registrar) = 0;
     };
     }
   }

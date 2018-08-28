@@ -2,6 +2,7 @@ include_directories (
   ${PROJECT_SOURCE_DIR}/test/gtest/include
   ${PROJECT_SOURCE_DIR}/test/gtest
   ${PROJECT_SOURCE_DIR}/test
+  ${PROJECT_BINARY_DIR}/include/
 )
 
 configure_file (test_config.hh.in ${PROJECT_BINARY_DIR}/include/ignition/gazebo/test_config.hh)
@@ -19,4 +20,5 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 add_subdirectory(integration)
 add_subdirectory(performance)
+add_subdirectory(plugins)
 add_subdirectory(regression)
