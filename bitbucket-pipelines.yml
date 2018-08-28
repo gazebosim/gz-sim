@@ -37,6 +37,14 @@ pipelines:
           - cmake ..
           - make -j4 install
           - cd ../..
+          # Ignition plugin
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-plugin -b default
+          - cd ign-plugin
+          - mkdir build
+          - cd build
+          - cmake ..
+          - make -j4 install
+          - cd ../..
           # Ignition math
           - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b gz11
           - cd ign-math

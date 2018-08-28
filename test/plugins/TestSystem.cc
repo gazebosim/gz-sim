@@ -14,15 +14,28 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
 
-using namespace ignition::gazebo;
+#include "TestSystem.hh"
 
-//////////////////////////////////////////////////
-System::System()
+#include <ignition/plugin/Register.hh>
+
+using namespace ignition;
+using namespace gazebo;
+
+/////////////////////////////////////////////////
+TestSystem::TestSystem()
+  : System()
 {
 }
 
-System::~System()
+/////////////////////////////////////////////////
+TestSystem::~TestSystem()
 {
 }
+
+void TestSystem::Init(EntityQueryRegistrar &/*_registrar*/)
+{
+}
+
+// Register this plugin
+IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)
