@@ -151,6 +151,15 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
                                     sdf::ElementPtr _sdf)
 {
   ignition::plugin::PluginPtr plugin;
+
+  if (_filename == "" || _name == "")
+  {
+    ignerr << "Failed to instantiate system plugin: empty argument "
+              "[(filename): " << _filename << "] " <<
+              "[(name): " << _name << "]." << std::endl;
+    return nullptr;
+  }
+
   auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
                                                     _name,
                                                     _sdf, plugin);
@@ -166,6 +175,10 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
 
 SystemPtr SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
 {
+  if (nullptr == _sdf)
+  {
+    return nullptr;
+  }
   auto filename = _sdf->Get<std::string>("filename");
   auto pluginName = _sdf->Get<std::string>("name");
   return LoadPlugin(filename, pluginName, _sdf);
