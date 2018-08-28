@@ -26,9 +26,10 @@
 #include <vector>
 
 #include <ignition/common/WorkerPool.hh>
+#include <ignition/transport/Node.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -85,7 +86,12 @@ namespace ignition
       public: bool Run(const uint64_t _iterations);
 
       /// \brief Update all the systems
-      public: void UpdateSystems();
+      /// \param[in] _info Information about the simulation status.
+      public: void UpdateSystems(const UpdateInfo &_info);
+
+      /// \brief Publish current world statistics.
+      /// \param[in] _info Information about the simulation status.
+      public: void PublishStats(const UpdateInfo &_info);
 
       /// \brief Create all entities that exist in the sdf::World object.
       /// \param[in] _world SDF world object.
@@ -130,18 +136,50 @@ namespace ignition
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool;
 
-      /// \brief Time of the previous update.
-      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
+      /// \brief Wall time of the previous ECS update.
+      public: std::chrono::steady_clock::time_point ecsPrevUpdateRealTime;
 
       /// \brief A duration used to account for inaccuracies associated with
       /// sleep durations.
-      public: std::chrono::steady_clock::duration sleepOffset{0};
+      public: std::chrono::steady_clock::duration ecsSleepOffset{0};
+
+      /// \brief This is the rate at which the ECS is updated.
+      /// The default update rate is 500hz, which is a period of 2ms.
+      public: std::chrono::steady_clock::duration ecsUpdatePeriod{2ms};
 
       /// \brief The default update rate is 500hz, which is a period of 2ms.
-      public: std::chrono::steady_clock::duration updatePeriod{2ms};
+      public: std::chrono::steady_clock::duration simUpdatePeriod{2ms};
 
       /// \brief Number of iterations.
       public: uint64_t iterations{0};
+
+      /// \brief List of simulation times used to compute averages.
+      public: std::list<std::chrono::steady_clock::duration> simTimes;
+
+      /// \brief List of real times used to compute averages.
+      public: std::list<std::chrono::steady_clock::duration> realTimes;
+
+      /// \brief Publisher for this data.
+      public: ignition::transport::Node::Publisher statsPub;
+
+      /// \brief Node for communication.
+      public: ignition::transport::Node node;
+
+      /// \brief Name of world being simulated.
+      public: std::string worldName;
+
+      /// \brief Stopwatch to keep track of wall time.
+      public: ignition::math::Stopwatch realTimeWatch;
+
+      /// \brief Total simulation time.
+      public: ignition::math::clock::duration simTime{0};
+
+      /// \brief Step size
+      public: ignition::math::clock::duration stepSize{10ms};
+
+      /// \brief The real time factor calculated based on sim and real time
+      /// averages.
+      public: double realTimeFactor;
     };
     }
   }

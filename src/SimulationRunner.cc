@@ -18,6 +18,7 @@
 #include <sdf/Collision.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
+#include <sdf/Physics.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
@@ -33,11 +34,9 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/WorldStatistics.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/systems/Physics.hh"
-#include "ignition/gazebo/systems/WorldStatistics.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -45,14 +44,29 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world)
 {
-  // Create a world statistics system
-  this->systems.push_back(SystemInternal(
-        std::move(std::make_unique<systems::WorldStatistics>())));
+  // Keep world name
+  this->worldName = _world->Name();
 
   // Create a physics system
   this->systems.push_back(SystemInternal(
       std::move(std::make_unique<systems::Physics>())));
 
+  // Step size
+  auto dur = std::chrono::duration<double>(
+      _world->PhysicsDefault()->MaxStepSize());
+
+  this->stepSize =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+      dur);
+
+  // Desired real time factor
+  double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
+
+  // Desired simulation update period
+  this->simUpdatePeriod = std::chrono::nanoseconds(
+      static_cast<int>(this->stepSize.count() / desiredRtf));
+
+  // Create entities and components
   this->CreateEntities(_world);
 }
 
@@ -86,12 +100,46 @@ void SimulationRunner::InitSystems()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::UpdateSystems()
+void SimulationRunner::PublishStats(const UpdateInfo &_info)
+{
+  // Create the world statistics publisher.
+  if (this->statsPub.Valid())
+  {
+    transport::AdvertiseMessageOptions advertOpts;
+    advertOpts.SetMsgsPerSec(5);
+    this->statsPub = this->node.Advertise<ignition::msgs::WorldStatistics>(
+          "/world/" + this->worldName + "/stats", advertOpts);
+  }
+
+  // Create the world statistics message.
+  ignition::msgs::WorldStatistics msg;
+  msg.set_real_time_factor(this->realTimeFactor);
+
+  auto realTimeSecNsec =
+    ignition::math::durationToSecNsec(_info.realTime);
+
+  auto simTimeSecNsec =
+    ignition::math::durationToSecNsec(_info.simTime);
+
+  msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+  msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+  msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+  msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+  msg.set_iterations(_info.iterations);
+
+  // Publish the message
+  this->statsPub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::UpdateSystems(const UpdateInfo &_info)
 {
   // Update all the systems in parallel
   for (SystemInternal &system : this->systems)
   {
-    this->workerPool.AddWork([&system, this] ()
+    this->workerPool.AddWork([&system, &_info, this] ()
     {
       for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
       {
@@ -100,7 +148,7 @@ void SimulationRunner::UpdateSystems()
         if (query && query->get().EntityCount() > 0)
         {
           SystemQueryResponse response(query->get(), this->entityCompMgr);
-          cb.second(response);
+          cb.second(_info, response);
         }
       }
     });
@@ -123,6 +171,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
 
+  // Keep track of wall clock time
+  this->realTimeWatch.Start();
+
   // Variables for time keeping.
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::duration sleepTime;
@@ -138,33 +189,81 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        ++this->iterations)
   {
     // Compute the time to sleep in order to match, as closely as possible,
-    // the update period.
-    sleepTime = std::max(0ns, this->prevUpdateWallTime +
-        this->updatePeriod - std::chrono::steady_clock::now() -
-        this->sleepOffset);
+    // the ECS update period.
+    sleepTime = std::max(0ns, this->ecsPrevUpdateRealTime +
+        this->ecsUpdatePeriod - std::chrono::steady_clock::now() -
+        this->ecsSleepOffset);
     actualSleep = 0ns;
 
     // Only sleep if needed.
     if (sleepTime > 0ns)
     {
       // Get the current time, sleep for the duration needed to match the
-      // updatePeriod, and then record the actual time slept.
+      // ecsUpdatePeriod, and then record the actual time slept.
       startTime = std::chrono::steady_clock::now();
       std::this_thread::sleep_for(sleepTime);
       actualSleep = std::chrono::steady_clock::now() - startTime;
     }
 
-    // Exponentially average out the different between expected sleep time
+    // Exponentially average out the difference between expected sleep time
     // and actual sleep time.
-    this->sleepOffset =
+    this->ecsSleepOffset =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
-          (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
+          (actualSleep - sleepTime) * 0.01 + this->ecsSleepOffset * 0.99);
+
+    // Store the real time, and maintain a window size of 20.
+    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
+    if (this->realTimes.size() > 20)
+    {
+      this->realTimes.pop_front();
+    }
+
+    // Store the sim time, and maintain a window size of 20.
+    this->simTimes.push_back(this->simTime);
+    if (this->simTimes.size() > 20)
+    {
+      this->simTimes.pop_front();
+    }
+
+    // Compute the average sim and real times.
+    std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
+    std::list<std::chrono::steady_clock::duration>::iterator simIter,
+      realIter;
+
+    simIter = ++(this->simTimes.begin());
+    realIter = ++(this->realTimes.begin());
+    for (;simIter != this->simTimes.end() &&
+        realIter != this->realTimes.end(); ++simIter, ++realIter)
+    {
+      simAvg += ((*simIter) - this->simTimes.front());
+      realAvg += ((*realIter) - this->realTimes.front());
+    }
+
+    // RTF
+    if (realAvg != 0ns)
+    {
+      this->realTimeFactor = math::precision(
+            static_cast<double>(simAvg.count()) / realAvg.count(), 4);
+    }
+
+    // Fill the current update info
+    UpdateInfo info;
+    info.dt = this->simUpdatePeriod;
+    info.simTime = this->simTime;
+    info.realTime = this->realTimeWatch.ElapsedRunTime();
+    info.iterations = this->iterations;
+
+    // Publish info
+    this->PublishStats(info);
 
     // Record when the update step starts.
-    this->prevUpdateWallTime = std::chrono::steady_clock::now();
+    this->ecsPrevUpdateRealTime = std::chrono::steady_clock::now();
 
     // Update all the systems.
-    this->UpdateSystems();
+    this->UpdateSystems(info);
+
+    // Update sim time
+    this->simTime += this->stepSize;
   }
 
   this->running = false;
@@ -177,18 +276,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   // World entity
   EntityId worldEntity = this->entityCompMgr.CreateEntity();
 
-  /// \todo(nkoenig) Computing the desired update period here is a bit
-  /// hacky.
-  components::World worldComponent(_world);
-  std::chrono::steady_clock::duration stepSize = worldComponent.MaxStep();
-  double rtf = worldComponent.DesiredRealTimeFactor();
-  this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(stepSize.count() / rtf));
-
   // World components
   this->entityCompMgr.CreateComponent(worldEntity, worldComponent);
-  this->entityCompMgr.CreateComponent(worldEntity,
-      components::WorldStatistics());
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
@@ -315,7 +404,7 @@ size_t SimulationRunner::SystemCount() const
 
 /////////////////////////////////////////////////
 void SimulationRunner::SetUpdatePeriod(
-    const std::chrono::steady_clock::duration &_updatePeriod)
+    const std::chrono::steady_clock::duration &_ecsUpdatePeriod)
 {
-  this->updatePeriod = _updatePeriod;
+  this->ecsUpdatePeriod = _ecsUpdatePeriod;
 }
