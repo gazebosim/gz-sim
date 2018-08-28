@@ -61,3 +61,20 @@ TEST(SystemManager, Constructor)
   }
 }
 
+TEST(SystemManager, EmptyNames)
+{
+  gazebo::SystemManager sm;
+
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename=''"
+      "        name=''>"
+      "</plugin>"
+      "</world></sdf>");
+
+  auto worldElem = root.WorldByIndex(0)->Element();
+  sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+  auto system = sm.LoadPlugin(pluginElem);
+  ASSERT_EQ(nullptr, system);
+}
