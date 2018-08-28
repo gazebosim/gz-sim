@@ -232,7 +232,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     simIter = ++(this->simTimes.begin());
     realIter = ++(this->realTimes.begin());
-    for (;simIter != this->simTimes.end() &&
+    for (; simIter != this->simTimes.end() &&
         realIter != this->realTimes.end(); ++simIter, ++realIter)
     {
       simAvg += ((*simIter) - this->simTimes.front());
