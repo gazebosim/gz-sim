@@ -15,7 +15,7 @@ find_package(ignition-cmake1 1.0.0 REQUIRED)
 # Configure the project
 #============================================================================
 set (c++standard 14)
-ign_configure_project(VERSION_SUFFIX pre3)
+ign_configure_project(VERSION_SUFFIX pre4)
 
 #============================================================================
 # Set project-specific options
