@@ -103,7 +103,7 @@ void SimulationRunner::InitSystems()
 void SimulationRunner::PublishStats(const UpdateInfo &_info)
 {
   // Create the world statistics publisher.
-  if (this->statsPub.Valid())
+  if (!this->statsPub.Valid())
   {
     transport::AdvertiseMessageOptions advertOpts;
     advertOpts.SetMsgsPerSec(5);
@@ -277,7 +277,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   EntityId worldEntity = this->entityCompMgr.CreateEntity();
 
   // World components
-  this->entityCompMgr.CreateComponent(worldEntity, worldComponent);
+  this->entityCompMgr.CreateComponent(worldEntity, components::World());
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
