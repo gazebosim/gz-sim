@@ -23,6 +23,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -32,6 +33,7 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace std::chrono_literals;
@@ -54,13 +56,13 @@ namespace ignition
     class SystemInternal
     {
       /// \brief Constructor
-      public: explicit SystemInternal(std::unique_ptr<System> _system)
-              : system(std::move(_system))
+      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
+              : system(_system)
       {
       }
 
       /// \brief All of the systems.
-      public: std::unique_ptr<System> system;
+      public: std::shared_ptr<System> system;
 
       /// \brief Vector of queries and callbacks
       public: std::vector<
@@ -69,9 +71,13 @@ namespace ignition
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
+      public: using SystemPtr = std::shared_ptr<System>;
+
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
-      public: explicit SimulationRunner(const sdf::World *_world);
+      /// \param[in] _systems Systems to be loaded
+      public: explicit SimulationRunner(const sdf::World *_world,
+                const std::vector<SystemPtr> &_systems);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();

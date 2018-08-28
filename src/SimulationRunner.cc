@@ -34,22 +34,27 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
-
-#include "ignition/gazebo/systems/Physics.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
+using StringSet = std::unordered_set<std::string>;
+using SystemPtr = SimulationRunner::SystemPtr;
+
 //////////////////////////////////////////////////
-SimulationRunner::SimulationRunner(const sdf::World *_world)
+SimulationRunner::SimulationRunner(const sdf::World *_world,
+                                   const std::vector<SystemPtr> &_systems)
 {
   // Keep world name
   this->worldName = _world->Name();
 
-  // Create a physics system
-  this->systems.push_back(SystemInternal(
-      std::move(std::make_unique<systems::Physics>())));
+  // Store systems
+  for (auto &system : _systems)
+  {
+    this->systems.push_back(SystemInternal(system));
+  }
 
   // Step size
   auto dur = std::chrono::duration<double>(

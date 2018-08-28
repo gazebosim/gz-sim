@@ -14,15 +14,4 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
-
-using namespace ignition::gazebo;
-
-//////////////////////////////////////////////////
-System::System()
-{
-}
-
-System::~System()
-{
-}
+#include "ignition/plugin/Register.hh"
