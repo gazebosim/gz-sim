@@ -121,15 +121,17 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
-      /// \brief Set the update period. The update period is the wall-clock time
-      /// between updates.
-      /// \param[in] _updatePeriod Duration between updates.
+      /// \brief Set the ECS update period. The update period is the wall-clock
+      /// time between updates of all ECS systems. Note that even if systems
+      /// are being update, this doesn't mean sim time is increasing.
+      /// \param[in] _ecsUpdatePeriod Duration between updates.
       public: void SetUpdatePeriod(
-                  const std::chrono::steady_clock::duration &_updatePeriod);
+                  const std::chrono::steady_clock::duration &_ecsUpdatePeriod);
 
       /// \brief World control service callback
-      /// \param[in] _req Request
-      /// \param[out] _res Response
+      /// \param[in] _req Request from client, currently handling play / pause and
+      /// multistep.
+      /// \param[out] _res Response to client, true if successful.
       /// \return True for success
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
@@ -161,13 +163,12 @@ namespace ignition
       /// The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration ecsUpdatePeriod{2ms};
 
-      /// \brief The default update rate is 500hz, which is a period of 2ms.
-      public: std::chrono::steady_clock::duration simUpdatePeriod{2ms};
-
-      /// \brief Number of ECS iterations.
+      /// \brief Number of times the ECS systems have been updated. This number
+      /// can't be reset.
       public: uint64_t ecsIterations{0};
 
-      /// \brief Number of simulation iterations.
+      /// \brief Number of elapsed simulation iterations.
+      /// \todo(louise) Support reset, which will set this number back to zero.
       public: uint64_t simIterations{0};
 
       /// \brief List of simulation times used to compute averages.
@@ -179,7 +180,7 @@ namespace ignition
       /// \brief Node for communication.
       public: ignition::transport::Node node;
 
-      /// \brief Publisher for this data.
+      /// \brief World statistics publisher.
       public: ignition::transport::Node::Publisher statsPub;
 
       /// \brief Name of world being simulated.
@@ -201,6 +202,10 @@ namespace ignition
       /// \brief True if simulation currently paused, which means the simulation
       /// time is not currently running, but systems are still being updated.
       public: bool paused{false};
+
+      /// \brief Number of simulation steps requested that haven't been
+      /// executed yet.
+      public: unsigned int pendingSimIterations{0};
     };
     }
   }

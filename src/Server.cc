@@ -47,7 +47,8 @@ Server::Server(const ServerConfig &_config)
 
   this->dataPtr->CreateEntities(root);
 
-  // Set the desired update period.
+  // Set the desired update period, this will override the desired RTF given in
+  // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());

@@ -75,14 +75,21 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
 void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
     SystemQueryResponse &_response)
 {
-  std::chrono::seconds sec(1);
   igndbg << "Sim time ["
          << std::chrono::duration<double>(_info.simTime).count()
          << "] Real time ["
          << std::chrono::duration<double>(_info.realTime).count()
          << "] Iterations ["
          << _info.iterations
+         << "] dt ["
+         << std::chrono::duration<double>(_info.dt).count()
          << "]" << std::endl;
+
+  // Skip physics update if paused
+  if (_info.dt.count() == 0)
+  {
+    return;
+  }
 
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
@@ -93,7 +100,7 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
     {
       igndbg << "  --  " << _name->Data() << " pose [" << _pose->Data()
              << "]\n";
-      std::this_thread::sleep_for(50us);
+      std::this_thread::sleep_for(5us);
     });
 
   // \todo(louise) Step ign-physics world by _info.dt

@@ -67,8 +67,30 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Desired real time factor
   double desiredRtf = _world->PhysicsDefault()->RealTimeFactor();
 
-  // Desired simulation update period
-  this->simUpdatePeriod = std::chrono::nanoseconds(
+  // The instantaneous real time factor is given as:
+  //
+  // RTF = sim_time / real_time
+  //
+  // Where the sim time is the step size times the number of sim iterations:
+  //
+  // sim_time = sim_it * step_size
+  //
+  // And the real time is the ECS period times the number of ECS iterations:
+  //
+  // real_time = ecs_it * ecs_period
+  //
+  // So we have:
+  //
+  // RTF = sim_it * step_size / ecs_it * ecs_period
+  //
+  // Considering no pause, sim_it equals ecs_it, so:
+  //
+  // RTF = step_size / ecs_period
+  //
+  // So to get a given RTF, our desired ECS period is:
+  //
+  // ecs_period = step_size / RTF
+  this->ecsUpdatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
   // Create entities and components
@@ -257,13 +279,22 @@ bool SimulationRunner::Run(const uint64_t _iterations)
             static_cast<double>(simAvg.count()) / realAvg.count(), 4);
     }
 
+    // simulating?
+    bool simulating = !this->paused || this->pendingSimIterations > 0;
+
     // Fill the current update info
     UpdateInfo info;
     info.simTime = this->simTime;
     info.realTime = this->realTimeWatch.ElapsedRunTime();
     info.iterations = this->simIterations;
-    if (!this->paused)
-      info.dt = this->simUpdatePeriod;
+    if (simulating)
+    {
+      info.dt = this->stepSize;
+    }
+    else
+    {
+      info.dt = std::chrono::steady_clock::duration::zero();
+    }
 
     // Publish info
     this->PublishStats(info);
@@ -275,10 +306,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->UpdateSystems(info);
 
     // Update sim time
-    if (!this->paused)
+    if (simulating)
     {
       this->simTime += this->stepSize;
       ++this->simIterations;
+
+      if (this->pendingSimIterations > 0)
+        --this->pendingSimIterations;
     }
   }
 
@@ -429,15 +463,18 @@ void SimulationRunner::SetUpdatePeriod(
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
                                       msgs::Boolean &_res)
 {
-  igndbg << "OnWorldControl: request" << std::endl;
-  igndbg << _req.DebugString() << std::endl;
-
+  // Play / pause
   this->paused = _req.pause();
 
+  // Step
+  if (_req.multi_step() > 0)
+  {
+    // Pause for stepping, if not paused yet
+    this->paused = true;
+
+    this->pendingSimIterations += _req.multi_step();
+  }
+
   _res.set_data(true);
-
-  igndbg << "OnWorldControl: response" << std::endl;
-  igndbg << _res.DebugString() << std::endl;
-
   return true;
 }
