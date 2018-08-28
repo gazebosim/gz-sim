@@ -75,13 +75,13 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
     SystemQueryResponse &_response)
 {
   std::chrono::seconds sec(1);
-  std::cout << "Sim time ["
-      << std::chrono::duration<double>(_info.simTime).count()
-      << "] Real time ["
-      << std::chrono::duration<double>(_info.realTime).count()
-      << "] Iterations ["
-      << _info.iterations
-      << "]" << std::endl;
+  igndbg << "Sim time ["
+         << std::chrono::duration<double>(_info.simTime).count()
+         << "] Real time ["
+         << std::chrono::duration<double>(_info.realTime).count()
+         << "] Iterations ["
+         << _info.iterations
+         << "]" << std::endl;
 
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
@@ -90,8 +90,8 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
         const components::Name *_name,
         const components::Pose *_pose)
     {
-      std::cout << "  --  " << _name->Data() << " pose [" << _pose->Data()
-                << "]\n";
+      igndbg << "  --  " << _name->Data() << " pose [" << _pose->Data()
+             << "]\n";
       std::this_thread::sleep_for(50us);
     });
 

@@ -68,6 +68,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world)
 
   // Create entities and components
   this->CreateEntities(_world);
+
+  // World control
+  this->node.Advertise("/world/" + this->worldName + "/control",
+        &SimulationRunner::OnWorldControl, this);
 }
 
 //////////////////////////////////////////////////
@@ -129,6 +133,8 @@ void SimulationRunner::PublishStats(const UpdateInfo &_info)
 
   msg.set_iterations(_info.iterations);
 
+  msg.set_paused(this->paused);
+
   // Publish the message
   this->statsPub.Publish(msg);
 }
@@ -183,10 +189,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (uint64_t startingIterations = this->iterations;
+  for (uint64_t startingIterations = this->ecsIterations;
        this->running && (_iterations == 0 ||
-         this->iterations < _iterations + startingIterations);
-       ++this->iterations)
+         this->ecsIterations < _iterations + startingIterations);
+       ++this->ecsIterations)
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the ECS update period.
@@ -248,10 +254,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Fill the current update info
     UpdateInfo info;
-    info.dt = this->simUpdatePeriod;
     info.simTime = this->simTime;
     info.realTime = this->realTimeWatch.ElapsedRunTime();
-    info.iterations = this->iterations;
+    info.iterations = this->simIterations;
+    if (!this->paused)
+      info.dt = this->simUpdatePeriod;
 
     // Publish info
     this->PublishStats(info);
@@ -263,7 +270,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->UpdateSystems(info);
 
     // Update sim time
-    this->simTime += this->stepSize;
+    if (!this->paused)
+    {
+      this->simTime += this->stepSize;
+      ++this->simIterations;
+    }
   }
 
   this->running = false;
@@ -387,7 +398,7 @@ bool SimulationRunner::Running() const
 /////////////////////////////////////////////////
 uint64_t SimulationRunner::IterationCount() const
 {
-  return this->iterations;
+  return this->ecsIterations;
 }
 
 /////////////////////////////////////////////////
@@ -407,4 +418,21 @@ void SimulationRunner::SetUpdatePeriod(
     const std::chrono::steady_clock::duration &_ecsUpdatePeriod)
 {
   this->ecsUpdatePeriod = _ecsUpdatePeriod;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+                                      msgs::Boolean &_res)
+{
+  igndbg << "OnWorldControl: request" << std::endl;
+  igndbg << _req.DebugString() << std::endl;
+
+  this->paused = _req.pause();
+
+  _res.set_data(true);
+
+  igndbg << "OnWorldControl: response" << std::endl;
+  igndbg << _res.DebugString() << std::endl;
+
+  return true;
 }

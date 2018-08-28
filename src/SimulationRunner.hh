@@ -121,6 +121,13 @@ namespace ignition
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
+      /// \brief World control service callback
+      /// \param[in] _req Request
+      /// \param[out] _res Response
+      /// \return True for success
+      private: bool OnWorldControl(const msgs::WorldControl &_req,
+                                         msgs::Boolean &_res);
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
@@ -151,8 +158,11 @@ namespace ignition
       /// \brief The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration simUpdatePeriod{2ms};
 
-      /// \brief Number of iterations.
-      public: uint64_t iterations{0};
+      /// \brief Number of ECS iterations.
+      public: uint64_t ecsIterations{0};
+
+      /// \brief Number of simulation iterations.
+      public: uint64_t simIterations{0};
 
       /// \brief List of simulation times used to compute averages.
       public: std::list<std::chrono::steady_clock::duration> simTimes;
@@ -181,6 +191,10 @@ namespace ignition
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
       public: double realTimeFactor;
+
+      /// \brief True if simulation currently paused, which means the simulation
+      /// time is not currently running, but systems are still being updated.
+      public: bool paused{false};
     };
     }
   }
