@@ -131,5 +131,8 @@ pipelines:
           - make
           - make test
           - make coverage
+          # Use a special version of codecov for handling gcc8 output.
+          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
+          - make codecheck
           - make install
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
