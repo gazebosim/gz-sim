@@ -75,7 +75,7 @@ namespace ignition
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systems Systems to be loaded
       public: explicit SimulationRunner(const sdf::World *_world,
-                std::vector<SystemPtr> &_systems);
+                const std::vector<SystemPtr> &_systems);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
