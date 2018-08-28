@@ -20,6 +20,7 @@
 
 #include <list>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -60,7 +61,7 @@ class ignition::gazebo::systems::WorldStatisticsPrivate
 
 //////////////////////////////////////////////////
 WorldStatistics::WorldStatistics()
-  : System("WorldStatistics"),
+  : System(),
     dataPtr(new WorldStatisticsPrivate)
 {
 }
@@ -204,3 +205,7 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
     entityStats.publisher.Publish(msg);
   }
 }
+
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::WorldStatistics,
+                    ignition::gazebo::System)
+

@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <map>
-#include <set>
 #include <memory>
+#include <set>
 #include <string>
 #include <typeinfo>
 #include <utility>
