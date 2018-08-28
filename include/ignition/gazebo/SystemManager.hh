@@ -50,8 +50,16 @@ namespace ignition
       /// \param[in] _path New path to be added.
       public: void AddSystemPluginPath(const std::string &_path);
 
+      /// \brief Load and instantiate system plugin from an SDF element.
+      /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
+      /// \returns Shared pointer to system instance or nullptr.
       public: SystemPtr LoadPlugin(sdf::ElementPtr _sdf);
 
+      /// \brief Load and instantiate system plugin from name/filename.
+      /// \param[in] _filename Shared library filename to load plugin from.
+      /// \param[in] _name Class name to be instantiated.
+      /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
+      /// \returns Shared pointer to system instance or nullptr.
       public: SystemPtr LoadPlugin(const std::string &_filename,
                                    const std::string &_name,
                                    sdf::ElementPtr _sdf);
