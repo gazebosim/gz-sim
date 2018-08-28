@@ -63,15 +63,6 @@ namespace ignition
       /// \param[in] _path Path to world file.
       public slots: void OnSaveWorldAs(const QString &_path);
 
-      /// \brief World control service callback
-      /// This is the server-side logic which provides the world_control
-      /// service.
-      /// \param[in] _req Request
-      /// \param[out] _res Response
-      /// \return True for success
-      private: bool OnWorldControl(const msgs::WorldControl &_req,
-                                         msgs::Boolean &_res);
-
       /// \brief Server control service callback
       /// This is the server-side logic which provides the world_control
       /// service.
