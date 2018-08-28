@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/systems/Physics.hh"
+#include <iomanip>
 
 #include <ignition/math/Pose3.hh>
 
@@ -22,9 +22,10 @@
 #include "ignition/gazebo/EntityQuery.hh"
 #include "ignition/gazebo/SystemQueryResponse.hh"
 
+#include "ignition/gazebo/systems/Physics.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/WorldStatistics.hh"
 
 using namespace ignition::gazebo::systems;
 
@@ -35,7 +36,8 @@ class ignition::gazebo::systems::PhysicsPrivate
 {
   /// \brief Query callback for entity that has physics components.
   /// \param[in] _response The system query response data.
-  public: void OnUpdate(SystemQueryResponse &_response);
+  public: void OnUpdate(const UpdateInfo _info,
+      SystemQueryResponse &_response);
 
   /// \brief Query callback to update time.
   /// \param[in] _response The system query response data.
@@ -64,49 +66,36 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
 
     _registrar.Register(query,
         std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
-          std::placeholders::_1));
-  }
-
-  {
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::WorldStatistics>());
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
-          std::placeholders::_1));
+          std::placeholders::_1, std::placeholders::_2));
   }
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdateTime(SystemQueryResponse &_response)
+void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
+    SystemQueryResponse &_response)
 {
-  auto *worldStats =
-    _response.EntityComponentMgr().First<components::WorldStatistics>();
+  std::chrono::seconds sec(1);
+  std::cout << "Sim time ["
+      << std::chrono::duration<double>(_info.simTime).count()
+      << "] Real time ["
+      << std::chrono::duration<double>(_info.realTime).count()
+      << "] Iterations ["
+      << _info.iterations
+      << "]" << std::endl;
 
-  const auto *worldComponent =
-    _response.EntityComponentMgr().First<components::World>();
-
-  /// \todo(nkoenig) We might want to prevent all systems from modifying
-  /// simulation time.
-  worldStats->AddSimTime(worldComponent->MaxStep());
-
-  worldStats->AddIterations(1u);
-}
-
-//////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
-{
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  _response.EntityComponentMgr().Each<components::Pose>(
-    [&](const EntityId &/*_entity*/, const components::Pose *_pose)
+  _response.EntityComponentMgr().Each<components::Name, components::Pose>(
+    [&](const EntityId &/*_entity*/,
+        const components::Name *_name,
+        const components::Pose *_pose)
     {
-      if (_pose)
-      {
-        std::cout << "Pose[" << _pose->Data() << "]\n";
-        std::this_thread::sleep_for(50us);
-      }
+      std::cout << "  --  " << _name->Data() << " pose [" << _pose->Data()
+                << "]\n";
+      std::this_thread::sleep_for(50us);
     });
+
+  // \todo(louise) Step ign-physics world by _info.dt
 
   // \todo(nkoenig) AcutallyUpdate dynamics
 
