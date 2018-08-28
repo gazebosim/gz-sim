@@ -176,11 +176,11 @@ namespace ignition
       /// \brief List of real times used to compute averages.
       public: std::list<std::chrono::steady_clock::duration> realTimes;
 
-      /// \brief Publisher for this data.
-      public: ignition::transport::Node::Publisher statsPub;
-
       /// \brief Node for communication.
       public: ignition::transport::Node node;
+
+      /// \brief Publisher for this data.
+      public: ignition::transport::Node::Publisher statsPub;
 
       /// \brief Name of world being simulated.
       public: std::string worldName;
