@@ -72,17 +72,8 @@ WorldStatistics::~WorldStatistics()
 }
 
 //////////////////////////////////////////////////
-void WorldStatistics::Init(EntityQueryRegistrar &_registrar)
+void WorldStatistics::Init()
 {
-  // Register a query that will get all entities with
-  // a WorldStatistics component. This should be just world entities, which
-  // is usually a single entity on the server.
-  EntityQuery query;
-  query.AddComponentType(
-      EntityComponentManager::ComponentType<components::WorldStatistics>());
-  _registrar.Register(query,
-      std::bind(&WorldStatisticsPrivate::OnUpdate, this->dataPtr.get(),
-        std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////

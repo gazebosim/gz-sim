@@ -41,7 +41,7 @@ namespace systems
     public: virtual ~Null();
 
     // Documentation inherited
-    public: void Init(EntityQueryRegistrar &_registrar) override final;
+    public: void Init() override final;
   };
   }
 }

@@ -55,27 +55,9 @@ Physics::~Physics()
 }
 
 //////////////////////////////////////////////////
-void Physics::Init(EntityQueryRegistrar &_registrar)
+void Physics::Init()
 {
-  {
-    /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::Pose>());
 
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
-          std::placeholders::_1));
-  }
-
-  {
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::WorldStatistics>());
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
-          std::placeholders::_1));
-  }
 }
 
 //////////////////////////////////////////////////
