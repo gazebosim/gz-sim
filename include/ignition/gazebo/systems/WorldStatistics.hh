@@ -46,9 +46,7 @@ namespace systems
     /// \brief Destructor
     public: virtual ~WorldStatistics();
 
-    // Documentation inherited.
-    public: virtual void Init(
-                EntityQueryRegistrar &_registrar) override final;
+    public: void Init() override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<WorldStatisticsPrivate> dataPtr;

@@ -26,3 +26,40 @@ System::System()
 System::~System()
 {
 }
+
+void System::EntityAdded(const Entity& _entity,
+                         const EntityComponentManager &_ecm)
+{
+  (void) _entity;
+  (void) _ecm;
+}
+
+void System::EntityRemoved(const Entity& _entity,
+                           const EntityComponentManager &_ecm)
+{
+  (void) _entity;
+  (void) _ecm;
+}
+
+void System::PreUpdate(const ignition::common::Time& _dt,
+                       const EntityComponentManager &_ecm)
+{
+  (void) _dt;
+  (void) _ecm;
+}
+
+void System::Update(const ignition::common::Time& _dt,
+                    EntityComponentManager &_ecm)
+{
+  (void) _dt;
+  (void) _ecm;
+}
+
+void System::PostUpdate(const ignition::common::Time& _dt,
+                        const EntityComponentManager &_ecm)
+{
+  (void) _dt;
+  (void) _ecm;
+}
+
+

@@ -44,8 +44,7 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Physics();
 
-    // Documentation inherited
-    public: void Init(EntityQueryRegistrar &_registrar) override final;
+    public: void Init() override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;

@@ -33,7 +33,7 @@ TestSystem::~TestSystem()
 {
 }
 
-void TestSystem::Init(EntityQueryRegistrar &/*_registrar*/)
+void TestSystem::Init()
 {
 }
 

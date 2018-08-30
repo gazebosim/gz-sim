@@ -17,8 +17,9 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include <ignition/common/Time.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -42,9 +43,26 @@ namespace ignition
       public: virtual ~System();
 
       /// \brief Initialize the system.
-      /// \param[out] _registrar A registrar which should be filled with
-      /// queries and callbacks.
-      public: virtual void Init(EntityQueryRegistrar &_registrar) = 0;
+      public: virtual void Init() = 0;
+
+      /// \brief Called when an entity is added to the simulation.
+      // //TODO(mjcarroll): Should this be filtered by matching components?
+      public: virtual void EntityAdded(const Entity& _entity,
+                                       const EntityComponentManager &_ecm);
+
+      /// \brief Called when an entity is removed from the simulation.
+      // //TODO(mjcarroll): Should this be filtered by matching components?
+      public: virtual void EntityRemoved(const Entity& entity,
+                                         const EntityComponentManager &_ecm);
+
+      public: virtual void PreUpdate(const ignition::common::Time &_dt,
+                                     const EntityComponentManager &_ecm);
+
+      public: virtual void Update(const ignition::common::Time &_dt,
+                                  EntityComponentManager &_ecm);
+
+      public: virtual void PostUpdate(const ignition::common::Time &_dt,
+                                      const EntityComponentManager &_ecm);
     };
     }
   }
