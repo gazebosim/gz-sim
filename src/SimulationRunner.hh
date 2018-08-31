@@ -129,8 +129,8 @@ namespace ignition
                   const std::chrono::steady_clock::duration &_ecsUpdatePeriod);
 
       /// \brief World control service callback
-      /// \param[in] _req Request from client, currently handling play / pause and
-      /// multistep.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep.
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
       private: bool OnWorldControl(const msgs::WorldControl &_req,
