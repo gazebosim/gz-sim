@@ -107,8 +107,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node.Advertise("/world/" + this->worldName + "/control",
         &SimulationRunner::OnWorldControl, this);
 
-  ignmsg << "World [" << _world->Name() << "] initialized with [" << physics->Name()
-         << "] physics profile." << std::endl;
+  ignmsg << "World [" << _world->Name() << "] initialized with ["
+         << physics->Name() << "] physics profile." << std::endl;
 }
 
 //////////////////////////////////////////////////
