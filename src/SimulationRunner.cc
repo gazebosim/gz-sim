@@ -56,9 +56,16 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     this->systems.push_back(SystemInternal(system));
   }
 
+  // Get the first physics profile
+  // \todo(louise) Support picking a specific profile
+  auto physics = _world->PhysicsByIndex(0);
+  if (!physics)
+  {
+    physics = _world->PhysicsDefault();
+  }
+
   // Step size
-  auto dur = std::chrono::duration<double>(
-      _world->PhysicsDefault()->MaxStepSize());
+  auto dur = std::chrono::duration<double>(physics->MaxStepSize());
 
   this->stepSize =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -99,6 +106,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // World control
   this->node.Advertise("/world/" + this->worldName + "/control",
         &SimulationRunner::OnWorldControl, this);
+
+  ignmsg << "World [" << _world->Name() << "] initialized with [" << physics->Name()
+         << "] physics profile." << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -128,6 +138,62 @@ void SimulationRunner::InitSystems()
   }
 
   this->workerPool.WaitForResults();
+}
+
+/////////////////////////////////////////////////
+UpdateInfo SimulationRunner::UpdatedInfo()
+{
+  // Store the real time, and maintain a window size of 20.
+  this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
+  if (this->realTimes.size() > 20)
+  {
+    this->realTimes.pop_front();
+  }
+
+  // Store the sim time, and maintain a window size of 20.
+  this->simTimes.push_back(this->simTime);
+  if (this->simTimes.size() > 20)
+  {
+    this->simTimes.pop_front();
+  }
+
+  // Compute the average sim and real times.
+  std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
+  std::list<std::chrono::steady_clock::duration>::iterator simIter,
+    realIter;
+
+  simIter = ++(this->simTimes.begin());
+  realIter = ++(this->realTimes.begin());
+  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
+  {
+    simAvg += ((*simIter) - this->simTimes.front());
+    realAvg += ((*realIter) - this->realTimes.front());
+    ++simIter;
+    ++realIter;
+  }
+
+  // RTF
+  if (realAvg != 0ns)
+  {
+    this->realTimeFactor = math::precision(
+          static_cast<double>(simAvg.count()) / realAvg.count(), 4);
+  }
+
+  // Fill the current update info
+  UpdateInfo info;
+  info.simTime = this->simTime;
+  info.realTime = this->realTimeWatch.ElapsedRunTime();
+  info.iterations = this->simIterations;
+  if (!this->paused || this->pendingSimIterations > 0)
+  {
+    info.dt = this->stepSize;
+  }
+  else
+  {
+    info.dt = std::chrono::steady_clock::duration::zero();
+  }
+
+  return info;
 }
 
 /////////////////////////////////////////////////
@@ -244,57 +310,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           (actualSleep - sleepTime) * 0.01 + this->ecsSleepOffset * 0.99);
 
-    // Store the real time, and maintain a window size of 20.
-    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
-    if (this->realTimes.size() > 20)
-    {
-      this->realTimes.pop_front();
-    }
-
-    // Store the sim time, and maintain a window size of 20.
-    this->simTimes.push_back(this->simTime);
-    if (this->simTimes.size() > 20)
-    {
-      this->simTimes.pop_front();
-    }
-
-    // Compute the average sim and real times.
-    std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
-    std::list<std::chrono::steady_clock::duration>::iterator simIter,
-      realIter;
-
-    simIter = ++(this->simTimes.begin());
-    realIter = ++(this->realTimes.begin());
-    for (; simIter != this->simTimes.end() &&
-        realIter != this->realTimes.end(); ++simIter, ++realIter)
-    {
-      simAvg += ((*simIter) - this->simTimes.front());
-      realAvg += ((*realIter) - this->realTimes.front());
-    }
-
-    // RTF
-    if (realAvg != 0ns)
-    {
-      this->realTimeFactor = math::precision(
-            static_cast<double>(simAvg.count()) / realAvg.count(), 4);
-    }
-
-    // simulating?
-    bool simulating = !this->paused || this->pendingSimIterations > 0;
-
-    // Fill the current update info
-    UpdateInfo info;
-    info.simTime = this->simTime;
-    info.realTime = this->realTimeWatch.ElapsedRunTime();
-    info.iterations = this->simIterations;
-    if (simulating)
-    {
-      info.dt = this->stepSize;
-    }
-    else
-    {
-      info.dt = std::chrono::steady_clock::duration::zero();
-    }
+    // Get updated time information
+    auto info = this->UpdatedInfo();
 
     // Publish info
     this->PublishStats(info);
@@ -305,8 +322,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update all the systems.
     this->UpdateSystems(info);
 
-    // Update sim time
-    if (simulating)
+    // Update sim time and sim iterations
+    if (!this->paused || this->pendingSimIterations > 0)
     {
       this->simTime += this->stepSize;
       ++this->simIterations;

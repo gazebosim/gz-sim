@@ -100,7 +100,6 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
     {
       igndbg << "  --  " << _name->Data() << " pose [" << _pose->Data()
              << "]\n";
-      std::this_thread::sleep_for(5us);
     });
 
   // \todo(louise) Step ign-physics world by _info.dt
