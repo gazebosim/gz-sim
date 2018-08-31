@@ -136,6 +136,10 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief Get updated time information.
+      /// \return Latest info
+      private: UpdateInfo UpdatedInfo();
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
