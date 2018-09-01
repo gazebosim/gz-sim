@@ -16,7 +16,7 @@
 */
 
 #include "ignition/gazebo/systems/Null.hh"
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 
 using namespace ignition::gazebo::systems;
 
@@ -36,6 +36,7 @@ void Null::Init()
 {
 }
 
+// First Registration. include RegisterMore elsewhere
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
                     ignition::gazebo::System)
 
