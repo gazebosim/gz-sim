@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -44,7 +43,31 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Physics();
 
+    /// Documentation inherited
     public: void Init() override final;
+
+    /// Documentation inherited
+    public: virtual void EntityAdded(
+                const Entity &_entity,
+                const EntityComponentManager &_ecm) override final;
+
+    /// Documentation inherited
+    public: virtual void EntityRemoved(
+                const Entity &entity,
+                const EntityComponentManager &_ecm) override final;
+
+    /// Documentation inherited
+    public: virtual void PreUpdate(
+                const ignition::common::Time &_dt,
+                const EntityComponentManager &_ecm) override final;
+
+    /// Documentation inherited
+    public: virtual void Update(const ignition::common::Time &_dt,
+                                EntityComponentManager &_ecm) override final;
+
+    /// Documentation inherited
+    public: virtual void PostUpdate(const ignition::common::Time &_dt,
+                                    const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;

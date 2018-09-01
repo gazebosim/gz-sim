@@ -17,7 +17,7 @@
 
 #include "TestSystem.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <ignition/plugin/RegisterMore.hh>
 
 using namespace ignition;
 using namespace gazebo;

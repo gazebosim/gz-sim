@@ -54,6 +54,10 @@ find_package (Qt5
     QuickControls2
   REQUIRED)
 
+# Find ignition-physics
+set(IGN_PHYSICS_VER 0)
+ign_find_package(ignition-physics0 REQUIRED)
+
 #--------------------------------------
 # Find gflags
 find_library(gflags_LIBRARIES NAMES gflags)
