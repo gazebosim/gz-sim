@@ -121,12 +121,12 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
-      /// \brief Set the ECS update period. The update period is the wall-clock
-      /// time between updates of all ECS systems. Note that even if systems
-      /// are being update, this doesn't mean sim time is increasing.
-      /// \param[in] _ecsUpdatePeriod Duration between updates.
+      /// \brief Set the update period. The update period is the wall-clock
+      /// time between updates of all systems. Note that even if systems
+      /// are being updated, this doesn't mean sim time is increasing.
+      /// \param[in] _updatePeriod Duration between updates.
       public: void SetUpdatePeriod(
-                  const std::chrono::steady_clock::duration &_ecsUpdatePeriod);
+                  const std::chrono::steady_clock::duration &_updatePeriod);
 
       /// \brief World control service callback
       /// \param[in] _req Request from client, currently handling play / pause
@@ -163,13 +163,13 @@ namespace ignition
       /// sleep durations.
       public: std::chrono::steady_clock::duration ecsSleepOffset{0};
 
-      /// \brief This is the rate at which the ECS is updated.
+      /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
-      public: std::chrono::steady_clock::duration ecsUpdatePeriod{2ms};
+      public: std::chrono::steady_clock::duration updatePeriod{2ms};
 
-      /// \brief Number of times the ECS systems have been updated. This number
+      /// \brief Number of times the systems have been updated. This number
       /// can't be reset.
-      public: uint64_t ecsIterations{0};
+      public: uint64_t iterations{0};
 
       /// \brief Number of elapsed simulation iterations.
       /// \todo(louise) Support reset, which will set this number back to zero.
