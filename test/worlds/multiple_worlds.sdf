@@ -3,20 +3,20 @@
   <world name="world_one">
     <plugin
       filename="libignition-gazebo-systems.so"
-      classname="ignition::gazebo::systems::v0::Null">
+      name="ignition::gazebo::systems::v0::Null">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      classname="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      classname="ignition::gazebo::systems::v0::WorldStatistics">
+      name="ignition::gazebo::systems::v0::WorldStatistics">
     </plugin>
 
     <physics name="default" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>2.0</real_time_factor>
+      <real_time_factor>100.0</real_time_factor>
     </physics>
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
@@ -41,6 +41,15 @@
   </world>
 
   <world name="world_two">
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::WorldStatistics">
+    </plugin>
+
     <physics name="default" type="ode">
       <max_step_size>0.005</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -70,6 +79,15 @@
   </world>
 
   <world name="world_three">
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::WorldStatistics">
+    </plugin>
+
     <physics name="default" type="ode">
       <max_step_size>0.02</max_step_size>
       <real_time_factor>0.5</real_time_factor>

@@ -87,24 +87,26 @@ void SimulationRunner::InitSystems()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
-  // Update all the systems in parallel
+  // \todo(nkoenig)  Systems used to be updated in parallel using
+  // an ignition::common::WorkerPool. There is overhead associated with
+  // this, most notably the creation and destruction of WorkOrders (see
+  // WorkerPool.cc). We could turn on parallel updates in the future, and/or
+  // turn it on if there are sufficient systems. More testing is required.
+
+  // Update all the systems
   for (SystemInternal &system : this->systems)
   {
-    this->workerPool.AddWork([&system, this] ()
+    for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
     {
-      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+      const std::optional<std::reference_wrapper<EntityQuery>> query =
+        this->entityCompMgr.Query(cb.first);
+      if (query && query->get().EntityCount() > 0)
       {
-        const std::optional<std::reference_wrapper<EntityQuery>> query =
-          this->entityCompMgr.Query(cb.first);
-        if (query && query->get().EntityCount() > 0)
-        {
-          SystemQueryResponse response(query->get(), this->entityCompMgr);
-          cb.second(response);
-        }
+        SystemQueryResponse response(query->get(), this->entityCompMgr);
+        cb.second(response);
       }
-    });
+    }
   }
-  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////

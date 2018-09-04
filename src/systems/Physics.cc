@@ -99,13 +99,14 @@ void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
+  std::this_thread::sleep_for(50us);
+
   _response.EntityComponentMgr().Each<components::Pose>(
     [&](const EntityId &/*_entity*/, const components::Pose *_pose)
     {
       if (_pose)
       {
-        std::cout << "Pose[" << _pose->Data() << "]\n";
-        std::this_thread::sleep_for(50us);
+        // std::cout << "Pose[" << _pose->Data() << "]\n";
       }
     });
 
