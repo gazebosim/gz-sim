@@ -67,16 +67,7 @@ void SimulationRunner::InitSystems()
   {
     this->workerPool.AddWork([&system, this] ()
     {
-      EntityQueryRegistrar registrar;
-      system.system->Init(registrar);
-      for (const EntityQueryRegistration &registration :
-           registrar.Registrations())
-      {
-        const EntityQuery &query = registration.first;
-        const EntityQueryCallback &cb = registration.second;
-        EntityQueryId queryId = this->entityCompMgr.AddQuery(query);
-        system.updates.push_back({queryId, cb});
-      }
+      system.system->Init(system.updates);
     });
   }
 
@@ -91,14 +82,9 @@ void SimulationRunner::UpdateSystems()
   {
     this->workerPool.AddWork([&system, this] ()
     {
-      for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+      for (EntityQueryCallback &cb : system.updates)
       {
-        const std::optional<std::reference_wrapper<EntityQuery>> query =
-          this->entityCompMgr.Query(cb.first);
-        if (query && query->get().EntityCount() > 0)
-        {
-          cb.second(this->entityCompMgr);
-        }
+        cb(this->entityCompMgr);
       }
     });
   }

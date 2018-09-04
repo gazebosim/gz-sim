@@ -63,8 +63,7 @@ namespace ignition
       public: std::shared_ptr<System> system;
 
       /// \brief Vector of queries and callbacks
-      public: std::vector<
-              std::pair<EntityQueryId, EntityQueryCallback>> updates;
+      public: std::vector<EntityQueryCallback> updates;
     };
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner

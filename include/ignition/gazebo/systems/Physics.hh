@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
 
 #include <memory>
+#include <vector>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -45,7 +45,8 @@ namespace systems
     public: virtual ~Physics();
 
     // Documentation inherited
-    public: void Init(EntityQueryRegistrar &_registrar) override final;
+    public: void Init(
+                std::vector<EntityQueryCallback> &_cbs) override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;
