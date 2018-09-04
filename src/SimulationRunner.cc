@@ -289,9 +289,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the ECS update period.
-    sleepTime = std::max(0ns, this->ecsPrevUpdateRealTime +
+    sleepTime = std::max(0ns, this->prevUpdateRealTime +
         this->updatePeriod - std::chrono::steady_clock::now() -
-        this->ecsSleepOffset);
+        this->sleepOffset);
     actualSleep = 0ns;
 
     // Only sleep if needed.
@@ -306,9 +306,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Exponentially average out the difference between expected sleep time
     // and actual sleep time.
-    this->ecsSleepOffset =
+    this->sleepOffset =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
-          (actualSleep - sleepTime) * 0.01 + this->ecsSleepOffset * 0.99);
+          (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
     // Get updated time information
     auto info = this->UpdatedInfo();
@@ -317,7 +317,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->PublishStats(info);
 
     // Record when the update step starts.
-    this->ecsPrevUpdateRealTime = std::chrono::steady_clock::now();
+    this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
     // Update all the systems.
     this->UpdateSystems(info);
