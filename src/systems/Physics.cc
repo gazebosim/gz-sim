@@ -21,7 +21,6 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EntityQuery.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -35,12 +34,12 @@ using namespace std::chrono_literals;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   /// \brief Query callback for entity that has physics components.
-  /// \param[in] _response The system query response data.
-  public: void OnUpdate(SystemQueryResponse &_response);
+  /// \param[in] _manager Entity component manager.
+  public: void OnUpdate(EntityComponentManager &_manager);
 
   /// \brief Query callback to update time.
-  /// \param[in] _response The system query response data.
-  public: void OnUpdateTime(SystemQueryResponse &_response);
+  /// \param[in] _manager Entity component manager.
+  public: void OnUpdateTime(EntityComponentManager &_manager);
 };
 
 //////////////////////////////////////////////////
@@ -79,13 +78,11 @@ void Physics::Init(EntityQueryRegistrar &_registrar)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdateTime(SystemQueryResponse &_response)
+void PhysicsPrivate::OnUpdateTime(EntityComponentManager &_manager)
 {
-  auto *worldStats =
-    _response.EntityComponentMgr().First<components::WorldStatistics>();
+  auto *worldStats = _manager.First<components::WorldStatistics>();
 
-  const auto *worldComponent =
-    _response.EntityComponentMgr().First<components::World>();
+  const auto *worldComponent = _manager.First<components::World>();
 
   /// \todo(nkoenig) We might want to prevent all systems from modifying
   /// simulation time.
@@ -95,11 +92,11 @@ void PhysicsPrivate::OnUpdateTime(SystemQueryResponse &_response)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdate(SystemQueryResponse &_response)
+void PhysicsPrivate::OnUpdate(EntityComponentManager &_manager)
 {
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  _response.EntityComponentMgr().Each<components::Pose>(
+  _manager.Each<components::Pose>(
     [&](const EntityId &/*_entity*/, const components::Pose *_pose)
     {
       if (_pose)
