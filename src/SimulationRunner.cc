@@ -82,21 +82,21 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   //
   // sim_time = sim_it * step_size
   //
-  // And the real time is the ECS period times the number of ECS iterations:
+  // And the real time is the period times the number of iterations:
   //
-  // real_time = ecs_it * ecs_period
+  // real_time = it * period
   //
   // So we have:
   //
-  // RTF = sim_it * step_size / ecs_it * ecs_period
+  // RTF = sim_it * step_size / it * period
   //
-  // Considering no pause, sim_it equals ecs_it, so:
+  // Considering no pause, sim_it equals it, so:
   //
-  // RTF = step_size / ecs_period
+  // RTF = step_size / period
   //
-  // So to get a given RTF, our desired ECS period is:
+  // So to get a given RTF, our desired period is:
   //
-  // ecs_period = step_size / RTF
+  // e_cs_period = step_size / RTF
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
@@ -288,7 +288,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        ++this->iterations)
   {
     // Compute the time to sleep in order to match, as closely as possible,
-    // the ECS update period.
+    // the update period.
     sleepTime = std::max(0ns, this->prevUpdateRealTime +
         this->updatePeriod - std::chrono::steady_clock::now() -
         this->sleepOffset);
