@@ -97,7 +97,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // So to get a given RTF, our desired ECS period is:
   //
   // ecs_period = step_size / RTF
-  this->ecsUpdatePeriod = std::chrono::nanoseconds(
+  this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
   // Create entities and components
@@ -282,15 +282,15 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (uint64_t startingIterations = this->ecsIterations;
+  for (uint64_t startingIterations = this->iterations;
        this->running && (_iterations == 0 ||
-         this->ecsIterations < _iterations + startingIterations);
-       ++this->ecsIterations)
+         this->iterations < _iterations + startingIterations);
+       ++this->iterations)
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the ECS update period.
     sleepTime = std::max(0ns, this->ecsPrevUpdateRealTime +
-        this->ecsUpdatePeriod - std::chrono::steady_clock::now() -
+        this->updatePeriod - std::chrono::steady_clock::now() -
         this->ecsSleepOffset);
     actualSleep = 0ns;
 
@@ -298,7 +298,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (sleepTime > 0ns)
     {
       // Get the current time, sleep for the duration needed to match the
-      // ecsUpdatePeriod, and then record the actual time slept.
+      // updatePeriod, and then record the actual time slept.
       startTime = std::chrono::steady_clock::now();
       std::this_thread::sleep_for(sleepTime);
       actualSleep = std::chrono::steady_clock::now() - startTime;
@@ -454,7 +454,7 @@ bool SimulationRunner::Running() const
 /////////////////////////////////////////////////
 uint64_t SimulationRunner::IterationCount() const
 {
-  return this->ecsIterations;
+  return this->iterations;
 }
 
 /////////////////////////////////////////////////
@@ -471,9 +471,9 @@ size_t SimulationRunner::SystemCount() const
 
 /////////////////////////////////////////////////
 void SimulationRunner::SetUpdatePeriod(
-    const std::chrono::steady_clock::duration &_ecsUpdatePeriod)
+    const std::chrono::steady_clock::duration &_updatePeriod)
 {
-  this->ecsUpdatePeriod = _ecsUpdatePeriod;
+  this->updatePeriod = _updatePeriod;
 }
 
 /////////////////////////////////////////////////
