@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_SYSTEMS_WORLD_STATISTICS_HH_
 
 #include <memory>
+#include <vector>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
@@ -48,7 +48,7 @@ namespace systems
 
     // Documentation inherited.
     public: virtual void Init(
-                EntityQueryRegistrar &_registrar) override final;
+                std::vector<EntityQueryCallback> &_cbs) override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<WorldStatisticsPrivate> dataPtr;

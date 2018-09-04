@@ -27,7 +27,6 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class EntityQuery;
     class EntityComponentManager;
 
     /// \brief A unique identifier for a component instance. The uniqueness
@@ -46,9 +45,6 @@ namespace ignition
 
     /// \brief typedef for query callbacks
     using EntityQueryCallback = std::function<void (EntityComponentManager &)>;
-
-    /// \brief typedef for long registration type
-    using EntityQueryRegistration = std::pair<EntityQuery, EntityQueryCallback>;
 
     /// \brief Id that indicates an invalid component.
     static const ComponentId kComponentIdInvalid = -1;

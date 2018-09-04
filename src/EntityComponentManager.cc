@@ -40,9 +40,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief The set of components that each entity has
   public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
-  /// \brief Set of known Entity queries.
-  public: std::vector<EntityQuery> queries;
-
   /// \brief Just a mutex for thread safety.
   public: std::mutex mutex;
 };
@@ -194,38 +191,6 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   return componentKey;
 }
 
-//////////////////////////////////////////////////
-EntityQueryId EntityComponentManager::AddQuery(const EntityQuery &_query)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  for (size_t i = 0; i < this->dataPtr->queries.size(); ++i)
-  {
-    if (_query == this->dataPtr->queries.at(i))
-    {
-      // Already have this query.
-      return i;
-    }
-  }
-
-  this->dataPtr->queries.push_back(_query);
-  EntityQuery &query = this->dataPtr->queries.back();
-  EntityQueryId result = this->dataPtr->queries.size() - 1;
-
-  const std::set<ComponentTypeId> &types = _query.ComponentTypes();
-  // \todo(nkoenig) Check that the entities vector is always compact,
-  // otherwise this loop could check removed entities.
-  for (size_t id = 0; id < this->dataPtr->entities.size(); ++id)
-  {
-    // Check that the entity has the required components
-    if (this->EntityMatches(this->dataPtr->entities[id].Id(), types))
-    {
-      query.AddEntity(this->dataPtr->entities[id].Id());
-    }
-  }
-
-  return result;
-}
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::EntityMatches(EntityId _id,
@@ -257,19 +222,6 @@ bool EntityComponentManager::EntityMatches(EntityId _id,
   }
 
   return true;
-}
-
-/////////////////////////////////////////////////
-const std::optional<std::reference_wrapper<EntityQuery>>
-EntityComponentManager::Query(const EntityQueryId _index) const
-{
-  if (_index >= 0 &&
-      _index < static_cast<EntityQueryId>(this->dataPtr->queries.size()))
-  {
-    return std::optional<std::reference_wrapper<EntityQuery>>(
-        this->dataPtr->queries[_index]);
-  }
-  return std::nullopt;
 }
 
 /////////////////////////////////////////////////
