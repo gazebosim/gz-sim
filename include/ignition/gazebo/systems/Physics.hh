@@ -58,15 +58,15 @@ namespace systems
 
     /// Documentation inherited
     public: virtual void PreUpdate(
-                const ignition::common::Time &_dt,
+                const std::chrono::steady_clock::duration &_dt,
                 const EntityComponentManager &_ecm) override final;
 
     /// Documentation inherited
-    public: virtual void Update(const ignition::common::Time &_dt,
+    public: virtual void Update(const std::chrono::steady_clock::duration &_dt,
                                 EntityComponentManager &_ecm) override final;
 
     /// Documentation inherited
-    public: virtual void PostUpdate(const ignition::common::Time &_dt,
+    public: virtual void PostUpdate(const std::chrono::steady_clock::duration &_dt,
                                     const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.

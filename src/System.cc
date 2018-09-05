@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include <chrono>
+
 #include "ignition/gazebo/System.hh"
 
 using namespace ignition::gazebo;
@@ -41,21 +43,21 @@ void System::EntityRemoved(const Entity& _entity,
   (void) _ecm;
 }
 
-void System::PreUpdate(const ignition::common::Time& _dt,
+void System::PreUpdate(const std::chrono::steady_clock::duration& _dt,
                        const EntityComponentManager &_ecm)
 {
   (void) _dt;
   (void) _ecm;
 }
 
-void System::Update(const ignition::common::Time& _dt,
+void System::Update(const std::chrono::steady_clock::duration& _dt,
                     EntityComponentManager &_ecm)
 {
   (void) _dt;
   (void) _ecm;
 }
 
-void System::PostUpdate(const ignition::common::Time& _dt,
+void System::PostUpdate(const std::chrono::steady_clock::duration& _dt,
                         const EntityComponentManager &_ecm)
 {
   (void) _dt;
