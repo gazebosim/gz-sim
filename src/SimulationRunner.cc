@@ -78,11 +78,32 @@ void SimulationRunner::InitSystems()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
+  auto &dt = this->updatePeriod;
   // Update all the systems in parallel
   for (SystemInternal &system : this->systems)
   {
-    this->workerPool.AddWork([&system, this] ()
+    this->workerPool.AddWork([&dt, &system, this] ()
     {
+      system.system->PreUpdate(dt, this->entityCompMgr);
+    });
+  }
+  this->workerPool.WaitForResults();
+
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&dt, &system, this] ()
+    {
+      system.system->Update(dt, this->entityCompMgr);
+
+    });
+  }
+  this->workerPool.WaitForResults();
+
+  for (SystemInternal &system : this->systems)
+  {
+    this->workerPool.AddWork([&dt, &system, this] ()
+    {
+      system.system->PostUpdate(dt, this->entityCompMgr);
 
     });
   }
