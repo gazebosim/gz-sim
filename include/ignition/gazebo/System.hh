@@ -47,22 +47,25 @@ namespace ignition
 
       /// \brief Called when an entity is added to the simulation.
       // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityAdded(const Entity& _entity,
+      public: virtual void EntityAdded(const Entity &_entity,
                                        const EntityComponentManager &_ecm);
 
       /// \brief Called when an entity is removed from the simulation.
       // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityRemoved(const Entity& entity,
+      public: virtual void EntityRemoved(const Entity &entity,
                                          const EntityComponentManager &_ecm);
 
-      public: virtual void PreUpdate(const ignition::common::Time &_dt,
-                                     const EntityComponentManager &_ecm);
+      public: virtual void PreUpdate(
+                  const std::chrono::steady_clock::duration &_dt,
+                  const EntityComponentManager &_ecm);
 
-      public: virtual void Update(const ignition::common::Time &_dt,
-                                  EntityComponentManager &_ecm);
+      public: virtual void Update(
+                  const std::chrono::steady_clock::duration &_dt,
+                  EntityComponentManager &_ecm);
 
-      public: virtual void PostUpdate(const ignition::common::Time &_dt,
-                                      const EntityComponentManager &_ecm);
+      public: virtual void PostUpdate(
+                  const std::chrono::steady_clock::duration &_dt,
+                  const EntityComponentManager &_ecm);
     };
     }
   }
