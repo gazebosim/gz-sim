@@ -35,7 +35,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
 #include "ignition/gazebo/SystemManager.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -98,8 +97,7 @@ void SimulationRunner::UpdateSystems()
           this->entityCompMgr.Query(cb.first);
         if (query && query->get().EntityCount() > 0)
         {
-          SystemQueryResponse response(query->get(), this->entityCompMgr);
-          cb.second(response);
+          cb.second(this->entityCompMgr);
         }
       }
     });

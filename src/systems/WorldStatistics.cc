@@ -24,7 +24,6 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
@@ -37,7 +36,7 @@ class ignition::gazebo::systems::WorldStatisticsPrivate
 {
   /// \brief Entity query callback for all worlds.
   /// \param[in] _response The system query response data.
-  public: void OnUpdate(SystemQueryResponse &_response);
+  public: void OnUpdate(EntityComponentManager &_manager);
 
   /// \brief Local storage for statistics computation and publication.
   public: class Stats
@@ -86,45 +85,43 @@ void WorldStatistics::Init(EntityQueryRegistrar &_registrar)
 }
 
 //////////////////////////////////////////////////
-void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
+void WorldStatisticsPrivate::OnUpdate(EntityComponentManager &_manager)
 {
   std::map<std::string, Stats>::iterator iter;
 
   // Process each entity.
-  for (const EntityId &entity : _response.Query().Entities())
+  _manager.Each<components::WorldStatistics>(
+    [&](const EntityId &_entity, const components::WorldStatistics * /*_stats*/)
   {
     // Get the world component.
-    const auto *world =
-      _response.EntityComponentMgr().Component<components::World>(entity);
+    const auto *world = _manager.Component<components::World>(_entity);
 
     if (!world)
     {
       ignerr << "A world entity does not have a World component.\n"
         << std::endl;
-      continue;
+      return;
     }
 
     // Get the world stats component.
     auto *worldStats =
-      _response.EntityComponentMgr().ComponentMutable<
-          components::WorldStatistics>(entity);
+      _manager.ComponentMutable<components::WorldStatistics>(_entity);
 
     if (!worldStats)
     {
       ignerr << "A world entity does not have a WorldStatistics component.\n"
         << std::endl;
-      continue;
+      return;
     }
 
     // Get the name component.
-    const auto *name =
-      _response.EntityComponentMgr().Component<components::Name>(entity);
+    const auto *name = _manager.Component<components::Name>(_entity);
 
     if (!name)
     {
       ignerr << "A world entity does not have a Name component.\n"
         << std::endl;
-      continue;
+      return;
     }
 
     worldStats->RealTime().Start();
@@ -203,7 +200,7 @@ void WorldStatisticsPrivate::OnUpdate(SystemQueryResponse &_response)
 
     // Publish the message
     entityStats.publisher.Publish(msg);
-  }
+  });
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::WorldStatistics,
