@@ -32,7 +32,7 @@ Null::~Null()
 }
 
 //////////////////////////////////////////////////
-void Null::Init(EntityQueryRegistrar &/*_registrar*/)
+void Null::Init(std::vector<EntityQueryCallback> &/*_cbs*/)
 {
 }
 

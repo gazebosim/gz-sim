@@ -20,8 +20,6 @@
 #include <ignition/plugin/RegisterMore.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EntityQuery.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 
 #include "ignition/gazebo/systems/Physics.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -36,13 +34,10 @@ using namespace std::chrono_literals;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   /// \brief Query callback for entity that has physics components.
-  /// \param[in] _response The system query response data.
+  /// \param[in] _info Update information.
+  /// \param[in] _manager Entity component manager.
   public: void OnUpdate(const UpdateInfo _info,
-      SystemQueryResponse &_response);
-
-  /// \brief Query callback to update time.
-  /// \param[in] _response The system query response data.
-  public: void OnUpdateTime(SystemQueryResponse &_response);
+      EntityComponentManager &_manager);
 };
 
 //////////////////////////////////////////////////
@@ -57,23 +52,16 @@ Physics::~Physics()
 }
 
 //////////////////////////////////////////////////
-void Physics::Init(EntityQueryRegistrar &_registrar)
+void Physics::Init(std::vector<EntityQueryCallback> &_cbs)
 {
-  {
-    /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::Pose>());
-
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
-          std::placeholders::_1, std::placeholders::_2));
-  }
+  _cbs.push_back(
+      std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
-    SystemQueryResponse &_response)
+    EntityComponentManager &_manager)
 {
   igndbg << "Sim time ["
          << std::chrono::duration<double>(_info.simTime).count()
@@ -93,7 +81,7 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
 
   // Sleep for some amount of time to simulate the computation needed to
   // update physics.
-  _response.EntityComponentMgr().Each<components::Name, components::Pose>(
+  _manager.Each<components::Name, components::Pose>(
     [&](const EntityId &/*_entity*/,
         const components::Name *_name,
         const components::Pose *_pose)
