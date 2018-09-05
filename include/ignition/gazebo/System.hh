@@ -17,9 +17,11 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include <vector>
+
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
@@ -42,9 +44,8 @@ namespace ignition
       public: virtual ~System();
 
       /// \brief Initialize the system.
-      /// \param[out] _registrar A registrar which should be filled with
-      /// queries and callbacks.
-      public: virtual void Init(EntityQueryRegistrar &_registrar) = 0;
+      /// \param[out] _cbs A set of callbacks.
+      public: virtual void Init(std::vector<EntityQueryCallback> &_cbs) = 0;
     };
     }
   }

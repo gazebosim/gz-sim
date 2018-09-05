@@ -20,7 +20,6 @@
 #include <ignition/plugin/RegisterMore.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EntityQuery.hh"
 
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -54,27 +53,15 @@ Physics::~Physics()
 }
 
 //////////////////////////////////////////////////
-void Physics::Init(EntityQueryRegistrar &_registrar)
+void Physics::Init(std::vector<EntityQueryCallback> &_cbs)
 {
-  {
-    /// \todo(nkoenig) support curly-bracket initialization of EntityQuery.
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::Pose>());
+  _cbs.push_back(
+      std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
+        std::placeholders::_1));
 
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
-          std::placeholders::_1));
-  }
-
-  {
-    EntityQuery query;
-    query.AddComponentType(
-        EntityComponentManager::ComponentType<components::WorldStatistics>());
-    _registrar.Register(query,
-        std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
-          std::placeholders::_1));
-  }
+  _cbs.push_back(
+      std::bind(&PhysicsPrivate::OnUpdateTime, this->dataPtr.get(),
+        std::placeholders::_1));
 }
 
 //////////////////////////////////////////////////
