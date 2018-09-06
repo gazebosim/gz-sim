@@ -376,8 +376,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_FALSE(runner.paused);
   EXPECT_EQ(0u, runner.iterations);
-  EXPECT_EQ(0u, runner.simIterations);
-  EXPECT_EQ(0ms, runner.simTime);
+  EXPECT_EQ(0u, runner.currentInfo.iterations);
+  EXPECT_EQ(0ms, runner.currentInfo.simTime);
+  EXPECT_EQ(0ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(1ms, runner.stepSize);
 
@@ -387,8 +388,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_FALSE(runner.paused);
   EXPECT_EQ(100u, runner.iterations);
-  EXPECT_EQ(100u, runner.simIterations);
-  EXPECT_EQ(100ms, runner.simTime);
+  EXPECT_EQ(100u, runner.currentInfo.iterations);
+  EXPECT_EQ(100ms, runner.currentInfo.simTime);
+  EXPECT_EQ(1ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(1ms, runner.stepSize);
 
@@ -399,8 +401,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_FALSE(runner.paused);
   EXPECT_EQ(200u, runner.iterations);
-  EXPECT_EQ(200u, runner.simIterations);
-  EXPECT_EQ(300ms, runner.simTime);
+  EXPECT_EQ(200u, runner.currentInfo.iterations);
+  EXPECT_EQ(300ms, runner.currentInfo.simTime);
+  EXPECT_EQ(2ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(2ms, runner.stepSize);
 
@@ -411,8 +414,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_TRUE(runner.paused);
   EXPECT_EQ(300u, runner.iterations);
-  EXPECT_EQ(200u, runner.simIterations);
-  EXPECT_EQ(300ms, runner.simTime);
+  EXPECT_EQ(200u, runner.currentInfo.iterations);
+  EXPECT_EQ(300ms, runner.currentInfo.simTime);
+  EXPECT_EQ(0ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(2ms, runner.stepSize);
 
@@ -423,8 +427,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_TRUE(runner.paused);
   EXPECT_EQ(400u, runner.iterations);
-  EXPECT_EQ(250u, runner.simIterations);
-  EXPECT_EQ(400ms, runner.simTime);
+  EXPECT_EQ(250u, runner.currentInfo.iterations);
+  EXPECT_EQ(400ms, runner.currentInfo.simTime);
+  EXPECT_EQ(0ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(2ms, runner.stepSize);
 
@@ -435,8 +440,9 @@ TEST_P(SimulationRunnerTest, Time)
   // Check state
   EXPECT_FALSE(runner.paused);
   EXPECT_EQ(500u, runner.iterations);
-  EXPECT_EQ(350u, runner.simIterations);
-  EXPECT_EQ(600ms, runner.simTime);
+  EXPECT_EQ(350u, runner.currentInfo.iterations);
+  EXPECT_EQ(600ms, runner.currentInfo.simTime);
+  EXPECT_EQ(2ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(2ms, runner.stepSize);
 }
