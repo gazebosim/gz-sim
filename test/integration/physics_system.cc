@@ -33,14 +33,13 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-
 using namespace ignition;
 using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public ::testing::Test
 {
   protected:
-    virtual void SetUp() override
+    void SetUp() override
     {
       // Augment the system plugin path.  In SetUp to avoid test order issues.
       setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
@@ -66,6 +65,5 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
     server.Run(true, i);
     EXPECT_FALSE(*server.Running());
   }
-
 }
 

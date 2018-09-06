@@ -57,17 +57,13 @@ namespace systems
                 const EntityComponentManager &_ecm) override final;
 
     /// Documentation inherited
-    public: virtual void PreUpdate(
-                const std::chrono::steady_clock::duration &_dt,
-                const EntityComponentManager &_ecm) override final;
-
-    /// Documentation inherited
     public: virtual void Update(const std::chrono::steady_clock::duration &_dt,
                                 EntityComponentManager &_ecm) override final;
 
     /// Documentation inherited
-    public: virtual void PostUpdate(const std::chrono::steady_clock::duration &_dt,
-                                    const EntityComponentManager &_ecm) override;
+    public: virtual void PostUpdate(
+                const std::chrono::steady_clock::duration &_dt,
+                const EntityComponentManager &_ecm) override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;
