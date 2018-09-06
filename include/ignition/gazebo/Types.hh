@@ -37,19 +37,19 @@ namespace ignition
     {
       /// \brief Total time elapsed in simulation. This will not increase while
       /// paused.
-      std::chrono::steady_clock::duration simTime;
+      std::chrono::steady_clock::duration simTime{0};
 
       /// \brief Total wall clock time elapsed. This increases even if
       /// simulation is paused.
-      std::chrono::steady_clock::duration realTime;
+      std::chrono::steady_clock::duration realTime{0};
 
       /// \brief Simulation time handled during a single update. If zero,
       /// simulation is paused and time is not running.
-      std::chrono::steady_clock::duration dt;
+      std::chrono::steady_clock::duration dt{0};
 
       /// \brief Total number of elapsed simulation iterations.
       // cppcheck-suppress unusedStructMember
-      unsigned int iterations;
+      unsigned int iterations{0};
     };
 
     /// \brief A unique identifier for a component instance. The uniqueness
