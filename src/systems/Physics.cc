@@ -47,6 +47,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -89,26 +90,28 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  /// \brief Create physics entities
+  public: void CreatePhysicsEntities(const EntityComponentManager& _ec);
 
-  /// \brief a map between world entity ids in the ECM to World Entities in 
+  /// \brief a map between world entity ids in the ECM to World Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, WorldPtrType> entityWorldMap;
 
-  /// \brief a map between model entity ids in the ECM to Model Entities in 
+  /// \brief a map between model entity ids in the ECM to Model Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
 
-  /// \brief a map between link entity ids in the ECM to Link Entities in 
+  /// \brief a map between link entity ids in the ECM to Link Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
 
-  /// \brief a map between joint entity ids in the ECM to Joint Entities in 
+  /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created
   public: bool initialized = false;
-          
+
   /// \brief pointer to the underlying ign-physics Engine entity
   public: EnginePtrType engine;
 };
@@ -154,114 +157,15 @@ void Physics::EntityRemoved(const Entity &_entity,
   (void)_ecm;
 }
 
-void Physics::PreUpdate(const std::chrono::steady_clock::duration &/* _dt */,
-                        const EntityComponentManager &_ecm)
-{
-
-  if (!this->dataPtr->initialized)
-  {
-    // get worlds
-    _ecm.Each<components::World, components::Name>(
-        [&](const EntityId &_entity,
-          const components::World * /* _world */,
-          const components::Name *_name)
-        {
-          sdf::World world;
-          world.SetName(_name->Data());
-          std::cout << "Creating world: " << _name->Data() << std::endl;
-          auto worldPtrPhys = this->dataPtr->engine->ConstructWorld(world);
-
-          this->dataPtr->entityWorldMap.insert(
-              std::make_pair(_entity, worldPtrPhys));
-        });
-
-    _ecm.Each<components::Model, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const EntityId &_entity,
-          const components::Model * /* _model */,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)
-        {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
-          auto worldPtrPhys = this->dataPtr->entityWorldMap.at(_parent->Id());
-          std::cout << "Creating model: " << worldPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
-          auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-          this->dataPtr->entityModelMap.insert(
-              std::make_pair(_entity, modelPtrPhys));
-
-        });
-
-    _ecm.Each<components::Link, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const EntityId &_entity,
-          const components::Link * /* _link */,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)
-        {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
-          auto modelPtrPhys = this->dataPtr->entityModelMap.at(_parent->Id());
-          std::cout << "Creating link: " << modelPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
-          auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
-          this->dataPtr->entityLinkMap.insert(
-              std::make_pair(_entity, linkPtrPhys));
-
-        });
-
-    // visuals
-    _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const EntityId  &/* _entity */,
-          const components::Visual * /* _visual */,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)
-        {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
-          auto linkPtrPhys = this->dataPtr->entityLinkMap.at(_parent->Id());
-          std::cout << "Creating visual: " << linkPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
-          linkPtrPhys->ConstructVisual(visual);
-          // for now, we won't have a map to the visual once it's added
-        });
-
-    // collisions
-    _ecm.Each<components::Collision, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const EntityId &/* _entity */,
-          const components::Collision * /* _collision */,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)
-        {
-          sdf::Collision collision;
-          collision.SetName(_name->Data());
-          collision.SetPose(_pose->Data());
-          auto linkPtrPhys = this->dataPtr->entityLinkMap.at(_parent->Id());
-          std::cout << "Creating collision: " << linkPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
-          linkPtrPhys->ConstructCollision(collision);
-          // for now, we won't have a map to the collision once it's added
-        });
-
-    this->dataPtr->initialized = true;
-  }
-}
-
 void Physics::Update(const std::chrono::steady_clock::duration &_dt,
                      EntityComponentManager &_ecm)
 {
   (void)_dt;
-  (void)_ecm;
+  if (!this->dataPtr->initialized)
+  {
+    this->dataPtr->CreatePhysicsEntities(_ecm);
+    this->dataPtr->initialized = true;
+  }
 }
 
 void Physics::PostUpdate(const std::chrono::steady_clock::duration &_dt,
@@ -269,6 +173,115 @@ void Physics::PostUpdate(const std::chrono::steady_clock::duration &_dt,
 {
   (void)_dt;
   (void)_ecm;
+}
+
+void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
+{
+    // get worlds
+  _ecm.Each<components::World, components::Name>(
+      [&](const EntityId &_entity,
+        const components::World * /* _world */,
+        const components::Name *_name)
+      {
+        if (this->entityWorldMap.find(_entity) == this->entityWorldMap.end())
+        {
+          sdf::World world;
+          world.SetName(_name->Data());
+          std::cout << "Creating world: " << _name->Data() << std::endl;
+          auto worldPtrPhys = this->engine->ConstructWorld(world);
+          this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
+        }
+      });
+
+  _ecm.Each<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Model * /* _model */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)
+      {
+        if (this->entityModelMap.find(_entity) == this->entityModelMap.end())
+        {
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
+          std::cout << "Creating model: " << worldPtrPhys->GetName() << ":"
+                    << _name->Data() << std::endl;
+          auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+          this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+        }
+      });
+
+  _ecm.Each<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Link * /* _link */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)
+      {
+        if (this->entityLinkMap.find(_entity) == this->entityLinkMap.end())
+        {
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+
+          // get link inertial
+          auto inertial = _ecm.Component<components::Inertial>(_entity);
+          if (inertial)
+          {
+            std::cout << "inertia: " 
+                      << inertial->Data().MassMatrix().Mass() << std::endl;
+            link.SetInertial(inertial->Data());
+          }
+          
+          auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
+          std::cout << "Creating link: " << modelPtrPhys->GetName() << ":"
+                    << _name->Data() << std::endl;
+          auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
+          this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+        }
+      });
+
+  // visuals
+  _ecm.Each<components::Visual, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId  &/* _entity */,
+        const components::Visual * /* _visual */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)
+      {
+        sdf::Visual visual;
+        visual.SetName(_name->Data());
+        visual.SetPose(_pose->Data());
+        auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
+        std::cout << "Creating visual: " << linkPtrPhys->GetName() << ":"
+                  << _name->Data() << std::endl;
+        linkPtrPhys->ConstructVisual(visual);
+        // for now, we won't have a map to the visual once it's added
+      });
+
+  // collisions
+  _ecm.Each<components::Collision, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId &/* _entity */,
+        const components::Collision * /* _collision */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)
+      {
+        sdf::Collision collision;
+        collision.SetName(_name->Data());
+        collision.SetPose(_pose->Data());
+        auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
+        std::cout << "Creating collision: " << linkPtrPhys->GetName() << ":"
+                  << _name->Data() << std::endl;
+        linkPtrPhys->ConstructCollision(collision);
+        // for now, we won't have a map to the collision once it's added
+      });
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
