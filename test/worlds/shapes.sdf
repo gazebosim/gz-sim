@@ -13,6 +13,17 @@
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
       <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
         <pose>0.1 0.1 0.1 0 0 0</pose>
         <collision name="box_collision">
           <pose>0.11 0.11 0.11 0 0 0</pose>
@@ -44,6 +55,17 @@
       <pose>-1 -2 -3 0 0 1</pose>
       <link name="cylinder_link">
         <pose>0.2 0.2 0.2 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
         <collision name="cylinder_collision">
           <pose>0.21 0.21 0.21 0 0 0</pose>
           <geometry>
@@ -76,6 +98,17 @@
       <pose>0 0 0 0 0 1</pose>
       <link name="sphere_link">
         <pose>0.3 0.3 0.3 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
         <collision name="sphere_collision">
           <pose>0.31 0.31 0.31 0 0 0</pose>
           <geometry>

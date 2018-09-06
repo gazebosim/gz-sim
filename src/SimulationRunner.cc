@@ -25,6 +25,7 @@
 
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -94,7 +95,6 @@ void SimulationRunner::UpdateSystems()
     this->workerPool.AddWork([&dt, &system, this] ()
     {
       system.system->Update(dt, this->entityCompMgr);
-
     });
   }
   this->workerPool.WaitForResults();
@@ -104,7 +104,6 @@ void SimulationRunner::UpdateSystems()
     this->workerPool.AddWork([&dt, &system, this] ()
     {
       system.system->PostUpdate(dt, this->entityCompMgr);
-
     });
   }
   this->workerPool.WaitForResults();
@@ -227,6 +226,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Pose(link->Pose()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::Name(link->Name()));
+      this->entityCompMgr.CreateComponent(linkEntity,
+          components::Inertial(link->Inertial()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
 
