@@ -33,7 +33,8 @@ TestSystem::~TestSystem()
 {
 }
 
-void TestSystem::Init(EntityQueryRegistrar &/*_registrar*/)
+/////////////////////////////////////////////////
+void TestSystem::Init(std::vector<EntityQueryCallback> &/*_cbs*/)
 {
 }
 

@@ -2,6 +2,11 @@
 
 This is a prototype for the next version of [Gazebo](http://gazebosim.org).
 
+Build | Status
+-- | --
+Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-gazebo/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-gazebo)
+
+
 # Building from source
 
 1. Get the source code

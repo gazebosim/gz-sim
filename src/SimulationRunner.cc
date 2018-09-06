@@ -35,7 +35,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/components/WorldStatistics.hh"
 #include "ignition/gazebo/SystemManager.hh"
-#include "ignition/gazebo/SystemQueryResponse.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -68,16 +67,7 @@ void SimulationRunner::InitSystems()
   {
     this->workerPool.AddWork([&system, this] ()
     {
-      EntityQueryRegistrar registrar;
-      system.system->Init(registrar);
-      for (const EntityQueryRegistration &registration :
-           registrar.Registrations())
-      {
-        const EntityQuery &query = registration.first;
-        const EntityQueryCallback &cb = registration.second;
-        EntityQueryId queryId = this->entityCompMgr.AddQuery(query);
-        system.updates.push_back({queryId, cb});
-      }
+      system.system->Init(system.updates);
     });
   }
 
@@ -96,15 +86,9 @@ void SimulationRunner::UpdateSystems()
   // Update all the systems
   for (SystemInternal &system : this->systems)
   {
-    for (std::pair<EntityQueryId, EntityQueryCallback> &cb : system.updates)
+    for (EntityQueryCallback &cb : system.updates)
     {
-      const std::optional<std::reference_wrapper<EntityQuery>> query =
-        this->entityCompMgr.Query(cb.first);
-      if (query && query->get().EntityCount() > 0)
-      {
-        SystemQueryResponse response(query->get(), this->entityCompMgr);
-        cb.second(response);
-      }
+      cb(this->entityCompMgr);
     }
   }
 }
