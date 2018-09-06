@@ -131,7 +131,7 @@ void SimulationRunner::InitSystems()
 }
 
 /////////////////////////////////////////////////
-UpdateInfo SimulationRunner::UpdatedInfo()
+void SimulationRunner::UpdateCurrentInfo()
 {
   // Store the real time, and maintain a window size of 20.
   this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
@@ -141,7 +141,7 @@ UpdateInfo SimulationRunner::UpdatedInfo()
   }
 
   // Store the sim time, and maintain a window size of 20.
-  this->simTimes.push_back(this->simTime);
+  this->simTimes.push_back(this->currentInfo.simTime);
   if (this->simTimes.size() > 20)
   {
     this->simTimes.pop_front();
@@ -170,24 +170,24 @@ UpdateInfo SimulationRunner::UpdatedInfo()
   }
 
   // Fill the current update info
-  UpdateInfo info;
-  info.simTime = this->simTime;
-  info.realTime = this->realTimeWatch.ElapsedRunTime();
-  info.iterations = this->simIterations;
+  this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
   if (!this->paused || this->pendingSimIterations > 0)
   {
-    info.dt = this->stepSize;
+    this->currentInfo.simTime += this->stepSize;
+    ++this->currentInfo.iterations;
+    this->currentInfo.dt = this->stepSize;
+
+    if (this->pendingSimIterations > 0)
+      --this->pendingSimIterations;
   }
   else
   {
-    info.dt = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
   }
-
-  return info;
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::PublishStats(const UpdateInfo &_info)
+void SimulationRunner::PublishStats()
 {
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
@@ -203,10 +203,10 @@ void SimulationRunner::PublishStats(const UpdateInfo &_info)
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    ignition::math::durationToSecNsec(_info.realTime);
+    ignition::math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(_info.simTime);
+    ignition::math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -214,7 +214,7 @@ void SimulationRunner::PublishStats(const UpdateInfo &_info)
   msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
   msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
 
-  msg.set_iterations(_info.iterations);
+  msg.set_iterations(this->currentInfo.iterations);
 
   msg.set_paused(this->paused);
 
@@ -223,7 +223,7 @@ void SimulationRunner::PublishStats(const UpdateInfo &_info)
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::UpdateSystems(const UpdateInfo &_info)
+void SimulationRunner::UpdateSystems()
 {
   // \todo(nkoenig)  Systems used to be updated in parallel using
   // an ignition::common::WorkerPool. There is overhead associated with
@@ -236,7 +236,7 @@ void SimulationRunner::UpdateSystems(const UpdateInfo &_info)
   {
     for (EntityQueryCallback &cb : system.updates)
     {
-      cb(_info, this->entityCompMgr);
+      cb(this->currentInfo, this->entityCompMgr);
     }
   }
 }
@@ -296,29 +296,17 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
-    // Get updated time information
-    // \todo(louise) Look into avoiding creation of a new UpdateInfo object
-    // in each update loop.
-    auto info = this->UpdatedInfo();
+    // Update time information
+    this->UpdateCurrentInfo();
 
     // Publish info
-    this->PublishStats(info);
+    this->PublishStats();
 
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
     // Update all the systems.
-    this->UpdateSystems(info);
-
-    // Update sim time and sim iterations
-    if (!this->paused || this->pendingSimIterations > 0)
-    {
-      this->simTime += this->stepSize;
-      ++this->simIterations;
-
-      if (this->pendingSimIterations > 0)
-        --this->pendingSimIterations;
-    }
+    this->UpdateSystems();
   }
 
   this->running = false;
