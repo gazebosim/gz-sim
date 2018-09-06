@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_TEST_TESTSYSTEM_HH_
 
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityQueryRegistrar.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -32,7 +31,8 @@ namespace ignition
 
       public: virtual ~TestSystem();
 
-      public: virtual void Init(EntityQueryRegistrar &_registrar) override final;
+      public: virtual void Init(
+                  std::vector<EntityQueryCallback> &_cbs) override final;
     };
     }
   }
