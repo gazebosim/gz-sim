@@ -31,10 +31,11 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemManager.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Types.hh"
 
 using namespace std::chrono_literals;
 
@@ -92,12 +93,10 @@ namespace ignition
       public: bool Run(const uint64_t _iterations);
 
       /// \brief Update all the systems
-      /// \param[in] _info Information about the simulation status.
-      public: void UpdateSystems(const UpdateInfo &_info);
+      public: void UpdateSystems();
 
       /// \brief Publish current world statistics.
-      /// \param[in] _info Information about the simulation status.
-      public: void PublishStats(const UpdateInfo &_info);
+      public: void PublishStats();
 
       /// \brief Create all entities that exist in the sdf::World object.
       /// \param[in] _world SDF world object.
@@ -135,9 +134,8 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
-      /// \brief Get updated time information.
-      /// \return Latest info
-      private: UpdateInfo UpdatedInfo();
+      /// \brief Calculate real time factor and populate currentInfo.
+      private: void UpdateCurrentInfo();
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
@@ -170,10 +168,6 @@ namespace ignition
       /// can't be reset.
       public: uint64_t iterations{0};
 
-      /// \brief Number of elapsed simulation iterations.
-      /// \todo(louise) Support reset, which will set this number back to zero.
-      public: uint64_t simIterations{0};
-
       /// \brief List of simulation times used to compute averages.
       public: std::list<std::chrono::steady_clock::duration> simTimes;
 
@@ -192,9 +186,6 @@ namespace ignition
       /// \brief Stopwatch to keep track of wall time.
       public: ignition::math::Stopwatch realTimeWatch;
 
-      /// \brief Total simulation time.
-      public: ignition::math::clock::duration simTime{0};
-
       /// \brief Step size
       public: ignition::math::clock::duration stepSize{10ms};
 
@@ -209,6 +200,9 @@ namespace ignition
       /// \brief Number of simulation steps requested that haven't been
       /// executed yet.
       public: unsigned int pendingSimIterations{0};
+
+      /// \brief Keeps the latest simulation info.
+      public: UpdateInfo currentInfo;
     };
     }
   }
