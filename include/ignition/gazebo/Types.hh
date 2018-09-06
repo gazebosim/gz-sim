@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_TYPES_HH_
 #define IGNITION_GAZEBO_TYPES_HH_
 
+#include <chrono>
 #include <functional>
 #include <utility>
+#include <ignition/common/Time.hh>
 
 namespace ignition
 {
@@ -28,6 +30,27 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class EntityComponentManager;
+
+    /// \brief Information passed to systems on the update callback.
+    /// \todo(louise) Update descriptions once reset is supported.
+    struct UpdateInfo
+    {
+      /// \brief Total time elapsed in simulation. This will not increase while
+      /// paused.
+      std::chrono::steady_clock::duration simTime;
+
+      /// \brief Total wall clock time elapsed. This increases even if
+      /// simulation is paused.
+      std::chrono::steady_clock::duration realTime;
+
+      /// \brief Simulation time handled during a single update. If zero,
+      /// simulation is paused and time is not running.
+      std::chrono::steady_clock::duration dt;
+
+      /// \brief Total number of elapsed simulation iterations.
+      // cppcheck-suppress unusedStructMember
+      unsigned int iterations;
+    };
 
     /// \brief A unique identifier for a component instance. The uniqueness
     /// of a ComponentId is scoped to the component's type.
@@ -44,7 +67,8 @@ namespace ignition
     using ComponentKey = std::pair<ComponentTypeId, ComponentId>;
 
     /// \brief typedef for query callbacks
-    using EntityQueryCallback = std::function<void (EntityComponentManager &)>;
+    using EntityQueryCallback = std::function<void (const UpdateInfo,
+        EntityComponentManager &)>;
 
     /// \brief Id that indicates an invalid component.
     static const ComponentId kComponentIdInvalid = -1;

@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::Physics">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::WorldStatistics">
     </plugin>
 
     <model name="box">

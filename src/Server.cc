@@ -42,15 +42,13 @@ Server::Server(const ServerConfig &_config)
         "<plugin filename='libignition-gazebo-systems.so'"
         "        name='ignition::gazebo::systems::v0::Physics'>"
         "</plugin>"
-        "<plugin filename='libignition-gazebo-systems.so'"
-        "        name='ignition::gazebo::systems::v0::WorldStatistics'>"
-        "</plugin>"
         "</world></sdf>");
   }
 
   this->dataPtr->CreateEntities(root);
 
-  // Set the desired update period.
+  // Set the desired update period, this will override the desired RTF given in
+  // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
