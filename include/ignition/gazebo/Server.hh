@@ -76,7 +76,9 @@ namespace ignition
       public: ~Server();
 
       /// \brief Set the update period. The update period is the wall-clock time
-      /// between updates.
+      /// between ECS updates.
+      /// Note that this is different from the simulation update rate. ECS
+      /// systems will be updated even while sim time is paused.
       /// \param[in] _updatePeriod Duration between updates.
       /// \param[in] _worldIndex Index of the world to query.
       public: void SetUpdatePeriod(

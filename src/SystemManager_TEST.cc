@@ -44,9 +44,6 @@ TEST(SystemManager, Constructor)
       "<plugin filename='libignition-gazebo-systems.so'"
       "        name='ignition::gazebo::systems::v0::Physics'>"
       "</plugin>"
-      "<plugin filename='libignition-gazebo-systems.so'"
-      "        name='ignition::gazebo::systems::v0::WorldStatistics'>"
-      "</plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();

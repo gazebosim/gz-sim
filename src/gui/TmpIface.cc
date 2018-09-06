@@ -25,28 +25,9 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 TmpIface::TmpIface()
 {
-  // World control
-  this->node.Advertise("/world_control",
-        &TmpIface::OnWorldControl, this);
-
   // Server control
   this->node.Advertise("/server_control",
       &TmpIface::OnServerControl, this);
-}
-
-/////////////////////////////////////////////////
-bool TmpIface::OnWorldControl(const msgs::WorldControl &_req,
-                                    msgs::Boolean &_res)
-{
-  igndbg << "OnWorldControl: request" << std::endl;
-  igndbg << _req.DebugString() << std::endl;
-
-  _res.set_data(true);
-
-  igndbg << "OnWorldControl: response" << std::endl;
-  igndbg << _res.DebugString() << std::endl;
-
-  return true;
 }
 
 /////////////////////////////////////////////////
