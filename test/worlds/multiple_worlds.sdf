@@ -9,10 +9,6 @@
       filename="libignition-gazebo-systems.so"
       classname="ignition::gazebo::systems::v0::Physics">
     </plugin>
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      classname="ignition::gazebo::systems::v0::WorldStatistics">
-    </plugin>
 
     <physics name="default" type="ode">
       <max_step_size>0.001</max_step_size>
