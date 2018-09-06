@@ -295,6 +295,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
           (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
     // Get updated time information
+    // \todo(louise) Look into avoiding creation of a new UpdateInfo object
+    // in each update loop.
     auto info = this->UpdatedInfo();
 
     // Publish info
