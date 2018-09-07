@@ -223,6 +223,14 @@ void SimulationRunner::PublishStats()
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::AddSystem(const SystemPtr &_system)
+{
+  this->systems.push_back(SystemInternal(_system));
+  auto& systemInternal = this->systems.back();
+  systemInternal.system->Init(systemInternal.updates);
+}
+
+/////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
   // \todo(nkoenig)  Systems used to be updated in parallel using
