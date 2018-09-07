@@ -26,6 +26,7 @@
 
 // Features
 #include <ignition/physics/ForwardStep.hh>
+#include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
@@ -65,6 +66,8 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          ignition::physics::LinkFrameSemantics,
+          ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
@@ -91,7 +94,13 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
-  public: void CreatePhysicsEntities(const EntityComponentManager& _ec);
+  public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Step the simulationrfor each world
+  public: void Step(const std::chrono::steady_clock::duration &_dt);
+
+  /// \brief Step the simulationrfor each world
+  public: void UpdateECS(EntityComponentManager &_ecm) const;
 
   /// \brief a map between world entity ids in the ECM to World Entities in
   /// ign-physics
@@ -160,12 +169,15 @@ void Physics::EntityRemoved(const Entity &_entity,
 void Physics::Update(const std::chrono::steady_clock::duration &_dt,
                      EntityComponentManager &_ecm)
 {
-  (void)_dt;
   if (!this->dataPtr->initialized)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->initialized = true;
   }
+
+  this->dataPtr->Step(_dt);
+  this->dataPtr->UpdateECS(_ecm);
+
 }
 
 void Physics::PostUpdate(const std::chrono::steady_clock::duration &_dt,
@@ -232,11 +244,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto inertial = _ecm.Component<components::Inertial>(_entity);
           if (inertial)
           {
-            std::cout << "inertia: " 
+            std::cout << "inertia: "
                       << inertial->Data().MassMatrix().Mass() << std::endl;
             link.SetInertial(inertial->Data());
           }
-          
+
           auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
           std::cout << "Creating link: " << modelPtrPhys->GetName() << ":"
                     << _name->Data() << std::endl;
@@ -282,6 +294,30 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
       });
+}
+
+void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
+{
+  ignition::physics::ForwardStep::Input input;
+  ignition::physics::ForwardStep::State state;
+  ignition::physics::ForwardStep::Output output;
+
+  input.Get<std::chrono::steady_clock::duration>() = _dt;
+
+  for (auto &[entity, world] : this->entityWorldMap)
+  {
+    world->Step(output, state, input);
+  }
+}
+
+void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
+{
+  for (auto &[entity, link] : this->entityLinkMap)
+  {
+    ignition::physics::FrameData3d data = link->FrameDataRelativeToWorld();
+    std::cout << "Link: " << entity << " Pos Z: "
+              << data.pose.translation().z() << std::endl;
+  }
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
