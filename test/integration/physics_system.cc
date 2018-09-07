@@ -62,8 +62,28 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   for (uint64_t i = 1; i < 10; ++i)
   {
     EXPECT_FALSE(*server.Running());
-    server.Run(true, i);
+    server.Run(true, 1);
     EXPECT_FALSE(*server.Running());
   }
+  // TODO(addisu) add useful EXPECT calls
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, FallingObject)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/falling.sdf");
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  server.Run(true, 1000);
+
+  // The sphere should have fallen for 1s.
+  // TODO(addisu) subscribe to the state of the sphere
+
 }
 
