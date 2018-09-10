@@ -17,11 +17,15 @@
 
 #include <gtest/gtest.h>
 #include <csignal>
+#include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/test_config.hh"
 
 using namespace ignition;
@@ -36,6 +40,29 @@ class ServerFixture : public ::testing::TestWithParam<int>
              (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
     }
 };
+
+class MockSystem : public gazebo::System
+{
+  // Keep the number of calls to Init
+  public: size_t initCallCount = 0;
+  public: size_t updateCallCount = 0;
+  public:
+    void Init(std::vector<gazebo::EntityQueryCallback> &_cbs) override
+    {
+      ++this->initCallCount;
+      _cbs.push_back(
+          std::bind(&MockSystem::OnUpdate, this,
+            std::placeholders::_1, std::placeholders::_2));
+    }
+
+  public:
+    void OnUpdate(const gazebo::UpdateInfo /*_info*/,
+                  gazebo::EntityComponentManager & /*_manager*/)
+    {
+      ++this->updateCallCount;
+    }
+};
+
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
@@ -151,7 +178,8 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   server2.SetUpdatePeriod(1ns);
 
   // Start non-blocking
-  EXPECT_TRUE(server1.Run(false, 999999));
+  const size_t iters1 = 9999;
+  EXPECT_TRUE(server1.Run(false, iters1));
 
   // Expect that we can't start another instance.
   EXPECT_FALSE(server1.Run(true, 10));
@@ -159,10 +187,10 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   // It's okay to start another server
   EXPECT_TRUE(server2.Run(false, 500));
 
-  while (*server1.IterationCount() < 999999 || *server2.IterationCount() < 500)
+  while (*server1.IterationCount() < iters1 || *server2.IterationCount() < 500)
     IGN_SLEEP_MS(100);
 
-  EXPECT_EQ(999999u, *server1.IterationCount());
+  EXPECT_EQ(iters1, *server1.IterationCount());
   EXPECT_EQ(500u, *server2.IterationCount());
   EXPECT_FALSE(*server1.Running());
   EXPECT_FALSE(*server2.Running());
@@ -192,6 +220,55 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
   EXPECT_EQ(1000u, *server2.IterationCount());
   EXPECT_FALSE(*server1.Running());
   EXPECT_FALSE(*server2.Running());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, AddSystemWhileRunning)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(*server.Running());
+  server.SetUpdatePeriod(1us);
+
+  // Run the server to test whether we can add system while system is running
+  server.Run();
+  EXPECT_EQ(1u, *server.SystemCount());
+  auto mockSystem = std::make_shared<MockSystem>();
+  EXPECT_FALSE(*server.AddSystem(mockSystem));
+  EXPECT_EQ(1u, *server.SystemCount());
+
+  // Stop the server
+  std::raise(SIGTERM);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, AddSystemAfterLoad)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(*server.Running());
+
+  auto mockSystem = std::make_shared<MockSystem>();
+  EXPECT_EQ(0u, mockSystem->initCallCount);
+
+  EXPECT_EQ(1u, *server.SystemCount());
+  EXPECT_TRUE(*server.AddSystem(mockSystem));
+  EXPECT_EQ(2u, *server.SystemCount());
+  // We expect to be initialized when added to server
+  EXPECT_EQ(1u, mockSystem->initCallCount);
+
+  server.SetUpdatePeriod(1us);
+  EXPECT_EQ(0u, mockSystem->updateCallCount);
+  server.Run(true, 1);
+  EXPECT_EQ(1u, mockSystem->updateCallCount);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
