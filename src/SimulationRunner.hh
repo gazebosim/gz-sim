@@ -20,6 +20,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <list>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -27,12 +28,14 @@
 #include <vector>
 
 #include <ignition/common/WorkerPool.hh>
+#include <ignition/transport/Node.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemManager.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Types.hh"
 
 using namespace std::chrono_literals;
 
@@ -63,8 +66,7 @@ namespace ignition
       public: std::shared_ptr<System> system;
 
       /// \brief Vector of queries and callbacks
-      public: std::vector<
-              std::pair<EntityQueryId, EntityQueryCallback>> updates;
+      public: std::vector<EntityQueryCallback> updates;
     };
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
@@ -88,10 +90,18 @@ namespace ignition
 
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
+      /// \return True if the operation completed successfully.
       public: bool Run(const uint64_t _iterations);
+
+      /// \brief Add system after the simulation runner has been instantiated
+      /// \param[in] _system System to be added
+      public: void AddSystem(const SystemPtr &_system);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
+
+      /// \brief Publish current world statistics.
+      public: void PublishStats();
 
       /// \brief Create all entities that exist in the sdf::World object.
       /// \param[in] _world SDF world object.
@@ -114,11 +124,23 @@ namespace ignition
       /// \return System count.
       public: size_t SystemCount() const;
 
-      /// \brief Set the update period. The update period is the wall-clock time
-      /// between updates.
+      /// \brief Set the update period. The update period is the wall-clock
+      /// time between updates of all systems. Note that even if systems
+      /// are being updated, this doesn't mean sim time is increasing.
       /// \param[in] _updatePeriod Duration between updates.
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
+
+      /// \brief World control service callback
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnWorldControl(const msgs::WorldControl &_req,
+                                         msgs::Boolean &_res);
+
+      /// \brief Calculate real time factor and populate currentInfo.
+      private: void UpdateCurrentInfo();
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
@@ -134,20 +156,58 @@ namespace ignition
       public: EntityComponentManager entityCompMgr;
 
       /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool;
+      public: common::WorkerPool workerPool{2};
 
-      /// \brief Time of the previous update.
-      public: std::chrono::steady_clock::time_point prevUpdateWallTime;
+      /// \brief Wall time of the previous update.
+      public: std::chrono::steady_clock::time_point prevUpdateRealTime;
 
       /// \brief A duration used to account for inaccuracies associated with
       /// sleep durations.
       public: std::chrono::steady_clock::duration sleepOffset{0};
 
-      /// \brief The default update rate is 500hz, which is a period of 2ms.
+      /// \brief This is the rate at which the systems are updated.
+      /// The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration updatePeriod{2ms};
 
-      /// \brief Number of iterations.
+      /// \brief Number of times the systems have been updated. This number
+      /// can't be reset.
       public: uint64_t iterations{0};
+
+      /// \brief List of simulation times used to compute averages.
+      public: std::list<std::chrono::steady_clock::duration> simTimes;
+
+      /// \brief List of real times used to compute averages.
+      public: std::list<std::chrono::steady_clock::duration> realTimes;
+
+      /// \brief Node for communication.
+      public: ignition::transport::Node node;
+
+      /// \brief World statistics publisher.
+      public: ignition::transport::Node::Publisher statsPub;
+
+      /// \brief Name of world being simulated.
+      public: std::string worldName;
+
+      /// \brief Stopwatch to keep track of wall time.
+      public: ignition::math::Stopwatch realTimeWatch;
+
+      /// \brief Step size
+      public: ignition::math::clock::duration stepSize{10ms};
+
+      /// \brief The real time factor calculated based on sim and real time
+      /// averages.
+      public: double realTimeFactor;
+
+      /// \brief True if simulation currently paused, which means the simulation
+      /// time is not currently running, but systems are still being updated.
+      public: bool paused{false};
+
+      /// \brief Number of simulation steps requested that haven't been
+      /// executed yet.
+      public: unsigned int pendingSimIterations{0};
+
+      /// \brief Keeps the latest simulation info.
+      public: UpdateInfo currentInfo;
     };
     }
   }
