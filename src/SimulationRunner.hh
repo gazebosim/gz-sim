@@ -93,6 +93,10 @@ namespace ignition
       /// \return True if the operation completed successfully.
       public: bool Run(const uint64_t _iterations);
 
+      /// \brief Add system after the simulation runner has been instantiated
+      /// \param[in] _system System to be added
+      public: void AddSystem(const SystemPtr &_system);
+
       /// \brief Update all the systems
       public: void UpdateSystems();
 
