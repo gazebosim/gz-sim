@@ -237,7 +237,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   server.Run();
   EXPECT_EQ(1u, *server.SystemCount());
   auto mockSystem = std::make_shared<MockSystem>();
-  EXPECT_FALSE(server.AddSystem(mockSystem));
+  EXPECT_FALSE(*server.AddSystem(mockSystem));
   EXPECT_EQ(1u, *server.SystemCount());
 
   // Stop the server
@@ -259,7 +259,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(0u, mockSystem->initCallCount);
 
   EXPECT_EQ(1u, *server.SystemCount());
-  EXPECT_TRUE(server.AddSystem(mockSystem));
+  EXPECT_TRUE(*server.AddSystem(mockSystem));
   EXPECT_EQ(2u, *server.SystemCount());
   // We expect to be initialized when added to server
   EXPECT_EQ(1u, mockSystem->initCallCount);

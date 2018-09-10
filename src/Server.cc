@@ -147,8 +147,8 @@ std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 }
 
 //////////////////////////////////////////////////
-bool Server::AddSystem(const std::shared_ptr<System> &_system,
-                       const unsigned int _worldIndex)
+std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
+                                      const unsigned int _worldIndex)
 {
   // Check the current state, and return early if preconditions are not met.
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
@@ -159,6 +159,11 @@ bool Server::AddSystem(const std::shared_ptr<System> &_system,
     return false;
   }
 
-  this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
-  return true;
+  if (_worldIndex < this->dataPtr->simRunners.size())
+  {
+    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
+    return true;
+  }
+
+  return std::nullopt;
 }

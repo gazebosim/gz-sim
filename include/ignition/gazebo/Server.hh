@@ -133,11 +133,13 @@ namespace ignition
       /// calling this.
       /// \param[in] _system system to be added
       /// \param[in] _worldIndex Index of the world to query.
-      /// \return whether the system was added successfully.
-      public: bool AddSystem(const std::shared_ptr<System> &_system,
-                             const unsigned int _worldIndex = 0);
+      /// \return Whether the system was added successfully, or std::nullopt 
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const std::shared_ptr<System> &_system,
+                  const unsigned int _worldIndex = 0);
 
-      /// \brief Private data
+          /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
     }
