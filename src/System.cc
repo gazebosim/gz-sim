@@ -41,24 +41,24 @@ void System::EntityRemoved(const Entity& _entity,
   (void) _ecm;
 }
 
-void System::PreUpdate(const ignition::common::Time& _dt,
-                       const EntityComponentManager &_ecm)
+void System::PreUpdate(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm)
 {
-  (void) _dt;
+  (void) _info;
   (void) _ecm;
 }
 
-void System::Update(const ignition::common::Time& _dt,
+void System::Update(const UpdateInfo &_info,
                     EntityComponentManager &_ecm)
 {
-  (void) _dt;
+  (void) _info;
   (void) _ecm;
 }
 
-void System::PostUpdate(const ignition::common::Time& _dt,
+void System::PostUpdate(const UpdateInfo &_info,
                         const EntityComponentManager &_ecm)
 {
-  (void) _dt;
+  (void) _info;
   (void) _ecm;
 }
 

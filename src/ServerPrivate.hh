@@ -75,7 +75,7 @@ namespace ignition
       private: void OnSignal(int _sig);
 
       /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool;
+      public: common::WorkerPool workerPool{2};
 
       /// \brief All the simulation runners.
       public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;

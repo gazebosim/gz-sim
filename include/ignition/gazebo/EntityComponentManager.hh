@@ -26,7 +26,6 @@
 #include <vector>
 #include <ignition/common/Console.hh>
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityQuery.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
@@ -38,9 +37,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
-
-    /// \brief A unique identifier for an entity query.
-    using EntityQueryId = int;
 
     /// \cond
     /// \brief All component instances of the same type are stored
@@ -261,19 +257,6 @@ namespace ignition
       /// \return True if the given entity has all the given types.
       public: bool EntityMatches(EntityId _id,
         const std::set<ComponentTypeId> &_types) const;
-
-      /// \brief Add an entity query. An internal copy of the query is made,
-      /// and an Id of the internal query is returned.
-      /// \param[in] _query The query to add.
-      /// \return Id of the newly added query.
-      public: EntityQueryId AddQuery(const EntityQuery &_query);
-
-      /// \brief Get an entity query.
-      /// \param[in] _id Id of the EntityQuery to retrieve.
-      /// \return Optional reference to the query. The return value will be
-      /// std::nullopt if the entity query does not exist.
-      public: const std::optional<std::reference_wrapper<EntityQuery>> Query(
-                  const EntityQueryId _id) const;
 
       /// \brief Remove a component from an entity based on a key.
       /// \param[in] _id Id of the entity.

@@ -11,21 +11,17 @@ set (sources
   ${components_sources}
   Entity.cc
   EntityComponentManager.cc
-  EntityQuery.cc
-  EntityQueryRegistrar.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
   System.cc
   SystemManager.cc
-  SystemQueryResponse.cc
 )
 
 set (gtest_sources
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
-  EntityQuery_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc

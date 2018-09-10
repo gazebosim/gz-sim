@@ -23,6 +23,7 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -76,7 +77,9 @@ namespace ignition
       public: ~Server();
 
       /// \brief Set the update period. The update period is the wall-clock time
-      /// between updates.
+      /// between ECS updates.
+      /// Note that this is different from the simulation update rate. ECS
+      /// systems will be updated even while sim time is paused.
       /// \param[in] _updatePeriod Duration between updates.
       /// \param[in] _worldIndex Index of the world to query.
       public: void SetUpdatePeriod(
@@ -126,7 +129,17 @@ namespace ignition
       public: std::optional<size_t> SystemCount(
                   const unsigned int _worldIndex = 0) const;
 
-      /// \brief Private data
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this.
+      /// \param[in] _system system to be added
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const std::shared_ptr<System> &_system,
+                  const unsigned int _worldIndex = 0);
+
+          /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
     }
