@@ -155,7 +155,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
   // Do not allow running more than once.
   if (this->dataPtr->running)
   {
-    ignwarn << "The server is already runnnng.\n";
+    ignerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 
