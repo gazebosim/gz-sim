@@ -23,9 +23,12 @@
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -226,21 +229,18 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::MassMatrix3d(1.0, math::Vector3d(1.0, 1.0, 1.0),
                                      math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
-
       }
       else if (_entity == cylLinkEntity)
       {
         EXPECT_EQ(math::MassMatrix3d(2.0, math::Vector3d(2.0, 2.0, 2.0),
                                      math::Vector3d::Zero), 
                   _inertial->Data().MassMatrix());
-
       }
       else if (_entity == sphLinkEntity)
       {
         EXPECT_EQ(math::MassMatrix3d(3.0, math::Vector3d(3.0, 3.0, 3.0),
                                      math::Vector3d::Zero), 
                   _inertial->Data().MassMatrix());
-
       }
     });
 

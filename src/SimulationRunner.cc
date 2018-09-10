@@ -16,6 +16,7 @@
 */
 
 #include <sdf/Collision.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
@@ -24,8 +25,11 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -185,6 +189,9 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
+  // used to map link names to EntityIds
+  std::unordered_map<std::string, EntityId> linkMap;
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -222,6 +229,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Inertial(link->Inertial()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
+
+      linkMap.insert(std::pair(link->Name(), linkEntity));
 
       // Visuals
       for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();
@@ -279,6 +288,51 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           this->entityCompMgr.CreateComponent(collisionEntity,
               components::Geometry(*collision->Geom()));
         }
+      }
+
+      // Joints
+      for (uint64_t jointIndex = 0; jointIndex < model->JointCount();
+          ++jointIndex)
+      {
+        auto joint = model->JointByIndex(jointIndex);
+
+        // verify that parent and child exist
+        auto parentIt = linkMap.find(joint->ParentLinkName());
+        auto childIt = linkMap.find(joint->ChildLinkName());
+
+        if (parentIt == linkMap.end())
+        {
+          ignerr << "Parent link " << joint->ParentLinkName() << " not found\n";
+          // should we terminate?
+          continue;
+        }
+        if (childIt == linkMap.end())
+        {
+          ignerr << "Child link " << joint->ChildLinkName() << " not found\n";
+          // should we terminate?
+          continue;
+        }
+
+        EntityId parentEntity = parentIt->second;
+        EntityId childEntity = childIt->second;
+
+        // Entity
+        EntityId jointEntity = this->entityCompMgr.CreateEntity();
+
+        // Components
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::Joint());
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::JointType(joint->Type()));
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::Pose(joint->Pose()));
+        this->entityCompMgr.CreateComponent(jointEntity ,
+            components::Name(joint->Name()));
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::ParentEntity(parentEntity));
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::ChildEntity(childEntity));
+
       }
     }
   }
