@@ -178,7 +178,8 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   server2.SetUpdatePeriod(1ns);
 
   // Start non-blocking
-  EXPECT_TRUE(server1.Run(false, 999999));
+  const size_t iters1 = 9999;
+  EXPECT_TRUE(server1.Run(false, iters1));
 
   // Expect that we can't start another instance.
   EXPECT_FALSE(server1.Run(true, 10));
@@ -186,10 +187,10 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   // It's okay to start another server
   EXPECT_TRUE(server2.Run(false, 500));
 
-  while (*server1.IterationCount() < 999999 || *server2.IterationCount() < 500)
+  while (*server1.IterationCount() < iters1 || *server2.IterationCount() < 500)
     IGN_SLEEP_MS(100);
 
-  EXPECT_EQ(999999u, *server1.IterationCount());
+  EXPECT_EQ(iters1, *server1.IterationCount());
   EXPECT_EQ(500u, *server2.IterationCount());
   EXPECT_FALSE(*server1.Running());
   EXPECT_FALSE(*server2.Running());
