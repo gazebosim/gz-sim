@@ -233,13 +233,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       else if (_entity == cylLinkEntity)
       {
         EXPECT_EQ(math::MassMatrix3d(2.0, math::Vector3d(2.0, 2.0, 2.0),
-                                     math::Vector3d::Zero), 
+                                     math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
       }
       else if (_entity == sphLinkEntity)
       {
         EXPECT_EQ(math::MassMatrix3d(3.0, math::Vector3d(3.0, 3.0, 3.0),
-                                     math::Vector3d::Zero), 
+                                     math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
       }
     });

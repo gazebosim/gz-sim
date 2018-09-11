@@ -438,6 +438,26 @@ namespace ignition
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
+      public: template<typename ...ComponentTypeTs>
+              void EachMutable(typename identity<std::function<
+                  void(const EntityId &_entity,
+                       ComponentTypeTs *...)>>::type _f) const
+      {
+        for (const Entity &entity : this->Entities())
+        {
+          auto types = std::set<ComponentTypeId>{
+              this->ComponentType<ComponentTypeTs>()...};
+
+          if (this->EntityMatches(entity.Id(), types))
+          {
+            _f(entity.Id(),
+               this->ComponentMutable<ComponentTypeTs>(entity.Id())...);
+          }
+        }
+      }
+      /// \brief The first component instance of the specified type.
+      /// \return First component instance of the specified type, or nullptr
+      /// if the type does not exist.
       private: void *First(const ComponentTypeId _componentTypeId);
 
       /// \brief Implmentation of CreateComponent.

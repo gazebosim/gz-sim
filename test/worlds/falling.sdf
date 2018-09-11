@@ -9,7 +9,6 @@
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::WorldStatistics">
     </plugin>
-
     <model name="sphere">
       <pose>0 0 10 0 0 0</pose>
       <link name="sphere_link">
@@ -25,6 +24,14 @@
           </inertia>
           <mass>1.0</mass>
         </inertial>
+        <visual name="sphere_visual">
+          <pose>0.0 0.0 5.0 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>1</radius>
+            </sphere>
+          </geometry>
+        </visual>
         <collision name="sphere_collision">
           <pose>0.0 0.0 0.0 0 0 0</pose>
           <geometry>
