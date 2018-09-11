@@ -40,7 +40,7 @@ using namespace systems;
 //////////////////////////////////////////////////
 void AddVisuals(msgs::Link *_msg,
     const EntityId _id,
-    const math::graph::UndirectedGraph<google::protobuf::Message *, bool>
+    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
         &_graph)
 {
   if (!_msg)
@@ -48,7 +48,7 @@ void AddVisuals(msgs::Link *_msg,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
-    auto visualMsg = dynamic_cast<msgs::Link *>(vertex.second.get().Data());
+    auto visualMsg = dynamic_cast<msgs::Visual *>(vertex.second.get().Data());
     if (!visualMsg)
       continue;
 
@@ -59,7 +59,7 @@ void AddVisuals(msgs::Link *_msg,
 //////////////////////////////////////////////////
 void AddLinks(msgs::Model *_msg,
     const EntityId _id,
-    const math::graph::UndirectedGraph<google::protobuf::Message *, bool>
+    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
         &_graph)
 {
   if (!_msg)
@@ -71,44 +71,33 @@ void AddLinks(msgs::Model *_msg,
     if (!linkMsg)
       continue;
 
-    _msg->add_link()->CopyFrom(*linkMsg);
-
     // Visuals
     AddVisuals(linkMsg, vertex.second.get().Id(), _graph);
+
+    _msg->add_link()->CopyFrom(*linkMsg);
   }
 }
 
 //////////////////////////////////////////////////
-void AddModels(google::protobuf::Message *_msg,
+template<typename T>
+void AddModels(T _msg,
     const EntityId _id,
-    const math::graph::UndirectedGraph<google::protobuf::Message *, bool>
+    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
         &_graph)
 {
-  // Must be a message which has child models
-  auto sceneMsg = dynamic_cast<msgs::Scene *>(_msg);
-  auto parentModelMsg = dynamic_cast<msgs::Model *>(_msg);
-
-  if (!sceneMsg && !parentModelMsg)
-  {
-    return;
-  }
-
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
     auto modelMsg = dynamic_cast<msgs::Model *>(vertex.second.get().Data());
     if (!modelMsg)
       continue;
 
-    if (sceneMsg)
-      sceneMsg->add_model()->CopyFrom(*modelMsg);
-    else if (parentModelMsg)
-      parentModelMsg->add_model()->CopyFrom(*modelMsg);
-
     // Nested models
     AddModels(modelMsg, vertex.second.get().Id(), _graph);
 
     // Links
     AddLinks(modelMsg, vertex.second.get().Id(), _graph);
+
+    _msg->add_model()->CopyFrom(*modelMsg);
   }
 }
 
@@ -131,7 +120,8 @@ ScenePublisher::ScenePublisher()
   : System(), dataPtr(std::make_unique<ScenePublisherPrivate>())
 {
   // TODO(louise) Make topic configurable
-  this->dataPtr->scenePub = this->dataPtr->node.Advertise<msgs::Scene>("/scene");
+  this->dataPtr->scenePub =
+      this->dataPtr->node.Advertise<msgs::Scene>("/scene");
 }
 
 //////////////////////////////////////////////////
@@ -155,7 +145,7 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
   // TODO(louise) Fill message header
 
   // First populate a graph, then populate a message from the graph
-  math::graph::UndirectedGraph<google::protobuf::Message *, bool> graph;
+  math::graph::DirectedGraph<google::protobuf::Message *, bool> graph;
 
   // World
   EntityId worldId = kNullEntity;
@@ -249,6 +239,8 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
       visualMsg->mutable_geometry()->CopyFrom(
           Convert<msgs::Geometry>(_geometryComp->Data()));
 
+      visualMsg->mutable_material()->CopyFrom(
+          Convert<msgs::Material>(_materialComp->Data()));
 
       graph.AddVertex(_nameComp->Data(), visualMsg, _entity);
       graph.AddEdge({_parentComp->Id(), _entity}, true);
@@ -258,6 +250,7 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
   msgs::Scene sceneMsg;
   AddModels(&sceneMsg, worldId, graph);
 
+  // Publish
   this->scenePub.Publish(sceneMsg);
 }
 

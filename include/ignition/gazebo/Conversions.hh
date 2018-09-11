@@ -21,6 +21,7 @@
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -35,9 +36,9 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Generic conversion from an SDF geometry to another type.
-    /// \param[in] _in SDF geometry
-    /// \return Conversion result
-    /// \tparam OUT Output type
+    /// \param[in] _in SDF geometry.
+    /// \return Conversion result.
+    /// \tparam OUT Output type.
     template<class OUT>
     OUT Convert(const sdf::Geometry &_in)
     {
@@ -73,6 +74,30 @@ namespace ignition
         ignerr << "Geometry type [" << static_cast<int>(_in.Type())
                << "] not supported" << std::endl;
       }
+      return out;
+    }
+
+    /// \brief Generic conversion from an SDF material to another type.
+    /// \param[in] _in SDF material.
+    /// \return Conversion result.
+    /// \tparam OUT Output type.
+    template<class OUT>
+    OUT Convert(const sdf::Material &_in)
+    {
+      OUT::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF material to a material
+    /// message.
+    /// \param[in] _in SDF material.
+    /// \return Material message.
+    template<>
+    msgs::Material Convert(const sdf::Material &_in)
+    {
+      msgs::Material out;
+      msgs::Set(out.mutable_ambient(), _in.Ambient());
+      msgs::Set(out.mutable_diffuse(), _in.Diffuse());
+      msgs::Set(out.mutable_specular(), _in.Specular());
       return out;
     }
     }
