@@ -17,12 +17,13 @@
 #ifndef IGNITION_GAZEBO_CONVERSIONS_HH_
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
-#include <ignition/common/Console.hh>
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
+
+#include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Sphere.hh>
@@ -34,7 +35,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
     /// \return Conversion result.

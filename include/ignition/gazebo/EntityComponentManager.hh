@@ -371,9 +371,18 @@ namespace ignition
       }
 
       /// why is this required?
-      private: template <typename T> struct identity { typedef T type; };
+      private: template <typename T>
+               struct identity
+      {
+        typedef T type;
+      };
 
-      /// \brief
+      /// \brief Get all entities which contain given component types, as well
+      /// as the components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template.
+      /// \tparam ComponentTypeTs All the desired component types.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   void(const EntityId &_entity,
@@ -413,25 +422,6 @@ namespace ignition
           {
             _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
           }
-        }
-      }
-
-      /// \brief Get various components of a given entity at once.
-      /// \param[in] _entity Id of entity of interest.
-      /// \param[in] _f Callback function to call with all components. If
-      /// _entity doesn't have all the components, the callback will not be
-      /// called.
-      public: template<typename ...ComponentTypeTs>
-              void Components(const EntityId &_entity,
-                  typename identity<std::function<
-                  void(const ComponentTypeTs *...)>>::type _f) const
-      {
-        auto types = std::set<ComponentTypeId>{
-            this->ComponentType<ComponentTypeTs>()...};
-
-        if (this->EntityMatches(_entity, types))
-        {
-          _f(this->Component<ComponentTypeTs>(_entity)...);
         }
       }
 

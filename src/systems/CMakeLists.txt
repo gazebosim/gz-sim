@@ -6,3 +6,7 @@ set (systems_sources
   PARENT_SCOPE
 )
 
+set (gtest_sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/ScenePublisher_TEST.cc
+  PARENT_SCOPE
+)

@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/math/graph/Graph.hh>
 #include <ignition/msgs/scene.pb.h>
+#include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
 
@@ -110,8 +110,10 @@ class ignition::gazebo::systems::ScenePublisherPrivate
   public: void OnUpdate(const UpdateInfo _info,
       EntityComponentManager &_manager);
 
+  /// \brief Transport node.
   public: transport::Node node;
 
+  /// \brief Scene publisher.
   public: transport::Node::Publisher scenePub;
 };
 
