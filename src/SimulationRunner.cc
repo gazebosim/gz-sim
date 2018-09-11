@@ -210,6 +210,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
     this->entityCompMgr.CreateComponent(modelEntity,
         components::ParentEntity(worldEntity));
 
+    // NOTE: Pose components of links, visuals, and collisions are expressed in
+    // the parent frame until we get frames working. However, after creation,
+    // these pose components will be updated with absolute poses from the
+    // physics engine.
+
     // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
         ++linkIndex)
@@ -332,7 +337,6 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
             components::ParentEntity(parentEntity));
         this->entityCompMgr.CreateComponent(jointEntity,
             components::ChildEntity(childEntity));
-
       }
     }
   }

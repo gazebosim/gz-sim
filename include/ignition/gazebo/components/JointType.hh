@@ -41,7 +41,7 @@ namespace components
   {
     /// \brief Constructor
     /// \param[in] _jointType sdf::JointType to copy
-   public: explicit JointType(const sdf::JointType &_jointType);
+    public: explicit JointType(const sdf::JointType &_jointType);
 
     /// \brief Copy Constructor
     /// \param[in] _jointType JointType component to copy.

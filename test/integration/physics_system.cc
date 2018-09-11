@@ -84,6 +84,5 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   // The sphere should have fallen for 1s.
   // TODO(addisu) subscribe to the state of the sphere
-
 }
 

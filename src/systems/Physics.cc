@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
 #include <ignition/physics/RequestEngine.hh>
@@ -118,6 +119,14 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics
   public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
 
+  /// \brief a map between visual entity ids in the ECM to thier initial offset
+  /// from their parent link
+  public: std::unordered_map<EntityId, math::Pose3d> visualOffsetMap;
+
+  /// \brief a map between collision entity ids in the ECM to thier initial
+  /// offset from their parent link
+  public: std::unordered_map<EntityId, math::Pose3d> collisionOffsetMap;
+
   /// \brief used to store whether physics objects have been created
   public: bool initialized = false;
 
@@ -177,7 +186,6 @@ void Physics::Update(const std::chrono::steady_clock::duration &_dt,
 
   this->dataPtr->Step(_dt);
   this->dataPtr->UpdateECS(_ecm);
-
 }
 
 void Physics::PostUpdate(const std::chrono::steady_clock::duration &_dt,
@@ -220,7 +228,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           model.SetPose(_pose->Data());
           auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
           std::cout << "Creating model: " << worldPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
+                    << _name->Data() << " z: " << _pose->Data().Pos().Z()
+                    << std::endl;
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
         }
@@ -251,7 +260,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
           auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
           std::cout << "Creating link: " << modelPtrPhys->GetName() << ":"
-                    << _name->Data() << std::endl;
+                    << _name->Data() << " z: " << _pose->Data().Pos().Z()
+                    << std::endl;
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
         }
@@ -260,7 +270,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // visuals
   _ecm.Each<components::Visual, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId  &/* _entity */,
+      [&](const EntityId  &_entity,
         const components::Visual * /* _visual */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -274,12 +284,16 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
                   << _name->Data() << std::endl;
         linkPtrPhys->ConstructVisual(visual);
         // for now, we won't have a map to the visual once it's added
+        // instead, we keep the relative pose between it and it's parent so we
+        // can update it's pose from physics. We assume the pose from ECS is
+        // absolute, so we have to find the relative transformation here.
+        visualOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
       });
 
   // collisions
   _ecm.Each<components::Collision, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId &/* _entity */,
+      [&](const EntityId & _entity,
         const components::Collision * /* _collision */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -293,6 +307,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
                   << _name->Data() << std::endl;
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
+        collisionOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
       });
 }
 
@@ -315,9 +330,51 @@ void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
   for (auto &[entity, link] : this->entityLinkMap)
   {
     ignition::physics::FrameData3d data = link->FrameDataRelativeToWorld();
-    std::cout << "Link: " << entity << " Pos Z: "
+    std::cout << "Link id: " << entity << " Pos Z: "
               << data.pose.translation().z() << std::endl;
   }
+
+  _ecm.EachMutable<components::Link, components::Pose>(
+      [&](const EntityId &_entity, components::Link * /*_link*/,
+          components::Pose *_pose)
+      {
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          math::Pose3d pose = math::eigen3::convert(
+              linkIt->second->FrameDataRelativeToWorld().pose);
+          *_pose = components::Pose(pose);
+        }
+        else
+        {
+          ignwarn << "Unknown link with id " << _entity << " found\n";
+        }
+      });
+
+  // The only non-link entity we're interested in (for now) is a visual
+  _ecm.EachMutable<components::Visual, components::Pose,
+                   components::ParentEntity>(
+      [&](const EntityId &_entity, components::Visual * /*_visual*/,
+          components::Pose *_pose, components::ParentEntity *_parent)
+      {
+        auto linkIt = this->entityLinkMap.find(_parent->Id());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          math::Pose3d parentPose = math::eigen3::convert(
+              linkIt->second->FrameDataRelativeToWorld().pose);
+
+          auto offsetIt = this->visualOffsetMap.find(_entity);
+          if (offsetIt != this->visualOffsetMap.end())
+          {
+            *_pose = components::Pose(parentPose * offsetIt->second);
+          }
+        }
+        else
+        {
+          ignwarn << "Visual with id " << _entity
+                  << " does not have a valid parent link\n";
+        }
+      });
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
