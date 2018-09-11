@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
+#include <sdf/Model.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -35,6 +36,7 @@
 #include "ignition/gazebo/components/World.hh"
 using namespace ignition;
 using namespace std::chrono_literals;
+namespace components = ignition::gazebo::components;
 
 class PhysicsSystemFixture : public ::testing::Test
 {
@@ -46,6 +48,36 @@ class PhysicsSystemFixture : public ::testing::Test
              (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
     }
 };
+
+// TODO(addisu) Create a Relay class that can be used by other tests.
+class MockSystem : public gazebo::System
+{
+  public:
+  using CallbackType = std::function<void(const gazebo::UpdateInfo &,
+                                     const gazebo::EntityComponentManager &)>;
+
+  public: void Init() override;
+  public: void PostUpdate(const gazebo::UpdateInfo &_info,
+                const gazebo::EntityComponentManager &_ecm) override;
+  public: void RegisterCallback(const CallbackType &cb);
+
+  public: CallbackType updateCb;
+};
+
+void MockSystem::Init()
+{
+}
+
+void MockSystem::RegisterCallback(const CallbackType &cb)
+{
+  updateCb = cb;
+}
+
+void MockSystem::PostUpdate(const gazebo::UpdateInfo &_info,
+                            const gazebo::EntityComponentManager &_ecm)
+{
+  updateCb(_info, _ecm);
+}
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
@@ -73,16 +105,51 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/falling.sdf");
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+                       "/test/worlds/falling.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  const sdf::Model *model = world->ModelByIndex(0);
 
   gazebo::Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
-  server.Run(true, 1000);
+  const std::string linkName = "sphere_link";
+  std::vector<ignition::math::Pose3d> spherePoses;
 
-  // The sphere should have fallen for 1s.
-  // TODO(addisu) subscribe to the state of the sphere
+  // Create a system that records the poses of the sphere
+  auto testSystem = std::make_shared<MockSystem>();
+  testSystem->RegisterCallback(
+      [linkName, &spherePoses](const gazebo::UpdateInfo &,
+                               const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Link, components::Name, components::Pose>(
+            [&](const ignition::gazebo::EntityId &, const components::Link *,
+                const components::Name *_name, const components::Pose *_pose)
+            {
+              if (_name->Data() == linkName)
+              {
+                spherePoses.push_back(_pose->Data());
+              }
+            });
+      });
+
+  server.AddSystem(testSystem);
+  const size_t iters = 10;
+  server.Run(true, iters);
+
+  // TODO(addisu): Get dt from simulation
+  const double dt = 0.001;
+  // TODO(addisu): Using default grav in DART
+  const double grav = 9.81;
+  const double zInit = model->Pose().Pos().Z();
+  // The sphere should have fallen for 10ms.
+  const double zExpected = zInit - 0.5 * grav * pow(iters * dt, 2);
+  // The tolerance is not very tight due to integration errors with a step size
+  // of 0.001
+  EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 1e-4);
 }
-
