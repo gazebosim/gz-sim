@@ -138,7 +138,8 @@ pipelines:
           - mkdir build
           - cd build
           - cmake ..
-          - make -j4 install
+          # may run out of memory if ran in parallel
+          - make install
           - cd ../..
           # Ignition Gazebo
           - mkdir build
