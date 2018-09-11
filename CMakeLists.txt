@@ -44,6 +44,11 @@ set(IGN_COMMON_VER 3)
 ign_find_package(ignition-common3 REQUIRED)
 
 #--------------------------------------
+# Find ignition-rendering
+set(IGN_RENDERING_VER 1)
+ign_find_package(ignition-rendering1 REQUIRED)
+
+#--------------------------------------
 # Find ignition-gui
 set(IGN_GUI_VER 1)
 ign_find_package(ignition-gui1 REQUIRED)
