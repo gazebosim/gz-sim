@@ -5,10 +5,6 @@
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::WorldStatistics">
-    </plugin>
     <model name="sphere">
       <pose>0 0 10 0 0 0</pose>
       <link name="sphere_link">
