@@ -47,16 +47,6 @@ namespace systems
     public: void Init() override final;
 
     /// Documentation inherited
-    public: virtual void EntityAdded(
-                const Entity &_entity,
-                const EntityComponentManager &_ecm) override final;
-
-    /// Documentation inherited
-    public: virtual void EntityRemoved(
-                const Entity &entity,
-                const EntityComponentManager &_ecm) override final;
-
-    /// Documentation inherited
     public: virtual void Update(const UpdateInfo &_info,
                 EntityComponentManager &_ecm) override final;
 

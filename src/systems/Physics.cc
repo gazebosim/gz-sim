@@ -156,23 +156,6 @@ void Physics::Init()
       ignition::physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::
       From(plugin);
-  std::cout << "Found: " << this->dataPtr->engine->GetName() << std::endl;
-}
-
-//////////////////////////////////////////////////
-void Physics::EntityAdded(const Entity &_entity,
-                          const EntityComponentManager &_ecm)
-{
-  (void)_entity;
-  (void)_ecm;
-}
-
-//////////////////////////////////////////////////
-void Physics::EntityRemoved(const Entity &_entity,
-                            const EntityComponentManager &_ecm)
-{
-  (void)_entity;
-  (void)_ecm;
 }
 
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
@@ -206,7 +189,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         {
           sdf::World world;
           world.SetName(_name->Data());
-          std::cout << "Creating world: " << _name->Data() << std::endl;
           auto worldPtrPhys = this->engine->ConstructWorld(world);
           this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
         }
@@ -226,9 +208,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
           auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
-          std::cout << "Creating model: " << worldPtrPhys->GetName() << ":"
-                    << _name->Data() << " z: " << _pose->Data().Pos().Z()
-                    << std::endl;
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
         }
@@ -252,15 +231,10 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto inertial = _ecm.Component<components::Inertial>(_entity);
           if (inertial)
           {
-            std::cout << "inertia: "
-                      << inertial->Data().MassMatrix().Mass() << std::endl;
             link.SetInertial(inertial->Data());
           }
 
           auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
-          std::cout << "Creating link: " << modelPtrPhys->GetName() << ":"
-                    << _name->Data() << " z: " << _pose->Data().Pos().Z()
-                    << std::endl;
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
         }
@@ -279,8 +253,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         visual.SetName(_name->Data());
         visual.SetPose(_pose->Data());
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
-        std::cout << "Creating visual: " << linkPtrPhys->GetName() << ":"
-                  << _name->Data() << std::endl;
         linkPtrPhys->ConstructVisual(visual);
         // for now, we won't have a map to the visual once it's added
         // instead, we keep the relative pose between it and it's parent so we
@@ -302,8 +274,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetName(_name->Data());
         collision.SetPose(_pose->Data());
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
-        std::cout << "Creating collision: " << linkPtrPhys->GetName() << ":"
-                  << _name->Data() << std::endl;
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
         collisionOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
@@ -326,13 +296,6 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 
 void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 {
-  for (auto &[entity, link] : this->entityLinkMap)
-  {
-    ignition::physics::FrameData3d data = link->FrameDataRelativeToWorld();
-    std::cout << "Link id: " << entity << " Pos Z: "
-              << data.pose.translation().z() << std::endl;
-  }
-
   _ecm.EachMutable<components::Link, components::Pose>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
           components::Pose *_pose)
