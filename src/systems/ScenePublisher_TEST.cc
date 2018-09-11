@@ -60,7 +60,7 @@ TEST_P(ScenePublisherTest, Shapes)
 
     received = true;
   };
-  EXPECT_TRUE(node.Subscribe("/scene", cb));
+  EXPECT_TRUE(node.Subscribe("/world/default/scene", cb));
 
   // Run server
   server.Run(true, 1);

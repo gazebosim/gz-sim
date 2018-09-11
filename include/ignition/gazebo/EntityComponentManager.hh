@@ -373,9 +373,9 @@ namespace ignition
       /// why is this required?
       private: template <typename T>
                struct identity
-      {
-        typedef T type;
-      };
+               {
+                 typedef T type;
+               };
 
       /// \brief Get all entities which contain given component types, as well
       /// as the components.

@@ -121,9 +121,6 @@ class ignition::gazebo::systems::ScenePublisherPrivate
 ScenePublisher::ScenePublisher()
   : System(), dataPtr(std::make_unique<ScenePublisherPrivate>())
 {
-  // TODO(louise) Make topic configurable
-  this->dataPtr->scenePub =
-      this->dataPtr->node.Advertise<msgs::Scene>("/scene");
 }
 
 //////////////////////////////////////////////////
@@ -153,17 +150,27 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
   EntityId worldId = kNullEntity;
   _manager.Each<components::World,
                 components::Name>(
-    [&graph, &_manager, &worldId](const EntityId &_entity,
+    [&](const EntityId &_entity,
         const components::World */*_worldComp*/,
         const components::Name *_nameComp)
     {
-      // TODO(louise) Support multiple worlds
       if (kNullEntity != worldId)
       {
-        ignerr << "Skipping world [" << _nameComp->Data() << "]" << std::endl;
+        ignerr << "Internal error, more than one world found." << std::endl;
         return;
       }
       worldId = _entity;
+
+      if (!this->scenePub)
+      {
+        std::string topic{"/world/" + _nameComp->Data() + "/scene"};
+
+        transport::AdvertiseMessageOptions advertOpts;
+        advertOpts.SetMsgsPerSec(60);
+        this->scenePub = this->node.Advertise<msgs::Scene>(topic, advertOpts);
+
+        ignmsg << "Publishing scene messages on [" << topic << "]" << std::endl;
+      }
 
       graph.AddVertex(_nameComp->Data(), nullptr, _entity);
     });
