@@ -45,6 +45,9 @@ namespace systems
 
     public: void Init() override final;
 
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_manager) override;
+
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;
   };

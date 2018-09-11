@@ -22,6 +22,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Server.hh"
@@ -45,6 +46,8 @@ class MockSystem : public gazebo::System
 {
   // Keep the number of calls to Init
   public: size_t initCallCount = 0;
+  public: size_t entityAddedCallCount = 0;
+  public: size_t entityRemovedCallCount = 0;
   public: size_t updateCallCount = 0;
   public: size_t preUpdateCallCount = 0;
   public: size_t postUpdateCallCount = 0;
@@ -56,20 +59,36 @@ class MockSystem : public gazebo::System
     }
 
   public:
+    void EntityAdded(const gazebo::Entity &/*_entity*/,
+                     const gazebo::EntityComponentManager &/*_ecm*/) override
+    {
+      ++this->entityAddedCallCount;
+    }
+
+  public:
+    void EntityRemoved(const gazebo::Entity &/*_entity*/,
+                       const gazebo::EntityComponentManager &/*_ecm*/) override
+    {
+      ++this->entityRemovedCallCount;
+    }
+
+  public:
     void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->preUpdateCallCount;
     }
 
+  public:
     void Update(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->updateCallCount;
     }
 
+  public:
     void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-                const gazebo::EntityComponentManager & /*_manager*/) override
+                    const gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->postUpdateCallCount;
     }
@@ -278,9 +297,17 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->initCallCount);
 
   server.SetUpdatePeriod(1us);
+  EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(0u, mockSystem->updateCallCount);
+  EXPECT_EQ(0u, mockSystem->postUpdateCallCount);
   server.Run(true, 1);
+  EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
+  EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
+
+  // \todo(mjcarroll): We expect these to have actual counts when implemented.
+  EXPECT_EQ(0u, mockSystem->entityAddedCallCount);
+  EXPECT_EQ(0u, mockSystem->entityRemovedCallCount);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
