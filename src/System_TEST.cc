@@ -24,10 +24,5 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(System, Constructor)
 {
-  /// \todo(nkoenig) Add more tests here.
-  // gazebo::System system();
-  // EXPECT_EQ("test", system.Name());
 
-  // system.SetName("another");
-  // EXPECT_EQ("another", system.Name());
 }
