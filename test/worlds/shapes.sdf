@@ -9,6 +9,10 @@
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::ScenePublisher">
+    </plugin>
 
     <model name="box">
       <pose>1 2 3 0 0 1</pose>
