@@ -38,7 +38,6 @@ ServerPrivate::ServerPrivate()
 ServerPrivate::~ServerPrivate()
 {
   this->Stop();
-  this->workerPool.WaitForResults();
   if (this->runThread.joinable())
   {
     this->running = false;
@@ -81,16 +80,28 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     _cond.value()->notify_all();
   this->runMutex.unlock();
 
-  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
+  bool result = true;
+
+  // Minor performance tweak. In many situations there will only be one
+  // simulation runner, and we can avoid using the thread pool.
+  if (this->simRunners.size() == 1)
   {
-    this->workerPool.AddWork([&runner, &_iterations] ()
+    result = this->simRunners[0]->Run(_iterations);
+  }
+  else
+  {
+    for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
     {
-      runner->Run(_iterations);
-    });
+      this->workerPool.AddWork([&runner, &_iterations] ()
+        {
+          runner->Run(_iterations);
+        });
+    }
+
+    // Wait for the runner to complete.
+    result = this->workerPool.WaitForResults();
   }
 
-  // Wait for the runner to complete.
-  bool result = this->workerPool.WaitForResults();
   this->running = false;
   return result;
 }

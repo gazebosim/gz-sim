@@ -42,15 +42,13 @@ Server::Server(const ServerConfig &_config)
         "<plugin filename='libignition-gazebo-physics-system.so'"
         "        name='ignition::gazebo::systems::v0::Physics'>"
         "</plugin>"
-        "<plugin filename='libignition-gazebo-systems.so'"
-        "        name='ignition::gazebo::systems::v0::WorldStatistics'>"
-        "</plugin>"
         "</world></sdf>");
   }
 
   this->dataPtr->CreateEntities(root);
 
-  // Set the desired update period.
+  // Set the desired update period, this will override the desired RTF given in
+  // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
@@ -145,5 +143,27 @@ std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
     return this->dataPtr->simRunners[_worldIndex]->SystemCount();
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
+                                      const unsigned int _worldIndex)
+{
+  // Check the current state, and return early if preconditions are not met.
+  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+  // Do not allow running more than once.
+  if (this->dataPtr->running)
+  {
+    ignerr << "Cannot add system while the server is runnnng.\n";
+    return false;
+  }
+
+  if (_worldIndex < this->dataPtr->simRunners.size())
+  {
+    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
+    return true;
+  }
+
   return std::nullopt;
 }
