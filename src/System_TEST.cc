@@ -28,11 +28,6 @@ TEST(System, Constructor)
   // gazebo::System system();
   // EXPECT_EQ("test", system.Name());
 
-  // This doesn't do anything, but should still be valid.
-  // gazebo::EntityQueryRegistrar registrar;
-  // system.Init(registrar);
-  // EXPECT_TRUE(registrar.Registrations().empty());
-
   // system.SetName("another");
   // EXPECT_EQ("another", system.Name());
 }

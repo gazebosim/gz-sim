@@ -175,8 +175,7 @@ void Physics::EntityRemoved(const Entity &_entity,
   (void)_ecm;
 }
 
-void Physics::Update(const std::chrono::steady_clock::duration &_dt,
-                     EntityComponentManager &_ecm)
+void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   if (!this->dataPtr->initialized)
   {
@@ -184,14 +183,14 @@ void Physics::Update(const std::chrono::steady_clock::duration &_dt,
     this->dataPtr->initialized = true;
   }
 
-  this->dataPtr->Step(_dt);
+  this->dataPtr->Step(_info.dt);
   this->dataPtr->UpdateECS(_ecm);
 }
 
-void Physics::PostUpdate(const std::chrono::steady_clock::duration &_dt,
+void Physics::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  (void)_dt;
+  (void)_info;
   (void)_ecm;
 }
 
