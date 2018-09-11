@@ -74,21 +74,21 @@ class MockSystem : public gazebo::System
 
   public:
     void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
-                gazebo::EntityComponentManager & /*_manager*/) override
+                gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->preUpdateCallCount;
     }
 
   public:
     void Update(const gazebo::UpdateInfo & /*_info*/,
-                gazebo::EntityComponentManager & /*_manager*/) override
+                gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->updateCallCount;
     }
 
   public:
     void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-                    const gazebo::EntityComponentManager & /*_manager*/) override
+                    const gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->postUpdateCallCount;
     }
