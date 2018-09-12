@@ -24,8 +24,8 @@
 
 using namespace ignition;
 
-/// \brief Test ScenePublisher system
-class ScenePublisherTest : public ::testing::TestWithParam<int>
+/// \brief Test SceneBroadcaster system
+class SceneBroadcasterTest : public ::testing::TestWithParam<int>
 {
   // Documentation inherited
   protected: virtual void SetUp()
@@ -36,7 +36,7 @@ class ScenePublisherTest : public ::testing::TestWithParam<int>
 };
 
 /////////////////////////////////////////////////
-TEST_P(ScenePublisherTest, Shapes)
+TEST_P(SceneBroadcasterTest, Shapes)
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -81,5 +81,5 @@ TEST_P(ScenePublisherTest, Shapes)
 }
 
 // Run multiple times
-INSTANTIATE_TEST_CASE_P(ServerRepeat, ScenePublisherTest,
+INSTANTIATE_TEST_CASE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));

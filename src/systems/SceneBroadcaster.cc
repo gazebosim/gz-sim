@@ -31,7 +31,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/systems/ScenePublisher.hh"
+#include "ignition/gazebo/systems/SceneBroadcaster.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -102,7 +102,7 @@ void AddModels(T _msg,
 }
 
 // Private data class.
-class ignition::gazebo::systems::ScenePublisherPrivate
+class ignition::gazebo::systems::SceneBroadcasterPrivate
 {
   /// \brief Query callback for entity that has physics components.
   /// \param[in] _info Update information.
@@ -118,26 +118,26 @@ class ignition::gazebo::systems::ScenePublisherPrivate
 };
 
 //////////////////////////////////////////////////
-ScenePublisher::ScenePublisher()
-  : System(), dataPtr(std::make_unique<ScenePublisherPrivate>())
+SceneBroadcaster::SceneBroadcaster()
+  : System(), dataPtr(std::make_unique<SceneBroadcasterPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-ScenePublisher::~ScenePublisher()
+SceneBroadcaster::~SceneBroadcaster()
 {
 }
 
 //////////////////////////////////////////////////
-void ScenePublisher::Init(std::vector<EntityQueryCallback> &_cbs)
+void SceneBroadcaster::Init(std::vector<EntityQueryCallback> &_cbs)
 {
   _cbs.push_back(
-      std::bind(&ScenePublisherPrivate::OnUpdate, this->dataPtr.get(),
+      std::bind(&SceneBroadcasterPrivate::OnUpdate, this->dataPtr.get(),
         std::placeholders::_1, std::placeholders::_2));
 }
 
 //////////////////////////////////////////////////
-void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
+void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
     EntityComponentManager &_manager)
 {
   // TODO(louise) Get <scene> from SDF
@@ -225,15 +225,11 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
 
   // Visuals
   _manager.Each<components::Visual,
-                components::Geometry,
-                components::Material,
                 components::Name,
                 components::ParentEntity,
                 components::Pose>(
     [&graph, &_manager](const EntityId &_entity,
         const components::Visual */*_visualComp*/,
-        const components::Geometry *_geometryComp,
-        const components::Material *_materialComp,
         const components::Name *_nameComp,
         const components::ParentEntity *_parentComp,
         const components::Pose *_poseComp)
@@ -245,11 +241,21 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
       visualMsg->mutable_pose()->CopyFrom(msgs::Convert(
           _poseComp->Data()));
 
-      visualMsg->mutable_geometry()->CopyFrom(
-          Convert<msgs::Geometry>(_geometryComp->Data()));
+      // Geometry is optional
+      auto geometryComp = _manager.Component<components::Geometry>(_entity);
+      if (geometryComp)
+      {
+        visualMsg->mutable_geometry()->CopyFrom(
+            Convert<msgs::Geometry>(geometryComp->Data()));
+      }
 
-      visualMsg->mutable_material()->CopyFrom(
-          Convert<msgs::Material>(_materialComp->Data()));
+      // Material is optional
+      auto materialComp = _manager.Component<components::Material>(_entity);
+      if (materialComp)
+      {
+        visualMsg->mutable_material()->CopyFrom(
+            Convert<msgs::Material>(materialComp->Data()));
+      }
 
       graph.AddVertex(_nameComp->Data(), visualMsg, _entity);
       graph.AddEdge({_parentComp->Id(), _entity}, true);
@@ -263,6 +269,6 @@ void ScenePublisherPrivate::OnUpdate(const UpdateInfo /*_info*/,
   this->scenePub.Publish(sceneMsg);
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::ScenePublisher,
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
                     ignition::gazebo::System)
 
