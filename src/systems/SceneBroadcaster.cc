@@ -110,11 +110,33 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: void OnUpdate(const UpdateInfo _info,
       EntityComponentManager &_manager);
 
+  /// \brief Setup Ignition transport services and publishers
+  /// \param[in] _worldName Name of world.
+  public: void SetupTransport(const std::string &_worldName);
+
+  /// \brief Callback for scene info service.
+  /// \param[out] _res Response containing the latest scene message.
+  /// \return True if successful.
+  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+
+  /// \brief Callback for scene graph service.
+  /// \param[out] _res Response containing the the scene graph in DOT format.
+  /// \return True if successful.
+  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+
   /// \brief Transport node.
   public: transport::Node node;
 
-  /// \brief Scene publisher.
-  public: transport::Node::Publisher scenePub;
+  /// \brief Pose publisher.
+  public: transport::Node::Publisher posePub;
+
+  /// \brief Graph containing latest information from entities.
+  public: math::graph::DirectedGraph<google::protobuf::Message *, bool>
+      sceneGraph;
+
+  /// \brief Keep the id of the world entity so we know how to traverse the
+  /// graph.
+  public: EntityId worldId;
 };
 
 //////////////////////////////////////////////////
@@ -137,45 +159,95 @@ void SceneBroadcaster::Init(std::vector<EntityQueryCallback> &_cbs)
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
+{
+  // Scene info service
+  std::string infoService{"/world/" + _worldName + "/scene/info"};
+
+  this->node.Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
+      this);
+
+  ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
+
+  // Scene graph service
+  std::string graphService{"/world/" + _worldName + "/scene/graph"};
+
+  this->node.Advertise(graphService,
+      &SceneBroadcasterPrivate::SceneGraphService, this);
+
+  ignmsg << "Serving scene graph on [" << graphService << "]" << std::endl;
+
+  // Pose info publisher
+  std::string topic{"/world/" + _worldName + "/pose/info"};
+
+  transport::AdvertiseMessageOptions advertOpts;
+  advertOpts.SetMsgsPerSec(60);
+  this->posePub = this->node.Advertise<msgs::Scene>(topic, advertOpts);
+
+  ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+{
+  _res.Clear();
+
+  // Populate scene message
+  AddModels(&_res, this->worldId, this->sceneGraph);
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+{
+  _res.Clear();
+
+  std::stringstream graphStr;
+  graphStr << this->sceneGraph;
+
+  _res.set_data(graphStr.str());
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
     EntityComponentManager &_manager)
 {
   // TODO(louise) Get <scene> from SDF
   // TODO(louise) Fill message header
 
-  // First populate a graph, then populate a message from the graph
-  math::graph::DirectedGraph<google::protobuf::Message *, bool> graph;
+  // Populate a graph with latest information from all entities
+  // TODO(louise) once we know what entities are added/deleted process only
+  // those. For now, recreating graph at every iteration.
+  this->sceneGraph =
+      math::graph::DirectedGraph<google::protobuf::Message *, bool>();
 
   // World
-  EntityId worldId = kNullEntity;
+  this->worldId = kNullEntity;
   _manager.Each<components::World,
                 components::Name>(
     [&](const EntityId &_entity,
         const components::World */*_worldComp*/,
         const components::Name *_nameComp)
     {
-      if (kNullEntity != worldId)
+      if (kNullEntity != this->worldId)
       {
         ignerr << "Internal error, more than one world found." << std::endl;
         return;
       }
-      worldId = _entity;
+      this->worldId = _entity;
 
-      if (!this->scenePub)
+      if (!this->posePub)
       {
-        std::string topic{"/world/" + _nameComp->Data() + "/scene"};
-
-        transport::AdvertiseMessageOptions advertOpts;
-        advertOpts.SetMsgsPerSec(60);
-        this->scenePub = this->node.Advertise<msgs::Scene>(topic, advertOpts);
-
-        ignmsg << "Publishing scene messages on [" << topic << "]" << std::endl;
+        this->SetupTransport(_nameComp->Data());
       }
 
-      graph.AddVertex(_nameComp->Data(), nullptr, _entity);
+      this->sceneGraph.AddVertex(_nameComp->Data(), nullptr, _entity);
     });
 
-  if (kNullEntity == worldId)
+  if (kNullEntity == this->worldId)
   {
     ignerr << "Failed to find world entity" << std::endl;
     return;
@@ -186,7 +258,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
                 components::Name,
                 components::ParentEntity,
                 components::Pose>(
-    [&graph, &_manager](const EntityId &_entity,
+    [&](const EntityId &_entity,
         const components::Model */*_modelComp*/,
         const components::Name *_nameComp,
         const components::ParentEntity *_parentComp,
@@ -198,8 +270,8 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
       modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
           _poseComp->Data()));
 
-      graph.AddVertex(_nameComp->Data(), modelMsg, _entity);
-      graph.AddEdge({_parentComp->Id(), _entity}, true);
+      this->sceneGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+      this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
     });
 
   // Links
@@ -207,7 +279,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
                 components::Name,
                 components::ParentEntity,
                 components::Pose>(
-    [&graph, &_manager](const EntityId &_entity,
+    [&](const EntityId &_entity,
         const components::Link */*_linkComp*/,
         const components::Name *_nameComp,
         const components::ParentEntity *_parentComp,
@@ -219,8 +291,8 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
       linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
           _poseComp->Data()));
 
-      graph.AddVertex(_nameComp->Data(), linkMsg, _entity);
-      graph.AddEdge({_parentComp->Id(), _entity}, true);
+      this->sceneGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
+      this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
     });
 
   // Visuals
@@ -228,7 +300,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
                 components::Name,
                 components::ParentEntity,
                 components::Pose>(
-    [&graph, &_manager](const EntityId &_entity,
+    [&](const EntityId &_entity,
         const components::Visual */*_visualComp*/,
         const components::Name *_nameComp,
         const components::ParentEntity *_parentComp,
@@ -257,16 +329,9 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
             Convert<msgs::Material>(materialComp->Data()));
       }
 
-      graph.AddVertex(_nameComp->Data(), visualMsg, _entity);
-      graph.AddEdge({_parentComp->Id(), _entity}, true);
+      this->sceneGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
+      this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
     });
-
-  // Populate scene message
-  msgs::Scene sceneMsg;
-  AddModels(&sceneMsg, worldId, graph);
-
-  // Publish
-  this->scenePub.Publish(sceneMsg);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
