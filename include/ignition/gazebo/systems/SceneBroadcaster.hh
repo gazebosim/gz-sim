@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SCENEPUBLISHER_SYSTEM_HH_
-#define IGNITION_GAZEBO_SCENEPUBLISHER_SYSTEM_HH_
+#ifndef IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
+#define IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>
@@ -31,25 +31,25 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  class ScenePublisherPrivate;
+  class SceneBroadcasterPrivate;
 
-  /// \class ScenePublisher ScenePublisher.hh
-  /// ignition/gazebo/systems/ScenePublisher.hh
+  /// \class SceneBroadcaster SceneBroadcaster.hh
+  /// ignition/gazebo/systems/SceneBroadcaster.hh
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class IGNITION_GAZEBO_VISIBLE ScenePublisher: public System
+  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster: public System
   {
     /// \brief Constructor
-    public: ScenePublisher();
+    public: SceneBroadcaster();
 
     /// \brief Destructor
-    public: virtual ~ScenePublisher();
+    public: virtual ~SceneBroadcaster();
 
     // Documentation inherited
     public: void Init(std::vector<EntityQueryCallback> &_cbs) override final;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<ScenePublisherPrivate> dataPtr;
+    private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
   };
   }
 }

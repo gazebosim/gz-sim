@@ -43,7 +43,7 @@ Server::Server(const ServerConfig &_config)
         "        name='ignition::gazebo::systems::v0::Physics'>"
         "</plugin>"
         "<plugin filename='libignition-gazebo-systems.so'"
-        "        name='ignition::gazebo::systems::v0::ScenePublisher'>"
+        "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
         "</plugin>"
         "</world></sdf>");
   }
