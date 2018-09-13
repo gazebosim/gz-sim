@@ -10,6 +10,10 @@ set (physics_system_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc
 )
 
+# Find ignition-physics
+set(IGN_PHYSICS_VER 0)
+ign_find_package(ignition-physics0 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
+
 ign_add_component(physics-system
   SOURCES ${physics_system_sources}
   GET_TARGET_NAME physics_system_target
@@ -24,6 +28,8 @@ target_link_libraries(${physics_system_target}
   ignition-plugin${IGN_PLUGIN_VER}::loader
   # TODO(addisu) Need SDFormat?
 )
+target_compile_definitions(${physics_system_target} PRIVATE
+  "dartsim_plugin_LIB=\"$<TARGET_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-dartsim-plugin>\"")
 
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
