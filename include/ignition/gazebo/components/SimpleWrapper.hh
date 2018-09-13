@@ -1,0 +1,122 @@
+/*
+ * Copyright (C) 2018 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
+#define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
+
+#include <memory>
+
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
+namespace ignition
+{
+namespace gazebo
+{
+namespace components
+{
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  // Forward declarations.
+  template<typename DataType> class SimpleWrapperPrivate;
+
+  /// \brief A component type that wraps any data type
+  template <typename DataType, typename Identifier>
+  class IGNITION_GAZEBO_VISIBLE SimpleWrapper
+  {
+    /// \brief Constructor
+    /// \param[in] _simpleWrapper Ignition math simplewrapper to copy
+    public: explicit SimpleWrapper(const DataType &_data);
+
+    /// \brief Copy Constructor
+    /// \param[in] _simpleWrapper SimpleWrapper component to copy.
+    public: SimpleWrapper(const SimpleWrapper &_simpleWrapper);
+
+    /// \brief Move Constructor
+    /// \param[in] _simpleWrapper SimpleWrapper component to move.
+    public: SimpleWrapper(SimpleWrapper &&_simpleWrapper) = default;
+
+    /// \brief Destructor.
+    public: virtual ~SimpleWrapper() = default;
+
+    /// \brief Move assignment operator.
+    /// \param[in] _simpleWrapper SimpleWrapper component to move.
+    /// \return Reference to this.
+    public: SimpleWrapper &operator=(SimpleWrapper &&_simpleWrapper) = default;
+
+    /// \brief Copy assignment operator.
+    /// \param[in] _simpleWrapper SimpleWrapper component to copy.
+    /// \return Reference to this.
+    public: SimpleWrapper &operator=(const SimpleWrapper &_simpleWrapper);
+
+    /// \brief Get the simplewrapper data.
+    /// \return The actual simplewrapper information.
+    public: const DataType &Data() const;
+
+    /// \brief Private data pointer.
+    private: std::unique_ptr<SimpleWrapperPrivate<DataType>> dataPtr;
+  };
+
+  template <typename DataType>
+  class SimpleWrapperPrivate
+  {
+    /// \brief Constructor.
+    /// \param[in] _simpleWrapper SimpleWrapper data.
+    public: explicit SimpleWrapperPrivate(const DataType &_data)
+            : data(_data)
+    {
+    }
+
+    /// \brief The simplewrapper data.
+    public: DataType data;
+  };
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  SimpleWrapper<DataType, Identifier>::SimpleWrapper(const DataType &_data)
+    : dataPtr(std::make_unique<SimpleWrapperPrivate<DataType>>(_data))
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  SimpleWrapper<DataType, Identifier>::SimpleWrapper(
+      const SimpleWrapper<DataType, Identifier> &_simpleWrapper)
+      : dataPtr(std::make_unique<SimpleWrapperPrivate<DataType>>(
+            _simpleWrapper.Data()))
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  const DataType &SimpleWrapper<DataType, Identifier>::Data() const
+  {
+    return this->dataPtr->data;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  SimpleWrapper<DataType, Identifier> &SimpleWrapper<DataType, Identifier>::
+  operator=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper)
+  {
+    this->dataPtr->simplewrapper = _simpleWrapper.Data();
+    return *this;
+  }
+  }
+}
+}
+}
+#endif

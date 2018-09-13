@@ -37,6 +37,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/SystemManager.hh"
@@ -360,6 +361,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Name(model->Name()));
     this->entityCompMgr.CreateComponent(modelEntity,
         components::ParentEntity(worldEntity));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Static(model->Static()));
 
     // NOTE: Pose components of links, visuals, and collisions are expressed in
     // the parent frame until we get frames working. However, after creation,

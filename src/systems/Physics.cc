@@ -26,9 +26,13 @@
 #include <ignition/plugin/Register.hh>
 
 // Features
+#include <ignition/physics/BoxShape.hh>
+#include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/Shape.hh>
+#include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
@@ -55,6 +59,7 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
 #include "ignition/gazebo/systems/Physics.hh"
@@ -195,18 +200,20 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   _ecm.Each<components::Model, components::Name, components::Pose,
-            components::ParentEntity>(
+            components::ParentEntity, components::Static>(
       [&](const EntityId &_entity,
         const components::Model * /* _model */,
         const components::Name *_name,
         const components::Pose *_pose,
-        const components::ParentEntity *_parent)
+        const components::ParentEntity *_parent,
+        const components::Static *_static)
       {
         if (this->entityModelMap.find(_entity) == this->entityModelMap.end())
         {
           sdf::Model model;
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
+          model.SetStatic(_static->Data());
           auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
@@ -241,38 +248,31 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   // visuals
-  _ecm.Each<components::Visual, components::Name, components::Pose,
-            components::ParentEntity>(
+  _ecm.Each<components::Visual,  components::Pose>(
       [&](const EntityId  &_entity,
         const components::Visual * /* _visual */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent)
+        const components::Pose *_pose)
       {
-        sdf::Visual visual;
-        visual.SetName(_name->Data());
-        visual.SetPose(_pose->Data());
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
-        linkPtrPhys->ConstructVisual(visual);
-        // for now, we won't have a map to the visual once it's added
-        // instead, we keep the relative pose between it and it's parent so we
-        // can update it's pose from physics. We assume the pose from ECS is
-        // absolute, so we have to find the relative transformation here.
+        // We don't need to add visuals to the physics engine, but we need to
+        // save their relative poses so we can transform them into world poses
+        // once the simulation is running.
         visualOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
       });
 
   // collisions
   _ecm.Each<components::Collision, components::Name, components::Pose,
-            components::ParentEntity>(
+            components::Geometry, components::ParentEntity>(
       [&](const EntityId & _entity,
         const components::Collision * /* _collision */,
         const components::Name *_name,
         const components::Pose *_pose,
+        const components::Geometry *_geom,
         const components::ParentEntity *_parent)
       {
         sdf::Collision collision;
         collision.SetName(_name->Data());
         collision.SetPose(_pose->Data());
+        collision.SetGeom(_geom->Data());
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
@@ -313,7 +313,6 @@ void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
         }
       });
 
-  // The only non-link entity we're interested in (for now) is a visual
   _ecm.EachMutable<components::Visual, components::Pose,
                    components::ParentEntity>(
       [&](const EntityId &_entity, components::Visual * /*_visual*/,
@@ -334,6 +333,30 @@ void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
         else
         {
           ignwarn << "Visual with id " << _entity
+                  << " does not have a valid parent link\n";
+        }
+      });
+
+  _ecm.EachMutable<components::Collision, components::Pose,
+                   components::ParentEntity>(
+      [&](const EntityId &_entity, components::Collision * /*_collision*/,
+          components::Pose *_pose, components::ParentEntity *_parent)
+      {
+        auto linkIt = this->entityLinkMap.find(_parent->Id());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          math::Pose3d parentPose = math::eigen3::convert(
+              linkIt->second->FrameDataRelativeToWorld().pose);
+
+          auto offsetIt = this->collisionOffsetMap.find(_entity);
+          if (offsetIt != this->collisionOffsetMap.end())
+          {
+            *_pose = components::Pose(parentPose * offsetIt->second);
+          }
+        }
+        else
+        {
+          ignwarn << "Collision with id " << _entity
                   << " does not have a valid parent link\n";
         }
       });
