@@ -43,9 +43,9 @@ int main(int argc, char **argv)
   // Create a transport node.
   ignition::transport::Node node;
 
-  bool executed;
-  bool result;
-  unsigned int timeout = 5000;
+  bool executed{false};
+  bool result{false};
+  unsigned int timeout{5000};
 
   std::cout << std::endl << "Requesting scene " << type << " from [" << service
             << "]..." << std::endl << std::endl;
@@ -53,7 +53,6 @@ int main(int argc, char **argv)
   // Request and block
   if (type == "graph")
   {
-    std::cout << "Response" << std::endl << std::endl;
     ignition::msgs::StringMsg res;
     executed = node.Request(service, timeout, res, result);
 
@@ -64,7 +63,6 @@ int main(int argc, char **argv)
   {
     ignition::msgs::Scene res;
     executed = node.Request(service, timeout, res, result);
-        std::cout << res.DebugString() << std::endl;
 
     if (executed && result)
       std::cout << res.DebugString() << std::endl;
