@@ -153,7 +153,8 @@ Physics::~Physics()
 void Physics::Init()
 {
   ignition::plugin::Loader pl;
-  auto plugins = pl.LoadLibrary("libignition-physics0-dartsim-plugin.so");
+  // dartsim_plugin_LIB is defined by cmake
+  auto plugins = pl.LoadLibrary(dartsim_plugin_LIB);
   const std::string className = "ignition::physics::dartsim::Plugin";
   ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
 
