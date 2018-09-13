@@ -6,22 +6,22 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <model name="sphere">
-      <pose>0 0 10 0 0 0</pose>
+      <pose>0 0 2 0 0 0</pose>
       <link name="sphere_link">
         <pose>0.0 0.0 0.0 0 0 0</pose>
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>0.4</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>0.4</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>0.4</izz>
           </inertia>
           <mass>1.0</mass>
         </inertial>
         <visual name="sphere_visual">
-          <pose>0.0 0.0 5.0 0 0 0</pose>
+          <pose>0.0 0.0 0.0 0 0 0</pose>
           <geometry>
             <sphere>
               <radius>1</radius>
@@ -36,6 +36,28 @@
             </sphere>
           </geometry>
         </collision>
+      </link>
+    </model>
+    <model name="box">
+      <static>1</static>
+      <pose>0 0 -0.5 0 0 0</pose>
+      <link name="box_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>100 100 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>100 100 1</size>
+            </box>
+          </geometry>
+        </visual>
       </link>
     </model>
   </world>

@@ -20,6 +20,10 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Model.hh>
+#include <sdf/Link.hh>
+#include <sdf/Collision.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -116,7 +120,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   gazebo::Server server(serverConfig);
 
-  server.SetUpdatePeriod(1ns);
+  server.SetUpdatePeriod(1us);
 
   const std::string linkName = "sphere_link";
   std::vector<ignition::math::Pose3d> spherePoses;
@@ -144,12 +148,25 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   // TODO(addisu): Get dt from simulation
   const double dt = 0.001;
-  // TODO(addisu): Using default grav in DART
-  const double grav = 9.81;
+  const double grav = world->Gravity().Z();
   const double zInit = model->Pose().Pos().Z();
-  // The sphere should have fallen for 10ms.
+  // The sphere should have fallen for (iters * dt) seconds.
   const double zExpected = zInit - 0.5 * grav * pow(iters * dt, 2);
   // The tolerance is not very tight due to integration errors with a step size
   // of 0.001
-  EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 1e-4);
+  EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-3);
+
+  // run for 1 more second and check to see if the sphere has stopped
+  server.Run(true, 500);
+
+  // The sphere should land on the box and stop.
+  auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();
+  auto sphere = geometry->SphereShape();
+  ASSERT_TRUE(sphere != nullptr);
+
+  // The box surface is at 0 so the z position of the sphere is the same as its
+  // radius
+  const double zStopped = sphere->Radius();
+  EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-3);
 }
+
