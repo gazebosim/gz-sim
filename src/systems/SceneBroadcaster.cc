@@ -137,6 +137,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Keep the id of the world entity so we know how to traverse the
   /// graph.
   public: EntityId worldId;
+
+  /// \brief Protects scene graph.
+  public: std::mutex graphMutex;
 };
 
 //////////////////////////////////////////////////
@@ -182,7 +185,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   transport::AdvertiseMessageOptions advertOpts;
   advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node.Advertise<msgs::Scene>(topic, advertOpts);
+  this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
 
   ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
 }
@@ -190,6 +193,8 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 {
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+
   _res.Clear();
 
   // Populate scene message
@@ -201,6 +206,8 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 {
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+
   _res.Clear();
 
   std::stringstream graphStr;
@@ -215,6 +222,8 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
     EntityComponentManager &_manager)
 {
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+
   // TODO(louise) Get <scene> from SDF
   // TODO(louise) Fill message header
 
@@ -223,6 +232,9 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
   // those. For now, recreating graph at every iteration.
   this->sceneGraph =
       math::graph::DirectedGraph<google::protobuf::Message *, bool>();
+
+  // Populate pose message
+  msgs::Pose_V poseMsg;
 
   // World
   this->worldId = kNullEntity;
@@ -244,6 +256,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
         this->SetupTransport(_nameComp->Data());
       }
 
+      // Add to graph
       this->sceneGraph.AddVertex(_nameComp->Data(), nullptr, _entity);
     });
 
@@ -270,8 +283,15 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
       modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
           _poseComp->Data()));
 
+      // Add to graph
       this->sceneGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
       this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+      // Add to pose msg
+      auto pose = poseMsg.add_pose();
+      msgs::Set(pose, _poseComp->Data());
+      pose->set_name(_nameComp->Data());
+      pose->set_id(_entity);
     });
 
   // Links
@@ -291,8 +311,15 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
       linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
           _poseComp->Data()));
 
+      // Add to graph
       this->sceneGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
       this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+      // Add to pose msg
+      auto pose = poseMsg.add_pose();
+      msgs::Set(pose, _poseComp->Data());
+      pose->set_name(_nameComp->Data());
+      pose->set_id(_entity);
     });
 
   // Visuals
@@ -329,9 +356,18 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
             Convert<msgs::Material>(materialComp->Data()));
       }
 
+      // Add to graph
       this->sceneGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
       this->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+      // Add to pose msg
+      auto pose = poseMsg.add_pose();
+      msgs::Set(pose, _poseComp->Data());
+      pose->set_name(_nameComp->Data());
+      pose->set_id(_entity);
     });
+
+  this->posePub.Publish(poseMsg);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,

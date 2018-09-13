@@ -36,7 +36,7 @@ class SceneBroadcasterTest : public ::testing::TestWithParam<int>
 };
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, Shapes)
+TEST_P(SceneBroadcasterTest, PoseInfo)
 {
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
@@ -47,27 +47,25 @@ TEST_P(SceneBroadcasterTest, Shapes)
   EXPECT_FALSE(*server.Running());
   EXPECT_EQ(13u, *server.EntityCount());
 
-  // Create scene subscriber
+  // Create pose subscriber
   transport::Node node;
 
   bool received{false};
-  std::function<void(const msgs::Scene &)> cb = [&](const msgs::Scene &_msg)
+  std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
-    EXPECT_EQ(3, _msg.model_size());
+    EXPECT_EQ(9, _msg.pose_size());
 
-    for (auto m = 0; m < _msg.model_size(); ++m)
+    std::map<int, std::string> entityMap;
+    for (auto p = 0; p < _msg.pose_size(); ++p)
     {
-      ASSERT_EQ(1, _msg.model(m).link_size());
-      EXPECT_EQ(_msg.model(m).name() + "_link", _msg.model(m).link(0).name());
-
-      ASSERT_EQ(1, _msg.model(m).link(0).visual_size());
-      EXPECT_EQ(_msg.model(m).name() + "_visual",
-          _msg.model(m).link(0).visual(0).name());
+      entityMap.insert(std::make_pair(_msg.pose(p).id(), _msg.pose(p).name()));
     }
+
+    EXPECT_EQ(9u, entityMap.size());
 
     received = true;
   };
-  EXPECT_TRUE(node.Subscribe("/world/default/scene", cb));
+  EXPECT_TRUE(node.Subscribe("/world/default/pose/info", cb));
 
   // Run server
   server.Run(true, 1);
@@ -78,6 +76,82 @@ TEST_P(SceneBroadcasterTest, Shapes)
     IGN_SLEEP_MS(100);
 
   EXPECT_TRUE(received);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest, SceneInfo)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(*server.Running());
+  EXPECT_EQ(13u, *server.EntityCount());
+
+  // Run server
+  server.Run(true, 1);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene res;
+
+  EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  EXPECT_EQ(3, res.model_size());
+
+  for (auto m = 0; m < res.model_size(); ++m)
+  {
+    ASSERT_EQ(1, res.model(m).link_size());
+    EXPECT_EQ(res.model(m).name() + "_link", res.model(m).link(0).name());
+
+    ASSERT_EQ(1, res.model(m).link(0).visual_size());
+    EXPECT_EQ(res.model(m).name() + "_visual",
+        res.model(m).link(0).visual(0).name());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest, SceneGraph)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(*server.Running());
+  EXPECT_EQ(13u, *server.EntityCount());
+
+  // Run server
+  server.Run(true, 1);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::StringMsg res;
+
+  EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  EXPECT_FALSE(res.data().empty());
+  EXPECT_NE(res.data().find("default (0)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (1)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (2)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (3)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (5)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (7)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (9)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (11)"), std::string::npos);
 }
 
 // Run multiple times
