@@ -41,7 +41,7 @@ using namespace systems;
 void AddVisuals(msgs::LinkSharedPtr _msg,
     const EntityId _id,
     const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>,bool> &_graph)
+        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
 {
   if (!_msg)
     return;
