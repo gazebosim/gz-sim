@@ -93,7 +93,7 @@
           <pose>0.32 0.32 0.32 0 0 0</pose>
           <geometry>
             <sphere>
-              <radius>100.2</radius>
+              <radius>1.2</radius>
             </sphere>
           </geometry>
           <material>

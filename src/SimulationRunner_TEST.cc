@@ -347,7 +347,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         ASSERT_NE(nullptr, _geometry->Data().SphereShape());
-        EXPECT_DOUBLE_EQ(100.2, _geometry->Data().SphereShape()->Radius());
+        EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
 
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
