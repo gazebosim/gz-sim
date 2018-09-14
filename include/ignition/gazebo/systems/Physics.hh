@@ -43,8 +43,6 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Physics();
 
-    public: void Init() override final;
-
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_manager) override;
 

@@ -32,7 +32,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "SystemManager.hh"
 
 using namespace std::chrono_literals;
 
@@ -63,9 +63,6 @@ namespace ignition
       /// \brief Create all entities that exist in the sdf::Root object.
       /// \param[in] _root SDF root object.
       public: void CreateEntities(const sdf::Root &_root);
-
-      /// \brief Initialize all the systems.
-      public: void InitSystems();
 
       /// \brief Stop server.
       public: void Stop();

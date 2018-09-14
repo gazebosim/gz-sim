@@ -24,5 +24,4 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(System, Constructor)
 {
-
 }
