@@ -30,6 +30,8 @@
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/transport/Node.hh>
 
+#include <sdf/World.hh>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -38,11 +40,6 @@
 #include "ignition/gazebo/Types.hh"
 
 using namespace std::chrono_literals;
-
-namespace sdf
-{
-  class World;
-}
 
 namespace ignition
 {
