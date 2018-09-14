@@ -38,43 +38,45 @@ using namespace gazebo;
 using namespace systems;
 
 //////////////////////////////////////////////////
-void AddVisuals(msgs::Link *_msg,
+void AddVisuals(msgs::LinkSharedPtr _msg,
     const EntityId _id,
-    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
-        &_graph)
+    const math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>,bool> &_graph)
 {
   if (!_msg)
     return;
 
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
-    auto visualMsg = dynamic_cast<msgs::Visual *>(vertex.second.get().Data());
+    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
+        vertex.second.get().Data());
     if (!visualMsg)
       continue;
 
-    _msg->add_visual()->CopyFrom(*visualMsg);
+    _msg->add_visual()->CopyFrom(*visualMsg.get());
   }
 }
 
 //////////////////////////////////////////////////
-void AddLinks(msgs::Model *_msg,
+void AddLinks(msgs::ModelSharedPtr _msg,
     const EntityId _id,
-    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
-        &_graph)
+    const math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
 {
   if (!_msg)
     return;
 
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
-    auto linkMsg = dynamic_cast<msgs::Link *>(vertex.second.get().Data());
+    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
+        vertex.second.get().Data());
     if (!linkMsg)
       continue;
 
     // Visuals
     AddVisuals(linkMsg, vertex.second.get().Id(), _graph);
 
-    _msg->add_link()->CopyFrom(*linkMsg);
+    _msg->add_link()->CopyFrom(*linkMsg.get());
   }
 }
 
@@ -82,12 +84,13 @@ void AddLinks(msgs::Model *_msg,
 template<typename T>
 void AddModels(T _msg,
     const EntityId _id,
-    const math::graph::DirectedGraph<google::protobuf::Message *, bool>
-        &_graph)
+    const math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
 {
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
-    auto modelMsg = dynamic_cast<msgs::Model *>(vertex.second.get().Data());
+    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
+        vertex.second.get().Data());
     if (!modelMsg)
       continue;
 
@@ -97,7 +100,7 @@ void AddModels(T _msg,
     // Links
     AddLinks(modelMsg, vertex.second.get().Id(), _graph);
 
-    _msg->add_model()->CopyFrom(*modelMsg);
+    _msg->add_model()->CopyFrom(*modelMsg.get());
   }
 }
 
@@ -131,8 +134,8 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: transport::Node::Publisher posePub;
 
   /// \brief Graph containing latest information from entities.
-  public: math::graph::DirectedGraph<google::protobuf::Message *, bool>
-      sceneGraph;
+  public: math::graph::DirectedGraph<
+      std::shared_ptr<google::protobuf::Message>, bool> sceneGraph;
 
   /// \brief Keep the id of the world entity so we know how to traverse the
   /// graph.
@@ -230,13 +233,18 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
   // Populate a graph with latest information from all entities
   // TODO(louise) once we know what entities are added/deleted process only
   // those. For now, recreating graph at every iteration.
-  this->sceneGraph =
-      math::graph::DirectedGraph<google::protobuf::Message *, bool>();
+  this->sceneGraph = math::graph::DirectedGraph<
+      std::shared_ptr<google::protobuf::Message>, bool>();
 
   // Populate pose message
   msgs::Pose_V poseMsg;
 
   // World
+  // \todo(anyone) It would be convenient to have the following functions:
+  // * _manager.Has<components::World, components::Name>: to tell whether there
+  //   is an entity which has a given set of components.
+  // * _manager.EntityCount<components::World, components::Name>: returns the
+  //  number of entities which have all the given components.
   this->worldId = kNullEntity;
   _manager.Each<components::World,
                 components::Name>(
@@ -277,7 +285,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
         const components::ParentEntity *_parentComp,
         const components::Pose *_poseComp)
     {
-      auto modelMsg = new msgs::Model();
+      auto modelMsg = std::make_shared<msgs::Model>();
       modelMsg->set_id(_entity);
       modelMsg->set_name(_nameComp->Data());
       modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
@@ -305,7 +313,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
         const components::ParentEntity *_parentComp,
         const components::Pose *_poseComp)
     {
-      auto linkMsg = new msgs::Link();
+      auto linkMsg = std::make_shared<msgs::Link>();
       linkMsg->set_id(_entity);
       linkMsg->set_name(_nameComp->Data());
       linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
@@ -333,7 +341,7 @@ void SceneBroadcasterPrivate::OnUpdate(const UpdateInfo /*_info*/,
         const components::ParentEntity *_parentComp,
         const components::Pose *_poseComp)
     {
-      auto visualMsg = new msgs::Visual();
+      auto visualMsg = std::make_shared<msgs::Visual>();
       visualMsg->set_id(_entity);
       visualMsg->set_parent_id(_parentComp->Id());
       visualMsg->set_name(_nameComp->Data());

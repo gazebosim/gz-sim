@@ -75,7 +75,7 @@
     </model>
   </world>
 
-  <!--world name="world_three">
+  <world name="world_three">
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::Physics">
@@ -109,5 +109,5 @@
         </visual>
       </link>
     </model>
-  </world-->
+  </world>
 </sdf>
