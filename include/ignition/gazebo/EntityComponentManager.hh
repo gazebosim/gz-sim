@@ -371,11 +371,18 @@ namespace ignition
       }
 
       /// why is this required?
-      private: template <typename T> struct identity { typedef T type; };
+      private: template <typename T>
+               struct identity
+               {
+                 typedef T type;
+               };
 
-      /// \brief The first component instance of the specified type.
-      /// \return First component instance of the specified type, or nullptr
-      /// if the type does not exist.
+      /// \brief Get all entities which contain given component types, as well
+      /// as the components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template.
+      /// \tparam ComponentTypeTs All the desired component types.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   void(const EntityId &_entity,
