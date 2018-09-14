@@ -52,43 +52,37 @@ class MockSystem : public gazebo::System
   public: size_t preUpdateCallCount = 0;
   public: size_t postUpdateCallCount = 0;
 
-  public:
-    void Init() override
+  public: void Init() override
     {
       ++this->initCallCount;
     }
 
-  public:
-    void EntityAdded(const gazebo::Entity &/*_entity*/,
+  public: void EntityAdded(const gazebo::Entity &/*_entity*/,
                      const gazebo::EntityComponentManager &/*_ecm*/) override
     {
       ++this->entityAddedCallCount;
     }
 
-  public:
-    void EntityRemoved(const gazebo::Entity &/*_entity*/,
+  public: void EntityRemoved(const gazebo::Entity &/*_entity*/,
                        const gazebo::EntityComponentManager &/*_ecm*/) override
     {
       ++this->entityRemovedCallCount;
     }
 
-  public:
-    void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
+  public: void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->preUpdateCallCount;
     }
 
-  public:
-    void Update(const gazebo::UpdateInfo & /*_info*/,
+  public: void Update(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->updateCallCount;
     }
 
-  public:
-    void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-                    const gazebo::EntityComponentManager & /*_manager*/) override
+  public: void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
+              const gazebo::EntityComponentManager & /*_manager*/) override
     {
       ++this->postUpdateCallCount;
     }
