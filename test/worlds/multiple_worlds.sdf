@@ -11,7 +11,7 @@
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::WorldStatistics">
+      name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
 
     <physics name="default" type="ode">
@@ -45,10 +45,7 @@
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::WorldStatistics">
-    </plugin>
+    <!-- no SceneBroadcaster -->
 
     <physics name="default" type="ode">
       <max_step_size>0.005</max_step_size>
@@ -85,7 +82,7 @@
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::WorldStatistics">
+      name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
 
     <physics name="default" type="ode">
