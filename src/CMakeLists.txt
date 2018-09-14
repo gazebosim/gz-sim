@@ -20,6 +20,7 @@ set (sources
 )
 
 set (gtest_sources
+  ${gtest_sources}
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
   Server_TEST.cc
