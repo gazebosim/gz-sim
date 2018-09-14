@@ -122,7 +122,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
       sdf::ElementPtr pluginElem = element->GetElement("plugin");
       while (pluginElem)
       {
-        auto system = systemManager.LoadPlugin(pluginElem);
+        auto system = this->systemManager.LoadPlugin(pluginElem);
         if (system)
         {
           systems.push_back(system);
