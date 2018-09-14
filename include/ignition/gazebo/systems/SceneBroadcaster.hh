@@ -33,8 +33,9 @@ namespace systems
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class SceneBroadcasterPrivate;
 
-  /// \class SceneBroadcaster SceneBroadcaster.hh
-  /// ignition/gazebo/systems/SceneBroadcaster.hh
+  /** \class SceneBroadcaster SceneBroadcaster.hh \
+   * ignition/gazebo/systems/SceneBroadcaster.hh
+  **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
   class IGNITION_GAZEBO_VISIBLE SceneBroadcaster: public System
