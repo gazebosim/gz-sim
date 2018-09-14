@@ -36,7 +36,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/Types.hh"
 
 using namespace std::chrono_literals;
@@ -78,9 +77,6 @@ namespace ignition
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
-
-      /// \brief Initialize the systems
-      public: void InitSystems();
 
       /// \brief Stop running
       public: void Stop();

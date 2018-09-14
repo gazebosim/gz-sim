@@ -56,8 +56,6 @@ Server::Server(const ServerConfig &_config)
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
-
-  this->dataPtr->InitSystems();
 }
 
 /////////////////////////////////////////////////

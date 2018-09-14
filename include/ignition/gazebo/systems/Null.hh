@@ -38,9 +38,6 @@ namespace systems
 
     /// \brief Destructor
     public: virtual ~Null();
-
-    // Documentation inherited
-    public: void Init() override final;
   };
   }
 }

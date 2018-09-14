@@ -62,15 +62,6 @@ void ServerPrivate::Stop()
 }
 
 /////////////////////////////////////////////////
-void ServerPrivate::InitSystems()
-{
-  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
-  {
-    runner->InitSystems();
-  }
-}
-
-/////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {

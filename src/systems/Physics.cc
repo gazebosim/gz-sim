@@ -52,10 +52,6 @@ Physics::~Physics()
 }
 
 //////////////////////////////////////////////////
-void Physics::Init()
-{
-}
-
 void Physics::Update(const UpdateInfo &_info,
     EntityComponentManager &_manager)
 {
@@ -103,7 +99,6 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
 
   // \todo(nkoenig) Update entity pose information.
 }
-
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
                     ignition::gazebo::System)

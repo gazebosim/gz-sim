@@ -44,18 +44,11 @@ class ServerFixture : public ::testing::TestWithParam<int>
 
 class MockSystem : public gazebo::System
 {
-  // Keep the number of calls to Init
-  public: size_t initCallCount = 0;
   public: size_t entityAddedCallCount = 0;
   public: size_t entityRemovedCallCount = 0;
   public: size_t updateCallCount = 0;
   public: size_t preUpdateCallCount = 0;
   public: size_t postUpdateCallCount = 0;
-
-  public: void Init() override
-    {
-      ++this->initCallCount;
-    }
 
   public: void EntityAdded(const gazebo::Entity &/*_entity*/,
                      const gazebo::EntityComponentManager &/*_ecm*/) override
@@ -282,13 +275,10 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_FALSE(*server.Running());
 
   auto mockSystem = std::make_shared<MockSystem>();
-  EXPECT_EQ(0u, mockSystem->initCallCount);
 
   EXPECT_EQ(2u, *server.SystemCount());
   EXPECT_TRUE(*server.AddSystem(mockSystem));
   EXPECT_EQ(3u, *server.SystemCount());
-  // We expect to be initialized when added to server
-  EXPECT_EQ(1u, mockSystem->initCallCount);
 
   server.SetUpdatePeriod(1us);
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
