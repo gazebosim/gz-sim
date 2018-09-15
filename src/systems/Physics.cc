@@ -33,11 +33,6 @@ using namespace std::chrono_literals;
 // Private data class.
 class ignition::gazebo::systems::PhysicsPrivate
 {
-  /// \brief Query callback for entity that has physics components.
-  /// \param[in] _info Update information.
-  /// \param[in] _manager Entity component manager.
-  public: void OnUpdate(const UpdateInfo _info,
-      EntityComponentManager &_manager);
 };
 
 //////////////////////////////////////////////////
@@ -55,13 +50,7 @@ Physics::~Physics()
 void Physics::Update(const UpdateInfo &_info,
     EntityComponentManager &_manager)
 {
-  this->dataPtr->OnUpdate(_info, _manager);
-}
 
-//////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
-    EntityComponentManager &_manager)
-{
   igndbg << "Sim time ["
          << std::chrono::duration<double>(_info.simTime).count()
          << "] Real time ["
@@ -102,4 +91,3 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
                     ignition::gazebo::System)
-
