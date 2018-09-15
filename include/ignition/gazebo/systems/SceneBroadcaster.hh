@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
+#ifndef IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
+#define IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
 
 #include <memory>
+#include <vector>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -30,32 +31,30 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  // Forward declarations.
-  class PhysicsPrivate;
+  class SceneBroadcasterPrivate;
 
-  /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
-  /// \brief Base class for a System.
-  class IGNITION_GAZEBO_VISIBLE Physics: public System
+  /** \class SceneBroadcaster SceneBroadcaster.hh \
+   * ignition/gazebo/systems/SceneBroadcaster.hh
+  **/
+  /// \brief System which periodically publishes an ignition::msgs::Scene
+  /// message with updated information.
+  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster: public System
   {
     /// \brief Constructor
-    public: explicit Physics();
+    public: SceneBroadcaster();
 
     /// \brief Destructor
-    public: virtual ~Physics();
+    public: virtual ~SceneBroadcaster();
 
-    /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                 EntityComponentManager &_ecm) override final;
 
-    /// Documentation inherited
-    public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override final;
-
-    /// \brief Private data pointer.
-    private: std::unique_ptr<PhysicsPrivate> dataPtr;
+    /// \brief Private data pointer
+    private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
   };
   }
 }
 }
 }
 #endif
+

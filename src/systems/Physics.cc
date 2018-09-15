@@ -142,16 +142,6 @@ class ignition::gazebo::systems::PhysicsPrivate
 //////////////////////////////////////////////////
 Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
-}
-
-//////////////////////////////////////////////////
-Physics::~Physics()
-{
-}
-
-//////////////////////////////////////////////////
-void Physics::Init()
-{
   ignition::plugin::Loader pl;
   // dartsim_plugin_LIB is defined by cmake
   auto plugins = pl.LoadLibrary(dartsim_plugin_LIB);
@@ -164,6 +154,12 @@ void Physics::Init()
       From(plugin);
 }
 
+//////////////////////////////////////////////////
+Physics::~Physics()
+{
+}
+
+//////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   if (!this->dataPtr->initialized)
@@ -176,6 +172,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->dataPtr->UpdateECS(_ecm);
 }
 
+//////////////////////////////////////////////////
 void Physics::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
@@ -183,6 +180,7 @@ void Physics::PostUpdate(const UpdateInfo &_info,
   (void)_ecm;
 }
 
+//////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
     // get worlds
@@ -281,6 +279,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 }
 
+//////////////////////////////////////////////////
 void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 {
   ignition::physics::ForwardStep::Input input;
@@ -295,6 +294,7 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
   }
 }
 
+//////////////////////////////////////////////////
 void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 {
   _ecm.EachMutable<components::Link, components::Pose>(

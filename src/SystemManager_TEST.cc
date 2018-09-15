@@ -21,8 +21,8 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Filesystem.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/SystemManager.hh>
+#include "ignition/gazebo/System.hh"
+#include "SystemManager.hh"
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
