@@ -60,17 +60,12 @@ class MockSystem : public gazebo::System
   using CallbackType = std::function<void(const gazebo::UpdateInfo &,
                                      const gazebo::EntityComponentManager &)>;
 
-  public: void Init() override;
   public: void PostUpdate(const gazebo::UpdateInfo &_info,
                 const gazebo::EntityComponentManager &_ecm) override;
   public: void RegisterCallback(const CallbackType &cb);
 
   public: CallbackType updateCb;
 };
-
-void MockSystem::Init()
-{
-}
 
 void MockSystem::RegisterCallback(const CallbackType &cb)
 {

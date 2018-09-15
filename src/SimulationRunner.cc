@@ -40,7 +40,6 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/SystemManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -119,21 +118,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 //////////////////////////////////////////////////
 SimulationRunner::~SimulationRunner()
 {
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::InitSystems()
-{
-  // Initialize all the systems in parallel.
-  for (SystemInternal &system : this->systems)
-  {
-    this->workerPool.AddWork([&system, this] ()
-    {
-      system.system->Init();
-    });
-  }
-
-  this->workerPool.WaitForResults();
 }
 
 /////////////////////////////////////////////////
@@ -232,8 +216,6 @@ void SimulationRunner::PublishStats()
 void SimulationRunner::AddSystem(const SystemPtr &_system)
 {
   this->systems.push_back(SystemInternal(_system));
-  auto& systemInternal = this->systems.back();
-  systemInternal.system->Init();
 }
 
 /////////////////////////////////////////////////

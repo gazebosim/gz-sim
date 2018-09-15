@@ -1,13 +1,20 @@
 set (systems_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/Null.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/SceneBroadcaster.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/SystemPlugins.cc
+  PARENT_SCOPE
+)
+
+set (gtest_sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/SceneBroadcaster_TEST.cc
   PARENT_SCOPE
 )
 
 # TODO(addisu) Restructure the directory structure of systems, maybe each 
 # system has it's own directory?
 set (physics_system_sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc
 )
 
 # Find ignition-physics
@@ -28,6 +35,7 @@ target_link_libraries(${physics_system_target}
   ignition-plugin${IGN_PLUGIN_VER}::loader
   # TODO(addisu) Need SDFormat?
 )
+
 target_compile_definitions(${physics_system_target} PRIVATE
   "dartsim_plugin_LIB=\"$<TARGET_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-dartsim-plugin>\"")
 

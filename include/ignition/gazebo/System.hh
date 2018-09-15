@@ -34,6 +34,9 @@ namespace ignition
     /// A System operates on Entities that have certain Components. A System
     /// will only operate on an Entity if it has all of the required
     /// Components.
+    /// \todo(nkoenig) The Callbacks (EntityAdded, EntityRemoved, PreUpdate,
+    /// Update, and PostUpdate) should be registered by a system instead of
+    /// implicit in the System plugin API.
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
@@ -41,9 +44,6 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
-
-      /// \brief Initialize the system.
-      public: virtual void Init() = 0;
 
       /// \brief Called when an entity is added to the simulation.
       // //TODO(mjcarroll): Should this be filtered by matching components?

@@ -31,11 +31,6 @@ Null::~Null()
 {
 }
 
-//////////////////////////////////////////////////
-void Null::Init()
-{
-}
-
 // First Registration. include RegisterMore elsewhere
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
                     ignition::gazebo::System)

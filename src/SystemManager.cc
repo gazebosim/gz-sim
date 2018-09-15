@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/SystemManager.hh"
+#include "SystemManager.hh"
 
 #include <string>
 #include <unordered_set>
@@ -34,6 +34,8 @@
 using namespace ignition::gazebo;
 using SystemPtr = SystemManager::SystemPtr;
 
+//////////////////////////////////////////////////
+// \todo(nkoenig) Add 'homePath' to ignition common.
 std::string homePath()
 {
   std::string homePath;
@@ -146,6 +148,7 @@ void SystemManager::AddSystemPluginPath(const std::string &_path)
   this->dataPtr->systemPluginPaths.insert(_path);
 }
 
+//////////////////////////////////////////////////
 SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
                                     const std::string &_name,
                                     sdf::ElementPtr _sdf)
@@ -173,6 +176,7 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
   }
 }
 
+//////////////////////////////////////////////////
 SystemPtr SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
 {
   if (nullptr == _sdf)

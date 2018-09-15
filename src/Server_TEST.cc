@@ -34,61 +34,48 @@ using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
 {
-  protected:
-    virtual void SetUp() {
-      // Augment the system plugin path.  In SetUp to avoid test order issues.
-      setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-             (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-    }
+  protected: virtual void SetUp()
+  {
+    // Augment the system plugin path.  In SetUp to avoid test order issues.
+    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+           (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+  }
 };
 
 class MockSystem : public gazebo::System
 {
-  // Keep the number of calls to Init
-  public: size_t initCallCount = 0;
   public: size_t entityAddedCallCount = 0;
   public: size_t entityRemovedCallCount = 0;
   public: size_t updateCallCount = 0;
   public: size_t preUpdateCallCount = 0;
   public: size_t postUpdateCallCount = 0;
 
-  public:
-    void Init() override
-    {
-      ++this->initCallCount;
-    }
-
-  public:
-    void EntityAdded(const gazebo::Entity &/*_entity*/,
+  public: void EntityAdded(const gazebo::Entity &/*_entity*/,
                      const gazebo::EntityComponentManager &/*_ecm*/) override
     {
       ++this->entityAddedCallCount;
     }
 
-  public:
-    void EntityRemoved(const gazebo::Entity &/*_entity*/,
+  public: void EntityRemoved(const gazebo::Entity &/*_entity*/,
                        const gazebo::EntityComponentManager &/*_ecm*/) override
     {
       ++this->entityRemovedCallCount;
     }
 
-  public:
-    void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
+  public: void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->preUpdateCallCount;
     }
 
-  public:
-    void Update(const gazebo::UpdateInfo & /*_info*/,
+  public: void Update(const gazebo::UpdateInfo & /*_info*/,
                 gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->updateCallCount;
     }
 
-  public:
-    void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-                    const gazebo::EntityComponentManager & /*_ecm*/) override
+  public: void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
+              const gazebo::EntityComponentManager & /*_ecm*/) override
     {
       ++this->postUpdateCallCount;
     }
@@ -115,7 +102,7 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_FALSE(*server.Running());
   EXPECT_EQ(0u, *server.IterationCount());
   EXPECT_EQ(13u, *server.EntityCount());
-  EXPECT_EQ(1u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -267,10 +254,10 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 
   // Run the server to test whether we can add system while system is running
   server.Run();
-  EXPECT_EQ(1u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
   auto mockSystem = std::make_shared<MockSystem>();
   EXPECT_FALSE(*server.AddSystem(mockSystem));
-  EXPECT_EQ(1u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Stop the server
   std::raise(SIGTERM);
@@ -288,13 +275,10 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_FALSE(*server.Running());
 
   auto mockSystem = std::make_shared<MockSystem>();
-  EXPECT_EQ(0u, mockSystem->initCallCount);
 
-  EXPECT_EQ(1u, *server.SystemCount());
-  EXPECT_TRUE(*server.AddSystem(mockSystem));
   EXPECT_EQ(2u, *server.SystemCount());
-  // We expect to be initialized when added to server
-  EXPECT_EQ(1u, mockSystem->initCallCount);
+  EXPECT_TRUE(*server.AddSystem(mockSystem));
+  EXPECT_EQ(3u, *server.SystemCount());
 
   server.SetUpdatePeriod(1us);
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
