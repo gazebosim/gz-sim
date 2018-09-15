@@ -50,7 +50,6 @@ Physics::~Physics()
 void Physics::Update(const UpdateInfo &_info,
     EntityComponentManager &_manager)
 {
-
   igndbg << "Sim time ["
          << std::chrono::duration<double>(_info.simTime).count()
          << "] Real time ["
