@@ -17,9 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
-#include <vector>
-
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
@@ -35,6 +34,9 @@ namespace ignition
     /// A System operates on Entities that have certain Components. A System
     /// will only operate on an Entity if it has all of the required
     /// Components.
+    /// \todo(nkoenig) The Callbacks (EntityAdded, EntityRemoved, PreUpdate,
+    /// Update, and PostUpdate) should be registered by a system instead of
+    /// implicit in the System plugin API.
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
@@ -43,9 +45,24 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~System();
 
-      /// \brief Initialize the system.
-      /// \param[out] _cbs A set of callbacks.
-      public: virtual void Init(std::vector<EntityQueryCallback> &_cbs) = 0;
+      /// \brief Called when an entity is added to the simulation.
+      // //TODO(mjcarroll): Should this be filtered by matching components?
+      public: virtual void EntityAdded(const Entity &_entity,
+                                       const EntityComponentManager &_ecm);
+
+      /// \brief Called when an entity is removed from the simulation.
+      // //TODO(mjcarroll): Should this be filtered by matching components?
+      public: virtual void EntityRemoved(const Entity &_entity,
+                                         const EntityComponentManager &_ecm);
+
+      public: virtual void PreUpdate(const UpdateInfo &_info,
+                                     EntityComponentManager &_ecm);
+
+      public: virtual void Update(const UpdateInfo &_info,
+                                  EntityComponentManager &_ecm);
+
+      public: virtual void PostUpdate(const UpdateInfo &_info,
+                                      const EntityComponentManager &_ecm);
     };
     }
   }
