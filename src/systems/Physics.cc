@@ -21,8 +21,8 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "ignition/gazebo/systems/Physics.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/systems/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -33,11 +33,6 @@ using namespace std::chrono_literals;
 // Private data class.
 class ignition::gazebo::systems::PhysicsPrivate
 {
-  /// \brief Query callback for entity that has physics components.
-  /// \param[in] _info Update information.
-  /// \param[in] _manager Entity component manager.
-  public: void OnUpdate(const UpdateInfo _info,
-      EntityComponentManager &_manager);
 };
 
 //////////////////////////////////////////////////
@@ -52,15 +47,7 @@ Physics::~Physics()
 }
 
 //////////////////////////////////////////////////
-void Physics::Init(std::vector<EntityQueryCallback> &_cbs)
-{
-  _cbs.push_back(
-      std::bind(&PhysicsPrivate::OnUpdate, this->dataPtr.get(),
-        std::placeholders::_1, std::placeholders::_2));
-}
-
-//////////////////////////////////////////////////
-void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
+void Physics::Update(const UpdateInfo &_info,
     EntityComponentManager &_manager)
 {
   igndbg << "Sim time ["
@@ -101,7 +88,5 @@ void PhysicsPrivate::OnUpdate(const UpdateInfo _info,
   // \todo(nkoenig) Update entity pose information.
 }
 
-
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
                     ignition::gazebo::System)
-

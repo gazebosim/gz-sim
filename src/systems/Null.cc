@@ -31,11 +31,6 @@ Null::~Null()
 {
 }
 
-//////////////////////////////////////////////////
-void Null::Init(std::vector<EntityQueryCallback> &/*_cbs*/)
-{
-}
-
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
                     ignition::gazebo::System)
 

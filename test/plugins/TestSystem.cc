@@ -33,10 +33,5 @@ TestSystem::~TestSystem()
 {
 }
 
-/////////////////////////////////////////////////
-void TestSystem::Init(std::vector<EntityQueryCallback> &/*_cbs*/)
-{
-}
-
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)

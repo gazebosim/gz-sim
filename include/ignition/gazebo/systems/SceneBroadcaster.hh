@@ -46,8 +46,8 @@ namespace systems
     /// \brief Destructor
     public: virtual ~SceneBroadcaster();
 
-    // Documentation inherited
-    public: void Init(std::vector<EntityQueryCallback> &_cbs) override final;
+    public: void Update(const UpdateInfo &_info,
+                EntityComponentManager &_ecm) override final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
