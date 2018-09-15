@@ -27,6 +27,7 @@ System::~System()
 {
 }
 
+//////////////////////////////////////////////////
 void System::EntityAdded(const Entity& _entity,
                          const EntityComponentManager &_ecm)
 {
@@ -34,6 +35,7 @@ void System::EntityAdded(const Entity& _entity,
   (void) _ecm;
 }
 
+//////////////////////////////////////////////////
 void System::EntityRemoved(const Entity& _entity,
                            const EntityComponentManager &_ecm)
 {
@@ -41,6 +43,7 @@ void System::EntityRemoved(const Entity& _entity,
   (void) _ecm;
 }
 
+//////////////////////////////////////////////////
 void System::PreUpdate(const UpdateInfo &_info,
                        EntityComponentManager &_ecm)
 {
@@ -48,6 +51,7 @@ void System::PreUpdate(const UpdateInfo &_info,
   (void) _ecm;
 }
 
+//////////////////////////////////////////////////
 void System::Update(const UpdateInfo &_info,
                     EntityComponentManager &_ecm)
 {
@@ -56,10 +60,9 @@ void System::Update(const UpdateInfo &_info,
 }
 
 void System::PostUpdate(const UpdateInfo &_info,
+//////////////////////////////////////////////////
                         const EntityComponentManager &_ecm)
 {
   (void) _info;
   (void) _ecm;
 }
-
-
