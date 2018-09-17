@@ -29,6 +29,9 @@
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "SystemManager.hh"
+
+
 using namespace ignition;
 using namespace std::chrono_literals;
 
@@ -41,46 +44,6 @@ class ServerFixture : public ::testing::TestWithParam<int>
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
 };
-
-class MockSystem : public gazebo::System
-{
-  public: size_t entityAddedCallCount = 0;
-  public: size_t entityRemovedCallCount = 0;
-  public: size_t updateCallCount = 0;
-  public: size_t preUpdateCallCount = 0;
-  public: size_t postUpdateCallCount = 0;
-
-  public: void EntityAdded(const gazebo::Entity &/*_entity*/,
-                     const gazebo::EntityComponentManager &/*_ecm*/) override
-    {
-      ++this->entityAddedCallCount;
-    }
-
-  public: void EntityRemoved(const gazebo::Entity &/*_entity*/,
-                       const gazebo::EntityComponentManager &/*_ecm*/) override
-    {
-      ++this->entityRemovedCallCount;
-    }
-
-  public: void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
-                gazebo::EntityComponentManager & /*_manager*/) override
-    {
-      ++this->preUpdateCallCount;
-    }
-
-  public: void Update(const gazebo::UpdateInfo & /*_info*/,
-                gazebo::EntityComponentManager & /*_manager*/) override
-    {
-      ++this->updateCallCount;
-    }
-
-  public: void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-              const gazebo::EntityComponentManager & /*_manager*/) override
-    {
-      ++this->postUpdateCallCount;
-    }
-};
-
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
@@ -255,8 +218,12 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   // Run the server to test whether we can add system while system is running
   server.Run();
   EXPECT_EQ(2u, *server.SystemCount());
-  auto mockSystem = std::make_shared<MockSystem>();
-  EXPECT_FALSE(*server.AddSystem(mockSystem));
+
+  gazebo::SystemManager sm;
+  auto mockSystem = sm.LoadPlugin("MockSystem.so", "MockSystem", nullptr);
+  ASSERT_TRUE(mockSystem.has_value());
+
+  EXPECT_FALSE(*server.AddSystem(mockSystem.value()));
   EXPECT_EQ(2u, *server.SystemCount());
 
   // Stop the server
@@ -274,8 +241,11 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(*server.Running());
 
-  auto mockSystem = std::make_shared<MockSystem>();
+  gazebo::SystemManager sm;
+  auto mockSystem = sm.LoadPlugin("MockSystem.so", "MockSystem", nullptr);
+  ASSERT_TRUE(mockSystem.has_value());
 
+  /*
   EXPECT_EQ(2u, *server.SystemCount());
   EXPECT_TRUE(*server.AddSystem(mockSystem));
   EXPECT_EQ(3u, *server.SystemCount());
@@ -288,11 +258,9 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
-
-  // \todo(mjcarroll): We expect these to have actual counts when implemented.
-  EXPECT_EQ(0u, mockSystem->entityAddedCallCount);
-  EXPECT_EQ(0u, mockSystem->entityRemovedCallCount);
+  */
 }
+
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.

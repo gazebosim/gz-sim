@@ -39,11 +39,10 @@ using namespace ignition;
 using namespace gazebo;
 
 using StringSet = std::unordered_set<std::string>;
-using SystemPtr = SimulationRunner::SystemPtr;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const std::vector<SystemPtr> &_systems)
+                                   const std::vector<SystemPluginPtr> &_systems)
 {
   // Keep world name
   this->worldName = _world->Name();
@@ -51,7 +50,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Store systems
   for (auto &system : _systems)
   {
-    this->systems.push_back(SystemInternal(system));
+    this->AddSystem(system);
   }
 
   // Get the first physics profile
@@ -207,9 +206,20 @@ void SimulationRunner::PublishStats()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::AddSystem(const SystemPtr &_system)
+void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
   this->systems.push_back(SystemInternal(_system));
+
+  const auto& system = this->systems.back();
+  if (system.preupdate) {
+    this->systems_preupdate.push_back(system.preupdate);
+  }
+  if (system.update) {
+    this->systems_update.push_back(system.update);
+  }
+  if (system.postupdate) {
+    this->systems_postupdate.push_back(system.postupdate);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -221,17 +231,17 @@ void SimulationRunner::UpdateSystems()
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->PreUpdate(this->currentInfo, this->entityCompMgr);
+
+  for (auto& system : this->systems_preupdate) {
+    system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->Update(this->currentInfo, this->entityCompMgr);
+
+  for (auto& system : this->systems_update) {
+    system->Update(this->currentInfo, this->entityCompMgr);
   }
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
+
+  for (auto& system : this->systems_postupdate) {
+    system->PostUpdate(this->currentInfo, this->entityCompMgr);
   }
 }
 

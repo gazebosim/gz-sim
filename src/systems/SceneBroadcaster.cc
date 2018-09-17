@@ -367,4 +367,5 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
-                    ignition::gazebo::System)
+                    ignition::gazebo::System,
+                    SceneBroadcaster::ISystemUpdate)
