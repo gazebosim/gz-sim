@@ -52,7 +52,7 @@ TEST(SystemManager, Constructor)
     while (pluginElem)
     {
       auto system = sm.LoadPlugin(pluginElem);
-      ASSERT_NE(nullptr, system);
+      ASSERT_TRUE(system.has_value());
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
@@ -63,5 +63,5 @@ TEST(SystemManager, EmptyNames)
   gazebo::SystemManager sm;
   sdf::ElementPtr element;
   auto system = sm.LoadPlugin("", "", element);
-  ASSERT_EQ(nullptr, system);
+  ASSERT_FALSE(system.has_value());
 }

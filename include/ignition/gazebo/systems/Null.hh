@@ -31,13 +31,26 @@ namespace systems
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \class Null Null.hh ignition/gazebo/systems/Null.hh
   /// \brief Minimal system implementation
-  class IGNITION_GAZEBO_VISIBLE Null: public System
+  class IGNITION_GAZEBO_VISIBLE Null:
+    public System,
+    public ISystemPreUpdate,
+    public ISystemUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: Null();
 
     /// \brief Destructor
     public: virtual ~Null();
+
+    public: void PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) override;
+
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) override;
+
+    public: void PostUpdate(const UpdateInfo &_info,
+                            const EntityComponentManager &_ecm) override;
   };
   }
 }

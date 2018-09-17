@@ -89,4 +89,5 @@ void Physics::Update(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
-                    ignition::gazebo::System)
+                    ignition::gazebo::System,
+                    Physics::ISystemUpdate)

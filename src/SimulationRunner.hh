@@ -36,6 +36,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
 using namespace std::chrono_literals;
@@ -53,13 +54,33 @@ namespace ignition
     class SystemInternal
     {
       /// \brief Constructor
-      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
-              : system(_system)
+      public: explicit SystemInternal(const SystemPluginPtr &_systemPlugin)
+              : systemPlugin(_systemPlugin),
+                system(systemPlugin->QueryInterface<System>()),
+                preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
+                update(systemPlugin->QueryInterface<ISystemUpdate>()),
+                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
       {
       }
 
-      /// \brief All of the systems.
-      public: std::shared_ptr<System> system;
+      /// \brief Plugin object. This manages the lifecycle of the instantiated
+      /// class as well as the shared library.
+      public: SystemPluginPtr systemPlugin;
+
+      /// \brief Access this system via the `System` interface
+      public: System* system;
+
+      /// \brief Access this system via the ISystemPreUpdate interface
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemPreUpdate* preupdate;
+
+      /// \brief Access this system via the ISystemUpdate interface
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemUpdate* update;
+
+      /// \brief Access this system via the ISystemPostUpdate interface
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemPostUpdate* postupdate;
 
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;
@@ -67,13 +88,11 @@ namespace ignition
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
-      public: using SystemPtr = std::shared_ptr<System>;
-
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systems Systems to be loaded
       public: explicit SimulationRunner(const sdf::World *_world,
-                const std::vector<SystemPtr> &_systems);
+                const std::vector<SystemPluginPtr> &_systems);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -88,7 +107,7 @@ namespace ignition
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \param[in] _system System to be added
-      public: void AddSystem(const SystemPtr &_system);
+      public: void AddSystem(const SystemPluginPtr &_system);
 
       /// \brief Update all the systems
       public: void UpdateSystems();
@@ -144,6 +163,15 @@ namespace ignition
 
       /// \brief All the systems.
       public: std::vector<SystemInternal> systems;
+
+      /// \brief Systems implementing PreUpdate
+      public: std::vector<ISystemPreUpdate*> systems_preupdate;
+
+      /// \brief Systems implementing Update
+      public: std::vector<ISystemUpdate*> systems_update;
+
+      /// \brief Systems implementing PostUpdate
+      public: std::vector<ISystemPostUpdate*> systems_postupdate;
 
       /// \brief Manager of all components.
       public: EntityComponentManager entityCompMgr;
