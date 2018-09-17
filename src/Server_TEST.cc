@@ -29,6 +29,8 @@
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/test_config.hh"
 
+#include "systems/MockSystem.hh"
+
 #include "SystemManager.hh"
 
 
@@ -220,10 +222,10 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   EXPECT_EQ(2u, *server.SystemCount());
 
   gazebo::SystemManager sm;
-  auto mockSystem = sm.LoadPlugin("MockSystem.so", "MockSystem", nullptr);
-  ASSERT_TRUE(mockSystem.has_value());
+  auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+  ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  EXPECT_FALSE(*server.AddSystem(mockSystem.value()));
+  EXPECT_FALSE(*server.AddSystem(mockSystemPlugin.value()));
   EXPECT_EQ(2u, *server.SystemCount());
 
   // Stop the server
@@ -242,13 +244,17 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_FALSE(*server.Running());
 
   gazebo::SystemManager sm;
-  auto mockSystem = sm.LoadPlugin("MockSystem.so", "MockSystem", nullptr);
-  ASSERT_TRUE(mockSystem.has_value());
+  auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
+  ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  /*
   EXPECT_EQ(2u, *server.SystemCount());
-  EXPECT_TRUE(*server.AddSystem(mockSystem));
+  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
   EXPECT_EQ(3u, *server.SystemCount());
+
+  auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
+  EXPECT_NE(system, nullptr);
+  gazebo::MockSystem* mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  EXPECT_NE(mockSystem, nullptr);
 
   server.SetUpdatePeriod(1us);
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
@@ -258,7 +264,6 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
-  */
 }
 
 
