@@ -59,7 +59,7 @@ namespace ignition
       /// \param[in] _filename Shared library filename to load plugin from.
       /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
-      /// \returns Shared pointer to system instance or std::nullopt on
+      /// \returns Shared pointer to system instance or or std::nullopt on
       /// error.
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const std::string &_filename,
