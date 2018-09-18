@@ -15,8 +15,6 @@
  *
  */
 
-#include <iostream>
-
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -116,6 +114,11 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics
   public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
 
+  /// \brief a map between model entity ids and their canonical links. For now
+  /// we assume the first link we encounter for a given model is it's canonical
+  /// link. The key is the Model entity ID
+  public: std::unordered_map<EntityId, EntityId> canonicalLinkMap;
+
   /// \brief a map between link entity ids in the ECM to Link Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
@@ -123,14 +126,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
-
-  /// \brief a map between visual entity ids in the ECM to thier initial offset
-  /// from their parent link
-  public: std::unordered_map<EntityId, math::Pose3d> visualOffsetMap;
-
-  /// \brief a map between collision entity ids in the ECM to thier initial
-  /// offset from their parent link
-  public: std::unordered_map<EntityId, math::Pose3d> collisionOffsetMap;
 
   /// \brief used to store whether physics objects have been created
   public: bool initialized = false;
@@ -243,25 +238,21 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
+          // Assume canonical link if the key is not found
+          if (canonLinkIt == this->canonicalLinkMap.end())
+          {
+            this->canonicalLinkMap[_parent->Id()] = _entity;
+          }
         }
       });
 
-  // visuals
-  _ecm.Each<components::Visual,  components::Pose>(
-      [&](const EntityId  &_entity,
-        const components::Visual * /* _visual */,
-        const components::Pose *_pose)
-      {
-        // We don't need to add visuals to the physics engine, but we need to
-        // save their relative poses so we can transform them into world poses
-        // once the simulation is running.
-        visualOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
-      });
+  // We don't need to add visuals to the physics engine.
 
   // collisions
   _ecm.Each<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
-      [&](const EntityId & _entity,
+      [&](const EntityId & /* _entity */,
         const components::Collision * /* _collision */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -275,7 +266,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
-        collisionOffsetMap.insert(std::make_pair(_entity, _pose->Data()));
       });
 }
 
@@ -297,68 +287,55 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 {
-  _ecm.EachMutable<components::Link, components::Pose>(
+  _ecm.EachMutable<components::Link, components::Pose, components::ParentEntity>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
-          components::Pose *_pose)
+          components::Pose *_pose, components::ParentEntity *_parent)
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
-          math::Pose3d pose = math::eigen3::convert(
-              linkIt->second->FrameDataRelativeToWorld().pose);
-          *_pose = components::Pose(pose);
+          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
+
+          // The model that contains this link must have a canonical link.
+          // Otherwise something is wrong, so return
+          if (canonLinkIt == this->canonicalLinkMap.end())
+          {
+            ignerr << "The model " << _parent->Id() << " that contains this"
+                   << " link should have a canonical link\n";
+            return;
+          }
+
+          if (canonLinkIt->second == _entity)
+          {
+            // This is the canonical link, update the model
+            // get the pose component of the parent model
+            auto parentPose =
+                _ecm.ComponentMutable<components::Pose>(_parent->Id());
+            // if the parentPose is a nullptr, something is wrong with ECS
+            // creation
+            if (parentPose)
+            {
+              auto pose = linkIt->second->FrameDataRelativeToWorld().pose;
+              *parentPose = components::Pose(math::eigen3::convert(pose));
+            }
+          }
+          else
+          {
+            // Not the canonical link, so get the link's relative pose
+            // \NOTE(addisu) Once ModelFrameSemantics are available, we should
+            // resolve the relative by passing the model as the parent frame.
+
+            // Find the canonical link of the model that contains this link
+            auto canonLinkPhys = this->entityLinkMap.at(canonLinkIt->second);
+            auto canonFrame = canonLinkPhys->GetFrameID();
+            // Get the pose relative to the canonical link
+            auto pose = linkIt->second->FrameDataRelativeTo(canonFrame).pose;
+            *_pose = components::Pose(math::eigen3::convert(pose));
+          }
         }
         else
         {
           ignwarn << "Unknown link with id " << _entity << " found\n";
-        }
-      });
-
-  _ecm.EachMutable<components::Visual, components::Pose,
-                   components::ParentEntity>(
-      [&](const EntityId &_entity, components::Visual * /*_visual*/,
-          components::Pose *_pose, components::ParentEntity *_parent)
-      {
-        auto linkIt = this->entityLinkMap.find(_parent->Id());
-        if (linkIt != this->entityLinkMap.end())
-        {
-          math::Pose3d parentPose = math::eigen3::convert(
-              linkIt->second->FrameDataRelativeToWorld().pose);
-
-          auto offsetIt = this->visualOffsetMap.find(_entity);
-          if (offsetIt != this->visualOffsetMap.end())
-          {
-            *_pose = components::Pose(parentPose * offsetIt->second);
-          }
-        }
-        else
-        {
-          ignwarn << "Visual with id " << _entity
-                  << " does not have a valid parent link\n";
-        }
-      });
-
-  _ecm.EachMutable<components::Collision, components::Pose,
-                   components::ParentEntity>(
-      [&](const EntityId &_entity, components::Collision * /*_collision*/,
-          components::Pose *_pose, components::ParentEntity *_parent)
-      {
-        auto linkIt = this->entityLinkMap.find(_parent->Id());
-        if (linkIt != this->entityLinkMap.end())
-        {
-          math::Pose3d parentPose = math::eigen3::convert(
-              linkIt->second->FrameDataRelativeToWorld().pose);
-
-          auto offsetIt = this->collisionOffsetMap.find(_entity);
-          if (offsetIt != this->collisionOffsetMap.end())
-          {
-            *_pose = components::Pose(parentPose * offsetIt->second);
-          }
-        }
-        else
-        {
-          ignwarn << "Collision with id " << _entity
-                  << " does not have a valid parent link\n";
         }
       });
 }
