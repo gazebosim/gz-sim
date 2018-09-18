@@ -38,7 +38,9 @@ namespace systems
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster: public System
+  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
+    public System,
+    public ISystemUpdate
   {
     /// \brief Constructor
     public: SceneBroadcaster();

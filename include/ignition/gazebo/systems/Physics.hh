@@ -35,7 +35,9 @@ namespace systems
 
   /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
   /// \brief Base class for a System.
-  class IGNITION_GAZEBO_VISIBLE Physics: public System
+  class IGNITION_GAZEBO_VISIBLE Physics:
+    public System,
+    public ISystemUpdate
   {
     /// \brief Constructor
     public: explicit Physics();
