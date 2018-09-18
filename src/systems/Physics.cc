@@ -15,6 +15,8 @@
  *
  */
 
+#include <iostream>
+
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -287,10 +289,10 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 {
-  _ecm.EachMutable<components::Link, components::Pose, components::ParentEntity>(
+  _ecm.EachMutable<components::Link, components::Pose,
+                   components::ParentEntity>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
-          components::Pose *_pose, components::ParentEntity *_parent)
-      {
+          components::Pose *_pose, components::ParentEntity *_parent) {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
