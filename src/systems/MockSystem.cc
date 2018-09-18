@@ -14,15 +14,14 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#include "MockSystem.hh"
 
-using namespace ignition::gazebo;
+#include <ignition/plugin/Register.hh>
 
-//////////////////////////////////////////////////
-System::System()
-{
-}
+IGNITION_ADD_PLUGIN(
+    ignition::gazebo::MockSystem,
+    ignition::gazebo::System,
+    ignition::gazebo::MockSystem::ISystemPreUpdate,
+    ignition::gazebo::MockSystem::ISystemUpdate,
+    ignition::gazebo::MockSystem::ISystemPostUpdate)
 
-System::~System()
-{
-}

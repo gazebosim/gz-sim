@@ -148,7 +148,7 @@ std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 }
 
 //////////////////////////////////////////////////
-std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
+std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
                                       const unsigned int _worldIndex)
 {
   // Check the current state, and return early if preconditions are not met.

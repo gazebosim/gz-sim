@@ -21,6 +21,8 @@
 
 #include <ignition/common/Console.hh>
 
+#include <ignition/gazebo/SystemPluginPtr.hh>
+
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -106,7 +108,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     auto world = _root.WorldByIndex(worldIndex);
     auto element = world->Element();
 
-    std::vector<std::shared_ptr<System>> systems;
+    std::vector<SystemPluginPtr> systems;
 
     if (element->HasElement("plugin"))
     {
@@ -116,7 +118,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
         auto system = this->systemManager.LoadPlugin(pluginElem);
         if (system)
         {
-          systems.push_back(system);
+          systems.push_back(system.value());
         }
         pluginElem = pluginElem->GetNextElement("plugin");
       }

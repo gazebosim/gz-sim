@@ -23,7 +23,7 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/System.hh>
+#include <ignition/gazebo/SystemPluginPtr.hh>
 
 namespace ignition
 {
@@ -136,7 +136,7 @@ namespace ignition
       /// \return Whether the system was added successfully, or std::nullopt
       /// if _worldIndex is invalid.
       public: std::optional<bool> AddSystem(
-                  const std::shared_ptr<System> &_system,
+                  const SystemPluginPtr &_system,
                   const unsigned int _worldIndex = 0);
 
           /// \brief Private data
