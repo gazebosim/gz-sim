@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-
 #include "ignition/gazebo/systems/Null.hh"
 #include <ignition/plugin/Register.hh>
 
