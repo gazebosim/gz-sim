@@ -9,6 +9,7 @@ pipelines:
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
           - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
+          - apt-get update
           - apt-get -y install
             cmake curl git mercurial cppcheck valgrind g++-8
             libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev
