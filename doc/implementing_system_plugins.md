@@ -7,17 +7,17 @@ In ignition-gazebo, all systems are loaded as plugins at runtime.  To create a s
 The first step of implementing a system plugin is to determine the subset of available interfaces to implement.  Aside from the base `System` object, there are currently three additional available interfaces:
 
 * ISystemPreUpdate
-  * Has read-write access to world entities and components
-  * Executed with simulation time at (t0)
-  * Can be used to modify state before physics runs, for example for applying control signals or performing network syncronization.
+    * Has read-write access to world entities and components
+    * Executed with simulation time at (t0)
+    * Can be used to modify state before physics runs, for example for applying control signals or performing network syncronization.
 * ISystemUpdate
-  * Has read-write access to world entities and components
-  * Responsible for propagating time from (t0) to (t0 + dt)
-  * Used for physics simulation step
+    * Has read-write access to world entities and components
+    * Responsible for propagating time from (t0) to (t0 + dt)
+    * Used for physics simulation step
 * ISystemPostUpdate
-  * Has read-only access to world entities and components
-  * Executed with simulation time at (t0 + dt)
-  * Used to read out results at the end of a simulation step to be used for sensor or controller updates.
+    * Has read-only access to world entities and components
+    * Executed with simulation time at (t0 + dt)
+    * Used to read out results at the end of a simulation step to be used for sensor or controller updates.
 
 Systems that are only used to read the current state of the world (sensors, graphics, and rendering) should implement `ISystemPostUpdate`
 .
@@ -62,8 +62,10 @@ namespace sample_system
 
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) override;
+
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) override;
+
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) override;
   };
@@ -79,6 +81,7 @@ Implement the system class as normal
 If the library will only contain one plugin:
 
 ```
+// From SampleSystem.cc
 #include <ignition/plugin/Register.hh>
 
 ...implementation...
@@ -92,7 +95,9 @@ IGNITION_ADD_PLUGIN(
 
 If the library will contain multiple plugins, in one implementation do as above, and then for each successive implementation use:
 
+
 ```
+// From SampleSystem2.cc
 #include <ignition/plugin/RegisterMore.hh>
 
 ...implementation...
@@ -113,7 +118,7 @@ set(IGN_PLUGIN_VER 0)
 ign_find_package(ignition-plugin0 REQUIRED COMPONENTS register)
 
 # Add sources for each plugin to be registered.
-add_library(SampleSystem SampleSystem.cc)
+add_library(SampleSystem SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
@@ -132,6 +137,10 @@ In the SDF file representing your simulation, add the plugin to the `world` sect
     <plugin
       filename="libSampleSystem.so"
       name="sample_system::SampleSystem">
+    </plugin>
+    <plugin
+      filename="libSampleSystem.so"
+      name="sample_system::SampleSystem2">
     </plugin>
     ...
 ```
