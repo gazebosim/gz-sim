@@ -5,125 +5,33 @@ pipelines:
     - step:
         script:
           - apt-get update
+          - apt -y install wget lsb-release gnupg
+          - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+          - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+          - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt-get -y install
-            cmake build-essential curl git mercurial cppcheck valgrind g++-8
+            cmake curl git mercurial cppcheck valgrind g++-8
             libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
           - gcov -v
-          # Static checking before building
-          - sh tools/code_check.sh
+          # Dependency: Ignition packages
+          - apt-get -y install
+            libignition-cmake2-dev
+            libignition-common3-dev
+            libignition-gui-dev
+            libignition-math6-dev
+            libignition-msgs3-dev
+            libignition-plugin-dev
+            libignition-rendering-dev
+            libignition-tools-dev
+            libignition-transport6-dev
+            libsdformat8-dev
           # lcov
           - git clone https://github.com/linux-test-project/lcov.git
           - cd lcov
           - make install
-          - cd ..
-          # Ignition tools
-          - apt install -y
-            ruby-ronn ruby-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-tools -b default
-          - cd ign-tools
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition cmake
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
-          - cd ign-cmake
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition plugin
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-plugin -b default
-          - cd ign-plugin
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition math
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-math -b gz11
-          - cd ign-math
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # SDFormat
-          - hg clone http://bitbucket.org/osrf/sdformat -b gz11
-          - cd sdformat
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition common
-          - apt install -y
-            uuid-dev
-            libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev
-            libfreeimage-dev libgts-dev libswscale-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-common -b gz11
-          - cd ign-common
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition msgs
-          - apt install -y
-            protobuf-compiler libprotoc-dev libprotobuf-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
-          - cd ign-msgs
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition transport
-          - apt install -y
-            libzmq3-dev
-            libsqlite3-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-transport -b gz11
-          - cd ign-transport
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition rendering
-          - apt install -y
-            libogre-1.9-dev
-            libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b gz11
-          - cd ign-rendering
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
-          # Ignition gui
-          - apt install -y
-            qtbase5-dev libtinyxml2-dev
-            qtdeclarative5-dev
-            qtquickcontrols2-5-dev
-            qml-module-qtquick2
-            qml-module-qtquick-controls
-            qml-module-qtquick-controls2
-            qml-module-qtquick-dialogs
-            qml-module-qtquick-layouts
-            qml-module-qt-labs-folderlistmodel
-            qml-module-qt-labs-settings
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
-          - cd ign-gui
-          - mkdir build
-          - cd build
-          - cmake ..
-          - make -j4 install
-          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
