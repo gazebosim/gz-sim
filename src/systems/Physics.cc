@@ -364,4 +364,5 @@ void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
-                    ignition::gazebo::System)
+                    ignition::gazebo::System,
+                    Physics::ISystemUpdate)

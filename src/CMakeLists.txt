@@ -62,6 +62,8 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 )
 install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 
+include_directories(${PROJECT_SOURCE_DIR}/test)
+
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 

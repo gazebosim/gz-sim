@@ -44,25 +44,21 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
+    };
 
-      /// \brief Called when an entity is added to the simulation.
-      // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityAdded(const Entity &_entity,
-                                       const EntityComponentManager &_ecm);
-
-      /// \brief Called when an entity is removed from the simulation.
-      // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityRemoved(const Entity &_entity,
-                                         const EntityComponentManager &_ecm);
-
+    class IGNITION_GAZEBO_VISIBLE ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
-                                     EntityComponentManager &_ecm);
+                                     EntityComponentManager &_ecm) = 0;
+    };
 
+    class IGNITION_GAZEBO_VISIBLE ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
-                                  EntityComponentManager &_ecm);
+                                  EntityComponentManager &_ecm) = 0;
+    };
 
+    class IGNITION_GAZEBO_VISIBLE ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,
-                                      const EntityComponentManager &_ecm);
+                                      const EntityComponentManager &_ecm) = 0;
     };
     }
   }
