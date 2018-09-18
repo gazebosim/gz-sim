@@ -210,16 +210,15 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
   this->systems.push_back(SystemInternal(_system));
 
-  const auto& system = this->systems.back();
-  if (system.preupdate) {
-    this->systems_preupdate.push_back(system.preupdate);
-  }
-  if (system.update) {
-    this->systems_update.push_back(system.update);
-  }
-  if (system.postupdate) {
-    this->systems_postupdate.push_back(system.postupdate);
-  }
+  const auto &system = this->systems.back();
+  if (system.preupdate)
+    this->systemsPreupdate.push_back(system.preupdate);
+
+  if (system.update)
+    this->systemsUpdate.push_back(system.update);
+
+  if (system.postupdate)
+    this->systemsPostupdate.push_back(system.postupdate);
 }
 
 /////////////////////////////////////////////////
@@ -231,18 +230,14 @@ void SimulationRunner::UpdateSystems()
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
-
-  for (auto& system : this->systems_preupdate) {
+  for (auto& system : this->systemsPreupdate)
     system->PreUpdate(this->currentInfo, this->entityCompMgr);
-  }
 
-  for (auto& system : this->systems_update) {
+  for (auto& system : this->systemsUpdate)
     system->Update(this->currentInfo, this->entityCompMgr);
-  }
 
-  for (auto& system : this->systems_postupdate) {
+  for (auto& system : this->systemsPostupdate)
     system->PostUpdate(this->currentInfo, this->entityCompMgr);
-  }
 }
 
 /////////////////////////////////////////////////

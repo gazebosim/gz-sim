@@ -57,9 +57,9 @@ class ignition::gazebo::SystemManagerPrivate
 
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
-                                       const std::string &_name,
-                                       sdf::ElementPtr /*_sdf*/,
-                                       ignition::plugin::PluginPtr &_plugin)
+              const std::string &_name,
+              sdf::ElementPtr /*_sdf*/,
+              ignition::plugin::PluginPtr &_plugin)
   {
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
@@ -150,9 +150,9 @@ void SystemManager::AddSystemPluginPath(const std::string &_path)
 
 //////////////////////////////////////////////////
 std::optional<SystemPluginPtr> SystemManager::LoadPlugin(
-    const std::string &_filename,
-    const std::string &_name,
-    sdf::ElementPtr _sdf)
+  const std::string &_filename,
+  const std::string &_name,
+  sdf::ElementPtr _sdf)
 {
   ignition::plugin::PluginPtr plugin;
 
