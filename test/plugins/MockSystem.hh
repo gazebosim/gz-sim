@@ -34,37 +34,35 @@ namespace ignition {
       public: size_t postUpdateCallCount {0};
 
       public: using CallbackType = std::function<void(const gazebo::UpdateInfo &,
-                                                      const gazebo::EntityComponentManager &)>;
+                  const gazebo::EntityComponentManager &)>;
 
       public: CallbackType preUpdateCallback;
       public: CallbackType updateCallback;
       public: CallbackType postUpdateCallback;
 
-      public: MockSystem(){
-                auto nullfcn = [](const gazebo::UpdateInfo&, const gazebo::EntityComponentManager&){};
-                preUpdateCallback = nullfcn;
-                updateCallback = nullfcn;
-                postUpdateCallback = nullfcn;
-              }
 
-      public: ~MockSystem() override final {}
-
-      public: void PreUpdate(const gazebo::UpdateInfo & _info,
-                    gazebo::EntityComponentManager & _manager) override final {
+      public: void PreUpdate(const gazebo::UpdateInfo &_info,
+                    gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->preUpdateCallCount;
+                if (this->preUpdateCallback)
                   this->preUpdateCallback(_info, _manager);
               }
 
-      public: void Update(const gazebo::UpdateInfo & _info,
-                    gazebo::EntityComponentManager & _manager) override final {
+      public: void Update(const gazebo::UpdateInfo &_info,
+                    gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->updateCallCount;
-                this->updateCallback(_info, _manager);
+                if (this->updateCallback)
+                  this->updateCallback(_info, _manager);
               }
 
-      public: void PostUpdate(const gazebo::UpdateInfo & _info,
-                  const gazebo::EntityComponentManager & _manager) override final {
+      public: void PostUpdate(const gazebo::UpdateInfo &_info,
+                  const gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->postUpdateCallCount;
-                this->postUpdateCallback(_info, _manager);
+                if (this->postUpdateCallback)
+                  this->postUpdateCallback(_info, _manager);
               }
     };
   }
