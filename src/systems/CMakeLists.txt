@@ -29,6 +29,7 @@ target_link_libraries(${physics_system_target}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
+  ignition-gazebo
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
   ignition-plugin${IGN_PLUGIN_VER}::loader
