@@ -221,8 +221,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 
   gazebo::SystemManager sm;
   auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so",
-                                        "ignition::gazebo::MockSystem",
-                                        nullptr);
+      "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   EXPECT_FALSE(*server.AddSystem(mockSystemPlugin.value()));
@@ -245,8 +244,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
 
   gazebo::SystemManager sm;
   auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so",
-                                        "ignition::gazebo::MockSystem",
-                                        nullptr);
+      "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   EXPECT_EQ(2u, *server.SystemCount());
