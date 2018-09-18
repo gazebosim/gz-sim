@@ -10,7 +10,7 @@ set (gtest_sources
   PARENT_SCOPE
 )
 
-# TODO(addisu) Restructure the directory structure of systems, maybe each 
+# TODO(addisu) Restructure the directory structure of systems, maybe each
 # system has it's own directory?
 set (physics_system_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc

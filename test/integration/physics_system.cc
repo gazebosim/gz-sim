@@ -26,6 +26,7 @@
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/Collision.hh"
@@ -38,45 +39,60 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
+
+#include "plugins/MockSystem.hh"
+
 using namespace ignition;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
 class PhysicsSystemFixture : public ::testing::Test
 {
-  protected:
-    void SetUp() override
-    {
-      // Augment the system plugin path.  In SetUp to avoid test order issues.
-      setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-             (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-    }
+  protected: void SetUp() override
+  {
+    // Augment the system plugin path.  In SetUp to avoid test order issues.
+    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+  }
 };
 
-// TODO(addisu) Create a Relay class that can be used by other tests.
-class MockSystem : public gazebo::System
+class Relay
 {
-  public:
-  using CallbackType = std::function<void(const gazebo::UpdateInfo &,
-                                     const gazebo::EntityComponentManager &)>;
+  public: Relay()
+  {
+    auto plugin = sm.LoadPlugin("libMockSystem.so",
+                                "ignition::gazebo::MockSystem",
+                                nullptr);
+    EXPECT_TRUE(plugin.has_value());
+    systemPtr = plugin.value();
+    mockSystem = dynamic_cast<gazebo::MockSystem *>(
+        systemPtr->QueryInterface<gazebo::System>());
+  }
 
-  public: void PostUpdate(const gazebo::UpdateInfo &_info,
-                const gazebo::EntityComponentManager &_ecm) override;
-  public: void RegisterCallback(const CallbackType &cb);
+  public: Relay & OnPreUpdate(gazebo::MockSystem::CallbackType cb)
+  {
+    this->mockSystem->preUpdateCallback = cb;
+    return *this;
+  }
 
-  public: CallbackType updateCb;
+  public: Relay & OnUpdate(gazebo::MockSystem::CallbackType cb)
+  {
+    this->mockSystem->updateCallback = cb;
+    return *this;
+  }
+
+  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackType cb)
+  {
+    this->mockSystem->postUpdateCallback = cb;
+    return *this;
+  }
+
+  ignition::gazebo::SystemPluginPtr systemPtr;
+
+  private: gazebo::SystemManager sm;
+  private: gazebo::MockSystem * mockSystem;
 };
 
-void MockSystem::RegisterCallback(const CallbackType &cb)
-{
-  updateCb = cb;
-}
-
-void MockSystem::PostUpdate(const gazebo::UpdateInfo &_info,
-                            const gazebo::EntityComponentManager &_ecm)
-{
-  updateCb(_info, _ecm);
-}
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
@@ -84,14 +100,13 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   ignition::gazebo::ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+    "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
-  for (uint64_t i = 1; i < 10; ++i)
-  {
+  for (uint64_t i = 1; i < 10; ++i) {
     EXPECT_FALSE(*server.Running());
     server.Run(true, 1);
     EXPECT_FALSE(*server.Running());
@@ -105,13 +120,13 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   ignition::gazebo::ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-                       "/test/worlds/falling.sdf";
+    "/test/worlds/falling.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
   root.Load(sdfFile);
-  const sdf::World *world = root.WorldByIndex(0);
-  const sdf::Model *model = world->ModelByIndex(0);
+  const sdf::World * world = root.WorldByIndex(0);
+  const sdf::Model * model = world->ModelByIndex(0);
 
   gazebo::Server server(serverConfig);
 
@@ -121,23 +136,23 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   std::vector<ignition::math::Pose3d> spherePoses;
 
   // Create a system that records the poses of the sphere
-  auto testSystem = std::make_shared<MockSystem>();
-  testSystem->RegisterCallback(
-      [linkName, &spherePoses](const gazebo::UpdateInfo &,
-                               const gazebo::EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::Link, components::Name, components::Pose>(
-            [&](const ignition::gazebo::EntityId &, const components::Link *,
-                const components::Name *_name, const components::Pose *_pose)
-            {
-              if (_name->Data() == linkName)
-              {
-                spherePoses.push_back(_pose->Data());
-              }
-            });
-      });
+  Relay testSystem;
 
-  server.AddSystem(testSystem);
+  testSystem.OnUpdate(
+    [linkName, &spherePoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager & _ecm)
+    {
+      _ecm.Each<components::Link, components::Name, components::Pose>(
+        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        const components::Name * _name, const components::Pose * _pose)
+        {
+          if (_name->Data() == linkName) {
+            spherePoses.push_back(_pose->Data());
+          }
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
   const size_t iters = 10;
   server.Run(true, iters);
 
@@ -164,4 +179,3 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   const double zStopped = sphere->Radius();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-3);
 }
-
