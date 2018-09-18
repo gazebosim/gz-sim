@@ -14,11 +14,12 @@
  * limitations under the License.
  *
 */
-#include <ignition/gazebo/SystemManager.hh>
 
 #include <optional>
 #include <string>
 #include <unordered_set>
+
+#include <ignition/gazebo/SystemManager.hh>
 
 #include <sdf/Element.hh>
 
