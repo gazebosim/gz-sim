@@ -68,19 +68,19 @@ namespace ignition
       public: SystemPluginPtr systemPlugin;
 
       /// \brief Access this system via the `System` interface
-      public: System* system;
+      public: System *system = nullptr;
 
       /// \brief Access this system via the ISystemPreUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPreUpdate* preupdate;
+      public: ISystemPreUpdate *preupdate = nullptr;
 
       /// \brief Access this system via the ISystemUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemUpdate* update;
+      public: ISystemUpdate *update = nullptr;
 
       /// \brief Access this system via the ISystemPostUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPostUpdate* postupdate;
+      public: ISystemPostUpdate *postupdate = nullptr;
 
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;
@@ -165,13 +165,13 @@ namespace ignition
       public: std::vector<SystemInternal> systems;
 
       /// \brief Systems implementing PreUpdate
-      public: std::vector<ISystemPreUpdate*> systems_preupdate;
+      public: std::vector<ISystemPreUpdate*> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      public: std::vector<ISystemUpdate*> systems_update;
+      public: std::vector<ISystemUpdate*> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      public: std::vector<ISystemPostUpdate*> systems_postupdate;
+      public: std::vector<ISystemPostUpdate*> systemsPostupdate;
 
       /// \brief Manager of all components.
       public: EntityComponentManager entityCompMgr;
