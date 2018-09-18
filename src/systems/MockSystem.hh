@@ -37,17 +37,21 @@ namespace ignition {
       public: ~MockSystem() override final {}
 
       public: void PreUpdate(const gazebo::UpdateInfo & /*_info*/,
-                    gazebo::EntityComponentManager & /*_manager*/) override final {
+                  gazebo::EntityComponentManager & /*_mgr*/) override final
+              {
                 ++this->preUpdateCallCount;
               }
 
       public: void Update(const gazebo::UpdateInfo & /*_info*/,
-                    gazebo::EntityComponentManager & /*_manager*/) override final {
+                  gazebo::EntityComponentManager & /*_mgr*/) override final
+              {
                 ++this->updateCallCount;
               }
 
       public: void PostUpdate(const gazebo::UpdateInfo & /*_info*/,
-                  const gazebo::EntityComponentManager & /*_manager*/) override final {
+                  const gazebo::EntityComponentManager & /*_mgr*/)
+              override final
+              {
                 ++this->postUpdateCallCount;
               }
     };

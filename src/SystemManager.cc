@@ -149,9 +149,10 @@ void SystemManager::AddSystemPluginPath(const std::string &_path)
 }
 
 //////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemManager::LoadPlugin(const std::string &_filename,
-                                    const std::string &_name,
-                                    sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemManager::LoadPlugin(
+    const std::string &_filename,
+    const std::string &_name,
+    sdf::ElementPtr _sdf)
 {
   ignition::plugin::PluginPtr plugin;
 
@@ -170,10 +171,8 @@ std::optional<SystemPluginPtr> SystemManager::LoadPlugin(const std::string &_fil
   {
     return plugin;
   }
-  else
-  {
-    return {};
-  }
+
+  return {};
 }
 
 //////////////////////////////////////////////////
