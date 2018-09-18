@@ -59,9 +59,10 @@ namespace ignition
       /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      public: std::optional<SystemPluginPtr> LoadPlugin(const std::string &_filename,
-                                   const std::string &_name,
-                                   sdf::ElementPtr _sdf);
+      public: std::optional<SystemPluginPtr> LoadPlugin(
+                  const std::string &_filename,
+                  const std::string &_name,
+                  sdf::ElementPtr _sdf);
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
