@@ -64,8 +64,8 @@ class Relay
                                 "ignition::gazebo::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
-    systemPtr = plugin.value();
-    mockSystem = dynamic_cast<gazebo::MockSystem *>(
+    this->systemPtr = plugin.value();
+    this->mockSystem = static_cast<gazebo::MockSystem *>(
         systemPtr->QueryInterface<gazebo::System>());
   }
 
@@ -132,21 +132,21 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   server.SetUpdatePeriod(1us);
 
-  const std::string linkName = "sphere_link";
+  const std::string modelName = "sphere";
   std::vector<ignition::math::Pose3d> spherePoses;
 
   // Create a system that records the poses of the sphere
   Relay testSystem;
 
-  testSystem.OnUpdate(
-    [linkName, &spherePoses](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate(
+    [modelName, &spherePoses](const gazebo::UpdateInfo &,
     const gazebo::EntityComponentManager & _ecm)
     {
-      _ecm.Each<components::Link, components::Name, components::Pose>(
-        [&](const ignition::gazebo::EntityId &, const components::Link *,
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::EntityId &, const components::Model *,
         const components::Name * _name, const components::Pose * _pose)
         {
-          if (_name->Data() == linkName) {
+          if (_name->Data() == modelName) {
             spherePoses.push_back(_pose->Data());
           }
         });
