@@ -133,7 +133,7 @@ pipelines:
             dart6-data
             libdart6-dev
             libdart6-utils-urdf-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b addSkeleton_fix
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b PhysicsConstruction
           - cd ign-physics
           - mkdir build
           - cd build
