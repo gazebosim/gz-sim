@@ -16,7 +16,6 @@
 */
 
 #include <sdf/Collision.hh>
-#include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Physics.hh>
@@ -29,8 +28,6 @@
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -434,50 +431,6 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           this->entityCompMgr.CreateComponent(collisionEntity,
               components::Geometry(*collision->Geom()));
         }
-      }
-
-      // Joints
-      for (uint64_t jointIndex = 0; jointIndex < model->JointCount();
-          ++jointIndex)
-      {
-        auto joint = model->JointByIndex(jointIndex);
-
-        // verify that parent and child exist
-        auto parentIt = linkMap.find(joint->ParentLinkName());
-        auto childIt = linkMap.find(joint->ChildLinkName());
-
-        if (parentIt == linkMap.end())
-        {
-          ignerr << "Parent link " << joint->ParentLinkName() << " not found\n";
-          // should we terminate?
-          continue;
-        }
-        if (childIt == linkMap.end())
-        {
-          ignerr << "Child link " << joint->ChildLinkName() << " not found\n";
-          // should we terminate?
-          continue;
-        }
-
-        EntityId parentEntity = parentIt->second;
-        EntityId childEntity = childIt->second;
-
-        // Entity
-        EntityId jointEntity = this->entityCompMgr.CreateEntity();
-
-        // Components
-        this->entityCompMgr.CreateComponent(jointEntity,
-            components::Joint());
-        this->entityCompMgr.CreateComponent(jointEntity,
-            components::JointType(joint->Type()));
-        this->entityCompMgr.CreateComponent(jointEntity,
-            components::Pose(joint->Pose()));
-        this->entityCompMgr.CreateComponent(jointEntity ,
-            components::Name(joint->Name()));
-        this->entityCompMgr.CreateComponent(jointEntity,
-            components::ParentEntity(parentEntity));
-        this->entityCompMgr.CreateComponent(jointEntity,
-            components::ChildEntity(childEntity));
       }
     }
   }

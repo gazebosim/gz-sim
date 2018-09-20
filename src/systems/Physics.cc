@@ -34,7 +34,6 @@
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
-#include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
@@ -42,7 +41,6 @@
 
 // SDF
 #include <sdf/Collision.hh>
-#include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
@@ -76,7 +74,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::sdf::ConstructSdfCollision,
-          ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
@@ -94,9 +91,6 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   public: using LinkPtrType = ignition::physics::LinkPtr<
-            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
-
-  public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
@@ -124,10 +118,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief a map between link entity ids in the ECM to Link Entities in
   /// ign-physics
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
-
-  /// \brief a map between joint entity ids in the ECM to Joint Entities in
-  /// ign-physics
-  public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created
   public: bool initialized = false;
