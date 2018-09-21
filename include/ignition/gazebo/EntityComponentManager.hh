@@ -71,7 +71,7 @@ namespace ignition
       /// \param[in] _id Id of the component to get.
       /// \return A pointer to the component, or nullptr if the component
       /// could not be found.
-      public: virtual void *ComponentMutable(const ComponentId _id) const = 0;
+      public: virtual void *Component(const ComponentId _id) = 0;
 
       /// \brief Get the first component.
       /// \return First component or nullptr if there are no components.
@@ -157,12 +157,6 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void *ComponentMutable(const ComponentId _id) const override final
-      {
-        return const_cast<void *>(this->Component(_id));
-      }
-
-      // Documentation inherited.
       public: const void *Component(const ComponentId _id) const override final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
@@ -172,6 +166,19 @@ namespace ignition
         if (iter != this->idMap.end())
         {
           return static_cast<const void *>(&this->components.at(iter->second));
+        }
+        return nullptr;
+      }
+
+      public: void *Component(const ComponentId _id) override final
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+
+        std::map<ComponentId, int>::const_iterator iter = this->idMap.find(_id);
+
+        if (iter != this->idMap.end())
+        {
+          return static_cast<void *>(&this->components.at(iter->second));
         }
         return nullptr;
       }
@@ -321,11 +328,14 @@ namespace ignition
       /// \param[in] _id Id of the entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      public: template<typename ComponentTypeT>
-              ComponentTypeT *ComponentMutable(const EntityId _id) const
+      public: template<typename ComponentType>
+              ComponentType *Component(const EntityId _id)
       {
-        return const_cast<ComponentTypeT*>(
-            this->Component<ComponentTypeT>(_id));
+        // Get a unique identifier to the component type
+        const ComponentTypeId typeId = typeid(ComponentType).hash_code();
+
+        return static_cast<ComponentType*>(
+            this->ComponentImplementation(_id, typeId));
       }
 
       /// \brief Get a component based on a key.
@@ -344,10 +354,10 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *ComponentMutable(const ComponentKey &_key) const
+              ComponentTypeT *Component(const ComponentKey &_key)
       {
-        return const_cast<ComponentTypeT*>(
-            this->Component<ComponentTypeT>(_key));
+        return static_cast<ComponentTypeT*>(
+            this->ComponentImplementation(_key));
       }
 
       /// \brief The first component instance of the specified type.
@@ -425,13 +435,16 @@ namespace ignition
         }
       }
 
-      /// \brief The first component instance of the specified type.
-      /// \return First component instance of the specified type, or nullptr
-      /// if the type does not exist.
+      /// \brief Get all entities which contain given component types, as well
+      /// as the mutable components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template.
+      /// \tparam ComponentTypeTs All the desired mutable component types.
       public: template<typename ...ComponentTypeTs>
-              void EachMutable(typename identity<std::function<
+              void Each(typename identity<std::function<
                   void(const EntityId &_entity,
-                       ComponentTypeTs *...)>>::type _f) const
+                       ComponentTypeTs *...)>>::type _f)
       {
         for (const Entity &entity : this->Entities())
         {
@@ -441,7 +454,7 @@ namespace ignition
           if (this->EntityMatches(entity.Id(), types))
           {
             _f(entity.Id(),
-               this->ComponentMutable<ComponentTypeTs>(entity.Id())...);
+               this->Component<ComponentTypeTs>(entity.Id())...);
           }
         }
       }
@@ -469,12 +482,26 @@ namespace ignition
       private: const void *ComponentImplementation(const EntityId _id,
                    const ComponentTypeId _type) const;
 
+      /// \brief Get a mutable component based on a component type.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _type Id of the component type.
+      /// \return The component of the specified type assigned to specified
+      /// Entity, or nullptr if the component could not be found.
+      private: void *ComponentImplementation(const EntityId _id,
+                   const ComponentTypeId _type);
+
       /// \brief Get a component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       private: const void *ComponentImplementation(
                    const ComponentKey &_key) const;
+
+      /// \brief Get a mutable component based on a key.
+      /// \param[in] _key A key that uniquely identifies a component.
+      /// \return The component associated with the key, or nullptr if the
+      /// component could not be found.
+      private: void *ComponentImplementation(const ComponentKey &_key);
 
       /// \brief Register a new component type.
       /// \param[in] _typeId Type if of the new component.

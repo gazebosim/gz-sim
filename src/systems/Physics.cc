@@ -279,8 +279,7 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
 {
-  _ecm.EachMutable<components::Link, components::Pose,
-                   components::ParentEntity>(
+  _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
           components::Pose *_pose, components::ParentEntity *_parent) {
         auto linkIt = this->entityLinkMap.find(_entity);
@@ -302,7 +301,7 @@ void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
             // This is the canonical link, update the model
             // get the pose component of the parent model
             auto parentPose =
-                _ecm.ComponentMutable<components::Pose>(_parent->Id());
+                _ecm.Component<components::Pose>(_parent->Id());
             // if the parentPose is a nullptr, something is wrong with ECS
             // creation
             if (parentPose)
