@@ -33,7 +33,19 @@ namespace components
   // Forward declarations.
   template<typename DataType> class SimpleWrapperPrivate;
 
-  /// \brief A component type that wraps any data type
+  /// \brief A component type that wraps any data type. The intention is for
+  /// this class to be used to create simple components while avoiding a lot of
+  /// boilerplate code. The Identifier must be a unique type so that type
+  /// aliases can be used to create new components. However the type does not
+  /// need to be defined anywhere
+  /// eg.
+  ///     using Static = SimpleWrapper<bool, class StaticTag>;
+  ///
+  /// Note, however, that his scheme does not have a mechanism to stop someone
+  /// accidentally defining another component that wraps a bool as such:
+  ///     using AnotherComp = SimpleWrapper<bool, class StaticTag>;
+  /// In this case, Static and AnotherComp are exactly the same types and would
+  /// not be differentiable by the EntityComponentManager.
   template <typename DataType, typename Identifier>
   class IGNITION_GAZEBO_VISIBLE SimpleWrapper
   {
