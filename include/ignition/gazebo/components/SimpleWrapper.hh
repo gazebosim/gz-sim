@@ -41,7 +41,7 @@ namespace components
   /// eg.
   ///     using Static = SimpleWrapper<bool, class StaticTag>;
   ///
-  /// Note, however, that his scheme does not have a mechanism to stop someone
+  /// Note, however, that this scheme does not have a mechanism to stop someone
   /// accidentally defining another component that wraps a bool as such:
   ///     using AnotherComp = SimpleWrapper<bool, class StaticTag>;
   /// In this case, Static and AnotherComp are exactly the same types and would
