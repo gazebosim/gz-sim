@@ -15,7 +15,7 @@ there are currently three additional available interfaces:
 1. ISystemPreUpdate
   1. Has read-write access to world entities and components.
   2. Executed with simulation time at (t0).
-  3. Can be used to modify state before physics runs, for example for applying control signals or performing network syncronization.
+  3. Can be used to modify state before physics runs, for example for applying control signals or performing network synchronization.
 2. ISystemUpdate
   1. Has read-write access to world entities and components.
   2. Responsible for propagating time from (t0) to (t0 + dt).
