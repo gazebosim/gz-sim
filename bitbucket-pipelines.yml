@@ -17,6 +17,11 @@ pipelines:
           - gcc -v
           - g++ -v
           - gcov -v
+          # lcov
+          - git clone https://github.com/linux-test-project/lcov.git
+          - cd lcov
+          - make install
+          - cd ..
           # Dependency: Ignition packages
           - apt-get -y install
             libignition-cmake2-dev
