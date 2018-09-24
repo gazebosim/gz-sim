@@ -159,15 +159,9 @@ namespace ignition
       // Documentation inherited.
       public: const void *Component(const ComponentId _id) const override final
       {
-        std::lock_guard<std::mutex> lock(this->mutex);
-
-        std::map<ComponentId, int>::const_iterator iter = this->idMap.find(_id);
-
-        if (iter != this->idMap.end())
-        {
-          return static_cast<const void *>(&this->components.at(iter->second));
-        }
-        return nullptr;
+        return static_cast<const void*>(
+            const_cast<ComponentStorage<ComponentTypeT>*>(
+              this)->Component(_id));
       }
 
       public: void *Component(const ComponentId _id) override final

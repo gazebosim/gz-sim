@@ -90,7 +90,7 @@ class Relay
   ignition::gazebo::SystemPluginPtr systemPtr;
 
   private: gazebo::SystemManager sm;
-  private: gazebo::MockSystem * mockSystem;
+  private: gazebo::MockSystem *mockSystem;
 };
 
 
@@ -106,7 +106,8 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 
   server.SetUpdatePeriod(1ns);
 
-  for (uint64_t i = 1; i < 10; ++i) {
+  for (uint64_t i = 1; i < 10; ++i)
+  {
     EXPECT_FALSE(*server.Running());
     server.Run(true, 1);
     EXPECT_FALSE(*server.Running());
@@ -125,8 +126,8 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   sdf::Root root;
   root.Load(sdfFile);
-  const sdf::World * world = root.WorldByIndex(0);
-  const sdf::Model * model = world->ModelByIndex(0);
+  const sdf::World *world = root.WorldByIndex(0);
+  const sdf::Model *model = world->ModelByIndex(0);
 
   gazebo::Server server(serverConfig);
 
@@ -140,11 +141,11 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   testSystem.OnPostUpdate(
     [modelName, &spherePoses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager & _ecm)
+    const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
         [&](const ignition::gazebo::EntityId &, const components::Model *,
-        const components::Name * _name, const components::Pose * _pose)
+        const components::Name *_name, const components::Pose *_pose)
         {
           if (_name->Data() == modelName) {
             spherePoses.push_back(_pose->Data());
