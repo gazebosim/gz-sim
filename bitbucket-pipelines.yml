@@ -40,8 +40,8 @@ pipelines:
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
           - make test
-          - make coverage
+          # - make coverage
           # Use a special version of codecov for handling gcc8 output.
-          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
+          # - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
