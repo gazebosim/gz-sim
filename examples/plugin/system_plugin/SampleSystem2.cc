@@ -1,6 +1,15 @@
 #include "SampleSystem.hh"
 
+//! [registerSampleSystem2]
 #include <ignition/plugin/RegisterMore.hh>
+
+IGNITION_ADD_PLUGIN(
+    sample_system::SampleSystem2,
+    ignition::gazebo::System,
+    sample_system::SampleSystem2::ISystemPreUpdate,
+    sample_system::SampleSystem2::ISystemUpdate,
+    sample_system::SampleSystem2::ISystemPostUpdate)
+//! [registerSampleSystem2]
 
 using namespace sample_system;
 
@@ -29,10 +38,3 @@ void SampleSystem2::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 {
   ignmsg << "SampleSystem2::PostUpdate" << std::endl;
 }
-
-IGNITION_ADD_PLUGIN(
-    sample_system::SampleSystem2,
-    ignition::gazebo::System,
-    sample_system::SampleSystem2::ISystemPreUpdate,
-    sample_system::SampleSystem2::ISystemUpdate,
-    sample_system::SampleSystem2::ISystemPostUpdate)

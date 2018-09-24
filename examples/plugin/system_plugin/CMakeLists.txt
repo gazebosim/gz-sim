@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 find_package(ignition-cmake2 REQUIRED)
 
 project(SampleSystem)
 
+#! [build]
 set(IGN_PLUGIN_VER 0)
 ign_find_package(ignition-plugin0 REQUIRED COMPONENTS register)
 
@@ -14,3 +15,4 @@ set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   PRIVATE ignition-gazebo::ignition-gazebo)
+#! [build]
