@@ -39,7 +39,7 @@ Server::Server(const ServerConfig &_config)
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
     root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
         "<world name='default'>"
-        "<plugin filename='libignition-gazebo-systems.so'"
+        "<plugin filename='libignition-gazebo-physics-system.so'"
         "        name='ignition::gazebo::systems::v0::Physics'>"
         "</plugin>"
         "<plugin filename='libignition-gazebo-systems.so'"
@@ -148,7 +148,7 @@ std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 }
 
 //////////////////////////////////////////////////
-std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
+std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
                                       const unsigned int _worldIndex)
 {
   // Check the current state, and return early if preconditions are not met.

@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
-#include "SystemManager.hh"
 
+#include <optional>
 #include <string>
 #include <unordered_set>
+
+#include <ignition/gazebo/SystemManager.hh>
 
 #include <sdf/Element.hh>
 
@@ -32,7 +34,6 @@
 #include <ignition/gazebo/config.hh>
 
 using namespace ignition::gazebo;
-using SystemPtr = SystemManager::SystemPtr;
 
 //////////////////////////////////////////////////
 // \todo(nkoenig) Add 'homePath' to ignition common.
@@ -57,9 +58,9 @@ class ignition::gazebo::SystemManagerPrivate
 
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
-                                       const std::string &_name,
-                                       sdf::ElementPtr /*_sdf*/,
-                                       ignition::plugin::PluginPtr &_plugin)
+              const std::string &_name,
+              sdf::ElementPtr /*_sdf*/,
+              ignition::plugin::PluginPtr &_plugin)
   {
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
@@ -128,7 +129,7 @@ class ignition::gazebo::SystemManagerPrivate
   public: std::unordered_set<std::string> systemPluginPaths;
 
   /// \brief System plugins that have instances loaded via the manager.
-  public: std::unordered_set<ignition::plugin::PluginPtr> systemPluginsAdded;
+  public: std::unordered_set<SystemPluginPtr> systemPluginsAdded;
 };
 
 //////////////////////////////////////////////////
@@ -149,9 +150,10 @@ void SystemManager::AddSystemPluginPath(const std::string &_path)
 }
 
 //////////////////////////////////////////////////
-SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
-                                    const std::string &_name,
-                                    sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemManager::LoadPlugin(
+  const std::string &_filename,
+  const std::string &_name,
+  sdf::ElementPtr _sdf)
 {
   ignition::plugin::PluginPtr plugin;
 
@@ -160,7 +162,7 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
     ignerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _filename << "] " <<
               "[(name): " << _name << "]." << std::endl;
-    return nullptr;
+    return {};
   }
 
   auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
@@ -168,20 +170,18 @@ SystemPtr SystemManager::LoadPlugin(const std::string &_filename,
                                                     _sdf, plugin);
   if (ret && plugin)
   {
-    return plugin->QueryInterfaceSharedPtr<System>();
+    return plugin;
   }
-  else
-  {
-    return nullptr;
-  }
+
+  return {};
 }
 
 //////////////////////////////////////////////////
-SystemPtr SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
 {
   if (nullptr == _sdf)
   {
-    return nullptr;
+    return {};
   }
   auto filename = _sdf->Get<std::string>("filename");
   auto pluginName = _sdf->Get<std::string>("name");

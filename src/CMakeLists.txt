@@ -33,13 +33,9 @@ set (gtest_sources
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  ign-gazebo-gui
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-  ${Qt5Core_LIBRARIES}
-  ${Qt5Widgets_LIBRARIES}
   ${SDFormat_LIBRARIES}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
@@ -62,6 +58,8 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 )
 install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 
+include_directories(${PROJECT_SOURCE_DIR}/test)
+
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
 
@@ -70,6 +68,7 @@ ign_add_executable(ign-gazebo-exec main.cc)
 set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
 target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
+  ign-gazebo-gui
   ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}

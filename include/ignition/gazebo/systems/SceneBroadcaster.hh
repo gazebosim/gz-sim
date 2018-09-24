@@ -38,7 +38,9 @@ namespace systems
   **/
   /// \brief System which periodically publishes an ignition::msgs::Scene
   /// message with updated information.
-  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster: public System
+  class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
+    public System,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: SceneBroadcaster();
@@ -46,8 +48,8 @@ namespace systems
     /// \brief Destructor
     public: virtual ~SceneBroadcaster();
 
-    public: void Update(const UpdateInfo &_info,
-                EntityComponentManager &_ecm) override final;
+    public: void PostUpdate(const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;

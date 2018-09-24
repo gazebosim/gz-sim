@@ -11,6 +11,7 @@ link_directories(
 
 set (plugins
   TestSystem
+  MockSystem
 )
 
 # Plugin shared libraries
