@@ -34,9 +34,22 @@ namespace ignition
     /// A System operates on Entities that have certain Components. A System
     /// will only operate on an Entity if it has all of the required
     /// Components.
-    /// \todo(nkoenig) The Callbacks (EntityAdded, EntityRemoved, PreUpdate,
-    /// Update, and PostUpdate) should be registered by a system instead of
-    /// implicit in the System plugin API.
+    ///
+    /// Systems are executed in three phases:
+    ///  * PreUpdate
+    ///    * Has read-write access to world entities and components
+    ///    * Executed with simulation time at (t0)
+    ///    * Can be used to modify state before physics runs, for example for
+    ///      applying control signals or performing network syncronization.
+    ///  * Update
+    ///    * Has read-write access to world entities and components
+    ///    * Responsible for propagating time from (t0) to (t0 + dt)
+    ///    * Used for physics simulation step
+    ///  * PostUpdate
+    ///    * Has read-only access to world entities and components
+    ///    * Executed with simulation time at (t0 + dt)
+    ///    * Used to read out results at the end of a simulation step to be used
+    ///      for sensor or controller updates.
     class IGNITION_GAZEBO_VISIBLE System
     {
       /// \brief Constructor
@@ -44,25 +57,27 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
+    };
 
-      /// \brief Called when an entity is added to the simulation.
-      // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityAdded(const Entity &_entity,
-                                       const EntityComponentManager &_ecm);
-
-      /// \brief Called when an entity is removed from the simulation.
-      // //TODO(mjcarroll): Should this be filtered by matching components?
-      public: virtual void EntityRemoved(const Entity &_entity,
-                                         const EntityComponentManager &_ecm);
-
+    /// /class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that uses the PreUpdate phase
+    class IGNITION_GAZEBO_VISIBLE ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
-                                     EntityComponentManager &_ecm);
+                                     EntityComponentManager &_ecm) = 0;
+    };
 
+    /// /class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that uses the Update phase
+    class IGNITION_GAZEBO_VISIBLE ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
-                                  EntityComponentManager &_ecm);
+                                  EntityComponentManager &_ecm) = 0;
+    };
 
+    /// /class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that uses the PostUpdate phase
+    class IGNITION_GAZEBO_VISIBLE ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,
-                                      const EntityComponentManager &_ecm);
+                                      const EntityComponentManager &_ecm) = 0;
     };
     }
   }

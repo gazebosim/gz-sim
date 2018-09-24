@@ -151,8 +151,8 @@ SceneBroadcaster::~SceneBroadcaster()
 }
 
 //////////////////////////////////////////////////
-void SceneBroadcaster::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &_manager)
+void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
+    const EntityComponentManager &_manager)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
 
@@ -367,4 +367,5 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
-                    ignition::gazebo::System)
+                    ignition::gazebo::System,
+                    SceneBroadcaster::ISystemPostUpdate)

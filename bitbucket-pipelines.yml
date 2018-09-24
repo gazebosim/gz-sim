@@ -11,8 +11,9 @@ pipelines:
           - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt-get update
           - apt-get -y install
-            cmake curl git mercurial cppcheck valgrind g++-8
+            cmake build-essential curl git mercurial cppcheck valgrind g++-8
             libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev
+            software-properties-common libeigen3-dev
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
@@ -34,14 +35,30 @@ pipelines:
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
+          # Ignition physics
+          ## DARTsim
+          - apt-add-repository -y ppa:dartsim
+          - apt-get update
+          - apt-get -y install
+            dart6-data
+            libdart6-dev
+            libdart6-utils-urdf-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b PhysicsConstruction
+          - cd ign-physics
+          - mkdir build
+          - cd build
+          - cmake ..
+          # may run out of memory if ran in parallel
+          - make install
+          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
-          - make test
-          # - make coverage
+          - make test ARGS="-VV"
+          - make coverage
           # Use a special version of codecov for handling gcc8 output.
-          # - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
+          - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10

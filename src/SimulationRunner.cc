@@ -25,13 +25,16 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -39,11 +42,10 @@ using namespace ignition;
 using namespace gazebo;
 
 using StringSet = std::unordered_set<std::string>;
-using SystemPtr = SimulationRunner::SystemPtr;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const std::vector<SystemPtr> &_systems)
+                                   const std::vector<SystemPluginPtr> &_systems)
 {
   // Keep world name
   this->worldName = _world->Name();
@@ -51,7 +53,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Store systems
   for (auto &system : _systems)
   {
-    this->systems.push_back(SystemInternal(system));
+    this->AddSystem(system);
   }
 
   // Get the first physics profile
@@ -207,9 +209,19 @@ void SimulationRunner::PublishStats()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::AddSystem(const SystemPtr &_system)
+void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
   this->systems.push_back(SystemInternal(_system));
+
+  const auto &system = this->systems.back();
+  if (system.preupdate)
+    this->systemsPreupdate.push_back(system.preupdate);
+
+  if (system.update)
+    this->systemsUpdate.push_back(system.update);
+
+  if (system.postupdate)
+    this->systemsPostupdate.push_back(system.postupdate);
 }
 
 /////////////////////////////////////////////////
@@ -221,18 +233,14 @@ void SimulationRunner::UpdateSystems()
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->PreUpdate(this->currentInfo, this->entityCompMgr);
-  }
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->Update(this->currentInfo, this->entityCompMgr);
-  }
-  for (SystemInternal &system : this->systems)
-  {
-    system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
-  }
+  for (auto& system : this->systemsPreupdate)
+    system->PreUpdate(this->currentInfo, this->entityCompMgr);
+
+  for (auto& system : this->systemsUpdate)
+    system->Update(this->currentInfo, this->entityCompMgr);
+
+  for (auto& system : this->systemsPostupdate)
+    system->PostUpdate(this->currentInfo, this->entityCompMgr);
 }
 
 /////////////////////////////////////////////////
@@ -317,6 +325,9 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
+  // used to map link names to EntityIds
+  std::unordered_map<std::string, EntityId> linkMap;
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -334,6 +345,13 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Name(model->Name()));
     this->entityCompMgr.CreateComponent(modelEntity,
         components::ParentEntity(worldEntity));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Static(model->Static()));
+
+    // NOTE: Pose components of links, visuals, and collisions are expressed in
+    // the parent frame until we get frames working. However, after creation,
+    // these pose components will be updated with absolute poses from the
+    // physics engine.
 
     // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
@@ -351,7 +369,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
       this->entityCompMgr.CreateComponent(linkEntity,
           components::Name(link->Name()));
       this->entityCompMgr.CreateComponent(linkEntity,
+          components::Inertial(link->Inertial()));
+      this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
+
+      linkMap.insert(std::pair(link->Name(), linkEntity));
 
       // Visuals
       for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();

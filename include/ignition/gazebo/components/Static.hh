@@ -13,49 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_NULL_SYSTEM_HH_
-#define IGNITION_GAZEBO_NULL_SYSTEM_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
+#define IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
+
+#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
 namespace gazebo
 {
-namespace systems
+namespace components
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \class Null Null.hh ignition/gazebo/systems/Null.hh
-  /// \brief Minimal system implementation
-  class IGNITION_GAZEBO_VISIBLE Null:
-    public System,
-    public ISystemPreUpdate,
-    public ISystemUpdate,
-    public ISystemPostUpdate
-  {
-    /// \brief Constructor
-    public: Null();
-
-    /// \brief Destructor
-    public: virtual ~Null();
-
-    public: void PreUpdate(const UpdateInfo &_info,
-                           EntityComponentManager &_ecm) override;
-
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) override;
-
-    public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override;
-  };
+  //
+  /// \brief A component used to indicate that a model is static (i.e. not
+  /// moveable).
+  using Static = SimpleWrapper<bool, class StaticTag>;
   }
 }
 }
 }
 #endif
-
 
