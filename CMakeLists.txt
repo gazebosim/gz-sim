@@ -30,8 +30,8 @@ include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-plugin
-set(IGN_PLUGIN_VER 0)
-ign_find_package(ignition-plugin0 REQUIRED COMPONENTS loader register)
+set(IGN_PLUGIN_VER 1)
+ign_find_package(ignition-plugin1 REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find ignition-transport
@@ -65,6 +65,11 @@ else()
   include_directories(${gflags_INCLUDE_DIRS})
   link_directories(${gflags_LIBRARY_DIRS})
 endif()
+
+#--------------------------------------
+# Find ignition-math
+set(IGN_MATH_VER 6)
+ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3)
 
 #============================================================================
 # Configure the build

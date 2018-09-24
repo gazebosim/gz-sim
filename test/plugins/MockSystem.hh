@@ -33,22 +33,36 @@ namespace ignition {
       public: size_t updateCallCount {0};
       public: size_t postUpdateCallCount {0};
 
-      public: MockSystem() {}
-      public: ~MockSystem() override final {}
+      public: using CallbackType = std::function<void(const gazebo::UpdateInfo &,
+                  const gazebo::EntityComponentManager &)>;
 
-      public: void PreUpdate(const UpdateInfo & /*_info*/,
-                  EntityComponentManager & /*_manager*/) override final {
+      public: CallbackType preUpdateCallback;
+      public: CallbackType updateCallback;
+      public: CallbackType postUpdateCallback;
+
+
+      public: void PreUpdate(const gazebo::UpdateInfo &_info,
+                    gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->preUpdateCallCount;
+                if (this->preUpdateCallback)
+                  this->preUpdateCallback(_info, _manager);
               }
 
-      public: void Update(const UpdateInfo & /*_info*/,
-                  EntityComponentManager & /*_manager*/) override final {
+      public: void Update(const gazebo::UpdateInfo &_info,
+                    gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->updateCallCount;
+                if (this->updateCallback)
+                  this->updateCallback(_info, _manager);
               }
 
-      public: void PostUpdate(const UpdateInfo & /*_info*/,
-                  const EntityComponentManager & /*_manager*/) override final {
+      public: void PostUpdate(const gazebo::UpdateInfo &_info,
+                  const gazebo::EntityComponentManager &_manager) override final
+              {
                 ++this->postUpdateCallCount;
+                if (this->postUpdateCallback)
+                  this->postUpdateCallback(_info, _manager);
               }
     };
   }

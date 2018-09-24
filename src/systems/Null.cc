@@ -15,7 +15,7 @@
  *
 */
 #include "ignition/gazebo/systems/Null.hh"
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 
 using namespace ignition::gazebo::systems;
 
