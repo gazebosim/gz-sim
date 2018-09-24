@@ -99,31 +99,31 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Step the simulationrfor each world
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
-  /// \brief Step the simulationrfor each world
-  public: void UpdateECS(EntityComponentManager &_ecm) const;
+  /// \brief Step the simulation for each world
+  public: void UpdateSim(EntityComponentManager &_ecm) const;
 
-  /// \brief a map between world entity ids in the ECM to World Entities in
-  /// ign-physics
+  /// \brief A map between world entity ids in the ECM to World Entities in
+  /// ign-physics.
   public: std::unordered_map<EntityId, WorldPtrType> entityWorldMap;
 
-  /// \brief a map between model entity ids in the ECM to Model Entities in
-  /// ign-physics
+  /// \brief A map between model entity ids in the ECM to Model Entities in
+  /// ign-physics.
   public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
 
-  /// \brief a map between model entity ids and their canonical links. For now
+  /// \brief A map between model entity ids and their canonical links. For now
   /// we assume the first link we encounter for a given model is it's canonical
-  /// link. The key is the Model entity ID
+  /// link. The key is the Model entity ID.
   public: std::unordered_map<EntityId, EntityId> canonicalLinkMap;
 
-  /// \brief a map between link entity ids in the ECM to Link Entities in
-  /// ign-physics
+  /// \brief A map between link entity ids in the ECM to Link Entities in
+  /// ign-physics.
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
 
-  /// \brief used to store whether physics objects have been created
+  /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
-  /// \brief pointer to the underlying ign-physics Engine entity
-  public: EnginePtrType engine;
+  /// \brief Pointer to the underlying ign-physics Engine entity.
+  public: EnginePtrType engine = nullptr;
 };
 
 //////////////////////////////////////////////////
@@ -131,14 +131,28 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
   ignition::plugin::Loader pl;
   // dartsim_plugin_LIB is defined by cmake
-  auto plugins = pl.LoadLibrary(dartsim_plugin_LIB);
-  const std::string className = "ignition::physics::dartsim::Plugin";
-  ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
+  std::unordered_set<std::string> plugins = pl.LoadLibrary(dartsim_plugin_LIB);
+  if (!plugins.empty())
+  {
+    const std::string className = "ignition::physics::dartsim::Plugin";
+    ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
 
-  this->dataPtr->engine = ignition::physics::RequestEngine<
-      ignition::physics::FeaturePolicy3d,
-      PhysicsPrivate::MinimumFeatureList>::
-      From(plugin);
+    if (plugin)
+    {
+      this->dataPtr->engine = ignition::physics::RequestEngine<
+        ignition::physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::From(plugin);
+    }
+    else
+    {
+      ignerr << "Unable to instantiate " << className << ".\n";
+    }
+  }
+  else
+  {
+    ignerr << "Unable to load the " << dartsim_plugin_LIB << " library.\n";
+    return;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -149,14 +163,17 @@ Physics::~Physics()
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->initialized)
+  if (this->dataPtr->engine)
   {
-    this->dataPtr->CreatePhysicsEntities(_ecm);
-    this->dataPtr->initialized = true;
-  }
+    if (!this->dataPtr->initialized)
+    {
+      this->dataPtr->CreatePhysicsEntities(_ecm);
+      this->dataPtr->initialized = true;
+    }
 
-  this->dataPtr->Step(_info.dt);
-  this->dataPtr->UpdateECS(_ecm);
+    this->dataPtr->Step(_info.dt);
+    this->dataPtr->UpdateSim(_ecm);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -170,7 +187,7 @@ void Physics::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
-    // get worlds
+    // Get all the worlds
   _ecm.Each<components::World, components::Name>(
       [&](const EntityId &_entity,
         const components::World * /* _world */,
@@ -277,7 +294,7 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::UpdateECS(EntityComponentManager &_ecm) const
+void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 {
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
