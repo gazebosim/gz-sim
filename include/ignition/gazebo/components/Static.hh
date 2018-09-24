@@ -13,15 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#include "MockSystem.hh"
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
+#define IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
 
-#include <ignition/plugin/Register.hh>
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
-IGNITION_ADD_PLUGIN(
-    ignition::gazebo::MockSystem,
-    ignition::gazebo::System,
-    ignition::gazebo::MockSystem::ISystemPreUpdate,
-    ignition::gazebo::MockSystem::ISystemUpdate,
-    ignition::gazebo::MockSystem::ISystemPostUpdate)
+#include "ignition/gazebo/components/SimpleWrapper.hh"
+
+namespace ignition
+{
+namespace gazebo
+{
+namespace components
+{
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  //
+  /// \brief A component used to indicate that a model is static (i.e. not
+  /// moveable).
+  using Static = SimpleWrapper<bool, class StaticTag>;
+  }
+}
+}
+}
+#endif
 

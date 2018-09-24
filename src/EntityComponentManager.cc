@@ -245,8 +245,39 @@ const void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
+void *EntityComponentManager::ComponentImplementation(
+    const EntityId _id, const ComponentTypeId _type)
+{
+  std::map<EntityId, std::vector<ComponentKey>>::const_iterator ecIter =
+    this->dataPtr->entityComponents.find(_id);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return nullptr;
+
+  std::vector<ComponentKey>::const_iterator iter =
+    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key) {return _key.first == _type;});
+
+  if (iter != ecIter->second.end())
+    return this->dataPtr->components.at(iter->first)->Component(iter->second);
+
+  return nullptr;
+}
+
+/////////////////////////////////////////////////
 const void *EntityComponentManager::ComponentImplementation(
     const ComponentKey &_key) const
+{
+  if (this->dataPtr->components.find(_key.first) !=
+      this->dataPtr->components.end())
+  {
+    return this->dataPtr->components.at(_key.first)->Component(_key.second);
+  }
+  return nullptr;
+}
+
+/////////////////////////////////////////////////
+void *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
 {
   if (this->dataPtr->components.find(_key.first) !=
       this->dataPtr->components.end())

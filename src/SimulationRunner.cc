@@ -25,13 +25,16 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -322,6 +325,9 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
+  // used to map link names to EntityIds
+  std::unordered_map<std::string, EntityId> linkMap;
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -339,6 +345,13 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Name(model->Name()));
     this->entityCompMgr.CreateComponent(modelEntity,
         components::ParentEntity(worldEntity));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::Static(model->Static()));
+
+    // NOTE: Pose components of links, visuals, and collisions are expressed in
+    // the parent frame until we get frames working. However, after creation,
+    // these pose components will be updated with absolute poses from the
+    // physics engine.
 
     // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
@@ -356,7 +369,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
       this->entityCompMgr.CreateComponent(linkEntity,
           components::Name(link->Name()));
       this->entityCompMgr.CreateComponent(linkEntity,
+          components::Inertial(link->Inertial()));
+      this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
+
+      linkMap.insert(std::pair(link->Name(), linkEntity));
 
       // Visuals
       for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();

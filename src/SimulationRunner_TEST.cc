@@ -23,8 +23,10 @@
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -75,6 +77,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::Geometry>()));
   EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
       EntityComponentManager::ComponentType<components::Material>()));
+  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+      EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual
@@ -205,6 +209,40 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EXPECT_NE(kNullEntity, boxLinkEntity);
   EXPECT_NE(kNullEntity, cylLinkEntity);
   EXPECT_NE(kNullEntity, sphLinkEntity);
+
+  // Check inertials
+  unsigned int inertialCount{0};
+  runner.entityCompMgr.Each<components::Link, components::Inertial>(
+    [&](const EntityId & _entity,
+        const components::Link *_link,
+        const components::Inertial *_inertial)
+    {
+      ASSERT_NE(nullptr, _link);
+      ASSERT_NE(nullptr, _inertial);
+
+      inertialCount++;
+
+      if (_entity == boxLinkEntity)
+      {
+        EXPECT_EQ(math::MassMatrix3d(1.0, math::Vector3d(1.0, 1.0, 1.0),
+                                     math::Vector3d::Zero),
+                  _inertial->Data().MassMatrix());
+      }
+      else if (_entity == cylLinkEntity)
+      {
+        EXPECT_EQ(math::MassMatrix3d(2.0, math::Vector3d(2.0, 2.0, 2.0),
+                                     math::Vector3d::Zero),
+                  _inertial->Data().MassMatrix());
+      }
+      else if (_entity == sphLinkEntity)
+      {
+        EXPECT_EQ(math::MassMatrix3d(3.0, math::Vector3d(3.0, 3.0, 3.0),
+                                     math::Vector3d::Zero),
+                  _inertial->Data().MassMatrix());
+      }
+    });
+
+  EXPECT_EQ(3u, inertialCount);
 
   // Check collisions
   unsigned int collisionCount{0};

@@ -22,7 +22,7 @@
 
 #include <ignition/common/Filesystem.hh>
 #include "ignition/gazebo/System.hh"
-#include "SystemManager.hh"
+#include "ignition/gazebo/SystemManager.hh"
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -41,7 +41,7 @@ TEST(SystemManager, Constructor)
   sdf::Root root;
   root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libignition-gazebo-systems.so'"
+      "<plugin filename='libignition-gazebo-physics-system.so'"
       "        name='ignition::gazebo::systems::v0::Physics'>"
       "</plugin>"
       "</world></sdf>");

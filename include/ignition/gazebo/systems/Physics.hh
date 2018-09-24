@@ -37,7 +37,8 @@ namespace systems
   /// \brief Base class for a System.
   class IGNITION_GAZEBO_VISIBLE Physics:
     public System,
-    public ISystemUpdate
+    public ISystemUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: explicit Physics();
@@ -45,8 +46,13 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Physics();
 
+    /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_manager) override;
+                EntityComponentManager &_ecm) override final;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;

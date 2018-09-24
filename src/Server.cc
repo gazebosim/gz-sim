@@ -39,7 +39,7 @@ Server::Server(const ServerConfig &_config)
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
     root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
         "<world name='default'>"
-        "<plugin filename='libignition-gazebo-systems.so'"
+        "<plugin filename='libignition-gazebo-physics-system.so'"
         "        name='ignition::gazebo::systems::v0::Physics'>"
         "</plugin>"
         "<plugin filename='libignition-gazebo-systems.so'"
