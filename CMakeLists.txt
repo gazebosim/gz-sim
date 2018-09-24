@@ -31,7 +31,7 @@ include_directories(${SDFormat_INCLUDE_DIRS})
 #--------------------------------------
 # Find ignition-plugin
 set(IGN_PLUGIN_VER 1)
-ign_find_package(ignition-plugin0 REQUIRED COMPONENTS loader register)
+ign_find_package(ignition-plugin${IGN_PLUGIN_VER} REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find ignition-transport
