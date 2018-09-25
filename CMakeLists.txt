@@ -58,10 +58,10 @@ find_package (Qt5
 # Find gflags
 find_library(gflags_LIBRARIES NAMES gflags)
 find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
-if (NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
-  BUILD_ERROR("Missing: GFlags (libgflags-dev)")
+if(NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
+  message(FATAL_ERROR "Missing: GFlags (libgflags-dev)")
 else()
-  message (STATUS "Found GFlags")
+  message(STATUS "Found GFlags")
   include_directories(${gflags_INCLUDE_DIRS})
   link_directories(${gflags_LIBRARY_DIRS})
 endif()
