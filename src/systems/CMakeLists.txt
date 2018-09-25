@@ -16,8 +16,8 @@ set (physics_system_sources
 )
 
 # Find ignition-physics
-set(IGN_PHYSICS_VER 0)
-ign_find_package(ignition-physics0 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
+set(IGN_PHYSICS_VER 1)
+ign_find_package(ignition-physics1 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
 
 ign_add_component(physics-system
   SOURCES ${physics_system_sources}
