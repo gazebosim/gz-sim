@@ -31,26 +31,11 @@ pipelines:
             libignition-math6-eigen3-dev
             libignition-msgs3-dev
             libignition-plugin-dev
+            libignition-physics-dev
             libignition-rendering-dev
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
-          # Ignition physics
-          ## DARTsim
-          - apt-add-repository -y ppa:dartsim
-          - apt-get update
-          - apt-get -y install
-            dart6-data
-            libdart6-dev
-            libdart6-utils-urdf-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b PhysicsConstruction
-          - cd ign-physics
-          - mkdir build
-          - cd build
-          - cmake ..
-          # may run out of memory if ran in parallel
-          - make install
-          - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build
