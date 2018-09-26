@@ -64,8 +64,12 @@ Server::~Server()
 }
 
 /////////////////////////////////////////////////
-bool Server::Run(const bool _blocking, const uint64_t _iterations)
+bool Server::Run(const bool _blocking, const uint64_t _iterations,
+    const bool _paused)
 {
+  for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
+    runner->SetPaused(_paused);
+
   // Check the current state, and return early if preconditions are not met.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);

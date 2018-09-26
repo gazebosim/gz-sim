@@ -163,6 +163,7 @@ Physics::~Physics()
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+
   if (this->dataPtr->engine)
   {
     if (!this->dataPtr->initialized)
@@ -171,8 +172,11 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->initialized = true;
     }
 
-    this->dataPtr->Step(_info.dt);
-    this->dataPtr->UpdateSim(_ecm);
+    if (!_info.paused)
+    {
+      this->dataPtr->Step(_info.dt);
+      this->dataPtr->UpdateSim(_ecm);
+    }
   }
 }
 

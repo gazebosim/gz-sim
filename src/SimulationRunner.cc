@@ -149,7 +149,7 @@ void SimulationRunner::UpdateCurrentInfo()
   }
 
   // RTF
-  if (realAvg != 0ns)
+  if (realAvg != 0ns && realAvg.count() > 0)
   {
     this->realTimeFactor = math::precision(
           static_cast<double>(simAvg.count()) / realAvg.count(), 4);
@@ -157,7 +157,7 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
-  if (!this->paused || this->pendingSimIterations > 0)
+  if (!this->currentInfo.paused || this->pendingSimIterations > 0)
   {
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
@@ -202,7 +202,7 @@ void SimulationRunner::PublishStats()
 
   msg.set_iterations(this->currentInfo.iterations);
 
-  msg.set_paused(this->paused);
+  msg.set_paused(this->currentInfo.paused);
 
   // Publish the message
   this->statsPub.Publish(msg);
@@ -259,7 +259,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // in the design.
 
   // Keep track of wall clock time
-  this->realTimeWatch.Start();
+  if (this->currentInfo.paused)
+    this->realTimeWatch.Start();
   // Variables for time keeping.
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::duration sleepTime;
@@ -468,17 +469,27 @@ void SimulationRunner::SetUpdatePeriod(
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::SetPaused(const bool _paused)
+{
+  this->currentInfo.paused = _paused;
+  if (_paused)
+    this->realTimeWatch.Stop();
+  else
+    this->realTimeWatch.Start();
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
                                       msgs::Boolean &_res)
 {
   // Play / pause
-  this->paused = _req.pause();
+  this->SetPaused(_req.pause());
 
   // Step
   if (_req.multi_step() > 0)
   {
     // Pause for stepping, if not paused yet
-    this->paused = true;
+    this->currentInfo.paused = true;
 
     this->pendingSimIterations += _req.multi_step();
   }

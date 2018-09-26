@@ -94,13 +94,16 @@ namespace ignition
       /// to run the server in the current thread.
       /// \param[in] _iterations Number of steps to perform. A value of
       /// zero will run indefinitely.
+      /// \param[in] _paused True to start simulation in a paused state,
+      /// false, to start simulation unpaused.
       /// \return In non-blocking mode, the return value is true if a thread
       /// was successfully created. In blocking mode, true will be returned
       /// if the Server ran for the specified number of iterations or was
       /// terminated. False will always be returned if signal handlers could
       /// not be initialized, and if the server is already running.
       public: bool Run(const bool _blocking = false,
-                       const uint64_t _iterations = 0);
+                       const uint64_t _iterations = 0,
+                       const bool _paused = true);
 
       /// \brief Get whether this server is running. When running is true,
       /// then simulation is stepping forward.
