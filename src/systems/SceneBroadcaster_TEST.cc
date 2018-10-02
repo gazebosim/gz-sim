@@ -68,7 +68,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   EXPECT_TRUE(node.Subscribe("/world/default/pose/info", cb));
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   unsigned int sleep{0u};
   unsigned int maxSleep{10u};
@@ -91,7 +91,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   // Create requester
   transport::Node node;
@@ -129,7 +129,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   // Create requester
   transport::Node node;

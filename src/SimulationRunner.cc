@@ -158,7 +158,7 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
-  if (!this->currentInfo.paused || this->pendingSimIterations > 0)
+  if (!this->currentInfo.paused)
   {
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
@@ -273,10 +273,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  for (uint64_t startingIterations = this->iterations;
+  for (uint64_t startingIterations = this->currentInfo.iterations;
        this->running && (_iterations == 0 ||
-         this->iterations < _iterations + startingIterations);
-       ++this->iterations)
+         this->currentInfo.iterations < _iterations + startingIterations);)
   {
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
@@ -301,7 +300,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       std::chrono::duration_cast<std::chrono::nanoseconds>(
           (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
-    // Update time information
+    // Update time information. This will update the iteration count, RTF,
+    // and other values.
     this->UpdateCurrentInfo();
 
     // Publish info
@@ -449,7 +449,7 @@ bool SimulationRunner::Running() const
 /////////////////////////////////////////////////
 uint64_t SimulationRunner::IterationCount() const
 {
-  return this->iterations;
+  return this->currentInfo.iterations;
 }
 
 /////////////////////////////////////////////////
@@ -474,13 +474,17 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
-  // Start or stop the realtime stopwatch based on _paused. We don't need to
-  // check the stopwatch state here since the stopwatch class checks its
-  // running state inside Stop() and Start().
-  if (_paused)
-    this->realTimeWatch.Stop();
-  else
-    this->realTimeWatch.Start();
+  // Only update the realtime clock if Run() has been called.
+  if (this->running)
+  {
+    // Start or stop the realtime stopwatch based on _paused. We don't need to
+    // check the stopwatch state here since the stopwatch class checks its
+    // running state inside Stop() and Start().
+    if (_paused)
+      this->realTimeWatch.Stop();
+    else
+      this->realTimeWatch.Start();
+  }
 
   // Store the pause state
   this->currentInfo.paused = _paused;
@@ -504,4 +508,10 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
 
   _res.set_data(true);
   return true;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Paused() const
+{
+  return this->currentInfo.paused;
 }
