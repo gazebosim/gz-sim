@@ -57,14 +57,27 @@ namespace ignition
     /// server.Run();
     /// ```
     ///
-    // ## Services
-    //
-    // The following are services provided by the Server.
-    // List syntax: *topic_name(request_message) : response_message*
-    //
-    // 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
-    //   + Returns the current scene information.
-    //
+    /// The Run() function accepts a few arguments, one of which is whether
+    /// simulation should start in a paused state. The default value of this
+    /// argument is true, which starts simulation paused. This means that by
+    /// default, running the server will cause systems to update but some
+    /// systems may not update because paused == true. For example,
+    /// a physics system will not update its state when paused is
+    /// true. So, while a Server can be Running, simulation itself can be
+    /// paused.
+    ///
+    /// Simulation is paused by default because a common use case is to load
+    /// a world from the command line. If simulation starts running, the
+    /// GUI client may miss the first few simulation iterations.
+    ///
+    /// ## Services
+    ///
+    /// The following are services provided by the Server.
+    /// List syntax: *topic_name(request_message) : response_message*
+    ///
+    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
+    ///   + Returns the current scene information.
+    ///
     class IGNITION_GAZEBO_VISIBLE Server
     {
       /// \brief Construct the server using the parameters specified in a

@@ -56,6 +56,7 @@ namespace ignition
       /// It is the responsibilty of a system update appropriately based on
       /// the status of paused. For example, a physics systems should not
       /// update state when paused is true.
+      // cppcheck-suppress unusedStructMember
       bool paused{false};
     };
 
