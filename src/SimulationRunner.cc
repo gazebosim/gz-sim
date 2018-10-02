@@ -148,8 +148,9 @@ void SimulationRunner::UpdateCurrentInfo()
     ++realIter;
   }
 
-  // RTF
-  if (realAvg != 0ns && realAvg.count() > 0)
+  // RTF, only compute this if the realTime count is greater than zero. The
+  // realtTime count could be zero if simulation was started paused.
+  if (realAvg.count() > 0)
   {
     this->realTimeFactor = math::precision(
           static_cast<double>(simAvg.count()) / realAvg.count(), 4);
@@ -258,9 +259,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
 
-  // Keep track of wall clock time
+  // Keep track of wall clock time. Only start the realTimeWatch if this
+  // runner is not paused.
   if (this->currentInfo.paused)
     this->realTimeWatch.Start();
+
   // Variables for time keeping.
   std::chrono::steady_clock::time_point startTime;
   std::chrono::steady_clock::duration sleepTime;
@@ -471,11 +474,16 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
-  this->currentInfo.paused = _paused;
+  // Start or stop the realtime stopwatch based on _paused. We don't need to
+  // check the stopwatch state here since the stopwatch class checks its
+  // running state inside Stop() and Start().
   if (_paused)
     this->realTimeWatch.Stop();
   else
     this->realTimeWatch.Start();
+
+  // Store the pause state
+  this->currentInfo.paused = _paused;
 }
 
 /////////////////////////////////////////////////

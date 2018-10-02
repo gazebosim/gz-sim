@@ -67,6 +67,7 @@ Server::~Server()
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
     const bool _paused)
 {
+  // Set the initial pause state of each simulation runner.
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
     runner->SetPaused(_paused);
 

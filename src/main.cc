@@ -39,7 +39,7 @@ DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_bool(s, false, "Run only the server (headless mode).");
 DEFINE_bool(g, false, "Run only the GUI.");
 DEFINE_string(f, "", "Load an SDF file on start.");
-DEFINE_bool(u, false, "Unpause simulation on start. "
+DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 
 //////////////////////////////////////////////////
@@ -70,7 +70,8 @@ void Help()
   << std::endl
   << "  -z arg                 Update rate in Hertz."
   << std::endl
-  << "  -u                     Start simulation unpaused."
+  << "  -r                     Run simulation on start."
+  << " The default is false, which starts simulation paused."
   << std::endl
   << std::endl;
 }
@@ -163,7 +164,7 @@ int main(int _argc, char **_argv)
       ignition::gazebo::Server server(serverConfig);
 
       // Run the server, and block.
-      server.Run(true, FLAGS_iterations, !FLAGS_u);
+      server.Run(true, FLAGS_iterations, !FLAGS_r);
     }
     // Run the GUI, or GUI+server
     else
@@ -177,7 +178,7 @@ int main(int _argc, char **_argv)
         server.reset(new ignition::gazebo::Server(serverConfig));
 
         // Run the server, and don't block.
-        server->Run(false, FLAGS_iterations, !FLAGS_u);
+        server->Run(false, FLAGS_iterations, !FLAGS_r);
       }
 
       // Temporary transport interface
