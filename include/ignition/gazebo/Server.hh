@@ -118,12 +118,24 @@ namespace ignition
                        const uint64_t _iterations = 0,
                        const bool _paused = true);
 
-      /// \brief Get whether this server is running. When running is true,
-      /// then simulation is stepping forward.
+      /// \brief Get whether a world simulation instance is running. When
+      /// running is true, then systems are being updated but simulation may
+      /// or may not be stepping forward. Check the value of Paused() to
+      /// determine if a world simulation instance is stepping forward.
+      /// If Paused() returns true, then simulation is not stepping foward.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return True if the server is running, or std::nullopt
       ///  if _worldIndex is invalid.
       public: std::optional<bool> Running(
+                  const unsigned int _worldIndex = 0) const;
+
+      /// \brief Get whether a world simulation instance is paused.
+      /// When paused is true, then simulation for the world is not stepping
+      /// forward.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the world simulation instance is paused, false if
+      /// stepping forward, or std::nullopt if _worldIndex is invalid.
+      public: std::optional<bool> Paused(
                   const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the number of iterations the server has executed.

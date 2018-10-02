@@ -128,6 +128,14 @@ std::optional<bool> Server::Running(const unsigned int _worldIndex) const
 }
 
 //////////////////////////////////////////////////
+std::optional<bool> Server::Paused(const unsigned int _worldIndex) const
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->Paused();
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
 std::optional<uint64_t> Server::IterationCount(
     const unsigned int _worldIndex) const
 {

@@ -147,6 +147,10 @@ namespace ignition
       /// \param[in] _paused True to pause the simulation runner.
       public: void SetPaused(const bool _paused);
 
+      /// \brief Get the pause state.
+      /// \return True if the simulation runner is paused, false otherwise.
+      public: bool Paused() const;
+
       /// \brief World control service callback
       /// \param[in] _req Request from client, currently handling play / pause
       /// and multistep.
@@ -193,10 +197,6 @@ namespace ignition
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration updatePeriod{2ms};
-
-      /// \brief Number of times the systems have been updated. This number
-      /// can't be reset.
-      public: uint64_t iterations{0};
 
       /// \brief List of simulation times used to compute averages.
       public: std::list<std::chrono::steady_clock::duration> simTimes;
