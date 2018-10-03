@@ -22,6 +22,76 @@
 
 using namespace ignition::gazebo;
 
+static const char kDefaultWorld[] =
+  "<?xml version='1.0'?>"
+  "<sdf version='1.6'>"
+    "<world name='default'>"
+      "<plugin filename='libignition-gazebo-physics-system.so'"
+      "        name='ignition::gazebo::systems::v0::Physics'>"
+      "</plugin>"
+      "<plugin filename='libignition-gazebo-systems.so'"
+      "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "</plugin>"
+      "<gui fullscreen='0'>"
+      "  <plugin name='notused' filename='notused'>"
+      "    <plugin"
+      "      filename='Scene3D'"
+      "      title='3D View'"
+      "      name='3D View'"
+      "      show_title_bar='false'"
+      "      resizable='false'"
+      "      x='0'"
+      "      y='0'"
+      "      z='0'"
+      "      height='798'"
+      "      width='1000'>"
+      "      <engine>ogre</engine>"
+      "      <scene>scene</scene>"
+      "      <ambient_light>0.4 0.4 0.4</ambient_light>"
+      "      <background_color>0.8 0.8 0.8</background_color>"
+      "      <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
+      "      <service>/world/default/scene/info</service>"
+      "      <pose_topic>/world/default/pose/info</pose_topic>"
+      "    </plugin>"
+      "    <plugin"
+      "      filename='WorldControl'"
+      "      title='World control'"
+      "      name='World control'"
+      "      show_title_bar='false'"
+      "      resizable='false'"
+      "      x='0'"
+      "      y='725'"
+      "      z='1'"
+      "      height='72'"
+      "      width='121'>"
+      "      <play_pause>true</play_pause>"
+      "      <step>true</step>"
+      "      <start_paused>true</start_paused>"
+      "      <service>/world/default/control</service>"
+      "      <stats_topic>/world/default/stats</stats_topic>"
+      "    </plugin>"
+      "    <plugin"
+      "      filename='WorldStats'"
+      "      title='World stats'"
+      "      name='World stats'"
+      "      show_title_bar='false'"
+      "      resizable='false'"
+      "      x='710'"
+      "      y='687'"
+      "      z='1'"
+      "      height='110'"
+      "      width='290'>"
+      "      <sim_time>true</sim_time>"
+      "      <real_time>true</real_time>"
+      "      <real_time_factor>true</real_time_factor>"
+      "      <iterations>true</iterations>"
+      "      <topic>/world/default/stats</topic>"
+      "    </plugin>"
+      "  </plugin>"
+      "</gui>"
+    "</world>"
+  "</sdf>";
+
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
@@ -37,18 +107,12 @@ Server::Server(const ServerConfig &_config)
   {
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
-        "<world name='default'>"
-        "<plugin filename='libignition-gazebo-physics-system.so'"
-        "        name='ignition::gazebo::systems::v0::Physics'>"
-        "</plugin>"
-        "<plugin filename='libignition-gazebo-systems.so'"
-        "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
-        "</plugin>"
-        "</world></sdf>");
+    root.LoadSdfString(kDefaultWorld);
   }
 
   this->dataPtr->CreateEntities(root);
+
+  this->dataPtr->LoadGui(root);
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.

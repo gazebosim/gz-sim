@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="default">
+  <world name="shapes">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -38,8 +38,8 @@
           <ambient_light>0.4 0.4 0.4</ambient_light>
           <background_color>0.8 0.8 0.8</background_color>
           <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-          <service>/world/default/scene/info</service>
-          <pose_topic>/world/default/pose/info</pose_topic>
+          <service>/world/shapes/scene/info</service>
+          <pose_topic>/world/shapes/pose/info</pose_topic>
         </plugin>
 
         <!-- World control -->
@@ -58,8 +58,8 @@
           <play_pause>true</play_pause>
           <step>true</step>
           <start_paused>true</start_paused>
-          <service>/world/default/control</service>
-          <stats_topic>/world/default/stats</stats_topic>
+          <service>/world/shapes/control</service>
+          <stats_topic>/world/shapes/stats</stats_topic>
 
         </plugin>
 
@@ -80,7 +80,7 @@
           <real_time>true</real_time>
           <real_time_factor>true</real_time_factor>
           <iterations>true</iterations>
-          <topic>/world/default/stats</topic>
+          <topic>/world/shapes/stats</topic>
 
         </plugin>
 
