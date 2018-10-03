@@ -119,19 +119,18 @@ SimulationRunner::~SimulationRunner()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
-  // Store the real time, and maintain a window size of 20.
-  this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
-  if (this->realTimes.size() > 20)
+  // Store the real time and sim time only if not paused.
+  if (this->realTimeWatch.Running())
   {
-    this->realTimes.pop_front();
+    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
+    this->simTimes.push_back(this->currentInfo.simTime);
   }
 
-  // Store the sim time, and maintain a window size of 20.
-  this->simTimes.push_back(this->currentInfo.simTime);
+  // Maintain a window size of 20 for realtime and simtime.
+  if (this->realTimes.size() > 20)
+    this->realTimes.pop_front();
   if (this->simTimes.size() > 20)
-  {
     this->simTimes.pop_front();
-  }
 
   // Compute the average sim and real times.
   std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
