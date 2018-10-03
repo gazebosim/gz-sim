@@ -108,9 +108,9 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 
   for (uint64_t i = 1; i < 10; ++i)
   {
-    EXPECT_FALSE(*server.Running());
+    EXPECT_FALSE(server.Running());
     server.Run(true, 1, false);
-    EXPECT_FALSE(*server.Running());
+    EXPECT_FALSE(server.Running());
   }
   // TODO(addisu) add useful EXPECT calls
 }

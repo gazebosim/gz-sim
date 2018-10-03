@@ -50,7 +50,9 @@ TEST_P(ServerFixture, DefaultServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(std::nullopt, server.Running(1));
   EXPECT_TRUE(*server.Paused());
 }
 
@@ -63,7 +65,8 @@ TEST_P(ServerFixture, SdfServerConfig)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
   EXPECT_EQ(13u, *server.EntityCount());
@@ -74,7 +77,8 @@ TEST_P(ServerFixture, SdfServerConfig)
 TEST_P(ServerFixture, RunBlocking)
 {
   gazebo::Server server;
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, server.IterationCount());
 
@@ -84,9 +88,11 @@ TEST_P(ServerFixture, RunBlocking)
   uint64_t expectedIters = 0;
   for (uint64_t i = 1; i < 10; ++i)
   {
-    EXPECT_FALSE(*server.Running());
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
     server.Run(true, i, false);
-    EXPECT_FALSE(*server.Running());
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
 
     expectedIters += i;
     EXPECT_EQ(expectedIters, *server.IterationCount());
@@ -97,16 +103,33 @@ TEST_P(ServerFixture, RunBlocking)
 TEST_P(ServerFixture, RunNonBlockingPaused)
 {
   gazebo::Server server;
-  EXPECT_FALSE(*server.Running());
+
+  // The server should not be running.
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+
+  // Invalid world index.
+  EXPECT_EQ(std::nullopt, server.Running(1));
+
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
 
   // Make the server run fast.
   server.SetUpdatePeriod(1ns);
 
-  server.Run(false, 100, true);
+  EXPECT_TRUE(server.Run(false, 100, true));
   EXPECT_TRUE(*server.Paused());
-  EXPECT_TRUE(*server.Running());
+
+  EXPECT_TRUE(server.Running());
+
+  // Add a small sleep because the non-blocking Run call causes the
+  // simulation runner to start asynchronously.
+  IGN_SLEEP_MS(500);
+  EXPECT_TRUE(*server.Running(0));
+
   EXPECT_EQ(0u, server.IterationCount());
 
   // Attempt to unpause an invalid world
@@ -116,20 +139,22 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   EXPECT_TRUE(server.SetPaused(false, 0));
 
   EXPECT_FALSE(*server.Paused());
-  EXPECT_TRUE(*server.Running());
+  EXPECT_TRUE(server.Running());
 
   while (*server.IterationCount() < 100)
     IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
   gazebo::Server server;
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
 
   // Make the server run fast.
@@ -140,14 +165,16 @@ TEST_P(ServerFixture, RunNonBlocking)
     IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   gazebo::Server server;
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
 
   EXPECT_TRUE(server.Run(false, 100, false));
@@ -157,25 +184,29 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
     IGN_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SigInt)
 {
   gazebo::Server server;
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 
   // Run forever, non-blocking.
   server.Run(false, 0, false);
 
   IGN_SLEEP_MS(500);
 
-  EXPECT_TRUE(*server.Running());
+  EXPECT_TRUE(server.Running());
+  EXPECT_TRUE(*server.Running(0));
 
   std::raise(SIGTERM);
 
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////
@@ -184,8 +215,10 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
   ignition::common::Console::SetVerbosity(4);
   gazebo::Server server1;
   gazebo::Server server2;
-  EXPECT_FALSE(*server1.Running());
-  EXPECT_FALSE(*server2.Running());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(*server1.Running(0));
+  EXPECT_FALSE(server2.Running());
+  EXPECT_FALSE(*server2.Running(0));
   EXPECT_EQ(0u, *server1.IterationCount());
   EXPECT_EQ(0u, *server2.IterationCount());
 
@@ -208,8 +241,10 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 
   EXPECT_EQ(iters1, *server1.IterationCount());
   EXPECT_EQ(500u, *server2.IterationCount());
-  EXPECT_FALSE(*server1.Running());
-  EXPECT_FALSE(*server2.Running());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(*server1.Running(0));
+  EXPECT_FALSE(server2.Running());
+  EXPECT_FALSE(*server2.Running(0));
 }
 
 /////////////////////////////////////////////////
@@ -217,8 +252,10 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
   gazebo::Server server1;
   gazebo::Server server2;
-  EXPECT_FALSE(*server1.Running());
-  EXPECT_FALSE(*server2.Running());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(*server1.Running(0));
+  EXPECT_FALSE(server2.Running());
+  EXPECT_FALSE(*server2.Running(0));
   EXPECT_EQ(0u, *server1.IterationCount());
   EXPECT_EQ(0u, *server2.IterationCount());
 
@@ -234,8 +271,10 @@ TEST_P(ServerFixture, TwoServersMixedBlocking)
 
   EXPECT_EQ(10u, *server1.IterationCount());
   EXPECT_EQ(1000u, *server2.IterationCount());
-  EXPECT_FALSE(*server1.Running());
-  EXPECT_FALSE(*server2.Running());
+  EXPECT_FALSE(server1.Running());
+  EXPECT_FALSE(*server1.Running(0));
+  EXPECT_FALSE(server2.Running());
+  EXPECT_FALSE(*server2.Running(0));
 }
 
 /////////////////////////////////////////////////
@@ -247,7 +286,8 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
   // Run the server to test whether we can add system while system is running
@@ -275,7 +315,8 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 
   gazebo::SystemManager sm;
   auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so",
