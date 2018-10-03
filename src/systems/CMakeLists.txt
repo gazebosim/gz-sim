@@ -15,10 +15,6 @@ set (physics_system_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/Physics.cc
 )
 
-# Find ignition-physics
-set(IGN_PHYSICS_VER 1)
-ign_find_package(ignition-physics1 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
-
 ign_add_component(physics-system
   SOURCES ${physics_system_sources}
   GET_TARGET_NAME physics_system_target
