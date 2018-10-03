@@ -129,6 +129,16 @@ namespace ignition
       public: std::optional<bool> Running(
                   const unsigned int _worldIndex = 0) const;
 
+      /// \brief Set whether a world simulation instance is paused.
+      /// When paused is true, then simulation for the world is not stepping
+      /// forward.
+      /// \param[in] _paused True to pause the world, false to unpause.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the world referenced by _worldIndex exists, false
+      /// otherwise.
+      public: bool SetPaused(const bool _paused,
+                  const unsigned int _worldIndex = 0) const;
+
       /// \brief Get whether a world simulation instance is paused.
       /// When paused is true, then simulation for the world is not stepping
       /// forward.

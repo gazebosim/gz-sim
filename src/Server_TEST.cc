@@ -94,6 +94,38 @@ TEST_P(ServerFixture, RunBlocking)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingPaused)
+{
+  gazebo::Server server;
+  EXPECT_FALSE(*server.Running());
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_EQ(0u, *server.IterationCount());
+
+  // Make the server run fast.
+  server.SetUpdatePeriod(1ns);
+
+  server.Run(false, 100, true);
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_TRUE(*server.Running());
+  EXPECT_EQ(0u, server.IterationCount());
+
+  // Attempt to unpause an invalid world
+  EXPECT_FALSE(server.SetPaused(false, 1));
+
+  // Unpause the existing world
+  EXPECT_TRUE(server.SetPaused(false, 0));
+
+  EXPECT_FALSE(*server.Paused());
+  EXPECT_TRUE(*server.Running());
+
+  while (*server.IterationCount() < 100)
+    IGN_SLEEP_MS(100);
+
+  EXPECT_EQ(100u, *server.IterationCount());
+  EXPECT_FALSE(*server.Running());
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
   gazebo::Server server;
