@@ -38,6 +38,45 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
+    class IGNITION_GAZEBO_HIDDEN View
+    {
+      public: View()
+      {
+      }
+
+      public: template<typename ComponentTypeT>
+              const ComponentTypeT *Component(const EntityId _id) const
+      {
+        return static_cast<ComponentTypeT*>(
+            this->components.at({_id, typeid(ComponentTypeT).hash_code()}));
+     }
+
+      public: void AddEntity(const EntityId _id)
+      {
+        this->entities.push_back(_id);
+      }
+
+      public: template<typename First, typename ...Rest>
+              void AddComponents(const EntityId _id)
+                                 //First _first, Rest ..._rest)
+      {
+        //this->AddComponent(_id, _first);
+        //this->AddComponents(_id, _rest...);
+      }
+
+      public: template<typename ComponentTypeT>
+              void AddComponent(const EntityId _id,
+                                ComponentTypeT *_component)
+      {
+        this->components.insert(std::make_pair(
+              {_id, typeid(ComponentTypeT).hash_code()}, _component));
+      }
+
+
+      public: std::vector<EntityId> entities;
+      public: std::map<std::pair<EntityId, ComponentTypeId>, void *> components;
+    };
+
     /// \cond
     /// \brief All component instances of the same type are stored
     /// squentially in memory. This is a base class for storing components
@@ -289,7 +328,7 @@ namespace ignition
                   const ComponentTypeT &_data)
       {
         // Get a unique identifier to the component type
-        const ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
+        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
 
         // Create the component storage if one does not exist for
         // the component type.
@@ -307,13 +346,13 @@ namespace ignition
       /// \param[in] _id Id of the entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      public: template<typename ComponentType>
-              const ComponentType *Component(const EntityId _id) const
+      public: template<typename ComponentTypeT>
+              const ComponentTypeT *Component(const EntityId _id) const
       {
         // Get a unique identifier to the component type
-        const ComponentTypeId typeId = typeid(ComponentType).hash_code();
+        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
 
-        return static_cast<const ComponentType*>(
+        return static_cast<const ComponentTypeT*>(
             this->ComponentImplementation(_id, typeId));
       }
 
@@ -322,13 +361,13 @@ namespace ignition
       /// \param[in] _id Id of the entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      public: template<typename ComponentType>
-              ComponentType *Component(const EntityId _id)
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *Component(const EntityId _id)
       {
         // Get a unique identifier to the component type
-        const ComponentTypeId typeId = typeid(ComponentType).hash_code();
+        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
 
-        return static_cast<ComponentType*>(
+        return static_cast<ComponentTypeT*>(
             this->ComponentImplementation(_id, typeId));
       }
 
@@ -392,40 +431,39 @@ namespace ignition
                   void(const EntityId &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
-        // \todo(louise) We should create Views, which will replace Queries.
-        // A View can be completely internal to EntityComponentManager.
-        // A View will store the entities that match the provided
-        // ComponenTypeTs.
-        //
-        // Instead of iterating over all the entities, this function can
-        // call Each(blah) on the appropriate View. If the View doesn't
-        // exist, then create the View.
-        //
-        // System's will then no longer create and register queries. The
-        // "InitSystem" code can go away. Instead, a System can call "Each"
-        // to get the desired entities.
-        //
-        // The reason to do this approach is:
-        // 1. It's cleaner - the concept of queries and all of that
-        // infrastructure can be hidden from the user.
-        // 2. Systems can alter the entities they need more easily at run
-        // time.
-        // 3. A System can process multiple entities with different
-        // component signatures in a single callback.
-        // 4. This opens the door to supporting more complex like:
-        // Each<ComponentTypeA, ComponentTypeB>().Or<ComponentTypeC>().
-        //
-        // Reference:
-        // https://github.com/alecthomas/entityx/blob/master/entityx/Entity.h
-        for (const Entity &entity : this->Entities())
-        {
-          auto types = std::set<ComponentTypeId>{
-              this->ComponentType<ComponentTypeTs>()...};
+        // Create the component type set, which acts as a key into the view
+        // map.
+        auto types = std::set<ComponentTypeId>{
+            this->ComponentType<ComponentTypeTs>()...};
 
-          if (this->EntityMatches(entity.Id(), types))
+        // Find the view.
+        auto viewIter = this->views.find(types);
+
+        // If the view doesn't exist, then create a new view.
+        if (viewIter == this->views.end())
+        {
+          View view;
+          // Add all the entities that match the component types to the
+          // view.
+          for (const Entity &entity : this->Entities())
           {
-            _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
+            if (this->EntityMatches(entity.Id(), types))
+            {
+              view.AddEntity(entity.Id());
+              view.AddComponents<ComponentTypeTs...>(entity.Id());
+            }
           }
+          // Store the view.
+          viewIter = this->views.insert(
+              std::make_pair(types, std::move(view))).first;
+        }
+
+        // Iterate over the entities in the view, and invoke the callback
+        // function.
+        for (const EntityId entity : viewIter->second.entities)
+        {
+          // _f(entity, this->Component<ComponentTypeTs>(entity)...);
+          _f(entity, viewIter->second.Component<ComponentTypeTs>(entity)...);
         }
       }
 
@@ -440,11 +478,11 @@ namespace ignition
                   void(const EntityId &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
+        auto types = std::set<ComponentTypeId>{
+            this->ComponentType<ComponentTypeTs>()...};
+
         for (const Entity &entity : this->Entities())
         {
-          auto types = std::set<ComponentTypeId>{
-              this->ComponentType<ComponentTypeTs>()...};
-
           if (this->EntityMatches(entity.Id(), types))
           {
             _f(entity.Id(),
@@ -509,6 +547,8 @@ namespace ignition
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
+
+      private: mutable std::map<ComponentTypeMask, View> views;
     };
     }
   }
