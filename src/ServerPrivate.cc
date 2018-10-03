@@ -16,12 +16,16 @@
 */
 #include "ServerPrivate.hh"
 
+#include <tinyxml2.h>
+
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
 
 #include <ignition/gazebo/SystemPluginPtr.hh>
+
+#include <ignition/gui/Application.hh>
 
 #include "SimulationRunner.hh"
 
@@ -110,6 +114,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 
     std::vector<SystemPluginPtr> systems;
 
+    // World plugins
     if (element->HasElement("plugin"))
     {
       sdf::ElementPtr pluginElem = element->GetElement("plugin");
@@ -121,6 +126,31 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
           systems.push_back(system.value());
         }
         pluginElem = pluginElem->GetNextElement("plugin");
+      }
+    }
+
+    // GUI plugins
+    if (element->HasElement("gui") &&
+        element->GetElement("gui")->HasElement("plugin"))
+    {
+      auto outerPluginElem = element->GetElement("gui")->GetElement("plugin");
+      if (outerPluginElem->HasElement("plugin"))
+      {
+        auto pluginElem = outerPluginElem->GetElement("plugin");
+        while (pluginElem)
+        {
+          auto fileName = pluginElem->Get<std::string>("filename");
+
+          auto pluginStr = pluginElem->ToString("");
+
+          tinyxml2::XMLDocument pluginDoc;
+          pluginDoc.Parse(pluginStr.c_str());
+
+          gui::App()->LoadPlugin(fileName,
+              pluginDoc.FirstChildElement("plugin"));
+
+          pluginElem = pluginElem->GetNextElement("plugin");
+        }
       }
     }
 
