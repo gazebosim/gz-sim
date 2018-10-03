@@ -35,6 +35,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   ${SDFormat_LIBRARIES}
   PRIVATE
