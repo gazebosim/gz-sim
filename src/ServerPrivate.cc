@@ -114,7 +114,6 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 
     std::vector<SystemPluginPtr> systems;
 
-    // World plugins
     if (element->HasElement("plugin"))
     {
       sdf::ElementPtr pluginElem = element->GetElement("plugin");
@@ -129,32 +128,47 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
       }
     }
 
-    // GUI plugins
-    if (element->HasElement("gui") &&
-        element->GetElement("gui")->HasElement("plugin"))
-    {
-      auto outerPluginElem = element->GetElement("gui")->GetElement("plugin");
-      if (outerPluginElem->HasElement("plugin"))
-      {
-        auto pluginElem = outerPluginElem->GetElement("plugin");
-        while (pluginElem)
-        {
-          auto fileName = pluginElem->Get<std::string>("filename");
-
-          auto pluginStr = pluginElem->ToString("");
-
-          tinyxml2::XMLDocument pluginDoc;
-          pluginDoc.Parse(pluginStr.c_str());
-
-          gui::App()->LoadPlugin(fileName,
-              pluginDoc.FirstChildElement("plugin"));
-
-          pluginElem = pluginElem->GetNextElement("plugin");
-        }
-      }
-    }
-
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
           _root.WorldByIndex(worldIndex), systems));
+  }
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::LoadGui(const sdf::Root &_root)
+{
+  if (!gui::App())
+    return;
+
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
+  {
+    auto world = _root.WorldByIndex(worldIndex);
+    auto element = world->Element();
+
+    // GUI plugins
+    if (!element->HasElement("gui") ||
+        !element->GetElement("gui")->HasElement("plugin"))
+    {
+      return;
+    }
+
+    auto outerPluginElem = element->GetElement("gui")->GetElement("plugin");
+    if (outerPluginElem->HasElement("plugin"))
+    {
+      auto pluginElem = outerPluginElem->GetElement("plugin");
+      while (pluginElem)
+      {
+        auto fileName = pluginElem->Get<std::string>("filename");
+
+        auto pluginStr = pluginElem->ToString("");
+
+        tinyxml2::XMLDocument pluginDoc;
+        pluginDoc.Parse(pluginStr.c_str());
+
+        gui::App()->LoadPlugin(fileName,
+            pluginDoc.FirstChildElement("plugin"));
+
+        pluginElem = pluginElem->GetNextElement("plugin");
+      }
+    }
   }
 }
