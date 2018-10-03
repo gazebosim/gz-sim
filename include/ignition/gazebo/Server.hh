@@ -118,6 +118,15 @@ namespace ignition
                        const uint64_t _iterations = 0,
                        const bool _paused = true);
 
+      /// \brief Get whether the server is running. The server can have zero
+      /// or more simulation worlds, each of which may or may not be
+      /// running. See Running(const unsigned int) to get the running status
+      /// of a world.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the server is running, or std::nullopt
+      ///  if _worldIndex is invalid.
+      public: bool Running() const;
+
       /// \brief Get whether a world simulation instance is running. When
       /// running is true, then systems are being updated but simulation may
       /// or may not be stepping forward. Check the value of Paused() to
@@ -126,8 +135,7 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world to query.
       /// \return True if the server is running, or std::nullopt
       ///  if _worldIndex is invalid.
-      public: std::optional<bool> Running(
-                  const unsigned int _worldIndex = 0) const;
+      public: std::optional<bool> Running(const unsigned int _worldIndex) const;
 
       /// \brief Set whether a world simulation instance is paused.
       /// When paused is true, then simulation for the world is not stepping

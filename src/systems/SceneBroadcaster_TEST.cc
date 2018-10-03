@@ -44,7 +44,8 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Create pose subscriber
@@ -87,7 +88,8 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
@@ -125,7 +127,8 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
