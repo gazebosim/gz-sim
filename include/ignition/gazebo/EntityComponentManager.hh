@@ -60,6 +60,9 @@ namespace ignition
               void AddComponents(const EntityId _id)
                                  //First _first, Rest ..._rest)
       {
+        this->components.insert(std::make_pair(
+              {_id, typeid(First).hash_code()}, _component));
+
         //this->AddComponent(_id, _first);
         //this->AddComponents(_id, _rest...);
       }
