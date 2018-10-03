@@ -55,6 +55,11 @@ find_package (Qt5
   REQUIRED)
 
 #--------------------------------------
+# Find ignition-physics
+set(IGN_PHYSICS_VER 1)
+ign_find_package(ignition-physics1 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
+
+#--------------------------------------
 # Find gflags
 find_library(gflags_LIBRARIES NAMES gflags)
 find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
