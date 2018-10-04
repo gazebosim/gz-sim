@@ -1,6 +1,7 @@
 set(TEST_TYPE "PERFORMANCE")
 
 set(tests
+  each.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)
