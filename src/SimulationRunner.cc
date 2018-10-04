@@ -163,8 +163,6 @@ void SimulationRunner::UpdateCurrentInfo()
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
 
-    if (this->pendingSimIterations > 0)
-      --this->pendingSimIterations;
   }
   else
   {
@@ -260,7 +258,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
-  if (this->currentInfo.paused)
+  if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
   // Variables for time keeping.
@@ -311,6 +309,17 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Update all the systems.
     this->UpdateSystems();
+
+    if (this->pendingSimIterations > 0)
+    {
+      // Decrement the pending sim iterations, if there are any.
+      --this->pendingSimIterations;
+      // If this is was the last sim iterations, then re-pause simulation.
+      if (this->pendingSimIterations <= 0)
+      {
+        this->SetPaused(true);
+      }
+    }
   }
 
   this->running = false;
@@ -480,7 +489,9 @@ void SimulationRunner::SetPaused(const bool _paused)
     // check the stopwatch state here since the stopwatch class checks its
     // running state inside Stop() and Start().
     if (_paused)
+    {
       this->realTimeWatch.Stop();
+    }
     else
       this->realTimeWatch.Start();
   }
@@ -496,13 +507,12 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
   // Play / pause
   this->SetPaused(_req.pause());
 
-  // Step
-  if (_req.multi_step() > 0)
+  // Step, only if we are paused.
+  if (this->Paused() && _req.multi_step() > 0)
   {
-    // Pause for stepping, if not paused yet
-    this->currentInfo.paused = true;
-
     this->pendingSimIterations += _req.multi_step();
+    // Unpause so that stepping can occur.
+    this->SetPaused(false);
   }
 
   _res.set_data(true);
