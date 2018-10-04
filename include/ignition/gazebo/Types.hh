@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_TYPES_HH_
 #define IGNITION_GAZEBO_TYPES_HH_
 
-#include <bitset>
 #include <chrono>
 #include <functional>
 #include <utility>
@@ -62,9 +61,6 @@ namespace ignition
     /// can be plain data type or something more complex like
     /// ignition::math::Pose3d.
     using ComponentTypeId = uint64_t;
-
-    using ComponentTypeMask = std::set<ComponentTypeId>;
-      //std::bitset<std::numeric_limits<ComponentTypeId>::max()>;
 
     /// \brief A key that uniquely identifies, at the global scope, a component
     /// instance

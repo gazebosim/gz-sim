@@ -139,6 +139,4 @@ TEST(EntityComponentManagerPerfrormance, Each)
       EXPECT_LT(cacheEntityAvg, cachelessEntityAvg);
     }
   }
-
-  //EXPECT_LT(cacheDuration, cachelessDuration);
 }

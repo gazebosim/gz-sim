@@ -40,6 +40,9 @@ namespace ignition
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
     /// \cond
+    /// \brief A key into the map of views
+    using ComponentTypeKey = std::set<ComponentTypeId>;
+
     /// \brief A view is a cache to entities, and their components, that
     /// match a set of component types. A cache is used because systems will
     /// frequently, potentially every iteration, query the
@@ -50,26 +53,39 @@ namespace ignition
     /// compared to the frequency of queries performed by systems.
     class IGNITION_GAZEBO_HIDDEN View
     {
+      /// Get a pointer to a component for an entity based on a component
+      /// type.
+      /// \param[in] _id Id of the entity.
+      /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
               const ComponentTypeT *Component(const EntityId _id) const
       {
         return static_cast<const ComponentTypeT*>(
             this->components.at({_id, typeid(ComponentTypeT).hash_code()}));
-     }
+      }
 
+      /// Get a pointer to a component for an entity based on a component
+      /// type.
+      /// \param[in] _id Id of the entity.
+      /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const EntityId _id)
       {
         return static_cast<ComponentTypeT*>(
             const_cast<void*>(
             this->components.at({_id, typeid(ComponentTypeT).hash_code()})));
-     }
-
-      public: void AddEntity(const EntityId _id)
-      {
-        this->entities.push_back(_id);
       }
 
+      /// \brief Add an entity to the view.
+      /// \param[in] _id Id of the entity to add.
+      public: void AddEntity(const EntityId _id)
+      {
+        this->entities.insert(_id);
+      }
+
+      /// \brief Add a component to an entity.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _component Component to add.
       public: template<typename ComponentTypeT>
               void AddComponent(const EntityId _id,
                                 const ComponentTypeT *_component)
@@ -79,7 +95,10 @@ namespace ignition
               std::make_pair(_id, id), static_cast<const void*>(_component)));
       }
 
-      public: std::vector<EntityId> entities;
+      /// \brief All the entities that belong to this view.
+      public: std::set<EntityId> entities;
+
+      /// \brief All of the components for each entity.
       public: std::map<std::pair<EntityId, ComponentTypeId>,
               const void *> components;
     };
@@ -485,6 +504,8 @@ namespace ignition
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \todo(nkoenig) The cached views do not handle addition and removal
+      /// of entities and components. Need to fix this asap.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   void(const EntityId &_entity,
@@ -633,7 +654,7 @@ namespace ignition
       private: template<typename ...ComponentTypeTs>
                View &FindView(const std::set<ComponentTypeId> &_types) const
       {
-         std::map<ComponentTypeMask, View>::iterator viewIter;
+         std::map<ComponentTypeKey, View>::iterator viewIter;
         // View &view;
 
         // Find the view. If the view doesn't exist, then create a new view.
@@ -668,14 +689,14 @@ namespace ignition
       /// Check the return value to see if this iterator is valid.
       /// \return True if the view was found, false otherwise.
       private: bool FindView(const std::set<ComponentTypeId> &_types,
-                   std::map<ComponentTypeMask, View>::iterator &_iter) const;
+                   std::map<ComponentTypeKey, View>::iterator &_iter) const;
 
       /// \brief Add a new view to the set of stored views.
       /// \param[in] _types The set of component type ids that is the key
       /// for the view.
       /// \param[in] _view The view to add.
       /// \return An iterator to the view.
-      private: std::map<ComponentTypeMask, View>::iterator AddView(
+      private: std::map<ComponentTypeKey, View>::iterator AddView(
                    const std::set<ComponentTypeId> &_types, View &&_view) const;
 
       /// \brief Private data pointer.
