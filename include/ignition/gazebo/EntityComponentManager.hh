@@ -428,6 +428,57 @@ namespace ignition
                  typedef T type;
                };
 
+      /// \brief A version of Each() that doens't use a cache. The cached
+      /// version, Each(), is preferred.
+      /// Get all entities which contain given component types, as well
+      /// as the components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template.
+      /// \tparam ComponentTypeTs All the desired component types.
+      public: template<typename ...ComponentTypeTs>
+              void EachNoCache(typename identity<std::function<
+                  void(const EntityId &_entity,
+                       const ComponentTypeTs *...)>>::type _f) const
+      {
+        for (const Entity &entity : this->Entities())
+        {
+          auto types = std::set<ComponentTypeId>{
+              this->ComponentType<ComponentTypeTs>()...};
+
+          if (this->EntityMatches(entity.Id(), types))
+          {
+            _f(entity.Id(), this->Component<ComponentTypeTs>(entity.Id())...);
+          }
+        }
+      }
+
+      /// \brief A version of Each() that doens't use a cache. The cached
+      /// version, Each(), is preferred.
+      /// Get all entities which contain given component types, as well
+      /// as the mutable components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template.
+      /// \tparam ComponentTypeTs All the desired mutable component types.
+      public: template<typename ...ComponentTypeTs>
+              void EachNoCache(typename identity<std::function<
+                  void(const EntityId &_entity,
+                       ComponentTypeTs *...)>>::type _f)
+      {
+        for (const Entity &entity : this->Entities())
+        {
+          auto types = std::set<ComponentTypeId>{
+              this->ComponentType<ComponentTypeTs>()...};
+
+          if (this->EntityMatches(entity.Id(), types))
+          {
+            _f(entity.Id(),
+               this->Component<ComponentTypeTs>(entity.Id())...);
+          }
+        }
+      }
+
       /// \brief Get all entities which contain given component types, as well
       /// as the components.
       /// \param[in] _f Callback function to be called for each matching entity.
