@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include <typeinfo>
+#include <type_traits>
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
@@ -38,17 +39,30 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
 
+    /// \cond
+    /// \brief A view is a cache to entities, and their components, that
+    /// match a set of component types. A cache is used because systems will
+    /// frequently, potentially every iteration, query the
+    /// EntityComponentManager for sets of entities that match a set of
+    /// component types. Rather than look up the entities every time, we can
+    /// use a cache to improve performance. The assumption is that entities
+    /// and the types of components assigned to entities change infrequently
+    /// compared to the frequency of queries performed by systems.
     class IGNITION_GAZEBO_HIDDEN View
     {
-      public: View()
-      {
-      }
-
       public: template<typename ComponentTypeT>
               const ComponentTypeT *Component(const EntityId _id) const
       {
-        return static_cast<ComponentTypeT*>(
+        return static_cast<const ComponentTypeT*>(
             this->components.at({_id, typeid(ComponentTypeT).hash_code()}));
+     }
+
+      public: template<typename ComponentTypeT>
+              ComponentTypeT *Component(const EntityId _id)
+      {
+        return static_cast<ComponentTypeT*>(
+            const_cast<void*>(
+            this->components.at({_id, typeid(ComponentTypeT).hash_code()})));
      }
 
       public: void AddEntity(const EntityId _id)
@@ -56,29 +70,20 @@ namespace ignition
         this->entities.push_back(_id);
       }
 
-      public: template<typename First, typename ...Rest>
-              void AddComponents(const EntityId _id)
-                                 //First _first, Rest ..._rest)
-      {
-        this->components.insert(std::make_pair(
-              {_id, typeid(First).hash_code()}, _component));
-
-        //this->AddComponent(_id, _first);
-        //this->AddComponents(_id, _rest...);
-      }
-
       public: template<typename ComponentTypeT>
               void AddComponent(const EntityId _id,
-                                ComponentTypeT *_component)
+                                const ComponentTypeT *_component)
       {
+        ComponentTypeId id = typeid(ComponentTypeT).hash_code();
         this->components.insert(std::make_pair(
-              {_id, typeid(ComponentTypeT).hash_code()}, _component));
+              std::make_pair(_id, id), static_cast<const void*>(_component)));
       }
 
-
       public: std::vector<EntityId> entities;
-      public: std::map<std::pair<EntityId, ComponentTypeId>, void *> components;
+      public: std::map<std::pair<EntityId, ComponentTypeId>,
+              const void *> components;
     };
+    /// \endcond
 
     /// \cond
     /// \brief All component instances of the same type are stored
@@ -439,34 +444,15 @@ namespace ignition
         auto types = std::set<ComponentTypeId>{
             this->ComponentType<ComponentTypeTs>()...};
 
-        // Find the view.
-        auto viewIter = this->views.find(types);
-
-        // If the view doesn't exist, then create a new view.
-        if (viewIter == this->views.end())
-        {
-          View view;
-          // Add all the entities that match the component types to the
-          // view.
-          for (const Entity &entity : this->Entities())
-          {
-            if (this->EntityMatches(entity.Id(), types))
-            {
-              view.AddEntity(entity.Id());
-              view.AddComponents<ComponentTypeTs...>(entity.Id());
-            }
-          }
-          // Store the view.
-          viewIter = this->views.insert(
-              std::make_pair(types, std::move(view))).first;
-        }
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>(types);
 
         // Iterate over the entities in the view, and invoke the callback
         // function.
-        for (const EntityId entity : viewIter->second.entities)
+        for (const EntityId entity : view.entities)
         {
-          // _f(entity, this->Component<ComponentTypeTs>(entity)...);
-          _f(entity, viewIter->second.Component<ComponentTypeTs>(entity)...);
+          _f(entity, view.Component<ComponentTypeTs>(entity)...);
         }
       }
 
@@ -481,18 +467,23 @@ namespace ignition
                   void(const EntityId &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
+        // Create the component type set, which acts as a key into the view
+        // map.
         auto types = std::set<ComponentTypeId>{
             this->ComponentType<ComponentTypeTs>()...};
 
-        for (const Entity &entity : this->Entities())
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>(types);
+
+        // Iterate over the entities in the view, and invoke the callback
+        // function.
+        for (const EntityId entity : view.entities)
         {
-          if (this->EntityMatches(entity.Id(), types))
-          {
-            _f(entity.Id(),
-               this->Component<ComponentTypeTs>(entity.Id())...);
-          }
+          _f(entity, view.Component<ComponentTypeTs>(entity)...);
         }
       }
+
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
@@ -546,12 +537,98 @@ namespace ignition
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
 
+      /// \brief Get all the entities.
+      /// \return All the entities.
       private: std::vector<Entity> &Entities() const;
+
+      /// \brief End of the AddComponentToView recursion. This function is
+      /// called when Rest is empty.
+      /// \param[in, out] _view The FirstComponent will be added to the
+      /// _view.
+      /// \param[in] _id Id of the entity.
+      private: template<typename FirstComponent,
+                        typename ...RemainingComponents,
+                        typename std::enable_if<
+                          sizeof...(RemainingComponents) == 0, int>::type = 0>
+               void AddComponentsToView(View &_view, const EntityId _id) const
+      {
+        // Add the component to the view.
+        _view.AddComponent<FirstComponent>(_id,
+            this->Component<FirstComponent>(_id));
+      }
+
+      /// \brief Recursively add components to a view. This function is
+      /// called when Rest is NOT empty.
+      /// \param[in, out] _view The FirstComponent will be added to the
+      /// _view.
+      /// \param[in] _id Id of the entity.
+      private: template<typename FirstComponent,
+                        typename ...RemainingComponents,
+                        typename std::enable_if<
+                          sizeof...(RemainingComponents) != 0, int>::type = 0>
+              void AddComponentsToView(View &_view, const EntityId _id) const
+      {
+        // Add the frst component to the view.
+        _view.AddComponent<FirstComponent>(_id,
+            this->Component<FirstComponent>(_id));
+        // Add the remaining components to the view.
+        this->AddComponentsToView<RemainingComponents...>(_view, _id);
+      }
+
+      /// \brief Find a View that matches the set of ComponentTypeIds. If
+      /// a match is not found, then a new view is created.
+      /// \param[in] _types The set of Component Types that define a view.
+      /// \return A reference to the view.
+      private: template<typename ...ComponentTypeTs>
+               View &FindView(const std::set<ComponentTypeId> &_types) const
+      {
+         std::map<ComponentTypeMask, View>::iterator viewIter;
+        // View &view;
+
+        // Find the view. If the view doesn't exist, then create a new view.
+        if (!this->FindView(_types, viewIter))
+        {
+          View view;
+          // Add all the entities that match the component types to the
+          // view.
+          for (const Entity &entity : this->Entities())
+          {
+            if (this->EntityMatches(entity.Id(), _types))
+            {
+              view.AddEntity(entity.Id());
+
+              // Store pointers to all the components. This recursively adds
+              // all the ComponentTypeTs that belong to the entity to the view.
+              this->AddComponentsToView<ComponentTypeTs...>(view, entity.Id());
+            }
+          }
+
+          // Store the view.
+          return this->AddView(_types, std::move(view))->second;
+        }
+
+        return viewIter->second;
+      }
+
+      /// \brief Find a view based on the provide component type ids.
+      /// \param[in] _types The component type ids that serve as a key into
+      /// a map of views.
+      /// \param[out] _iter Iterator to the found element in the view map.
+      /// Check the return value to see if this iterator is valid.
+      /// \return True if the view was found, false otherwise.
+      private: bool FindView(const std::set<ComponentTypeId> &_types,
+                   std::map<ComponentTypeMask, View>::iterator &_iter) const;
+
+      /// \brief Add a new view to the set of stored views.
+      /// \param[in] _types The set of component type ids that is the key
+      /// for the view.
+      /// \param[in] _view The view to add.
+      /// \return An iterator to the view.
+      private: std::map<ComponentTypeMask, View>::iterator AddView(
+                   const std::set<ComponentTypeId> &_types, View &&_view) const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
-
-      private: mutable std::map<ComponentTypeMask, View> views;
     };
     }
   }

@@ -42,6 +42,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Just a mutex for thread safety.
   public: std::mutex mutex;
+
+  public: mutable std::map<ComponentTypeMask, View> views;
 };
 
 //////////////////////////////////////////////////
@@ -316,7 +318,26 @@ void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
   return nullptr;
 }
 
+//////////////////////////////////////////////////
 std::vector<Entity> &EntityComponentManager::Entities() const
 {
   return this->dataPtr->entities;
+}
+
+//////////////////////////////////////////////////
+bool EntityComponentManager::FindView(const std::set<ComponentTypeId> &_types,
+    std::map<ComponentTypeMask, View>::iterator &_iter) const
+{
+  _iter = this->dataPtr->views.find(_types);
+  return _iter != this->dataPtr->views.end();
+}
+
+//////////////////////////////////////////////////
+std::map<ComponentTypeMask, View>::iterator EntityComponentManager::AddView(
+    const std::set<ComponentTypeId> &_types, View &&_view) const
+{
+  // If the view already exists, then the map will return the iterator to
+  // the location that prevented the insertion.
+  return this->dataPtr->views.insert(
+      std::make_pair(_types, std::move(_view))).first;
 }
