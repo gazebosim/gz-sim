@@ -95,6 +95,17 @@ namespace ignition
               std::make_pair(_id, id), static_cast<const void*>(_component)));
       }
 
+      /// \brief Add a component to an entity.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _component Component to add.
+      public: void AddComponent(const EntityId _id,
+                                const ComponentTypeId _compId,
+                                const void *_component)
+      {
+        this->components.insert(std::make_pair(
+              std::make_pair(_id, _compId), _component));
+      }
+
       /// \brief All the entities that belong to this view.
       public: std::set<EntityId> entities;
 
@@ -332,6 +343,10 @@ namespace ignition
       ///  removed.
       public: bool RemoveComponent(
                   const EntityId _id, const ComponentKey &_key);
+
+      /// \brief Rebuild all the views. This could be an expensive
+      /// operation.
+      public: void RebuildViews();
 
       /// \brief Get the type id of a component type. This is a convenience
       /// function that is equivalent to typeid(ComponentTypeT).hash_code().
@@ -698,6 +713,10 @@ namespace ignition
       /// \return An iterator to the view.
       private: std::map<ComponentTypeKey, View>::iterator AddView(
                    const std::set<ComponentTypeId> &_types, View &&_view) const;
+
+      /// \brief Update views that contain the provided entity.
+      /// \param[in] _id Id of the entity.
+      private: void UpdateViews(const EntityId _id);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

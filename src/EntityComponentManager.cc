@@ -115,6 +115,9 @@ void EntityComponentManager::EraseEntities()
   {
     comp.second->RemoveAll();
   }
+
+  // All views are now invalid.
+  this->dataPtr->views.clear();
 }
 
 /////////////////////////////////////////////////
@@ -131,6 +134,8 @@ bool EntityComponentManager::RemoveComponent(
 
   this->dataPtr->components.at(_key.first)->Remove(_key.second);
   this->dataPtr->entityComponents[_id].erase(entityComponentIter);
+
+  this->UpdateViews(_id);
   return true;
 }
 
@@ -190,6 +195,8 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentId};
 
   this->dataPtr->entityComponents[_entityId].push_back(componentKey);
+
+  this->UpdateViews(_entityId);
 
   return componentKey;
 }
@@ -342,3 +349,53 @@ std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
   return this->dataPtr->views.insert(
       std::make_pair(_types, std::move(_view))).first;
 }
+
+//////////////////////////////////////////////////
+void EntityComponentManager::UpdateViews(const EntityId _id)
+{
+  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  {
+    // Skip views that do not contain the entity.
+    if (view.second.entities.find(_id) == view.second.entities.end())
+      continue;
+
+    // Don't do anything if the entity still matches the view.
+    if (this->EntityMatches(_id, view.first))
+      continue;
+
+    // Otherwise, remove the entity from the view
+    view.second.entities.erase(_id);
+    // Remove the entity from the components map
+    for (const ComponentTypeId &compTypeId : view.first)
+    {
+      view.second.components.erase(std::make_pair(_id, compTypeId));
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::RebuildViews()
+{
+  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  {
+    view.second.entities.clear();
+    view.second.components.clear();
+    // Add all the entities that match the component types to the
+    // view.
+    for (const Entity &entity : this->dataPtr->entities)
+    {
+      if (this->EntityMatches(entity.Id(), view.first))
+      {
+        view.second.AddEntity(entity.Id());
+        // Store pointers to all the components. This recursively adds
+        // all the ComponentTypeTs that belong to the entity to the view.
+        for (const ComponentTypeId &compTypeId : view.first)
+        {
+          view.second.AddComponent(entity.Id(),
+              this->ComponentImplementation(entity.Id(), compTypeId));
+        }
+      }
+    }
+  }
+}
+
