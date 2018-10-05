@@ -148,27 +148,23 @@ void ServerPrivate::LoadGui(const sdf::Root &_root)
     if (!element->HasElement("gui") ||
         !element->GetElement("gui")->HasElement("plugin"))
     {
-      return;
+      continue;
     }
 
-    auto outerPluginElem = element->GetElement("gui")->GetElement("plugin");
-    if (outerPluginElem->HasElement("plugin"))
+    auto pluginElem = element->GetElement("gui")->GetElement("plugin");
+    while (pluginElem)
     {
-      auto pluginElem = outerPluginElem->GetElement("plugin");
-      while (pluginElem)
-      {
-        auto fileName = pluginElem->Get<std::string>("filename");
+      auto fileName = pluginElem->Get<std::string>("filename");
 
-        auto pluginStr = pluginElem->ToString("");
+      auto pluginStr = pluginElem->ToString("");
 
-        tinyxml2::XMLDocument pluginDoc;
-        pluginDoc.Parse(pluginStr.c_str());
+      tinyxml2::XMLDocument pluginDoc;
+      pluginDoc.Parse(pluginStr.c_str());
 
-        gui::App()->LoadPlugin(fileName,
-            pluginDoc.FirstChildElement("plugin"));
+      gui::App()->LoadPlugin(fileName,
+          pluginDoc.FirstChildElement("plugin"));
 
-        pluginElem = pluginElem->GetNextElement("plugin");
-      }
+      pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
 }
