@@ -16,73 +16,67 @@
 
     <gui fullscreen="0">
 
-      <!-- TODO(louise) wrapping all plugins into one plugin so SDF doesn't
-        strip custom arguments -->
-      <plugin name="notused" filename="notused">
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <show_title_bar>false</show_title_bar>
+          <resizable>true</resizable>
+          <x>0</x>
+          <y>0</y>
+          <z>0</z>
+          <height>798</height>
+          <width>1000</width>
+        </ignition-gui>
 
-        <!-- 3D scene -->
-        <plugin
-          filename="Scene3D"
-          title="3D View"
-          name="3D View"
-          show_title_bar="false"
-          resizable="true"
-          x="0"
-          y="0"
-          z="0"
-          height="798"
-          width="1000">
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <service>/world/shapes/scene/info</service>
+        <pose_topic>/world/shapes/pose/info</pose_topic>
+      </plugin>
 
-          <engine>ogre</engine>
-          <scene>scene</scene>
-          <ambient_light>0.4 0.4 0.4</ambient_light>
-          <background_color>0.8 0.8 0.8</background_color>
-          <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-          <service>/world/shapes/scene/info</service>
-          <pose_topic>/world/shapes/pose/info</pose_topic>
-        </plugin>
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <show_title_bar>false</show_title_bar>
+          <resizable>false</resizable>
+          <x>0</x>
+          <y>725</y>
+          <z>1</z>
+          <height>72</height>
+          <width>121</width>
+        </ignition-gui>
 
-        <!-- World control -->
-        <plugin
-          filename="WorldControl"
-          title="World control"
-          name="World control"
-          show_title_bar="false"
-          resizable="false"
-          x="0"
-          y="725"
-          z="1"
-          height="72"
-          width="121">
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/shapes/control</service>
+        <stats_topic>/world/shapes/stats</stats_topic>
 
-          <play_pause>true</play_pause>
-          <step>true</step>
-          <start_paused>true</start_paused>
-          <service>/world/shapes/control</service>
-          <stats_topic>/world/shapes/stats</stats_topic>
+      </plugin>
 
-        </plugin>
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <show_title_bar>false</show_title_bar>
+          <resizable>true</resizable>
+          <x>710</x>
+          <y>687</y>
+          <z>1</z>
+          <height>110</height>
+          <width>290</width>
+        </ignition-gui>
 
-        <!-- World statistics -->
-        <plugin
-          filename="WorldStats"
-          title="World stats"
-          name="World stats"
-          show_title_bar="false"
-          resizable="false"
-          x="710"
-          y="687"
-          z="1"
-          height="110"
-          width="290">
-
-          <sim_time>true</sim_time>
-          <real_time>true</real_time>
-          <real_time_factor>true</real_time_factor>
-          <iterations>true</iterations>
-          <topic>/world/shapes/stats</topic>
-
-        </plugin>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/shapes/stats</topic>
 
       </plugin>
 
