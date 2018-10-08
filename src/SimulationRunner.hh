@@ -171,6 +171,8 @@ namespace ignition
       /// \brief Process world control service messages.
       private: void ProcessWorldControl();
 
+      /// \todo(nkoenig) Make these public member variables private.
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};

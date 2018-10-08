@@ -43,8 +43,7 @@ namespace ignition
       /// simulation is paused.
       std::chrono::steady_clock::duration realTime{0};
 
-      /// \brief Simulation time handled during a single update. If zero,
-      /// simulation is paused and time is not running.
+      /// \brief Simulation time handled during a single update.
       std::chrono::steady_clock::duration dt{0};
 
       /// \brief Total number of elapsed simulation iterations.
