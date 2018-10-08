@@ -320,6 +320,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
         this->SetPaused(true);
       }
     }
+
+    // Process world control messages.
+    this->ProcessMessages();
   }
 
   this->running = false;
@@ -502,21 +505,39 @@ void SimulationRunner::SetPaused(const bool _paused)
 
 /////////////////////////////////////////////////
 bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
-                                      msgs::Boolean &_res)
+    msgs::Boolean &_res)
 {
-  // Play / pause
-  this->SetPaused(_req.pause());
-
-  // Step, only if we are paused.
-  if (this->Paused() && _req.multi_step() > 0)
-  {
-    this->pendingSimIterations += _req.multi_step();
-    // Unpause so that stepping can occur.
-    this->SetPaused(false);
-  }
-
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  this->worldControlMsgs.push_back(_req);
   _res.set_data(true);
   return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessMessages()
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  this->ProcessWorldControl();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessWorldControl()
+{
+  for (const msgs::WorldControl &msg : this->worldControlMsgs)
+  {
+    // Play / pause
+    this->SetPaused(msg.pause());
+
+    // Step, only if we are paused.
+    if (this->Paused() && msg.multi_step() > 0)
+    {
+      this->pendingSimIterations += msg.multi_step();
+      // Unpause so that stepping can occur.
+      this->SetPaused(false);
+    }
+  }
+
+  this->worldControlMsgs.clear();
 }
 
 /////////////////////////////////////////////////

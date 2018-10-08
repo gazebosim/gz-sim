@@ -95,7 +95,6 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
-    // std::cout << "Create Run thread\n";
     std::condition_variable cond;
     this->dataPtr->runThread =
       std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
