@@ -20,9 +20,9 @@
       <plugin filename="Scene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
-          <property type="bool" key="showTitleBar" value="false"/>
-          <property type="bool" key="resizable" value="false"/>
-          <property type="double" key="z" value="0"/>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="z">0</property>
           <anchor line="right" target="window" target_line="right"/>
           <anchor line="left" target="window" target_line="left"/>
           <anchor line="top" target="window" target_line="top"/>
@@ -42,11 +42,11 @@
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
           <title>World control</title>
-          <property type="bool" key="showTitleBar" value="false"/>
-          <property type="bool" key="resizable" value="false"/>
-          <property type="double" key="height" value="72"/>
-          <property type="double" key="width" value="121"/>
-          <property type="double" key="z" value="1"/>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
           <anchor line="left" target="window" target_line="left"/>
           <anchor line="bottom" target="window" target_line="bottom"/>
         </ignition-gui>
@@ -63,11 +63,11 @@
       <plugin filename="WorldStats" name="World stats">
         <ignition-gui>
           <title>World stats</title>
-          <property type="bool" key="showTitleBar" value="false"/>
-          <property type="bool" key="resizable" value="false"/>
-          <property type="double" key="height" value="110"/>
-          <property type="double" key="width" value="290"/>
-          <property type="double" key="z" value="1"/>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
           <anchor line="right" target="window" target_line="right"/>
           <anchor line="bottom" target="window" target_line="bottom"/>
         </ignition-gui>
