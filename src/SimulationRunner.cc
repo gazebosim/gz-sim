@@ -162,7 +162,6 @@ void SimulationRunner::UpdateCurrentInfo()
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
-
   }
   else
   {
