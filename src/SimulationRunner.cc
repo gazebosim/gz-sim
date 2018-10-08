@@ -310,7 +310,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update all the systems.
     this->UpdateSystems();
 
-    if (this->pendingSimIterations > 0)
+    if (!this->Paused() && this->pendingSimIterations > 0)
     {
       // Decrement the pending sim iterations, if there are any.
       --this->pendingSimIterations;
