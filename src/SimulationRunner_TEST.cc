@@ -449,26 +449,6 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_TRUE(runner.Paused());
   runner.SetPaused(false);
   EXPECT_FALSE(runner.Paused());
-  // EXPECT_TRUE(runner.Run(100));
-
-  // // Check state
-  // EXPECT_EQ(200u, runner.currentInfo.iterations);
-  // EXPECT_EQ(300ms, runner.currentInfo.simTime);
-  // EXPECT_EQ(0ms, runner.currentInfo.dt);
-  // EXPECT_EQ(1ms, runner.updatePeriod);
-  // EXPECT_EQ(2ms, runner.stepSize);
-
-  // Multistep and run
-  runner.pendingSimIterations = 50;
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(300u, runner.currentInfo.iterations);
-  EXPECT_EQ(500ms, runner.currentInfo.simTime);
-  EXPECT_EQ(2ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(2ms, runner.stepSize);
 
   // Unpause and run
   runner.SetPaused(false);
@@ -476,8 +456,9 @@ TEST_P(SimulationRunnerTest, Time)
 
   // Check state
   EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(400u, runner.currentInfo.iterations);
-  EXPECT_EQ(700ms, runner.currentInfo.simTime);
+  EXPECT_EQ(300u, runner.currentInfo.iterations);
+  EXPECT_EQ(500ms, runner.currentInfo.simTime)
+    << runner.currentInfo.simTime.count();
   EXPECT_EQ(2ms, runner.currentInfo.dt);
   EXPECT_EQ(1ms, runner.updatePeriod);
   EXPECT_EQ(2ms, runner.stepSize);
