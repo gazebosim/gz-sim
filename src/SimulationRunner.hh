@@ -151,7 +151,9 @@ namespace ignition
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
 
-      /// \brief World control service callback
+      /// \brief World control service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
       /// \param[in] _req Request from client, currently handling play / pause
       /// and multistep.
       /// \param[out] _res Response to client, true if successful.
@@ -162,12 +164,16 @@ namespace ignition
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
+      /// \brief Process all buffered messages. Ths function is called at
+      /// the end of an update iteration.
+      private: void ProcessMessages();
+
+      /// \brief Process world control service messages.
+      private: void ProcessWorldControl();
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
-
-      /// \brief Mutex to protect the Run operation.
-      public: std::mutex runMutex;
 
       /// \brief All the systems.
       public: std::vector<SystemInternal> systems;
@@ -229,6 +235,12 @@ namespace ignition
 
       /// \brief Keeps the latest simulation info.
       public: UpdateInfo currentInfo;
+
+      /// \brief Buffer of world control messages.
+      public: std::list<msgs::WorldControl> worldControlMsgs;
+
+      /// \brief Mutex to protect message buffers.
+      public: std::mutex msgBufferMutex;
     };
     }
   }
