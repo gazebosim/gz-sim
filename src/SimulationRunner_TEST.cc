@@ -449,6 +449,11 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_TRUE(runner.Paused());
   runner.SetPaused(false);
   EXPECT_FALSE(runner.Paused());
+  EXPECT_EQ(200u, runner.currentInfo.iterations);
+  EXPECT_EQ(300ms, runner.currentInfo.simTime);
+  EXPECT_EQ(2ms, runner.currentInfo.dt);
+  EXPECT_EQ(1ms, runner.updatePeriod);
+  EXPECT_EQ(2ms, runner.stepSize);
 
   // Unpause and run
   runner.SetPaused(false);
