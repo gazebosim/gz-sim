@@ -22,6 +22,74 @@
 
 using namespace ignition::gazebo;
 
+static const char kDefaultWorld[] =
+  "<?xml version='1.0'?>"
+  "<sdf version='1.6'>"
+    "<world name='default'>"
+      "<plugin filename='libignition-gazebo-physics-system.so'"
+      "        name='ignition::gazebo::systems::v0::Physics'>"
+      "</plugin>"
+      "<plugin filename='libignition-gazebo-systems.so'"
+      "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "</plugin>"
+      "<gui fullscreen='0'>"
+      "  <plugin filename='Scene3D' name='3D View'>"
+      "    <ignition-gui>"
+      "      <title>3D View</title>"
+      "      <property type='bool' key='showTitleBar'>false</property>"
+      "      <property type='bool' key='resizable'>false</property>"
+      "      <property type='double' key='z'>0</property>"
+      "      <anchor line='right' target='window' target_line='right'/>"
+      "      <anchor line='left' target='window' target_line='left'/>"
+      "      <anchor line='top' target='window' target_line='top'/>"
+      "      <anchor line='bottom' target='window' target_line='bottom'/>"
+      "    </ignition-gui>"
+      "    <engine>ogre</engine>"
+      "    <scene>scene</scene>"
+      "    <ambient_light>0.4 0.4 0.4</ambient_light>"
+      "    <background_color>0.8 0.8 0.8</background_color>"
+      "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
+      "    <service>/world/default/scene/info</service>"
+      "    <pose_topic>/world/default/pose/info</pose_topic>"
+      "  </plugin>"
+      "  <plugin filename='WorldControl' name='World control'>"
+      "    <ignition-gui>"
+      "      <title>World control</title>"
+      "      <property type='bool' key='showTitleBar'>false</property>"
+      "      <property type='bool' key='resizable'>false</property>"
+      "      <property type='double' key='height'>72</property>"
+      "      <property type='double' key='width'>121</property>"
+      "      <property type='double' key='z'>1</property>"
+      "      <anchor line='left' target='window' target_line='left'/>"
+      "      <anchor line='bottom' target='window' target_line='bottom'/>"
+      "    </ignition-gui>"
+      "    <play_pause>true</play_pause>"
+      "    <step>true</step>"
+      "    <start_paused>true</start_paused>"
+      "    <service>/world/default/control</service>"
+      "    <stats_topic>/world/default/stats</stats_topic>"
+      "  </plugin>"
+      "  <plugin filename='WorldStats' name='World stats'>"
+      "    <ignition-gui>"
+      "      <title>World stats</title>"
+      "      <property type='bool' key='showTitleBar'>false</property>"
+      "      <property type='bool' key='resizable'>false</property>"
+      "      <property type='double' key='height'>110</property>"
+      "      <property type='double' key='width'>290</property>"
+      "      <property type='double' key='z'>1</property>"
+      "      <anchor line='right' target='window' target_line='right'/>"
+      "      <anchor line='bottom' target='window' target_line='bottom'/>"
+      "    </ignition-gui>"
+      "    <sim_time>true</sim_time>"
+      "    <real_time>true</real_time>"
+      "    <real_time_factor>true</real_time_factor>"
+      "    <iterations>true</iterations>"
+      "    <topic>/world/default/stats</topic>"
+      "  </plugin>"
+      "</gui>"
+    "</world>"
+  "</sdf>";
+
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
@@ -37,18 +105,12 @@ Server::Server(const ServerConfig &_config)
   {
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
-        "<world name='default'>"
-        "<plugin filename='libignition-gazebo-physics-system.so'"
-        "        name='ignition::gazebo::systems::v0::Physics'>"
-        "</plugin>"
-        "<plugin filename='libignition-gazebo-systems.so'"
-        "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
-        "</plugin>"
-        "</world></sdf>");
+    root.LoadSdfString(kDefaultWorld);
   }
 
   this->dataPtr->CreateEntities(root);
+
+  this->dataPtr->LoadGui(root);
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.

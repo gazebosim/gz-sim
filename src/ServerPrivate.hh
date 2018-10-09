@@ -64,6 +64,10 @@ namespace ignition
       /// \param[in] _root SDF root object.
       public: void CreateEntities(const sdf::Root &_root);
 
+      /// \brief Load the GUI for each world.
+      /// \param[in] _root SDF root object.
+      public: void LoadGui(const sdf::Root &_root);
+
       /// \brief Stop server.
       public: void Stop();
 
