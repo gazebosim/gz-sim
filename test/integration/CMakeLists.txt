@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   physics_system.cc
+  play_pause.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)
