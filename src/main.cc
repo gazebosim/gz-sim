@@ -169,18 +169,6 @@ int main(int _argc, char **_argv)
     // Run the GUI, or GUI+server
     else
     {
-      std::unique_ptr<ignition::gazebo::Server> server;
-
-      // Run the server along with the GUI if FLAGS_g is not set.
-      if (!FLAGS_g)
-      {
-        // Create the server
-        server.reset(new ignition::gazebo::Server(serverConfig));
-
-        // Run the server, and don't block.
-        server->Run(false, FLAGS_iterations, !FLAGS_r);
-      }
-
       // Temporary transport interface
       auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
@@ -222,6 +210,18 @@ int main(int _argc, char **_argv)
         ignerr << "Failed to instantiate custom drawer, drawer will be empty"
                << std::endl;
       }
+
+      // Run the server along with the GUI if FLAGS_g is not set.
+      std::unique_ptr<ignition::gazebo::Server> server;
+      if (!FLAGS_g)
+      {
+        // Create the server
+        server.reset(new ignition::gazebo::Server(serverConfig));
+
+        // Run the server, and don't block.
+        server->Run(false, FLAGS_iterations, !FLAGS_r);
+      }
+
 
       // Run main window.
       // This blocks until the window is closed or we receive a SIGINT
