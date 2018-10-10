@@ -108,9 +108,9 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 
   for (uint64_t i = 1; i < 10; ++i)
   {
-    EXPECT_FALSE(*server.Running());
-    server.Run(true, 1);
-    EXPECT_FALSE(*server.Running());
+    EXPECT_FALSE(server.Running());
+    server.Run(true, 1, false);
+    EXPECT_FALSE(server.Running());
   }
   // TODO(addisu) add useful EXPECT calls
 }
@@ -155,7 +155,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 
   server.AddSystem(testSystem.systemPtr);
   const size_t iters = 10;
-  server.Run(true, iters);
+  server.Run(true, iters, false);
 
   // TODO(addisu): Get dt from simulation
   const double dt = 0.001;
@@ -168,7 +168,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-3);
 
   // run for 1 more second and check to see if the sphere has stopped
-  server.Run(true, 500);
+  server.Run(true, 500, false);
 
   // The sphere should land on the box and stop.
   auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();

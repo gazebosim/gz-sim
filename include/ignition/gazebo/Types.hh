@@ -43,13 +43,20 @@ namespace ignition
       /// simulation is paused.
       std::chrono::steady_clock::duration realTime{0};
 
-      /// \brief Simulation time handled during a single update. If zero,
-      /// simulation is paused and time is not running.
+      /// \brief Simulation time handled during a single update.
       std::chrono::steady_clock::duration dt{0};
 
       /// \brief Total number of elapsed simulation iterations.
       // cppcheck-suppress unusedStructMember
-      unsigned int iterations{0};
+      uint64_t iterations{0};
+
+      /// \brief True if simulation is paused, which means the simulation
+      /// time is not currently running, but systems are still being updated.
+      /// It is the responsibilty of a system update appropriately based on
+      /// the status of paused. For example, a physics systems should not
+      /// update state when paused is true.
+      // cppcheck-suppress unusedStructMember
+      bool paused{true};
     };
 
     /// \brief A unique identifier for a component instance. The uniqueness

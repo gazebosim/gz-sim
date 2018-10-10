@@ -171,8 +171,12 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->initialized = true;
     }
 
-    this->dataPtr->Step(_info.dt);
-    this->dataPtr->UpdateSim(_ecm);
+    // Only step if not paused.
+    if (!_info.paused)
+    {
+      this->dataPtr->Step(_info.dt);
+      this->dataPtr->UpdateSim(_ecm);
+    }
   }
 }
 

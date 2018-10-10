@@ -57,14 +57,27 @@ namespace ignition
     /// server.Run();
     /// ```
     ///
-    // ## Services
-    //
-    // The following are services provided by the Server.
-    // List syntax: *topic_name(request_message) : response_message*
-    //
-    // 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
-    //   + Returns the current scene information.
-    //
+    /// The Run() function accepts a few arguments, one of which is whether
+    /// simulation should start in a paused state. The default value of this
+    /// argument is true, which starts simulation paused. This means that by
+    /// default, running the server will cause systems to update but some
+    /// systems may not update because paused == true. For example,
+    /// a physics system will not update its state when paused is
+    /// true. So, while a Server can be Running, simulation itself can be
+    /// paused.
+    ///
+    /// Simulation is paused by default because a common use case is to load
+    /// a world from the command line. If simulation starts running, the
+    /// GUI client may miss the first few simulation iterations.
+    ///
+    /// ## Services
+    ///
+    /// The following are services provided by the Server.
+    /// List syntax: *topic_name(request_message) : response_message*
+    ///
+    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
+    ///   + Returns the current scene information.
+    ///
     class IGNITION_GAZEBO_VISIBLE Server
     {
       /// \brief Construct the server using the parameters specified in a
@@ -94,20 +107,53 @@ namespace ignition
       /// to run the server in the current thread.
       /// \param[in] _iterations Number of steps to perform. A value of
       /// zero will run indefinitely.
+      /// \param[in] _paused True to start simulation in a paused state,
+      /// false, to start simulation unpaused.
       /// \return In non-blocking mode, the return value is true if a thread
       /// was successfully created. In blocking mode, true will be returned
       /// if the Server ran for the specified number of iterations or was
       /// terminated. False will always be returned if signal handlers could
       /// not be initialized, and if the server is already running.
       public: bool Run(const bool _blocking = false,
-                       const uint64_t _iterations = 0);
+                       const uint64_t _iterations = 0,
+                       const bool _paused = true);
 
-      /// \brief Get whether this server is running. When running is true,
-      /// then simulation is stepping forward.
+      /// \brief Get whether the server is running. The server can have zero
+      /// or more simulation worlds, each of which may or may not be
+      /// running. See Running(const unsigned int) to get the running status
+      /// of a world.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return True if the server is running, or std::nullopt
       ///  if _worldIndex is invalid.
-      public: std::optional<bool> Running(
+      public: bool Running() const;
+
+      /// \brief Get whether a world simulation instance is running. When
+      /// running is true, then systems are being updated but simulation may
+      /// or may not be stepping forward. Check the value of Paused() to
+      /// determine if a world simulation instance is stepping forward.
+      /// If Paused() returns true, then simulation is not stepping foward.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the server is running, or std::nullopt
+      ///  if _worldIndex is invalid.
+      public: std::optional<bool> Running(const unsigned int _worldIndex) const;
+
+      /// \brief Set whether a world simulation instance is paused.
+      /// When paused is true, then simulation for the world is not stepping
+      /// forward.
+      /// \param[in] _paused True to pause the world, false to unpause.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the world referenced by _worldIndex exists, false
+      /// otherwise.
+      public: bool SetPaused(const bool _paused,
+                  const unsigned int _worldIndex = 0) const;
+
+      /// \brief Get whether a world simulation instance is paused.
+      /// When paused is true, then simulation for the world is not stepping
+      /// forward.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return True if the world simulation instance is paused, false if
+      /// stepping forward, or std::nullopt if _worldIndex is invalid.
+      public: std::optional<bool> Paused(
                   const unsigned int _worldIndex = 0) const;
 
       /// \brief Get the number of iterations the server has executed.

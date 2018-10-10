@@ -46,7 +46,6 @@ ServerPrivate::~ServerPrivate()
   this->Stop();
   if (this->runThread.joinable())
   {
-    this->running = false;
     this->runThread.join();
   }
 }
@@ -61,6 +60,7 @@ void ServerPrivate::OnSignal(int _sig)
 /////////////////////////////////////////////////
 void ServerPrivate::Stop()
 {
+  this->running = false;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
     runner->Stop();
