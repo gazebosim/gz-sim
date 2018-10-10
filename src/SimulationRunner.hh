@@ -143,7 +143,17 @@ namespace ignition
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
-      /// \brief World control service callback
+      /// \brief Set the paused state.
+      /// \param[in] _paused True to pause the simulation runner.
+      public: void SetPaused(const bool _paused);
+
+      /// \brief Get the pause state.
+      /// \return True if the simulation runner is paused, false otherwise.
+      public: bool Paused() const;
+
+      /// \brief World control service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
       /// \param[in] _req Request from client, currently handling play / pause
       /// and multistep.
       /// \param[out] _res Response to client, true if successful.
@@ -154,12 +164,18 @@ namespace ignition
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
+      /// \brief Process all buffered messages. Ths function is called at
+      /// the end of an update iteration.
+      private: void ProcessMessages();
+
+      /// \brief Process world control service messages.
+      private: void ProcessWorldControl();
+
+      /// \todo(nkoenig) Make these public member variables private.
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
-
-      /// \brief Mutex to protect the Run operation.
-      public: std::mutex runMutex;
 
       /// \brief All the systems.
       public: std::vector<SystemInternal> systems;
@@ -190,10 +206,6 @@ namespace ignition
       /// The default update rate is 500hz, which is a period of 2ms.
       public: std::chrono::steady_clock::duration updatePeriod{2ms};
 
-      /// \brief Number of times the systems have been updated. This number
-      /// can't be reset.
-      public: uint64_t iterations{0};
-
       /// \brief List of simulation times used to compute averages.
       public: std::list<std::chrono::steady_clock::duration> simTimes;
 
@@ -217,11 +229,7 @@ namespace ignition
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
-      public: double realTimeFactor;
-
-      /// \brief True if simulation currently paused, which means the simulation
-      /// time is not currently running, but systems are still being updated.
-      public: bool paused{false};
+      public: double realTimeFactor{0.0};
 
       /// \brief Number of simulation steps requested that haven't been
       /// executed yet.
@@ -229,6 +237,12 @@ namespace ignition
 
       /// \brief Keeps the latest simulation info.
       public: UpdateInfo currentInfo;
+
+      /// \brief Buffer of world control messages.
+      public: std::list<msgs::WorldControl> worldControlMsgs;
+
+      /// \brief Mutex to protect message buffers.
+      public: std::mutex msgBufferMutex;
     };
     }
   }
