@@ -100,11 +100,7 @@ namespace ignition
       /// \param[in] _component Component to add.
       public: void AddComponent(const EntityId _id,
                                 const ComponentTypeId _compId,
-                                const void *_component)
-      {
-        this->components.insert(std::make_pair(
-              std::make_pair(_id, _compId), _component));
-      }
+                                const void *_component);
 
       /// \brief All the entities that belong to this view.
       public: std::set<EntityId> entities;
