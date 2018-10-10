@@ -399,3 +399,12 @@ void EntityComponentManager::RebuildViews()
   }
 }
 
+//////////////////////////////////////////////////
+void View::AddComponent(const EntityId _id,
+    const ComponentTypeId _compId,
+    const void *_component)
+{
+  this->components.insert(
+      std::make_pair(std::make_pair(_id, _compId), _component));
+}
+
