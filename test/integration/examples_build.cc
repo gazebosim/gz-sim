@@ -143,13 +143,6 @@ void ExamplesBuild::Build(const std::string &_type)
   {
     auto base = ignition::common::basename(*dirIter);
 
-    // TODO(louise) Migrate all examples to QtQuick
-    if (base == "designer_ui_file" ||
-        base == "save_on_close")
-    {
-      continue;
-    }
-
     // Source directory for this example
     auto sourceDir = examplesDir + "/" + base;
     ASSERT_TRUE(ignition::common::exists(sourceDir));
