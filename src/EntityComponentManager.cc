@@ -351,26 +351,47 @@ std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManager::UpdateViews(const EntityId _id)
+void EntityComponentManager::UpdateViews(const EntityId /*_id*/)
 {
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
-  {
-    // Skip views that do not contain the entity.
-    if (view.second.entities.find(_id) == view.second.entities.end())
-      continue;
-
-    // Don't do anything if the entity still matches the view.
-    if (this->EntityMatches(_id, view.first))
-      continue;
-
-    // Otherwise, remove the entity from the view
-    view.second.entities.erase(_id);
-    // Remove the entity from the components map
-    for (const ComponentTypeId &compTypeId : view.first)
-    {
-      view.second.components.erase(std::make_pair(_id, compTypeId));
-    }
-  }
+  // \todo(nkoenig) We are using an std::vector to store component values so
+  // that components of the same type are place continguously in memory.
+  // However, whenever a component is inserted or removed then references in
+  // the vector are invalidated. A View stores pointers to component
+  // values. So, when a component is added the View's stored pointers are
+  // invalided.
+  //
+  // A solution is to used std::deque, but then components are not stored
+  // continguously.
+  //
+  // We need to get more creative here.
+  //
+  // Once fixed, we can remove the RebuildViews call, and uncomment the
+  // following loop (which at the time of writing this worked against
+  // std::deque component storage);
+  this->RebuildViews();
+  // for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  // {
+  //   // Add/update the entity if it matches the view.
+  //   if (this->EntityMatches(_id, view.first))
+  //   {
+  //     view.second.AddEntity(_id);
+  //     for (const ComponentTypeId &compTypeId : view.first)
+  //     {
+  //       view.second.AddComponent(_id, compTypeId,
+  //           this->ComponentImplementation(_id, compTypeId));
+  //     }
+  //   }
+  //   else if (view.second.entities.find(_id) != view.second.entities.end())
+  //   {
+  //     // Otherwise, remove the entity from the view
+  //     view.second.entities.erase(_id);
+  //     // Remove the entity from the components map
+  //     for (const ComponentTypeId &compTypeId : view.first)
+  //     {
+  //       view.second.components.erase(std::make_pair(_id, compTypeId));
+  //     }
+  //   }
+  // }
 }
 
 //////////////////////////////////////////////////
@@ -391,7 +412,7 @@ void EntityComponentManager::RebuildViews()
         // all the ComponentTypeTs that belong to the entity to the view.
         for (const ComponentTypeId &compTypeId : view.first)
         {
-          view.second.AddComponent(entity.Id(),
+          view.second.AddComponent(entity.Id(), compTypeId,
               this->ComponentImplementation(entity.Id(), compTypeId));
         }
       }
@@ -407,4 +428,3 @@ void View::AddComponent(const EntityId _id,
   this->components.insert(
       std::make_pair(std::make_pair(_id, _compId), _component));
 }
-
