@@ -400,7 +400,7 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
   // The first iteration of this loop builds views. At the end, views are
   // rebuilt. The second iteration should return the same values as the
   // first iteration.
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 2; ++i)
   {
     int count = 0;
     // The first call to each will create a view.
@@ -460,7 +460,7 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
   manager.CreateComponent<int>(eIntDouble, 456);
   manager.CreateComponent<double>(eIntDouble, 0.456);
 
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 2; ++i)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
@@ -525,7 +525,7 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
   manager.CreateComponent<int>(eIntDouble, 456);
   auto compToRemove = manager.CreateComponent<double>(eIntDouble, 0.456);
 
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 2; ++i)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
@@ -568,7 +568,10 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
     else
       EXPECT_EQ(1, count);
 
-    manager.RemoveComponent(eDouble, compToRemove);
+    if (i == 0)
+    {
+      EXPECT_TRUE(manager.RemoveComponent(eIntDouble, compToRemove));
+    }
   }
 }
 
@@ -590,7 +593,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
   manager.CreateComponent<int>(eIntDouble, 456);
   manager.CreateComponent<double>(eIntDouble, 0.456);
 
-  for (int i = 0; i < 1; ++i)
+  for (int i = 0; i < 2; ++i)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
@@ -639,6 +642,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
     manager.EraseEntities();
   }
 }
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
