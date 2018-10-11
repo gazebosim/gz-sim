@@ -5,8 +5,8 @@ find_package(ignition-cmake2 REQUIRED)
 project(SampleSystem)
 
 #! [build]
-set(IGN_PLUGIN_VER 0)
-ign_find_package(ignition-plugin0 REQUIRED COMPONENTS register)
+ign_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 ign_find_package(ignition-gazebo REQUIRED)
 

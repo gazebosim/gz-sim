@@ -47,7 +47,7 @@ set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 # Find ignition-gui
 ign_find_package(ignition-gui1 REQUIRED)
 set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
-find_package (Qt5
+ign_find_package (Qt5
   COMPONENTS
     Core
     Quick
