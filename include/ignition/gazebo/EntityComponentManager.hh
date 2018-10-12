@@ -533,8 +533,6 @@ namespace ignition
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \todo(nkoenig) The cached views do not handle addition and removal
-      /// of entities and components. Need to fix this asap.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   void(const EntityId &_entity,
