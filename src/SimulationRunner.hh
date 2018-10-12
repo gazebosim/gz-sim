@@ -143,6 +143,10 @@ namespace ignition
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
+      /// \brief Get the update period.
+      /// \return The update period.
+      public: const std::chrono::steady_clock::duration &UpdatePeriod() const;
+
       /// \brief Set the paused state.
       /// \param[in] _paused True to pause the simulation runner.
       public: void SetPaused(const bool _paused);
@@ -150,6 +154,22 @@ namespace ignition
       /// \brief Get the pause state.
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
+
+      /// \brief Get the EntityComponentManager
+      /// \return Reference to the entity component manager.
+      public: const EntityComponentManager &EntityCompMgr() const;
+
+      /// \brief Get the current info object.
+      /// \return Current info.
+      public: const UpdateInfo &CurrentInfo() const;
+
+      /// \brief Get the step size;
+      /// \return Step size.
+      public: const ignition::math::clock::duration &StepSize() const;
+
+      /// \brief Set the step size;
+      /// \param[in] _step Step size.
+      public: void SetStepSize(const ignition::math::clock::duration &_step);
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -171,78 +191,76 @@ namespace ignition
       /// \brief Process world control service messages.
       private: void ProcessWorldControl();
 
-      /// \todo(nkoenig) Make these public member variables private.
-
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
-      public: std::atomic<bool> running{false};
+      private: std::atomic<bool> running{false};
 
       /// \brief All the systems.
-      public: std::vector<SystemInternal> systems;
+      private: std::vector<SystemInternal> systems;
 
       /// \brief Systems implementing PreUpdate
-      public: std::vector<ISystemPreUpdate*> systemsPreupdate;
+      private: std::vector<ISystemPreUpdate*> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      public: std::vector<ISystemUpdate*> systemsUpdate;
+      private: std::vector<ISystemUpdate*> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      public: std::vector<ISystemPostUpdate*> systemsPostupdate;
+      private: std::vector<ISystemPostUpdate*> systemsPostupdate;
 
       /// \brief Manager of all components.
-      public: EntityComponentManager entityCompMgr;
+      private: EntityComponentManager entityCompMgr;
 
       /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool{2};
+      private: common::WorkerPool workerPool{2};
 
       /// \brief Wall time of the previous update.
-      public: std::chrono::steady_clock::time_point prevUpdateRealTime;
+      private: std::chrono::steady_clock::time_point prevUpdateRealTime;
 
       /// \brief A duration used to account for inaccuracies associated with
       /// sleep durations.
-      public: std::chrono::steady_clock::duration sleepOffset{0};
+      private: std::chrono::steady_clock::duration sleepOffset{0};
 
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
-      public: std::chrono::steady_clock::duration updatePeriod{2ms};
+      private: std::chrono::steady_clock::duration updatePeriod{2ms};
 
       /// \brief List of simulation times used to compute averages.
-      public: std::list<std::chrono::steady_clock::duration> simTimes;
+      private: std::list<std::chrono::steady_clock::duration> simTimes;
 
       /// \brief List of real times used to compute averages.
-      public: std::list<std::chrono::steady_clock::duration> realTimes;
+      private: std::list<std::chrono::steady_clock::duration> realTimes;
 
       /// \brief Node for communication.
-      public: ignition::transport::Node node;
+      private: ignition::transport::Node node;
 
       /// \brief World statistics publisher.
-      public: ignition::transport::Node::Publisher statsPub;
+      private: ignition::transport::Node::Publisher statsPub;
 
       /// \brief Name of world being simulated.
-      public: std::string worldName;
+      private: std::string worldName;
 
       /// \brief Stopwatch to keep track of wall time.
-      public: ignition::math::Stopwatch realTimeWatch;
+      private: ignition::math::Stopwatch realTimeWatch;
 
       /// \brief Step size
-      public: ignition::math::clock::duration stepSize{10ms};
+      private: ignition::math::clock::duration stepSize{10ms};
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
-      public: double realTimeFactor{0.0};
+      private: double realTimeFactor{0.0};
 
       /// \brief Number of simulation steps requested that haven't been
       /// executed yet.
-      public: unsigned int pendingSimIterations{0};
+      private: unsigned int pendingSimIterations{0};
 
       /// \brief Keeps the latest simulation info.
-      public: UpdateInfo currentInfo;
+      private: UpdateInfo currentInfo;
 
       /// \brief Buffer of world control messages.
-      public: std::list<msgs::WorldControl> worldControlMsgs;
+      private: std::list<msgs::WorldControl> worldControlMsgs;
 
       /// \brief Mutex to protect message buffers.
-      public: std::mutex msgBufferMutex;
+      private: std::mutex msgBufferMutex;
     };
     }
   }
