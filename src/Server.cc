@@ -262,3 +262,24 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 
   return std::nullopt;
 }
+
+//////////////////////////////////////////////////
+bool Server::HasEntity(const std::string &_name,
+                       const unsigned int _worldIndex) const
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->HasEntity(_name);
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool Server::RequestEraseEntity(const std::string &_name,
+                       const unsigned int _worldIndex)
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_name);
+
+  return false;
+}
+

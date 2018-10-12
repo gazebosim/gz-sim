@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
@@ -185,7 +186,28 @@ namespace ignition
                   const SystemPluginPtr &_system,
                   const unsigned int _worldIndex = 0);
 
-          /// \brief Private data
+      /// \brief Return true if the specified world has an entity with the
+      /// provided name.
+      /// \param[in] _name Name of the entity.
+      /// \param[in] _worldIndex Index of the world.
+      /// \return True if the _worldIndex is valid and the
+      /// entity exists in the world.
+      public: bool HasEntity(const std::string &_name,
+                             const unsigned int _worldIndex = 0) const;
+
+      /// \brief Return true if the specified world has an entity with the
+      /// provided name and the entity was queued for deletion. Note that
+      /// the entity is not erased immediately. Entity deletion happens at
+      /// the end of the next (or current depending on when this function is
+      /// called) simulation step.
+      /// \param[in] _name Name of the entity to delete.
+      /// \param[in] _worldIndex Index of the world.
+      /// \return True if the entity exists in the world and it was queued
+      /// for deletion.
+      public: bool RequestEraseEntity(const std::string &_name,
+                                      const unsigned int _worldIndex = 0);
+
+      /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
     }

@@ -91,16 +91,17 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                             components::Name>(
     [&](const EntityId &_entity,
         const components::World *_world,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _world);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _world);
+      EXPECT_NE(nullptr, _name);
 
       EXPECT_EQ("default", _name->Data());
 
       worldCount++;
 
       worldEntity = _entity;
+      return true;
     });
 
   EXPECT_EQ(1u, worldCount);
@@ -119,12 +120,12 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _model);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _model);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       modelCount++;
 
@@ -150,6 +151,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
+      return true;
     });
 
   EXPECT_EQ(3u, modelCount);
@@ -170,12 +172,12 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Link *_link,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _link);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _link);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       linkCount++;
 
@@ -203,6 +205,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphModelEntity, _parent->Id());
         sphLinkEntity = _entity;
       }
+      return true;
     });
 
   EXPECT_EQ(3u, linkCount);
@@ -215,10 +218,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   runner.entityCompMgr.Each<components::Link, components::Inertial>(
     [&](const EntityId & _entity,
         const components::Link *_link,
-        const components::Inertial *_inertial)
+        const components::Inertial *_inertial)->bool
     {
-      ASSERT_NE(nullptr, _link);
-      ASSERT_NE(nullptr, _inertial);
+      EXPECT_NE(nullptr, _link);
+      EXPECT_NE(nullptr, _inertial);
 
       inertialCount++;
 
@@ -240,6 +243,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                                      math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, inertialCount);
@@ -256,13 +260,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Geometry *_geometry,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _collision);
-      ASSERT_NE(nullptr, _geometry);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _collision);
+      EXPECT_NE(nullptr, _geometry);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       collisionCount++;
 
@@ -276,7 +280,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(boxLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_NE(nullptr, _geometry->Data().BoxShape());
         EXPECT_EQ(math::Vector3d(3, 4, 5),
                   _geometry->Data().BoxShape()->Size());
       }
@@ -290,7 +294,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
         EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
       }
@@ -304,9 +308,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, collisionCount);
@@ -325,14 +330,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Material *_material,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _visual);
-      ASSERT_NE(nullptr, _geometry);
-      ASSERT_NE(nullptr, _material);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _visual);
+      EXPECT_NE(nullptr, _geometry);
+      EXPECT_NE(nullptr, _material);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       visualCount++;
 
@@ -346,7 +351,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(boxLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_NE(nullptr, _geometry->Data().BoxShape());
         EXPECT_EQ(math::Vector3d(1, 2, 3),
                   _geometry->Data().BoxShape()->Size());
 
@@ -365,7 +370,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
         EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
 
@@ -384,7 +389,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
 
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
@@ -392,6 +397,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, visualCount);

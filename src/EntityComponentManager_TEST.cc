@@ -415,9 +415,9 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
     int count = 0;
     // The first call to each will create a view.
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-          const int *_value)
+          const int *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_EQ(123, *_value);
@@ -427,14 +427,15 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
             EXPECT_EQ(456, *_value);
           }
           ++count;
+          return true;
         });
     EXPECT_EQ(2, count);
 
     count = 0;
     manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
-          const double *_value)
+          const double *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eDouble)
           {
             EXPECT_DOUBLE_EQ(0.123, *_value);
@@ -444,6 +445,7 @@ TEST_P(EntityComponentManagerFixture, RebuildViews)
             EXPECT_DOUBLE_EQ(0.456, *_value);
           }
           ++count;
+          return true;
         });
     EXPECT_EQ(2, count);
 
@@ -474,9 +476,9 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-          const int *_value)
+          const int *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_EQ(123, *_value);
@@ -486,14 +488,15 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
             EXPECT_EQ(456, *_value);
           }
           ++count;
+          return true;
         });
     EXPECT_EQ(2, count);
 
     count = 0;
     manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
-          const double *_value)
+          const double *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_DOUBLE_EQ(12.123, *_value);
@@ -507,6 +510,7 @@ TEST_P(EntityComponentManagerFixture, ViewsAddComponents)
             EXPECT_DOUBLE_EQ(0.456, *_value);
           }
           ++count;
+          return true;
         });
     if (i == 0)
       EXPECT_EQ(2, count);
@@ -539,9 +543,9 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-          const int *_value)
+          const int *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_EQ(123, *_value);
@@ -551,14 +555,15 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
             EXPECT_EQ(456, *_value);
           }
           ++count;
+          return true;
         });
     EXPECT_EQ(2, count);
 
     count = 0;
     manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
-          const double *_value)
+          const double *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_DOUBLE_EQ(12.123, *_value);
@@ -572,6 +577,7 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
             EXPECT_DOUBLE_EQ(0.456, *_value);
           }
           ++count;
+          return true;
         });
     if (i == 0)
       EXPECT_EQ(2, count);
@@ -609,9 +615,9 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-          const int *_value)
+          const int *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_EQ(123, *_value);
@@ -626,9 +632,12 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
           }
           else
           {
-            FAIL();
+            // This used to be a FAIL() call, however we can't use FAIL
+            // inside a function that has a return value.
+            EXPECT_TRUE(false);
           }
           ++count;
+          return true;
         });
     if (i == 0)
       EXPECT_EQ(2, count);
@@ -637,9 +646,9 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
 
     count = 0;
     manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
-          const double *_value)
+          const double *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eDouble)
           {
             EXPECT_DOUBLE_EQ(0.123, *_value);
@@ -650,9 +659,12 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
           }
           else
           {
-            FAIL();
+            // This used to be a FAIL() call, however we can't use FAIL
+            // inside a function that has a return value.
+            EXPECT_TRUE(false);
           }
           ++count;
+          return true;
         });
     EXPECT_EQ(2, count);
 
@@ -683,9 +695,9 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
   {
     int count = 0;
     manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-          const int *_value)
+          const int *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_EQ(123, *_value);
@@ -695,6 +707,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
             EXPECT_EQ(456, *_value);
           }
           ++count;
+          return true;
         });
     if (i == 0)
       EXPECT_EQ(2, count);
@@ -703,9 +716,9 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
 
     count = 0;
     manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
-          const double *_value)
+          const double *_value)->bool
         {
-          ASSERT_NE(nullptr, _value);
+          EXPECT_NE(nullptr, _value);
           if (_entity == eInt)
           {
             EXPECT_DOUBLE_EQ(12.123, *_value);
@@ -719,6 +732,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
             EXPECT_DOUBLE_EQ(0.456, *_value);
           }
           ++count;
+          return true;
         });
     if (i == 0)
       EXPECT_EQ(2, count);
@@ -806,9 +820,9 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
 
   int count = 0;
   manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-        const int *_value)
+        const int *_value)->bool
       {
-        ASSERT_NE(nullptr, _value);
+        EXPECT_NE(nullptr, _value);
         if (_entity == eInt)
         {
           EXPECT_EQ(123, *_value);
@@ -818,6 +832,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
           EXPECT_EQ(456, *_value);
         }
         ++count;
+        return true;
       });
   EXPECT_EQ(2, count);
 
@@ -827,15 +842,16 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
 
   count = 0;
   manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
-        const int *_value)
+        const int *_value)->bool
       {
-        ASSERT_NE(nullptr, _value);
+        EXPECT_NE(nullptr, _value);
         EXPECT_NE(eIntDouble, _entity);
         if (_entity == eInt)
         {
           EXPECT_EQ(123, *_value);
         }
         ++count;
+        return true;
       });
   EXPECT_EQ(1, count);
 }
