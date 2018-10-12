@@ -93,6 +93,13 @@ namespace ignition
               std::make_pair(_id, id), static_cast<const void *>(_component)));
       }
 
+      /// \brief Add a component to an entity.
+      /// \param[in] _id Id of the entity.
+      /// \param[in] _component Component to add.
+      public: void AddComponent(const EntityId _id,
+                                const ComponentTypeId _compId,
+                                const void *_component);
+
       /// \brief All the entities that belong to this view.
       public: std::set<EntityId> entities;
 
@@ -113,9 +120,11 @@ namespace ignition
 
       /// \brief Create a new component using the provided data.
       /// \param[in] _data Data used to construct the component.
-      /// \return Id of the new component. kComponentIdInvalid is returned
+      /// \return Id of the new component, and whether the components array
+      /// was expanded. kComponentIdInvalid is returned
       /// if the component could not be created.
-      public: virtual ComponentId Create(const void *_data) = 0;
+      public: virtual std::pair<ComponentId, bool> Create(
+                  const void *_data) = 0;
 
       /// \brief Remove a component based on an id.
       /// \param[in] _id Id of the component to remove.
@@ -153,6 +162,17 @@ namespace ignition
       public: explicit ComponentStorage()
               : ComponentStorageBase()
       {
+        // Reserve a chunk of memory for the components. The size here will
+        // effect how often Views are rebuilt when
+        // EntityComponentManager::CreateComponent() is called.
+        //
+        // Views would be rebuilt if the components vector capacity is
+        // exceeded after an EntityComponentManager::Each call has already
+        // been executed.
+        //
+        // See also this class's Create() function, which expands the value
+        // of components vector whenever the capacity is reached.
+        this->components.reserve(100);
       }
 
       // Documentation inherited.
@@ -206,9 +226,16 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: ComponentId Create(const void *_data) override final
+      public: std::pair<ComponentId, bool> Create(
+                  const void *_data) override final
       {
         ComponentId result;  // = kComponentIdInvalid;
+        bool expanded = false;
+        if (this->components.size() == this->components.capacity())
+        {
+          this->components.reserve(this->components.capacity() + 100);
+          expanded = true;
+        }
 
         std::lock_guard<std::mutex> lock(this->mutex);
         result = this->idCounter++;
@@ -217,7 +244,7 @@ namespace ignition
         this->components.push_back(std::move(
               ComponentTypeT(*static_cast<const ComponentTypeT *>(_data))));
 
-        return result;
+        return {result, expanded};
       }
 
       // Documentation inherited.
@@ -330,6 +357,10 @@ namespace ignition
       ///  removed.
       public: bool RemoveComponent(
                   const EntityId _id, const ComponentKey &_key);
+
+      /// \brief Rebuild all the views. This could be an expensive
+      /// operation.
+      public: void RebuildViews();
 
       /// \brief Get the type id of a component type. This is a convenience
       /// function that is equivalent to typeid(ComponentTypeT).hash_code().
@@ -502,8 +533,6 @@ namespace ignition
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template.
       /// \tparam ComponentTypeTs All the desired component types.
-      /// \todo(nkoenig) The cached views do not handle addition and removal
-      /// of entities and components. Need to fix this asap.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   void(const EntityId &_entity,
@@ -687,6 +716,10 @@ namespace ignition
       /// \return An iterator to the view.
       private: std::map<ComponentTypeKey, View>::iterator AddView(
                    const std::set<ComponentTypeId> &_types, View &&_view) const;
+
+      /// \brief Update views that contain the provided entity.
+      /// \param[in] _id Id of the entity.
+      private: void UpdateViews(const EntityId _id);
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
