@@ -322,6 +322,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Process world control messages.
     this->ProcessMessages();
+
+    // Process entity erasures.
+    this->entityCompMgr.ProcessEraseEntityRequests();
   }
 
   this->running = false;
