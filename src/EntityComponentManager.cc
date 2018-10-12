@@ -33,14 +33,20 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Instances of entities
   public: std::vector<Entity> entities;
 
-  /// \brief deleted entity ids that can be reused
+  /// \brief Deleted entity ids that can be reused
   public: std::set<EntityId> availableEntityIds;
+
+  /// \brief Entities that need to be erased.
+  public: std::set<EntityId> toEraseEntityIds;
+
+  /// \brief Flag that indicates if all entities should be erased.
+  public: bool eraseAllEntities{false};
 
   /// \brief The set of components that each entity has
   public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
 
-  /// \brief Just a mutex for thread safety.
-  public: std::mutex mutex;
+  /// \brief A mutex to protect entity erase.
+  public: std::mutex entityEraseMutex;
 
   /// \brief The set of all views.
   public: mutable std::map<ComponentTypeKey, View> views;
@@ -88,48 +94,81 @@ EntityId EntityComponentManager::CreateEntity()
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::EraseEntity(EntityId _id)
+void EntityComponentManager::RequestEraseEntity(EntityId _id)
 {
-  if (this->HasEntity(_id))
-  {
-    // \todo(nkoenig) Remove the entity at a good point in the update cycle
-    // (aka "toDeleteEntities"), and delete the components associated with
-    // the entity.
-
-    // Remove the components.
-    this->dataPtr->entityComponents.erase(_id);
-
-    // Remove the entity from views.
-    this->UpdateViews(_id);
-
-    /*auto iter = std::find_if(this->dataPtr->entities.begin(),
-        this->dataPtr->entities.end(),
-      [&] (const Entity &_e)->bool { return _e.Id() == _id; });
-      */
-
-    this->dataPtr->availableEntityIds.insert(_id);
-
-    return true;
-  }
-
-  return false;
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
+  this->dataPtr->toEraseEntityIds.insert(_id);
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::EraseEntities()
+void EntityComponentManager::RequestEraseEntities()
 {
-  this->dataPtr->entities.clear();
-  this->dataPtr->entityComponents.clear();
-  this->dataPtr->availableEntityIds.clear();
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
+  this->dataPtr->eraseAllEntities = true;
+}
 
-  for (std::pair<const ComponentTypeId,
-       std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
+/////////////////////////////////////////////////
+void EntityComponentManager::ProcessEraseEntityRequests()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
+  // Short-cut if erasing all entities
+  if (this->dataPtr->eraseAllEntities)
   {
-    comp.second->RemoveAll();
-  }
+    this->dataPtr->eraseAllEntities = false;
+    this->dataPtr->entities.clear();
+    this->dataPtr->entityComponents.clear();
+    this->dataPtr->availableEntityIds.clear();
+    this->dataPtr->toEraseEntityIds.clear();
 
-  // All views are now invalid.
-  this->dataPtr->views.clear();
+    for (std::pair<const ComponentTypeId,
+        std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
+    {
+      comp.second->RemoveAll();
+    }
+
+    // All views are now invalid.
+    this->dataPtr->views.clear();
+  }
+  else
+  {
+    // Otherwise iterate through the list of entities to erase.
+    for (const EntityId _id : this->dataPtr->toEraseEntityIds)
+    {
+      // Make sure the entity exists and is not erased.
+      if (!this->HasEntity(_id))
+        continue;
+
+      // Insert the entity into the set of available ids.
+      this->dataPtr->availableEntityIds.insert(_id);
+
+      // Remove the components, if any.
+      if (this->dataPtr->entityComponents.find(_id) !=
+          this->dataPtr->entityComponents.end())
+      {
+        for (const ComponentKey &_key : this->dataPtr->entityComponents.at(_id))
+          this->dataPtr->components.at(_key.first)->Remove(_key.second);
+
+        // Remove the entry in the entityComponent map
+        this->dataPtr->entityComponents.erase(_id);
+      }
+
+      // Remove the entity from views.
+      for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+      {
+        if (view.second.entities.find(_id) == view.second.entities.end())
+          continue;
+
+        // Otherwise, remove the entity from the view
+        view.second.entities.erase(_id);
+
+        // Remove the entity from the components map
+        for (const ComponentTypeId &compTypeId : view.first)
+          view.second.components.erase(std::make_pair(_id, compTypeId));
+      }
+    }
+    // Clear the set of entities to erase.
+    this->dataPtr->toEraseEntityIds.clear();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -184,18 +223,16 @@ bool EntityComponentManager::EntityHasComponentType(const EntityId _id,
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const EntityId _id) const
 {
-  // \todo(nkoenig) This function needs to be fixed/implemented.
-  // True if the vector is big enough to have used this id
-  bool isWithinRange = _id >= 0 &&
-    _id < static_cast<EntityId>(this->dataPtr->entities.size()) &&
-    std::find(this->dataPtr->availableEntityIds.begin(),
-             this->dataPtr->availableEntityIds.end(), _id) ==
-    this->dataPtr->availableEntityIds.end();
-  /* bool isNotDeleted = this->freeEntityIds.find(_id) ==
-                      this->freeEntityIds.end() &&
+  return
+    // Check that the _id is in range
+    _id >= 0 && _id < static_cast<EntityId>(this->dataPtr->entities.size())
+    // Check that the _id is not deleted (not in the available entity set)
+    && this->dataPtr->availableEntityIds.find(_id) ==
+       this->dataPtr->availableEntityIds.end();
+
+  /* bool isNotDeleted =
                       this->deletedIds.find(_id) == this->deletedIds.end();
   */
-  return isWithinRange;  // && isNotDeleted;
 }
 
 /////////////////////////////////////////////////

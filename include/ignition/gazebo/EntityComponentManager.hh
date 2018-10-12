@@ -310,12 +310,15 @@ namespace ignition
       /// \return Entity count.
       public: size_t EntityCount() const;
 
-      /// \brief Delete an existing Entity.
-      /// \returns True if the Entity existed and was deleted.
-      public: bool EraseEntity(const EntityId _id);
+      /// \brief Request an entity deletion. This will insert the request
+      /// into a queue. The queue is processed toward the end of a simulation
+      /// update step.
+      public: void RequestEraseEntity(const EntityId _id);
 
-      /// \brief Delete all entities.
-      public: void EraseEntities();
+      /// \brief Request to erase all entities. This will insert the request
+      /// into a queue. The queue is processed toward the end of a simulation
+      /// update step.
+      public: void RequestEraseEntities();
 
       /// \brief Get whether an Entity exists.
       /// \param[in] _id Entity id to confirm.
@@ -572,6 +575,15 @@ namespace ignition
         }
       }
 
+      /// \brief Process all entity erase requests. This will remove
+      /// entities and their components. This function is protected to
+      /// facilitate testing.
+      protected: void ProcessEraseEntityRequests();
+
+      /// \brief Delete an existing Entity.
+      /// \returns True if the Entity existed and was deleted.
+      private: bool EraseEntity(const EntityId _id);
+
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
@@ -722,6 +734,11 @@ namespace ignition
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
+
+      /// Make simulation runner a friend so that it can trigger entity
+      /// erasures. This should be safe since SimulationRunner is internal
+      /// to Gazebo.
+      friend class SimulationRunner;
     };
     }
   }
