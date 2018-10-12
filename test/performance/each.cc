@@ -42,7 +42,7 @@ void Warmstart()
 
   mgr.Each<components::World, components::Name>(
       [&](const EntityId &, const components::World *,
-        const components::Name *) {});
+        const components::Name *)->bool {return true;});
 }
 
 TEST(EntityComponentManagerPerfrormance, Each)
@@ -85,9 +85,10 @@ TEST(EntityComponentManagerPerfrormance, Each)
       {
         mgr.Each<components::World, components::Name>(
             [&](const EntityId &, const components::World *,
-              const components::Name *)
+              const components::Name *)->bool
             {
               cachedMatchedEntityCount++;
+              return true;
             });
       }
       watch.Stop();
@@ -101,9 +102,10 @@ TEST(EntityComponentManagerPerfrormance, Each)
       {
         mgr.EachNoCache<components::World, components::Name>(
             [&](const EntityId &, const components::World *,
-              const components::Name *)
+              const components::Name *)->bool
             {
               cachelessMatchedEntityCount++;
+              return true;
             });
       }
       watch.Stop();

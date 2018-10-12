@@ -547,3 +547,40 @@ bool SimulationRunner::Paused() const
 {
   return this->currentInfo.paused;
 }
+
+/////////////////////////////////////////////////
+bool SimulationRunner::HasEntity(const std::string &_name) const
+{
+  bool result = false;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        result = true;
+        return false;
+      }
+      return true;
+    });
+
+  return result;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::RequestEraseEntity(const std::string &_name)
+{
+  bool result = false;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        this->entityCompMgr.RequestEraseEntity(_id);
+        result = true;
+        return false;
+      }
+      return true;
+    });
+
+  return result;
+}
