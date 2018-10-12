@@ -291,7 +291,8 @@ void *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::HasComponentType(const ComponentTypeId _typeId)
+bool EntityComponentManager::HasComponentType(
+    const ComponentTypeId _typeId) const
 {
   return this->dataPtr->components.find(_typeId) !=
     this->dataPtr->components.end();

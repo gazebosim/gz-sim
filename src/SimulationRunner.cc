@@ -544,3 +544,34 @@ bool SimulationRunner::Paused() const
 {
   return this->currentInfo.paused;
 }
+
+/////////////////////////////////////////////////
+const EntityComponentManager &SimulationRunner::EntityCompMgr() const
+{
+  return this->entityCompMgr;
+}
+
+/////////////////////////////////////////////////
+const UpdateInfo &SimulationRunner::CurrentInfo() const
+{
+  return this->currentInfo;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
+SimulationRunner::UpdatePeriod() const
+{
+  return this->updatePeriod;
+}
+
+/////////////////////////////////////////////////
+const ignition::math::clock::duration &SimulationRunner::StepSize() const
+{
+  return this->stepSize;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
+{
+  this->stepSize = _step;
+}

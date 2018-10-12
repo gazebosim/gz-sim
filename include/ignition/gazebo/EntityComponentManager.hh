@@ -299,7 +299,7 @@ namespace ignition
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
-      public: bool HasComponentType(const ComponentTypeId _typeId);
+      public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component.
       /// \param[in] _id Id of the entity to check.
