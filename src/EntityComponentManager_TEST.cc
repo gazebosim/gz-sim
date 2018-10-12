@@ -576,6 +576,82 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
 }
 
 //////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
+{
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::EntityComponentManager manager;
+
+  // Create some entities
+  gazebo::EntityId eInt = manager.CreateEntity();
+  gazebo::EntityId eDouble = manager.CreateEntity();
+  gazebo::EntityId eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add components of different types to each entity
+  manager.CreateComponent<int>(eInt, 123);
+  manager.CreateComponent<double>(eDouble, 0.123);
+  manager.CreateComponent<int>(eIntDouble, 456);
+  manager.CreateComponent<double>(eIntDouble, 0.456);
+
+  gazebo::EntityId newEntity;
+
+  for (int i = 0; i < 2; ++i)
+  {
+    int count = 0;
+    manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
+          const int *_value)
+        {
+          ASSERT_NE(nullptr, _value);
+          if (_entity == eInt)
+          {
+            EXPECT_EQ(123, *_value);
+          }
+          else if (_entity == eIntDouble)
+          {
+            EXPECT_EQ(456, *_value);
+          }
+          else if (_entity == newEntity)
+          {
+            EXPECT_EQ(789, *_value);
+          }
+          else
+          {
+            FAIL();
+          }
+          ++count;
+        });
+    if (i == 0)
+      EXPECT_EQ(2, count);
+    else
+      EXPECT_EQ(3, count);
+
+    count = 0;
+    manager.Each<double> ([&](const ignition::gazebo::EntityId &_entity,
+          const double *_value)
+        {
+          ASSERT_NE(nullptr, _value);
+          if (_entity == eDouble)
+          {
+            EXPECT_DOUBLE_EQ(0.123, *_value);
+          }
+          else if (_entity == eIntDouble)
+          {
+            EXPECT_DOUBLE_EQ(0.456, *_value);
+          }
+          else
+          {
+            FAIL();
+          }
+          ++count;
+        });
+    EXPECT_EQ(2, count);
+
+    newEntity = manager.CreateEntity();
+    manager.CreateComponent<int>(newEntity, 789);
+  }
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
 {
   ignition::common::Console::SetVerbosity(4);
