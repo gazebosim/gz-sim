@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
     mgr.Each<components::World, components::Name>(
         [&](const EntityId &, const components::World *,
-          const components::Name *) {});
+          const components::Name *)->bool {return true;});
   }
 
   int eachIterations = 1000;
@@ -108,9 +108,10 @@ int main(int argc, char **argv)
       {
         mgr.EachNoCache<components::World, components::Name>(
             [&](const EntityId &, const components::World *,
-              const components::Name *)
+              const components::Name *)->bool
             {
               cachelessMatchedEntityCount++;
+              return true;
             });
       }
       watch.Stop();
@@ -124,9 +125,10 @@ int main(int argc, char **argv)
       {
         mgr.Each<components::World, components::Name>(
             [&](const EntityId &, const components::World *,
-              const components::Name *)
+              const components::Name *)->bool
             {
               cachedMatchedEntityCount++;
+              return true;
             });
       }
       watch.Stop();

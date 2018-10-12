@@ -195,7 +195,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.Each<components::World, components::Name>(
       [&](const EntityId &_entity,
         const components::World * /* _world */,
-        const components::Name *_name)
+        const components::Name *_name)->bool
       {
         if (this->entityWorldMap.find(_entity) == this->entityWorldMap.end())
         {
@@ -204,6 +204,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto worldPtrPhys = this->engine->ConstructWorld(world);
           this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
         }
+        return true;
       });
 
   _ecm.Each<components::Model, components::Name, components::Pose,
@@ -213,7 +214,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::Name *_name,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Static *_static)
+        const components::Static *_static)->bool
       {
         if (this->entityModelMap.find(_entity) == this->entityModelMap.end())
         {
@@ -225,6 +226,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
         }
+        return true;
       });
 
   _ecm.Each<components::Link, components::Name, components::Pose,
@@ -233,7 +235,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::Link * /* _link */,
         const components::Name *_name,
         const components::Pose *_pose,
-        const components::ParentEntity *_parent)
+        const components::ParentEntity *_parent)->bool
       {
         if (this->entityLinkMap.find(_entity) == this->entityLinkMap.end())
         {
@@ -258,6 +260,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             this->canonicalLinkMap[_parent->Id()] = _entity;
           }
         }
+        return true;
       });
 
   // We don't need to add visuals to the physics engine.
@@ -270,7 +273,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::Name *_name,
         const components::Pose *_pose,
         const components::Geometry *_geom,
-        const components::ParentEntity *_parent)
+        const components::ParentEntity *_parent)->bool
       {
         sdf::Collision collision;
         collision.SetName(_name->Data());
@@ -279,6 +282,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
+        return true;
       });
 }
 
@@ -302,7 +306,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 {
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const EntityId &_entity, components::Link * /*_link*/,
-          components::Pose *_pose, components::ParentEntity *_parent) {
+          components::Pose *_pose, components::ParentEntity *_parent)->bool
+      {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
@@ -314,7 +319,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           {
             ignerr << "The model " << _parent->Id() << " that contains this"
                    << " link should have a canonical link\n";
-            return;
+            return true;
           }
 
           if (canonLinkIt->second == _entity)
@@ -354,6 +359,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         {
           ignwarn << "Unknown link with id " << _entity << " found\n";
         }
+        return true;
       });
 }
 
