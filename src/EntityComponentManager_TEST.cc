@@ -643,6 +643,105 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
   }
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EraseEntity)
+{
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::EntityComponentManager manager;
+
+  // Create some entities
+  gazebo::EntityId eInt = manager.CreateEntity();
+  gazebo::EntityId eDouble = manager.CreateEntity();
+  gazebo::EntityId eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Delete an Entity
+  EXPECT_TRUE(manager.EraseEntity(eDouble));
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  // Creating an new entity should reuse the previously deleted entity.
+  gazebo::EntityId eDoubleAgain = manager.CreateEntity();
+  EXPECT_EQ(eDouble, eDoubleAgain);
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Can not delete an invalid entity.
+  EXPECT_FALSE(manager.EraseEntity(5));
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Delete another
+  EXPECT_TRUE(manager.EraseEntity(0));
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  // Delete another
+  EXPECT_TRUE(manager.EraseEntity(1));
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Delete last
+  EXPECT_TRUE(manager.EraseEntity(2));
+  EXPECT_EQ(0u, manager.EntityCount());
+
+  // Recreate entities
+  eInt = manager.CreateEntity();
+  EXPECT_EQ(0, eInt);
+  eDouble = manager.CreateEntity();
+  EXPECT_EQ(1, eDouble);
+  eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(2, eIntDouble);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
+{
+  ignition::common::Console::SetVerbosity(4);
+  gazebo::EntityComponentManager manager;
+
+  // Create some entities
+  gazebo::EntityId eInt = manager.CreateEntity();
+  gazebo::EntityId eDouble = manager.CreateEntity();
+  gazebo::EntityId eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add components of different types to each entity
+  manager.CreateComponent<int>(eInt, 123);
+  manager.CreateComponent<double>(eDouble, 0.123);
+  manager.CreateComponent<int>(eIntDouble, 456);
+  manager.CreateComponent<double>(eIntDouble, 0.456);
+
+  int count = 0;
+  manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
+        const int *_value)
+      {
+        ASSERT_NE(nullptr, _value);
+        if (_entity == eInt)
+        {
+          EXPECT_EQ(123, *_value);
+        }
+        if (_entity == eIntDouble)
+        {
+          EXPECT_EQ(456, *_value);
+        }
+        ++count;
+      });
+  EXPECT_EQ(2, count);
+
+  // Erase an entity.
+  EXPECT_TRUE(manager.EraseEntity(eIntDouble));
+
+  count = 0;
+  manager.Each<int> ([&](const ignition::gazebo::EntityId &_entity,
+        const int *_value)
+      {
+        ASSERT_NE(nullptr, _value);
+        EXPECT_NE(eIntDouble, _entity);
+        if (_entity == eInt)
+        {
+          EXPECT_EQ(123, *_value);
+        }
+        ++count;
+      });
+  EXPECT_EQ(1, count);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,

@@ -34,8 +34,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::vector<Entity> entities;
 
   /// \brief deleted entity ids that can be reused
-  // \todo(nkoenig) Add this back in when implementing EraseEntity.
-  // public: std::set<EntityId> availableEntityIds;
+  public: std::set<EntityId> availableEntityIds;
 
   /// \brief The set of components that each entity has
   public: std::map<EntityId, std::vector<ComponentKey>> entityComponents;
@@ -61,7 +60,8 @@ EntityComponentManager::~EntityComponentManager()
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->dataPtr->entities.size();
+  return this->dataPtr->entities.size() -
+    this->dataPtr->availableEntityIds.size();
 }
 
 /////////////////////////////////////////////////
@@ -69,46 +69,58 @@ EntityId EntityComponentManager::CreateEntity()
 {
   EntityId id = kNullEntity;
 
-  // \todo(nkoenig) Add this back in when implementing EraseEntity.
-  // if (!this->dataPtr->availableEntityIds.empty())
-  // {
-  //   // Reuse the smallest available EntityId
-  //   id = *(this->dataPtr->availableEntityIds.begin());
-  //   this->dataPtr->availableEntityIds.erase(
-  //       this->dataPtr->availableEntityIds.begin());
-  //   this->dataPtr->entities[id] = std::move(Entity(id));
-  // }
-  // else
-  // {
+  if (!this->dataPtr->availableEntityIds.empty())
+  {
+    // Reuse the smallest available EntityId
+    id = *(this->dataPtr->availableEntityIds.begin());
+    this->dataPtr->availableEntityIds.erase(
+        this->dataPtr->availableEntityIds.begin());
+    this->dataPtr->entities[id] = std::move(Entity(id));
+  }
+  else
+  {
     // Create a brand new Id
     id = this->dataPtr->entities.size();
     this->dataPtr->entities.push_back(std::move(Entity(id)));
-  // }
+  }
 
   return id;
 }
 
 /////////////////////////////////////////////////
-// bool EntityComponentManager::EraseEntity(EntityId _id)
-// {
-//   bool success = false;
-//   if (this->HasEntity(_id))
-//   {
-//     // \todo(nkoenig) Remove the entity at a good point in the update cycle
-//     // (aka "toDeleteEntities"), and delete the components associated with
-//     // the entity.
-//     success = true;
-//   }
-//   return success;
-// }
+bool EntityComponentManager::EraseEntity(EntityId _id)
+{
+  if (this->HasEntity(_id))
+  {
+    // \todo(nkoenig) Remove the entity at a good point in the update cycle
+    // (aka "toDeleteEntities"), and delete the components associated with
+    // the entity.
+
+    // Remove the components.
+    this->dataPtr->entityComponents.erase(_id);
+
+    // Remove the entity from views.
+    this->UpdateViews(_id);
+
+    /*auto iter = std::find_if(this->dataPtr->entities.begin(),
+        this->dataPtr->entities.end(),
+      [&] (const Entity &_e)->bool { return _e.Id() == _id; });
+      */
+
+    this->dataPtr->availableEntityIds.insert(_id);
+
+    return true;
+  }
+
+  return false;
+}
 
 /////////////////////////////////////////////////
 void EntityComponentManager::EraseEntities()
 {
   this->dataPtr->entities.clear();
   this->dataPtr->entityComponents.clear();
-  // \todo(nkoenig) Add this back in when implementing EraseEntity.
-  // this->dataPtr->availableEntityIds.clear();
+  this->dataPtr->availableEntityIds.clear();
 
   for (std::pair<const ComponentTypeId,
        std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
@@ -175,7 +187,10 @@ bool EntityComponentManager::HasEntity(const EntityId _id) const
   // \todo(nkoenig) This function needs to be fixed/implemented.
   // True if the vector is big enough to have used this id
   bool isWithinRange = _id >= 0 &&
-    _id < static_cast<EntityId>(this->dataPtr->entities.size());
+    _id < static_cast<EntityId>(this->dataPtr->entities.size()) &&
+    std::find(this->dataPtr->availableEntityIds.begin(),
+             this->dataPtr->availableEntityIds.end(), _id) ==
+    this->dataPtr->availableEntityIds.end();
   /* bool isNotDeleted = this->freeEntityIds.find(_id) ==
                       this->freeEntityIds.end() &&
                       this->deletedIds.find(_id) == this->deletedIds.end();
