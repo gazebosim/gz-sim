@@ -44,7 +44,8 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Create pose subscriber
@@ -68,7 +69,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   EXPECT_TRUE(node.Subscribe("/world/default/pose/info", cb));
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   unsigned int sleep{0u};
   unsigned int maxSleep{10u};
@@ -87,11 +88,12 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   // Create requester
   transport::Node node;
@@ -125,11 +127,12 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
       "/test/worlds/shapes.sdf");
 
   gazebo::Server server(serverConfig);
-  EXPECT_FALSE(*server.Running());
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(13u, *server.EntityCount());
 
   // Run server
-  server.Run(true, 1);
+  server.Run(true, 1, false);
 
   // Create requester
   transport::Node node;

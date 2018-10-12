@@ -171,8 +171,12 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->initialized = true;
     }
 
-    this->dataPtr->Step(_info.dt);
-    this->dataPtr->UpdateSim(_ecm);
+    // Only step if not paused.
+    if (!_info.paused)
+    {
+      this->dataPtr->Step(_info.dt);
+      this->dataPtr->UpdateSim(_ecm);
+    }
   }
 }
 
@@ -325,6 +329,11 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             {
               auto pose = linkIt->second->FrameDataRelativeToWorld().pose;
               *parentPose = components::Pose(math::eigen3::convert(pose));
+
+              // Make sure this pose is set to identity, or else the rendering
+              // engine's forward kinematics might double up the transform on
+              // the object's pose
+              *_pose = components::Pose(math::Pose3d());
             }
           }
           else

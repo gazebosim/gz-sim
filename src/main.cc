@@ -39,6 +39,8 @@ DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_bool(s, false, "Run only the server (headless mode).");
 DEFINE_bool(g, false, "Run only the GUI.");
 DEFINE_string(f, "", "Load an SDF file on start.");
+DEFINE_bool(r, false, "Run simulation on start. "
+    "The default is false, which starts simulation paused.");
 
 //////////////////////////////////////////////////
 void Help()
@@ -67,6 +69,9 @@ void Help()
   << "  -f                     Load an SDF file on start. "
   << std::endl
   << "  -z arg                 Update rate in Hertz."
+  << std::endl
+  << "  -r                     Run simulation on start."
+  << " The default is false, which starts simulation paused."
   << std::endl
   << std::endl;
 }
@@ -159,23 +164,11 @@ int main(int _argc, char **_argv)
       ignition::gazebo::Server server(serverConfig);
 
       // Run the server, and block.
-      server.Run(true, FLAGS_iterations);
+      server.Run(true, FLAGS_iterations, !FLAGS_r);
     }
     // Run the GUI, or GUI+server
     else
     {
-      std::unique_ptr<ignition::gazebo::Server> server;
-
-      // Run the server along with the GUI if FLAGS_g is not set.
-      if (!FLAGS_g)
-      {
-        // Create the server
-        server.reset(new ignition::gazebo::Server(serverConfig));
-
-        // Run the server, and don't block.
-        server->Run(false, FLAGS_iterations);
-      }
-
       // Temporary transport interface
       auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
@@ -217,6 +210,18 @@ int main(int _argc, char **_argv)
         ignerr << "Failed to instantiate custom drawer, drawer will be empty"
                << std::endl;
       }
+
+      // Run the server along with the GUI if FLAGS_g is not set.
+      std::unique_ptr<ignition::gazebo::Server> server;
+      if (!FLAGS_g)
+      {
+        // Create the server
+        server.reset(new ignition::gazebo::Server(serverConfig));
+
+        // Run the server, and don't block.
+        server->Run(false, FLAGS_iterations, !FLAGS_r);
+      }
+
 
       // Run main window.
       // This blocks until the window is closed or we receive a SIGINT

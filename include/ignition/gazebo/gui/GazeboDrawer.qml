@@ -148,7 +148,7 @@ Rectangle {
     id: loadWorldDialog
     title: "Load world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.world)" ]
+    nameFilters: [ "World files (*.world, *.sdf)" ]
     selectMultiple: false
     selectExisting: true
     onAccepted: {

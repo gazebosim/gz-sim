@@ -30,24 +30,24 @@ include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-plugin
-set(IGN_PLUGIN_VER 1)
 ign_find_package(ignition-plugin1 REQUIRED COMPONENTS loader register)
+set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-set(IGN_TRANSPORT_VER 6)
 ign_find_package(ignition-transport6 REQUIRED)
+set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
-set(IGN_COMMON_VER 3)
 ign_find_package(ignition-common3 REQUIRED)
+set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-set(IGN_GUI_VER 1)
 ign_find_package(ignition-gui1 REQUIRED)
-find_package (Qt5
+set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
+ign_find_package (Qt5
   COMPONENTS
     Core
     Quick
@@ -56,8 +56,8 @@ find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-set(IGN_PHYSICS_VER 1)
 ign_find_package(ignition-physics1 REQUIRED COMPONENTS sdf dartsim dartsim-plugin)
+set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
@@ -73,8 +73,8 @@ endif()
 
 #--------------------------------------
 # Find ignition-math
-set(IGN_MATH_VER 6)
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3)
+set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #============================================================================
 # Configure the build
