@@ -145,11 +145,12 @@ TEST_F(PhysicsSystemFixture, FallingObject)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
         [&](const ignition::gazebo::EntityId &, const components::Model *,
-        const components::Name *_name, const components::Pose *_pose)
+        const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName) {
             spherePoses.push_back(_pose->Data());
           }
+          return true;
         });
     });
 
