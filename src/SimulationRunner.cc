@@ -549,6 +549,37 @@ bool SimulationRunner::Paused() const
 }
 
 /////////////////////////////////////////////////
+const EntityComponentManager &SimulationRunner::EntityCompMgr() const
+{
+  return this->entityCompMgr;
+}
+
+/////////////////////////////////////////////////
+const UpdateInfo &SimulationRunner::CurrentInfo() const
+{
+  return this->currentInfo;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
+SimulationRunner::UpdatePeriod() const
+{
+  return this->updatePeriod;
+}
+
+/////////////////////////////////////////////////
+const ignition::math::clock::duration &SimulationRunner::StepSize() const
+{
+  return this->stepSize;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
+{
+  this->stepSize = _step;
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::HasEntity(const std::string &_name) const
 {
   bool result = false;
