@@ -312,8 +312,7 @@ namespace ignition
 
       /// \brief Delete an existing Entity.
       /// \returns True if the Entity existed and was deleted.
-      /// \todo(nkoenig) Implement this function
-      // public: bool EraseEntity(const EntityId _id);
+      public: bool EraseEntity(const EntityId _id);
 
       /// \brief Delete all entities.
       public: void EraseEntities();
