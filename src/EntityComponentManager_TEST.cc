@@ -859,4 +859,4 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
-    EntityComponentManagerFixture, ::testing::Range(1, 2));
+    EntityComponentManagerFixture, ::testing::Range(1, 10));
