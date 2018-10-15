@@ -229,10 +229,6 @@ bool EntityComponentManager::HasEntity(const EntityId _id) const
     // Check that the _id is not deleted (not in the available entity set)
     && this->dataPtr->availableEntityIds.find(_id) ==
        this->dataPtr->availableEntityIds.end();
-
-  /* bool isNotDeleted =
-                      this->deletedIds.find(_id) == this->deletedIds.end();
-  */
 }
 
 /////////////////////////////////////////////////
