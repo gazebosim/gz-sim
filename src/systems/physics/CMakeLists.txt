@@ -14,7 +14,6 @@ target_link_libraries(${physics_system_target}
   ignition-gazebo
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
-  # TODO(addisu) Need SDFormat?
 )
 
 target_compile_definitions(${physics_system_target} PRIVATE
