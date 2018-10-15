@@ -81,6 +81,14 @@ namespace ignition
         this->entities.insert(_id);
       }
 
+      /// \brief Remove an entity from the view.
+      /// \param[in] _id Id of the entity to remove.
+      /// \param[in] _key Components that should also be removed.
+      /// \return True if the entity was erased, false if the entity did not
+      /// exist in the view.
+      public: bool EraseEntity(const EntityId _id,
+                               const ComponentTypeKey &_key);
+
       /// \brief Add a component to an entity.
       /// \param[in] _id Id of the entity.
       /// \param[in] _component Component to add.
@@ -610,6 +618,7 @@ namespace ignition
       protected: void ProcessEraseEntityRequests();
 
       /// \brief Delete an existing Entity.
+      /// \param[in] _id Id of the Entity to erase.
       /// \returns True if the Entity existed and was deleted.
       private: bool EraseEntity(const EntityId _id);
 
