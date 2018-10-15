@@ -60,7 +60,7 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
-#include "ignition/gazebo/systems/Physics.hh"
+#include "Physics.hh"
 
 using namespace ignition::gazebo::systems;
 namespace components = ignition::gazebo::components;
