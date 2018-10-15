@@ -155,6 +155,8 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       // Remove the entity from views.
       for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
       {
+        view.second.EraseEntity(_id, view.first);
+        /*
         if (view.second.entities.find(_id) == view.second.entities.end())
           continue;
 
@@ -164,6 +166,7 @@ void EntityComponentManager::ProcessEraseEntityRequests()
         // Remove the entity from the components map
         for (const ComponentTypeId &compTypeId : view.first)
           view.second.components.erase(std::make_pair(_id, compTypeId));
+          */
       }
     }
     // Clear the set of entities to erase.
@@ -463,4 +466,20 @@ void View::AddComponent(const EntityId _id,
 {
   this->components.insert(
       std::make_pair(std::make_pair(_id, _compId), _component));
+}
+
+//////////////////////////////////////////////////
+bool View::EraseEntity(const EntityId _id, const ComponentTypeKey &_key)
+{
+  if (this->entities.find(_id) == this->entities.end())
+    return false;
+
+  // Otherwise, remove the entity from the view
+  this->entities.erase(_id);
+
+  // Remove the entity from the components map
+  for (const ComponentTypeId &compTypeId : _key)
+    this->components.erase(std::make_pair(_id, compTypeId));
+
+  return true;
 }
