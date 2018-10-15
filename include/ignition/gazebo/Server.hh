@@ -186,6 +186,14 @@ namespace ignition
                   const SystemPluginPtr &_system,
                   const unsigned int _worldIndex = 0);
 
+      /// \brief Get an Entity based on a name.
+      /// \param [in] _name Name of the entity to get.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Id of the Entity, or std::nullop if the entity doesn't
+      /// exist.
+      public: std::optional<EntityId> EntityByName(const std::string &_name,
+                  const unsigned int _worldIndex = 0) const;
+
       /// \brief Return true if the specified world has an entity with the
       /// provided name.
       /// \param[in] _name Name of the entity.
@@ -206,6 +214,10 @@ namespace ignition
       /// for deletion.
       public: bool RequestEraseEntity(const std::string &_name,
                                       const unsigned int _worldIndex = 0);
+
+      public: bool RequestEraseEntity(const EntityId _id,
+                                      const unsigned int _worldIndex = 0);
+
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

@@ -615,3 +615,34 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name)
 
   return result;
 }
+
+/////////////////////////////////////////////////
+std::optional<EntityId> SimulationRunner::EntityByName(
+    const std::string &_name) const
+{
+  std::optional<EntityId> id;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        id = _id;
+        return false;
+      }
+      return true;
+    });
+
+  return id;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::RequestEraseEntity(const EntityId _id)
+{
+  if (this->entityCompMgr.HasEntity(_id))
+  {
+    this->entityCompMgr.RequestEraseEntity(_id);
+    return true;
+  }
+
+  return false;
+}

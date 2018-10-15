@@ -159,6 +159,13 @@ namespace ignition
       /// \return Reference to the entity component manager.
       public: const EntityComponentManager &EntityCompMgr() const;
 
+      /// \brief Return an entity with the provided name exists.
+      /// \param[in] _name Name of the entity.
+      /// \return Id of the entity, if exists in the world. Otherwise
+      /// std::nullopt
+      public: std::optional<EntityId> EntityByName(
+                  const std::string &_name) const;
+
       /// \brief Return true if an entity with the provided name exists.
       /// \param[in] _name Name of the entity.
       /// \return True if the entity exists in the world.
@@ -173,6 +180,8 @@ namespace ignition
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
       public: bool RequestEraseEntity(const std::string &_name);
+
+      public: bool RequestEraseEntity(const EntityId _id);
 
       /// \brief Get the current info object.
       /// \return Current info.
