@@ -159,6 +159,11 @@ namespace ignition
       /// \return Reference to the entity component manager.
       public: const EntityComponentManager &EntityCompMgr() const;
 
+      /// \brief Return true if an entity with the provided name exists.
+      /// \param[in] _name Name of the entity.
+      /// \return True if the entity exists in the world.
+      public: bool HasEntity(const std::string &_name) const;
+
       /// \brief Get the current info object.
       /// \return Current info.
       public: const UpdateInfo &CurrentInfo() const;
