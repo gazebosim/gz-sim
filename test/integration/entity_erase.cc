@@ -64,9 +64,10 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("cylinder"));
-  EXPECT_TRUE(server.HasEntity("sphere"));
+  std::optional<EntityId> entityId = server.EntityByName("sphere");
+  EXPECT_NE(std::nullopt, entityId);
+  EXPECT_TRUE(server.RequestEraseEntity(*entityId));
 
-  EXPECT_TRUE(server.RequestEraseEntity("sphere"));
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("cylinder"));
