@@ -575,3 +575,21 @@ void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
 {
   this->stepSize = _step;
 }
+
+/////////////////////////////////////////////////
+bool SimulationRunner::HasEntity(const std::string &_name) const
+{
+  bool result = false;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        result = true;
+        return false;
+      }
+      return true;
+    });
+
+  return result;
+}

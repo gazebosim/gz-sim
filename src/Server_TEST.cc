@@ -71,6 +71,13 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_EQ(0u, *server.IterationCount());
   EXPECT_EQ(13u, *server.EntityCount());
   EXPECT_EQ(2u, *server.SystemCount());
+
+  EXPECT_TRUE(server.HasEntity("box"));
+  EXPECT_FALSE(server.HasEntity("box", 1));
+  EXPECT_TRUE(server.HasEntity("sphere"));
+  EXPECT_TRUE(server.HasEntity("cylinder"));
+  EXPECT_FALSE(server.HasEntity("bad", 0));
+  EXPECT_FALSE(server.HasEntity("bad", 1));
 }
 
 /////////////////////////////////////////////////
