@@ -92,9 +92,16 @@ namespace graph
 
     /// \brief Get the vertex name.
     /// \return The vertex name.
-    public: std::string Name() const
+    public: const std::string &Name() const
     {
       return this->name;
+    }
+
+    /// \brief Set the vertex name.
+    /// \param[in] _name The vertex name.
+    public: void SetName(const std::string &_name) const
+    {
+      return this->name = _name;
     }
 
     /// \brief Whether the vertex is considered valid or not (id==kNullId).
