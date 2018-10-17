@@ -32,6 +32,8 @@ TEST(VertexTest, Accessors)
     int data = 5;
     Vertex<int> vertex("", data);
     EXPECT_TRUE(vertex.Name().empty());
+    vertex.SetName("new_name");
+    EXPECT_EQ("new_name", vertex.Name());
     EXPECT_EQ(vertex.Data(), data);
     EXPECT_EQ(vertex.Id(), kNullId);
     EXPECT_FALSE(vertex.Valid());
