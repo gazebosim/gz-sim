@@ -99,7 +99,7 @@ namespace graph
 
     /// \brief Set the vertex name.
     /// \param[in] _name The vertex name.
-    public: void SetName(const std::string &_name) const
+    public: void SetName(const std::string &_name)
     {
       return this->name = _name;
     }
