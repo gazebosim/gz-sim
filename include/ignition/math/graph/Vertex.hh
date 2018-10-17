@@ -101,7 +101,7 @@ namespace graph
     /// \param[in] _name The vertex name.
     public: void SetName(const std::string &_name)
     {
-      return this->name = _name;
+      this->name = _name;
     }
 
     /// \brief Whether the vertex is considered valid or not (id==kNullId).
