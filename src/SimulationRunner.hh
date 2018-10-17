@@ -160,6 +160,8 @@ namespace ignition
       public: const EntityComponentManager &EntityCompMgr() const;
 
       /// \brief Return an entity with the provided name exists.
+      /// \details If multiple entities with the same name exist, the first
+      /// entity found will be returned.
       /// \param[in] _name Name of the entity.
       /// \return Id of the entity, if exists in the world. Otherwise
       /// std::nullopt
@@ -181,6 +183,16 @@ namespace ignition
       /// for deletion.
       public: bool RequestEraseEntity(const std::string &_name);
 
+      /// \brief Return true if an entity exists with the
+      /// provided id and the entity was queued for deletion. Note that
+      /// the entity is not erased immediately. Entity deletion happens at
+      /// the end of the next (or current depending on when this function is
+      /// called) simulation step.
+      /// \details If multiple entities with the same name exist, only the
+      /// first entity found will be deleted.
+      /// \param[in] _id Id of the entity to delete.
+      /// \return True if the entity exists in the world and it was queued
+      /// for deletion.
       public: bool RequestEraseEntity(const EntityId _id);
 
       /// \brief Get the current info object.

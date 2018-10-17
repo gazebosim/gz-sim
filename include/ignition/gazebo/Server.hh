@@ -187,6 +187,8 @@ namespace ignition
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.
+      /// \details If multiple entities with the same name exist, the first
+      /// entity found will be returned.
       /// \param [in] _name Name of the entity to get.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Id of the Entity, or std::nullop if the entity doesn't
@@ -208,6 +210,8 @@ namespace ignition
       /// the entity is not erased immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
+      /// \details If multiple entities with the same name exist, only the
+      /// first entity found will be deleted.
       /// \param[in] _name Name of the entity to delete.
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
@@ -215,6 +219,15 @@ namespace ignition
       public: bool RequestEraseEntity(const std::string &_name,
                                       const unsigned int _worldIndex = 0);
 
+      /// \brief Return true if the specified world has an entity with the
+      /// provided id and the entity was queued for deletion. Note that
+      /// the entity is not erased immediately. Entity deletion happens at
+      /// the end of the next (or current depending on when this function is
+      /// called) simulation step.
+      /// \param[in] _id Id of the entity to delete.
+      /// \param[in] _worldIndex Index of the world.
+      /// \return True if the entity exists in the world and it was queued
+      /// for deletion.
       public: bool RequestEraseEntity(const EntityId _id,
                                       const unsigned int _worldIndex = 0);
 
