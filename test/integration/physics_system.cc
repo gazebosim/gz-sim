@@ -178,5 +178,5 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   // The box surface is at 0 so the z position of the sphere is the same as its
   // radius
   const double zStopped = sphere->Radius();
-  EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-3);
+  EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
 }
