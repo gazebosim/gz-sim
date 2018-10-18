@@ -156,17 +156,6 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
       {
         view.second.EraseEntity(_id, view.first);
-        /*
-        if (view.second.entities.find(_id) == view.second.entities.end())
-          continue;
-
-        // Otherwise, remove the entity from the view
-        view.second.entities.erase(_id);
-
-        // Remove the entity from the components map
-        for (const ComponentTypeId &compTypeId : view.first)
-          view.second.components.erase(std::make_pair(_id, compTypeId));
-          */
       }
     }
     // Clear the set of entities to erase.
@@ -286,6 +275,26 @@ bool EntityComponentManager::EntityMatches(EntityId _id,
   }
 
   return true;
+}
+
+/////////////////////////////////////////////////
+ComponentId EntityComponentManager::EntityComponentIdFromType(
+    const EntityId _id, const ComponentTypeId _type) const
+{
+  std::map<EntityId, std::vector<ComponentKey>>::const_iterator ecIter =
+    this->dataPtr->entityComponents.find(_id);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return -1;
+
+  std::vector<ComponentKey>::const_iterator iter =
+    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key) {return _key.first == _type;});
+
+  if (iter != ecIter->second.end())
+    return iter->second;
+
+  return -1;
 }
 
 /////////////////////////////////////////////////
@@ -417,7 +426,7 @@ void EntityComponentManager::UpdateViews(const EntityId _id)
       for (const ComponentTypeId &compTypeId : view.first)
       {
         view.second.AddComponent(_id, compTypeId,
-            this->ComponentImplementation(_id, compTypeId));
+            this->EntityComponentIdFromType(_id, compTypeId));
       }
     }
     else if (view.second.entities.find(_id) != view.second.entities.end())
@@ -452,34 +461,10 @@ void EntityComponentManager::RebuildViews()
         for (const ComponentTypeId &compTypeId : view.first)
         {
           view.second.AddComponent(entity.Id(), compTypeId,
-              this->ComponentImplementation(entity.Id(), compTypeId));
+              this->EntityComponentIdFromType(
+                entity.Id(), compTypeId));
         }
       }
     }
   }
-}
-
-//////////////////////////////////////////////////
-void View::AddComponent(const EntityId _id,
-    const ComponentTypeId _compId,
-    const void *_component)
-{
-  this->components.insert(
-      std::make_pair(std::make_pair(_id, _compId), _component));
-}
-
-//////////////////////////////////////////////////
-bool View::EraseEntity(const EntityId _id, const ComponentTypeKey &_key)
-{
-  if (this->entities.find(_id) == this->entities.end())
-    return false;
-
-  // Otherwise, remove the entity from the view
-  this->entities.erase(_id);
-
-  // Remove the entity from the components map
-  for (const ComponentTypeId &compTypeId : _key)
-    this->components.erase(std::make_pair(_id, compTypeId));
-
-  return true;
 }
