@@ -8,7 +8,7 @@
     <model name="sphere">
       <pose>0 0 2 0 0 0</pose>
       <link name="sphere_link">
-        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <pose>0.0 0.0 1.0 0 0 0</pose>
         <inertial>
           <inertia>
             <ixx>0.4</ixx>

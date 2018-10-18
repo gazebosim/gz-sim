@@ -162,13 +162,11 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   const double grav = world->Gravity().Z();
   const double zInit = model->Pose().Pos().Z();
   // The sphere should have fallen for (iters * dt) seconds.
-  const double zExpected = zInit - 0.5 * grav * pow(iters * dt, 2);
-  // The tolerance is not very tight due to integration errors with a step size
-  // of 0.001
-  EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-3);
+  const double zExpected = zInit + 0.5 * grav * pow(iters * dt, 2);
+  EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-4);
 
   // run for 1 more second and check to see if the sphere has stopped
-  server.Run(true, 500);
+  server.Run(true, 1000);
 
   // The sphere should land on the box and stop.
   auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();
@@ -176,7 +174,8 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   ASSERT_TRUE(sphere != nullptr);
 
   // The box surface is at 0 so the z position of the sphere is the same as its
-  // radius
-  const double zStopped = sphere->Radius();
+  // radius. The position of the model will be offset by the first links pose
+  const double zStopped =
+      sphere->Radius() - model->LinkByIndex(0)->Pose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
 }
