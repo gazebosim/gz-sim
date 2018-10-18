@@ -324,14 +324,23 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             if (parentPose)
             {
               auto pose = linkIt->second->FrameDataRelativeToWorld().pose;
-              *parentPose = components::Pose(math::eigen3::convert(pose));
+              // the Pose component, _pose, of this link is the initial
+              // transform of the link w.r.t its model. This component never
+              // changes because it's "fixed" to the model. Instead, we change
+              // the model's pose here. The physics engine gives us the pose of
+              // this link relative to world so to set the model's pose, we have
+              // to premultiply it by the inverse of the initial transform of
+              // the link w.r.t to its model.
+              *parentPose = components::Pose(_pose->Data().Inverse() *
+                                             math::eigen3::convert(pose));
             }
           }
           else
           {
             // Not the canonical link, so get the link's relative pose
             // \NOTE(addisu) Once ModelFrameSemantics are available, we should
-            // resolve the relative by passing the model as the parent frame.
+            // resolve the relative pose by passing the model as the parent
+            // frame.
 
             // Find the canonical link of the model that contains this link
             auto canonLinkPhys = this->entityLinkMap.at(canonLinkIt->second);
