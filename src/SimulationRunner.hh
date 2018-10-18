@@ -159,12 +159,12 @@ namespace ignition
       /// \return Reference to the entity component manager.
       public: const EntityComponentManager &EntityCompMgr() const;
 
-      /// \brief Return an entity with the provided name exists.
+      /// \brief Return an entity with the provided name.
       /// \details If multiple entities with the same name exist, the first
       /// entity found will be returned.
       /// \param[in] _name Name of the entity.
-      /// \return Id of the entity, if exists in the world. Otherwise
-      /// std::nullopt
+      /// \return Id of the entity, if the entity exists in the world. Otherwise
+      /// std::nullopt.
       public: std::optional<EntityId> EntityByName(
                   const std::string &_name) const;
 
