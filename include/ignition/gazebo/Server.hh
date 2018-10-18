@@ -189,10 +189,11 @@ namespace ignition
       /// \brief Get an Entity based on a name.
       /// \details If multiple entities with the same name exist, the first
       /// entity found will be returned.
-      /// \param [in] _name Name of the entity to get.
+      /// \param [in] _name Name of the entity to get from the specified
+      /// world.
       /// \param[in] _worldIndex Index of the world to query.
-      /// \return Id of the Entity, or std::nullop if the entity doesn't
-      /// exist.
+      /// \return Id of the Entity, or std::nullopt if the entity or world
+      /// doesn't exist.
       public: std::optional<EntityId> EntityByName(const std::string &_name,
                   const unsigned int _worldIndex = 0) const;
 
