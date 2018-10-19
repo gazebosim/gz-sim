@@ -21,11 +21,13 @@
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/planegeom.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 #include <sdf/Geometry.hh>
 
@@ -63,6 +65,14 @@ namespace ignition
         out.set_type(msgs::Geometry::CYLINDER);
         out.mutable_cylinder()->set_radius(_in.CylinderShape()->Radius());
         out.mutable_cylinder()->set_length(_in.CylinderShape()->Length());
+      }
+      else if (_in.Type() == sdf::GeometryType::PLANE && _in.PlaneShape())
+      {
+        out.set_type(msgs::Geometry::PLANE);
+        msgs::Set(out.mutable_plane()->mutable_normal(),
+                  _in.PlaneShape()->Normal());
+        msgs::Set(out.mutable_plane()->mutable_size(),
+                  _in.PlaneShape()->Size());
       }
       else if (_in.Type() == sdf::GeometryType::SPHERE && _in.SphereShape())
       {
