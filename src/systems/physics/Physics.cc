@@ -342,11 +342,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               // the link w.r.t to its model.
               *parentPose = components::Pose(_pose->Data().Inverse() *
                                              math::eigen3::convert(pose));
-
-              // Make sure this pose is set to identity, or else the rendering
-              // engine's forward kinematics might double up the transform on
-              // the object's pose
-              *_pose = components::Pose(math::Pose3d());
             }
           }
           else
