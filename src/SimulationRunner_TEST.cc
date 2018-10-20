@@ -59,48 +59,49 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   SimulationRunner runner(root.WorldByIndex(0), systems);
 
   // Check component types
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Model>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Collision>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Visual>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Geometry>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Material>()));
-  EXPECT_TRUE(runner.entityCompMgr.HasComponentType(
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual
-  EXPECT_EQ(13u, runner.entityCompMgr.EntityCount());
+  EXPECT_EQ(13u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
   EntityId worldEntity = kNullEntity;
-  runner.entityCompMgr.Each<components::World,
+  runner.EntityCompMgr().Each<components::World,
                             components::Name>(
     [&](const EntityId &_entity,
         const components::World *_world,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _world);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _world);
+      EXPECT_NE(nullptr, _name);
 
       EXPECT_EQ("default", _name->Data());
 
       worldCount++;
 
       worldEntity = _entity;
+      return true;
     });
 
   EXPECT_EQ(1u, worldCount);
@@ -111,7 +112,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EntityId boxModelEntity = kNullEntity;
   EntityId cylModelEntity = kNullEntity;
   EntityId sphModelEntity = kNullEntity;
-  runner.entityCompMgr.Each<components::Model,
+  runner.EntityCompMgr().Each<components::Model,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
@@ -119,12 +120,12 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _model);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _model);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       modelCount++;
 
@@ -150,6 +151,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
+      return true;
     });
 
   EXPECT_EQ(3u, modelCount);
@@ -162,7 +164,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EntityId boxLinkEntity = kNullEntity;
   EntityId cylLinkEntity = kNullEntity;
   EntityId sphLinkEntity = kNullEntity;
-  runner.entityCompMgr.Each<components::Link,
+  runner.EntityCompMgr().Each<components::Link,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
@@ -170,12 +172,12 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Link *_link,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _link);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _link);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       linkCount++;
 
@@ -203,6 +205,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphModelEntity, _parent->Id());
         sphLinkEntity = _entity;
       }
+      return true;
     });
 
   EXPECT_EQ(3u, linkCount);
@@ -212,13 +215,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check inertials
   unsigned int inertialCount{0};
-  runner.entityCompMgr.Each<components::Link, components::Inertial>(
+  runner.EntityCompMgr().Each<components::Link, components::Inertial>(
     [&](const EntityId & _entity,
         const components::Link *_link,
-        const components::Inertial *_inertial)
+        const components::Inertial *_inertial)->bool
     {
-      ASSERT_NE(nullptr, _link);
-      ASSERT_NE(nullptr, _inertial);
+      EXPECT_NE(nullptr, _link);
+      EXPECT_NE(nullptr, _inertial);
 
       inertialCount++;
 
@@ -240,13 +243,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                                      math::Vector3d::Zero),
                   _inertial->Data().MassMatrix());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, inertialCount);
 
   // Check collisions
   unsigned int collisionCount{0};
-  runner.entityCompMgr.Each<components::Collision,
+  runner.EntityCompMgr().Each<components::Collision,
                             components::Geometry,
                             components::Pose,
                             components::ParentEntity,
@@ -256,13 +260,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Geometry *_geometry,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _collision);
-      ASSERT_NE(nullptr, _geometry);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _collision);
+      EXPECT_NE(nullptr, _geometry);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       collisionCount++;
 
@@ -276,7 +280,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(boxLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_NE(nullptr, _geometry->Data().BoxShape());
         EXPECT_EQ(math::Vector3d(3, 4, 5),
                   _geometry->Data().BoxShape()->Size());
       }
@@ -290,7 +294,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
         EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
       }
@@ -304,16 +308,17 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, collisionCount);
 
   // Check visuals
   unsigned int visualCount{0};
-  runner.entityCompMgr.Each<components::Visual,
+  runner.EntityCompMgr().Each<components::Visual,
                             components::Geometry,
                             components::Material,
                             components::Pose,
@@ -325,14 +330,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         const components::Material *_material,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)
+        const components::Name *_name)->bool
     {
-      ASSERT_NE(nullptr, _visual);
-      ASSERT_NE(nullptr, _geometry);
-      ASSERT_NE(nullptr, _material);
-      ASSERT_NE(nullptr, _pose);
-      ASSERT_NE(nullptr, _parent);
-      ASSERT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _visual);
+      EXPECT_NE(nullptr, _geometry);
+      EXPECT_NE(nullptr, _material);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
 
       visualCount++;
 
@@ -346,7 +351,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(boxLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().BoxShape());
+        EXPECT_NE(nullptr, _geometry->Data().BoxShape());
         EXPECT_EQ(math::Vector3d(1, 2, 3),
                   _geometry->Data().BoxShape()->Size());
 
@@ -365,7 +370,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(cylLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().CylinderShape());
+        EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
         EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
 
@@ -384,7 +389,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(sphLinkEntity, _parent->Id());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
-        ASSERT_NE(nullptr, _geometry->Data().SphereShape());
+        EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
 
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
@@ -392,6 +397,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
       }
+      return true;
     });
 
   EXPECT_EQ(3u, visualCount);
@@ -412,77 +418,61 @@ TEST_P(SimulationRunnerTest, Time)
   SimulationRunner runner(root.WorldByIndex(0), systems);
 
   // Check state
-  EXPECT_FALSE(runner.paused);
-  EXPECT_EQ(0u, runner.iterations);
-  EXPECT_EQ(0u, runner.currentInfo.iterations);
-  EXPECT_EQ(0ms, runner.currentInfo.simTime);
-  EXPECT_EQ(0ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(1ms, runner.stepSize);
+  EXPECT_TRUE(runner.Paused());
+  EXPECT_EQ(0u, runner.CurrentInfo().iterations);
+  EXPECT_EQ(0ms, runner.CurrentInfo().simTime);
+  EXPECT_EQ(0ms, runner.CurrentInfo().dt);
+  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(1ms, runner.StepSize());
+
+  runner.SetPaused(false);
 
   // Run
   EXPECT_TRUE(runner.Run(100));
 
   // Check state
-  EXPECT_FALSE(runner.paused);
-  EXPECT_EQ(100u, runner.iterations);
-  EXPECT_EQ(100u, runner.currentInfo.iterations);
-  EXPECT_EQ(100ms, runner.currentInfo.simTime);
-  EXPECT_EQ(1ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(1ms, runner.stepSize);
+  EXPECT_FALSE(runner.Paused());
+  EXPECT_EQ(100u, runner.CurrentInfo().iterations);
+  EXPECT_EQ(100ms, runner.CurrentInfo().simTime);
+  EXPECT_EQ(1ms, runner.CurrentInfo().dt);
+  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(1ms, runner.StepSize());
 
   // Change step size and run
-  runner.stepSize = 2ms;
+  runner.SetStepSize(2ms);
   EXPECT_TRUE(runner.Run(100));
 
   // Check state
-  EXPECT_FALSE(runner.paused);
-  EXPECT_EQ(200u, runner.iterations);
-  EXPECT_EQ(200u, runner.currentInfo.iterations);
-  EXPECT_EQ(300ms, runner.currentInfo.simTime);
-  EXPECT_EQ(2ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(2ms, runner.stepSize);
+  EXPECT_FALSE(runner.Paused());
+  EXPECT_EQ(200u, runner.CurrentInfo().iterations);
+  EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
+  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
+  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(2ms, runner.StepSize());
 
-  // Set paused and run
-  runner.paused = true;
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_TRUE(runner.paused);
-  EXPECT_EQ(300u, runner.iterations);
-  EXPECT_EQ(200u, runner.currentInfo.iterations);
-  EXPECT_EQ(300ms, runner.currentInfo.simTime);
-  EXPECT_EQ(0ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(2ms, runner.stepSize);
-
-  // Multistep and run
-  runner.pendingSimIterations = 50;
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_TRUE(runner.paused);
-  EXPECT_EQ(400u, runner.iterations);
-  EXPECT_EQ(250u, runner.currentInfo.iterations);
-  EXPECT_EQ(400ms, runner.currentInfo.simTime);
-  EXPECT_EQ(0ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(2ms, runner.stepSize);
+  // Set paused
+  runner.SetPaused(true);
+  EXPECT_TRUE(runner.Paused());
+  runner.SetPaused(false);
+  EXPECT_FALSE(runner.Paused());
+  EXPECT_EQ(200u, runner.CurrentInfo().iterations);
+  EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
+  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
+  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(2ms, runner.StepSize());
 
   // Unpause and run
-  runner.paused = false;
+  runner.SetPaused(false);
   EXPECT_TRUE(runner.Run(100));
 
   // Check state
-  EXPECT_FALSE(runner.paused);
-  EXPECT_EQ(500u, runner.iterations);
-  EXPECT_EQ(350u, runner.currentInfo.iterations);
-  EXPECT_EQ(600ms, runner.currentInfo.simTime);
-  EXPECT_EQ(2ms, runner.currentInfo.dt);
-  EXPECT_EQ(1ms, runner.updatePeriod);
-  EXPECT_EQ(2ms, runner.stepSize);
+  EXPECT_FALSE(runner.Paused());
+  EXPECT_EQ(300u, runner.CurrentInfo().iterations);
+  EXPECT_EQ(500ms, runner.CurrentInfo().simTime)
+    << runner.CurrentInfo().simTime.count();
+  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
+  EXPECT_EQ(1ms, runner.UpdatePeriod());
+  EXPECT_EQ(2ms, runner.StepSize());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

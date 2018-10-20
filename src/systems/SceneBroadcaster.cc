@@ -154,158 +154,167 @@ SceneBroadcaster::~SceneBroadcaster()
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
-
-  // TODO(louise) Get <scene> from SDF
-  // TODO(louise) Fill message header
-
-  // Populate a graph with latest information from all entities
-  // TODO(louise) once we know what entities are added/deleted process only
-  // those. For now, recreating graph at every iteration.
-  this->dataPtr->sceneGraph = math::graph::DirectedGraph<
-      std::shared_ptr<google::protobuf::Message>, bool>();
-
   // Populate pose message
   msgs::Pose_V poseMsg;
 
-  // World
-  // \todo(anyone) It would be convenient to have the following functions:
-  // * _manager.Has<components::World, components::Name>: to tell whether there
-  //   is an entity which has a given set of components.
-  // * _manager.EntityCount<components::World, components::Name>: returns the
-  //  number of entities which have all the given components.
-  this->dataPtr->worldId = kNullEntity;
-  _manager.Each<components::World,
-                components::Name>(
-    [&](const EntityId &_entity,
-        const components::World */*_worldComp*/,
-        const components::Name *_nameComp)
-    {
-      if (kNullEntity != this->dataPtr->worldId)
-      {
-        ignerr << "Internal error, more than one world found." << std::endl;
-        return;
-      }
-      this->dataPtr->worldId = _entity;
-
-      if (!this->dataPtr->posePub)
-      {
-        this->dataPtr->SetupTransport(_nameComp->Data());
-      }
-
-      // Add to graph
-      this->dataPtr->sceneGraph.AddVertex(_nameComp->Data(), nullptr, _entity);
-    });
-
-  if (kNullEntity == this->dataPtr->worldId)
   {
-    ignerr << "Failed to find world entity" << std::endl;
-    return;
+    std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
+
+    // TODO(louise) Get <scene> from SDF
+    // TODO(louise) Fill message header
+
+    // Populate a graph with latest information from all entities
+    // TODO(louise) once we know what entities are added/deleted process only
+    // those. For now, recreating graph at every iteration.
+    this->dataPtr->sceneGraph = math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>, bool>();
+
+    // World
+    // \todo(anyone) It would be convenient to have the following functions:
+    // * _manager.Has<components::World, components::Name>: to tell whether
+    // there
+    //   is an entity which has a given set of components.
+    // * _manager.EntityCount<components::World, components::Name>: returns the
+    //  number of entities which have all the given components.
+    this->dataPtr->worldId = kNullEntity;
+    _manager.Each<components::World,
+                  components::Name>(
+      [&](const EntityId &_entity,
+          const components::World */*_worldComp*/,
+          const components::Name *_nameComp)->bool
+      {
+        if (kNullEntity != this->dataPtr->worldId)
+        {
+          ignerr << "Internal error, more than one world found." << std::endl;
+          return true;
+        }
+        this->dataPtr->worldId = _entity;
+
+        if (!this->dataPtr->posePub)
+        {
+          this->dataPtr->SetupTransport(_nameComp->Data());
+        }
+
+        // Add to graph
+        this->dataPtr->sceneGraph.AddVertex(
+            _nameComp->Data(), nullptr, _entity);
+        return true;
+      });
+
+    if (kNullEntity == this->dataPtr->worldId)
+    {
+      ignerr << "Failed to find world entity" << std::endl;
+      return;
+    }
+
+    // Models
+    _manager.Each<components::Model,
+                  components::Name,
+                  components::ParentEntity,
+                  components::Pose>(
+      [&](const EntityId &_entity,
+          const components::Model */*_modelComp*/,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp)->bool
+      {
+        auto modelMsg = std::make_shared<msgs::Model>();
+        modelMsg->set_id(_entity);
+        modelMsg->set_name(_nameComp->Data());
+        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
+            _poseComp->Data()));
+
+        // Add to graph
+        this->dataPtr->sceneGraph.AddVertex(
+            _nameComp->Data(), modelMsg, _entity);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
+    // Links
+    _manager.Each<components::Link,
+                  components::Name,
+                  components::ParentEntity,
+                  components::Pose>(
+      [&](const EntityId &_entity,
+          const components::Link */*_linkComp*/,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp)->bool
+      {
+        auto linkMsg = std::make_shared<msgs::Link>();
+        linkMsg->set_id(_entity);
+        linkMsg->set_name(_nameComp->Data());
+        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
+            _poseComp->Data()));
+
+        // Add to graph
+        this->dataPtr->sceneGraph.AddVertex(
+            _nameComp->Data(), linkMsg, _entity);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
+    // Visuals
+    _manager.Each<components::Visual,
+                  components::Name,
+                  components::ParentEntity,
+                  components::Pose>(
+      [&](const EntityId &_entity,
+          const components::Visual */*_visualComp*/,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp)->bool
+      {
+        auto visualMsg = std::make_shared<msgs::Visual>();
+        visualMsg->set_id(_entity);
+        visualMsg->set_parent_id(_parentComp->Id());
+        visualMsg->set_name(_nameComp->Data());
+        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(
+            _poseComp->Data()));
+
+        // Geometry is optional
+        auto geometryComp = _manager.Component<components::Geometry>(_entity);
+        if (geometryComp)
+        {
+          visualMsg->mutable_geometry()->CopyFrom(
+              Convert<msgs::Geometry>(geometryComp->Data()));
+        }
+
+        // Material is optional
+        auto materialComp = _manager.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          visualMsg->mutable_material()->CopyFrom(
+              Convert<msgs::Material>(materialComp->Data()));
+        }
+
+        // Add to graph
+        this->dataPtr->sceneGraph.AddVertex(
+            _nameComp->Data(), visualMsg, _entity);
+        this->dataPtr->sceneGraph.AddEdge(
+            {_parentComp->Id(), _entity}, true);
+
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
   }
-
-  // Models
-  _manager.Each<components::Model,
-                components::Name,
-                components::ParentEntity,
-                components::Pose>(
-    [&](const EntityId &_entity,
-        const components::Model */*_modelComp*/,
-        const components::Name *_nameComp,
-        const components::ParentEntity *_parentComp,
-        const components::Pose *_poseComp)
-    {
-      auto modelMsg = std::make_shared<msgs::Model>();
-      modelMsg->set_id(_entity);
-      modelMsg->set_name(_nameComp->Data());
-      modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
-          _poseComp->Data()));
-
-      // Add to graph
-      this->dataPtr->sceneGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
-      this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
-
-      // Add to pose msg
-      auto pose = poseMsg.add_pose();
-      msgs::Set(pose, _poseComp->Data());
-      pose->set_name(_nameComp->Data());
-      pose->set_id(_entity);
-    });
-
-  // Links
-  _manager.Each<components::Link,
-                components::Name,
-                components::ParentEntity,
-                components::Pose>(
-    [&](const EntityId &_entity,
-        const components::Link */*_linkComp*/,
-        const components::Name *_nameComp,
-        const components::ParentEntity *_parentComp,
-        const components::Pose *_poseComp)
-    {
-      auto linkMsg = std::make_shared<msgs::Link>();
-      linkMsg->set_id(_entity);
-      linkMsg->set_name(_nameComp->Data());
-      linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
-          _poseComp->Data()));
-
-      // Add to graph
-      this->dataPtr->sceneGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
-      this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
-
-      // Add to pose msg
-      auto pose = poseMsg.add_pose();
-      msgs::Set(pose, _poseComp->Data());
-      pose->set_name(_nameComp->Data());
-      pose->set_id(_entity);
-    });
-
-  // Visuals
-  _manager.Each<components::Visual,
-                components::Name,
-                components::ParentEntity,
-                components::Pose>(
-    [&](const EntityId &_entity,
-        const components::Visual */*_visualComp*/,
-        const components::Name *_nameComp,
-        const components::ParentEntity *_parentComp,
-        const components::Pose *_poseComp)
-    {
-      auto visualMsg = std::make_shared<msgs::Visual>();
-      visualMsg->set_id(_entity);
-      visualMsg->set_parent_id(_parentComp->Id());
-      visualMsg->set_name(_nameComp->Data());
-      visualMsg->mutable_pose()->CopyFrom(msgs::Convert(
-          _poseComp->Data()));
-
-      // Geometry is optional
-      auto geometryComp = _manager.Component<components::Geometry>(_entity);
-      if (geometryComp)
-      {
-        visualMsg->mutable_geometry()->CopyFrom(
-            Convert<msgs::Geometry>(geometryComp->Data()));
-      }
-
-      // Material is optional
-      auto materialComp = _manager.Component<components::Material>(_entity);
-      if (materialComp)
-      {
-        visualMsg->mutable_material()->CopyFrom(
-            Convert<msgs::Material>(materialComp->Data()));
-      }
-
-      // Add to graph
-      this->dataPtr->sceneGraph.AddVertex(
-          _nameComp->Data(), visualMsg, _entity);
-      this->dataPtr->sceneGraph.AddEdge(
-          {_parentComp->Id(), _entity}, true);
-
-      // Add to pose msg
-      auto pose = poseMsg.add_pose();
-      msgs::Set(pose, _poseComp->Data());
-      pose->set_name(_nameComp->Data());
-      pose->set_id(_entity);
-    });
-
   this->dataPtr->posePub.Publish(poseMsg);
 }
 
