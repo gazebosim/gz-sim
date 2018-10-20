@@ -16,12 +16,16 @@
 */
 #include "ServerPrivate.hh"
 
+#include <tinyxml2.h>
+
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Console.hh>
 
 #include <ignition/gazebo/SystemPluginPtr.hh>
+
+#include <ignition/gui/Application.hh>
 
 #include "SimulationRunner.hh"
 
@@ -42,7 +46,6 @@ ServerPrivate::~ServerPrivate()
   this->Stop();
   if (this->runThread.joinable())
   {
-    this->running = false;
     this->runThread.join();
   }
 }
@@ -57,6 +60,7 @@ void ServerPrivate::OnSignal(int _sig)
 /////////////////////////////////////////////////
 void ServerPrivate::Stop()
 {
+  this->running = false;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
     runner->Stop();
@@ -126,5 +130,41 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
           _root.WorldByIndex(worldIndex), systems));
+  }
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::LoadGui(const sdf::Root &_root)
+{
+  if (!gui::App())
+    return;
+
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
+  {
+    auto world = _root.WorldByIndex(worldIndex);
+    auto element = world->Element();
+
+    // GUI plugins
+    if (!element->HasElement("gui") ||
+        !element->GetElement("gui")->HasElement("plugin"))
+    {
+      continue;
+    }
+
+    auto pluginElem = element->GetElement("gui")->GetElement("plugin");
+    while (pluginElem)
+    {
+      auto fileName = pluginElem->Get<std::string>("filename");
+
+      auto pluginStr = pluginElem->ToString("");
+
+      tinyxml2::XMLDocument pluginDoc;
+      pluginDoc.Parse(pluginStr.c_str());
+
+      gui::App()->LoadPlugin(fileName,
+          pluginDoc.FirstChildElement("plugin"));
+
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
   }
 }
