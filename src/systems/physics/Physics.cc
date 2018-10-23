@@ -34,6 +34,7 @@
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
+#include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
@@ -41,6 +42,7 @@
 
 // SDF
 #include <sdf/Collision.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
@@ -48,17 +50,21 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
+#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
 
 #include "Physics.hh"
 
@@ -74,6 +80,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::sdf::ConstructSdfCollision,
+          ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
@@ -91,6 +98,9 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   public: using LinkPtrType = ignition::physics::LinkPtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
+  public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
@@ -118,6 +128,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
+
+  /// \brief a map between joint entity ids in the ECM to Joint Entities in
+  /// ign-physics
+  public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -282,6 +296,40 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
+        return true;
+      });
+  
+  // joints
+  _ecm.Each<components::Joint, components::Name, components::JointType,
+            components::Pose, components::ParentEntity,
+            components::ChildEntity>(
+      [&](const EntityId & /* _entity */,
+        const components::Joint * /* _joint */,
+        const components::Name *_name,
+        const components::JointType *_jointType,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::ChildEntity *_child)->bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetPose(_pose->Data());
+
+        auto parentName = _ecm.Component<components::Name>(_parent->Id());
+        joint.SetParentLinkName(parentName->Data());
+        auto childName = _ecm.Component<components::Name>(_child->Id());
+        joint.SetChildLinkName(childName->Data());
+
+        // Use the parent link's parent model as the model of this joint
+        auto parentModelId =
+            _ecm.Component<components::ParentEntity>(_parent->Id());
+        if (parentModelId)
+        {
+          auto modelPtrPhys = this->entityModelMap.at(parentModelId->Id());
+          modelPtrPhys->ConstructJoint(joint);
+        }
+
         return true;
       });
 }
