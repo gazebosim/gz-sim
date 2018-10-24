@@ -166,8 +166,8 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   const double zExpected = zInit + 0.5 * grav * pow(iters * dt, 2);
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zExpected, 2e-4);
 
-  // run for 1 more second and check to see if the sphere has stopped
-  server.Run(true, 1000, false);
+  // run for 2 more seconds and check to see if the sphere has stopped
+  server.Run(true, 2000, false);
 
   // The sphere should land on the box and stop.
   auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();
