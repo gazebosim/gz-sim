@@ -82,22 +82,22 @@
 
     </gui>
 
-    <!-- TODO(louise) Change to plane geometry once that's available -->
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
         <collision name="collision">
           <geometry>
-            <box>
-              <size>100 100 0.01</size>
-            </box>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <box>
-              <size>100 100 0.01</size>
-            </box>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
