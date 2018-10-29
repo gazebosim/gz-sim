@@ -27,6 +27,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -70,6 +71,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Visual>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Light>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
@@ -81,8 +84,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
-  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual
-  EXPECT_EQ(13u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
+  EXPECT_EQ(14u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -401,6 +404,322 @@ TEST_P(SimulationRunnerTest, CreateEntities)
     });
 
   EXPECT_EQ(3u, visualCount);
+
+  // Check lights
+  unsigned int lightCount{0};
+  runner.EntityCompMgr().Each<components::Light,
+                            components::Pose,
+                            components::ParentEntity,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Light *_light,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _light);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
+
+      lightCount++;
+
+      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+          _pose->Data());
+
+      EXPECT_EQ("sun", _name->Data());
+
+      EXPECT_EQ(worldEntity, _parent->Id());
+
+      EXPECT_EQ("sun", _light->Data().Name());
+      EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
+      EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+          _light->Data().Pose());
+      EXPECT_EQ("", _light->Data().PoseFrame());
+      EXPECT_TRUE(_light->Data().CastShadows());
+      EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+          _light->Data().Diffuse());
+      EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+          _light->Data().Specular());
+      EXPECT_DOUBLE_EQ(1000, _light->Data().AttenuationRange());
+      EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
+      EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
+      EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
+      EXPECT_EQ(ignition::math::Vector3d(-0.5, 0.1, -0.9),
+          _light->Data().Direction());
+      return true;
+    });
+
+  EXPECT_EQ(1u, lightCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, CreateLights)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/lights.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  std::vector<SystemPluginPtr> systems;
+  SimulationRunner runner(root.WorldByIndex(0), systems);
+
+  // Check entities
+  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
+  EXPECT_EQ(8u, runner.EntityCompMgr().EntityCount());
+
+  // Check worlds
+  unsigned int worldCount{0};
+  EntityId worldEntity = kNullEntity;
+  runner.EntityCompMgr().Each<components::World,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::World *_world,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _world);
+      EXPECT_NE(nullptr, _name);
+
+      EXPECT_EQ("lights", _name->Data());
+
+      worldCount++;
+
+      worldEntity = _entity;
+      return true;
+    });
+
+  EXPECT_EQ(1u, worldCount);
+  EXPECT_NE(kNullEntity, worldEntity);
+
+  // Check model
+  unsigned int modelCount{0};
+  EntityId sphModelEntity = kNullEntity;
+  runner.EntityCompMgr().Each<components::Model,
+                            components::Pose,
+                            components::ParentEntity,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::Model *_model,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _model);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
+
+      modelCount++;
+
+      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
+          _pose->Data());
+      EXPECT_EQ("sphere", _name->Data());
+      sphModelEntity = _entity;
+
+      return true;
+    });
+
+  EXPECT_EQ(1u, modelCount);
+  EXPECT_NE(kNullEntity, sphModelEntity);
+
+  // Check link
+  unsigned int linkCount{0};
+  EntityId sphLinkEntity = kNullEntity;
+  runner.EntityCompMgr().Each<components::Link,
+                            components::Pose,
+                            components::ParentEntity,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::Link *_link,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _link);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
+
+      linkCount++;
+
+      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+          _pose->Data());
+      EXPECT_EQ("sphere_link", _name->Data());
+      EXPECT_EQ(sphModelEntity, _parent->Id());
+      sphLinkEntity = _entity;
+
+      return true;
+    });
+
+  EXPECT_EQ(1u, linkCount);
+  EXPECT_NE(kNullEntity, sphLinkEntity);
+
+  // Check visuals
+  unsigned int visualCount{0};
+  runner.EntityCompMgr().Each<components::Visual,
+                            components::Geometry,
+                            components::Material,
+                            components::Pose,
+                            components::ParentEntity,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Visual *_visual,
+        const components::Geometry *_geometry,
+        const components::Material *_material,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _visual);
+      EXPECT_NE(nullptr, _geometry);
+      EXPECT_NE(nullptr, _material);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
+
+      visualCount++;
+
+      EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+          _pose->Data());
+
+      EXPECT_EQ("sphere_visual", _name->Data());
+
+      EXPECT_EQ(sphLinkEntity, _parent->Id());
+
+      EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
+      EXPECT_NE(nullptr, _geometry->Data().SphereShape());
+      EXPECT_DOUBLE_EQ(0.5, _geometry->Data().SphereShape()->Radius());
+
+      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Ambient());
+      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Diffuse());
+      EXPECT_EQ(math::Color(0.3, 0.3, 0.3), _material->Data().Specular());
+      return true;
+    });
+
+  EXPECT_EQ(1u, visualCount);
+
+  // Check lights
+  unsigned int lightCount{0};
+  runner.EntityCompMgr().Each<components::Light,
+                            components::Pose,
+                            components::ParentEntity,
+                            components::Name>(
+    [&](const EntityId &/*_entity*/,
+        const components::Light *_light,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _light);
+      EXPECT_NE(nullptr, _pose);
+      EXPECT_NE(nullptr, _parent);
+      EXPECT_NE(nullptr, _name);
+
+      lightCount++;
+
+      // light attached to link
+      if (lightCount == 1u)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("link_light_point", _name->Data());
+        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ("link_light_point", _light->Data().Name());
+        EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
+        EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
+            _light->Data().Pose());
+        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+        EXPECT_FALSE(_light->Data().CastShadows());
+        EXPECT_EQ(ignition::math::Color(0.0f, 0.0f, 1.0f, 1),
+            _light->Data().Diffuse());
+        EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+            _light->Data().Specular());
+        EXPECT_DOUBLE_EQ(2, _light->Data().AttenuationRange());
+        EXPECT_DOUBLE_EQ(0.05, _light->Data().ConstantAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.02, _light->Data().LinearAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
+      }
+      // directional light in the world
+      else if (lightCount == 2u)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("directional", _name->Data());
+        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ("directional", _light->Data().Name());
+        EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
+        EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+            _light->Data().Pose());
+        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+        EXPECT_TRUE(_light->Data().CastShadows());
+        EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+            _light->Data().Diffuse());
+        EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+            _light->Data().Specular());
+        EXPECT_DOUBLE_EQ(100, _light->Data().AttenuationRange());
+        EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
+        EXPECT_EQ(ignition::math::Vector3d(0.5, 0.2, -0.9),
+            _light->Data().Direction());
+      }
+      // point light in the world
+      else if (lightCount == 3u)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("point", _name->Data());
+        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ("point", _light->Data().Name());
+        EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
+        EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
+            _light->Data().Pose());
+        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+        EXPECT_FALSE(_light->Data().CastShadows());
+        EXPECT_EQ(ignition::math::Color(1.0f, 0.0f, 0.0f, 1),
+            _light->Data().Diffuse());
+        EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+            _light->Data().Specular());
+        EXPECT_DOUBLE_EQ(4, _light->Data().AttenuationRange());
+        EXPECT_DOUBLE_EQ(0.2, _light->Data().ConstantAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.5, _light->Data().LinearAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
+      }
+      // spot light in the world
+      else if (lightCount == 4u)
+      {
+        EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
+            _pose->Data());
+        EXPECT_EQ("spot", _name->Data());
+        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ("spot", _light->Data().Name());
+        EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
+        EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
+            _light->Data().Pose());
+        EXPECT_EQ(std::string(), _light->Data().PoseFrame());
+        EXPECT_FALSE(_light->Data().CastShadows());
+        EXPECT_EQ(ignition::math::Color(0.0f, 1.0f, 0.0f, 1),
+            _light->Data().Diffuse());
+        EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+            _light->Data().Specular());
+        EXPECT_DOUBLE_EQ(5, _light->Data().AttenuationRange());
+        EXPECT_DOUBLE_EQ(0.3, _light->Data().ConstantAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.4, _light->Data().LinearAttenuationFactor());
+        EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
+        EXPECT_EQ(ignition::math::Vector3d(0.0, 0.0, -1.0),
+            _light->Data().Direction());
+        EXPECT_DOUBLE_EQ(0.1, _light->Data().SpotInnerAngle().Radian());
+        EXPECT_DOUBLE_EQ(0.5, _light->Data().SpotOuterAngle().Radian());
+        EXPECT_DOUBLE_EQ(0.8, _light->Data().SpotFalloff());
+      }
+      return true;
+    });
+
+  EXPECT_EQ(4u, lightCount);
 }
 
 /////////////////////////////////////////////////
