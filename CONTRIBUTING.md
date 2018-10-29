@@ -12,7 +12,7 @@ propose changes to this document in a pull request.
 
 This project and everyone participating in it is governed by the [Ignition
 Robotics Code of Conduct](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this
-code. Please report unacceptable behavior at [https://support.ignitionrobotics.org](https://support.ignitionrobotics.org).
+code. Please report unacceptable behavior at [https://ignitionrobotics.org/support](https://ignitionrobotics.org/support).
 
 \todo(nkoenig) Pull content from: https://bitbucket.org/osrf/gazebo/src/default/CONTRIBUTING.md
 
