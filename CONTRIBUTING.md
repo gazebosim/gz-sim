@@ -58,8 +58,7 @@ High performance inter- and intra-process communication based on
 **Before Submitting a Bug Report**
 
 1. Check the [questions and answers forum](http://answers.gazebosim.org). Your issue may have already been resolved.
-2. Determine the repository, see the Repository List section under Project
-   Design, which should receive the problem.
+2. Determine [the repository](#markdown-header-repository-list) which should receive the problem.
 3. Search the repository's issues to see if the same or similar problem has
    been opened. If it has and the issue is still open, then add a comment to
    the existing issue. Otherwise, create a new issue.
@@ -68,14 +67,15 @@ High performance inter- and intra-process communication based on
 
 Create an issue on the repository that is related to your bug, explain the
 problem, and include additional details to help maintainers reproduce the
-problem:
+problem. Refer to the [Short, Self Contained, Correct (Compilable), Example
+Guide](http://sscce.org/) as well as the following tips:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
 * **Describe the exact steps which reproduce the problem** in as many details as possible. When listing steps, don't just say what you did, but explain how you did it.
 * **Provide specific examples to demonstrate the steps.** Include links to files or projects, or copy/pasteable snippets, which you use in those examples.
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why**.
-* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [Silent Cast](https://github.com/colinkeenan/silentcast) or [Byzanz](https://github.com/GNOME/byzanz) or [Peek](https://github.com/phw/peek) on Linux. GIFs and videos are limited to <= 1MB on Bitbucket. You can also upload media to other hosting services and include a link on the issue.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
