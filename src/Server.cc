@@ -17,6 +17,7 @@
 #include "ignition/gazebo/Server.hh"
 
 #include <sdf/Root.hh>
+#include <sdf/Error.hh>
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -99,7 +100,13 @@ Server::Server(const ServerConfig &_config)
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    root.Load(_config.SdfFile());
+    sdf::Errors errors = root.Load(_config.SdfFile());
+    if (!errors.empty())
+    {
+      for (auto &err : errors)
+        ignerr << err << "\n";
+      return;
+    }
   }
   else
   {

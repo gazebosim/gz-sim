@@ -303,7 +303,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.Each<components::Joint, components::Name, components::JointType,
             components::Pose, components::ParentEntity,
             components::ChildEntity>(
-      [&](const EntityId & /* _entity */,
+      [&](const EntityId &  _entity,
         const components::Joint * /* _joint */,
         const components::Name *_name,
         const components::JointType *_jointType,
@@ -321,6 +321,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto childName = _ecm.Component<components::Name>(_child->Id());
         joint.SetChildLinkName(childName->Data());
 
+        auto jointAxes =
+            _ecm.Component<std::vector<components::JointAxis>>(_entity);
+        if (jointAxes)
+        {
+          for (std::size_t i = 0; i < jointAxes->size(); ++i)
+          {
+            joint.SetAxis(i, (*jointAxes)[i].Data());
+          }
+        }
         // Use the parent link's parent model as the model of this joint
         auto parentModelId =
             _ecm.Component<components::ParentEntity>(_parent->Id());

@@ -488,13 +488,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
       this->entityCompMgr.CreateComponent(jointEntity,
           components::JointType(joint->Type()));
       std::vector<components::JointAxis> jointAxes;
-      for (size_t i = 0; i < 2; ++i)
+      for (std::size_t i = 0; i < 2; ++i)
       {
         if (joint->Axis(i))
         {
-          sdf::JointAxis axis;
-          axis.Load(joint->Axis(i)->Element());
-          jointAxes.emplace_back(std::move(axis));
+          jointAxes.emplace_back(*joint->Axis(i));
         }
       }
 
