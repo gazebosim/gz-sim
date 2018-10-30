@@ -8,6 +8,23 @@ Organization](https://bitbucket.org/ignitionrobotics) on Bitbucket. These
 are mostly guidelines, not rules. Use your best judgment, and feel free to
 propose changes to this document in a pull request.
 
+#### Table of Contents
+
+[Code of Conduct](#markdown-header-code-of-conduct)
+
+[Project Design](#markdown-header-project-design)
+
+  * [Repository List](#markdown-header-repository-list)
+
+[How to Contribute](#markdown-header-how-to-contribute)
+
+  * [Reporting Bugs](#markdown-header-reporting-bugs)
+  * [Suggesting Enhancements](#markdown-header-suggesting-enhancements)
+  * [Your First Code Contribution](#markdown-header-your-first-code-contribution)
+  * [Pull Request Process](#markdown-header-pull-request-process)
+
+[Styleguides](#markdown-header-styleguides)
+
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the [Ignition
