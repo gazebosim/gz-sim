@@ -322,6 +322,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Process world control messages.
     this->ProcessMessages();
+
+    // Process entity erasures.
+    this->entityCompMgr.ProcessEraseEntityRequests();
   }
 
   this->running = false;
@@ -592,4 +595,54 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
     });
 
   return result;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::RequestEraseEntity(const std::string &_name)
+{
+  bool result = false;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        this->entityCompMgr.RequestEraseEntity(_id);
+        result = true;
+        return false;
+      }
+      return true;
+    });
+
+  return result;
+}
+
+/////////////////////////////////////////////////
+std::optional<EntityId> SimulationRunner::EntityByName(
+    const std::string &_name) const
+{
+  std::optional<EntityId> id;
+  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+        const components::Name *_entityName)->bool
+    {
+      if (_entityName->Data() == _name)
+      {
+        id = _id;
+        return false;
+      }
+      return true;
+    });
+
+  return id;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::RequestEraseEntity(const EntityId _id)
+{
+  if (this->entityCompMgr.HasEntity(_id))
+  {
+    this->entityCompMgr.RequestEraseEntity(_id);
+    return true;
+  }
+
+  return false;
 }
