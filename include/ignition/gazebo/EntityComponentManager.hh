@@ -51,61 +51,70 @@ namespace ignition
     /// use a cache to improve performance. The assumption is that entities
     /// and the types of components assigned to entities change infrequently
     /// compared to the frequency of queries performed by systems.
-    class IGNITION_GAZEBO_HIDDEN View
+    class IGNITION_GAZEBO_VISIBLE View
     {
       /// Get a pointer to a component for an entity based on a component type.
       /// \param[in] _id Id of the entity.
+      /// \param[in] _ecm Pointer to the entity component manager.
       /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const EntityId _id) const
+              const ComponentTypeT *Component(const EntityId _id,
+                  const EntityComponentManager *_ecm) const
       {
+        ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
         return static_cast<const ComponentTypeT *>(
-            this->components.at({_id, typeid(ComponentTypeT).hash_code()}));
+            this->ComponentImplementation(_id, typeId, _ecm));
       }
 
       /// Get a pointer to a component for an entity based on a component type.
       /// \param[in] _id Id of the entity.
+      /// \param[in] _ecm Pointer to the entity component manager.
       /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const EntityId _id)
+              ComponentTypeT *Component(const EntityId _id,
+                  const EntityComponentManager *_ecm)
       {
+        ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
         return static_cast<ComponentTypeT *>(
             const_cast<void *>(
-            this->components.at({_id, typeid(ComponentTypeT).hash_code()})));
+              this->ComponentImplementation(_id, typeId, _ecm)));
       }
 
       /// \brief Add an entity to the view.
       /// \param[in] _id Id of the entity to add.
-      public: void AddEntity(const EntityId _id)
-      {
-        this->entities.insert(_id);
-      }
+      public: void AddEntity(const EntityId _id);
+
+      /// \brief Remove an entity from the view.
+      /// \param[in] _id Id of the entity to remove.
+      /// \param[in] _key Components that should also be removed.
+      /// \return True if the entity was erased, false if the entity did not
+      /// exist in the view.
+      public: bool EraseEntity(const EntityId _id,
+                               const ComponentTypeKey &_key);
 
       /// \brief Add a component to an entity.
       /// \param[in] _id Id of the entity.
-      /// \param[in] _component Component to add.
-      public: template<typename ComponentTypeT>
-              void AddComponent(const EntityId _id,
-                                const ComponentTypeT *_component)
-      {
-        ComponentTypeId id = typeid(ComponentTypeT).hash_code();
-        this->components.insert(std::make_pair(
-              std::make_pair(_id, id), static_cast<const void *>(_component)));
-      }
-
-      /// \brief Add a component to an entity.
-      /// \param[in] _id Id of the entity.
-      /// \param[in] _component Component to add.
+      /// \param[in] _compTypeId Component type id.
+      /// \param[in] _compId Component id.
       public: void AddComponent(const EntityId _id,
-                                const ComponentTypeId _compId,
-                                const void *_component);
+                                const ComponentTypeId _compTypeId,
+                                const ComponentId _compId);
+
+      /// \brief Implementation of the Component accessor.
+      /// \param[in] _id Id of the Entity.
+      /// \param[in] _typeId Type id of the component.
+      /// \param[in] _ecm Pointer to the EntityComponentManager.
+      /// \return Pointer to the component, or nullptr if not found.
+      private: const void *ComponentImplementation(const EntityId _id,
+                   ComponentTypeId _typeId,
+                   const EntityComponentManager *_ecm) const;
 
       /// \brief All the entities that belong to this view.
       public: std::set<EntityId> entities;
 
       /// \brief All of the components for each entity.
       public: std::map<std::pair<EntityId, ComponentTypeId>,
-              const void *> components;
+              ComponentId> components;
     };
     /// \endcond
 
@@ -310,13 +319,15 @@ namespace ignition
       /// \return Entity count.
       public: size_t EntityCount() const;
 
-      /// \brief Delete an existing Entity.
-      /// \returns True if the Entity existed and was deleted.
-      /// \todo(nkoenig) Implement this function
-      // public: bool EraseEntity(const EntityId _id);
+      /// \brief Request an entity deletion. This will insert the request
+      /// into a queue. The queue is processed toward the end of a simulation
+      /// update step.
+      public: void RequestEraseEntity(const EntityId _id);
 
-      /// \brief Delete all entities.
-      public: void EraseEntities();
+      /// \brief Request to erase all entities. This will insert the request
+      /// into a queue. The queue is processed toward the end of a simulation
+      /// update step.
+      public: void RequestEraseEntities();
 
       /// \brief Get whether an Entity exists.
       /// \param[in] _id Entity id to confirm.
@@ -565,7 +576,7 @@ namespace ignition
         // function.
         for (const EntityId entity : view.entities)
         {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity)...))
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
             break;
           }
@@ -595,12 +606,22 @@ namespace ignition
         // function.
         for (const EntityId entity : view.entities)
         {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity)...))
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
             break;
           }
         }
       }
+
+      /// \brief Process all entity erase requests. This will remove
+      /// entities and their components. This function is protected to
+      /// facilitate testing.
+      protected: void ProcessEraseEntityRequests();
+
+      /// \brief Delete an existing Entity.
+      /// \param[in] _id Id of the Entity to erase.
+      /// \returns True if the Entity existed and was deleted.
+      private: bool EraseEntity(const EntityId _id);
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
@@ -670,9 +691,18 @@ namespace ignition
                           sizeof...(RemainingComponents) == 0, int>::type = 0>
                void AddComponentsToView(View &_view, const EntityId _id) const
       {
-        // Add the component to the view.
-        _view.AddComponent<FirstComponent>(_id,
-            this->Component<FirstComponent>(_id));
+        const ComponentTypeId typeId = ComponentType<FirstComponent>();
+        const ComponentId compId = this->EntityComponentIdFromType(_id, typeId);
+        if (compId >= 0)
+        {
+          // Add the component to the view.
+          _view.AddComponent(_id, typeId, compId);
+        }
+        else
+        {
+          ignerr << "Entity[" << _id << "] has no component of type["
+            << typeId << "]. This should never happen.\n";
+        }
       }
 
       /// \brief Recursively add components to a view. This function is
@@ -686,9 +716,19 @@ namespace ignition
                           sizeof...(RemainingComponents) != 0, int>::type = 0>
               void AddComponentsToView(View &_view, const EntityId _id) const
       {
-        // Add the frst component to the view.
-        _view.AddComponent<FirstComponent>(_id,
-            this->Component<FirstComponent>(_id));
+        const ComponentTypeId typeId = ComponentType<FirstComponent>();
+        const ComponentId compId = this->EntityComponentIdFromType(_id, typeId);
+        if (compId >= 0)
+        {
+          // Add the component to the view.
+          _view.AddComponent(_id, typeId, compId);
+        }
+        else
+        {
+          ignerr << "Entity[" << _id << "] has no component of type["
+            << typeId << "]. This should never happen.\n";
+        }
+
         // Add the remaining components to the view.
         this->AddComponentsToView<RemainingComponents...>(_view, _id);
       }
@@ -750,8 +790,20 @@ namespace ignition
       /// \param[in] _id Id of the entity.
       private: void UpdateViews(const EntityId _id);
 
+      private: ComponentId EntityComponentIdFromType(
+                   const EntityId _id, const ComponentTypeId _type) const;
+
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
+
+      /// Make simulation runner a friend so that it can trigger entity
+      /// erasures. This should be safe since SimulationRunner is internal
+      /// to Gazebo.
+      friend class SimulationRunner;
+
+      /// Make View a friend so that it can access components.
+      // This should be safe since View is internal to Gazebo.
+      friend class View;
     };
     }
   }

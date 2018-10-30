@@ -273,3 +273,33 @@ bool Server::HasEntity(const std::string &_name,
   return false;
 }
 
+//////////////////////////////////////////////////
+std::optional<EntityId> Server::EntityByName(const std::string &_name,
+    const unsigned int _worldIndex) const
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->EntityByName(_name);
+
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
+bool Server::RequestEraseEntity(const std::string &_name,
+                       const unsigned int _worldIndex)
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_name);
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool Server::RequestEraseEntity(const EntityId _id,
+                                const unsigned int _worldIndex)
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_id);
+
+  return false;
+}
+
