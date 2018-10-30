@@ -33,7 +33,7 @@ A high-fidelity 3D rigid-body dynamic simulator.
 library to configure and manage graphical applications.
 * [ign-math](https://bitbucket.org/ignitionrobotics/ign-math): A math
 library targeted toward robotic applications.
-* [ign-msgs](https://bitbucket.org/ignitionrobotics/ign-msg): Protobuf
+* [ign-msgs](https://bitbucket.org/ignitionrobotics/ign-msgs): Protobuf
 messages and utilities for simulation and robotics.
 * [ign-physics](https://bitbucket.org/ignitionrobotics/ign-physics):
 Plugin based library for physics simulation.
