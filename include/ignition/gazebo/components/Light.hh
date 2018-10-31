@@ -34,7 +34,9 @@ namespace components
   // Forward declarations.
   class LightPrivate;
 
-  /// \brief This component holds an entity's light.
+  /// \brief This component contains light source information. For more
+  /// information on lights, see [SDF's Light
+  /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   class IGNITION_GAZEBO_VISIBLE Light
   {
     /// \brief Constructor
