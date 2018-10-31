@@ -29,6 +29,7 @@
 
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildEntity.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -38,6 +39,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -462,26 +464,6 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
     {
       auto joint = model->JointByIndex(jointIndex);
 
-      // verify that parent and child exist
-      auto parentIt = linkMap.find(joint->ParentLinkName());
-      auto childIt = linkMap.find(joint->ChildLinkName());
-
-      if (parentIt == linkMap.end())
-      {
-        ignerr << "Parent link " << joint->ParentLinkName() << " not found\n";
-        // should we terminate?
-        continue;
-      }
-      if (childIt == linkMap.end())
-      {
-        ignerr << "Child link " << joint->ChildLinkName() << " not found\n";
-        // should we terminate?
-        continue;
-      }
-
-      EntityId parentEntity = parentIt->second;
-      EntityId childEntity = childIt->second;
-
       // Entity
       EntityId jointEntity = this->entityCompMgr.CreateEntity();
 
@@ -490,26 +472,29 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Joint());
       this->entityCompMgr.CreateComponent(jointEntity,
           components::JointType(joint->Type()));
-      std::vector<components::JointAxis> jointAxes;
-      for (std::size_t i = 0; i < 2; ++i)
+
+      if (joint->Axis(0))
       {
-        if (joint->Axis(i))
-        {
-          jointAxes.emplace_back(*joint->Axis(i));
-        }
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::JointAxis(*joint->Axis(0)));
       }
 
-      if (jointAxes.size() > 0)
-        this->entityCompMgr.CreateComponent(jointEntity, jointAxes);
+      if (joint->Axis(1))
+      {
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::JointAxis2(*joint->Axis(1)));
+      }
 
       this->entityCompMgr.CreateComponent(jointEntity,
           components::Pose(joint->Pose()));
       this->entityCompMgr.CreateComponent(jointEntity ,
           components::Name(joint->Name()));
       this->entityCompMgr.CreateComponent(jointEntity,
-          components::ParentEntity(parentEntity));
+          components::ParentEntity(modelEntity));
       this->entityCompMgr.CreateComponent(jointEntity,
-          components::ChildEntity(childEntity));
+          components::ParentLinkName(joint->ParentLinkName()));
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::ChildLinkName(joint->ChildLinkName()));
     }
   }
 }

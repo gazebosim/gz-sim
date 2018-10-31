@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
+#define IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
 
-#include <sdf/JointAxis.hh>
-
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -32,16 +31,12 @@ namespace components
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \brief A component that contains the joint axis . This is a simple wrapper
-  /// around sdf::JointAxis
-  using JointAxis = SimpleWrapper<sdf::JointAxis, class JointAxisTag>;
-
-  /// \brief A component that contains the second joint axis for joints with two
-  /// axes. This is a simple wrapper around sdf::JointAxis
-  using JointAxis2 = SimpleWrapper<sdf::JointAxis, class JointAxis2Tag>;
+  //
+  /// \brief A component used to indicate that a model is childlinkname (i.e.
+  /// not moveable).
+  using ChildLinkName = SimpleWrapper<std::string, class ChildLinkNameTag>;
   }
 }
 }
 }
 #endif
-
