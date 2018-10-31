@@ -25,6 +25,8 @@ propose changes to this document in a pull request.
 
 [Styleguides](#markdown-header-styleguides)
 
+[Appendix](#markdown-header-appendix)
+
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the [Ignition
@@ -92,7 +94,7 @@ Guide](http://sscce.org/) as well as the following tips:
 * **Provide specific examples to demonstrate the steps.** Include links to files or projects, or copy/pasteable snippets, which you use in those examples.
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why**.
-* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [Silent Cast](https://github.com/colinkeenan/silentcast) or [Byzanz](https://github.com/GNOME/byzanz) or [Peek](https://github.com/phw/peek) on Linux. GIFs and videos are limited to <= 1MB on Bitbucket. You can also upload media to other hosting services and include a link on the issue.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. See [Creating GIFs](#markdown-header-creating-gifs) for GIF creation utilities.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
@@ -142,7 +144,7 @@ repository and provide the following information:
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://confluence.atlassian.com/bitbucketserver/markdown-syntax-guide-776639995.html).
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [Silent Cast](https://github.com/colinkeenan/silentcast) or [Byzanz](https://github.com/GNOME/byzanz) or [Peek](https://github.com/phw/peek) on Linux. GIFs and videos are limited to <= 1MB on Bitbucket. You can also upload media to other hosting services and include a link on the issue.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. See [Creating GIFs](#markdown-header-creating-gifs) for GIF creation utilities.
 * **Explain why this enhancement would be useful** to most users and isn't something that can or should be implemented as a separate application.
 * **Specify which version of Ignition Robotics you're using.** 
 * **Specify the name and version of the OS you're using.**
@@ -153,3 +155,14 @@ repository and provide the following information:
 
 ## Styleguides
 
+## Appendix
+
+### Creating GIFs
+
+You can use [LICEcap](https://www.cockos.com/licecap/) to record GIFs on
+macOS and Windows, and [Silent
+Cast](https://github.com/colinkeenan/silentcast) or
+[Byzanz](https://github.com/GNOME/byzanz) or
+[Peek](https://github.com/phw/peek) on Linux. GIFs and videos are limited to
+<= 1MB on Bitbucket. You can also upload media to other hosting services and
+include a link on the issue.
