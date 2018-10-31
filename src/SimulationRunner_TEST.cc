@@ -19,21 +19,26 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Joint.hh>
+#include <sdf/JointAxis.hh>
+#include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/ChildEntity.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -403,6 +408,132 @@ TEST_P(SimulationRunnerTest, CreateEntities)
     });
 
   EXPECT_EQ(3u, visualCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, CreateJointEntities)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/demo_joint_types.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  std::vector<SystemPluginPtr> systems;
+  SimulationRunner runner(root.WorldByIndex(0), systems);
+
+  // Check component types
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::World>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Joint>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::JointAxis>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::JointType>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ChildLinkName>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ParentLinkName>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ParentEntity>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Pose>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Name>()));
+
+  const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
+
+  auto testAxis = [](const std::string &_jointName,
+                      const sdf::JointAxis *_jointAxis,
+                      const auto *_axisComp)
+  {
+    ASSERT_TRUE(nullptr != _axisComp) << "Axis not found for " << _jointName;
+    EXPECT_EQ(_jointAxis->Xyz(), _axisComp->Data().Xyz());
+    EXPECT_DOUBLE_EQ(_jointAxis->Lower(), _axisComp->Data().Lower());
+    EXPECT_DOUBLE_EQ(_jointAxis->Upper(), _axisComp->Data().Upper());
+    EXPECT_DOUBLE_EQ(_jointAxis->Effort(), _axisComp->Data().Effort());
+  };
+
+  auto testJoint = [&testAxis](const sdf::Joint *_joint,
+      const components::JointAxis *_axis,
+      const components::JointAxis2 *_axis2,
+      const components::ParentLinkName *_parentLinkName,
+      const components::ChildLinkName *_childLinkName,
+      const components::Pose *_pose,
+      const components::Name *_name,
+      bool _checkAxis = true,
+      bool _checkAxis2 = false)
+  {
+    ASSERT_TRUE(nullptr != _joint);
+
+    // Even if the pose element isn't explicitly set in the sdf, a default one
+    // is created during parsing, so it's safe to compare here.
+    EXPECT_EQ(_joint->Pose(), _pose->Data());
+
+    if (_checkAxis)
+      testAxis(_joint->Name(), _joint->Axis(0), _axis);
+
+    if (_checkAxis2)
+      testAxis(_joint->Name(), _joint->Axis(1), _axis2);
+
+    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->Name(), _name->Data());
+  };
+
+  std::set<std::string> jointsToCheck = {
+    "revolute_demo",
+    "gearbox_demo"
+    "revolute2_demo",
+    "prismatic_demo",
+    "ball_demo",
+    "screw_demo",
+    "universal_demo",
+    "prismatic_demo",
+    "fixed_demo"
+  };
+
+  std::set<sdf::JointType> jointTypes;
+  runner.EntityCompMgr().Each<components::Joint,
+                            components::JointType,
+                            components::ParentLinkName,
+                            components::ChildLinkName,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::Joint * /*_joint*/,
+        const components::JointType *_jointType,
+        const components::ParentLinkName *_parentLinkName,
+        const components::ChildLinkName *_childLinkName,
+        const components::Pose *_pose,
+        const components::Name *_name)->bool
+    {
+      jointTypes.insert(_jointType->Data());
+      auto axis =
+          runner.EntityCompMgr().Component<components::JointAxis>(_entity);
+      auto axis2 =
+          runner.EntityCompMgr().Component<components::JointAxis2>(_entity);
+
+      const sdf::Joint *joint = model->JointByName(_name->Data());
+
+      if (jointsToCheck.find(_name->Data()) != jointsToCheck.end())
+      {
+        bool checkAxis = ("fixed_demo" != _name->Data()) &&
+                         ("ball_demo" != _name->Data());
+        bool checkAxis2 = ("gearbox_demo" == _name->Data()) ||
+                          ("revolute2_demo" == _name->Data()) ||
+                          ("universal_demo" == _name->Data());
+        testJoint(joint, axis, axis2, _parentLinkName, _childLinkName, _pose,
+            _name, checkAxis, checkAxis2);
+      }
+
+      return true;
+    });
+
+  EXPECT_EQ(8u, jointTypes.size());
 }
 
 /////////////////////////////////////////////////
