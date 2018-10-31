@@ -51,6 +51,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
 #include "ignition/gazebo/components/ChildEntity.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
@@ -61,6 +62,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -298,46 +300,40 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         // for now, we won't have a map to the collision once it's added
         return true;
       });
-  
+
   // joints
   _ecm.Each<components::Joint, components::Name, components::JointType,
             components::Pose, components::ParentEntity,
-            components::ChildEntity>(
+            components::ParentLinkName,
+            components::ChildLinkName>(
       [&](const EntityId &  _entity,
         const components::Joint * /* _joint */,
         const components::Name *_name,
         const components::JointType *_jointType,
         const components::Pose *_pose,
-        const components::ParentEntity *_parent,
-        const components::ChildEntity *_child)->bool
+        const components::ParentEntity *_parentModel,
+        const components::ParentLinkName *_parentLinkName,
+        const components::ChildLinkName *_childLinkName)->bool
       {
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
         joint.SetPose(_pose->Data());
 
-        auto parentName = _ecm.Component<components::Name>(_parent->Id());
-        joint.SetParentLinkName(parentName->Data());
-        auto childName = _ecm.Component<components::Name>(_child->Id());
-        joint.SetChildLinkName(childName->Data());
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
 
-        auto jointAxes =
-            _ecm.Component<std::vector<components::JointAxis>>(_entity);
-        if (jointAxes)
-        {
-          for (std::size_t i = 0; i < jointAxes->size(); ++i)
-          {
-            joint.SetAxis(i, (*jointAxes)[i].Data());
-          }
-        }
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
+            joint.SetAxis(0, jointAxis->Data());
+        if (jointAxis2)
+            joint.SetAxis(1, jointAxis2->Data());
+
         // Use the parent link's parent model as the model of this joint
-        auto parentModelId =
-            _ecm.Component<components::ParentEntity>(_parent->Id());
-        if (parentModelId)
-        {
-          auto modelPtrPhys = this->entityModelMap.at(parentModelId->Id());
-          modelPtrPhys->ConstructJoint(joint);
-        }
+        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Id());
+        modelPtrPhys->ConstructJoint(joint);
 
         return true;
       });
