@@ -110,6 +110,43 @@ Include details about your configuration and environment:
 
 ### Suggesting Enhancements
 
+This section guides you through submitting an enhancement suggestion,
+including completely new features and minor improvements to existing
+functionality. Following these guidelines helps maintainers and the
+community understand your suggestion and find related suggestions.
+
+Before creating enhancement suggestions, please check [this
+list](#markdown-header-before-submitting-an-enhancement-suggestion) as you
+might find out that you don't need to create one. When you are creating an
+enhancement suggestion, please [include as many details as
+possible](#markdown-header-how-do-i-submit-a-good-enhancement-suggestion).
+When filling in the issue form for an enhancement suggestion, include the
+steps that you imagine you would take if the feature you're requesting
+existed.
+
+#### Before Submitting An Enhancement Suggestion
+
+* **Check if you're using the latest software version**. A more recent version may contain your desired feature.
+* **Check if there's already [a library](https://ignitionrobotics.org/libs) which provides that enhancement.**
+* **Determine [which repository the enhancement should be suggested in](#markdown-header-repository-list).**
+* **Perform a [cursory search](https://bitbucket.org/search?q=&account=%7Bdd3bee6b-ed2f-496a-9634-d99cf5144fc5%7D)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+
+#### How Do I Submit A (Good) Enhancement Suggestion?
+
+Enhancement suggestions are tracked as [Bitbucket
+issues](https://confluence.atlassian.com/bitbucket/issue-trackers-221449750.html).  After you've determined [which repository](#markdown-header-repository-list)
+your enhancement suggestion is related to, create an issue on that
+repository and provide the following information:
+
+* **Use a clear and descriptive title** for the issue to identify the suggestion.
+* **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
+* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://confluence.atlassian.com/bitbucketserver/markdown-syntax-guide-776639995.html).
+* **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [Silent Cast](https://github.com/colinkeenan/silentcast) or [Byzanz](https://github.com/GNOME/byzanz) or [Peek](https://github.com/phw/peek) on Linux. GIFs and videos are limited to <= 1MB on Bitbucket. You can also upload media to other hosting services and include a link on the issue.
+* **Explain why this enhancement would be useful** to most users and isn't something that can or should be implemented as a separate application.
+* **Specify which version of Ignition Robotics you're using.** 
+* **Specify the name and version of the OS you're using.**
+
 ### Your First Code Contribution
 
 ### Pull Request Process
