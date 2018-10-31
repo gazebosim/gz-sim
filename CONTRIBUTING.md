@@ -20,8 +20,7 @@ propose changes to this document in a pull request.
 
   * [Reporting Bugs](#markdown-header-reporting-bugs)
   * [Suggesting Enhancements](#markdown-header-suggesting-enhancements)
-  * [Your First Code Contribution](#markdown-header-your-first-code-contribution)
-  * [Pull Request Process](#markdown-header-pull-request-process)
+  * [How to Contribute Code](#markdown-header-how-to-contribute-code)
 
 [Styleguides](#markdown-header-styleguides)
 
@@ -132,6 +131,9 @@ existed.
 * **Check if there's already [a library](https://ignitionrobotics.org/libs) which provides that enhancement.**
 * **Determine [which repository the enhancement should be suggested in](#markdown-header-repository-list).**
 * **Perform a [cursory search](https://bitbucket.org/search?q=&account=%7Bdd3bee6b-ed2f-496a-9634-d99cf5144fc5%7D)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+* **Ask on the [community forum](https://community.gazebosim.org) about your
+feature.** Someone else might already have started, and you might be able to
+help.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -149,9 +151,122 @@ repository and provide the following information:
 * **Specify which version of Ignition Robotics you're using.** 
 * **Specify the name and version of the OS you're using.**
 
-### Your First Code Contribution
+### How to Contribute Code
 
-### Pull Request Process
+We follow a development process designed to reduce errors, encourage
+collaboration, and make high quality code. The process may seem rigid and
+tedious, but every step is worth the effort.
+
+### Steps to follow
+
+1. Are you sure? Read through the [Reporting
+   Bugs](#markdown-header-reporting-bugs) and [Suggesting Enhancements](#markdown-header-suggesting-enhancements) first.
+
+1. Fork the Ignition library you want to contribute to.
+
+    This will create your own personal copy of the library. All of your
+    development should take place in your fork.
+
+1. Choose a base branch.
+
+    If your changes will break API or ABI, then base your new branch off of
+    `default`. If your changes don't break API/ABI and you would like them
+    to be released to an existing release with major version `N`,
+    then use branch `ign-<library>N` as the base.
+
+1. Work out of a branch
+
+    Always work out of a new branch, never off of the base/default branch.
+    This is a good habit to get in, and will make your life easier.
+
+1. Write your code.
+
+    This is the fun part.
+
+1. Write tests
+
+    In most cases, a pull request will only be accepted if it has tests. See the
+    [Write tests](#markdown-header-how-to-write-tests) section below for more information.
+
+1. Compiler warnings
+
+    Code must have zero compile warnings, or at least make sure your pull
+    request is not adding new warnings.
+
+1. Make sure your are following the appropriate [code style](#markdown-header-style-guides).
+
+    Static code checking analyzes your code for bugs, such as potential memory
+    leaks, and style. Most Ignition libraries use the `cppcheck` static code
+    checker, and a modified version `cpplint`. Ubuntu
+    users can install via:
+
+        sudo apt-get install cppcheck
+
+    To check your code, run the following script from your `build` folder :
+
+        make codecheck
+
+    This may take a few minutes to run. Fix all errors and warnings until
+    the output looks like:
+
+        Built target codecheck
+
+    The tool does not catch all style errors. See the [code style](#markdown-header-style-guides) section below for more information.
+
+1. Tests pass
+
+    There must be no failing tests. You can check by running `make test` in
+    your build directory. Running tests in may take a bit of time, be patient. 
+
+1. Documentation.
+
+    Document all your code. Every class, function, member variable must have
+    doxygen comments. All code in source files must have documentation that
+    describes the functionality. This will help reviewers and future developers.
+
+1. Review your code.
+
+    Before submitting your code through a pull request, take some time to
+    review everything line-by-line. The review process will go much faster if
+    you make sure everything is perfect before other people look at your code.
+    There is a bit of the human-condition involved here. Folks are less likely
+    to spend time reviewing your code if it's sloppy.
+
+1. Small pull requests
+
+    A large pull request is hard to review, and will take a long time. It is
+    worth your time to split a large pull request into multiple smaller pull
+    requests. For reference, here are a few examples:
+
+    * [Small, very nice](https://bitbucket.org/osrf/gazebo/pull-request/1732)
+
+    * [Medium, still okay](https://bitbucket.org/osrf/gazebo/pull-request/1700/)
+
+    * [Too large](https://bitbucket.org/osrf/gazebo/pull-request/30)
+
+1. Submit a pull request to the Ignition library through Bitbucket when you're ready.
+
+1. Continuous integration
+
+    The moment you make a pull request, a few jobs in our
+    [continuous integration](http://build.osrfoundation.org/)
+    server will be started. These jobs will build your branch on Linux, Mac and
+    Windows, run all tests and check for warnings.
+
+    Your pull request will be updated with the status of these builds. Take some
+    time to check these builds and see if you've introduced test failures,
+    warnings or broke some build. If you did and know how to fix it, do so. If
+    you don't know, speak up and someone may try to help you.
+
+1. Review
+
+    At least two other people have to approve your pull request before it can
+    be merged. Please be responsive to any questions and comments.
+
+1. Done, phew.
+
+    Once you have met all the requirements, you're code will be merged. Thanks
+    for improving Ignition Robotics!
 
 ## Styleguides
 
