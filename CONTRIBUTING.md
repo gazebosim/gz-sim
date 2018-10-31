@@ -20,9 +20,11 @@ propose changes to this document in a pull request.
 
   * [Reporting Bugs](#markdown-header-reporting-bugs)
   * [Suggesting Enhancements](#markdown-header-suggesting-enhancements)
-  * [How to Contribute Code](#markdown-header-how-to-contribute-code)
+  * [Contributing Code](#markdown-header-contributing-code)
 
-[Styleguides](#markdown-header-styleguides)
+[Writing Tests](#markdown-header-writing-tests)
+
+[Styleguides](#markdown-header-style-guides)
 
 [Appendix](#markdown-header-appendix)
 
@@ -151,49 +153,36 @@ repository and provide the following information:
 * **Specify which version of Ignition Robotics you're using.** 
 * **Specify the name and version of the OS you're using.**
 
-### How to Contribute Code
+### Contributing Code
 
 We follow a development process designed to reduce errors, encourage
 collaboration, and make high quality code. The process may seem rigid and
 tedious, but every step is worth the effort.
 
-### Steps to follow
+1. **Read the [Reporting Bugs](#markdown-header-reporting-bugs) and [Suggesting Enhancements](#markdown-header-suggesting-enhancements)** sections first.
 
-1. Are you sure? Read through the [Reporting
-   Bugs](#markdown-header-reporting-bugs) and [Suggesting Enhancements](#markdown-header-suggesting-enhancements) first.
+1. **Fork the Ignition library** you want to contribute to. This will create
+   your own personal copy of the library. All of your development should
+   take place in your fork.
 
-1. Fork the Ignition library you want to contribute to.
+1. **Choose a base branch.** If your changes will break API or ABI, then
+   base your new branch off of `default`. If your changes don't break
+   API/ABI and you would like them to be released to an existing release
+   with major version `N`, then use branch `ign-<library>N` as the base.
 
-    This will create your own personal copy of the library. All of your
-    development should take place in your fork.
+1. **Work out of a branch** Always work out of a new branch, never off of
+   the base/default branch.  This is a good habit to get in, and will make
+   your life easier.
 
-1. Choose a base branch.
+1. **Write your code.** This is the fun part.
 
-    If your changes will break API or ABI, then base your new branch off of
-    `default`. If your changes don't break API/ABI and you would like them
-    to be released to an existing release with major version `N`,
-    then use branch `ign-<library>N` as the base.
+1. **Write tests.** In most cases, a pull request will only be accepted if
+   it has tests. See the [Writing Tests](#markdown-header-writing-tests)
+  section below for more information.
 
-1. Work out of a branch
+1. **Resolve compiler warnings.** Code must have zero compile warnings, or at least make sure your pull request is not adding new warnings.
 
-    Always work out of a new branch, never off of the base/default branch.
-    This is a good habit to get in, and will make your life easier.
-
-1. Write your code.
-
-    This is the fun part.
-
-1. Write tests
-
-    In most cases, a pull request will only be accepted if it has tests. See the
-    [Write tests](#markdown-header-how-to-write-tests) section below for more information.
-
-1. Compiler warnings
-
-    Code must have zero compile warnings, or at least make sure your pull
-    request is not adding new warnings.
-
-1. Make sure your are following the appropriate [code style](#markdown-header-style-guides).
+1. **Follow the [style guide](#markdown-header-style-guides).**
 
     Static code checking analyzes your code for bugs, such as potential memory
     leaks, and style. Most Ignition libraries use the `cppcheck` static code
@@ -213,26 +202,18 @@ tedious, but every step is worth the effort.
 
     The tool does not catch all style errors. See the [code style](#markdown-header-style-guides) section below for more information.
 
-1. Tests pass
-
-    There must be no failing tests. You can check by running `make test` in
+1. **Tests must pass.** You can check by running `make test` in
     your build directory. Running tests in may take a bit of time, be patient. 
 
-1. Documentation.
+1. **Write documentation.** Document all your code. Every class, function, member variable must have doxygen comments. All code in source files must have documentation that describes the functionality. This will help reviewers and future developers.
 
-    Document all your code. Every class, function, member variable must have
-    doxygen comments. All code in source files must have documentation that
-    describes the functionality. This will help reviewers and future developers.
+1. **Review your code.** Before submitting your code through a pull request,
+   take some time to review everything line-by-line. The review process will
+   go much faster if you make sure everything is perfect before other people
+   look at your code.  There is a bit of the human-condition involved here.
+   Folks are less likely to spend time reviewing your code if it's sloppy.
 
-1. Review your code.
-
-    Before submitting your code through a pull request, take some time to
-    review everything line-by-line. The review process will go much faster if
-    you make sure everything is perfect before other people look at your code.
-    There is a bit of the human-condition involved here. Folks are less likely
-    to spend time reviewing your code if it's sloppy.
-
-1. Small pull requests
+1. **Make small pull requests**
 
     A large pull request is hard to review, and will take a long time. It is
     worth your time to split a large pull request into multiple smaller pull
@@ -244,9 +225,9 @@ tedious, but every step is worth the effort.
 
     * [Too large](https://bitbucket.org/osrf/gazebo/pull-request/30)
 
-1. Submit a pull request to the Ignition library through Bitbucket when you're ready.
+1. **Submit a pull request** to the Ignition library through Bitbucket when you're ready.
 
-1. Continuous integration
+1. **Check Continuous integration.**
 
     The moment you make a pull request, a few jobs in our
     [continuous integration](http://build.osrfoundation.org/)
@@ -258,17 +239,13 @@ tedious, but every step is worth the effort.
     warnings or broke some build. If you did and know how to fix it, do so. If
     you don't know, speak up and someone may try to help you.
 
-1. Review
+1. **Respond to reviewers.** At least two other people have to approve your pull request before it can be merged. Please be responsive to any questions and comments.
 
-    At least two other people have to approve your pull request before it can
-    be merged. Please be responsive to any questions and comments.
+1. **Done, phew.** Once you have met all the requirements, you're code will be merged. Thanks for improving Ignition Robotics!
 
-1. Done, phew.
+## Writing Tests
 
-    Once you have met all the requirements, you're code will be merged. Thanks
-    for improving Ignition Robotics!
-
-## Styleguides
+## Style Guides
 
 ## Appendix
 
