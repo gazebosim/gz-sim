@@ -87,7 +87,7 @@ class Relay
     return *this;
   }
 
-  ignition::gazebo::SystemPluginPtr systemPtr;
+  public: ignition::gazebo::SystemPluginPtr systemPtr;
 
   private: gazebo::SystemManager sm;
   private: gazebo::MockSystem *mockSystem;
@@ -179,4 +179,77 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   const double zStopped =
       sphere->Radius() - model->LinkByIndex(0)->Pose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
+}
+
+/////////////////////////////////////////////////
+// This tests whether links with fixed joints keep their relative transforms
+// after physics. For that to work properly, the canonical link implementation
+// must be correct.
+TEST_F(PhysicsSystemFixture, CanonicalLink)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/canonical.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName{"canonical"};
+  std::vector<std::string> linksToCheck {"base_link", "link1", "link2"};
+
+  const sdf::Model *model = world->ModelByIndex(1);
+
+  std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
+  for (auto &linkName : linksToCheck)
+    expectedLinPoses[linkName] = model->LinkByName(linkName)->Pose();
+  ASSERT_EQ(3u, expectedLinPoses.size());
+
+  // Create a system that records the poses of the links after physics
+  Relay testSystem;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  testSystem.OnPostUpdate(
+    [&modelName, &postUpLinkPoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
+        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        const components::Name *_name, const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+        {
+          auto parentModel = _ecm.Component<components::Name>(_parent->Id());
+          EXPECT_TRUE(nullptr != parentModel);
+          if (parentModel->Data() == modelName)
+          {
+            postUpLinkPoses[_name->Data()] = _pose->Data();
+          }
+          return true;
+        });
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(3u, postUpLinkPoses.size());
+
+  for (auto &link : linksToCheck)
+  {
+    ASSERT_TRUE(postUpLinkPoses.find(link) != postUpLinkPoses.end())
+        << link << " not found";
+    // We expecte that after physics iterations, the relative poses of the links
+    // to be the same as their initial relative poses itertions since all the
+    // joints are fixed joints
+    EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]);
+  }
 }
