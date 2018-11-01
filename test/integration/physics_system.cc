@@ -206,7 +206,7 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
   const std::string modelName{"canonical"};
   std::vector<std::string> linksToCheck {"base_link", "link1", "link2"};
 
-  const sdf::Model *model = world->ModelByIndex(1);
+  const sdf::Model *model = world->ModelByIndex(0);
 
   std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
   for (auto &linkName : linksToCheck)
@@ -250,6 +250,6 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
     // We expecte that after physics iterations, the relative poses of the links
     // to be the same as their initial relative poses itertions since all the
     // joints are fixed joints
-    EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]);
+    EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]) << link;
   }
 }

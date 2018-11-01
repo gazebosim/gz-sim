@@ -375,41 +375,43 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             return true;
           }
 
+          // get the pose component of the parent model
+          auto parentPose =
+              _ecm.Component<components::Pose>(_parent->Id());
+
+          // if the parentPose is a nullptr, something is wrong with ECS
+          // creation
+          if (!parentPose)
+          {
+            ignerr << "The pose component of " << _parent->Id() << " could not"
+                   << " be found. This should never happen!\n";
+            return true;
+          }
           if (canonLinkIt->second == _entity)
           {
             // This is the canonical link, update the model
-            // get the pose component of the parent model
-            auto parentPose =
-                _ecm.Component<components::Pose>(_parent->Id());
-            // if the parentPose is a nullptr, something is wrong with ECS
-            // creation
-            if (parentPose)
-            {
-              auto pose = linkIt->second->FrameDataRelativeToWorld().pose;
-              // the Pose component, _pose, of this link is the initial
-              // transform of the link w.r.t its model. This component never
-              // changes because it's "fixed" to the model. Instead, we change
-              // the model's pose here. The physics engine gives us the pose of
-              // this link relative to world so to set the model's pose, we have
-              // to premultiply it by the inverse of the initial transform of
-              // the link w.r.t to its model.
-              *parentPose = components::Pose(_pose->Data().Inverse() *
-                                             math::eigen3::convert(pose));
-            }
+            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+            // the Pose component, _pose, of this link is the initial
+            // transform of the link w.r.t its model. This component never
+            // changes because it's "fixed" to the model. Instead, we change
+            // the model's pose here. The physics engine gives us the pose of
+            // this link relative to world so to set the model's pose, we have
+            // to premultiply it by the inverse of the initial transform of
+            // the link w.r.t to its model.
+            //
+            // NOTE: The order of the product operation is backwards. This will
+            // need to be fixed when we fix issue ign-math#60
+            *parentPose = components::Pose(_pose->Data().Inverse() *
+                                           math::eigen3::convert(worldPose));
           }
           else
           {
-            // Not the canonical link, so get the link's relative pose
-            // \NOTE(addisu) Once ModelFrameSemantics are available, we should
-            // resolve the relative pose by passing the model as the parent
-            // frame.
-
-            // Find the canonical link of the model that contains this link
-            auto canonLinkPhys = this->entityLinkMap.at(canonLinkIt->second);
-            auto canonFrame = canonLinkPhys->GetFrameID();
-            // Get the pose relative to the canonical link
-            auto pose = linkIt->second->FrameDataRelativeTo(canonFrame).pose;
-            *_pose = components::Pose(math::eigen3::convert(pose));
+            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+            // Compute the relative pose of this link from the model
+            // NOTE: The order of the product operation is backwards. This will
+            // need to be fixed when we fix issue ign-math#60
+            *_pose = components::Pose(math::eigen3::convert(worldPose) *
+                                      parentPose->Data().Inverse());
           }
         }
         else
