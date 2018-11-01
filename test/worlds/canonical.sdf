@@ -58,32 +58,6 @@
 
     <gravity>0 0 0</gravity>
 
-    <model name="ground_plane">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-            </plane>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
     <model name="canonical">
       <!-- random pose -->
       <pose>-2.15195357 -1.43940727 0.61459533  0.1970569  -0.73194673 0.09871452</pose>
