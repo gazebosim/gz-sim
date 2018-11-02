@@ -27,6 +27,7 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -397,6 +398,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Inertial(link->Inertial()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
+      if (linkIndex == 0)
+      {
+        this->entityCompMgr.CreateComponent(linkEntity,
+            components::CanonicalLink());
+      }
 
       linkMap.insert(std::pair(link->Name(), linkEntity));
 
