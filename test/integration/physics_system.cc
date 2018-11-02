@@ -252,9 +252,9 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
   {
     ASSERT_TRUE(postUpLinkPoses.find(link) != postUpLinkPoses.end())
         << link << " not found";
-    // We expecte that after physics iterations, the relative poses of the links
-    // to be the same as their initial relative poses itertions since all the
-    // joints are fixed joints
+    // We expect that after physics iterations, the relative poses of the links
+    // to be the same as their initial relative poses since all the joints are
+    // fixed joints
     EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]) << link;
   }
 }
