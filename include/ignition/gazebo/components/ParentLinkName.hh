@@ -31,7 +31,6 @@ namespace components
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  //
   /// \brief A component used to indicate that a model is parentlinkname (i.e.
   /// not moveable).
   using ParentLinkName = SimpleWrapper<std::string, class ParentLinkNameTag>;
