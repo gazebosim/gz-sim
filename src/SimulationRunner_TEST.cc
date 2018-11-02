@@ -26,6 +26,7 @@
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -70,6 +71,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::World>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Model>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::CanonicalLink>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -428,6 +431,10 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::CanonicalLink>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Link>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Joint>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::JointAxis>()));
@@ -445,6 +452,17 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
       EntityComponentManager::ComponentType<components::Name>()));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
+
+  // Check canonical links
+  unsigned int canonicalLinkCount{0};
+  runner.EntityCompMgr().Each<components::CanonicalLink>(
+    [&](const EntityId &, const components::CanonicalLink *)->bool
+    {
+      canonicalLinkCount++;
+      return true;
+    });
+  // one canonical link per model
+  EXPECT_EQ(root.WorldByIndex(0)->ModelCount(), canonicalLinkCount);
 
   auto testAxis = [](const std::string &_jointName,
                       const sdf::JointAxis *_jointAxis,

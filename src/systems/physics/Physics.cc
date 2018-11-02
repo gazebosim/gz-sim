@@ -50,6 +50,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -121,11 +122,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// ign-physics.
   public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
-
-  /// \brief A map between model entity ids and their canonical links. For now
-  /// we assume the first link we encounter for a given model is it's canonical
-  /// link. The key is the Model entity ID.
-  public: std::unordered_map<EntityId, EntityId> canonicalLinkMap;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
@@ -269,12 +265,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
-          // Assume canonical link if the key is not found
-          if (canonLinkIt == this->canonicalLinkMap.end())
-          {
-            this->canonicalLinkMap[_parent->Id()] = _entity;
-          }
         }
         return true;
       });
@@ -364,16 +354,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
-
-          // The model that contains this link must have a canonical link.
-          // Otherwise something is wrong, so return
-          if (canonLinkIt == this->canonicalLinkMap.end())
-          {
-            ignerr << "The model " << _parent->Id() << " that contains this"
-                   << " link should have a canonical link\n";
-            return true;
-          }
+          auto canonicalLink =
+              _ecm.Component<components::CanonicalLink>(_entity);
 
           // get the pose component of the parent model
           auto parentPose =
@@ -387,7 +369,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
                    << " be found. This should never happen!\n";
             return true;
           }
-          if (canonLinkIt->second == _entity)
+          if (canonicalLink)
           {
             // This is the canonical link, update the model
             auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
