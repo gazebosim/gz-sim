@@ -51,7 +51,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
 #include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -380,19 +379,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // this link relative to world so to set the model's pose, we have
             // to premultiply it by the inverse of the initial transform of
             // the link w.r.t to its model.
-            //
-            // NOTE: The order of the product operation is backwards. This will
-            // need to be fixed when we fix issue ign-math#60
-            *parentPose = components::Pose(_pose->Data().Inverse() *
+            *parentPose = components::Pose(_pose->Data().Inverse() +
                                            math::eigen3::convert(worldPose));
           }
           else
           {
             auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
             // Compute the relative pose of this link from the model
-            // NOTE: The order of the product operation is backwards. This will
-            // need to be fixed when we fix issue ign-math#60
-            *_pose = components::Pose(math::eigen3::convert(worldPose) *
+            *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentPose->Data().Inverse());
           }
         }
