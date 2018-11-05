@@ -63,10 +63,10 @@ for registering, loading, and managing plugin libraries.
 Library that supports rendering through different engines, such as
 [OGRE](https://www.ogre3d.org/) and [Optix](https://developer.nvidia.com/optix).
 * [ign-sensors](https://bitbucket.org/ignitionrobotics/ign-sensors): A set
-of models that generate realistic sensor data. 
+of models that generate realistic sensor data.
 * [ign-tools](https://bitbucket.org/ignitionrobotics/ign-tools): Provides
 the `ign` command line interface that can be configured and used by multiple
-libraries. 
+libraries.
 * [ign-transport](https://bitbucket.org/ignitionrobotics/ign-transport):
 High performance inter- and intra-process communication based on
 [ZeroMQ](http://zeromq.org/) and [Protobuf](https://developers.google.com/protocol-buffers/).
@@ -150,7 +150,7 @@ repository and provide the following information:
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
 * **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. See [Creating GIFs](#markdown-header-creating-gifs) for GIF creation utilities.
 * **Explain why this enhancement would be useful** to most users and isn't something that can or should be implemented as a separate application.
-* **Specify which version of Ignition Robotics you're using.** 
+* **Specify which version of Ignition Robotics you're using.**
 * **Specify the name and version of the OS you're using.**
 
 ### Contributing Code
@@ -203,7 +203,7 @@ get aquainted with this development process.
     The tool does not catch all style errors. See the [code style](#markdown-header-style-guides) section below for more information.
 
 1. **Tests must pass.** You can check by running `make test` in
-    your build directory. Running tests in may take a bit of time, be patient. 
+    your build directory. Running tests may take a bit of time, be patient. 
 
 1. **Write documentation.** Document all your code. Every class, function, member variable must have doxygen comments. All code in source files must have documentation that describes the functionality. This will help reviewers and future developers.
 
@@ -227,7 +227,7 @@ get aquainted with this development process.
 
 1. **Submit a pull request** to the Ignition library through Bitbucket when you're ready.
 
-1. **Check Continuous integration.**
+1. **Check Continuous integration**
 
     The moment you make a pull request, a few jobs in our
     [continuous integration](http://build.osrfoundation.org/)
