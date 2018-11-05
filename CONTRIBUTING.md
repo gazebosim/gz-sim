@@ -156,8 +156,8 @@ repository and provide the following information:
 ### Contributing Code
 
 We follow a development process designed to reduce errors, encourage
-collaboration, and make high quality code. The process may seem rigid and
-tedious, but every step is worth the effort.
+collaboration, and make high quality code. Review the following to
+get aquainted with this development process.
 
 1. **Read the [Reporting Bugs](#markdown-header-reporting-bugs) and [Suggesting Enhancements](#markdown-header-suggesting-enhancements)** sections first.
 
@@ -170,8 +170,8 @@ tedious, but every step is worth the effort.
    API/ABI and you would like them to be released to an existing release
    with major version `N`, then use branch `ign-<library>N` as the base.
 
-1. **Work out of a branch** Always work out of a new branch, never off of
-   the base/default branch.  This is a good habit to get in, and will make
+1. **Work out of a branch** Always work out of a new branch, one that is not
+   the default/master branch. This is a good habit to get in, and will make
    your life easier.
 
 1. **Write your code.** This is the fun part.
