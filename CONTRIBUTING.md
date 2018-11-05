@@ -302,34 +302,34 @@ a build folder:
 In general, we follow [Google's style guide](https://google.github.io/styleguide/cppguide.html) and rules set forth by `cppcheck`. However, we have added some extras listed below.
 
 1. **This pointer**
-> All class attributes and member functions must be accessed using the `this->` pointer. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-40).
+> All class attributes and member functions must be accessed using the `this->` pointer. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/Server.cc?at=default&fileviewer=file-view-default#Server.cc-112).
 
 1. **Underscore function parameters**
-> All function parameters must start with an underscore. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-77).
+> All function parameters must start with an underscore. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/Server.cc?at=default&fileviewer=file-view-default#Server.cc-130).
 
 1. **Do not cuddle braces**
-> All braces must be on their own line. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-131).
+> All braces must be on their own line. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/Server.cc?at=default&fileviewer=file-view-default#Server.cc-159).
 
 1. **Multi-line code blocks**
-> If a block of code spans multiple lines and is part of a flow control statement, such as an `if`, then it must be wrapped in braces. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Base.cc#cl-249)
+> If a block of code spans multiple lines and is part of a flow control statement, such as an `if`, then it must be wrapped in braces. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/Server.cc?at=default&fileviewer=file-view-default#Server.cc-203)
 
 1. **++ operator**
-> This occurs mostly in `for` loops. Prefix the `++` operator, which is [slightly more efficient than postfix in some cases](http://programmers.stackexchange.com/questions/59880/avoid-postfix-increment-operator).
+> This occurs mostly in `for` loops. Prefix the `++` operator, which is [slightly more efficient than postfix in some cases](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/EntityComponentManager_TEST.cc?at=default&fileviewer=file-view-default#EntityComponentManager_TEST.cc-131).
 
 1. **PIMPL/Opaque pointer**
-> If you are writing a new class, it must use a private data pointer. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/World.hh?at=default#cl-479), and you can read more [here](https://en.wikipedia.org/wiki/Opaque_pointer).
+> If you are writing a new class, it must use a private data pointer. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/include/ignition/gazebo/EntityComponentManager.hh?at=default&fileviewer=file-view-default#EntityComponentManager.hh-797), and you can read more [here](https://en.wikipedia.org/wiki/Opaque_pointer).
 
 1. **const functions**
-> Any class function that does not change a member variable should be marked as `const`. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-175).
+> Any class function that does not change a member variable should be marked as `const`. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/include/ignition/gazebo/EntityComponentManager.hh?at=default&fileviewer=file-view-default#EntityComponentManager.hh-340).
 
 1. **const parameters**
-> All parameters that are not modified by a function should be marked as `const`. This applies to parameters that are passed by reference, pointer, and value. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217).
+> All parameters that are not modified by a function should be marked as `const`. This applies to parameters that are passed by reference, and pointer. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/include/ignition/gazebo/EntityComponentManager.hh?at=default&fileviewer=file-view-default#EntityComponentManager.hh-362).
 
 1. **Pointer and reference variables**
-> Place the `*` and `&` next to the varaible name, not next to the type. For example: `int &variable` is good, but `int& variable` is not. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217).
+> Place the `*` and `&` next to the varaible name, not next to the type. For example: `int &variable` is good, but `int& variable` is not. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/include/ignition/gazebo/EntityComponentManager.hh?at=default&fileviewer=file-view-default#EntityComponentManager.hh-362).
 
 1. **Camel case**
-> In general, everything should use camel case. Exceptions include SDF element names, and protobuf variable names. Here is an [example](https://bitbucket.org/osrf/gazebo/src/default/gazebo/physics/Entity.cc?at=default#cl-217).
+> In general, everything should use camel case. Exceptions include SDF element names, and protobuf variable names. Here is an [example](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/3f2be4899c01e60bf5bb323812c281302d538c98/src/EntityComponentManager.cc?at=default&fileviewer=file-view-default#EntityComponentManager.cc-40).
 
 1. **Class function names**
 > Class functions must start with a capital letter, and capitalize every word.
