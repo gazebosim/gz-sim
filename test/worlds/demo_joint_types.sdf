@@ -834,6 +834,10 @@
             </axis>
             <axis2>
               <xyz>0 1 0</xyz>
+                <limit>
+                  <lower>-1e16</lower>
+                  <upper>1e16</upper>
+                </limit>
             </axis2>
         </joint>
 
