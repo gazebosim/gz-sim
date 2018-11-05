@@ -16,6 +16,7 @@
 */
 
 #include <sdf/Collision.hh>
+#include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Physics.hh>
@@ -28,6 +29,7 @@
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -449,7 +451,46 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
               components::Geometry(*collision->Geom()));
         }
       }
+
+      // Lights
+      for (uint64_t lightIndex = 0; lightIndex < link->LightCount();
+          ++lightIndex)
+      {
+        auto light = link->LightByIndex(lightIndex);
+
+        // Entity
+        EntityId lightEntity = this->entityCompMgr.CreateEntity();
+
+        // Components
+        this->entityCompMgr.CreateComponent(lightEntity,
+            components::Light(*light));
+        this->entityCompMgr.CreateComponent(lightEntity,
+            components::Pose(light->Pose()));
+        this->entityCompMgr.CreateComponent(lightEntity,
+            components::Name(light->Name()));
+        this->entityCompMgr.CreateComponent(lightEntity,
+            components::ParentEntity(linkEntity));
+      }
     }
+  }
+
+  // Lights
+  for (uint64_t lightIndex = 0; lightIndex < _world->LightCount();
+      ++lightIndex)
+  {
+    auto light = _world->LightByIndex(lightIndex);
+
+    // Entity
+    EntityId lightEntity = this->entityCompMgr.CreateEntity();
+
+    // Components
+    this->entityCompMgr.CreateComponent(lightEntity, components::Light(*light));
+    this->entityCompMgr.CreateComponent(lightEntity,
+        components::Pose(light->Pose()));
+    this->entityCompMgr.CreateComponent(lightEntity,
+        components::Name(light->Name()));
+    this->entityCompMgr.CreateComponent(lightEntity,
+        components::ParentEntity(worldEntity));
   }
 }
 

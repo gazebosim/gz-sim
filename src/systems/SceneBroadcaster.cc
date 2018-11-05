@@ -21,6 +21,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -36,6 +37,27 @@
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+
+//////////////////////////////////////////////////
+template<typename T>
+void AddLights(T _msg,
+    const EntityId _id,
+    const math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
+        vertex.second.get().Data());
+    if (!lightMsg)
+      continue;
+
+    _msg->add_light()->CopyFrom(*lightMsg.get());
+  }
+}
 
 //////////////////////////////////////////////////
 void AddVisuals(msgs::LinkSharedPtr _msg,
@@ -75,6 +97,9 @@ void AddLinks(msgs::ModelSharedPtr _msg,
 
     // Visuals
     AddVisuals(linkMsg, vertex.second.get().Id(), _graph);
+
+    // Lights
+    AddLights(linkMsg, vertex.second.get().Id(), _graph);
 
     _msg->add_link()->CopyFrom(*linkMsg.get());
   }
@@ -314,6 +339,38 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         pose->set_id(_entity);
         return true;
       });
+
+    // Lights
+    _manager.Each<components::Light,
+                  components::Name,
+                  components::ParentEntity,
+                  components::Pose>(
+      [&](const EntityId &_entity,
+          const components::Light *_lightComp,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp)->bool
+      {
+        auto lightMsg = std::make_shared<msgs::Light>();
+        lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
+        lightMsg->set_id(_entity);
+        lightMsg->set_parent_id(_parentComp->Id());
+        lightMsg->set_name(_nameComp->Data());
+        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(
+            _poseComp->Data()));
+
+        // Add to graph
+        this->dataPtr->sceneGraph.AddVertex(
+            _nameComp->Data(), lightMsg, _entity);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
   }
   this->dataPtr->posePub.Publish(poseMsg);
 }
@@ -355,7 +412,12 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+
+  // Add models
   AddModels(&_res, this->worldId, this->sceneGraph);
+
+  // Add lights
+  AddLights(&_res, this->worldId, this->sceneGraph);
 
   return true;
 }

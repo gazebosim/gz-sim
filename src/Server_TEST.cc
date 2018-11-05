@@ -69,7 +69,7 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(13u, *server.EntityCount());
+  EXPECT_EQ(14u, *server.EntityCount());
   EXPECT_EQ(2u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
