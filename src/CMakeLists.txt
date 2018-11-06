@@ -22,6 +22,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
   Server_TEST.cc

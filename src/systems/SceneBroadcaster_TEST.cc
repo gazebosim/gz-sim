@@ -46,7 +46,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(13u, *server.EntityCount());
+  EXPECT_EQ(14u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -54,7 +54,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   bool received{false};
   std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
-    EXPECT_EQ(9, _msg.pose_size());
+    EXPECT_EQ(10, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
     for (auto p = 0; p < _msg.pose_size(); ++p)
@@ -62,7 +62,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
       entityMap.insert(std::make_pair(_msg.pose(p).id(), _msg.pose(p).name()));
     }
 
-    EXPECT_EQ(9u, entityMap.size());
+    EXPECT_EQ(10u, entityMap.size());
 
     received = true;
   };
@@ -90,7 +90,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(13u, *server.EntityCount());
+  EXPECT_EQ(14u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -129,7 +129,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(13u, *server.EntityCount());
+  EXPECT_EQ(14u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
