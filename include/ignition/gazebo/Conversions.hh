@@ -20,6 +20,7 @@
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
@@ -27,9 +28,11 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Light.hh>
+#include <sdf/Material.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
-#include <sdf/Geometry.hh>
 
 namespace ignition
 {
@@ -108,6 +111,46 @@ namespace ignition
       msgs::Set(out.mutable_ambient(), _in.Ambient());
       msgs::Set(out.mutable_diffuse(), _in.Diffuse());
       msgs::Set(out.mutable_specular(), _in.Specular());
+      return out;
+    }
+
+    /// \brief Generic conversion from an SDF light to another type.
+    /// \param[in] _in SDF light.
+    /// \return Conversion result.
+    /// \tparam OUT Output type.
+    template<class OUT>
+    OUT Convert(const sdf::Light &_in)
+    {
+      OUT::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF light to a light
+    /// message.
+    /// \param[in] _in SDF light.
+    /// \return Light message.
+    template<>
+    msgs::Light Convert(const sdf::Light &_in)
+    {
+      msgs::Light out;
+      out.set_name(_in.Name());
+      msgs::Set(out.mutable_pose(), _in.Pose());
+      msgs::Set(out.mutable_diffuse(), _in.Diffuse());
+      msgs::Set(out.mutable_specular(), _in.Specular());
+      out.set_attenuation_constant(_in.ConstantAttenuationFactor());
+      out.set_attenuation_linear(_in.LinearAttenuationFactor());
+      out.set_attenuation_quadratic(_in.QuadraticAttenuationFactor());
+      out.set_range(_in.AttenuationRange());
+      msgs::Set(out.mutable_direction(), _in.Direction());
+      out.set_cast_shadows(_in.CastShadows());
+      out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
+      out.set_spot_outer_angle(_in.SpotOuterAngle().Radian());
+      out.set_spot_falloff(_in.SpotFalloff());
+      if (_in.Type() == sdf::LightType::POINT)
+        out.set_type(msgs::Light_LightType_POINT);
+      else if (_in.Type() == sdf::LightType::SPOT)
+        out.set_type(msgs::Light_LightType_SPOT);
+      else if (_in.Type() == sdf::LightType::DIRECTIONAL)
+        out.set_type(msgs::Light_LightType_DIRECTIONAL);
       return out;
     }
     }
