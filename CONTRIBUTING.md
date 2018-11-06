@@ -24,6 +24,8 @@ propose changes to this document in a pull request.
 
 [Writing Tests](#markdown-header-writing-tests)
 
+  * [Test Coverage](#markdown-header-test-coverage)
+
 [Styleguides](#markdown-header-style-guides)
 
 [Appendix](#markdown-header-appendix)
@@ -33,8 +35,6 @@ propose changes to this document in a pull request.
 This project and everyone participating in it is governed by the [Ignition
 Robotics Code of Conduct](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/default/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this
 code. Please report unacceptable behavior at [https://ignitionrobotics.org/support](https://ignitionrobotics.org/support).
-
-\todo(nkoenig) Pull content from: https://bitbucket.org/osrf/gazebo/src/default/CONTRIBUTING.md
 
 ## Project Design
 
@@ -244,6 +244,53 @@ get aquainted with this development process.
 1. **Done, phew.** Once you have met all the requirements, you're code will be merged. Thanks for improving Ignition Robotics!
 
 ## Writing Tests
+
+Most Ignition libraries use [GTest](http://code.google.com/p/googletest) for
+general testing and [QTest](http://doc.qt.io/qt-5/qtest.html) for GUI tests.
+There are a few kinds of tests:
+
+1. **Unit tests**: all classes should have corresponding unit tests. These live
+in the same directory as the source code and are suffixed by `_TEST`.
+
+1. **Integration tests**: tests which verify how many classes are working together go under the `tests/integration` directory.
+
+1. **Regression tests**: tests which fix broken features go under `tests/regression` and are prefixed by the issue number on librarie's issue tracker.
+
+1. **Performance tests**: tests that are designed to check performance
+   characterics, such as CPU or memory usage, go unde `tests/performance`.
+
+Before creating a new integration or performance test file, check the current
+test files. If one closely matches the topic of your new code, simply add a new
+test function to the file. Otherwise, create a new test file, and write your
+test.
+
+### Test Coverage
+
+The goal is to achieve 100% line and branch coverage. However, this is not
+always possible due to complexity, analysis tools misreporting
+coverage, and time constraints. Try to write as complete of a test suite as
+possible, and use the coverage analysis tools as guide. If you have trouble
+writing a test please ask for help in your pull request.
+
+Ignition CMake provides build target called `make coverage` that produces a code
+coverage report. You'll need to have [lcov](http://ltp.sourceforge.net/coverage/lcov.php) and [gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html) installed.
+
+1. In your `build` folder, compile with `-DCMAKE_BUILD_TYPE=Coverage`
+
+        cmake -DCMAKE_BUILD_TYPE=Coverage ..\
+        make
+
+1. Run a single test, or all the tests
+
+        make test
+
+1. Make the coverage report
+
+        make coverage
+
+1. View the coverage report
+
+        firefox coverage/index.html
 
 ## Style Guides
 
