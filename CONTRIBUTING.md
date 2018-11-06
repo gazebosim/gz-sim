@@ -250,7 +250,7 @@ general testing and [QTest](http://doc.qt.io/qt-5/qtest.html) for GUI tests.
 There are a few kinds of tests:
 
 1. **Unit tests**: all classes should have corresponding unit tests. These live
-in the same directory as the source code and are prefixed by `_TEST`.
+in the same directory as the source code and are suffixed by `_TEST`.
 
 1. **Integration tests**: tests which verify how many classes are working together go under the `tests/integration` directory.
 
