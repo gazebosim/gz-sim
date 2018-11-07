@@ -22,7 +22,8 @@ This is a prototype for the next version of [Gazebo](http://gazebosim.org).
 
 * [Testing](#markdown-header-testing)
 
-[Direc
+[Folder Structure](#markdown-header-folder-structure)
+
 [Documentation](#markdown-header-documentation)
 
 [Code of Conduct](#markdown-header-code-of-conduct)
@@ -79,20 +80,24 @@ make codecheck
 
 # Folder Structure
 
-  .
-  ├── doc                     # Contains files for building documentation.
-  ├── examples                # Example programs.
-  ├── include                 # Header files.
-  ├── src                     # Source files and unit tests.
-  ├── test                    # Integration, performance, and regression tests.
-  ├── tools                   # Integration, performance, and regression tests.
-  ├── appveyor.yml            # [Appveyor](https://www.appveyor.com/) configuration.
-  ├── bitbucket-pipelines.yml # [Bitbucket
-  pipelines](https://bitbucket.org/ignitionrobotics/ign-gazebo/addon/pipelines/home#!/) configuration.
-  ├── CMakeLists.txt          # CMake build script.
-  ├── configure.bat           # Windows build script.
-  ├── LICENSE                 # License information.
-  └── README.md               # This readme.
+```
+.  
++-- **doc**                  Contains files for building documentation.  
++-- examples                 Example programs.  
++-- include/ignition/gazebo  Header files.  
++-- src                      Source files and unit tests.  
+|    +-- components          Data components  
+|    +-- gui                 Graphical interface source code  
+|    +-- system              System source code  
++-- test                     Integration, performance, and regression tests.  
++-- tools                    Integration, performance, and regression tests.  
++-- appveyor.yml             Appveyor configuration.  
++-- bitbucket-pipelines.yml  Bitbucket pipelines configuration.  
++-- CMakeLists.txt           CMake build script.  
++-- configure.bat            Windows build script.  
++-- LICENSE                  License information.  
++-- README.md                This readme.  
+```
 
 # Documentation
 
