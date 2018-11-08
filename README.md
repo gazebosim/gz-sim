@@ -172,14 +172,9 @@ ign-gazebo -h
 
 # Documentation
 
-The following links contain documentation for the latest release.
+API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
 
-* [API Documentation](https://ignitionrobotics.org/libs/gazebo/latest)
-* [Tutorials](https://ignitionrobotics.org/libs/gazebo/latest/tutorials)
-
-Documentation for past releases can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
-
-You can also generate documentation from a clone of this repository by following these steps.
+You can also generate the documentation from a clone of this repository by following these steps.
 
 1. You will need [Doxygen](http://www.doxygen.org/). On Ubuntu Doxygen can be installed using
 
