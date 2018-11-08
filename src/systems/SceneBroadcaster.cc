@@ -252,7 +252,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         // Add to graph
         this->dataPtr->sceneGraph.AddVertex(
             _nameComp->Data(), modelMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         // Add to pose msg
         auto pose = poseMsg.add_pose();
@@ -282,7 +282,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         // Add to graph
         this->dataPtr->sceneGraph.AddVertex(
             _nameComp->Data(), linkMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         // Add to pose msg
         auto pose = poseMsg.add_pose();
@@ -305,7 +305,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
       {
         auto visualMsg = std::make_shared<msgs::Visual>();
         visualMsg->set_id(_entity);
-        visualMsg->set_parent_id(_parentComp->Id());
+        visualMsg->set_parent_id(_parentComp->Data());
         visualMsg->set_name(_nameComp->Data());
         visualMsg->mutable_pose()->CopyFrom(msgs::Convert(
             _poseComp->Data()));
@@ -330,7 +330,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         this->dataPtr->sceneGraph.AddVertex(
             _nameComp->Data(), visualMsg, _entity);
         this->dataPtr->sceneGraph.AddEdge(
-            {_parentComp->Id(), _entity}, true);
+            {_parentComp->Data(), _entity}, true);
 
         // Add to pose msg
         auto pose = poseMsg.add_pose();
@@ -354,7 +354,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         auto lightMsg = std::make_shared<msgs::Light>();
         lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
         lightMsg->set_id(_entity);
-        lightMsg->set_parent_id(_parentComp->Id());
+        lightMsg->set_parent_id(_parentComp->Data());
         lightMsg->set_name(_nameComp->Data());
         lightMsg->mutable_pose()->CopyFrom(msgs::Convert(
             _poseComp->Data()));
@@ -362,7 +362,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         // Add to graph
         this->dataPtr->sceneGraph.AddVertex(
             _nameComp->Data(), lightMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Id(), _entity}, true);
+        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         // Add to pose msg
         auto pose = poseMsg.add_pose();
