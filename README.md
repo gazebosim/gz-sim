@@ -18,21 +18,21 @@ Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/ico
 
 [Features](#markdown-header-features)
 
-[Get Started](#markdown-header-install)
+[Install](#markdown-header-install)
 
-* [Prerequisites](#markdown-header-prerequisites)
+* [Binary Install](#markdown-header-binary-install)
 
-* [Installing](#markdown-header-prerequisites)
+* [Source Install](#markdown-header-source-install)
 
-  * [Debian](#markdown-header-debian)
+    * [Prerequisites](#markdown-header-prerequisites)
+  
+    * [Building from Source](#markdown-header-building-from-source)
 
-  * [Building from source](#markdown-header-building-from-source)
-
-* [Usage](#markdown-header-usage)
-
-* [Testing](#markdown-header-testing)
+[Usage](#markdown-header-usage)
 
 [Documentation](#markdown-header-documentation)
+
+[Testing](#markdown-header-testing)
 
 [Folder Structure](#markdown-header-folder-structure)
 
@@ -48,51 +48,108 @@ Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/ico
 
 TODO
 
-# Get Started
+# Install
 
-## Prerequisites
+We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get Ignition Gazebo installed as quickly and painlessly as possible.
 
-## Building from source
+The [Source Install](#markdown-header-source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
+## Binary Install
+
+The binary install method will use pre-built packages which are typically available through a package management utility such as [Apt](https://wiki.debian.org/Apt). This approach eliminates the need to download and compile source code, and dependencies are handled for you. The downside of a binary install is that you won't be able to modify the code. See [Source Install](#markdown-header-source-install) for information on installing Ignition Gazebo from source.
+
+**Ubuntu Bionic**
+
+1. Configure package repositories.
+
+    ```
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+    ```
+    
+    ```
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+    ```
+    
+    ```
+    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+    ```
+    
+    ```
+    sudo apt-get update
+    ```
+    
+2. Install Ignition Gazebo
+
+    ```
+    sudo apt-get install libignition-gazebo-dev
+    ```
+
+## Source Install
+
+A source install 
+### Prerequisites
+
+Ignition Gazebo has a fairly large set of dependencies. Refer to the following sections for dependency installation instructions for each supported operating system.
+
+**[Ubuntu Bionic](http://releases.ubuntu.com/18.04/)**
+
+1. Base requirements:
+
+    ```
+    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
+    ```
+
+2. Required Ignition libraries:
+
+    ```
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+    sudo apt-get update
+    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
+    ```
+
+### Building from source
+
+1. Install [prerequisites](#markdown-header-prerequisites)
+
+2. Configure gcc8
+
+    * Ubuntu
+    
+        ```
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+        ```
+        
 1. Clone the repository.
 
-```
-hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
-```
+    ```
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    ```
 
 2. Configure and  build.
 
+    ```
+    cd ign-gazebo
+    mkdir build
+    cd build
+    cmake ../
+    make
+    ```
+
+# Usage
+
+Gazebo can be run from the command line, once [installed](#markdown-header-install), using:
+
 ```
-cd ign-gazebo
-mkdir build
-cd build
-cmake ../
-make
+ign-gazebo
 ```
 
-## Usage
+For help, and command line options use:
 
-TODO
-
-## Testing
-
-Follow these steps to run tests and static code analysis in your clone of this respository.
-
-1. Follow the [building from source instructions](#markdown-header-building from source).
-
-2. Run tests.
-
-    ```
-    make test
-    ```
-
-3. Static code checker.
-
-    ```
-    make codecheck
-    ```
-
-See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
+```
+ign-gazebo -h
+```
 
 # Documentation
 
@@ -133,6 +190,26 @@ You can also generate documentation from a clone of this repository by following
     firefox doxygen/html/index.html
     ```
     
+# Testing
+
+Follow these steps to run tests and static code analysis in your clone of this respository.
+
+1. Follow the [building from source instructions](#markdown-header-building from source).
+
+2. Run tests.
+
+    ```
+    make test
+    ```
+
+3. Static code checker.
+
+    ```
+    make codecheck
+    ```
+
+See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
+
 # Folder Structure
 
 Refer to the following table for information about important directories and files in this repository.
