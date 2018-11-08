@@ -3,6 +3,16 @@
 This is a prototype for the next version of [Gazebo](http://gazebosim.org).
 
 [![codecov](https://codecov.io/bb/ignitionrobotics/ign-gazebo/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-gazebo)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-gazebo/issues)
+[![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-gazebo.svg)](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests)
+[![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
+[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
+Build | Status
+-- | --
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-bionic-amd64)  
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-homebrew-amd64)  
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-windows7-amd64)
 
 **Table of Contents**
 
@@ -22,13 +32,15 @@ This is a prototype for the next version of [Gazebo](http://gazebosim.org).
 
 * [Testing](#markdown-header-testing)
 
-[Folder Structure](#markdown-header-folder-structure)
-
 [Documentation](#markdown-header-documentation)
+
+[Folder Structure](#markdown-header-folder-structure)
 
 [Code of Conduct](#markdown-header-code-of-conduct)
 
 [Contributing](#markdown-header-code-of-contributing)
+
+[Versioning](#markdown-header-versioning)
 
 [License](#markdown-header-license)
 
@@ -64,53 +76,85 @@ TODO
 
 ## Testing
 
-The following describes how to run the tests and static code checker.
+Follow these steps to run tests and static code analysis in your clone of this respository.
 
-1. Run tests.
+1. Follow the [building from source instructions](#markdown-header-building from source).
 
-```
-make test
-```
+2. Run tests.
 
-2. Static code checker.
+    ```
+    make test
+    ```
 
-```
-make codecheck
-```
+3. Static code checker.
 
-# Folder Structure
+    ```
+    make codecheck
+    ```
 
-```
-.  
-+-- **doc**                  Contains files for building documentation.  
-+-- examples                 Example programs.  
-+-- include/ignition/gazebo  Header files.  
-+-- src                      Source files and unit tests.  
-|    +-- components          Data components  
-|    +-- gui                 Graphical interface source code  
-|    +-- system              System source code  
-+-- test                     Integration, performance, and regression tests.  
-+-- tools                    Integration, performance, and regression tests.  
-+-- appveyor.yml             Appveyor configuration.  
-+-- bitbucket-pipelines.yml  Bitbucket pipelines configuration.  
-+-- CMakeLists.txt           CMake build script.  
-+-- configure.bat            Windows build script.  
-+-- LICENSE                  License information.  
-+-- README.md                This readme.  
-```
+See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
 
 # Documentation
 
-TODO
+The following links contain documentation for the latest release.
 
-* API
-* Contributor Guide
-* Tutorials
+* [API Documentation](https://ignitionrobotics.org/libs/gazebo/latest)
+* [Tutorials](https://ignitionrobotics.org/libs/gazebo/latest/tutorials)
 
-Documentation is generated at compile time. To view the documentation:
+Documentation for past releases can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
+
+You can also generate documentation from a clone of this repository by following these steps.
+
+1. You will need [Doxygen](http://www.doxygen.org/). On Ubuntu Doxygen can be installed using
+
+    ```
+    sudo apt-get install doxygen
+    ```
+
+2. Clone the repository
+
+    ```
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    ```
+
+3. Configure and build the documentation.
+
+    ```
+    cd ign-gazebo
+    mkdir build
+    cd build
+    cmake ../
+    make doc
+    ```
+
+4. View the documentation by running the following command from the `build` directory.
+
+    ```
+    firefox doxygen/html/index.html
+    ```
+    
+# Folder Structure
+
+Refer to the following table for information about important directories and files in this repository.
 
 ```
-firefox build/doxygen/html/index.html
++-- examples                 Example programs.  
++-- include/ignition/gazebo  Header files.  
++-- src                      Source files and unit tests.  
+|    +-- components          Component source code.  
+|    +-- gui                 Graphical interface source code.  
+|    +-- system              System source code.
++-- test
+|    +-- integration         Integration tests.
+|    +-- performance         Performance tests.
+|    +-- plugins             Plugin tests.
+|    +-- regression          Regression tests.
+|    +-- worlds              SDF world files used in tests.
++-- tutorials                Tutorials, written in markdown. 
++-- Changelog.md             Changelog.
++-- CMakeLists.txt           CMake build script.  
++-- Migration.md             Migration guide.  
++-- README.md                This readme.  
 ```
 
 # Contributing
@@ -125,10 +169,11 @@ Please see
 
 # Versioning
 
-TODO: Add information about ignition versioning.
-
-We use [Semantic Versioning](https://semver.org/).
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
 
 # License
 
-[Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/LICENSE?at=default&fileviewer=file-view-default) file.
+
+
+
