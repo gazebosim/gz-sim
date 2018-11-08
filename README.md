@@ -194,7 +194,7 @@ You can also generate documentation from a clone of this repository by following
     
 # Testing
 
-Follow these steps to run tests and static code analysis in your clone of this respository.
+Follow these steps to run tests and static code analysis in your clone of this repository.
 
 1. Follow the [building from source instructions](#markdown-header-building from source).
 
