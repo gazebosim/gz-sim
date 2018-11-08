@@ -26,7 +26,6 @@
 #include "SimulationRunner.hh"
 
 #include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Light.hh"
