@@ -48,7 +48,24 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org), and represents o
 
 # Features
 
-TODO
+**Dynamics simulation**: Access multiple high-performance physics engines
+through [Ignition
+Physics](https://bitbucket.org/ignitionrobotics/ign-physics).
+
+**Advanced 3D graphics**: Utilizing OGRE v2, Ignition Gazebo provides realistic
+rendering of environments including high-quality lighting, shadows, and
+textures.
+
+**Sensors and noise models**: Generate sensor data, optionally with noise, from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors, force-torque, IMU, and more.
+
+**Plugins**: Develop custom plugins for robot, sensor, and
+environmental control.
+
+**Simulation models**: Access numerous robots including PR2, Pioneer2 DX, iRobot Create, and TurtleBot. Construct environments using other physically accurate models. Or build a new model using [SDF](https://sdformat.org).
+
+**TCP/IP Transport**: Run simulation on remote servers, and interface to Ignition Gazebo through socket-based message passing using [Ignition Transport](https:/bitbucket.org/ignitionrobotics/ign-transport).
+
+**Command line tools**: Extensive command line tools facilitate simulation introspection and control.
 
 # Install
 
