@@ -29,6 +29,10 @@ namespace ignition
 {
   namespace gazebo
   {
+    /// \brief Namespace for all System plugins. Refer to the System class for
+    /// more information about systems.
+    namespace systems {}
+
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class System System.hh ignition/gazebo/System.hh
