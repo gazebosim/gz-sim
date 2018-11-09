@@ -39,7 +39,12 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EventManagerPrivate;
 
-    /// \brief The EventManager...
+    /// \brief The EventManager is used to send/receive notifications of
+    /// simulator events.
+    ///
+    /// The simulator environment and corresponding systems can either connect
+    /// to an Event or emit an Event as needed to signal actions that need to
+    /// occur.
     ///
     /// See ignition::gazebo::events for a complete list of events.
     class IGNITION_GAZEBO_VISIBLE EventManager
