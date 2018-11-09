@@ -16,10 +16,6 @@
 */
 #include "ignition/gazebo/EventManager.hh"
 
-#include <map>
-#include <set>
-#include <vector>
-
 using namespace ignition;
 using namespace gazebo;
 
