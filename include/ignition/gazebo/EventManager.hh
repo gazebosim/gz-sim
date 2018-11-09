@@ -58,21 +58,21 @@ namespace ignition
                   events[typeid(E)] = std::make_unique<E>();
                 }
 
-                E* event_ptr = dynamic_cast<E*>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E*>(events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
-                if (event_ptr != nullptr)
+                if (eventPtr != nullptr)
                 {
-                  return event_ptr->Connect(_subscriber);
+                  return eventPtr->Connect(_subscriber);
                 }
                 return nullptr;
               }
 
       /// \brief Emit an event signal to connected subscribers.
-      /// \param[in] args function arguments to be passed to the event
+      /// \param[in] _args function arguments to be passed to the event
       /// callbacks. Must match the signature of the event type E.
       public: template <typename E, typename ... Args>
-              void Emit(Args && ... args)
+              void Emit(Args && ... _args)
               {
                 if (events.find(typeid(E)) == events.end())
                 {
@@ -81,12 +81,12 @@ namespace ignition
                   return;
                 }
 
-                E* event_ptr = dynamic_cast<E*>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E*>(events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
-                if (event_ptr != nullptr)
+                if (eventPtr != nullptr)
                 {
-                  event_ptr->Signal(std::forward<Args>(args) ...);
+                  eventPtr->Signal(std::forward<Args>(_args) ...);
                 }
               }
 
@@ -95,18 +95,20 @@ namespace ignition
       private: using TypeInfoRef = std::reference_wrapper<const std::type_info>;
 
       /// \brief Hash functor for TypeInfoRef
-      private: struct Hasher {
-                 std::size_t operator()(TypeInfoRef code) const
+      private: struct Hasher
+               {
+                 std::size_t operator()(TypeInfoRef _code) const
                  {
-                   return code.get().hash_code();
+                   return _code.get().hash_code();
                  }
                };
 
       /// \brief Equality functor for TypeInfoRef
-      private: struct EqualTo {
-                 bool operator()(TypeInfoRef lhs, TypeInfoRef rhs) const
+      private: struct EqualTo
+               {
+                 bool operator()(TypeInfoRef _lhs, TypeInfoRef _rhs) const
                  {
-                   return lhs.get() == rhs.get();
+                   return _lhs.get() == _rhs.get();
                  }
                };
 

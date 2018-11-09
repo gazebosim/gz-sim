@@ -19,10 +19,12 @@
 using namespace ignition;
 using namespace gazebo;
 
+//////////////////////////////////////////////////
 EventManager::EventManager()
 {
 }
 
+//////////////////////////////////////////////////
 EventManager::~EventManager()
 {
 }
