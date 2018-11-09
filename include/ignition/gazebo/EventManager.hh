@@ -23,7 +23,9 @@
 #include <unordered_map>
 #include <utility>
 
+#include <ignition/common/Console.hh>
 #include <ignition/common/Event.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
@@ -65,7 +67,11 @@ namespace ignition
                 {
                   return eventPtr->Connect(_subscriber);
                 }
-                return nullptr;
+                else
+                {
+                  ignerr << "Failed to connect event: " << typeid(E).name() << std::endl;
+                  return nullptr;
+                }
               }
 
       /// \brief Emit an event signal to connected subscribers.
@@ -87,6 +93,10 @@ namespace ignition
                 if (eventPtr != nullptr)
                 {
                   eventPtr->Signal(std::forward<Args>(_args) ...);
+                }
+                else
+                {
+                  ignerr << "Failed to signal event: " << typeid(E).name() << std::endl;
                 }
               }
 

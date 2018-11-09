@@ -25,6 +25,8 @@ namespace ignition
     namespace events
     {
 
+      /// \brief Pause signal
+      /// Emited when the simulation is paused/unpaused.
       using Pause = ignition::common::EventT<void(bool)>;
 
     }  // namespace events
