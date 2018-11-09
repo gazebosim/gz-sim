@@ -37,6 +37,9 @@ namespace ignition
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EventManagerPrivate;
 
+    /// \brief The EventManager...
+    ///
+    /// See ignition::gazebo::events for a complete list of events.
     class IGNITION_GAZEBO_VISIBLE EventManager
     {
       /// \brief Constructor
