@@ -122,6 +122,8 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
         auto system = this->systemManager.LoadPlugin(pluginElem);
         if (system)
         {
+          auto system_iface = system.value()->QueryInterface<System>();
+          system_iface->Init(pluginElem);
           systems.push_back(system.value());
         }
         pluginElem = pluginElem->GetNextElement("plugin");

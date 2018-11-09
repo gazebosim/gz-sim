@@ -30,16 +30,30 @@ Null::~Null()
 {
 }
 
+//////////////////////////////////////////////////
+void Null::Init(const sdf::ElementPtr &/*_sdf*/)
+{
+}
+
+//////////////////////////////////////////////////
+void Null::Configure(EntityComponentManager &/*_ecm*/,
+                     EventManager* /*_eventMgr*/)
+{
+}
+
+//////////////////////////////////////////////////
 void Null::PreUpdate(const UpdateInfo &/*_info*/,
                      EntityComponentManager &/*_ecm*/)
 {
 }
 
+//////////////////////////////////////////////////
 void Null::Update(const UpdateInfo &/*_info*/,
                   EntityComponentManager &/*_ecm*/)
 {
 }
 
+//////////////////////////////////////////////////
 void Null::PostUpdate(const UpdateInfo &/*_info*/,
                   const EntityComponentManager &/*_ecm*/)
 {
@@ -47,6 +61,7 @@ void Null::PostUpdate(const UpdateInfo &/*_info*/,
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Null,
                     ignition::gazebo::System,
+                    Null::ISystemConfigure,
                     Null::ISystemPreUpdate,
                     Null::ISystemUpdate,
                     Null::ISystemPostUpdate)

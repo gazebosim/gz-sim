@@ -19,8 +19,11 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/EventManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
+
+#include <sdf/Element.hh>
 
 namespace ignition
 {
@@ -57,6 +60,16 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
+
+      /// \brief Initialize system with information from SDF.
+      public: virtual void Init(const sdf::ElementPtr &_sdf);
+    };
+
+    /// /class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that implements optional configuration
+    class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
+      public: virtual void Configure(EntityComponentManager &_ecm,
+                                     EventManager* _eventMgr) = 0;
     };
 
     /// /class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh

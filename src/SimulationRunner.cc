@@ -25,6 +25,8 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/gazebo/Events.hh"
+
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -104,6 +106,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Create entities and components
   this->CreateEntities(_world);
+
+  pauseConn = this->eventMgr.Connect<events::Pause>(
+      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
+
+  this->ConfigureSystems();
 
   // World control
   this->node.Advertise("/world/" + this->worldName + "/control",
@@ -213,6 +220,9 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
   this->systems.push_back(SystemInternal(_system));
 
   const auto &system = this->systems.back();
+  if (system.configure)
+    this->systemsConfigure.push_back(system.configure);
+
   if (system.preupdate)
     this->systemsPreupdate.push_back(system.preupdate);
 
@@ -221,6 +231,14 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 
   if (system.postupdate)
     this->systemsPostupdate.push_back(system.postupdate);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ConfigureSystems()
+{
+  for (auto& system : this->systemsConfigure) {
+    system->Configure(this->entityCompMgr, &this->eventMgr);
+  }
 }
 
 /////////////////////////////////////////////////

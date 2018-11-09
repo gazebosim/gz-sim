@@ -33,6 +33,7 @@ namespace systems
   /// \brief Minimal system implementation
   class IGNITION_GAZEBO_VISIBLE Null:
     public System,
+    public ISystemConfigure,
     public ISystemPreUpdate,
     public ISystemUpdate,
     public ISystemPostUpdate
@@ -42,6 +43,11 @@ namespace systems
 
     /// \brief Destructor
     public: virtual ~Null();
+
+    public: void Init(const sdf::ElementPtr &_sdf) override;
+
+    public: void Configure(EntityComponentManager &_ecm,
+                           EventManager* _eventMgr) override;
 
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) override;

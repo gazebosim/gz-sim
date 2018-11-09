@@ -14,19 +14,21 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#ifndef IGNITION_GAZEBO_EVENTS_HH_
+#define IGNITION_GAZEBO_EVENTS_HH_
+#include <ignition/common/Event.hh>
 
-using namespace ignition::gazebo;
-
-//////////////////////////////////////////////////
-System::System()
+namespace ignition
 {
-}
+  namespace gazebo
+  {
+    namespace events
+    {
 
-System::~System()
-{
-}
+      using Pause = ignition::common::EventT<void(bool)>;
 
-void System::Init(const sdf::ElementPtr &/*_sdf*/)
-{
-}
+    }  // namespace events
+  }  // namespace gazebo
+}  // namespace ignition
+
+#endif  // IGNITION_GAZEBO_EVENTS_HH_

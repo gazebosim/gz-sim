@@ -14,19 +14,19 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
 
-using namespace ignition::gazebo;
+#include <gtest/gtest.h>
 
-//////////////////////////////////////////////////
-System::System()
+#include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/EventManager.hh"
+
+using namespace ignition;
+
+/////////////////////////////////////////////////
+TEST(EventManager, Constructor)
 {
+  gazebo::EventManager event_manager;
+
+  event_manager.Emit<ignition::gazebo::events::Pause>(true);
 }
 
-System::~System()
-{
-}
-
-void System::Init(const sdf::ElementPtr &/*_sdf*/)
-{
-}
