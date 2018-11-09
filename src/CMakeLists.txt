@@ -54,6 +54,7 @@ ign_add_component(systems
 target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ${SDFormat_LIBRARIES}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
 )

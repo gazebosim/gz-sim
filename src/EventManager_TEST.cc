@@ -25,8 +25,8 @@ using namespace ignition;
 /////////////////////////////////////////////////
 TEST(EventManager, Constructor)
 {
-  gazebo::EventManager event_manager;
+  gazebo::EventManager eventManager;
 
-  event_manager.Emit<ignition::gazebo::events::Pause>(true);
+  eventManager.Emit<ignition::gazebo::events::Pause>(true);
 }
 
