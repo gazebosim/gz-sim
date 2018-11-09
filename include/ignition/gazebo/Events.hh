@@ -35,7 +35,7 @@ namespace ignition
       ///
       /// For example, to pause simulation use:
       /// \code
-      /// eventManager::Emit<ignition::gazebo::events::Pause>(true);
+      /// eventManager.Emit<ignition::gazebo::events::Pause>(true);
       /// \endcode
       using Pause = ignition::common::EventT<void(bool)>;
       }
