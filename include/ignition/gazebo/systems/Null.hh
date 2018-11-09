@@ -44,17 +44,22 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Null();
 
+    /// Documentation inherited
     public: void Init(const sdf::ElementPtr &_sdf) override;
 
+    /// Documentation inherited
     public: void Configure(EntityComponentManager &_ecm,
                            EventManager* _eventMgr) override;
 
+    /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) override;
 
+    /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) override;
 
+    /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) override;
   };

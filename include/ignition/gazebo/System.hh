@@ -65,28 +65,28 @@ namespace ignition
       public: virtual void Init(const sdf::ElementPtr &_sdf);
     };
 
-    /// /class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that implements optional configuration
     class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
       public: virtual void Configure(EntityComponentManager &_ecm,
                                      EventManager* _eventMgr) = 0;
     };
 
-    /// /class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class IGNITION_GAZEBO_VISIBLE ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
 
-    /// /class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the Update phase
     class IGNITION_GAZEBO_VISIBLE ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
 
-    /// /class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class IGNITION_GAZEBO_VISIBLE ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,
