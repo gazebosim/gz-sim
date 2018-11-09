@@ -468,7 +468,7 @@
                     <!-- mass * radius * radius * 0.5 -->
                     <izz>0.00125</izz>
                 </inertia>
-                <!-- offset interia as a trick to get movement from gravity -->
+                <!-- offset inertia as a trick to get movement from gravity -->
                 <pose >-.1 -0.1 0.1 0 0 0</pose>
             </inertial>
             <!-- Same geometry as visual -->
