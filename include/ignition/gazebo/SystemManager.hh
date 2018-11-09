@@ -33,7 +33,7 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class SystemManagerPrivate;
+    class IGNITION_GAZEBO_HIDDEN SystemManagerPrivate;
 
     /// \class SystemManager SystemManager.hh ignition/gazebo/SystemManager.hh
     /// \brief Class for loading/unloading System plugins.
