@@ -49,7 +49,7 @@ namespace systems
 
     /// Documentation inherited
     public: void Configure(EntityComponentManager &_ecm,
-                           EventManager* _eventMgr) override;
+                           EventManager *_eventMgr) override;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
