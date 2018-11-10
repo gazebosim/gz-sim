@@ -301,6 +301,7 @@ namespace ignition
       /// \brief Step size
       private: ignition::math::clock::duration stepSize{10ms};
 
+      /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
 
       /// \brief The real time factor calculated based on sim and real time

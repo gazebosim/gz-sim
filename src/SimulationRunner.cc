@@ -236,7 +236,7 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 /////////////////////////////////////////////////
 void SimulationRunner::ConfigureSystems()
 {
-  for (auto& system : this->systemsConfigure)
+  for (auto &system : this->systemsConfigure)
   {
     system->Configure(this->entityCompMgr, &this->eventMgr);
   }
