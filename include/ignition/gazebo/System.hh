@@ -90,7 +90,7 @@ namespace ignition
       /// \param[in] _eventMgr The EventManager of the given simulation
       /// instance.
       public: virtual void Configure(EntityComponentManager &_ecm,
-                                     EventManager* _eventMgr) = 0;
+                                     EventManager *_eventMgr) = 0;
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh

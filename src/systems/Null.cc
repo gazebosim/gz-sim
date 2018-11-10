@@ -37,7 +37,7 @@ void Null::Init(const sdf::ElementPtr &/*_sdf*/)
 
 //////////////////////////////////////////////////
 void Null::Configure(EntityComponentManager &/*_ecm*/,
-                     EventManager* /*_eventMgr*/)
+                     EventManager */*_eventMgr*/)
 {
 }
 
