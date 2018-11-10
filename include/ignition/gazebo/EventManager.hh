@@ -77,7 +77,8 @@ namespace ignition
                 }
                 else
                 {
-                  ignerr << "Failed to connect event: " << typeid(E).name() << std::endl;
+                  ignerr << "Failed to connect event: "
+                    << typeid(E).name() << std::endl;
                   return nullptr;
                 }
               }
@@ -104,7 +105,8 @@ namespace ignition
                 }
                 else
                 {
-                  ignerr << "Failed to signal event: " << typeid(E).name() << std::endl;
+                  ignerr << "Failed to signal event: "
+                    << typeid(E).name() << std::endl;
                 }
               }
 
