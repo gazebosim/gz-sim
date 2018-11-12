@@ -65,6 +65,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -292,7 +293,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   // joints
   _ecm.Each<components::Joint, components::Name, components::JointType,
-            components::Pose, components::ParentEntity,
+            components::Pose, components::ThreadPitch, components::ParentEntity,
             components::ParentLinkName,
             components::ChildLinkName>(
       [&](const EntityId &  _entity,
@@ -300,6 +301,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::Name *_name,
         const components::JointType *_jointType,
         const components::Pose *_pose,
+        const components::ThreadPitch *_threadPitch,
         const components::ParentEntity *_parentModel,
         const components::ParentLinkName *_parentLinkName,
         const components::ChildLinkName *_childLinkName)->bool
@@ -308,6 +310,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
         joint.SetPose(_pose->Data());
+        joint.SetThreadPitch(_threadPitch->Data());
 
         joint.SetParentLinkName(_parentLinkName->Data());
         joint.SetChildLinkName(_childLinkName->Data());
