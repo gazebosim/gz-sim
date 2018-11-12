@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -374,9 +375,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Static(model->Static()));
 
     // NOTE: Pose components of links, visuals, and collisions are expressed in
-    // the parent frame until we get frames working. However, after creation,
-    // these pose components will be updated with absolute poses from the
-    // physics engine.
+    // the parent frame until we get frames working.
 
     // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
@@ -515,6 +514,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Pose(joint->Pose()));
       this->entityCompMgr.CreateComponent(jointEntity ,
           components::Name(joint->Name()));
+      this->entityCompMgr.CreateComponent(jointEntity ,
+          components::ThreadPitch(joint->ThreadPitch()));
       this->entityCompMgr.CreateComponent(jointEntity,
           components::ParentEntity(modelEntity));
       this->entityCompMgr.CreateComponent(jointEntity,
