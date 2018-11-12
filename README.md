@@ -122,9 +122,21 @@ Ignition Gazebo has a fairly large set of dependencies. Refer to the following s
 
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+    ```
+    
+    ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+    ```
+    
+    ```
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+    ```
+    
+    ```
     sudo apt-get update
+    ```
+    
+    ```
     sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
     ```
 
