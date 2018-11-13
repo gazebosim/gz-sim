@@ -25,6 +25,8 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/gazebo/Events.hh"
+
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildEntity.hh"
 #include "ignition/gazebo/components/Geometry.hh"
@@ -47,16 +49,10 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const std::vector<SystemPluginPtr> &_systems)
+                                   SystemManager &_systemManager)
 {
   // Keep world name
   this->worldName = _world->Name();
-
-  // Store systems
-  for (auto &system : _systems)
-  {
-    this->AddSystem(system);
-  }
 
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
@@ -104,6 +100,33 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Create entities and components
   this->CreateEntities(_world);
+
+  pauseConn = this->eventMgr.Connect<events::Pause>(
+      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
+
+  auto element = _world->Element();
+
+  // Load System plugins.
+  if (element->HasElement("plugin"))
+  {
+    sdf::ElementPtr pluginElem = element->GetElement("plugin");
+    while (pluginElem)
+    {
+      auto system = _systemManager.LoadPlugin(pluginElem);
+      if (system)
+      {
+        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+        if (systemConfig != nullptr)
+        {
+          systemConfig->Configure(pluginElem,
+                                  this->entityCompMgr,
+                                  this->eventMgr);
+        }
+        this->AddSystem(system.value());
+      }
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
 
   // World control
   this->node.Advertise("/world/" + this->worldName + "/control",
@@ -213,6 +236,7 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
   this->systems.push_back(SystemInternal(_system));
 
   const auto &system = this->systems.back();
+
   if (system.preupdate)
     this->systemsPreupdate.push_back(system.preupdate);
 
