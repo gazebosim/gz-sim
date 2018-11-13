@@ -12,9 +12,7 @@ Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/ico
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-homebrew-amd64)  
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-windows7-amd64)
 
-Ignition Gazebo is the leading open source robotics simulator. Through Ignition Gazebo users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
-
-Ignition Gazebo is derived from [Gazebo](http://gazebosim.org), and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Ignition Robotics](https://ignitionrobotics.org) project.
+<Introduction to this repository>
 
 # Table of Contents
 
@@ -48,217 +46,45 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org), and represents o
 
 # Features
 
-* **Dynamics simulation**: Access multiple high-performance physics engines
-through [Ignition
-Physics](https://bitbucket.org/ignitionrobotics/ign-physics).
-
-* **Advanced 3D graphics**: Utilizing OGRE v2, Ignition Gazebo provides realistic
-rendering of environments including high-quality lighting, shadows, and
-textures.
-
-* **Sensors and noise models**: Generate sensor data, optionally with noise, from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors, force-torque, IMU, and more.
-
-* **Plugins**: Develop custom plugins for robot, sensor, and
-environmental control.
-
-* **Simulation models**: Access numerous robots including PR2, Pioneer2 DX, iRobot Create, and TurtleBot. Construct environments using other physically accurate models. Or build a new model using [SDF](http://sdformat.org).
-
-* **TCP/IP Transport**: Run simulation on remote servers, and interface to Ignition Gazebo through socket-based message passing using [Ignition Transport](https://bitbucket.org/ignitionrobotics/ign-transport).
-
-* **Command line tools**: Extensive command line tools facilitate simulation introspection and control.
+<Features of this repository>
 
 # Install
 
-We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get Ignition Gazebo installed as quickly and painlessly as possible.
+We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get up and running as quickly and painlessly as possible.
 
 The [Source Install](#markdown-header-source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
 ## Binary Install
 
-The binary install method will use pre-built packages which are typically available through a package management utility such as [Apt](https://wiki.debian.org/Apt). This approach eliminates the need to download and compile source code, and dependencies are handled for you. The downside of a binary install is that you won't be able to modify the code. See [Source Install](#markdown-header-source-install) for information on installing Ignition Gazebo from source.
-
-**Ubuntu Bionic**
-
-1. Configure package repositories.
-
-    ```
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-    ```
-    
-    ```
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
-    ```
-    
-    ```
-    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-    ```
-    
-    ```
-    sudo apt-get update
-    ```
-    
-2. Install Ignition Gazebo
-
-    ```
-    sudo apt-get install libignition-gazebo-dev
-    ```
+<Binary install instructions>
 
 ## Source Install
 
-A source install 
+
 ### Prerequisites
 
-Ignition Gazebo has a fairly large set of dependencies. Refer to the following sections for dependency installation instructions for each supported operating system.
-
-**[Ubuntu Bionic](http://releases.ubuntu.com/18.04/)**
-
-1. Base requirements:
-
-    ```
-    sudo apt-get -y install cmake build-essential curl cppcheck g++-8 libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev software-properties-common libeigen3-dev
-    ```
-
-2. Required Ignition libraries:
-
-    ```
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-    ```
-    
-    ```
-    sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
-    ```
-    
-    ```
-    wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-    ```
-    
-    ```
-    sudo apt-get update
-    ```
-    
-    ```
-    sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
-    ```
+<The prerequisites and how to install them>
 
 ### Building from source
 
-1. Install [prerequisites](#markdown-header-prerequisites)
-
-2. Configure gcc8
-
-    * Ubuntu
-    
-        ```
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
-        ```
-        
-1. Clone the repository.
-
-    ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
-    ```
-
-2. Configure and  build.
-
-    ```
-    cd ign-gazebo
-    mkdir build
-    cd build
-    cmake ../
-    make
-    ```
+<Source install instructions>
 
 # Usage
 
-Gazebo can be run from the command line, once [installed](#markdown-header-install), using:
-
-```
-ign-gazebo
-```
-
-For help, and command line options use:
-
-```
-ign-gazebo -h
-```
+<Instructions on how to use this library, and/or links to more information>
 
 # Documentation
 
-API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
+<Links to documentation and instructions on how to build documention>
 
-You can also generate the documentation from a clone of this repository by following these steps.
-
-1. You will need [Doxygen](http://www.doxygen.org/). On Ubuntu Doxygen can be installed using
-
-    ```
-    sudo apt-get install doxygen
-    ```
-
-2. Clone the repository
-
-    ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
-    ```
-
-3. Configure and build the documentation.
-
-    ```
-    cd ign-gazebo
-    mkdir build
-    cd build
-    cmake ../
-    make doc
-    ```
-
-4. View the documentation by running the following command from the `build` directory.
-
-    ```
-    firefox doxygen/html/index.html
-    ```
-    
 # Testing
 
-Follow these steps to run tests and static code analysis in your clone of this repository.
-
-1. Follow the [source install instruction](#markdown-header-source-install).
-
-2. Run tests.
-
-    ```
-    make test
-    ```
-
-3. Static code checker.
-
-    ```
-    make codecheck
-    ```
-
-See the [Writing Tests section of the contributor guide](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md#markdown-header-writing-tests) for help creating or modifying tests.
+<How to run the tests and write or modify tests>
 
 # Folder Structure
 
-Refer to the following table for information about important directories and files in this repository.
-
-```
-+-- examples                 Example programs.  
-+-- include/ignition/gazebo  Header files.  
-+-- src                      Source files and unit tests.  
-|    +-- components          Component source code.  
-|    +-- gui                 Graphical interface source code.  
-|    +-- system              System source code.
-+-- test
-|    +-- integration         Integration tests.
-|    +-- performance         Performance tests.
-|    +-- plugins             Plugin tests.
-|    +-- regression          Regression tests.
-|    +-- worlds              SDF world files used in tests.
-+-- tutorials                Tutorials, written in markdown. 
-+-- Changelog.md             Changelog.
-+-- CMakeLists.txt           CMake build script.  
-+-- Migration.md             Migration guide.  
-+-- README.md                This readme.  
-```
+<Describe the important folders and files. This is useful for newcomers to
+the project>
 
 # Contributing
 
@@ -277,6 +103,3 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 # License
 
 This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/LICENSE?at=default&fileviewer=file-view-default) file.
-
-
-
