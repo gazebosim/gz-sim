@@ -46,17 +46,8 @@ TEST(EventTrigger, TriggerPause)
   // Check it starts paused
   EXPECT_TRUE(*server.Paused());
 
-  // Check it remains paused after running
-  server.Run(false, 1, true);
-
-  unsigned int sleep{0};
-  unsigned int maxSleep{30};
-  while (sleep++ < maxSleep && *server.Paused())
-  {
-    IGN_SLEEP_MS(100);
-  }
-  EXPECT_LT(sleep, maxSleep);
-
+  // Run 1 iteration and check that it's now unpaused
+  server.Run(true, 1, true);
   EXPECT_FALSE(*server.Paused());
 }
 
