@@ -64,33 +64,24 @@ namespace ignition
 
       /// \brief Destructor
       public: virtual ~System();
-
-      /// \brief Initialize system with information from SDF.
-      ///
-      /// This method is called immedetely after the constructor. Due to the
-      /// limitations of the plugin mechanism, this cannot be passed as
-      /// part of the constructor itself.
-      /// \param[in] _sdf The SDF Element associated with this system plugin.
-      public: virtual void Init(const sdf::ElementPtr &_sdf);
     };
 
     /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that implements optional configuration
     ///
-    /// Configure is called once the system is added to a simulation instance,
-    /// but before simulation begins exectution.
-    ///
-    /// This is providied to give the the System plugin implementer the
-    /// opportunity to add additional entities or components as needed by the
-    /// system as well as connect to the simulation EventManager as needed.
+    /// Configure is called after the system is instatiated and all entities
+    /// and components are loaded from the corresponding SDF world, and before
+    /// simulation begins exectution.
     class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
       /// \brief Configure the system
+      /// \param[in] _sdf The SDF Element associated with this system plugin.
       /// \param[in] _ecm The EntityComponentManager of the given simulation
       /// instance.
       /// \param[in] _eventMgr The EventManager of the given simulation
       /// instance.
-      public: virtual void Configure(EntityComponentManager &_ecm,
-                                     EventManager *_eventMgr) = 0;
+      public: virtual void Configure(const sdf::ElementPtr &_sdf,
+                                     EntityComponentManager &_ecm,
+                                     EventManager &_eventMgr) = 0;
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh

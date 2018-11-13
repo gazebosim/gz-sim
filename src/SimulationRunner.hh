@@ -38,6 +38,7 @@
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
@@ -59,7 +60,6 @@ namespace ignition
       public: explicit SystemInternal(const SystemPluginPtr &_systemPlugin)
               : systemPlugin(_systemPlugin),
                 system(systemPlugin->QueryInterface<System>()),
-                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
                 postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
@@ -72,10 +72,6 @@ namespace ignition
 
       /// \brief Access this system via the `System` interface
       public: System *system = nullptr;
-
-      /// \brief Access this system via the ISystemConfigure interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemConfigure *configure = nullptr;
 
       /// \brief Access this system via the ISystemPreUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
@@ -99,7 +95,7 @@ namespace ignition
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systems Systems to be loaded
       public: explicit SimulationRunner(const sdf::World *_world,
-                const std::vector<SystemPluginPtr> &_systems);
+                                        SystemManager &_sysMgr);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -118,9 +114,6 @@ namespace ignition
 
       /// \brief Update all the systems
       public: void UpdateSystems();
-
-      /// \brief Configure all the systems that implement Configure interface.
-      public: void ConfigureSystems();
 
       /// \brief Publish current world statistics.
       public: void PublishStats();

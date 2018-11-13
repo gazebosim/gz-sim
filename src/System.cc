@@ -27,8 +27,3 @@ System::System()
 System::~System()
 {
 }
-
-//////////////////////////////////////////////////
-void System::Init(const sdf::ElementPtr &/*_sdf*/)
-{
-}
