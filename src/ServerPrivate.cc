@@ -23,8 +23,6 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gazebo/SystemPluginPtr.hh>
-
 #include <ignition/gui/Application.hh>
 
 #include "SimulationRunner.hh"
