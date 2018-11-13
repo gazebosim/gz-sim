@@ -56,8 +56,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -464,8 +464,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -733,8 +733,8 @@ TEST_P(SimulationRunnerTest, Time)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check state
   EXPECT_TRUE(runner.Paused());
