@@ -31,13 +31,9 @@ Null::~Null()
 }
 
 //////////////////////////////////////////////////
-void Null::Init(const sdf::ElementPtr &/*_sdf*/)
-{
-}
-
-//////////////////////////////////////////////////
-void Null::Configure(EntityComponentManager &/*_ecm*/,
-                     EventManager */*_eventMgr*/)
+void Null::Configure(const sdf::ElementPtr &/*_sdf*/,
+                     EntityComponentManager &/*_ecm*/,
+                     EventManager &/*_eventMgr*/)
 {
 }
 
