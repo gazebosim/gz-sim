@@ -58,7 +58,7 @@ namespace ignition
       /// \brief Add a connection to an event.
       /// \param[in] _subscriber A std::function callback function. The function
       ///   signature must match that of the event (template parameter E).
-      /// \return A Connection object, which will automatically call
+      /// \return A Connection pointer, which will automatically call
       /// Disconnect when it goes out of scope.
       public: template <typename E>
               ignition::common::ConnectionPtr
@@ -68,7 +68,7 @@ namespace ignition
                   events[typeid(E)] = std::make_unique<E>();
                 }
 
-                E *eventPtr = dynamic_cast<E*>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E *>(events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
                 if (eventPtr != nullptr)
@@ -96,7 +96,7 @@ namespace ignition
                   return;
                 }
 
-                E *eventPtr = dynamic_cast<E*>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E *>(events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
                 if (eventPtr != nullptr)
