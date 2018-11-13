@@ -93,9 +93,9 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
-      /// \param[in] _systems Systems to be loaded
+      /// \param[in] _systemManager Reference to system manager.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        SystemManager &_sysMgr);
+                                        SystemManager &_systemManager);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -242,16 +242,16 @@ namespace ignition
       private: std::vector<SystemInternal> systems;
 
       /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure*> systemsConfigure;
+      private: std::vector<ISystemConfigure *> systemsConfigure;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate*> systemsPreupdate;
+      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate*> systemsUpdate;
+      private: std::vector<ISystemUpdate *> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate*> systemsPostupdate;
+      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
 
       /// \brief Manager of all events.
       private: EventManager eventMgr;

@@ -32,7 +32,7 @@ namespace ignition
     // currently no one component class that seems like a good place to hold
     // this documentation.
     /// \brief Components represent data, such as position information. An
-    /// Entity usually has one more associated components.
+    /// Entity usually has one or more associated components.
     ///
     /// The set of Components assigned to an Entity also act as a key.
     /// Systems process Entities based on their key. For example, a physics
