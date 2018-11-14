@@ -45,7 +45,7 @@ namespace systems
     public: virtual ~Null();
 
     /// Documentation inherited
-    public: void Configure(const sdf::ElementPtr &_sdf,
+    public: void Configure(const sdf::Element *_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
 

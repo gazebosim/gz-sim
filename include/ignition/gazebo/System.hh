@@ -79,7 +79,7 @@ namespace ignition
       /// instance.
       /// \param[in] _eventMgr The EventManager of the given simulation
       /// instance.
-      public: virtual void Configure(const sdf::ElementPtr &_sdf,
+      public: virtual void Configure(const sdf::Element *_sdf,
                                      EntityComponentManager &_ecm,
                                      EventManager &_eventMgr) = 0;
     };

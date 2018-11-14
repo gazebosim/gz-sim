@@ -46,7 +46,7 @@ namespace ignition
     /// to an Event or emit an Event as needed to signal actions that need to
     /// occur.
     ///
-    /// See ignition::gazebo::events for a complete list of events.
+    /// See \ref ignition::gazebo::events for a complete list of events.
     class IGNITION_GAZEBO_VISIBLE EventManager
     {
       /// \brief Constructor
@@ -64,11 +64,11 @@ namespace ignition
               ignition::common::ConnectionPtr
               Connect(const typename E::CallbackT &_subscriber)
               {
-                if (events.find(typeid(E)) == events.end()) {
-                  events[typeid(E)] = std::make_unique<E>();
+                if (this->events.find(typeid(E)) == this->events.end()) {
+                  this->events[typeid(E)] = std::make_unique<E>();
                 }
 
-                E *eventPtr = dynamic_cast<E *>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
                 if (eventPtr != nullptr)
@@ -89,14 +89,14 @@ namespace ignition
       public: template <typename E, typename ... Args>
               void Emit(Args && ... _args)
               {
-                if (events.find(typeid(E)) == events.end())
+                if (this->events.find(typeid(E)) == this->events.end())
                 {
                   // If there are no events of type E in the map, there are
                   // no connections to signal .
                   return;
                 }
 
-                E *eventPtr = dynamic_cast<E *>(events[typeid(E)].get());
+                E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
                 if (eventPtr != nullptr)
