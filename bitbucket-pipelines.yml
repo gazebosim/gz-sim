@@ -20,8 +20,17 @@ pipelines:
           - echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease bionic main" > /etc/apt/sources.list.d/gazebo-prerelease.list
           - apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D2486D2DD83DB69272AFE98867170598AF249743
           - apt-get update
-          - apt-get -y install
-            libignition-cmake2-dev
+          #- apt-get -y install
+          #  libignition-cmake2-dev
+          # Ignition cmake
+          - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
+          - cd ign-cmake
+          - hg up coverage_lcov_1.13
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=OFF
+          - make install
+          - cd ../..
           # Ignition math
           - mkdir build
           - cd build
