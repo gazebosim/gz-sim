@@ -10,6 +10,7 @@ link_directories(
 )
 
 set (plugins
+  EventTriggerSystem
   TestSystem
   MockSystem
 )

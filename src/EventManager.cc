@@ -14,16 +14,17 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/EventManager.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition;
+using namespace gazebo;
 
 //////////////////////////////////////////////////
-System::System()
+EventManager::EventManager()
 {
 }
 
 //////////////////////////////////////////////////
-System::~System()
+EventManager::~EventManager()
 {
 }
