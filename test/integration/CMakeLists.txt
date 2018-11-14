@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   entity_erase.cc
+  events.cc
   examples_build.cc
   physics_system.cc
   play_pause.cc

@@ -6,3 +6,5 @@ build_*
 *.swp
 *.qmlc
 .ycm_extra_conf.py
+.git
+.gitignore
