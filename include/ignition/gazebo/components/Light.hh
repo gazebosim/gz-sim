@@ -28,15 +28,15 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief This component contains light source information. For more
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light = SimpleWrapper<sdf::Light, class LightTag>;
-  }
+}
 }
 }
 }

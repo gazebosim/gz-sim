@@ -28,14 +28,14 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information.
   using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
-  }
+}
 }
 }
 }
