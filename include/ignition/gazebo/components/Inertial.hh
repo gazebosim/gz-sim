@@ -28,14 +28,14 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief A component type that contains inertial, ignition::math::Inertiald,
   /// information.
   using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-  }
+}
 }
 }
 }

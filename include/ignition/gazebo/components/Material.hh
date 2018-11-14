@@ -28,13 +28,13 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief This component holds an entity's material.
   using Material = SimpleWrapper<sdf::Material, class MaterialTag>;
-  }
+}
 }
 }
 }

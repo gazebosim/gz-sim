@@ -26,10 +26,10 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declarations.
   template<typename DataType> class SimpleWrapperPrivate;
 
@@ -47,7 +47,7 @@ namespace components
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
   template <typename DataType, typename Identifier>
-  class IGNITION_GAZEBO_VISIBLE SimpleWrapper
+  class SimpleWrapper
   {
     /// \brief Constructor
     /// \param[in] _simpleWrapper Ignition math simplewrapper to copy
@@ -127,7 +127,7 @@ namespace components
     this->dataPtr->simplewrapper = _simpleWrapper.Data();
     return *this;
   }
-  }
+}
 }
 }
 }
