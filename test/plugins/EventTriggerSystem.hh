@@ -33,7 +33,7 @@ class IGNITION_GAZEBO_VISIBLE EventTriggerSystem :
   // needed for linter
   public: EventTriggerSystem() = default;
 
-  public: void Configure(const sdf::Element */*_sdf*/,
+  public: void Configure(const std::shared_ptr<const sdf::Element> &/*_sdf*/,
                          EntityComponentManager &/*_ecm*/,
                          EventManager &_eventManager) override
         {

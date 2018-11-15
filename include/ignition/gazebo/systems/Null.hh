@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_NULL_SYSTEM_HH_
 #define IGNITION_GAZEBO_NULL_SYSTEM_HH_
 
+#include <memory>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -45,7 +47,7 @@ namespace systems
     public: virtual ~Null();
 
     /// Documentation inherited
-    public: void Configure(const sdf::Element *_sdf,
+    public: void Configure(const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
 
