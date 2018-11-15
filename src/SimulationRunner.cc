@@ -118,7 +118,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
         if (systemConfig != nullptr)
         {
-          systemConfig->Configure(pluginElem.get(),
+          systemConfig->Configure(pluginElem,
                                   this->entityCompMgr,
                                   this->eventMgr);
         }
