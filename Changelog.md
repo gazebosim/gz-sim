@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 0.1.0
 
+1. Use SimpleWrapper for more component types
+    * [Pull Request 78](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/78)
+
 1. Create EventManager and delegate System instantiation to SimulationRunner
     * [Pull Request 79](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/79)
 

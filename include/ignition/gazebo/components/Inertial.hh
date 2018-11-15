@@ -17,61 +17,25 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
 
-#include <memory>
-
 #include <ignition/math/Inertial.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/SimpleWrapper.hh"
+
 namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  // Forward declarations.
-  class InertialPrivate;
-
   /// \brief A component type that contains inertial, ignition::math::Inertiald,
   /// information.
-  class IGNITION_GAZEBO_VISIBLE Inertial
-  {
-    /// \brief Constructor
-    /// \param[in] _inertial Ignition math inertial to copy
-    public: explicit Inertial(const ignition::math::Inertiald &_inertial);
-
-    /// \brief Copy Constructor
-    /// \param[in] _inertial Inertial component to copy.
-    public: Inertial(const Inertial &_inertial);
-
-    /// \brief Move Constructor
-    /// \param[in] _inertial Inertial component to move.
-    public: Inertial(Inertial &&_inertial) noexcept;
-
-    /// \brief Destructor.
-    public: virtual ~Inertial();
-
-    /// \brief Move assignment operator.
-    /// \param[in] _inertial Inertial component to move.
-    /// \return Reference to this.
-    public: Inertial &operator=(Inertial &&_inertial);
-
-    /// \brief Copy assignment operator.
-    /// \param[in] _inertial Inertial component to copy.
-    /// \return Reference to this.
-    public: Inertial &operator=(const Inertial &_inertial);
-
-    /// \brief Get the inertial data.
-    /// \return The actual inertial information.
-    public: const ignition::math::Inertiald &Data() const;
-
-    /// \brief Private data pointer.
-    private: std::unique_ptr<InertialPrivate> dataPtr;
-  };
-  }
+  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
+}
 }
 }
 }
