@@ -222,7 +222,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
           model.SetStatic(_static->Data());
-          auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
+          auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
         }
@@ -250,14 +250,14 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             link.SetInertial(inertial->Data());
           }
 
-          auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
+          auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
+          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Data());
           // Assume canonical link if the key is not found
           if (canonLinkIt == this->canonicalLinkMap.end())
           {
-            this->canonicalLinkMap[_parent->Id()] = _entity;
+            this->canonicalLinkMap[_parent->Data()] = _entity;
           }
         }
         return true;
@@ -279,7 +279,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetName(_name->Data());
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
+        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
         return true;
@@ -311,13 +311,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Id());
+          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Data());
 
           // The model that contains this link must have a canonical link.
           // Otherwise something is wrong, so return
           if (canonLinkIt == this->canonicalLinkMap.end())
           {
-            ignerr << "The model " << _parent->Id() << " that contains this"
+            ignerr << "The model " << _parent->Data() << " that contains this"
                    << " link should have a canonical link\n";
             return true;
           }
@@ -327,7 +327,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // This is the canonical link, update the model
             // get the pose component of the parent model
             auto parentPose =
-                _ecm.Component<components::Pose>(_parent->Id());
+                _ecm.Component<components::Pose>(_parent->Data());
             // if the parentPose is a nullptr, something is wrong with ECS
             // creation
             if (parentPose)

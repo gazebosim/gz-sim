@@ -17,61 +17,26 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
 
-#include <memory>
 #include <sdf/Light.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/SimpleWrapper.hh"
+
 namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  // Forward declarations.
-  class LightPrivate;
-
   /// \brief This component contains light source information. For more
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
-  class IGNITION_GAZEBO_VISIBLE Light
-  {
-    /// \brief Constructor
-    /// \param[in] _light The entity's light
-    public: explicit Light(const sdf::Light &_light);
-
-    /// \brief Destructor
-    public: virtual ~Light();
-
-    /// \brief Copy Constructor
-    /// \param[in] _light Light component to copy.
-    public: Light(const Light &_light);
-
-    /// \brief Move Constructor
-    /// \param[in] _light Light component to move.
-    public: Light(Light &&_light) noexcept;
-
-    /// \brief Move assignment operator.
-    /// \param[in] _light Light component to move.
-    /// \return Reference to this.
-    public: Light &operator=(Light &&_light);
-
-    /// \brief Copy assignment operator.
-    /// \param[in] _light Light component to copy.
-    /// \return Reference to this.
-    public: Light &operator=(const Light &_light);
-
-    /// \brief Get the light data.
-    /// \return The actual light string.
-    public: const sdf::Light &Data() const;
-
-    /// \brief Private data pointer.
-    private: std::unique_ptr<LightPrivate> dataPtr;
-  };
-  }
+  using Light = SimpleWrapper<sdf::Light, class LightTag>;
+}
 }
 }
 }

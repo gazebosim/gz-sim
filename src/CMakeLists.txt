@@ -1,4 +1,3 @@
-add_subdirectory(components)
 add_subdirectory(gui)
 add_subdirectory(systems)
 
@@ -8,7 +7,6 @@ set(gui_sources
 )
 
 set (sources
-  ${components_sources}
   Entity.cc
   EntityComponentManager.cc
   EventManager.cc
