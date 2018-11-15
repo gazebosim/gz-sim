@@ -30,13 +30,17 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NameList.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RenderState.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -369,7 +373,62 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
   // used to map link names to EntityIds
   std::unordered_map<std::string, EntityId> linkMap;
+  std::unordered_map<std::string, EntityId> performerMap;
 
+  std::optional<components::Performer> performerComp;
+
+  auto worldElem = _world->Element();
+
+  for (auto performer = worldElem->GetElement("performer"); performer;
+        performer = performer->GetNextElement("performer"))
+  {
+    std::string name = performer->Get<std::string>("name");
+
+    EntityId performerEntity = this->entityCompMgr.CreateEntity();
+    // We use the ref to create a parent entity component later on
+    std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
+    performerMap[ref] = performerEntity;
+
+    sdf::Geometry geometry;
+    geometry.Load(performer->GetElement("geometry"));
+    this->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Performer());
+    this->entityCompMgr.CreateComponent(performerEntity, components::Name(name));
+    this->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Geometry(geometry));
+  }
+
+  for (auto level = worldElem->GetElement("level"); level;
+        level = level->GetNextElement("level"))
+  {
+    auto name = level->Get<std::string>("name");
+    auto pose = level->Get<math::Pose3d>("pose");
+    sdf::Geometry geometry;
+    geometry.Load(level->GetElement("geometry"));
+    std::vector<std::string> modelNames;
+    for (auto model = level->GetElement("ref"); model;
+         model = model->GetNextElement("ref"))
+    {
+      modelNames.push_back(model->GetValue()->GetAsString());
+    }
+
+    // Entity
+    EntityId levelEntity = this->entityCompMgr.CreateEntity();
+
+    // Components
+    this->entityCompMgr.CreateComponent(levelEntity, components::Level());
+    this->entityCompMgr.CreateComponent(levelEntity, components::Visual());
+    this->entityCompMgr.CreateComponent(levelEntity, components::Pose(pose));
+    this->entityCompMgr.CreateComponent(levelEntity, components::Name(name));
+    this->entityCompMgr.CreateComponent(levelEntity,
+        components::ParentEntity(worldEntity));
+    this->entityCompMgr.CreateComponent(levelEntity,
+        components::ParentEntity(worldEntity));
+    this->entityCompMgr.CreateComponent(levelEntity,
+        components::NameList(modelNames));
+    this->entityCompMgr.CreateComponent(levelEntity,
+        components::Geometry(geometry));
+  }
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -389,6 +448,15 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::ParentEntity(worldEntity));
     this->entityCompMgr.CreateComponent(modelEntity,
         components::Static(model->Static()));
+    this->entityCompMgr.CreateComponent(modelEntity,
+        components::RenderState(true));
+
+    if (performerMap.find(model->Name()) != performerMap.end())
+    {
+      // Make this model a parent to the performer entity
+      this->entityCompMgr.CreateComponent(
+          performerMap[model->Name()], components::ParentEntity(modelEntity));
+    }
 
     // NOTE: Pose components of links, visuals, and collisions are expressed in
     // the parent frame until we get frames working. However, after creation,
