@@ -1,0 +1,488 @@
+<?xml version="1.0" ?>
+<%
+  # Tile world generator
+  #
+  # Command line options (usage erb [opt]=[arg]):
+  # s: seed for randomization, defaults to random
+  # t: tile type, defaults to 'tunnel'
+  # n_x: number of tiles on X dimension, defaults to 20
+  # n_y: number of tiles on Y dimension, must be odd, defaults to 5
+
+  ###############################################
+  #                                             #
+  #           COMMAND LINE ARGUMENTS            #
+  #                                             #
+  ###############################################
+
+  vars = ARGV.take_while {|arg| arg[/^\w+=/]}
+  ARGV.slice!(0, vars.size)
+  vars.each do |var|
+    k, v = var.split('=', 2)
+    TOPLEVEL_BINDING.eval %Q(#{k} = "#{v}")
+  end
+
+  # Seed
+  seed = rand(0..10000000)
+  if (defined? s)
+    seed = s.to_i
+  end
+  srand(seed)
+
+  # Tile type
+  $type = 'tunnel'
+  if (defined? t)
+    $type = t.to_s
+    if ($type != 'cave') && ($type != 'tunnel')
+      raise('Unsupported tile type')
+      exit
+    end
+  end
+
+  # Number of tiles per dimension
+  $n_x = 20
+  if (defined? n_x)
+    $n_x = n_x.to_i
+  end
+  $n_y = 5
+  if (defined? n_y)
+    $n_y = n_y.to_i
+  end
+
+  ###############################################
+  #                                             #
+  #           IMPORT OTHER ERB FILES            #
+  #                                             #
+  ###############################################
+
+  # Relative path from where the script is being run to the script's directory
+  DIR = File.dirname(__FILE__)
+
+  # Helper function to import another erb file
+  def fromFile filename
+    return ERB.new(File.read(filename), nil, nil, '_sub01').result(binding)
+  end
+
+  ###############################################
+  #                                             #
+  #                TILE PARAMS                  #
+  #                                             #
+  ###############################################
+
+  # Tile X/Y dimensions in meters
+  tile_dimension = 20
+
+  # Entrance offset from staging area on X axis
+  entrance_offset = tile_dimension
+
+  # Increase this number as more tile meshes are added
+  type_total_count = 0
+  if ($type == 'cave')
+    type_total_count = 10
+  elsif ($type == 'tunnel')
+    type_total_count = 1
+  end
+
+  # Keep all possible tile types
+  tile_types = []
+  for i in (1..type_total_count)
+    tile_types.push($type + '_tile_' + i.to_s)
+  end
+
+  ###############################################
+  #                                             #
+  #               RANDOMIZATION                 #
+  #                                             #
+  ###############################################
+
+  # Get -1 if n < 0 and +1 if n >= 0
+  def sign(_n)
+    return _n == 0 ? 1 : _n.abs / _n
+  end
+
+  shapesCollection = {
+    "tunnel_tile_1" => [
+      {
+        :pose => "<pose>0 0 -0.25 0 0 0</pose>",
+        :geometry => "<box><size>5 20 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>0 0 4.25 0 0 0</pose>",
+        :geometry => "<box><size>5 20 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>0 0 -0.25 0 0 1.57</pose>",
+        :geometry => "<box><size>5 20 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>0 0 4.25 0 0 1.57</pose>",
+        :geometry => "<box><size>5 20 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>-2.5 6.25 2 3.14 -1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>2.5 6.25 2 3.14 -1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>-2.5 -6.25 2 3.14 -1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>2.5 -6.25 2 3.14 -1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>6.25 2.5 2 1.57 1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>-6.25 2.5 2 1.57 1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>6.25 -2.5 2 1.57 1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>-6.25 -2.5 2 1.57 1.57 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+    ],
+    "tunnel_tile_2" => [
+      {
+        :pose => "<pose>4 0 -0.25 0 0 0</pose>",
+        :geometry => "<box><size>5 7.5 0.05</size></box>"
+      },
+      {
+        :pose => "<pose>0 0 4.25 0 0 -1.57</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>6.25 2.5 -0.25 0 0 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+      {
+        :pose => "<pose>7.5 2.5 4.25 0 0 0</pose>",
+        :geometry => "<box><size>5 7.5 0.5</size></box>"
+      },
+    ],
+    "tunnel_tile_3" => [
+      {
+        :pose => "<pose>0 0 0 0 0 0</pose>",
+        :geometry => "<box><size>10 10 1</size></box>"
+      }
+    ],
+    "tunnel_tile_4" => [
+      {
+        :pose => "<pose>0 0 0 0 0 0</pose>",
+        :geometry => "<box><size>10 10 1</size></box>"
+      }
+    ],
+    "tunnel_tile_5" => [
+      {
+        :pose => "<pose>0 0 0 0 0 0</pose>",
+        :geometry => "<box><size>10 10 1</size></box>"
+      }
+    ],
+    "tunnel_tile_6" => [
+      {
+        :pose => "<pose>0 0 0 0 0 0</pose>",
+        :geometry => "<box><size>10 10 1</size></box>"
+      }
+    ],
+    "tunnel_tile_7" => [
+      {
+        :pose => "<pose>0 0 0 0 0 0</pose>",
+        :geometry => "<box><size>10 10 1</size></box>"
+      }
+    ]
+  }
+  # Grid tiles
+  half_n_y = ($n_y/2).floor
+  tiles = []
+  for x in (0..($n_x - 1))
+    for y in (-half_n_y..half_n_y)
+
+      tile =
+      {
+        :name => tile_types.sample(),
+        :x => entrance_offset + tile_dimension * x,
+        :y => tile_dimension * y,
+        :yaw => [0, Math::PI*0.5, -Math::PI*0.5, Math::PI].sample()
+      }
+      tiles.push(tile)
+    end
+  end
+
+  # Cap blockers
+  cap_blockers = []
+  for x in (0..($n_x - 1))
+    for y in [-half_n_y - 1, half_n_y + 1]
+
+      cap_blocker =
+      {
+        :name => $blocker_tile,
+        :x => entrance_offset + tile_dimension * x,
+        :y => tile_dimension * y + tile_dimension * 0.5 * -sign(y),
+        :yaw => 0
+      }
+      cap_blockers.push(cap_blocker)
+    end
+  end
+  for y in (-half_n_y..half_n_y)
+    for x in [-1, $n_x]
+
+      # Skip start tile
+      if y == 0 and x == -1
+        next
+      end
+
+      cap_blocker =
+      {
+        :name => $blocker_tile,
+        :x => entrance_offset +
+              tile_dimension * x + tile_dimension * 0.5 * -sign(x),
+        :y => tile_dimension * y,
+        :yaw => 0
+      }
+      cap_blockers.push(cap_blocker)
+    end
+  end
+%>
+<!--
+  Generated from tile.world.erb
+  Seed: <%= seed %>
+  Type: <%= $type %>
+  N_x: <%= $n_x %>
+  N_y: <%= $n_y %>
+-->
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-levels-system.so"
+      name="ignition::gazebo::systems::v0::Levels">
+    </plugin>
+    <plugin
+      filename="libMove3dSystem.so"
+      name="ignition::gazebo::systems::v0::Move3dSystem">
+    </plugin>
+    <!-- <plugin -->
+    <!--  filename="libignition-gazebo-physics-system.so" -->
+    <!--  name="ignition::gazebo::systems::v0::Physics"> -->
+    <!-- </plugin> -->
+
+  <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <service>/world/default/scene/info</service>
+        <pose_topic>/world/default/pose/info</pose_topic>
+        <visibility_topic>/world/default/visibility/info</visibility_topic>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/default/control</service>
+        <stats_topic>/world/default/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/default/stats</topic>
+
+      </plugin>
+
+    </gui>
+
+    <scene>
+      <ambient>0.8 0.8 0.8 1.0</ambient>
+      <background>0.34 0.39 0.43 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Grid tiles -->
+  <%
+    count = 0
+    for tile in tiles
+      count = count + 1
+  %>
+    <model name="<%= tile[:name] %>_tile_<%= count.to_s %>">
+      <pose><%= tile[:x] %> <%= tile[:y] %> 0 0 0 <%= tile[:yaw] %></pose>
+      <static>true</static>
+      <link name="link">
+      <% shapesCollection[tile[:name]].each_with_index do |shape, index| %>
+        <collision name="collision_<%= index %>">
+          <%= shape[:pose] %>
+          <geometry>
+            <%= shape[:geometry] %>
+          </geometry>
+        </collision>
+        <visual name="visual_<%= index %>">
+          <%= shape[:pose] %>
+          <geometry>
+            <%= shape[:geometry] %>
+          </geometry>
+          <material>
+            <ambient>1 1 1 0.8</ambient>
+            <diffuse>1 1 1 0.8</diffuse>
+            <specular>1 1 1 0.8</specular>
+          </material>
+        </visual>
+      <% 
+        end
+      %>
+      </link>
+    </model>
+  <%
+    end
+  %>
+  <model name="ball">
+    <pose>0 0 2.5 0 0 0</pose>
+    <static>1</static>
+    <link name="link1">
+      <collision name="collision">
+        <geometry>
+          <sphere>
+            <radius>0.5</radius>
+          </sphere>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <sphere>
+            <radius>0.5</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+        </material>
+      </visual>
+    </link> 
+  </model>
+
+  <performer name="perf1">
+    <ref>ball</ref>
+    <geometry>
+      <box>
+        <size>5 5 5</size>
+      </box>
+    </geometry>
+  </performer>
+  <%
+    count = 0
+    for tile in tiles
+      count = count + 1
+  %>
+  <level name="<%= count.to_s %>">
+    <pose><%= tile[:x] %> <%= tile[:y] %> 2.5 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>20 20 10</size>
+      </box>
+    </geometry>
+    <ref><%= tile[:name] %>_tile_<%= count.to_s %></ref>
+  </level>
+  <%
+    end
+  %>
+
+  </world>
+</sdf>

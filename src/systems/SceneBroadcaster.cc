@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/RenderState.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -38,6 +39,34 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+//////////////////////////////////////////////////
+void AddLevels(ignition::msgs::Scene *_msg,
+    const EntityId _id,
+    const math::graph::DirectedGraph<
+        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
+{
+  if (!_msg)
+    return;
+
+  // This is a hack for now. We'll create one model to contain all the level 
+  // visuals
+  auto model = _msg->add_model();
+  model->set_name("level_model");
+  auto link = model->add_link();
+  link->set_name("level_link");
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
+        vertex.second.get().Data());
+    if (!visualMsg)
+      continue;
+
+    visualMsg->mutable_meta()->set_layer(2);
+    visualMsg->set_transparency(0.2);
+    visualMsg->set_cast_shadows(false);
+    link->add_visual()->CopyFrom(*visualMsg.get());
+  }
+}
 //////////////////////////////////////////////////
 template<typename T>
 void AddLights(T _msg,
@@ -152,6 +181,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Pose publisher.
   public: transport::Node::Publisher posePub;
 
+  /// \brief Visiblity publisher.
+  public: transport::Node::Publisher visPub;
+
   /// \brief Graph containing latest information from entities.
   public: math::graph::DirectedGraph<
       std::shared_ptr<google::protobuf::Message>, bool> sceneGraph;
@@ -181,6 +213,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 {
   // Populate pose message
   msgs::Pose_V poseMsg;
+  msgs::UInt32_V visMsg;
 
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
@@ -243,6 +276,14 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp)->bool
       {
+        // see if the model this visual belongs should be rendered
+        const auto renderState = 
+          _manager.Component<components::RenderState>(_entity);
+
+        // continue to next visual if the renderState is false
+        if (renderState && !renderState->Data())
+          return true;
+
         auto modelMsg = std::make_shared<msgs::Model>();
         modelMsg->set_id(_entity);
         modelMsg->set_name(_nameComp->Data());
@@ -259,6 +300,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
+
+        // add to visibility msg
+        visMsg.add_data(_entity);
         return true;
       });
 
@@ -273,6 +317,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp)->bool
       {
+        const auto &parentVertex = 
+          this->dataPtr->sceneGraph.VertexFromId(_parentComp->Data());
+        if(!parentVertex.Valid())
+          return true;
+
         auto linkMsg = std::make_shared<msgs::Link>();
         linkMsg->set_id(_entity);
         linkMsg->set_name(_nameComp->Data());
@@ -289,6 +338,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
+        visMsg.add_data(_entity);
         return true;
       });
 
@@ -303,6 +353,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp)->bool
       {
+        const auto &parentVertex = 
+          this->dataPtr->sceneGraph.VertexFromId(_parentComp->Data());
+        if(!parentVertex.Valid())
+          return true;
+
         auto visualMsg = std::make_shared<msgs::Visual>();
         visualMsg->set_id(_entity);
         visualMsg->set_parent_id(_parentComp->Data());
@@ -337,6 +392,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
+        visMsg.add_data(_entity);
         return true;
       });
 
@@ -373,6 +429,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
       });
   }
   this->dataPtr->posePub.Publish(poseMsg);
+  this->dataPtr->visPub.Publish(visMsg);
 }
 
 //////////////////////////////////////////////////
@@ -397,11 +454,22 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Pose info publisher
   std::string topic{"/world/" + _worldName + "/pose/info"};
 
-  transport::AdvertiseMessageOptions advertOpts;
-  advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
+  // Pose info publisher
+  std::string visTopic{"/world/" + _worldName + "/visibility/info"};
 
-  ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+  {
+    transport::AdvertiseMessageOptions advertOpts;
+    advertOpts.SetMsgsPerSec(60);
+    this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
+    ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+  }
+  {
+    transport::AdvertiseMessageOptions advertOpts;
+    advertOpts.SetMsgsPerSec(60);
+    this->visPub = this->node.Advertise<msgs::UInt32_V>(visTopic, advertOpts);
+    ignmsg << "Publishing pose messages on [" << visTopic << "]" << std::endl;
+  }
+
 }
 
 //////////////////////////////////////////////////
@@ -419,6 +487,8 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   // Add lights
   AddLights(&_res, this->worldId, this->sceneGraph);
 
+  // Add level visuals
+  AddLevels(&_res, this->worldId, this->sceneGraph);
   return true;
 }
 
