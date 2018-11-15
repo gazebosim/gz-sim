@@ -28,6 +28,8 @@ namespace ignition
   /// provides  high fidelity physics, rendering, and sensor simulation.
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Adding component namespace information here because there is
     // currently no one component class that seems like a good place to hold
     // this documentation.
@@ -40,8 +42,6 @@ namespace ignition
     /// components.
     namespace components {}
 
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief An Entity is an id.
     using EntityId = int;
 

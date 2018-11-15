@@ -26,15 +26,15 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   //
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = SimpleWrapper<bool, class StaticTag>;
-  }
+}
 }
 }
 }

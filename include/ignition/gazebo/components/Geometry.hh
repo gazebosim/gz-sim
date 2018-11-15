@@ -17,59 +17,24 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
 
-#include <memory>
 #include <sdf/Geometry.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/SimpleWrapper.hh"
+
 namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  // Forward declarations.
-  class GeometryPrivate;
-
   /// \brief This component holds an entity's geometry.
-  class IGNITION_GAZEBO_VISIBLE Geometry
-  {
-    /// \brief Constructor
-    /// \param[in] _geometry The entity's geometry
-    public: explicit Geometry(const sdf::Geometry &_geometry);
-
-    /// \brief Destructor
-    public: virtual ~Geometry();
-
-    /// \brief Copy Constructor
-    /// \param[in] _geometry Geometry component to copy.
-    public: Geometry(const Geometry &_geometry);
-
-    /// \brief Move Constructor
-    /// \param[in] _geometry Geometry component to move.
-    public: Geometry(Geometry &&_geometry) noexcept;
-
-    /// \brief Move assignment operator.
-    /// \param[in] _geometry Geometry component to move.
-    /// \return Reference to this.
-    public: Geometry &operator=(Geometry &&_geometry);
-
-    /// \brief Copy assignment operator.
-    /// \param[in] _geometry Geometry component to copy.
-    /// \return Reference to this.
-    public: Geometry &operator=(const Geometry &_geometry);
-
-    /// \brief Get the geometry data.
-    /// \return The actual geometry string.
-    public: const sdf::Geometry &Data() const;
-
-    /// \brief Private data pointer.
-    private: std::unique_ptr<GeometryPrivate> dataPtr;
-  };
-  }
+  using Geometry = SimpleWrapper<sdf::Geometry, class GeometryTag>;
+}
 }
 }
 }
