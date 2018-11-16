@@ -31,7 +31,7 @@ Null::~Null()
 }
 
 //////////////////////////////////////////////////
-void Null::Configure(const sdf::ElementPtr &/*_sdf*/,
+void Null::Configure(const std::shared_ptr<const sdf::Element> &/*_sdf*/,
                      EntityComponentManager &/*_ecm*/,
                      EventManager &/*_eventMgr*/)
 {
