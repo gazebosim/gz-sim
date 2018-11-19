@@ -97,23 +97,25 @@ Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
   sdf::Root root;
+  sdf::Errors errors;
 
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    sdf::Errors errors = root.Load(_config.SdfFile());
-    if (!errors.empty())
-    {
-      for (auto &err : errors)
-        ignerr << err << "\n";
-      return;
-    }
+    errors = root.Load(_config.SdfFile());
   }
   else
   {
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    root.LoadSdfString(kDefaultWorld);
+    errors = root.LoadSdfString(kDefaultWorld);
+  }
+
+  if (!errors.empty())
+  {
+    for (auto &err : errors)
+      ignerr << err << "\n";
+    return;
   }
 
   this->dataPtr->CreateEntities(root);
