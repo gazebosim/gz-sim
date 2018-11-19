@@ -1,0 +1,1012 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>1 -2 1.2 0 0.5 2</camera_pose>
+        <service>/world/default/scene/info</service>
+        <pose_topic>/world/default/pose/info</pose_topic>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/default/control</service>
+        <stats_topic>/world/default/stats</stats_topic>
+
+      </plugin>
+    </gui>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <pose>0 0 -0.5 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>100 100 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <box>
+              <size>100 100 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="demo_joint_types">
+        <!-- A Heavy base keeps the joints from falling over -->
+        <link name="heavy_base">
+            <!-- position the base such that the bottom touches the floor -->
+            <pose>0 0 0.05 0 0 0</pose>
+            <inertial>
+                <mass>100</mass> <!-- kg -->
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>8.4167</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>40.417</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>48.667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="heavy_base_collision">
+                <geometry>
+                    <box>
+                        <size>2.2 1 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="heavy_base_visual">
+                <geometry>
+                    <box>
+                        <size>2.2 1 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0 0 1 1</ambient>
+                  <diffuse>0 0 1 1</diffuse>
+                  <specular>0 0 1 1</specular>
+                </material>
+            </visual>
+        </link>
+
+
+        <!-- ****************************************
+             revolute joint demo 
+             **************************************** -->
+        <link name="revolute_base">
+            <!-- Put the bottom of the child on top of the parent
+                 z = 0.5 * revolute_base_sz_z + heavy_base_sz_z
+                 x = put it near revolute label on heavy base
+                 -->
+            <pose >-.72 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="revolute_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="revolute_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="revolute_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>revolute_base</child>
+        </joint>
+
+        <link name="revolute_arm">
+            <!-- Put the arm near the top of the revolute_base
+                 z = revolute_base_sz_z + heavy_base_sz_z - 0.5 * revolute_arm_sz_z
+                 y = -0.5 * revolute_arm_sz_y + fudge(0.05)
+                 x = revolute_base_x - 0.5 * revolute_base_sz_x + 0.5 * revolute_arm_sz_x + fudge(0.01)
+                 -->
+            <pose >-.61 -0.075 0.55 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0060417</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0016667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0060417</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="revolute_arm_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="revolute_arm_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="revolute_demo" type="revolute">
+            <parent>revolute_base</parent>
+            <child>revolute_arm</child>
+            <axis>
+                <xyz>1 0 0</xyz>
+                <limit>
+                  <lower>-3.14</lower>
+                  <upper>3.14</upper>
+                </limit>
+            </axis>
+            <!-- Move the joint to the size a bit to be more like an arm
+                 y = 0.5 * relative_arm_sz_y - fudge(0.05) -->
+            <pose>0 0.075 0 0 0 0</pose>
+        </joint>
+
+        <!-- ****************************************
+             gearbox joint demo 
+             **************************************** -->
+        <link name="gearbox_base">
+            <!-- Put the bottom of the child on top of the parent
+                 z = 0.5 * gearbox_base_sz_z + heavy_base_sz_z
+                 x = put it near gearbox label on heavy base
+                 -->
+            <pose >-.49 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="gearbox_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="gearbox_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="gearbox_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>gearbox_base</child>
+        </joint>
+
+        <!-- The reference body for the gearbox -->
+        <link name="gearbox_input">
+            <!-- Put the arm near the top of the gearbox_base so it swings on it's own
+                 z = gearbox_base_sz_z + heavy_base_sz_z - 0.5 * gearbox_input_sz_z
+                 y = -0.5 * gearbox_input_sz_y + fudge(0.05)
+                 x = gearbox_base_x - 0.5 * gearbox_base_sz_x + 0.5 * gearbox_input_sz_x + fudge(0.01)
+                 -->
+            <pose >-.38 -0.075 0.55 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0060417</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0016667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0060417</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="gearbox_input_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="gearbox_input_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+        <!-- The output of the gearbox is a free spinning cylinder -->
+        <link name="gearbox_output">
+            <gravity>0</gravity>
+            <pose >-.3 0.0 0.55 0 1.5708 0</pose>
+            <inertial>
+                <mass>0.1</mass> <!-- kg -->
+                <inertia>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <ixx>0.00027083</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <iyy>0.00027083</iyy>
+                    <iyz>0</iyz>
+                    <!-- mass * radius * radius * 0.5 -->
+                    <izz>0.0005</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="gearbox_output_collision">
+                <geometry>
+                    <cylinder>
+                        <radius>0.1</radius>
+                        <length>0.05</length>
+                    </cylinder>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="gearbox_output_visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.1</radius>
+                        <length>0.05</length>
+                    </cylinder>
+                </geometry>
+            </visual>
+        </link>
+
+        <!-- Gearbox links revolute joints, so create a couple revolute joints -->
+        <joint name="gearbox_input_joint" type="revolute">
+            <parent>gearbox_base</parent>
+            <child>gearbox_input</child>
+            <axis>
+                <xyz>1 0 0</xyz>
+            </axis>
+            <pose>0 0.075 0 0 0 0</pose>
+        </joint>
+        <joint name="gearbox_output_joint" type="revolute">
+            <parent>gearbox_base</parent>
+            <child>gearbox_output</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+            </axis>
+            <pose>0 0 0 0 0 0</pose>
+        </joint>
+        <joint name="gearbox_demo" type="gearbox">
+            <parent>gearbox_input</parent>
+            <child>gearbox_output</child>
+            <gearbox_reference_body>gearbox_base</gearbox_reference_body>
+            <gearbox_ratio>5</gearbox_ratio>
+            <!-- input axis (relative to child) -->
+            <axis>
+                <xyz>0 0 1</xyz>
+            </axis>
+            <!-- output axis (relative to child) -->
+            <axis2>
+                <xyz>0 0 1</xyz>
+                <limit>
+                  <lower>-1e16</lower>
+                  <upper>1e16</upper>
+                </limit>
+            </axis2>
+        </joint>
+        <!-- ****************************************
+             revolute2 joint demo 
+             **************************************** -->
+        <link name="revolute2_base">
+            <!-- Put the bottom of the child on top of the parent-->
+            <pose >-.17 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="revolute2_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="revolute2_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="revolute2_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>revolute2_base</child>
+        </joint>
+
+        <link name="revolute2_arm">
+            <!-- Put the arm near the top of the base
+                 -->
+            <pose >-.06 -0.075 0.55 1.5708 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <ixx>0.0058333</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <iyy>0.0058333</iyy>
+                    <iyz>0</iyz>
+                    <!-- mass * radius * radius * 0.5 -->
+                    <izz>0.00125</izz>
+                </inertia>
+                <!-- offset inertia as a trick to get movement from gravity -->
+                <pose >-.1 -0.1 0.1 0 0 0</pose>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="revolute2_arm_collision">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="revolute2_arm_visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="revolute2_demo" type="revolute2">
+            <parent>revolute2_base</parent>
+            <child>revolute2_arm</child>
+            <axis>
+                <xyz>1 0 0</xyz>
+            </axis>
+            <axis2>
+                <xyz>0 1 0</xyz>
+                <limit>
+                  <lower>-1e16</lower>
+                  <upper>1e16</upper>
+                </limit>
+            </axis2>
+            <pose>0 0 -0.075  0 0 0</pose>
+        </joint>
+        <!-- ****************************************
+             prismatic joint demo 
+             **************************************** -->
+        <link name="prismatic_base">
+            <!-- Put the bottom of base on top of the heavy base -->
+            <pose >0.09 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="prismatic_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="prismatic_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="prismatic_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>prismatic_base</child>
+        </joint>
+
+        <link name="prismatic_slide">
+            <!-- Put the slide near the top of the base -->
+            <pose >0.2 0 0.70 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0060417</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0060417</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="prismatic_slide_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.25</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="prismatic_slide_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.25</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="prismatic_demo" type="prismatic">
+            <parent>prismatic_base</parent>
+            <child>prismatic_slide</child>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <!-- Make it springy to keep the demo moving -->
+                <limit>
+                    <lower>-0.25</lower>
+                    <upper>0.25</upper>
+                </limit>
+                <dynamics>
+                    <spring_stiffness>100</spring_stiffness>
+                </dynamics>
+            </axis>
+        </joint>
+        <!-- ****************************************
+             ball joint demo 
+             **************************************** -->
+        <link name="ball_socket">
+            <!-- make the socket float in the sky -->
+            <pose >0.4 0 0.55 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0016667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0016667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="ball_socket_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="ball_socket_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="ball_socket_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>ball_socket</child>
+        </joint>
+
+        <link name="ball_ball">
+            <!-- Put the ball just under the socket -->
+            <pose >0.4 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (2 * mass * radius * radius) / 5 -->
+                    <ixx>0.00196</ixx>
+                    <!-- fudge it a bit to get movement on two axis from gravity alone -->
+                    <ixy>0.00</ixy>
+                    <ixz>0.00</ixz>
+                    <!-- (2 * mass * radius * radius) / 5 -->
+                    <iyy>0.00196</iyy>
+                    <iyz>0.00</iyz>
+                    <!-- (2 * mass * radius * radius) / 5 -->
+                    <izz>0.00196</izz>
+                </inertia>
+                <!-- offset interia as a trick to get movement from gravity -->
+                <pose >0.1 -0.1 0.1 0 0 0</pose>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="ball_ball_collision">
+                <geometry>
+                    <sphere>
+                        <radius>0.07</radius>
+                    </sphere>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="ball_ball_visual">
+                <geometry>
+                    <sphere>
+                        <radius>0.07</radius>
+                    </sphere>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="ball_demo" type="ball">
+            <parent>ball_socket</parent>
+            <child>ball_ball</child>
+        </joint>
+
+        <!-- ****************************************
+             screw joint demo 
+             **************************************** -->
+        <link name="screw_base">
+            <!-- Put the bottom of base on top of the heavy base -->
+            <pose >0.6 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="screw_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="screw_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="screw_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>screw_base</child>
+        </joint>
+
+        <link name="screw_thread">
+            <!-- Put the thread near the top of the base -->
+            <pose >0.71 0 0.70 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <ixx>0.0058333</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <iyy>0.0058333</iyy>
+                    <iyz>0</iyz>
+                    <!-- mass * radius * radius * 0.5 -->
+                    <izz>0.00125</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="screw_thread_collision">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="screw_thread_visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="screw_demo" type="screw">
+            <parent>screw_base</parent>
+            <child>screw_thread</child>
+            <thread_pitch>20</thread_pitch>
+            <axis>
+                <xyz>0 0 1</xyz>
+                <!-- Make it springy to keep the demo moving -->
+                <dynamics>
+                    <spring_stiffness>0.2</spring_stiffness>
+                </dynamics>
+                <limit>
+                  <lower>-1e16</lower>
+                  <upper>1e16</upper>
+                </limit>
+            </axis>
+        </joint>
+
+        <!-- ****************************************
+             universal joint demo 
+             **************************************** -->
+        <link name="universal_base">
+            <!-- make the base float in the sky -->
+            <pose >0.9 0 0.55 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0016667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0016667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="universal_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="universal_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="universal_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>universal_base</child>
+        </joint>
+
+        <link name="universal_arm">
+            <!-- Put the shaft just under the base -->
+            <pose >0.9 -0.075 0.44 1.5708 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <ixx>0.0058333</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (3 * radius * radius + length * length) -->
+                    <iyy>0.0058333</iyy>
+                    <iyz>0</iyz>
+                    <!-- mass * radius * radius * 0.5 -->
+                    <izz>0.00125</izz>
+                </inertia>
+                <!-- offset interia as a trick to get movement from gravity -->
+                <pose >-0.02 0.02 0 0 0 0</pose>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="universal_shaft_collision">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="universal_shaft_visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.05</radius>
+                        <length>0.25</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="universal_demo" type="universal">
+            <parent>universal_base</parent>
+            <child>universal_arm</child>
+            <pose>0 0 -0.075 0 0 0</pose>
+            <axis>
+              <xyz>1 0 0</xyz>
+            </axis>
+            <axis2>
+              <xyz>0 1 0</xyz>
+                <limit>
+                  <lower>-1e16</lower>
+                  <upper>1e16</upper>
+                </limit>
+            </axis2>
+        </joint>
+
+        <!-- ****************************************
+             fixed joint demo 
+             **************************************** -->
+        <link name="fixed_base">
+            <!-- Put the bottom of base on top of the heavy base -->
+            <pose >-1 0 0.35 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.021667</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.021667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0016667</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="fixed_base_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="fixed_base_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.1 0.5</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>0.7 0.7 0.7 1</ambient>
+                  <diffuse>0.7 0.7 0.7 1</diffuse>
+                  <specular>0.7 0.7 0.7 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <link name="fixed_arm">
+            <!-- Put the arm near the top of the base -->
+            <pose >-.89 -0.075 0.55 0 0 0</pose>
+            <inertial>
+                <inertia>
+                    <!-- (mass / 12) * (y*y + z*z) -->
+                    <ixx>0.0060417</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <!-- (mass / 12) * (x*x + z*z) -->
+                    <iyy>0.0016667</iyy>
+                    <iyz>0</iyz>
+                    <!-- (mass / 12) * (y*y + x*x) -->
+                    <izz>0.0060417</izz>
+                </inertia>
+            </inertial>
+            <!-- Same geometry as visual -->
+            <collision name="fixed_arm_collision">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+            </collision>
+            <!-- Same geometry as collision -->
+            <visual name="fixed_arm_visual">
+                <geometry>
+                    <box>
+                        <size>0.1 0.25 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                  <ambient>1 0 0 1</ambient>
+                  <diffuse>1 0 0 1</diffuse>
+                  <specular>1 0 0 1</specular>
+                </material>
+            </visual>
+        </link>
+
+        <joint name="fixed_base_to_heavy_base" type="fixed">
+            <parent>heavy_base</parent>
+            <child>fixed_base</child>
+        </joint>
+
+        <joint name="fixed_demo" type="fixed">
+            <parent>fixed_base</parent>
+            <child>fixed_arm</child>
+        </joint>
+    </model>
+  </world>
+</sdf>
