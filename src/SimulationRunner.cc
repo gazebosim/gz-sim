@@ -16,6 +16,7 @@
 */
 
 #include <sdf/Collision.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -27,17 +28,24 @@
 
 #include "ignition/gazebo/Events.hh"
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -391,9 +399,7 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         components::Static(model->Static()));
 
     // NOTE: Pose components of links, visuals, and collisions are expressed in
-    // the parent frame until we get frames working. However, after creation,
-    // these pose components will be updated with absolute poses from the
-    // physics engine.
+    // the parent frame until we get frames working.
 
     // Links
     for (uint64_t linkIndex = 0; linkIndex < model->LinkCount();
@@ -414,6 +420,11 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
           components::Inertial(link->Inertial()));
       this->entityCompMgr.CreateComponent(linkEntity,
           components::ParentEntity(modelEntity));
+      if (linkIndex == 0)
+      {
+        this->entityCompMgr.CreateComponent(linkEntity,
+            components::CanonicalLink());
+      }
 
       linkMap.insert(std::pair(link->Name(), linkEntity));
 
@@ -494,6 +505,47 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
         this->entityCompMgr.CreateComponent(lightEntity,
             components::ParentEntity(linkEntity));
       }
+    }
+
+    // Joints
+    for (uint64_t jointIndex = 0; jointIndex < model->JointCount();
+        ++jointIndex)
+    {
+      auto joint = model->JointByIndex(jointIndex);
+
+      // Entity
+      EntityId jointEntity = this->entityCompMgr.CreateEntity();
+
+      // Components
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::Joint());
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::JointType(joint->Type()));
+
+      if (joint->Axis(0))
+      {
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::JointAxis(*joint->Axis(0)));
+      }
+
+      if (joint->Axis(1))
+      {
+        this->entityCompMgr.CreateComponent(jointEntity,
+            components::JointAxis2(*joint->Axis(1)));
+      }
+
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::Pose(joint->Pose()));
+      this->entityCompMgr.CreateComponent(jointEntity ,
+          components::Name(joint->Name()));
+      this->entityCompMgr.CreateComponent(jointEntity ,
+          components::ThreadPitch(joint->ThreadPitch()));
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::ParentEntity(modelEntity));
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::ParentLinkName(joint->ParentLinkName()));
+      this->entityCompMgr.CreateComponent(jointEntity,
+          components::ChildLinkName(joint->ChildLinkName()));
     }
   }
 

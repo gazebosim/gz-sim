@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="z">0</property>
+          <anchor line="right" target="window" target_line="right"/>
+          <anchor line="left" target="window" target_line="left"/>
+          <anchor line="top" target="window" target_line="top"/>
+          <anchor line="bottom" target="window" target_line="bottom"/>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-1 0 1 0 0.5 0</camera_pose>
+        <service>/world/default/scene/info</service>
+        <pose_topic>/world/default/pose/info</pose_topic>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+          <anchor line="left" target="window" target_line="left"/>
+          <anchor line="bottom" target="window" target_line="bottom"/>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/default/control</service>
+        <stats_topic>/world/default/stats</stats_topic>
+
+      </plugin>
+    </gui>
+
+    <gravity>0 0 0</gravity>
+
+    <model name="canonical">
+      <!-- random pose -->
+      <pose>-2.15195357 -1.43940727 0.61459533  0.1970569  -0.73194673 0.09871452</pose>
+      <link name="base_link">
+        <!-- random pose -->
+        <pose>0.71229333 -1.05448166 1.62442587  0.45922601  0.47291648  0.25646825</pose>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name="base_collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="link1">
+        <pose>0.8880941  -0.1920708  0.81992352 -0.81596066  0.95599217 -0.42638954</pose>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="j0" type="fixed">
+        <parent>base_link</parent>
+        <child>link1</child>
+      </joint>
+      <link name="link2">
+        <pose>1.2961371  -0.53306886  1.35475164 -0.69270376 -0.7006309  -1.06392685</pose>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <length>0.4</length>
+              <radius>0.02</radius>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="j1" type="fixed">
+        <parent>link1</parent>
+        <child>link2</child>
+      </joint>
+    </model>
+  </world>
+</sdf>

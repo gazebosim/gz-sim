@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 0.1.0
 
+1. Add support for joints
+    * [Pull Request 77](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/77)
+
 1. Use SimpleWrapper for more component types
     * [Pull Request 78](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/78)
 
