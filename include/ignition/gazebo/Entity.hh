@@ -20,12 +20,28 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+/// \brief This library is part of the [Ignition
+/// Robotics](https://ignitionrobotics.org) project.
 namespace ignition
 {
+  /// \brief Gazebo is a leading open source robotics simulator, that
+  /// provides high fidelity physics, rendering, and sensor simulation.
   namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    // Adding component namespace information here because there is
+    // currently no one component class that seems like a good place to hold
+    // this documentation.
+    /// \brief Components represent data, such as position information. An
+    /// Entity usually has one or more associated components.
+    ///
+    /// The set of Components assigned to an Entity also act as a key.
+    /// Systems process Entities based on their key. For example, a physics
+    /// system may process only entities that have pose and inertia
+    /// components.
+    namespace components {}
+
     /// \brief An Entity is an id.
     using EntityId = int;
 

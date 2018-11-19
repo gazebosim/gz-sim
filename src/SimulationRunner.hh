@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/transport/Node.hh>
 
@@ -34,8 +35,10 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/SystemManager.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
@@ -90,9 +93,9 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
-      /// \param[in] _systems Systems to be loaded
+      /// \param[in] _systemManager Reference to system manager.
       public: explicit SimulationRunner(const sdf::World *_world,
-                const std::vector<SystemPluginPtr> &_systems);
+                                        SystemManager &_systemManager);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -195,6 +198,10 @@ namespace ignition
       /// for deletion.
       public: bool RequestEraseEntity(const EntityId _id);
 
+      /// \brief Get the EventManager
+      /// \return Reference to the event manager.
+      public: const EventManager &EventMgr() const;
+
       /// \brief Get the current info object.
       /// \return Current info.
       public: const UpdateInfo &CurrentInfo() const;
@@ -234,14 +241,20 @@ namespace ignition
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
 
+      /// \brief Systems implementing Configure
+      private: std::vector<ISystemConfigure *> systemsConfigure;
+
       /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate*> systemsPreupdate;
+      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate*> systemsUpdate;
+      private: std::vector<ISystemUpdate *> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate*> systemsPostupdate;
+      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+
+      /// \brief Manager of all events.
+      private: EventManager eventMgr;
 
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
@@ -280,6 +293,9 @@ namespace ignition
 
       /// \brief Step size
       private: ignition::math::clock::duration stepSize{10ms};
+
+      /// \brief Connection to the pause event.
+      private: ignition::common::ConnectionPtr pauseConn;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.

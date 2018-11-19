@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_NULL_SYSTEM_HH_
 #define IGNITION_GAZEBO_NULL_SYSTEM_HH_
 
+#include <memory>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -33,6 +35,7 @@ namespace systems
   /// \brief Minimal system implementation
   class IGNITION_GAZEBO_VISIBLE Null:
     public System,
+    public ISystemConfigure,
     public ISystemPreUpdate,
     public ISystemUpdate,
     public ISystemPostUpdate
@@ -43,12 +46,20 @@ namespace systems
     /// \brief Destructor
     public: virtual ~Null();
 
+    /// Documentation inherited
+    public: void Configure(const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) override;
+
+    /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) override;
 
+    /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) override;
 
+    /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) override;
   };

@@ -64,8 +64,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -142,7 +142,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       modelCount++;
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
       if (modelCount == 1)
       {
         EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
@@ -199,7 +199,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
-        EXPECT_EQ(boxModelEntity, _parent->Id());
+        EXPECT_EQ(boxModelEntity, _parent->Data());
         boxLinkEntity = _entity;
       }
       else if (linkCount == 2)
@@ -207,7 +207,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
-        EXPECT_EQ(cylModelEntity, _parent->Id());
+        EXPECT_EQ(cylModelEntity, _parent->Data());
         cylLinkEntity = _entity;
       }
       else if (linkCount == 3)
@@ -215,7 +215,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
-        EXPECT_EQ(sphModelEntity, _parent->Id());
+        EXPECT_EQ(sphModelEntity, _parent->Data());
         sphLinkEntity = _entity;
       }
       return true;
@@ -290,7 +290,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("box_collision", _name->Data());
 
-        EXPECT_EQ(boxLinkEntity, _parent->Id());
+        EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -304,7 +304,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("cylinder_collision", _name->Data());
 
-        EXPECT_EQ(cylLinkEntity, _parent->Id());
+        EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -318,7 +318,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("sphere_collision", _name->Data());
 
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -361,7 +361,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("box_visual", _name->Data());
 
-        EXPECT_EQ(boxLinkEntity, _parent->Id());
+        EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -380,7 +380,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("cylinder_visual", _name->Data());
 
-        EXPECT_EQ(cylLinkEntity, _parent->Id());
+        EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -399,7 +399,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("sphere_visual", _name->Data());
 
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -439,7 +439,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       EXPECT_EQ("sun", _name->Data());
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
@@ -474,8 +474,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -524,7 +524,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       modelCount++;
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
       EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
@@ -559,7 +559,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
       EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
-      EXPECT_EQ(sphModelEntity, _parent->Id());
+      EXPECT_EQ(sphModelEntity, _parent->Data());
       sphLinkEntity = _entity;
 
       return true;
@@ -598,7 +598,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       EXPECT_EQ("sphere_visual", _name->Data());
 
-      EXPECT_EQ(sphLinkEntity, _parent->Id());
+      EXPECT_EQ(sphLinkEntity, _parent->Data());
 
       EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -637,7 +637,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
@@ -659,7 +659,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
@@ -683,7 +683,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
@@ -705,7 +705,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
@@ -743,8 +743,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -884,8 +884,8 @@ TEST_P(SimulationRunnerTest, Time)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check state
   EXPECT_TRUE(runner.Paused());

@@ -234,7 +234,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           model.SetName(_name->Data());
           model.SetPose(_pose->Data());
           model.SetStatic(_static->Data());
-          auto worldPtrPhys = this->entityWorldMap.at(_parent->Id());
+          auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
           auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
           this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
         }
@@ -262,7 +262,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             link.SetInertial(inertial->Data());
           }
 
-          auto modelPtrPhys = this->entityModelMap.at(_parent->Id());
+          auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
         }
@@ -285,7 +285,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetName(_name->Data());
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Id());
+        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
         return true;
@@ -324,7 +324,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             joint.SetAxis(1, jointAxis2->Data());
 
         // Use the parent link's parent model as the model of this joint
-        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Id());
+        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
         modelPtrPhys->ConstructJoint(joint);
 
         return true;
@@ -361,14 +361,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 
           // get the pose component of the parent model
           auto parentPose =
-              _ecm.Component<components::Pose>(_parent->Id());
+              _ecm.Component<components::Pose>(_parent->Data());
 
           // if the parentPose is a nullptr, something is wrong with ECS
           // creation
           if (!parentPose)
           {
-            ignerr << "The pose component of " << _parent->Id() << " could not"
-                   << " be found. This should never happen!\n";
+            ignerr << "The pose component of " << _parent->Data()
+                   << " could not be found. This should never happen!\n";
             return true;
           }
           if (canonicalLink)

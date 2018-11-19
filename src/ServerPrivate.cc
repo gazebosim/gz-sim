@@ -23,8 +23,6 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gazebo/SystemPluginPtr.hh>
-
 #include <ignition/gui/Application.hh>
 
 #include "SimulationRunner.hh"
@@ -112,24 +110,8 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
     auto world = _root.WorldByIndex(worldIndex);
     auto element = world->Element();
 
-    std::vector<SystemPluginPtr> systems;
-
-    if (element->HasElement("plugin"))
-    {
-      sdf::ElementPtr pluginElem = element->GetElement("plugin");
-      while (pluginElem)
-      {
-        auto system = this->systemManager.LoadPlugin(pluginElem);
-        if (system)
-        {
-          systems.push_back(system.value());
-        }
-        pluginElem = pluginElem->GetNextElement("plugin");
-      }
-    }
-
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex), systems));
+          _root.WorldByIndex(worldIndex), this->systemManager));
   }
 }
 
