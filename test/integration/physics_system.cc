@@ -232,7 +232,7 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
-          auto parentModel = _ecm.Component<components::Name>(_parent->Id());
+          auto parentModel = _ecm.Component<components::Name>(_parent->Data());
           EXPECT_TRUE(nullptr != parentModel);
           if (parentModel->Data() == modelName)
           {

@@ -17,15 +17,24 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include <memory>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/EventManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
+
+#include <sdf/Element.hh>
 
 namespace ignition
 {
   namespace gazebo
   {
+    /// \brief Namespace for all System plugins. Refer to the System class for
+    /// more information about systems.
+    namespace systems {}
+
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class System System.hh ignition/gazebo/System.hh
@@ -59,21 +68,40 @@ namespace ignition
       public: virtual ~System();
     };
 
-    /// /class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that implements optional configuration
+    ///
+    /// Configure is called after the system is instatiated and all entities
+    /// and components are loaded from the corresponding SDF world, and before
+    /// simulation begins exectution.
+    class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
+      /// \brief Configure the system
+      /// \param[in] _sdf The SDF Element associated with this system plugin.
+      /// \param[in] _ecm The EntityComponentManager of the given simulation
+      /// instance.
+      /// \param[in] _eventMgr The EventManager of the given simulation
+      /// instance.
+      public: virtual void Configure(
+                  const std::shared_ptr<const sdf::Element> &_sdf,
+                  EntityComponentManager &_ecm,
+                  EventManager &_eventMgr) = 0;
+    };
+
+    /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class IGNITION_GAZEBO_VISIBLE ISystemPreUpdate {
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
 
-    /// /class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the Update phase
     class IGNITION_GAZEBO_VISIBLE ISystemUpdate {
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
 
-    /// /class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemPostUpdate ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class IGNITION_GAZEBO_VISIBLE ISystemPostUpdate{
       public: virtual void PostUpdate(const UpdateInfo &_info,
