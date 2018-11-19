@@ -53,7 +53,7 @@ void AddLevels(ignition::msgs::Scene *_msg,
   auto model = _msg->add_model();
   model->set_name("level_model");
   auto link = model->add_link();
-  link->set_name("level_link");
+  link->set_name("level_model_link");
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
     auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(

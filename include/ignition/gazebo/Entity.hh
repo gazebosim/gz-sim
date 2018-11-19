@@ -25,7 +25,7 @@
 namespace ignition
 {
   /// \brief Gazebo is a leading open source robotics simulator, that
-  /// provides  high fidelity physics, rendering, and sensor simulation.
+  /// provides high fidelity physics, rendering, and sensor simulation.
   namespace gazebo
   {
     // Inline bracket to help doxygen filtering.

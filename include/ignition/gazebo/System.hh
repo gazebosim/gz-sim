@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_SYSTEM_HH_
 #define IGNITION_GAZEBO_SYSTEM_HH_
 
+#include <memory>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/EventManager.hh>
@@ -79,9 +81,10 @@ namespace ignition
       /// instance.
       /// \param[in] _eventMgr The EventManager of the given simulation
       /// instance.
-      public: virtual void Configure(const sdf::ElementPtr &_sdf,
-                                     EntityComponentManager &_ecm,
-                                     EventManager &_eventMgr) = 0;
+      public: virtual void Configure(
+                  const std::shared_ptr<const sdf::Element> &_sdf,
+                  EntityComponentManager &_ecm,
+                  EventManager &_eventMgr) = 0;
     };
 
     /// \class ISystemPreUpdate ISystem.hh ignition/gazebo/System.hh
