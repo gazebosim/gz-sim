@@ -97,7 +97,7 @@ Take a look at the 2D example below.
 
 ![](architecture_design/01.png)
 
-* All the **green area** represents the area of the world which this simulation
+* The **green area** represents the area of the world which this simulation
   is expected to take place in.
 
 * Each of the areas delimited by **dashed purple lines** is a level. There are 3
@@ -133,15 +133,23 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
     * `M1`, because it belongs to the level.
     * `M3` and `M6`, because they are global.
 
+    ![](architecture_design/02.png)
+
 1. The performer moves south towards `L3` and enters its buffer zone, triggering
   a load of that level's models, `M4` and `M5`. Note that at this moment, both
   `L1` and `L3` are loaded.
 
+    ![](architecture_design/03.png)
+
 1. The performer moves further south, exiting `L1` and entering `L3`. However,
   `L1` is still loaded, since `R1` is still within its buffer zone.
 
+    ![](architecture_design/04.png)
+
 1. Eventually `R1` moves beyond `L1`'s buffer, triggering an unload of `L1`. The
   main effect is unloading `M1`.
+
+    ![](architecture_design/05.png)
 
 ### Multiple performers
 
@@ -164,6 +172,8 @@ In case there are multiple performers, the simulation will be broken down into:
 >       get into the same level and interact.
 
 Let's take a look at the following example.
+
+![](architecture_design/06.png)
 
 * There are now 3 performers: `R1`~`R3`
 
@@ -195,11 +205,17 @@ from `L1` to `L3`. In this case, the server can decide to either:
 In case `R1` moves towards `L2` however, the following happens:
 
 1. `R1` enters `L2`'s buffer zone
+
+    ![](architecture_design/07.png)
+
 1. The primary detects it and forwards `R1`'s current state to `SR2`. At this
 time, both `SR1` and `SR2` have `R1` loaded, but only `SR1`'s physics is acting
 on `R1`.
 1. Once `R1` moves into `L2`, `SR2` takes over its physics simulation, but `SR1`
 still keeps track of its state.
+
+    ![](architecture_design/08.png)
+
 1. Only once `R1` exits `L1`'s buffer zone it is that `SR1` unloads its
 entities.
 
