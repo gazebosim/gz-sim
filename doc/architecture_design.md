@@ -63,7 +63,7 @@ links, visuals, collisions, etc.
 
 > **TODO**: It may be good for performance if the SDFormat library provided a
     way to incrementally load the world, or at least not to create objects in
-    memory for everything in a file.
+    memory for everything at once.
 
 ### No levels
 
@@ -147,13 +147,13 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
 
 In case there are multiple performers, the simulation will be broken down into:
 
-* 2 or more secondary simulation runners, each simulating 1 or more levels;
-* 1 primary simulation runner, which is responsible for keeping the secondaries
-  in sync.
+* 2 or more **secondary simulation runners**, each simulating 1 or more levels;
+* 1 **primary simulation** runner, which is responsible for keeping the
+  secondaries in sync.
 
-> TODO: how does the server initially divide the work across runners, and keeps
-> them in sync afterwards? Is there a predefined number of runners or can they
-> be spinned / killed at runtime?
+> **TODO**: how does the server initially divide the work across runners, and
+> keeps them in sync afterwards? Is there a predefined number of runners or can
+> they be spinned / killed at runtime?
 >
 >    Consider a few cases:
 >
