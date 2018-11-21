@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_NAMELIST_HH_
 #define IGNITION_GAZEBO_COMPONENTS_NAMELIST_HH_
 
+#include <string>
 #include <vector>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>

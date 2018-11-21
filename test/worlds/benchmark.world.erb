@@ -322,7 +322,7 @@
 
       </plugin>
 
-      <!-- World statistics -->
+      <!--World statistics -->
       <plugin filename="WorldStats" name="World stats">
         <ignition-gui>
           <title>World stats</title>
@@ -471,7 +471,7 @@
     for tile in tiles
       count = count + 1
   %>
-  <level name="<%= count.to_s %>">
+  <level name="level<%= count.to_s %>">
     <pose><%= tile[:x] %> <%= tile[:y] %> 2.5 0 0 0</pose>
     <geometry>
       <box>

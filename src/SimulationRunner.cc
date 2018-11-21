@@ -375,8 +375,6 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
   std::unordered_map<std::string, EntityId> linkMap;
   std::unordered_map<std::string, EntityId> performerMap;
 
-  std::optional<components::Performer> performerComp;
-
   auto worldElem = _world->Element();
 
   for (auto performer = worldElem->GetElement("performer"); performer;
@@ -393,7 +391,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
     geometry.Load(performer->GetElement("geometry"));
     this->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
-    this->entityCompMgr.CreateComponent(performerEntity, components::Name(name));
+    this->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Name(name));
     this->entityCompMgr.CreateComponent(performerEntity,
                                         components::Geometry(geometry));
   }
@@ -417,17 +416,46 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
 
     // Components
     this->entityCompMgr.CreateComponent(levelEntity, components::Level());
-    this->entityCompMgr.CreateComponent(levelEntity, components::Visual());
     this->entityCompMgr.CreateComponent(levelEntity, components::Pose(pose));
     this->entityCompMgr.CreateComponent(levelEntity, components::Name(name));
-    this->entityCompMgr.CreateComponent(levelEntity,
-        components::ParentEntity(worldEntity));
     this->entityCompMgr.CreateComponent(levelEntity,
         components::ParentEntity(worldEntity));
     this->entityCompMgr.CreateComponent(levelEntity,
         components::NameList(modelNames));
     this->entityCompMgr.CreateComponent(levelEntity,
         components::Geometry(geometry));
+
+    // Visualization
+    // The levelLinkEntity and levelVisualEntities are only used for visualizing
+    // the level for debugging. They may be removed if this is no longer needed.
+    const bool visualizeLevels = true;
+    if (visualizeLevels)
+    {
+      EntityId levelLinkEntity = this->entityCompMgr.CreateEntity();
+      this->entityCompMgr.CreateComponent(levelLinkEntity, components::Link());
+      this->entityCompMgr.CreateComponent(levelLinkEntity,
+                                          components::Pose(math::Pose3d()));
+      this->entityCompMgr.CreateComponent(levelLinkEntity,
+                                          components::Name(name + "::link"));
+      this->entityCompMgr.CreateComponent(
+          levelLinkEntity, components::ParentEntity(levelEntity));
+
+      EntityId levelVisualEntity = this->entityCompMgr.CreateEntity();
+      this->entityCompMgr.CreateComponent(levelVisualEntity,
+                                          components::Visual());
+      this->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::ParentEntity(levelLinkEntity));
+      this->entityCompMgr.CreateComponent(levelVisualEntity,
+                                          components::Pose(math::Pose3d()));
+      this->entityCompMgr.CreateComponent(levelVisualEntity,
+                                          components::Name(name + "::visual"));
+      this->entityCompMgr.CreateComponent(levelVisualEntity,
+                                          components::Geometry(geometry));
+      sdf::Material mat;
+      mat.SetAmbient({1, 1, 1, 0.1});
+      this->entityCompMgr.CreateComponent(levelVisualEntity,
+                                          components::Material(mat));
+    }
   }
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();

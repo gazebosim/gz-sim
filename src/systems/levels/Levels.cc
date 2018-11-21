@@ -81,7 +81,6 @@ void Levels::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (_info.paused)
     return;
 
-
   // create a list of active models
   std::set<EntityId> activeLevels;
   _ecm.Each<components::Performer, components::Geometry,
@@ -165,7 +164,6 @@ void LevelsPrivate::UpdateLevels(EntityComponentManager &_ecm,
         }
         return true;
       });
-
 }
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Levels,
                     ignition::gazebo::System,
