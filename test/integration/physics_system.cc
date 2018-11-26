@@ -16,14 +16,19 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <algorithm>
+#include <vector>
+
 #include <ignition/common/Console.hh>
-#include <sdf/Root.hh>
-#include <sdf/World.hh>
-#include <sdf/Model.hh>
-#include <sdf/Link.hh>
 #include <sdf/Collision.hh>
+#include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
+#include <sdf/Link.hh>
+#include <sdf/Model.hh>
+#include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
+#include <sdf/World.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemManager.hh"
@@ -87,7 +92,7 @@ class Relay
     return *this;
   }
 
-  ignition::gazebo::SystemPluginPtr systemPtr;
+  public: ignition::gazebo::SystemPluginPtr systemPtr;
 
   private: gazebo::SystemManager sm;
   private: gazebo::MockSystem *mockSystem;
@@ -179,4 +184,157 @@ TEST_F(PhysicsSystemFixture, FallingObject)
   const double zStopped =
       sphere->Radius() - model->LinkByIndex(0)->Pose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
+}
+
+/////////////////////////////////////////////////
+// This tests whether links with fixed joints keep their relative transforms
+// after physics. For that to work properly, the canonical link implementation
+// must be correct.
+TEST_F(PhysicsSystemFixture, CanonicalLink)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/canonical.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName{"canonical"};
+  std::vector<std::string> linksToCheck{"base_link", "link1", "link2"};
+
+  const sdf::Model *model = world->ModelByIndex(0);
+
+  std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
+  for (auto &linkName : linksToCheck)
+    expectedLinPoses[linkName] = model->LinkByName(linkName)->Pose();
+  ASSERT_EQ(3u, expectedLinPoses.size());
+
+  // Create a system that records the poses of the links after physics
+  Relay testSystem;
+
+  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  testSystem.OnPostUpdate(
+    [&modelName, &postUpLinkPoses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
+        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        const components::Name *_name, const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+        {
+          auto parentModel = _ecm.Component<components::Name>(_parent->Data());
+          EXPECT_TRUE(nullptr != parentModel);
+          if (parentModel->Data() == modelName)
+          {
+            postUpLinkPoses[_name->Data()] = _pose->Data();
+          }
+          return true;
+        });
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(3u, postUpLinkPoses.size());
+
+  for (auto &link : linksToCheck)
+  {
+    ASSERT_TRUE(postUpLinkPoses.find(link) != postUpLinkPoses.end())
+        << link << " not found";
+    // We expect that after physics iterations, the relative poses of the links
+    // to be the same as their initial relative poses since all the joints are
+    // fixed joints
+    EXPECT_EQ(expectedLinPoses[link], postUpLinkPoses[link]) << link;
+  }
+}
+
+/////////////////////////////////////////////////
+// Test physics integration with revolute joints
+TEST_F(PhysicsSystemFixture, RevoluteJoint)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName{"revolute_demo"};
+  const std::string rotatingLinkName{"link2"};
+
+  Relay testSystem;
+
+  std::vector<double> armDistances;
+
+  // The test checks if the link connected to the joint swings from side to
+  // side. To do this, we check that the maximum and minimum distances of the
+  // swinging arm from it's parent model frame. The maximum distance is when the
+  // arm is in its initial position. The minimum distance is when the arm is in
+  // line with the support arm.
+  testSystem.OnPostUpdate(
+    [&rotatingLinkName, &armDistances](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Link, components::Name, components::Pose>(
+        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (rotatingLinkName == _name->Data())
+          {
+            auto pos = _pose->Data().Pos();
+            // we ignore the x axis to simplify distance comparisons
+            pos.X() = 0;
+            armDistances.push_back(pos.Length());
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
+
+  ASSERT_GT(armDistances.size(), 0u);
+
+  const sdf::Model *model = world->ModelByIndex(1);
+
+  auto getCylinderLength = [&model](const std::string &linkName)
+  {
+    auto collision = model->LinkByName(linkName)->CollisionByIndex(0);
+    auto cylinder = collision->Geom()->CylinderShape();
+    return cylinder->Length();
+  };
+
+  const double link1Length = getCylinderLength("link1");
+  const double link2Length = getCylinderLength("link2");
+  // divide by 2.0 because the position is the center of the link.
+  const double expMinDist = link1Length - link2Length/2.0;
+  auto link2InitialPos = model->LinkByName("link2")->Pose().Pos();
+  // we ignore the x axis to simplify distance comparisons
+  link2InitialPos.X() = 0;
+  const double expMaxDist = link2InitialPos.Length();
+
+  auto minmax = std::minmax_element(armDistances.begin(), armDistances.end());
+
+  EXPECT_NEAR(expMinDist, *minmax.first, 1e-3);
+  EXPECT_NEAR(expMaxDist, *minmax.second, 1e-3);
 }
