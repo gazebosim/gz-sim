@@ -13,28 +13,41 @@
 * **World**: The complete description of a simulation, including all robots,
     movable and static objects, plugins, scene and GUIs.
 
-* **Level**: Part of a world, defined by a box volume and the entities inside
-    it.
+* **Entity**: Every "object" in the world, such as models, links,
+    collisions, visuals, lights, joints, etc. An entity is represented by an
+    ID, and may have several components attached to it.
+
+* **Component**: Adds a certain functionality or characteristic to an entity.
+    For example, pose, name, material, etc.
+
+* **System**: Logic that operates on all entities that have a given set of
+    components.
+
+* **Entity-component manager**: **ECM** for short. Manages a set of entities
+    and their components.
+
+* **Level**: Part of a world, defined by a box volume and the static entities
+    inside it. An entity can be present in more than one level, or in none of
+    them. Levels may overlap in their volumes and may be far from each other.
 
 * **Buffer zone**: Each level has a buffer zone, which is an inflation of the
     level's volume outside its boundaries used to detect when a performer
     is about to come into the level, or has left and is far enough.
-
-* **Entity-component manager**: **ECM** for short. Manages a set of entities
-    and their components.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
     * It has a single ECM with all the entities and components relevant to the
       levels / world being simulated.
     * It has an event manager.
+    * It loads up a set of systems.
     * Each simulation runner may run in a separate process, or share a process
       with other runners - this is decided at runtime.
 
-* **Primary / secondary runner**: For each world, there is exactly one primary
-    simulation runner and one or more secondary runners. The **secondary**
-    runners are running levels of the world, while the **primary** runner is
-    keeping all secondaries in sync.
+* **Primary / secondary runner**: For each world that is split across multiple
+    runners, there is exactly one primary simulation runner and one or more
+    secondary runners. The **secondary** runners are running a set of levels of
+    the world, while the **primary** runner is keeping all secondaries in sync.
+    Worlds that are not split across runners don't have a primary runner.
 
 * **Server**: Ignition Gazebo's entry point. It's responsible for loading an
     SDF file and spinning up simulation runners accordingly.
@@ -49,6 +62,12 @@
 * **Global entities**: Entities which are present on all levels, such as the
     sun, ground plane, heightmaps, etc. These entities will be duplicated
     across all simulation runners.
+
+* **Default level**: Level which handles all entities that are not within
+    any other levels, including performers.
+
+* **Event manager**: Manages events that can be sent across systems and the
+    server.
 
 ## High level behavior
 
@@ -116,8 +135,7 @@ Entities are divided into those that belong to a level, and global entities:
   created / destroyed for that model. Likewise, `M2` belongs to `L2`, and `M4`
   and `M5` belong to `L3`.
 
-* `M3` is present in more than one level, so it is treated as a
-    **global entity**.
+* `M3` belongs to more than one level.
 
 * `M6` is not in any level, so it is also treated as a **global entity** and is
     always loaded. Ideally, this kind of entity should be avoided unless there's
@@ -130,8 +148,8 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
     green lines:
 
     * `R1`, which is the performer.
-    * `M1`, because it belongs to the level.
-    * `M3` and `M6`, because they are global.
+    * `M1` and `M3`, because they belong to the level.
+    * `M6`, because it is global.
 
     ![](architecture_design/02.png)
 
@@ -186,8 +204,7 @@ Let's take a look at the following example.
     * A secondary runner (`SR2`) with `L2` loaded, together with `R3` -
       represented by the bright pink outline.
 
-* Note that `M3` and `M6` are loaded by both secondaries, since they are global
-  entities.
+* Note that `M6` is loaded by both secondaries, since it is a global entity.
 
 * During simulation, the primary keeps track of whether performers are
   entering any buffer zones.
