@@ -34,6 +34,7 @@
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
+#include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
@@ -41,6 +42,7 @@
 
 // SDF
 #include <sdf/Collision.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
@@ -48,17 +50,24 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
+#include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
 
 #include "Physics.hh"
 
@@ -74,6 +83,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::sdf::ConstructSdfCollision,
+          ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
@@ -93,6 +103,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using LinkPtrType = ignition::physics::LinkPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  public: using JointPtrType = ignition::physics::JointPtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
   /// \brief Create physics entities
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
 
@@ -110,14 +123,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
 
-  /// \brief A map between model entity ids and their canonical links. For now
-  /// we assume the first link we encounter for a given model is it's canonical
-  /// link. The key is the Model entity ID.
-  public: std::unordered_map<EntityId, EntityId> canonicalLinkMap;
-
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
+
+  /// \brief a map between joint entity ids in the ECM to Joint Entities in
+  /// ign-physics
+  public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -253,12 +265,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
           auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
           this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Data());
-          // Assume canonical link if the key is not found
-          if (canonLinkIt == this->canonicalLinkMap.end())
-          {
-            this->canonicalLinkMap[_parent->Data()] = _entity;
-          }
         }
         return true;
       });
@@ -282,6 +288,45 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
         linkPtrPhys->ConstructCollision(collision);
         // for now, we won't have a map to the collision once it's added
+        return true;
+      });
+
+  // joints
+  _ecm.Each<components::Joint, components::Name, components::JointType,
+            components::Pose, components::ThreadPitch, components::ParentEntity,
+            components::ParentLinkName,
+            components::ChildLinkName>(
+      [&](const EntityId &  _entity,
+        const components::Joint * /* _joint */,
+        const components::Name *_name,
+        const components::JointType *_jointType,
+        const components::Pose *_pose,
+        const components::ThreadPitch *_threadPitch,
+        const components::ParentEntity *_parentModel,
+        const components::ParentLinkName *_parentLinkName,
+        const components::ChildLinkName *_childLinkName)->bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetPose(_pose->Data());
+        joint.SetThreadPitch(_threadPitch->Data());
+
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
+
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
+            joint.SetAxis(0, jointAxis->Data());
+        if (jointAxis2)
+            joint.SetAxis(1, jointAxis2->Data());
+
+        // Use the parent link's parent model as the model of this joint
+        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
+        modelPtrPhys->ConstructJoint(joint);
+
         return true;
       });
 }
@@ -311,52 +356,41 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
         {
-          auto canonLinkIt = this->canonicalLinkMap.find(_parent->Data());
+          auto canonicalLink =
+              _ecm.Component<components::CanonicalLink>(_entity);
 
-          // The model that contains this link must have a canonical link.
-          // Otherwise something is wrong, so return
-          if (canonLinkIt == this->canonicalLinkMap.end())
+          // get the pose component of the parent model
+          auto parentPose =
+              _ecm.Component<components::Pose>(_parent->Data());
+
+          // if the parentPose is a nullptr, something is wrong with ECS
+          // creation
+          if (!parentPose)
           {
-            ignerr << "The model " << _parent->Data() << " that contains this"
-                   << " link should have a canonical link\n";
+            ignerr << "The pose component of " << _parent->Data()
+                   << " could not be found. This should never happen!\n";
             return true;
           }
-
-          if (canonLinkIt->second == _entity)
+          if (canonicalLink)
           {
             // This is the canonical link, update the model
-            // get the pose component of the parent model
-            auto parentPose =
-                _ecm.Component<components::Pose>(_parent->Data());
-            // if the parentPose is a nullptr, something is wrong with ECS
-            // creation
-            if (parentPose)
-            {
-              auto pose = linkIt->second->FrameDataRelativeToWorld().pose;
-              // the Pose component, _pose, of this link is the initial
-              // transform of the link w.r.t its model. This component never
-              // changes because it's "fixed" to the model. Instead, we change
-              // the model's pose here. The physics engine gives us the pose of
-              // this link relative to world so to set the model's pose, we have
-              // to premultiply it by the inverse of the initial transform of
-              // the link w.r.t to its model.
-              *parentPose = components::Pose(_pose->Data().Inverse() *
-                                             math::eigen3::convert(pose));
-            }
+            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+            // the Pose component, _pose, of this link is the initial
+            // transform of the link w.r.t its model. This component never
+            // changes because it's "fixed" to the model. Instead, we change
+            // the model's pose here. The physics engine gives us the pose of
+            // this link relative to world so to set the model's pose, we have
+            // to premultiply it by the inverse of the initial transform of
+            // the link w.r.t to its model.
+            *parentPose = components::Pose(_pose->Data().Inverse() +
+                                           math::eigen3::convert(worldPose));
           }
           else
           {
-            // Not the canonical link, so get the link's relative pose
-            // \NOTE(addisu) Once ModelFrameSemantics are available, we should
-            // resolve the relative pose by passing the model as the parent
-            // frame.
-
-            // Find the canonical link of the model that contains this link
-            auto canonLinkPhys = this->entityLinkMap.at(canonLinkIt->second);
-            auto canonFrame = canonLinkPhys->GetFrameID();
-            // Get the pose relative to the canonical link
-            auto pose = linkIt->second->FrameDataRelativeTo(canonFrame).pose;
-            *_pose = components::Pose(math::eigen3::convert(pose));
+            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+            // Compute the relative pose of this link from the model
+            *_pose = components::Pose(math::eigen3::convert(worldPose) +
+                                      parentPose->Data().Inverse());
           }
         }
         else
