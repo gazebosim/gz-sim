@@ -32,7 +32,8 @@
 
 * **Buffer zone**: Each level has a buffer zone, which is an inflation of the
     level's volume outside its boundaries used to detect when a performer
-    is about to come into the level, or has left and is far enough.
+    is about to come into the level, or has left and is far enough away to
+    exclude the entity from the level.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
@@ -177,17 +178,11 @@ In case there are multiple performers, the simulation will be broken down into:
 * 1 **primary simulation** runner, which is responsible for keeping the
   secondaries in sync.
 
-> **TODO**: how does the server initially divide the work across runners, and
-> keeps them in sync afterwards? Is there a predefined number of runners or can
-> they be spinned / killed at runtime?
->
->    Consider a few cases:
->
->    1. Simulation starts with all performers in the same level, and as
->       simulation evolves performers may split across multiple levels.
->
->    1. Simulation starts with performers spread around, and performers may
->       get into the same level and interact.
+The total number of runners will be predefined through SDF, as well as the
+affinity of levels and performers to each runner. Depending on the world
+configuration at a given time, some runners may be in stand-by, not performing
+simulation, for example, when all performers are physically interacting with
+each other.
 
 Let's take a look at the following example.
 
@@ -197,7 +192,7 @@ Let's take a look at the following example.
 
 * `R1` and `R2` are both in level `L1`, while `R3` is in `L2`
 
-* The server spins up 3 runners:
+* The server spins up 3 runners, as described in SDF:
     * The primary runner
     * A secondary runner (`SR1`) with `L1` loaded, together with `R1` and `R2` -
       represented by the bright green outline.
@@ -210,14 +205,12 @@ Let's take a look at the following example.
   entering any buffer zones.
 
 Let's say that `R1` does the same movement it did in the example above,
-from `L1` to `L3`. In this case, the server can decide to either:
+from `L1` to `L3`. In this case, since there are no secondary runners in
+stand-by, `SR1` will be simulating both `L1` and `L3`, while `SR2` keeps
+simulating just `L2`.
 
-* Keep simulating both `L1` (which still contains `R2`) and `L3` (which contains
-`R1`) within `SR1`;
-* Or to spin up a new secondary when `R1` is fully within `L3`.
-
-> **TODO**: Based on what? Does the user provide a number of maximum runners at
-> startup? A non-strict target number of total runners?
+> If, however, the simulation had been started with 3 secondaries and one
+of them (`SR3`) was in stand-by, that runner would become responsible for `L3`.
 
 In case `R1` moves towards `L2` however, the following happens:
 
@@ -226,8 +219,8 @@ In case `R1` moves towards `L2` however, the following happens:
     ![](architecture_design/07.png)
 
 1. The primary detects it and forwards `R1`'s current state to `SR2`. At this
-time, both `SR1` and `SR2` have `R1` loaded, but only `SR1`'s physics is acting
-on `R1`.
+time, both `SR1` and `SR2` have `R1` loaded, so `R3`'s sensors can detect `R1`,
+but only `SR1`'s physics is acting on `R1`.
 1. Once `R1` moves into `L2`, `SR2` takes over its physics simulation, but `SR1`
 still keeps track of its state.
 
