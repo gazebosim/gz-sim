@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <sdf/Element.hh>
