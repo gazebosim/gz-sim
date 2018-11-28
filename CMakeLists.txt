@@ -52,7 +52,8 @@ ign_find_package (Qt5
     Core
     Quick
     QuickControls2
-  REQUIRED)
+  REQUIRED
+  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
 
 #--------------------------------------
 # Find ignition-physics
