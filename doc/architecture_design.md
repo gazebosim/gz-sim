@@ -13,28 +13,42 @@
 * **World**: The complete description of a simulation, including all robots,
     movable and static objects, plugins, scene and GUIs.
 
-* **Level**: Part of a world, defined by a box volume and the entities inside
-    it.
+* **Entity**: Every "object" in the world, such as models, links,
+    collisions, visuals, lights, joints, etc. An entity is represented by an
+    ID, and may have several components attached to it.
 
-* **Buffer zone**: Each level has a buffer zone, which is an inflation of the
-    level's volume outside its boundaries used to detect when a performer
-    is about to come into the level, or has left and is far enough.
+* **Component**: Adds a certain functionality or characteristic to an entity.
+    For example, pose, name, material, etc.
+
+* **System**: Logic that operates on all entities that have a given set of
+    components.
 
 * **Entity-component manager**: **ECM** for short. Manages a set of entities
     and their components.
+
+* **Level**: Part of a world, defined by a box volume and the static entities
+    inside it. An entity can be present in more than one level, or in none of
+    them. Levels may overlap in their volumes and may be far from each other.
+
+* **Buffer zone**: Each level has a buffer zone, which is an inflation of the
+    level's volume outside its boundaries used to detect when a performer
+    is about to come into the level, or has left and is far enough away to
+    exclude the entity from the level.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
     * It has a single ECM with all the entities and components relevant to the
       levels / world being simulated.
     * It has an event manager.
+    * It loads up a set of systems.
     * Each simulation runner may run in a separate process, or share a process
       with other runners - this is decided at runtime.
 
-* **Primary / secondary runner**: For each world, there is exactly one primary
-    simulation runner and one or more secondary runners. The **secondary**
-    runners are running levels of the world, while the **primary** runner is
-    keeping all secondaries in sync.
+* **Primary / secondary runner**: For each world that is split across multiple
+    runners, there is exactly one primary simulation runner and one or more
+    secondary runners. The **secondary** runners are running a set of levels of
+    the world, while the **primary** runner is keeping all secondaries in sync.
+    Worlds that are not split across runners don't have a primary runner.
 
 * **Server**: Ignition Gazebo's entry point. It's responsible for loading an
     SDF file and spinning up simulation runners accordingly.
@@ -50,6 +64,12 @@
     sun, ground plane, heightmaps, etc. These entities will be duplicated
     across all simulation runners.
 
+* **Default level**: Level which handles all entities that are not within
+    any other levels, including performers.
+
+* **Event manager**: Manages events that can be sent across systems and the
+    server.
+
 ## High level behavior
 
 The `Server` loads an SDF file, which may contain multiple worlds, and each
@@ -63,7 +83,7 @@ links, visuals, collisions, etc.
 
 > **TODO**: It may be good for performance if the SDFormat library provided a
     way to incrementally load the world, or at least not to create objects in
-    memory for everything in a file.
+    memory for everything at once.
 
 ### No levels
 
@@ -116,8 +136,7 @@ Entities are divided into those that belong to a level, and global entities:
   created / destroyed for that model. Likewise, `M2` belongs to `L2`, and `M4`
   and `M5` belong to `L3`.
 
-* `M3` is present in more than one level, so it is treated as a
-    **global entity**.
+* `M3` belongs to more than one level.
 
 * `M6` is not in any level, so it is also treated as a **global entity** and is
     always loaded. Ideally, this kind of entity should be avoided unless there's
@@ -130,8 +149,8 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
     green lines:
 
     * `R1`, which is the performer.
-    * `M1`, because it belongs to the level.
-    * `M3` and `M6`, because they are global.
+    * `M1` and `M3`, because they belong to the level.
+    * `M6`, because it is global.
 
     ![](architecture_design/02.png)
 
@@ -155,21 +174,15 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
 
 In case there are multiple performers, the simulation will be broken down into:
 
-* 2 or more secondary simulation runners, each simulating 1 or more levels;
-* 1 primary simulation runner, which is responsible for keeping the secondaries
-  in sync.
+* 2 or more **secondary simulation runners**, each simulating 1 or more levels;
+* 1 **primary simulation** runner, which is responsible for keeping the
+  secondaries in sync.
 
-> TODO: how does the server initially divide the work across runners, and keeps
-> them in sync afterwards? Is there a predefined number of runners or can they
-> be spinned / killed at runtime?
->
->    Consider a few cases:
->
->    1. Simulation starts with all performers in the same level, and as
->       simulation evolves performers may split across multiple levels.
->
->    1. Simulation starts with performers spread around, and performers may
->       get into the same level and interact.
+The total number of runners will be predefined through SDF, as well as the
+affinity of levels and performers to each runner. Depending on the world
+configuration at a given time, some runners may be in stand-by, not performing
+simulation, for example, when all performers are physically interacting with
+each other.
 
 Let's take a look at the following example.
 
@@ -179,28 +192,25 @@ Let's take a look at the following example.
 
 * `R1` and `R2` are both in level `L1`, while `R3` is in `L2`
 
-* The server spins up 3 runners:
+* The server spins up 3 runners, as described in SDF:
     * The primary runner
     * A secondary runner (`SR1`) with `L1` loaded, together with `R1` and `R2` -
       represented by the bright green outline.
     * A secondary runner (`SR2`) with `L2` loaded, together with `R3` -
       represented by the bright pink outline.
 
-* Note that `M3` and `M6` are loaded by both secondaries, since they are global
-  entities.
+* Note that `M6` is loaded by both secondaries, since it is a global entity.
 
 * During simulation, the primary keeps track of whether performers are
   entering any buffer zones.
 
 Let's say that `R1` does the same movement it did in the example above,
-from `L1` to `L3`. In this case, the server can decide to either:
+from `L1` to `L3`. In this case, since there are no secondary runners in
+stand-by, `SR1` will be simulating both `L1` and `L3`, while `SR2` keeps
+simulating just `L2`.
 
-* Keep simulating both `L1` (which still contains `R2`) and `L3` (which contains
-`R1`) within `SR1`;
-* Or to spin up a new secondary when `R1` is fully within `L3`.
-
-> **TODO**: Based on what? Does the user provide a number of maximum runners at
-> startup? A non-strict target number of total runners?
+> If, however, the simulation had been started with 3 secondaries and one
+of them (`SR3`) was in stand-by, that runner would become responsible for `L3`.
 
 In case `R1` moves towards `L2` however, the following happens:
 
@@ -209,8 +219,8 @@ In case `R1` moves towards `L2` however, the following happens:
     ![](architecture_design/07.png)
 
 1. The primary detects it and forwards `R1`'s current state to `SR2`. At this
-time, both `SR1` and `SR2` have `R1` loaded, but only `SR1`'s physics is acting
-on `R1`.
+time, both `SR1` and `SR2` have `R1` loaded, so `R3`'s sensors can detect `R1`,
+but only `SR1`'s physics is acting on `R1`.
 1. Once `R1` moves into `L2`, `SR2` takes over its physics simulation, but `SR1`
 still keeps track of its state.
 
