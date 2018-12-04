@@ -265,17 +265,13 @@
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="libignition-gazebo-levels-system.so"
-      name="ignition::gazebo::systems::v0::Levels">
-    </plugin>
-    <plugin
       filename="libMove3dSystem.so"
       name="ignition::gazebo::systems::v0::Move3dSystem">
     </plugin>
-    <!-- <plugin -->
-    <!--  filename="libignition-gazebo-physics-system.so" -->
-    <!--  name="ignition::gazebo::systems::v0::Physics"> -->
-    <!-- </plugin> -->
+    <plugin
+     filename="libignition-gazebo-physics-system.so"
+     name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
 
   <gui fullscreen="0">
 
@@ -435,7 +431,6 @@
   %>
   <model name="ball">
     <pose>0 0 2.5 0 0 0</pose>
-    <static>1</static>
     <link name="link1">
       <collision name="collision">
         <geometry>

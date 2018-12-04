@@ -168,6 +168,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
+
+  /// \brief Counter used to run update in intervals
+  public: uint64_t updateCounter{0};
 };
 
 //////////////////////////////////////////////////
@@ -185,6 +188,11 @@ SceneBroadcaster::~SceneBroadcaster()
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
+  if ((this->dataPtr->updateCounter++)%10 != 0)
+  {
+    // don't run the update
+    return;
+  }
   // Populate pose message
   msgs::Pose_V poseMsg;
   msgs::UInt32_V visMsg;
