@@ -31,6 +31,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/Link.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
@@ -59,6 +60,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -82,6 +84,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::SetLinkState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -109,10 +112,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Create physics entities
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
 
+  /// \brief Update physics from components
+  public: void UpdatePhysics(const EntityComponentManager &_ecm);
+
   /// \brief Step the simulationrfor each world
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
-  /// \brief Step the simulation for each world
+  /// \brief Update components from physics simulation
   public: void UpdateSim(EntityComponentManager &_ecm) const;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -186,6 +192,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Only step if not paused.
     if (!_info.paused)
     {
+      this->dataPtr->UpdatePhysics(_ecm);
       this->dataPtr->Step(_info.dt);
       this->dataPtr->UpdateSim(_ecm);
     }
@@ -327,6 +334,26 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
         modelPtrPhys->ConstructJoint(joint);
 
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
+{
+  // Handle models, but do so through their canonical links
+  _ecm.Each<components::Model, components::LinearVelocity>(
+      [&](const EntityId &_entity, const components::Model *, const
+          components::LinearVelocity *_linVel)->bool
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt != this->entityModelMap.end())
+        {
+          for (std::size_t i = 0; i < modelIt->second->GetLinkCount(); ++i) {
+            auto link = modelIt->second->GetLink(i);
+            link->SetLinearVelocity(math::eigen3::convert(_linVel->Data()));
+          }
+        }
         return true;
       });
 }

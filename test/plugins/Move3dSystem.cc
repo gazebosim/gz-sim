@@ -22,6 +22,7 @@
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -53,7 +54,7 @@ class ignition::gazebo::systems::Move3dSystemPrivate
   public: transport::Node node;
 
   /// \brief Current velocity command
-  public: math::Vector3d currentCmd = math::Vector3d::Zero;
+  public: std::optional<math::Vector3d> currentCmd;
 
   /// \brief EntityId of the performer
   public: EntityId performerId = kNullEntity;
@@ -100,17 +101,27 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  if (this->dataPtr->performerId != kNullEntity)
+  if ((this->dataPtr->performerId != kNullEntity) && 
+      (this->dataPtr->currentCmd.has_value()))
   {
     // update the next position of the model based on the commanded velocity
-    auto pose = _ecm.Component<components::Pose>(this->dataPtr->performerId);
-    if (pose)
+    auto linVelocity = 
+        _ecm.Component<components::LinearVelocity>(this->dataPtr->performerId);
+
+
+    if (linVelocity != nullptr)
     {
-      math::Pose3d newPose(pose->Data());
-      double dt = std::chrono::duration<double>(_info.dt).count();
-      newPose.Pos() += dt * this->dataPtr->currentCmd;
-      *pose = components::Pose(newPose);
+      *linVelocity = components::LinearVelocity(*this->dataPtr->currentCmd);
     }
+    else
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->performerId,
+          components::LinearVelocity(*this->dataPtr->currentCmd));
+    }
+    // clear the command so that we only update the component when there's a new 
+    // command.
+    this->dataPtr->currentCmd.reset();
   }
 
 }
@@ -137,7 +148,6 @@ EntityId Move3dSystemPrivate::EntityByName(const EntityComponentManager &_ecm,
 void Move3dSystemPrivate::OnLinearVel(const msgs::Vector3d &_msg)
 {
   this->currentCmd = msgs::Convert(_msg);
-  std::cout << "Got message: " << this->currentCmd << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(Move3dSystem,

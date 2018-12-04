@@ -37,6 +37,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -48,8 +49,8 @@
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
+using namespace gazebo;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
 
 class PhysicsSystemFixture : public ::testing::Test
 {
@@ -86,7 +87,7 @@ class Relay
     return *this;
   }
 
-  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay & OnPostUpdate(gazebo::MockSystem::ConstCallbackType cb)
   {
     this->mockSystem->postUpdateCallback = cb;
     return *this;
@@ -337,4 +338,85 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
 
   EXPECT_NEAR(expMinDist, *minmax.first, 1e-3);
   EXPECT_NEAR(expMaxDist, *minmax.second, 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, ApplyModelVelocity)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/falling.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  const sdf::Model *model = world->ModelByIndex(0);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName = "sphere";
+  ignition::math::Vector3d sphereVelocity{1.0, 0, 0};
+  ignition::math::Pose3d lastSpherePose;
+  double expectedSphereXPos = model->Pose().Pos().X();
+
+  // Create a system that sets the link velocity of and records the last pose of
+  // the sphere
+  Relay testSystem;
+  testSystem.OnPreUpdate(
+      [modelName, &sphereVelocity](
+          const gazebo::UpdateInfo &,
+          gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Model, components::Name>(
+            [&](const EntityId &_entity, const components::Model *,
+                const components::Name *_name) -> bool
+            {
+              if (_name->Data() == modelName)
+              {
+                auto velocity =
+                  _ecm.Component<components::LinearVelocity>(_entity);
+                if (velocity == nullptr)
+                {
+                  _ecm.CreateComponent(_entity,
+                      components::LinearVelocity(sphereVelocity));
+                  return false;
+                }
+              }
+              return true;
+            });
+      });
+
+  testSystem.OnPostUpdate(
+      [modelName, &lastSpherePose, &expectedSphereXPos, &sphereVelocity](
+          const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Model, components::Name, components::Pose>(
+            [&](const ignition::gazebo::EntityId &, const components::Model *,
+                const components::Name *_name,
+                const components::Pose *_pose) -> bool
+            {
+              if (_name->Data() == modelName)
+              {
+                lastSpherePose = _pose->Data();
+                std::cout << "Last: " << lastSpherePose.Pos() << std::endl;
+              }
+              return true;
+            });
+
+        // calculate expected position in the x axis based on the sphere's
+        // constant velocity
+        const double dt = std::chrono::duration<double>(_info.dt).count();
+        expectedSphereXPos += sphereVelocity.X() * dt;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 1000;
+  server.Run(true, iters, false);
+
+  EXPECT_NEAR(expectedSphereXPos, lastSpherePose.Pos().X(), 5e-3);
 }
