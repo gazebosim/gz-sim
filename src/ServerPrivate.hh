@@ -61,12 +61,10 @@ namespace ignition
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
       /// \brief Create all entities that exist in the sdf::Root object.
-      /// \param[in] _root SDF root object.
-      public: void CreateEntities(const sdf::Root &_root);
+      public: void CreateEntities();
 
       /// \brief Load the GUI for each world.
-      /// \param[in] _root SDF root object.
-      public: void LoadGui(const sdf::Root &_root);
+      public: void LoadGui();
 
       /// \brief Stop server.
       public: void Stop();
@@ -96,6 +94,11 @@ namespace ignition
 
       /// \brief Our system manager.
       public: ignition::gazebo::SystemManager systemManager;
+
+      /// \brief The SDF root object.
+      /// This keeps the SDF object in memory so that other classes can keep a
+      /// pointer to child nodes of the root
+      public: sdf::Root sdfRoot;
     };
     }
   }

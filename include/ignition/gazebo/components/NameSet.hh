@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_NAMELIST_HH_
-#define IGNITION_GAZEBO_COMPONENTS_NAMELIST_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_NAMESET_HH_
+#define IGNITION_GAZEBO_COMPONENTS_NAMESET_HH_
 
 #include <string>
-#include <vector>
+#include <unordered_set>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -34,11 +34,11 @@ namespace components
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   //
   /// \brief A component that holds a list of names
-  using NameList = SimpleWrapper<std::vector<std::string>, class NameListTag>;
+  using NameSet =
+      SimpleWrapper<std::unordered_set<std::string>, class NameSetTag>;
   }
 }
 }
 }
 #endif
-
 

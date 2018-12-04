@@ -10,6 +10,7 @@ set (sources
   Entity.cc
   EntityComponentManager.cc
   EventManager.cc
+  LevelManager.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc

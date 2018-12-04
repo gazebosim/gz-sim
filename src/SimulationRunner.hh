@@ -42,6 +42,8 @@
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
+#include "LevelManager.hh"
+
 using namespace std::chrono_literals;
 
 namespace ignition
@@ -95,7 +97,7 @@ namespace ignition
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemManager Reference to system manager.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        SystemManager &_systemManager);
+                  SystemManager &_systemManager);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -115,12 +117,11 @@ namespace ignition
       /// \brief Update all the systems
       public: void UpdateSystems();
 
+      /// \brief Update all levels
+      public: void UpdateLevels();
+
       /// \brief Publish current world statistics.
       public: void PublishStats();
-
-      /// \brief Create all entities that exist in the sdf::World object.
-      /// \param[in] _world SDF world object.
-      public: void CreateEntities(const sdf::World *_world);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -259,6 +260,9 @@ namespace ignition
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
 
+      /// \brief Manager of all levels.
+      private: std::unique_ptr<LevelManager> levelMgr;
+
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
 
@@ -297,6 +301,9 @@ namespace ignition
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
 
+      /// \brief Pointer to the sdf::World object of this runner
+      private: const sdf::World *sdfWorld;
+
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
       private: double realTimeFactor{0.0};
@@ -313,6 +320,8 @@ namespace ignition
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
+
+      friend class LevelManager;
     };
     }
   }

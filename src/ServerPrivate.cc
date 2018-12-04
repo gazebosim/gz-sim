@@ -102,28 +102,29 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::CreateEntities(const sdf::Root &_root)
+void ServerPrivate::CreateEntities()
 {
   // Create a simulation runner for each world.
-  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
+  for (uint64_t worldIndex = 0; worldIndex <
+       this->sdfRoot.WorldCount(); ++worldIndex)
   {
-    auto world = _root.WorldByIndex(worldIndex);
-    auto element = world->Element();
+    auto world = this->sdfRoot.WorldByIndex(worldIndex);
 
-    this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex), this->systemManager));
+    this->simRunners.push_back(
+        std::make_unique<SimulationRunner>(world, this->systemManager));
   }
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::LoadGui(const sdf::Root &_root)
+void ServerPrivate::LoadGui()
 {
   if (!gui::App())
     return;
 
-  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
+  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
+       ++worldIndex)
   {
-    auto world = _root.WorldByIndex(worldIndex);
+    auto world = this->sdfRoot.WorldByIndex(worldIndex);
     auto element = world->Element();
 
     // GUI plugins
