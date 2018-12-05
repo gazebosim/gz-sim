@@ -55,6 +55,8 @@ Ignition Math provides a wide range of functionality, including:
 * Type-templated pose, matrix, vector, and quaternion classes. 
 * Shape representations along with operators to compute volume, density, size and other properties. 
 * Classes for material properties, mass, inertial, temperature, [PID](https://en.wikipedia.org/wiki/PID_controller), kmeans, spherical coordinates, and filtering.
+* Optional Eigen component that converts between a few Eigen and Ignition
+Math types.
 
 # Install
 
@@ -80,7 +82,7 @@ necessary prerequisites followed by building from source.
 
 ### Prerequisites
 
-The Eigen component of Ignition Math requires:
+The optional Eigen component of Ignition Math requires:
 
   * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). Refer to the [Eigen Documentation](ttp://eigen.tuxfamily.org/index.php?title=Main_Page#Documentation) for installation instructions. On Ubuntu systems, `apt-get` can be used to install Eigen:
 
