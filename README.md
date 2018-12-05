@@ -1,74 +1,197 @@
-# Ignition Math
+# Ignition Math : Math classes and functions for robot applications
 
+**Maintainer:** nate AT openrobotics DOT org 
 
-**Math classes and functions for robot applications.**
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues-raw/ignitionrobotics/ign-math.svg)](https://bitbucket.org/ignitionrobotics/ign-math/issues)
+[![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/ignitionrobotics/ign-math.svg)](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests)
+[![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
+[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-Ignition Math is a component in the Ignition framework, a set of libraries
-designed to rapidly develop robot applications. The library defines math
-classes and functions used in other Ignition libraries and programs.
+Build | Status
+-- | --
+Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)  
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-bionic-amd64)  
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-homebrew-amd64)  
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-default-windows7-amd64)
 
-  [http://ignitionrobotics.org](http://ignitionrobotics.org)
+Ignition Math, a component of [Ignition
+Robotics](https://ignitionrobotics.org), provides general purpose math
+classes and functions designed for robotic applications.
 
-## Continuous integration
+# Table of Contents
 
-This project uses [appveyor](https://ci.appveyor.com/project/scpeters/ign-math/history)
-for testing on Windows.
-It has the following build status:
-![appveyor badge](https://ci.appveyor.com/api/projects/status/bitbucket/ignitionrobotics/ign-math?svg=true)
+[Features](#markdown-header-features)
 
-This project also uses [bitbucket pipelines](https://bitbucket.org/ignitionrobotics/ign-math/addon/pipelines/home#!/)
-for testing with Linux.
+[Install](#markdown-header-install)
 
-Test coverage reports are available at Codecov:
+* [Binary Install](#markdown-header-binary-install)
 
-[![codecov](https://codecov.io/bb/ignitionrobotics/ign-math/branch/master/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-math)
+* [Source Install](#markdown-header-source-install)
 
-## Required Dependencies
+    * [Prerequisites](#markdown-header-prerequisites)
+  
+    * [Building from Source](#markdown-header-building-from-source)
 
-    brew install ignition-cmake
+[Usage](#markdown-header-usage)
 
-## Optional Dependencies
+[Documentation](#markdown-header-documentation)
 
-    sudo apt-get install doxygen
-    brew install doxygen
+[Testing](#markdown-header-testing)
 
-## Installation
+[Folder Structure](#markdown-header-folder-structure)
 
-Standard installation can be performed in UNIX systems using the following
-steps:
+[Code of Conduct](#markdown-header-code-of-conduct)
 
- - mkdir build/
- - cd build/
- - cmake ..
- - sudo make install
+[Contributing](#markdown-header-code-of-contributing)
 
-## Uninstallation
+[Versioning](#markdown-header-versioning)
 
-To uninstall the software installed with the previous steps:
+[License](#markdown-header-license)
 
- - cd build/
- - sudo make uninstall
+# Features
 
-## Create Documentation & Release
+Ignition Math provides a wide range of functionality, including:
 
-1. Build documentation
+* Type-templated pose, matrix, vector, and quaternion classes. 
+* Shape representations along with operators to compute volume, density, size and other properties. 
+* Classes for material properties, mass, inertial, temperature, [PID](https://en.wikipedia.org/wiki/PID_controller), kmeans, spherical coordinates, and filtering.
 
-```
-cd build
-make doc
-```
+# Install
 
-1. Upload documentation to ignitionrobotics.org.
+We recommend following the [Binary Install](#markdown-header-binary-install) instructions to get up and running as quickly and painlessly as possible.
 
-```
-cd build
-sh upload_doc.sh
-```
+The [Source Install](#markdown-header-source-install) instructions should be used if you need the very latest software improvements, you need to modify the code, or you plan to make a contribution.
 
-1. If you're creating a new release, then tell ignitionrobotics.org about
-   the new version. For example:
+## Binary Install
+
+On Ubuntu systems, `apt-get` can be used to install `ignition-math`:
 
 ```
-curl -k -X POST -d '{"libName":"common", "version":"1.0.0", "releaseDate":"2017-10-09T12:10:13+02:00","password":"secret"}' https://api.ignitionrobotics.org/1.0/versions
+sudo apt install libignition-math<#>-dev
 ```
 
+Be sure to replace `<#>` with a number value, such as 1 or 2, depending on
+which version you need.
+
+## Source Install
+
+Source installation can be performed in UNIX systems by first installing the
+necessary prerequisites followed by building from source. 
+
+### Prerequisites
+
+[Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is required by Ignition Math. Refer to the [Eigen Documentation](ttp://eigen.tuxfamily.org/index.php?title=Main_Page#Documentation) for installation instructions. On Ubuntu systems, `apt-get` can be used to install Eigen:
+
+```
+sudo apt-get install libeigen3-dev
+```
+
+### Building from source
+
+1. Clone the repository
+
+    ```
+    hg clone https://bitbucket.org/ignitionrobotics/ign-math
+    ```
+
+2. Configure and build
+
+    ```
+    cd ign-math 
+    mkdir build 
+    cd build 
+    cmake .. 
+    make
+    ```
+3. Optionally, install Ignition Math
+
+    ```
+    sudo make install
+    ```
+
+# Usage
+
+Please refer to the [examples directory](https://bitbucket.org/ignitionrobotics/ign-math/raw/default/examples/?at=default).
+
+# Documentation
+
+API and tutorials can be found at [https://ignitionrobotics.org/libs/math](https://ignitionrobotics.org/libs/math).
+
+You can also generate the documentation from a clone of this repository by following these steps.
+
+1. You will need Doxygen. On Ubuntu Doxygen can be installed using
+
+```
+sudo apt-get install doxygen
+```
+
+2. Clone the repository
+
+```
+hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+```
+
+3. Configure and build the documentation.
+
+```
+cd ign-gazebo; mkdir build; cd build; cmake ../; make doc
+```
+
+4. View the documentation by running the following command from the build directory.
+
+```
+firefox doxygen/html/index.html
+```
+
+# Testing
+
+Follow these steps to run tests and static code analysis in your clone of this repository.
+
+1. Follow the [source install instruction](#markdown-header-source-install).
+
+2. Run tests.
+
+    ```
+    make test
+    ```
+
+3. Static code checker.
+
+    ```
+    make codecheck
+    ```
+
+# Folder Structure
+
+Refer to the following table for information about important directories and files in this repository.
+
+```
++-- examples                 Example programs.
++-- include/ignition/math    Header files.
++-- src                      Source files and unit tests.
+|    +-- graph               Source files for the graph classes.
++-- test
+|    +-- integration         Integration tests.
+|    +-- performance         Performance tests.
+|    +-- regression          Regression tests.
++-- tutorials                Tutorials, written in markdown.
++-- Changelog.md             Changelog.
++-- CMakeLists.txt           CMake build script.
+```
+# Contributing
+
+Please see
+[CONTRIBUTING.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CONTRIBUTING.md?at=default&fileviewer=file-view-default).
+
+# Code of Conduct
+
+Please see
+[CODE_OF_CONDUCT.md](https://bitbucket.org/ignitionrobotics/ign-gazebo/src/406665896aa40bb42f14cf61d48b3d94f2fc5dd8/CODE_OF_CONDUCT.md?at=default&fileviewer=file-view-default).
+
+# Versioning
+
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
+
+# License
+
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://bitbucket.org/ignitionrobotics/ign-math/src/default/LICENSE) file.
