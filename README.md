@@ -80,11 +80,13 @@ necessary prerequisites followed by building from source.
 
 ### Prerequisites
 
-[Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) is required by Ignition Math. Refer to the [Eigen Documentation](ttp://eigen.tuxfamily.org/index.php?title=Main_Page#Documentation) for installation instructions. On Ubuntu systems, `apt-get` can be used to install Eigen:
+The Eigen component of Ignition Math requires:
 
-```
-sudo apt-get install libeigen3-dev
-```
+  * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). Refer to the [Eigen Documentation](ttp://eigen.tuxfamily.org/index.php?title=Main_Page#Documentation) for installation instructions. On Ubuntu systems, `apt-get` can be used to install Eigen:
+
+    ```
+    sudo apt-get install libeigen3-dev
+    ```
 
 ### Building from source
 
