@@ -97,12 +97,9 @@ sudo apt-get install libeigen3-dev
 2. Configure and build
 
     ```
-    cd ign-math 
-    mkdir build 
-    cd build 
-    cmake .. 
-    make
+    cd ign-math; mkdir build; cd build; cmake ..; make
     ```
+    
 3. Optionally, install Ignition Math
 
     ```
@@ -121,27 +118,27 @@ You can also generate the documentation from a clone of this repository by follo
 
 1. You will need Doxygen. On Ubuntu Doxygen can be installed using
 
-```
-sudo apt-get install doxygen
-```
+    ```
+    sudo apt-get install doxygen
+    ```
 
 2. Clone the repository
 
-```
-hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
-```
+    ```
+    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    ```
 
 3. Configure and build the documentation.
 
-```
-cd ign-gazebo; mkdir build; cd build; cmake ../; make doc
-```
+    ```
+    cd ign-gazebo; mkdir build; cd build; cmake ../; make doc
+    ```
 
 4. View the documentation by running the following command from the build directory.
 
-```
-firefox doxygen/html/index.html
-```
+    ```
+    firefox doxygen/html/index.html
+    ```
 
 # Testing
 
