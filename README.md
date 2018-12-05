@@ -125,13 +125,13 @@ You can also generate the documentation from a clone of this repository by follo
 2. Clone the repository
 
     ```
-    hg clone https://bitbucket.org/ignitionrobotics/ign-gazebo
+    hg clone https://bitbucket.org/ignitionrobotics/ign-math
     ```
 
 3. Configure and build the documentation.
 
     ```
-    cd ign-gazebo; mkdir build; cd build; cmake ../; make doc
+    cd ign-math; mkdir build; cd build; cmake ../; make doc
     ```
 
 4. View the documentation by running the following command from the build directory.
