@@ -86,7 +86,7 @@ class Relay
     return *this;
   }
 
-  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
   {
     this->mockSystem->postUpdateCallback = cb;
     return *this;
