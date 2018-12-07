@@ -35,7 +35,7 @@ namespace sample_system
     public: ~SampleSystem() override;
 
     public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm);
+                const ignition::gazebo::EntityComponentManager &_ecm) override;
   };
 
   class SampleSystem2:
@@ -52,13 +52,13 @@ namespace sample_system
     public: ~SampleSystem2() override;
 
     public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm);
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     public: void Update(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm);
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm);
+                const ignition::gazebo::EntityComponentManager &_ecm) override;
   };
 }
 //! [header]
