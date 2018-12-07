@@ -11,7 +11,7 @@ target_link_libraries(${physics_system_target}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
-  ignition-gazebo
+  ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
 )
