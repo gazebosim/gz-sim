@@ -912,18 +912,18 @@ int ErasedCount(EntityCompMgrTest &_manager)
   return count;
 }
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNew)
+TEST_P(EntityComponentManagerFixture, EachNewBasic)
 {
   ignition::common::Console::SetVerbosity(4);
   EntityCompMgrTest manager;
 
-  // Create an entities
+  // Create entities
   gazebo::EntityId e1 = manager.CreateEntity();
   gazebo::EntityId e2 = manager.CreateEntity();
   EXPECT_EQ(2u, manager.EntityCount());
 
-  // Add components of different types to each entity
-  auto comp1 = manager.CreateComponent<int>(e1, 123);
+  // Add components to each entity
+  manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<int>(e2, 456);
 
   EXPECT_EQ(2, NewCount<int>(manager));
@@ -932,37 +932,101 @@ TEST_P(EntityComponentManagerFixture, EachNew)
   // updated
   manager.RunClearNewlyCreatedEntities();
   EXPECT_EQ(0, NewCount<int>(manager));
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
+{
+  ignition::common::Console::SetVerbosity(4);
+  EntityCompMgrTest manager;
+
+  // Create entities
+  gazebo::EntityId e1 = manager.CreateEntity();
+  auto comp1 = manager.CreateComponent<int>(e1, 123);
+  manager.CreateComponent<double>(e1, 0.0);
+
+  EXPECT_EQ(1, NewCount<int>(manager));
+
+  manager.RemoveComponent(e1, comp1);
+  EXPECT_EQ(1, NewCount<double>(manager));
+
+  manager.RunClearNewlyCreatedEntities();
+  EXPECT_EQ(0, NewCount<double>(manager));
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromErasedEntity)
+{
+  ignition::common::Console::SetVerbosity(4);
+  EntityCompMgrTest manager;
+
+  // Create entities
+  gazebo::EntityId e1 = manager.CreateEntity();
+  auto comp1 = manager.CreateComponent<int>(e1, 123);
+  manager.CreateComponent<double>(e1, 0.0);
+
+  EXPECT_EQ(1, NewCount<int>(manager));
+  // Erase an entity.
+  manager.RequestEraseEntity(e1);
+  // Should still show up as a new entity
+  EXPECT_EQ(1, NewCount<int>(manager));
+
+  // Remove a component from an erased entity. This may be done unintentionally
+  manager.RemoveComponent(e1, comp1);
+  EXPECT_EQ(1, NewCount<double>(manager));
+
+  manager.RunClearNewlyCreatedEntities();
+  EXPECT_EQ(0, NewCount<double>(manager));
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachNewAfterRebuid)
+{
+  ignition::common::Console::SetVerbosity(4);
+  EntityCompMgrTest manager;
+
+  // Create entities
+  gazebo::EntityId e1 = manager.CreateEntity();
+  manager.CreateComponent<int>(e1, 123);
+  manager.RunClearNewlyCreatedEntities();
+  // Nothing new after cleared
+  EXPECT_EQ(0, NewCount<int>(manager));
+
+  gazebo::EntityId e2 = manager.CreateEntity();
+  manager.CreateComponent<int>(e2, 456);
+  EXPECT_EQ(1, NewCount<int>(manager));
+  // Check if this true after RebuildViews
+  manager.RebuildViews();
+  EXPECT_EQ(1, NewCount<int>(manager));
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
+{
+  ignition::common::Console::SetVerbosity(4);
+  EntityCompMgrTest manager;
+
+  // Create entities
+  gazebo::EntityId e1 = manager.CreateEntity();
+  gazebo::EntityId e2 = manager.CreateEntity();
+  manager.CreateComponent<int>(e1, 123);
+  manager.CreateComponent<int>(e2, 456);
+  manager.RunClearNewlyCreatedEntities();
+  // Nothing new after cleared
+  EXPECT_EQ(0, NewCount<int>(manager));
 
   // Create a new entity
   gazebo::EntityId e3 = manager.CreateEntity();
   manager.CreateComponent<int>(e3, 789);
-  EXPECT_EQ(1, NewCount<int>(manager));
-
   // Add a new component to existing entities
   manager.CreateComponent<double>(e1, 0.0);
   manager.CreateComponent<double>(e2, 2.0);
-  // Only e3 is considered new for int
-  EXPECT_EQ(1, NewCount<int>(manager));
 
-  // e1 and e2 have a double component, but they weren't just created
-  EXPECT_EQ(0, (NewCount<int, double>(manager)));
-
-  // Erase an entity.
-  manager.RequestEraseEntity(e1);
-
-  // Remove a component from an erased entity. This may be done unintentionally
-  manager.RemoveComponent(e1, comp1);
-  manager.CreateComponent<int>(e3, 789);
-  EXPECT_EQ(1, NewCount<int>(manager));
-
-  // Check if this true after RebuildViews
-  manager.RebuildViews();
-  EXPECT_EQ(1, NewCount<int>(manager));
-
-  manager.ProcessEntityErasures();
-  // After the entities are actually erased, EachErased should not have any
+  // e1 and e2 have a new double component, but they are not considered new 
   // entities
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(0, (NewCount<int, double>(manager)));
+  // Only e3 is considered new
+  EXPECT_EQ(1, NewCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -999,7 +1063,10 @@ TEST_P(EntityComponentManagerFixture, EachErased)
 
   EXPECT_EQ(0, NewCount<int>(manager));
   EXPECT_EQ(0, ErasedCount<int>(manager));
-
+  
+  // try erasing an already erased entity
+  manager.RequestEraseEntity(e2);
+  EXPECT_EQ(0, ErasedCount<int>(manager));
 
   // Test after rebuild
   gazebo::EntityId e4 = manager.CreateEntity();
