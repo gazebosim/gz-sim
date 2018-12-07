@@ -125,7 +125,7 @@ namespace ignition
       /// \brief List of newly created entities
       public: std::set<EntityId> newEntities;
 
-      /// \brief store entities about to be erased
+      /// \brief List of entities about to be erased
       public: std::set<EntityId> toEraseEntities;
 
       /// \brief All of the components for each entity.
@@ -632,6 +632,38 @@ namespace ignition
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
       /// of a simulation step.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template. The callback function can
+      /// return false to stop subsequent calls to the callback, otherwise
+      /// a true value should be returned.
+      /// \tparam ComponentTypeTs All the desired component types.
+      /// \warning This function should not be called outside of System's
+      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      public: template <typename... ComponentTypeTs>
+              void EachNew(typename identity<std::function<
+                           bool(const EntityId &_entity,
+                                ComponentTypeTs *...)>>::type _f)
+      {
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over the entities in the view and in the newly created
+        // entities list, and invoke the callback
+        // function.
+        for (const EntityId entity : view.newEntities)
+        {
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+          {
+            break;
+          }
+        }
+      }
+
+      /// \brief Get all newly created entities which contain given component
+      /// types, as well as the components. This "newness" is cleared at the end
+      /// of a simulation step. This is the const version.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can

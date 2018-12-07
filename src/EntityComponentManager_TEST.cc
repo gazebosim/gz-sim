@@ -863,13 +863,30 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
 //////////////////////////////////////////////////
 /// \brief Helper function to count the number of "new" entities
 template<typename ...Ts>
-int NewCount(const EntityCompMgrTest &_manager)
+int NewCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
   _manager.EachNew<Ts...>(
+      [&](const ignition::gazebo::EntityId &, Ts *... _values) -> bool
+      {
+        ++count;
+        // can always cast to const void *
+        auto valSet = std::set<const void *>{_values...};
+        for (auto value : valSet )
+          EXPECT_NE(nullptr, value);
+
+        return true;
+      });
+
+  // get a const ref to test the const version of EachNew
+  const EntityCompMgrTest &managerConst = _manager;
+
+  count = 0;
+  managerConst.EachNew<Ts ...>(
       [&](const ignition::gazebo::EntityId &, const Ts *... _values) -> bool
       {
         ++count;
+        // can always cast to const void *
         auto valSet = std::set<const void *>{_values...};
         for (auto value : valSet )
           EXPECT_NE(nullptr, value);
@@ -880,10 +897,10 @@ int NewCount(const EntityCompMgrTest &_manager)
 //////////////////////////////////////////////////
 /// \brief Helper function to count the number of "new" entities
 template<typename ...Ts>
-int ErasedCount(const EntityCompMgrTest &_manager)
+int ErasedCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
-  _manager.EachErased<Ts...>(
+  _manager.template EachErased<Ts ...>(
       [&](const ignition::gazebo::EntityId &, const Ts *... _values) -> bool
       {
         ++count;
@@ -948,7 +965,7 @@ TEST_P(EntityComponentManagerFixture, EachNew)
   EXPECT_EQ(0, ErasedCount<int>(manager));
 }
 
-//////////////////////////////////////////////////
+////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, EachErased)
 {
   ignition::common::Console::SetVerbosity(4);
