@@ -1058,6 +1058,34 @@ TEST_P(EntityComponentManagerFixture, EachErasedAllErased)
   EXPECT_EQ(0, ErasedCount<int>(manager));
 }
 
+////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachNewEachErased)
+{
+  // Test EachNew and EachErased together
+  gazebo::EntityId e1 = manager.CreateEntity();
+  gazebo::EntityId e2 = manager.CreateEntity();
+  manager.CreateComponent<int>(e1, 123);
+  manager.CreateComponent<int>(e2, 456);
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  EXPECT_EQ(2, NewCount<int>(manager));
+  EXPECT_EQ(0, ErasedCount<int>(manager));
+
+  // Erase an entity.
+  manager.RequestEraseEntity(e1);
+  // An entity can be considered new even if there is a request to erase it.
+  EXPECT_EQ(2, NewCount<int>(manager));
+  EXPECT_EQ(1, ErasedCount<int>(manager));
+
+  // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
+  // together after a simulation step
+  manager.RunClearNewlyCreatedEntities();
+  manager.ProcessEntityErasures();
+
+  EXPECT_EQ(0, NewCount<int>(manager));
+  EXPECT_EQ(0, ErasedCount<int>(manager));
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
