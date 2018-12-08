@@ -19,20 +19,28 @@
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Joint.hh>
+#include <sdf/JointAxis.hh>
+#include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/ChildEntity.hh"
+#include "ignition/gazebo/components/CanonicalLink.hh"
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -56,14 +64,16 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Model>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::CanonicalLink>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -132,7 +142,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       modelCount++;
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
       if (modelCount == 1)
       {
         EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
@@ -189,7 +199,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
-        EXPECT_EQ(boxModelEntity, _parent->Id());
+        EXPECT_EQ(boxModelEntity, _parent->Data());
         boxLinkEntity = _entity;
       }
       else if (linkCount == 2)
@@ -197,7 +207,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
-        EXPECT_EQ(cylModelEntity, _parent->Id());
+        EXPECT_EQ(cylModelEntity, _parent->Data());
         cylLinkEntity = _entity;
       }
       else if (linkCount == 3)
@@ -205,7 +215,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
-        EXPECT_EQ(sphModelEntity, _parent->Id());
+        EXPECT_EQ(sphModelEntity, _parent->Data());
         sphLinkEntity = _entity;
       }
       return true;
@@ -280,7 +290,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("box_collision", _name->Data());
 
-        EXPECT_EQ(boxLinkEntity, _parent->Id());
+        EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -294,7 +304,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("cylinder_collision", _name->Data());
 
-        EXPECT_EQ(cylLinkEntity, _parent->Id());
+        EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -308,7 +318,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("sphere_collision", _name->Data());
 
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -351,7 +361,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("box_visual", _name->Data());
 
-        EXPECT_EQ(boxLinkEntity, _parent->Id());
+        EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -370,7 +380,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("cylinder_visual", _name->Data());
 
-        EXPECT_EQ(cylLinkEntity, _parent->Id());
+        EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -389,7 +399,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ("sphere_visual", _name->Data());
 
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -429,7 +439,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       EXPECT_EQ("sun", _name->Data());
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
@@ -464,8 +474,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -514,7 +524,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       modelCount++;
 
-      EXPECT_EQ(worldEntity, _parent->Id());
+      EXPECT_EQ(worldEntity, _parent->Data());
       EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
@@ -549,7 +559,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
       EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
-      EXPECT_EQ(sphModelEntity, _parent->Id());
+      EXPECT_EQ(sphModelEntity, _parent->Data());
       sphLinkEntity = _entity;
 
       return true;
@@ -588,7 +598,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
       EXPECT_EQ("sphere_visual", _name->Data());
 
-      EXPECT_EQ(sphLinkEntity, _parent->Id());
+      EXPECT_EQ(sphLinkEntity, _parent->Data());
 
       EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -627,7 +637,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
-        EXPECT_EQ(sphLinkEntity, _parent->Id());
+        EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
@@ -649,7 +659,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
@@ -673,7 +683,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
@@ -695,7 +705,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
-        EXPECT_EQ(worldEntity, _parent->Id());
+        EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
@@ -723,6 +733,147 @@ TEST_P(SimulationRunnerTest, CreateLights)
 }
 
 /////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, CreateJointEntities)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/demo_joint_types.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
+
+  // Check component types
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::World>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::CanonicalLink>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Link>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Joint>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::JointAxis>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::JointType>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ChildLinkName>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ParentLinkName>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::ParentEntity>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Pose>()));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      EntityComponentManager::ComponentType<components::Name>()));
+
+  const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
+
+  // Check canonical links
+  unsigned int canonicalLinkCount{0};
+  runner.EntityCompMgr().Each<components::CanonicalLink>(
+    [&](const EntityId &, const components::CanonicalLink *)->bool
+    {
+      canonicalLinkCount++;
+      return true;
+    });
+  // one canonical link per model
+  EXPECT_EQ(root.WorldByIndex(0)->ModelCount(), canonicalLinkCount);
+
+  auto testAxis = [](const std::string &_jointName,
+                      const sdf::JointAxis *_jointAxis,
+                      const auto *_axisComp)
+  {
+    ASSERT_TRUE(nullptr != _axisComp) << "Axis not found for " << _jointName;
+    EXPECT_EQ(_jointAxis->Xyz(), _axisComp->Data().Xyz());
+    EXPECT_DOUBLE_EQ(_jointAxis->Lower(), _axisComp->Data().Lower());
+    EXPECT_DOUBLE_EQ(_jointAxis->Upper(), _axisComp->Data().Upper());
+    EXPECT_DOUBLE_EQ(_jointAxis->Effort(), _axisComp->Data().Effort());
+  };
+
+  auto testJoint = [&testAxis](const sdf::Joint *_joint,
+      const components::JointAxis *_axis,
+      const components::JointAxis2 *_axis2,
+      const components::ParentLinkName *_parentLinkName,
+      const components::ChildLinkName *_childLinkName,
+      const components::Pose *_pose,
+      const components::Name *_name,
+      bool _checkAxis = true,
+      bool _checkAxis2 = false)
+  {
+    ASSERT_TRUE(nullptr != _joint);
+
+    // Even if the pose element isn't explicitly set in the sdf, a default one
+    // is created during parsing, so it's safe to compare here.
+    EXPECT_EQ(_joint->Pose(), _pose->Data());
+
+    if (_checkAxis)
+      testAxis(_joint->Name(), _joint->Axis(0), _axis);
+
+    if (_checkAxis2)
+      testAxis(_joint->Name(), _joint->Axis(1), _axis2);
+
+    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->Name(), _name->Data());
+  };
+
+  std::set<std::string> jointsToCheck = {
+    "revolute_demo",
+    "gearbox_demo"
+    "revolute2_demo",
+    "prismatic_demo",
+    "ball_demo",
+    "screw_demo",
+    "universal_demo",
+    "prismatic_demo",
+    "fixed_demo"
+  };
+
+  std::set<sdf::JointType> jointTypes;
+  runner.EntityCompMgr().Each<components::Joint,
+                            components::JointType,
+                            components::ParentLinkName,
+                            components::ChildLinkName,
+                            components::Pose,
+                            components::Name>(
+    [&](const EntityId &_entity,
+        const components::Joint * /*_joint*/,
+        const components::JointType *_jointType,
+        const components::ParentLinkName *_parentLinkName,
+        const components::ChildLinkName *_childLinkName,
+        const components::Pose *_pose,
+        const components::Name *_name)->bool
+    {
+      jointTypes.insert(_jointType->Data());
+      auto axis =
+          runner.EntityCompMgr().Component<components::JointAxis>(_entity);
+      auto axis2 =
+          runner.EntityCompMgr().Component<components::JointAxis2>(_entity);
+
+      const sdf::Joint *joint = model->JointByName(_name->Data());
+
+      if (jointsToCheck.find(_name->Data()) != jointsToCheck.end())
+      {
+        bool checkAxis = ("fixed_demo" != _name->Data()) &&
+                         ("ball_demo" != _name->Data());
+        bool checkAxis2 = ("gearbox_demo" == _name->Data()) ||
+                          ("revolute2_demo" == _name->Data()) ||
+                          ("universal_demo" == _name->Data());
+        testJoint(joint, axis, axis2, _parentLinkName, _childLinkName, _pose,
+            _name, checkAxis, checkAxis2);
+      }
+
+      return true;
+    });
+
+  EXPECT_EQ(8u, jointTypes.size());
+}
+
+/////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, Time)
 {
   // Load SDF file
@@ -733,8 +884,8 @@ TEST_P(SimulationRunnerTest, Time)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  std::vector<SystemPluginPtr> systems;
-  SimulationRunner runner(root.WorldByIndex(0), systems);
+  SystemManager systemManager;
+  SimulationRunner runner(root.WorldByIndex(0), systemManager);
 
   // Check state
   EXPECT_TRUE(runner.Paused());

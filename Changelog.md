@@ -2,6 +2,15 @@
 
 ### Ignition Gazebo 0.1.0
 
+1. Add support for joints
+    * [Pull Request 77](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/77)
+
+1. Use SimpleWrapper for more component types
+    * [Pull Request 78](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/78)
+
+1. Create EventManager and delegate System instantiation to SimulationRunner
+    * [Pull Request 79](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/79)
+
 1. Integrate ign-gui
     * [Pull request 11](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-request/11)
 

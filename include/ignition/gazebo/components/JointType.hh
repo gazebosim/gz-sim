@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
 
-#include <ignition/math/Inertial.hh>
+#include <memory>
+
+#include <sdf/Joint.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -28,14 +30,14 @@ namespace ignition
 {
 namespace gazebo
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-}
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  /// \brief A component that contains the joint type. This is a simple wrapper
+  /// around sdf::JointType
+  using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
+  }
 }
 }
 }

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
+#define IGNITION_GAZEBO_COMPONENTS_CHILDLINKNAME_HH_
 
-#include <ignition/math/Inertial.hh>
-
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -32,10 +31,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-}
+  /// \brief A component used to indicate that a model is childlinkname (i.e.
+  /// not moveable).
+  using ChildLinkName = SimpleWrapper<std::string, class ChildLinkNameTag>;
+  }
 }
 }
 }

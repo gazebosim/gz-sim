@@ -1,4 +1,3 @@
-add_subdirectory(components)
 add_subdirectory(gui)
 add_subdirectory(systems)
 
@@ -8,9 +7,9 @@ set(gui_sources
 )
 
 set (sources
-  ${components_sources}
   Entity.cc
   EntityComponentManager.cc
+  EventManager.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -25,6 +24,7 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
+  EventManager_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
@@ -52,6 +52,7 @@ ign_add_component(systems
 target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ${SDFormat_LIBRARIES}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
 )
