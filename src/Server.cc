@@ -17,6 +17,7 @@
 #include "ignition/gazebo/Server.hh"
 
 #include <sdf/Root.hh>
+#include <sdf/Error.hh>
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -96,17 +97,25 @@ Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
   sdf::Root root;
+  sdf::Errors errors;
 
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    root.Load(_config.SdfFile());
+    errors = root.Load(_config.SdfFile());
   }
   else
   {
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    root.LoadSdfString(kDefaultWorld);
+    errors = root.LoadSdfString(kDefaultWorld);
+  }
+
+  if (!errors.empty())
+  {
+    for (auto &err : errors)
+      ignerr << err << "\n";
+    return;
   }
 
   this->dataPtr->CreateEntities(root);

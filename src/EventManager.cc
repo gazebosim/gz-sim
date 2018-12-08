@@ -14,29 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
+#include "ignition/gazebo/EventManager.hh"
 
-#include <ignition/math/Inertial.hh>
+using namespace ignition;
+using namespace gazebo;
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
-
-namespace ignition
+//////////////////////////////////////////////////
+EventManager::EventManager()
 {
-namespace gazebo
+}
+
+//////////////////////////////////////////////////
+EventManager::~EventManager()
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
 }
-}
-}
-}
-#endif

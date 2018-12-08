@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-
-#include <ignition/math/Inertial.hh>
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_THREADPITCH_HH_
+#define IGNITION_GAZEBO_COMPONENTS_THREADPITCH_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -28,15 +26,16 @@ namespace ignition
 {
 namespace gazebo
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-}
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  //
+  /// \brief A component used to store the thread pitch of a screw joint
+  using ThreadPitch = SimpleWrapper<double, class ThreadPitchTag>;
+  }
 }
 }
 }
 #endif
+

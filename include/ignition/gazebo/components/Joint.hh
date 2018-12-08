@@ -14,28 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
-
-#include <ignition/math/Inertial.hh>
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
 namespace gazebo
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-}
+  // Inline bracket to help doxygen filtering.
+  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  /// \brief This component identifies an entity as being a joint.
+  class IGNITION_GAZEBO_VISIBLE Joint
+  {
+  };
+  }
 }
 }
 }
