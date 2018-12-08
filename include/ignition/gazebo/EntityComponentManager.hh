@@ -82,7 +82,10 @@ namespace ignition
 
       /// \brief Add an entity to the view.
       /// \param[in] _id Id of the entity to add.
-      /// \param[in] _new Whether to add the entity to the list of new entities
+      /// \param[in] _new Whether to add the entity to the list of new entities.
+      /// The new here is to indicate whether the entity is new to the entity
+      /// component manager. An existing entity can be added when creating a new
+      /// view or when rebuilding the view.
       public: void AddEntity(const EntityId _id, const bool _new = false);
 
       /// \brief Remove an entity from the view.
@@ -570,7 +573,9 @@ namespace ignition
       }
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the components.
+      /// as the components. Note that an entity marked for erasure (but not
+      /// processed yet) will be included in the list of entities iterated by
+      /// this call.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -600,7 +605,9 @@ namespace ignition
       }
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the mutable components.
+      /// as the mutable components. Note that an entity marked for erasure (but
+      /// not processed yet) will be included in the list of entities iterated
+      /// by this call.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
