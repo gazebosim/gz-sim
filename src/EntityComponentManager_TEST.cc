@@ -882,6 +882,25 @@ int ErasedCount(EntityCompMgrTest &_manager)
 }
 
 //////////////////////////////////////////////////
+/// \brief Helper function to count the number of entities returned by an Each
+/// call
+template<typename ...Ts>
+int EachCount(EntityCompMgrTest &_manager)
+{
+  int count = 0;
+  _manager.Each<Ts ...>(
+      [&](const ignition::gazebo::EntityId &, const Ts *... _values) -> bool
+      {
+        ++count;
+        auto valSet = std::set<const void *>{_values...};
+        for (auto value : valSet )
+          EXPECT_NE(nullptr, value);
+        return true;
+      });
+  return count;
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, EachNewBasic)
 {
   // Create entities
@@ -1084,6 +1103,39 @@ TEST_P(EntityComponentManagerFixture, EachNewEachErased)
   manager.RunClearNewlyCreatedEntities();
   manager.ProcessEntityErasures();
 
+  EXPECT_EQ(0, NewCount<int>(manager));
+  EXPECT_EQ(0, ErasedCount<int>(manager));
+}
+
+////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EachGetsNewOldErased)
+{
+  // Test that an Each call gets new, old, and erased entities
+  gazebo::EntityId e1 = manager.CreateEntity();
+  gazebo::EntityId e2 = manager.CreateEntity();
+  manager.CreateComponent<int>(e1, 123);
+  manager.CreateComponent<int>(e2, 456);
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  EXPECT_EQ(2, EachCount<int>(manager));
+  EXPECT_EQ(2, NewCount<int>(manager));
+  EXPECT_EQ(0, ErasedCount<int>(manager));
+
+  // Erase an entity.
+  manager.RequestEraseEntity(e1);
+  // Each gets entities that erased
+  EXPECT_EQ(2, EachCount<int>(manager));
+  // An entity can be considered new even if there is a request to erase it.
+  EXPECT_EQ(2, NewCount<int>(manager));
+  EXPECT_EQ(1, ErasedCount<int>(manager));
+
+  // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
+  // together after a simulation step
+  manager.RunClearNewlyCreatedEntities();
+  manager.ProcessEntityErasures();
+
+  // One entity is erased, one left
+  EXPECT_EQ(1, EachCount<int>(manager));
   EXPECT_EQ(0, NewCount<int>(manager));
   EXPECT_EQ(0, ErasedCount<int>(manager));
 }
