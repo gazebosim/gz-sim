@@ -862,8 +862,9 @@ int NewCount(EntityCompMgrTest &_manager)
       });
   return count;
 }
+
 //////////////////////////////////////////////////
-/// \brief Helper function to count the number of "new" entities
+/// \brief Helper function to count the number of "erased" entities
 template<typename ...Ts>
 int ErasedCount(EntityCompMgrTest &_manager)
 {
@@ -879,6 +880,7 @@ int ErasedCount(EntityCompMgrTest &_manager)
       });
   return count;
 }
+
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, EachNewBasic)
 {
