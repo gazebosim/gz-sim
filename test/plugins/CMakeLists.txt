@@ -20,7 +20,8 @@ foreach (src ${plugins})
   add_library(${src} SHARED ${src}.cc)
   set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
   target_link_libraries(${src}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+    PRIVATE
+      ignition-plugin${IGN_PLUGIN_VER}::register
+      ignition-gazebo
   )
 endforeach (src)

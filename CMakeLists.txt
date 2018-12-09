@@ -26,7 +26,6 @@ ign_configure_project(VERSION_SUFFIX pre1)
 #============================================================================
 
 ign_find_package(sdformat8 REQUIRED)
-include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-plugin
