@@ -253,8 +253,13 @@ Two new SDF elements are introduced for distributed simulation:
 * `<level>`
 * `<performer>`
 
-Since the simulation runners (at least the primary runner) need to be aware of
-levels and performers, the new tags would be children of `<world>`.
+The concepts of levels and performers are specific to ignition gazebo, thus,
+putting them directly under the `<world>` tag would diminish the generality of
+SDF. A new tag, `<extention>`, has been proposed for such circumstances but has
+not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
+tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
+The plugin name `ignition::gazebo` will be fixed so that a simulation runner
+would know to check for that name in each plugin tag.
 
 ### `<level>`
 
@@ -295,30 +300,19 @@ Example snippet:
 ### `<performer>`
 
 The `<performer>` tag contains a reference to the performer entity (most likely
-a model) and the enclosing volume represented by a `<box>` geometry. The `<ref>`
-tag designates the name of the performer entity. It is a required tag and there
-can only be one inside a `<performer>`. Multiple `<performer>`s cannot point to
-the same entity.
+a model). The `<ref>` tag designates the name of the performer entity. It is
+a required tag and there can only be one inside a `<performer>`. Multiple
+`<performer>`s cannot point to the same entity.
 
-The pose of the geometry in `<performer>` is set using the `<pose>` tag. This
-pose is expressed with respect to the referenced entity. Similar to the volumes
-in the `<level>` tag, the box geometry is internally converted into an axis
-aligned box for efficiency. Because of this, the orientation components of the
-`<pose>` tag as well as the referenced entity are ignored when creating the
-geometry. Users creating the `<performer>` must ensure that the box is large
-enough to enclose the extents of the performer in any orientation.
+To simplify the creation of performers, a bounding volume for the performer will
+be generated automatically based on the geometries contained in the referenced
+model's `<collision>` tags.
 
 Example snippet:
 
 ```xml
 <performer name="perf1">
-  <pose>0 0 2.5 0 0 0</pose>
   <ref>robot1</ref>
-  <geometry>
-    <box>
-      <size>5 5 5</size>
-    </box>
-  </geometry>
 </performer>
 ```
 
@@ -377,68 +371,52 @@ the figure
     <!-- other links and joints-->
   </model>
 
-  <performer name="perf1">
-    <pose>0 0 1 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>2 2 2 0 0 0</size>
-      </box>
-    </geometry>
-    <ref>R1</ref>
-  </performer>
-  <performer name="perf2">
-    <pose>0 0 1 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>2 2 2 0 0 0</size>
-      </box>
-    </geometry>
-    <ref>R2</ref>
-  </performer>
-  <performer name="perf3">
-    <pose>0 0 1 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>2 2 2 0 0 0</size>
-      </box>
-    </geometry>
-    <ref>R3</ref>
-  </performer>
+  <plugin name="ignition::gazebo" filename="dummy">
+    <performer name="perf1">
+      <ref>R1</ref>
+    </performer>
+    <performer name="perf2">
+      <ref>R2</ref>
+    </performer>
+    <performer name="perf3">
+      <ref>R3</ref>
+    </performer>
 
-  <level name="L1">
-    <pose>-5 5 5 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>10 10 10</size>
-      </box>
-    </geometry>
-    <buffer>2</buffer>
-    <ref>M1</ref>
-    <ref>M3</ref>
-  </level>
-  <level name="L2">
-    <pose>5 5 5 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>10 10 10</size>
-      </box>
-    </geometry>
-    <buffer>2</buffer>
-    <ref>M2</ref>
-    <ref>M3</ref>
-  </level>
-  <level name="L3">
-    <pose>-5 -5 5 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>10 10 10</size>
-      </box>
-    </geometry>
-    <buffer>2</buffer>
-    <ref>M3</ref>
-    <ref>M4</ref>
-    <ref>M5</ref>
-  </level>
+    <level name="L1">
+      <pose>-5 5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M1</ref>
+      <ref>M3</ref>
+    </level>
+    <level name="L2">
+      <pose>5 5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M2</ref>
+      <ref>M3</ref>
+    </level>
+    <level name="L3">
+      <pose>-5 -5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M3</ref>
+      <ref>M4</ref>
+      <ref>M5</ref>
+    </level>
+  </plugin>
 </world>
 </sdf>
 ```
