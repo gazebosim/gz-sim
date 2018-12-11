@@ -255,7 +255,7 @@ Two new SDF elements are introduced for distributed simulation:
 
 The concepts of levels and performers are specific to ignition gazebo, thus,
 putting them directly under the `<world>` tag would diminish the generality of
-SDF. A new tag, `<extention>`, has been proposed for such circumstances but has
+SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
 not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
 tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
 The plugin name `ignition::gazebo` will be fixed so that a simulation runner
