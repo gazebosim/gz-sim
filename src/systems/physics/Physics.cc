@@ -31,6 +31,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
@@ -64,6 +65,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/ScalarVelocity.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -82,6 +84,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -109,10 +112,16 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Create physics entities
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
 
+  /// \brief Update physics from components
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void UpdatePhysics(const EntityComponentManager &_ecm);
+
   /// \brief Step the simulationrfor each world
+  /// \param[in] _dt Duration
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
-  /// \brief Step the simulation for each world
+  /// \brief Update components from physics simulation
+  /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateSim(EntityComponentManager &_ecm) const;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -186,6 +195,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Only step if not paused.
     if (!_info.paused)
     {
+      this->dataPtr->UpdatePhysics(_ecm);
       this->dataPtr->Step(_info.dt);
       this->dataPtr->UpdateSim(_ecm);
     }
@@ -203,7 +213,7 @@ void Physics::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
-    // Get all the worlds
+  // Get all the worlds
   _ecm.Each<components::World, components::Name>(
       [&](const EntityId &_entity,
         const components::World * /* _world */,
@@ -306,6 +316,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::ParentLinkName *_parentLinkName,
         const components::ChildLinkName *_childLinkName)->bool
       {
+        if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
+        {
+          return true;
+        }
+
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
@@ -325,7 +340,27 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         // Use the parent link's parent model as the model of this joint
         auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
-        modelPtrPhys->ConstructJoint(joint);
+        auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
+
+        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
+{
+  // Handle joint state
+  _ecm.Each<components::Joint, components::ScalarVelocity>(
+      [&](const EntityId &_entity, const components::Joint *, const
+          components::ScalarVelocity *_vel)->bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt == this->entityJointMap.end())
+          return true;
+
+        jointIt->second->SetVelocity(0, _vel->Data());
 
         return true;
       });
