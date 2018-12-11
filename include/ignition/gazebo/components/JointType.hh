@@ -30,14 +30,14 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
   using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
-  }
+}
 }
 }
 }
