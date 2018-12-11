@@ -4,7 +4,7 @@
 
   Try sending commands:
 
-    ign topic -t "/cmd_vel" -m ignition.msgs.Pose -p "position: {x: 0.5}, orientation: {z: 0.05}"
+    ign topic -t "/cmd_vel" -m ignition.msgs.Pose -p "position: {x: 0.5}, orientation: {z: 0.025, w: 1.0}"
 -->
 <sdf version="1.6">
   <world name="diff_drive">
