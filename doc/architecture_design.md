@@ -243,16 +243,6 @@ two different levels at the same time?
 should be loaded into `SR1` together with `L1`? There could be a situation
 where `SR2` is already simulating too many levels.
 
-### :construction: Keeping runners in sync
-
-Each secondary runner has its own ECS, with detailed entities loaded. The
-primary runner keeps a high-level ECM, which keeps track of which performers are
-in which levels and whether they've reached the buffer zone. The server uses
-this information to keep performers synced across runners and to make sure each
-level and performer is only simulated at one runner at a time.
-
-> **TODO**: Explain how the primary does this
-
 ## SDF elements
 
 Two new SDF elements are introduced for distributed simulation:
@@ -428,7 +418,17 @@ the figure
 </sdf>
 ```
 
-## Component serialization
+### :construction: Keeping runners in sync
+
+Each secondary runner has its own ECS, with detailed entities loaded. The
+primary runner keeps a high-level ECM, which keeps track of which performers are
+in which levels and whether they've reached the buffer zone. The server uses
+this information to keep performers synced across runners and to make sure each
+level and performer is only simulated at one runner at a time.
+
+> **TODO**: Explain how the primary does this
+
+## :construction: Component serialization
 
 > **TODO**: Describe how components will be serialized to be sent across runners
 > so their state is synced.
