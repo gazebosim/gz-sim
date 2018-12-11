@@ -1,6 +1,6 @@
-# Design document for distrbuted simulation
+# Ignition Gazebo design
 
-> This is a work in progress, so any details may change. Items marked with :construction: are especially likely to change.
+> This is a work in progress, so any details may change. Items marked with ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) are especially likely to change.
 
 ## Goals
 
@@ -39,14 +39,14 @@
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
-    * :construction: It has a single ECM with all the entities and components
+    * ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) It has a single ECM with all the entities and components
       relevant to the levels / world / performer being simulated.
     * It has an event manager.
     * It loads up a set of systems.
     * Each simulation runner may run in a separate process, or share a process
       with other runners - this is decided at runtime.
 
-* :construction: **Primary / secondary runner**: For each world that is split
+* ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) **Primary / secondary runner**: For each world that is split
     across multiple
     runners, there is exactly one primary simulation runner and one or more
     secondary runners. The **secondary** runners are running a set of levels of
@@ -63,12 +63,12 @@
     > An alternative would be that actors and other simple dynamic models are
       handled by the primary runner.
 
-* :construction: **Global entities**: Entities which are present on all levels,
+* ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) **Global entities**: Entities which are present on all levels,
     such as the
     sun, ground plane, heightmaps, etc. These entities will be duplicated
     across all simulation runners.
 
-* :construction: **Default level**: Level which handles all entities that are
+* ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) **Default level**: Level which handles all entities that are
     not within
     any other levels, including performers.
 
@@ -175,9 +175,9 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
 
     ![](architecture_design/05.png)
 
-### :construction: Multiple performers
+### ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) Multiple performers
 
-> **This whole section is :construction:**
+> **This whole section is ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png)**
 
 In case there are multiple performers, the simulation will be broken down into:
 
@@ -418,7 +418,7 @@ the figure
 </sdf>
 ```
 
-### :construction: Keeping runners in sync
+### ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) Keeping runners in sync
 
 Each secondary runner has its own ECS, with detailed entities loaded. The
 primary runner keeps a high-level ECM, which keeps track of which performers are
@@ -428,7 +428,7 @@ level and performer is only simulated at one runner at a time.
 
 > **TODO**: Explain how the primary does this
 
-## :construction: Component serialization
+## ![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/construction-sign_1f6a7.png) Component serialization
 
 > **TODO**: Describe how components will be serialized to be sent across runners
 > so their state is synced.
