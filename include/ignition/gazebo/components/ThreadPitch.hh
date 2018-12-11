@@ -26,14 +26,14 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   //
   /// \brief A component used to store the thread pitch of a screw joint
   using ThreadPitch = SimpleWrapper<double, class ThreadPitchTag>;
-  }
+}
 }
 }
 }
