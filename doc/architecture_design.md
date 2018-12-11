@@ -1,5 +1,7 @@
 # Design document for distrbuted simulation
 
+> This is a work in progress, so any details may change. Items marked with :construction: are especially likely to change.
+
 ## Goals
 
 * Simulation can be distributed among 1 or more processes
@@ -37,14 +39,15 @@
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
     more than 1 world.
-    * It has a single ECM with all the entities and components relevant to the
-      levels / world being simulated.
+    * :construction: It has a single ECM with all the entities and components
+      relevant to the levels / world / performer being simulated.
     * It has an event manager.
     * It loads up a set of systems.
     * Each simulation runner may run in a separate process, or share a process
       with other runners - this is decided at runtime.
 
-* **Primary / secondary runner**: For each world that is split across multiple
+* :construction: **Primary / secondary runner**: For each world that is split
+    across multiple
     runners, there is exactly one primary simulation runner and one or more
     secondary runners. The **secondary** runners are running a set of levels of
     the world, while the **primary** runner is keeping all secondaries in sync.
@@ -60,11 +63,13 @@
     > An alternative would be that actors and other simple dynamic models are
       handled by the primary runner.
 
-* **Global entities**: Entities which are present on all levels, such as the
+* :construction: **Global entities**: Entities which are present on all levels,
+    such as the
     sun, ground plane, heightmaps, etc. These entities will be duplicated
     across all simulation runners.
 
-* **Default level**: Level which handles all entities that are not within
+* :construction: **Default level**: Level which handles all entities that are
+    not within
     any other levels, including performers.
 
 * **Event manager**: Manages events that can be sent across systems and the
@@ -130,7 +135,7 @@ levels (`L1`~`L3`).
 
 * The **red shape** represents the robot performer (`R1`)
 
-Entities are divided into those that belong to a level, and global entities:
+Entities are divided into those that belong to levels, and global entities:
 
 * `M1` belongs to `L1`, so when `L1` is loaded / unloaded, entities will be
   created / destroyed for that model. Likewise, `M2` belongs to `L2`, and `M4`
@@ -170,7 +175,9 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
 
     ![](architecture_design/05.png)
 
-### Multiple performers
+### :construction: Multiple performers
+
+> **This whole section is :construction:**
 
 In case there are multiple performers, the simulation will be broken down into:
 
@@ -236,7 +243,7 @@ two different levels at the same time?
 should be loaded into `SR1` together with `L1`? There could be a situation
 where `SR2` is already simulating too many levels.
 
-### Keeping runners in sync
+### :construction: Keeping runners in sync
 
 Each secondary runner has its own ECS, with detailed entities loaded. The
 primary runner keeps a high-level ECM, which keeps track of which performers are
