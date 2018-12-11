@@ -248,9 +248,178 @@ level and performer is only simulated at one runner at a time.
 
 ## SDF elements
 
-> **TODO**: Describe the new SDF tags for levels and performers, whether they're
-> part of the SDF spec or if they're loaded within plugins, where they're
-> loaded, etc.
+Two new SDF elements are introduced for distributed simulation:
+
+* `<level>`
+* `<performer>`
+
+The concepts of levels and performers are specific to ignition gazebo, thus,
+putting them directly under the `<world>` tag would diminish the generality of
+SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
+not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
+tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
+The plugin name `ignition::gazebo` will be fixed so that a simulation runner
+would know to check for that name in each plugin tag.
+
+### `<level>`
+
+The `<level>` tag contains information about the volume occupied by the level
+and the entities inside the level. The volume is given by a `<box>` geometry
+(more shapes may be supported in the future) and it is used to determine whether
+a performer is inside the level. Currently, the box shape is internally
+converted into an axis aligned box to speed up intersection calculations. The
+position of the volume is specified with respect to the world frame using the
+`<pose>` tag. Although we are using the `<pose>` tag, the orientation part is
+ignored. The `<buffer>` tag is used to express the **Buffer zone** of the
+volume.
+
+Entities associated with the level are specified using the `<ref>` tag. The
+value of this tag is the name of the entity. A level can contain one or more
+`<ref>` tags. Note that it is this tag that determines whether an entity is
+considered to be in the level or not. That is, an entity specified by a `<ref>`
+would be considered part of a level even if its position is outside the level's
+volume. It is up to the user to ensure that all entities specified by the
+level's `<ref>` tags are contained within the level's volume.
+
+Example snippet:
+
+```xml
+<level name="level1">
+  <pose>0 0 5 0 0 0</pose>
+  <geometry>
+    <box>
+      <size>10 10 10</size>
+    </box>
+  </geometry>
+  <buffer>2</buffer>
+  <ref>model1</ref>
+  <ref>model2</ref>
+</level>
+```
+
+### `<performer>`
+
+The `<performer>` tag contains a reference to the performer entity (most likely
+a model). The `<ref>` tag designates the name of the performer entity. It is
+a required tag and there can only be one inside a `<performer>`. Multiple
+`<performer>`s cannot point to the same entity.
+
+To simplify the creation of performers, a bounding volume for the performer will
+be generated automatically based on the geometries contained in the referenced
+model's `<collision>` tags.
+
+Example snippet:
+
+```xml
+<performer name="perf1">
+  <ref>robot1</ref>
+</performer>
+```
+
+### Example
+
+The following is a world file that could be an instance of the world shown in
+the figure
+
+![](architecture_design/06.png)
+
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.6">
+<world name="default">
+  <model name="M1">
+    <static>1</static>
+    <pose>-8 8 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+  <model name="M2">
+    <static>1</static>
+    <pose>8 5 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+  <model name="M3">
+    <static>1</static>
+    <pose>0 0 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+  <model name="M4">
+    <static>1</static>
+    <pose>-8 -8 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+  <model name="M5">
+    <static>1</static>
+    <pose>-5 -5 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+  <model name="M6">
+    <static>1</static>
+    <pose>-12 -8 0 0 0 0</pose>
+    <!-- other links -->
+  </model>
+
+  <model name="R1">
+    <pose>-5 5 0 0 0 0</pose>
+    <!-- other links and joints-->
+  </model>
+  <model name="R2">
+    <pose>-5 8 0 0 0 0</pose>
+    <!-- other links and joints-->
+  </model>
+  <model name="R3">
+    <pose>5 2 0 0 0 0</pose>
+    <!-- other links and joints-->
+  </model>
+
+  <plugin name="ignition::gazebo" filename="dummy">
+    <performer name="perf1">
+      <ref>R1</ref>
+    </performer>
+    <performer name="perf2">
+      <ref>R2</ref>
+    </performer>
+    <performer name="perf3">
+      <ref>R3</ref>
+    </performer>
+
+    <level name="L1">
+      <pose>-5 5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M1</ref>
+      <ref>M3</ref>
+    </level>
+    <level name="L2">
+      <pose>5 5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M2</ref>
+      <ref>M3</ref>
+    </level>
+    <level name="L3">
+      <pose>-5 -5 5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>10 10 10</size>
+        </box>
+      </geometry>
+      <buffer>2</buffer>
+      <ref>M3</ref>
+      <ref>M4</ref>
+      <ref>M5</ref>
+    </level>
+  </plugin>
+</world>
+</sdf>
+```
 
 ## Component serialization
 
