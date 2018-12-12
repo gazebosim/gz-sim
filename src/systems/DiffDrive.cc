@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
+#include <ignition/msgs/pose.pb.h>
 #include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/msgs/pose.pb.h>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
 
@@ -46,27 +46,52 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief EntityId of the right joint
   public: EntityId rightJointId = kNullEntity;
 
-  /// \brief
-  public: std::string leftJointName = "left_wheel_joint";
-  public: std::string rightJointName = "right_wheel_joint";
+  /// \brief Name of left joint
+  public: std::string leftJointName = "left_joint";
+
+  /// \brief Name of right joint
+  public: std::string rightJointName = "right_joint";
+
+  /// \brief Calculated speed of left joint
   public: double leftJointSpeed{0};
+
+  /// \brief Calculated speed of right joint
   public: double rightJointSpeed{0};
-  public: double wheelSeparation{1.25};
-  public: double wheelRadius{0.3};
-  public: common::Time prevUpdateTime;
+
+  /// \brief Distance between wheels
+  public: double wheelSeparation{1.0};
+
+  /// \brief Wheel radius
+  public: double wheelRadius{0.2};
 };
 
+//////////////////////////////////////////////////
 DiffDrive::DiffDrive()
   : dataPtr(std::make_unique<DiffDrivePrivate>())
 {
   this->dataPtr->node.Subscribe("/cmd_vel",
                                 &DiffDrivePrivate::OnCmdVel,
                                 this->dataPtr.get());
-  // TODO: Read params from SDF
 
   // TODO(future): Attach this to a model instead of the world
 }
 
+//////////////////////////////////////////////////
+void DiffDrive::Configure(const std::shared_ptr<const sdf::Element> &_sdf,
+                     EntityComponentManager &/*_ecm*/,
+                     EventManager &/*_eventMgr*/)
+{
+  this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
+      this->dataPtr->leftJointName).first;
+  this->dataPtr->rightJointName = _sdf->Get<std::string>("right_joint",
+      this->dataPtr->rightJointName).first;
+  this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
+      this->dataPtr->wheelSeparation).first;
+  this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
+      this->dataPtr->wheelRadius).first;
+}
+
+//////////////////////////////////////////////////
 void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
@@ -82,13 +107,14 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           {
             this->dataPtr->leftJointId = _entity;
             igndbg << "Found joint [" << this->dataPtr->leftJointName << "] = ["
-                   << this->dataPtr->leftJointId << "]" << std::endl;;
+                   << this->dataPtr->leftJointId << "]" << std::endl;
           }
           else if (this->dataPtr->rightJointName == _name->Data())
           {
             this->dataPtr->rightJointId = _entity;
-            igndbg << "Found joint [" << this->dataPtr->rightJointName << "] = ["
-                   << this->dataPtr->rightJointId << "]" << std::endl;;
+            igndbg << "Found joint [" << this->dataPtr->rightJointName
+                   << "] = [" << this->dataPtr->rightJointId << "]"
+                   << std::endl;
           }
 
           return this->dataPtr->leftJointId != kNullEntity ||
@@ -133,6 +159,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
 }
 
+//////////////////////////////////////////////////
 void DiffDrivePrivate::OnCmdVel(const msgs::Pose &_msg)
 {
   auto linVel = _msg.position().x();
@@ -146,5 +173,6 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Pose &_msg)
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
                     ignition::gazebo::System,
+                    DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate)
 

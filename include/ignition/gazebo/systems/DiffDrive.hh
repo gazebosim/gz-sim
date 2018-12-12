@@ -34,6 +34,7 @@ namespace systems
   /// \brief
   class IGNITION_GAZEBO_VISIBLE DiffDrive
       : public ignition::gazebo::System,
+        public ISystemConfigure,
         public ignition::gazebo::ISystemPreUpdate
   {
     /// \brief Constructor
@@ -41,6 +42,11 @@ namespace systems
 
     /// \brief Destructor
     public: ~DiffDrive() override = default;
+
+    // Documentation inherited
+    public: void Configure(const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) override;
 
     // Documentation inherited
     public: void PreUpdate(
