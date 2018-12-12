@@ -21,14 +21,6 @@
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::DiffDrive">
-      <left_joint>left_wheel_joint</left_joint>
-      <right_joint>right_wheel_joint</right_joint>
-      <wheel_separation>1.25</wheel_separation>
-      <wheel_radius>0.3</wheel_radius>
-    </plugin>
 
     <gui fullscreen="0">
 
@@ -212,26 +204,6 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>1</mu>
-                <mu2>1</mu2>
-                <slip1>0</slip1>
-                <slip2>0</slip2>
-              </ode>
-            </friction>
-            <contact>
-              <ode>
-                <soft_cfm>0</soft_cfm>
-                <soft_erp>0.2</soft_erp>
-                <kp>1e+13</kp>
-                <kd>1</kd>
-                <max_vel>0.01</max_vel>
-                <min_depth>0.01</min_depth>
-              </ode>
-            </contact>
-          </surface>
         </collision>
       </link>
 
@@ -267,26 +239,6 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>1</mu>
-                <mu2>1</mu2>
-                <slip1>0</slip1>
-                <slip2>0</slip2>
-              </ode>
-            </friction>
-            <contact>
-              <ode>
-                <soft_cfm>0</soft_cfm>
-                <soft_erp>0.2</soft_erp>
-                <kp>1e+13</kp>
-                <kd>1</kd>
-                <max_vel>0.01</max_vel>
-                <min_depth>0.01</min_depth>
-              </ode>
-            </contact>
-          </surface>
         </collision>
       </link>
 
@@ -353,6 +305,15 @@
         <parent>chassis</parent>
         <child>caster</child>
       </joint>
+
+      <plugin
+        filename="libignition-gazebo-systems.so"
+        name="ignition::gazebo::systems::v0::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+      </plugin>
 
     </model>
 

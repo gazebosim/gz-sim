@@ -44,7 +44,8 @@ namespace systems
     public: ~DiffDrive() override = default;
 
     // Documentation inherited
-    public: void Configure(const std::shared_ptr<const sdf::Element> &_sdf,
+    public: void Configure(const EntityId &_id,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
 

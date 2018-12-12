@@ -120,7 +120,8 @@ namespace ignition
 
       /// \brief Create all entities that exist in the sdf::World object.
       /// \param[in] _world SDF world object.
-      public: void CreateEntities(const sdf::World *_world);
+      public: EntityId CreateEntities(const sdf::World *_world,
+          SystemManager &_systemManager);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
