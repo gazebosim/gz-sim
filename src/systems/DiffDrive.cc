@@ -63,6 +63,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief Wheel radius
   public: double wheelRadius{0.2};
+
+  /// \brief Entity id of model which this plugin is attached to.
+  public: EntityId modelId{kNullEntity};
 };
 
 //////////////////////////////////////////////////
@@ -72,15 +75,16 @@ DiffDrive::DiffDrive()
   this->dataPtr->node.Subscribe("/cmd_vel",
                                 &DiffDrivePrivate::OnCmdVel,
                                 this->dataPtr.get());
-
-  // TODO(future): Attach this to a model instead of the world
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::Configure(const std::shared_ptr<const sdf::Element> &_sdf,
-                     EntityComponentManager &/*_ecm*/,
-                     EventManager &/*_eventMgr*/)
+void DiffDrive::Configure(const EntityId &_id,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &/*_ecm*/,
+    EventManager &/*_eventMgr*/)
 {
+  this->dataPtr->modelId = _id;
+
   this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
       this->dataPtr->leftJointName).first;
   this->dataPtr->rightJointName = _sdf->Get<std::string>("right_joint",
@@ -99,10 +103,19 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (this->dataPtr->leftJointId == kNullEntity ||
       this->dataPtr->rightJointId == kNullEntity)
   {
-    _ecm.Each<components::Joint, components::Name>(
-        [&](const EntityId &_entity, const components::Joint *,
+    _ecm.Each<components::Joint,
+              components::ParentEntity,
+              components::Name>(
+        [&](const EntityId &_entity,
+            const components::Joint *,
+            const components::ParentEntity *_parent,
             const components::Name *_name) -> bool
         {
+          if (_parent->Data() != this->dataPtr->modelId)
+          {
+            return true;
+          }
+
           if (this->dataPtr->leftJointName == _name->Data())
           {
             this->dataPtr->leftJointId = _entity;

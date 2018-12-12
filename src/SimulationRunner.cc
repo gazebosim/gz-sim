@@ -106,7 +106,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
   // Create entities and components
-  this->CreateEntities(_world);
+  auto worldEntity = this->CreateEntities(_world, _systemManager);
 
   pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -125,7 +125,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
         if (systemConfig != nullptr)
         {
-          systemConfig->Configure(pluginElem,
+          systemConfig->Configure(worldEntity, pluginElem,
                                   this->entityCompMgr,
                                   this->eventMgr);
         }
@@ -365,7 +365,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::CreateEntities(const sdf::World *_world)
+EntityId SimulationRunner::CreateEntities(const sdf::World *_world,
+    SystemManager &_systemManager)
 {
   // World entity
   EntityId worldEntity = this->entityCompMgr.CreateEntity();
@@ -547,6 +548,27 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
       this->entityCompMgr.CreateComponent(jointEntity,
           components::ChildLinkName(joint->ChildLinkName()));
     }
+
+    // Model plugins
+    auto elem = model->Element();
+    if (elem->HasElement("plugin"))
+    {
+      auto pluginElem = elem->GetElement("plugin");
+
+      // Load plugin passing it the model entity
+      auto system = _systemManager.LoadPlugin(pluginElem);
+      if (system)
+      {
+        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+        if (systemConfig != nullptr)
+        {
+          systemConfig->Configure(modelEntity, pluginElem,
+                                  this->entityCompMgr,
+                                  this->eventMgr);
+        }
+        this->AddSystem(system.value());
+      }
+    }
   }
 
   // Lights
@@ -567,6 +589,8 @@ void SimulationRunner::CreateEntities(const sdf::World *_world)
     this->entityCompMgr.CreateComponent(lightEntity,
         components::ParentEntity(worldEntity));
   }
+
+  return worldEntity;
 }
 
 /////////////////////////////////////////////////
