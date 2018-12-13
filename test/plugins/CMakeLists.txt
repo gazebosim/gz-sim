@@ -11,7 +11,9 @@ link_directories(
 
 set (plugins
   EventTriggerSystem
+  TestModelSystem
   TestSystem
+  TestWorldSystem
   MockSystem
 )
 
