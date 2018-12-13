@@ -19,7 +19,7 @@
 #include <string>
 #include <unordered_set>
 
-#include <ignition/gazebo/SystemManager.hh>
+#include <ignition/gazebo/SystemLoader.hh>
 
 #include <sdf/Element.hh>
 
@@ -49,10 +49,10 @@ std::string homePath()
   return homePath;
 }
 
-class ignition::gazebo::SystemManagerPrivate
+class ignition::gazebo::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
-  public: explicit SystemManagerPrivate()
+  public: explicit SystemLoaderPrivate()
   {
   }
 
@@ -133,24 +133,24 @@ class ignition::gazebo::SystemManagerPrivate
 };
 
 //////////////////////////////////////////////////
-SystemManager::SystemManager()
-  : dataPtr(new SystemManagerPrivate())
+SystemLoader::SystemLoader()
+  : dataPtr(new SystemLoaderPrivate())
 {
 }
 
 //////////////////////////////////////////////////
-SystemManager::~SystemManager()
+SystemLoader::~SystemLoader()
 {
 }
 
 //////////////////////////////////////////////////
-void SystemManager::AddSystemPluginPath(const std::string &_path)
+void SystemLoader::AddSystemPluginPath(const std::string &_path)
 {
   this->dataPtr->systemPluginPaths.insert(_path);
 }
 
 //////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemManager::LoadPlugin(
+std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_filename,
   const std::string &_name,
   sdf::ElementPtr _sdf)
@@ -177,7 +177,7 @@ std::optional<SystemPluginPtr> SystemManager::LoadPlugin(
 }
 
 //////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(sdf::ElementPtr _sdf)
 {
   if (nullptr == _sdf)
   {
@@ -189,7 +189,7 @@ std::optional<SystemPluginPtr> SystemManager::LoadPlugin(sdf::ElementPtr _sdf)
 }
 
 //////////////////////////////////////////////////
-std::string SystemManager::PrettyStr() const
+std::string SystemLoader::PrettyStr() const
 {
   return this->dataPtr->loader.PrettyStr();
 }
