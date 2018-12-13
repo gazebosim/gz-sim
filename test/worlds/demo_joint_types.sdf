@@ -132,7 +132,7 @@
 
 
         <!-- ****************************************
-             revolute joint demo 
+             revolute joint demo
              **************************************** -->
         <link name="revolute_base">
             <!-- Put the bottom of the child on top of the parent
@@ -240,7 +240,7 @@
         </joint>
 
         <!-- ****************************************
-             gearbox joint demo 
+             gearbox joint demo
              **************************************** -->
         <link name="gearbox_base">
             <!-- Put the bottom of the child on top of the parent
@@ -406,7 +406,7 @@
             </axis2>
         </joint>
         <!-- ****************************************
-             revolute2 joint demo 
+             revolute2 joint demo
              **************************************** -->
         <link name="revolute2_base">
             <!-- Put the bottom of the child on top of the parent-->
@@ -512,7 +512,7 @@
             <pose>0 0 -0.075  0 0 0</pose>
         </joint>
         <!-- ****************************************
-             prismatic joint demo 
+             prismatic joint demo
              **************************************** -->
         <link name="prismatic_base">
             <!-- Put the bottom of base on top of the heavy base -->
@@ -613,7 +613,7 @@
             </axis>
         </joint>
         <!-- ****************************************
-             ball joint demo 
+             ball joint demo
              **************************************** -->
         <link name="ball_socket">
             <!-- make the socket float in the sky -->
@@ -707,7 +707,7 @@
         </joint>
 
         <!-- ****************************************
-             screw joint demo 
+             screw joint demo
              **************************************** -->
         <link name="screw_base">
             <!-- Put the bottom of base on top of the heavy base -->
@@ -812,7 +812,7 @@
         </joint>
 
         <!-- ****************************************
-             universal joint demo 
+             universal joint demo
              **************************************** -->
         <link name="universal_base">
             <!-- make the base float in the sky -->
@@ -918,7 +918,7 @@
         </joint>
 
         <!-- ****************************************
-             fixed joint demo 
+             fixed joint demo
              **************************************** -->
         <link name="fixed_base">
             <!-- Put the bottom of base on top of the heavy base -->

@@ -19,7 +19,7 @@
 #include <ignition/common/Console.hh>
 
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "plugins/EventTriggerSystem.hh"
