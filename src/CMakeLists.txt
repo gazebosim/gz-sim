@@ -15,7 +15,7 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   System.cc
-  SystemManager.cc
+  SystemLoader.cc
   View.cc
 )
 
@@ -28,7 +28,7 @@ set (gtest_sources
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
-  SystemManager_TEST.cc
+  SystemLoader_TEST.cc
 )
 
 # Create the library target
