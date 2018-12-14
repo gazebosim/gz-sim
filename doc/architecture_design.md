@@ -459,7 +459,7 @@ World | Get/set properties of the world and its children | Gazebo system | Will 
 Model | Get/set properties of the model and its children | Gazebo system | Will be done through components.
 Visual | Get/set properties of the visual and its children | Gazebo system | Will be done through components.
 Sensor | Get/set sensor properties and readings | Gazebo system | Will be done through components.
-World / Model /Sensor | Access physics-engine-specific features | Physics plugin | Specified on SDF and passed to physics
+World / Model | Access physics-engine-specific features | Physics plugin | Specified on SDF and passed to physics
 Visual | Access rendering-engine-specific features | Rendering plugin | Specified on SDF and passed to rendering
 Sensor | Connect to callbacks | Standalone program | Subscribe to Ignition Transport messages.
 All | Connect to simulation events | Gazebo system | Use `PreUpdate`, `Update` and `PostUpdate` callbacks for the update loop, and the event manager for other events.
@@ -472,14 +472,82 @@ properties at once, despite the entity type. So while in Gazebo you may
 need 3 plugins to interact with physics, rendering and sensors, on
 Ignition you could do it all from a single system.
 
-## Entity-specific interfaces
+## Plugin interfaces
 
-Besides a generic system interface, we may offer wrappers around that
-to provide more specific interfaces according to the entity type. For
-example, a `ModelSystem` could offer a function to conveniently get
+The ECS architecture, although flexible, can be a bit tedious to work with.
+For example, let's say we want to write a plugin which prints out the
+current pose of a link.
+
+We need to:
+
+1. Get the link and store it.
+1. Register a callback that is called at every simulation update.
+1. At the callback, query the link's pose and print it.
+
+On Gazebo, that would look something like this:
+
+~~~
+void MyPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
+{
+  auto linkName = _sdf->Get<std::string>("link_name");
+  this->link = _model->GetLink(linkName);
+  this->connection = event::Events::ConnectWorldUpdateBegin(
+          std::bind(&MyPlugin::OnUpdate, this));
+}
+void MyPlugin::OnUpdate()
+{
+  std::cout << this->link->WorldPose() << std::endl;
+}
+~~~
+
+On Ignition Gazebo, using purely entities and components, it would look like
+this:
+
+~~~
+void MyPlugin::Configure(const EntityId &_modelId,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &_ecm,
+    EventManager &/*_eventMgr*/)
+{
+  auto linkName = _sdf->Get<std::string>("link_name");
+
+  _ecm.Each<components::Link,
+            components::ParentEntity,
+            components::Name>(
+      [&](const EntityId &_entity,
+          const components::Link *,
+          const components::ParentEntity *_parent,
+          const components::Name *_name) -> bool
+      {
+
+        if (_parent->Data() != _modelId)
+          return true;
+
+        if (linkName == _name->Data())
+        {
+          this->linkId = _entity;
+          return false;
+        }
+        return true;
+      });
+}
+void DiffDrive::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
+{
+  std::cout << *_ecm.Component<components::Pose>(this->linkId) << std::endl;
+}
+~~~
+
+The two main differences come with finding an entity, which is
+significantly more cumbersome, and setting a property's value, which looks and
+feels a bit different, but can be more easily understood.
+
+To improve that situation, besides a generic system interface, we will offer
+wrappers that provide more specific interfaces according to the entity type.
+For example, a `ModelSystem` could offer a function to conveniently get
 a child link by name. We could also add helper functions to the
 `EntityComponentManager` to facilitate writing such wrappers.
-So it could look like this for example:
+So the implementation could look like this for example:
 
 ~~~
 EntityId ModelSystem::LinkByName(const std::string &_name,
@@ -492,6 +560,21 @@ EntityId ModelSystem::LinkByName(const std::string &_name,
 }
 ~~~
 
-The `ChildByName` function above would return the ID of an entity which has the
-`Link` component, has the given model ID as a parent, and the given name.
+The `EntityByComponents` function above would return the ID of an entity which
+has the `Link` component, has the given model ID as a parent, and the given name.
+
+## Standalone programs
+
+It would be convenient to be able to specify standalone programs in the SDF
+file so they're loaded at the same time as the simulation. For example,
+Gazebo's
+[JoyPlugin](https://bitbucket.org/osrf/gazebo/src/default/plugins/JoyPlugin.hh?fileviewer=file-view-default)
+is a `WorldPlugin`, but it doesn't need to access any world API, or to run
+in the physics thread, or even to run in the gzserver process. However,
+it was implemented as a plugin because that makes it easier to specify in
+SDF.
+
+> **TODO**: Describe what this would look like.
+
+
 
