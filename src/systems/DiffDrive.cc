@@ -22,7 +22,6 @@
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ScalarVelocity.hh"
 #include "ignition/gazebo/systems/DiffDrive.hh"
@@ -35,7 +34,7 @@ class ignition::gazebo::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Pose &_msg);
+  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -173,10 +172,10 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::OnCmdVel(const msgs::Pose &_msg)
+void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
-  auto linVel = _msg.position().x();
-  auto angVel =  msgs::Convert(_msg.orientation()).Euler().Z();
+  auto linVel = _msg.linear().x();
+  auto angVel = _msg.angular().z();
 
   this->leftJointSpeed =
       (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;

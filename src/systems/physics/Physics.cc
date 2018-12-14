@@ -360,6 +360,7 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (jointIt == this->entityJointMap.end())
           return true;
 
+        // TODO(louise) Support multi-axis joints
         jointIt->second->SetVelocity(0, _vel->Data());
 
         return true;
