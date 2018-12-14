@@ -32,6 +32,7 @@ using namespace gazebo;
 
 //////////////////////////////////////////////////
 ServerPrivate::ServerPrivate()
+: systemLoader(std::make_shared<SystemLoader>())
 {
   // Add the signal handler
   this->sigHandler.AddCallback(
@@ -111,7 +112,7 @@ void ServerPrivate::CreateEntities()
     auto world = this->sdfRoot.WorldByIndex(worldIndex);
 
     this->simRunners.push_back(
-        std::make_unique<SimulationRunner>(world, this->systemManager));
+        std::make_unique<SimulationRunner>(world, this->systemLoader));
   }
 }
 

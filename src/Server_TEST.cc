@@ -25,7 +25,7 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -301,8 +301,8 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   server.Run(false, 0, false);
   EXPECT_EQ(2u, *server.SystemCount());
 
-  gazebo::SystemManager sm;
-  auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so",
+  gazebo::SystemLoader systemLoader;
+  auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
@@ -325,8 +325,8 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  gazebo::SystemManager sm;
-  auto mockSystemPlugin = sm.LoadPlugin("libMockSystem.so",
+  gazebo::SystemLoader systemLoader;
+  auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 

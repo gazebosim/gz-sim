@@ -22,16 +22,16 @@
 
 #include <ignition/common/Filesystem.hh>
 #include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 using namespace ignition;
 
 /////////////////////////////////////////////////
-TEST(SystemManager, Constructor)
+TEST(SystemLoader, Constructor)
 {
-  gazebo::SystemManager sm;
+  gazebo::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
   auto testBuildPath = ignition::common::joinPaths(
@@ -58,9 +58,9 @@ TEST(SystemManager, Constructor)
   }
 }
 
-TEST(SystemManager, EmptyNames)
+TEST(SystemLoader, EmptyNames)
 {
-  gazebo::SystemManager sm;
+  gazebo::SystemLoader sm;
   sdf::ElementPtr element;
   auto system = sm.LoadPlugin("", "", element);
   ASSERT_FALSE(system.has_value());

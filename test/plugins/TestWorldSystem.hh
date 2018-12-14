@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_THREADPITCH_HH_
-#define IGNITION_GAZEBO_COMPONENTS_THREADPITCH_HH_
+*/
+#ifndef IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
+#define IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
 namespace gazebo
 {
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
+class TestWorldSystem :
+  public System,
+  public gazebo::ISystemConfigure
 {
-  //
-  /// \brief A component used to store the thread pitch of a screw joint
-  using ThreadPitch = SimpleWrapper<double, class ThreadPitchTag>;
-}
-}
-}
-}
-#endif
+  public: TestWorldSystem() = default;
 
+  public: void Configure(const EntityId &_id,
+                         const std::shared_ptr<const sdf::Element> &_sdf,
+                         EntityComponentManager &_ecm,
+                         EventManager &/*_eventManager*/) override
+        {
+          auto value = _sdf->Get<double>("world_key");
+          _ecm.CreateComponent<double>(_id, value);
+        }
+};
+}
+}
+
+#endif

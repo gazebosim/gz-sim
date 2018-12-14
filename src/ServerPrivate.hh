@@ -32,7 +32,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 
 using namespace std::chrono_literals;
 
@@ -92,8 +92,8 @@ namespace ignition
       /// \brief Our signal handler.
       public: ignition::common::SignalHandler sigHandler;
 
-      /// \brief Our system manager.
-      public: ignition::gazebo::SystemManager systemManager;
+      /// \brief Our system loader.
+      public: SystemLoaderPtr systemLoader;
 
       /// \brief The SDF root object.
       /// This keeps the SDF object in memory so that other classes can keep a

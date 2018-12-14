@@ -28,10 +28,10 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
   using JointAxis = SimpleWrapper<sdf::JointAxis, class JointAxisTag>;
@@ -39,7 +39,7 @@ namespace components
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = SimpleWrapper<sdf::JointAxis, class JointAxis2Tag>;
-  }
+}
 }
 }
 }
