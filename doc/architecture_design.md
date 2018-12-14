@@ -470,7 +470,11 @@ System | Access command line arguments | TBD |
 Another key difference is that systems will be able to access all entity
 properties at once, despite the entity type. So while in Gazebo you may
 need 3 plugins to interact with physics, rendering and sensors, on
-Ignition you could do it all from a single system.
+Ignition you could, for example, set a camera's visual color, its velocity and
+frame rate, all from a single system.
+
+> **TODO**: Mention specific concerns plugin devs need to have when writing
+  plugins for distributed simulation.
 
 ## Plugin interfaces
 
