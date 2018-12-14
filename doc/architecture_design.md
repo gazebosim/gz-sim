@@ -433,3 +433,65 @@ level and performer is only simulated at one runner at a time.
 > **TODO**: Describe how components will be serialized to be sent across runners
 > so their state is synced.
 
+
+## Plugins
+
+Classic Gazebo supported 6 different C++ plugin types, which provided access to
+different parts of the API, like physics, rendering, sensors, GUI, etc. Due to Ignition
+Gazebo's architecture based on an ECS, plugin interfaces will be somewhat different,
+but more varied and in many cases much more powerful. Some plugins will be systems
+within Ignition Gazebo, while others will be specific plugin types from other Ignition
+libraries.
+
+> **NOTE**: We may add other plugins to Ignition Gazebo which are not systems in the
+  future.
+
+For example, plugins which get and set properties of simulation entities would be
+Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
+exist in Gazebo, such as integrating a new physics or rendering engine, and these can
+exist outside of Ignition Gazebo.
+
+Take a look at the comparison below:
+
+Gazebo plugin | Features | Ignition equivalent | Differences
+------------- | -------- | ------------------- | -----------
+World | Get/set properties of the world and its children | Gazebo system | Will be done through components.
+Model | Get/set properties of the model and its children | Gazebo system | Will be done through components.
+Visual | Get/set properties of the visual and its children | Gazebo system | Will be done through components.
+Sensor | Get/set sensor properties and readings | Gazebo system | Will be done through components.
+World / Model /Sensor | Access physics-engine-specific features | Physics plugin | Specified on SDF and passed to physics
+Visual | Access rendering-engine-specific features | Rendering plugin | Specified on SDF and passed to rendering
+Sensor | Connect to callbacks | Standalone program | Subscribe to Ignition Transport messages.
+All | Connect to simulation events | Gazebo system | Use `PreUpdate`, `Update` and `PostUpdate` callbacks for the update loop, and the event manager for other events.
+GUI | Add an overlay UI | GUI plugin | More customization available by default
+GUI / System | Change the default UI | GUI plugin / SDF | All GUI elements can be removed and added through SDF
+System | Access command line arguments | TBD |
+
+Another key difference is that systems will be able to access all entity
+properties at once, despite the entity type. So while in Gazebo you may
+need 3 plugins to interact with physics, rendering and sensors, on
+Ignition you could do it all from a single system.
+
+## Entity-specific interfaces
+
+Besides a generic system interface, we may offer wrappers around that
+to provide more specific interfaces according to the entity type. For
+example, a `ModelSystem` could offer a function to conveniently get
+a child link by name. We could also add helper functions to the
+`EntityComponentManager` to facilitate writing such wrappers.
+So it could look like this for example:
+
+~~~
+EntityId ModelSystem::LinkByName(const std::string &_name,
+    EntityComponentManager &_ecm)
+{
+  return _ecm.EntityByComponents<
+      components::ParentEntity,
+      components::Name,
+      components::Link>(this->id, "link_name");
+}
+~~~
+
+The `ChildByName` function above would return the ID of an entity which has the
+`Link` component, has the given model ID as a parent, and the given name.
+
