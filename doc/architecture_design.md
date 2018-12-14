@@ -556,7 +556,7 @@ EntityId ModelSystem::LinkByName(const std::string &_name,
   return _ecm.EntityByComponents<
       components::ParentEntity,
       components::Name,
-      components::Link>(this->id, "link_name");
+      components::Link>(this->id, _name);
 }
 ~~~
 
