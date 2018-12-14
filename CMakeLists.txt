@@ -26,7 +26,6 @@ ign_configure_project(VERSION_SUFFIX pre1)
 #============================================================================
 
 ign_find_package(sdformat8 REQUIRED)
-include_directories(${SDFormat_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find ignition-plugin
@@ -57,7 +56,8 @@ ign_find_package (Qt5
     Core
     Quick
     QuickControls2
-  REQUIRED)
+  REQUIRED
+  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
 
 #--------------------------------------
 # Find ignition-physics
@@ -66,15 +66,9 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
-find_library(gflags_LIBRARIES NAMES gflags)
-find_path(gflags_INCLUDE_DIRS gflags/gflags.h ENV CPATH)
-if(NOT gflags_LIBRARIES OR NOT gflags_INCLUDE_DIRS)
-  message(FATAL_ERROR "Missing: GFlags (libgflags-dev)")
-else()
-  message(STATUS "Found GFlags")
-  include_directories(${gflags_INCLUDE_DIRS})
-  link_directories(${gflags_LIBRARY_DIRS})
-endif()
+ign_find_package(gflags
+    REQUIRED
+    PKGCONFIG gflags)
 
 #--------------------------------------
 # Find ignition-math

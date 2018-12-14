@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/systems/Null.hh"
+#include "Null.hh"
 #include <ignition/plugin/Register.hh>
 
 using namespace ignition::gazebo::systems;
@@ -31,9 +31,10 @@ Null::~Null()
 }
 
 //////////////////////////////////////////////////
-void Null::Configure(const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-                     EntityComponentManager &/*_ecm*/,
-                     EventManager &/*_eventMgr*/)
+void Null::Configure(const EntityId &/*_id*/,
+    const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+    EntityComponentManager &/*_ecm*/,
+    EventManager &/*_eventMgr*/)
 {
 }
 

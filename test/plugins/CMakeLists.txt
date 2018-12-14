@@ -11,7 +11,9 @@ link_directories(
 
 set (plugins
   EventTriggerSystem
+  TestModelSystem
   TestSystem
+  TestWorldSystem
   MockSystem
   Move3dSystem
 )
@@ -24,10 +26,8 @@ foreach (src ${plugins})
   add_library(${src} SHARED ${src}.cc)
   set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
   target_link_libraries(${src}
-    PRIVATE ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    PRIVATE ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER}
-    PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-    PRIVATE ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    PRIVATE
+      ignition-plugin${IGN_PLUGIN_VER}::register
+      ignition-gazebo
   )
-  install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endforeach (src)

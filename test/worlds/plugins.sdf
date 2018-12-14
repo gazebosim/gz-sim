@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="libTestWorldSystem.so"
+      name="ignition::gazebo::TestWorldSystem">
+      <world_key>0.123</world_key>
+    </plugin>
+
+    <model name="box">
+      <plugin
+        filename="libTestModelSystem.so"
+        name="ignition::gazebo::TestModelSystem">
+        <model_key>987</model_key>
+      </plugin>
+    </model>
+  </world>
+</sdf>
