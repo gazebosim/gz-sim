@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
+#include <any>
 #include <map>
 #include <memory>
 #include <set>
@@ -478,6 +479,56 @@ namespace ignition
       {
         return static_cast<ComponentTypeT *>(
             this->First(this->ComponentType<ComponentTypeT>()));
+      }
+
+      template <class Function, class... ComponentTypeTs>
+      void ForEach(Function f, ComponentTypeTs... _comps)
+      {
+        int x[] = {(f(_comps), 0)...};
+        (void)x;
+      }
+
+      public: template<typename ...ComponentTypeTs>
+              EntityId EntityByComponents(const ComponentTypeTs ..._desiredComponents)
+      {
+        EntityId result{kNullEntity};
+
+        this->Each<ComponentTypeTs...>(
+            [&](const EntityId &_entity,
+                const ComponentTypeTs *..._entityComponents) -> bool
+            {
+              bool different{false};
+
+// Nesting doesn't work for types that can't be compared, because the compiler
+// will complain.
+// We need to unpack the parameters in parallel and only compare them to their
+// equivalent types.
+              ForEach([&](auto _entityComponent)
+              {
+                ForEach([&](auto _desiredComponent)
+                {
+                  if (typeid(*_entityComponent) != typeid(_desiredComponent))
+                    return;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+                  if (*_entityComponent != _desiredComponent)
+                    different = true;
+#pragma GCC diagnostic pop
+                }, _desiredComponents...);
+              }, _entityComponents...);
+
+              // All components match
+              if (!different)
+              {
+                result = _entity;
+                return false;
+              }
+
+              return true;
+            });
+
+        return result;
       }
 
       /// why is this required?
