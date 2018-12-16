@@ -53,15 +53,15 @@
 #include "ignition/gazebo/components/World.hh"
 
 #include "LevelManager.hh"
+#include "SimulationRunner.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(EntityComponentManager &_ecm,
-                           const sdf::World *_world)
-    : entityCompMgr(&_ecm), sdfWorld(_world)
+LevelManager::LevelManager(SimulationRunner *_runner)
+    : runner(_runner)
 {
   // Do nothing
 }
@@ -69,22 +69,22 @@ LevelManager::LevelManager(EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void LevelManager::ReadLevelPerformerInfo()
 {
-  // World entity
-  EntityId worldEntity = this->entityCompMgr->CreateEntity();
+  this->worldEntity = this->runner->entityCompMgr.CreateEntity();
 
   // World components
-  this->entityCompMgr->CreateComponent(worldEntity, components::World());
-  this->entityCompMgr->CreateComponent(
-      worldEntity, components::Name(this->sdfWorld->Name()));
+  this->runner->entityCompMgr.CreateComponent(worldEntity,
+                                               components::World());
+  this->runner->entityCompMgr.CreateComponent(
+      worldEntity, components::Name(this->runner->sdfWorld->Name()));
 
-  auto worldElem = this->sdfWorld->Element();
+  auto worldElem = this->runner->sdfWorld->Element();
 
   for (auto performer = worldElem->GetElement("performer"); performer;
        performer = performer->GetNextElement("performer"))
   {
     std::string name = performer->Get<std::string>("name");
 
-    EntityId performerEntity = this->entityCompMgr->CreateEntity();
+    EntityId performerEntity = this->runner->entityCompMgr.CreateEntity();
     // We use the ref to create a parent entity component later on
     std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
     if (this->performerMap.find(ref) == this->performerMap.end())
@@ -93,23 +93,21 @@ void LevelManager::ReadLevelPerformerInfo()
     }
     else
     {
-      std::string otherPerformer =
-          this->entityCompMgr
-              ->Component<components::Name>(this->performerMap[ref])
-              ->Data();
+      auto performer2 = this->runner->entityCompMgr.Component<components::Name>(
+          this->performerMap[ref]);
 
       ignerr << "Found multiple performers (" << name << " and "
-             << otherPerformer << ")referring to the same entity\n";
+             << performer2->Data() << ")referring to the same entity\n";
     }
 
     sdf::Geometry geometry;
     geometry.Load(performer->GetElement("geometry"));
-    this->entityCompMgr->CreateComponent(performerEntity,
-                                         components::Performer());
-    this->entityCompMgr->CreateComponent(performerEntity,
-                                         components::Name(name));
-    this->entityCompMgr->CreateComponent(performerEntity,
-                                         components::Geometry(geometry));
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Performer());
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Name(name));
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+                                        components::Geometry(geometry));
   }
 
   // This holds all entities referenced by at least one level. This will be used
@@ -124,6 +122,7 @@ void LevelManager::ReadLevelPerformerInfo()
     sdf::Geometry geometry;
     geometry.Load(level->GetElement("geometry"));
     std::unordered_set<std::string> entityNames;
+
     for (auto ref = level->GetElement("ref"); ref;
          ref = ref->GetNextElement("ref"))
     {
@@ -135,18 +134,21 @@ void LevelManager::ReadLevelPerformerInfo()
     }
 
     // Entity
-    EntityId levelEntity = this->entityCompMgr->CreateEntity();
+    EntityId levelEntity = this->runner->entityCompMgr.CreateEntity();
 
     // Components
-    this->entityCompMgr->CreateComponent(levelEntity, components::Level());
-    this->entityCompMgr->CreateComponent(levelEntity, components::Pose(pose));
-    this->entityCompMgr->CreateComponent(levelEntity, components::Name(name));
-    this->entityCompMgr->CreateComponent(levelEntity,
-                                         components::ParentEntity(worldEntity));
-    this->entityCompMgr->CreateComponent(levelEntity,
-                                         components::NameSet(entityNames));
-    this->entityCompMgr->CreateComponent(levelEntity,
-                                         components::Geometry(geometry));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Level());
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Pose(pose));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Name(name));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::ParentEntity(worldEntity));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::NameSet(entityNames));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Geometry(geometry));
 
     // Visualization
     // The levelLinkEntity and levelVisualEntities are only used for visualizing
@@ -155,48 +157,49 @@ void LevelManager::ReadLevelPerformerInfo()
     const bool visualizeLevels = false;
     if (visualizeLevels)
     {
-      EntityId levelLinkEntity = this->entityCompMgr->CreateEntity();
-      this->entityCompMgr->CreateComponent(levelLinkEntity, components::Link());
-      this->entityCompMgr->CreateComponent(levelLinkEntity,
-                                           components::Pose(math::Pose3d()));
-      this->entityCompMgr->CreateComponent(levelLinkEntity,
-                                           components::Name(name + "::link"));
-      this->entityCompMgr->CreateComponent(
+      EntityId levelLinkEntity = this->runner->entityCompMgr.CreateEntity();
+      this->runner->entityCompMgr.CreateComponent(
+          levelLinkEntity, components::Link());
+      this->runner->entityCompMgr.CreateComponent(
+          levelLinkEntity, components::Pose(math::Pose3d()));
+      this->runner->entityCompMgr.CreateComponent(
+          levelLinkEntity, components::Name(name + "::link"));
+      this->runner->entityCompMgr.CreateComponent(
           levelLinkEntity, components::ParentEntity(levelEntity));
 
-      EntityId levelVisualEntity = this->entityCompMgr->CreateEntity();
-      this->entityCompMgr->CreateComponent(levelVisualEntity,
-                                           components::Visual());
-      this->entityCompMgr->CreateComponent(
+      EntityId levelVisualEntity = this->runner->entityCompMgr.CreateEntity();
+      this->runner->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::Visual());
+      this->runner->entityCompMgr.CreateComponent(
           levelVisualEntity, components::ParentEntity(levelLinkEntity));
-      this->entityCompMgr->CreateComponent(levelVisualEntity,
-                                           components::Pose(math::Pose3d()));
-      this->entityCompMgr->CreateComponent(levelVisualEntity,
-                                           components::Name(name + "::visual"));
-      this->entityCompMgr->CreateComponent(levelVisualEntity,
-                                           components::Geometry(geometry));
+      this->runner->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::Pose(math::Pose3d()));
+      this->runner->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::Name(name + "::visual"));
+      this->runner->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::Geometry(geometry));
       sdf::Material mat;
       mat.SetAmbient({1, 1, 1, 0.1});
-      this->entityCompMgr->CreateComponent(levelVisualEntity,
-                                           components::Material(mat));
+      this->runner->entityCompMgr.CreateComponent(
+          levelVisualEntity, components::Material(mat));
     }
   }
 
   // Create the default level. This level contains all entities not contained by
   // any other level.
-  EntityId defaultLevel = this->entityCompMgr->CreateEntity();
+  EntityId defaultLevel = this->runner->entityCompMgr.CreateEntity();
   std::unordered_set<std::string> entityNamesInDefault;
 
   // Go through all entities in the world and find ones not in the
   // set entityNamesInLevels
 
   // Models
-  for (uint64_t modelIndex = 0; modelIndex < this->sdfWorld->ModelCount();
-        ++modelIndex)
+  for (uint64_t modelIndex = 0;
+       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
   {
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
-    auto model = this->sdfWorld->ModelByIndex(modelIndex);
+    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     // If model is a performer, it will be handled separately
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
       continue;
@@ -208,22 +211,27 @@ void LevelManager::ReadLevelPerformerInfo()
   }
 
   // Lights
-  for (uint64_t lightIndex = 0; lightIndex < this->sdfWorld->LightCount();
-        ++lightIndex)
+  for (uint64_t lightIndex = 0;
+       lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
-    auto light = this->sdfWorld->LightByIndex(lightIndex);
+    auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
     if (entityNamesInLevels.find(light->Name()) == entityNamesInLevels.end())
     {
       entityNamesInDefault.insert(light->Name());
     }
   }
   // Components
-  this->entityCompMgr->CreateComponent(defaultLevel, components::Level());
-  this->entityCompMgr->CreateComponent(defaultLevel,
-                                       components::ParentEntity(worldEntity));
-  this->entityCompMgr->CreateComponent(
+  this->runner->entityCompMgr.CreateComponent(
+      defaultLevel, components::Level());
+  this->runner->entityCompMgr.CreateComponent(
+      defaultLevel, components::ParentEntity(this->worldEntity));
+  this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::NameSet(entityNamesInDefault));
 
+
+  // Load world plugins.
+  // \TODO (addisu) Find a better place to load plugins instead of this function
+  this->LoadPlugins(this->runner->sdfWorld->Element(), this->worldEntity);
   // Add default level to levels to load
   this->levelsToLoad.insert(defaultLevel);
 }
@@ -231,27 +239,28 @@ void LevelManager::ReadLevelPerformerInfo()
 /////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
-  EntityId worldEntity = kNullEntity;
-  this->entityCompMgr->Each<components::World>(
-      [&worldEntity](const EntityId _entity,
-                     const components::World *) -> bool
-      {
-        worldEntity = _entity;
-        return false;
-      });
-
-  // Models
-  for (uint64_t modelIndex = 0; modelIndex < this->sdfWorld->ModelCount();
-        ++modelIndex)
+  if (this->worldEntity == kNullEntity)
   {
-    auto model = this->sdfWorld->ModelByIndex(modelIndex);
+    ignerr << "Could not find the world entity while creating performers\n";
+    return;
+  }
+  // Models
+  for (uint64_t modelIndex = 0;
+       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
+  {
+    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (this->performerMap.find(model->Name()) != this->performerMap.end() )
     {
-      EntityId modelEntity = LoadModel(*model, worldEntity);
+      EntityId modelEntity = this->CreateEntities(model);
       // Create a component on the performer entity that points to this model
-      this->entityCompMgr->CreateComponent(
+      this->runner->entityCompMgr.CreateComponent(
           this->performerMap[model->Name()],
           components::ParentEntity(modelEntity));
+
+      // Add parent world to the model
+      this->runner->entityCompMgr.CreateComponent(
+          modelEntity,
+          components::ParentEntity(this->worldEntity));
     }
   }
 }
@@ -259,13 +268,13 @@ void LevelManager::CreatePerformers()
 /////////////////////////////////////////////////
 void LevelManager::UpdateLevels()
 {
-  this->entityCompMgr->Each<components::Performer, components::Geometry,
+  this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
                                    components::ParentEntity>(
       [&](const EntityId &, const components::Performer *,
           const components::Geometry *_geometry,
           const components::ParentEntity *_parent) -> bool
       {
-        auto pose = this->entityCompMgr->Component<components::Pose>(
+        auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
         // We assume the geometry contains a box.
         auto perfBox = _geometry->Data().BoxShape();
@@ -276,7 +285,7 @@ void LevelManager::UpdateLevels()
 
 
         // loop through levels and check for intersections
-        this->entityCompMgr->Each<components::Level, components::Pose,
+        this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry>(
             [&](const EntityId &_entity, const components::Level *,
                 const components::Pose *_pose,
@@ -333,15 +342,7 @@ void LevelManager::UpdateLevels()
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveLevels()
 {
-  EntityId worldEntity = kNullEntity;
-  this->entityCompMgr->Each<components::World>(
-      [&worldEntity](const EntityId _entity,
-                     const components::World *) -> bool
-      {
-        worldEntity = _entity;
-        return false;
-      });
-  if (worldEntity == kNullEntity)
+  if (this->worldEntity == kNullEntity)
   {
     ignerr << "Could not find the world entity while loading levels\n";
     return;
@@ -349,8 +350,10 @@ void LevelManager::LoadActiveLevels()
 
   // Create a union of all the entity name sets
   std::unordered_set<std::string> entityNamesUnion;
-  for (auto level : this->levelsToLoad) {
-    auto names = this->entityCompMgr->Component<components::NameSet>(level);
+  for (auto level : this->levelsToLoad)
+  {
+    auto names =
+        this->runner->entityCompMgr.Component<components::NameSet>(level);
     if (names != nullptr)
     {
       entityNamesUnion.insert(names->Data().begin(), names->Data().end());
@@ -359,27 +362,31 @@ void LevelManager::LoadActiveLevels()
   }
 
   // Models
-  for (uint64_t modelIndex = 0; modelIndex < this->sdfWorld->ModelCount();
-       ++modelIndex)
+  for (uint64_t modelIndex = 0;
+       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
   {
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
-    auto model = this->sdfWorld->ModelByIndex(modelIndex);
+    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (entityNamesUnion.find(model->Name()) != entityNamesUnion.end())
     {
       igndbg << "Creating model: " << model->Name() << "\n";
-      LoadModel(*model, worldEntity);
+      EntityId modelEntity = this->CreateEntities(model);
+      this->runner->entityCompMgr.CreateComponent(
+          modelEntity, components::ParentEntity(this->worldEntity));
     }
   }
 
   // Lights
-  for (uint64_t lightIndex = 0; lightIndex < this->sdfWorld->LightCount();
-        ++lightIndex)
+  for (uint64_t lightIndex = 0;
+       lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
-    auto light = this->sdfWorld->LightByIndex(lightIndex);
+    auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
     if (entityNamesUnion.find(light->Name()) != entityNamesUnion.end())
     {
-      LoadLight(*light, worldEntity);
+      EntityId lightEntity = this->CreateEntities(light);
+      this->runner->entityCompMgr.CreateComponent(
+          lightEntity, components::ParentEntity(this->worldEntity));
     }
   }
 
@@ -395,200 +402,241 @@ void LevelManager::UnloadInactiveLevels()
   this->levelsToUnload.clear();
 }
 
-/////////////////////////////////////////////////
-EntityId LevelManager::LoadModel(const sdf::Model &_model,
-                                 const EntityId _worldEntity)
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Model *_model)
 {
   // Entity
-  EntityId modelEntity = this->entityCompMgr->CreateEntity();
+  EntityId modelEntity = this->runner->entityCompMgr.CreateEntity();
 
   // Components
-  this->entityCompMgr->CreateComponent(modelEntity, components::Model());
-  this->entityCompMgr->CreateComponent(modelEntity,
-                                       components::Pose(_model.Pose()));
-  this->entityCompMgr->CreateComponent(modelEntity,
-                                       components::Name(_model.Name()));
-  this->entityCompMgr->CreateComponent(modelEntity,
-                                       components::ParentEntity(_worldEntity));
-  this->entityCompMgr->CreateComponent(modelEntity,
-                                       components::Static(_model.Static()));
-  this->entityCompMgr->CreateComponent(modelEntity,
-                                       components::RenderState(true));
-
-  if (this->performerMap.find(_model.Name()) != this->performerMap.end())
-  {
-    // Make this _model a parent to the performer entity
-    this->entityCompMgr->CreateComponent(this->performerMap[_model.Name()],
-                                         components::ParentEntity(modelEntity));
-  }
-
-  // used to map link names to EntityIds
-  std::unordered_map<std::string, EntityId> linkMap;
+  this->runner->entityCompMgr.CreateComponent(modelEntity, components::Model());
+  this->runner->entityCompMgr.CreateComponent(
+      modelEntity, components::Pose(_model->Pose()));
+  this->runner->entityCompMgr.CreateComponent(
+      modelEntity, components::Name(_model->Name()));
+  this->runner->entityCompMgr.CreateComponent(
+      modelEntity, components::Static(_model->Static()));
+  this->runner->entityCompMgr.CreateComponent(
+      modelEntity, components::RenderState(true));
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
 
   // Links
-  for (uint64_t linkIndex = 0; linkIndex < _model.LinkCount();
+  for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
       ++linkIndex)
   {
-    auto link = _model.LinkByIndex(linkIndex);
+    auto link = _model->LinkByIndex(linkIndex);
+    auto linkEntity = this->CreateEntities(link);
 
-    // Entity
-    EntityId linkEntity = this->entityCompMgr->CreateEntity();
-
-    // Components
-    this->entityCompMgr->CreateComponent(linkEntity, components::Link());
-    this->entityCompMgr->CreateComponent(linkEntity,
-                                         components::Pose(link->Pose()));
-    this->entityCompMgr->CreateComponent(linkEntity,
-                                         components::Name(link->Name()));
-    this->entityCompMgr->CreateComponent(
-        linkEntity, components::Inertial(link->Inertial()));
-    this->entityCompMgr->CreateComponent(linkEntity,
-                                         components::ParentEntity(modelEntity));
+    this->runner->entityCompMgr.CreateComponent(linkEntity,
+        components::ParentEntity(modelEntity));
     if (linkIndex == 0)
     {
-      this->entityCompMgr->CreateComponent(linkEntity,
-                                           components::CanonicalLink());
-    }
-
-    linkMap.insert(std::pair(link->Name(), linkEntity));
-
-    // Visuals
-    for (uint64_t visualIndex = 0; visualIndex < link->VisualCount();
-         ++visualIndex)
-    {
-      auto visual = link->VisualByIndex(visualIndex);
-
-      // Entity
-      EntityId visualEntity = this->entityCompMgr->CreateEntity();
-
-      // Components
-      this->entityCompMgr->CreateComponent(visualEntity, components::Visual());
-      this->entityCompMgr->CreateComponent(visualEntity,
-                                           components::Pose(visual->Pose()));
-      this->entityCompMgr->CreateComponent(visualEntity,
-                                           components::Name(visual->Name()));
-      this->entityCompMgr->CreateComponent(
-          visualEntity, components::ParentEntity(linkEntity));
-
-      if (visual->Geom())
-      {
-        this->entityCompMgr->CreateComponent(
-            visualEntity, components::Geometry(*visual->Geom()));
-      }
-
-      // \todo(louise) Populate with default material if undefined
-      if (visual->Material())
-      {
-        this->entityCompMgr->CreateComponent(
-            visualEntity, components::Material(*visual->Material()));
-      }
-    }
-
-    // Collisions
-    for (uint64_t collisionIndex = 0; collisionIndex < link->CollisionCount();
-         ++collisionIndex)
-    {
-      auto collision = link->CollisionByIndex(collisionIndex);
-
-      // Entity
-      EntityId collisionEntity = this->entityCompMgr->CreateEntity();
-
-      // Components
-      this->entityCompMgr->CreateComponent(collisionEntity,
-                                           components::Collision());
-      this->entityCompMgr->CreateComponent(collisionEntity,
-                                           components::Pose(collision->Pose()));
-      this->entityCompMgr->CreateComponent(collisionEntity,
-                                           components::Name(collision->Name()));
-      this->entityCompMgr->CreateComponent(
-          collisionEntity, components::ParentEntity(linkEntity));
-
-      if (collision->Geom())
-      {
-        this->entityCompMgr->CreateComponent(
-            collisionEntity, components::Geometry(*collision->Geom()));
-      }
-    }
-
-    // Lights
-    for (uint64_t lightIndex = 0; lightIndex < link->LightCount(); ++lightIndex)
-    {
-      auto light = link->LightByIndex(lightIndex);
-
-      // Entity
-      EntityId lightEntity = this->entityCompMgr->CreateEntity();
-
-      // Components
-      this->entityCompMgr->CreateComponent(lightEntity,
-                                           components::Light(*light));
-      this->entityCompMgr->CreateComponent(lightEntity,
-                                           components::Pose(light->Pose()));
-      this->entityCompMgr->CreateComponent(lightEntity,
-                                           components::Name(light->Name()));
-      this->entityCompMgr->CreateComponent(
-          lightEntity, components::ParentEntity(linkEntity));
+      this->runner->entityCompMgr.CreateComponent(linkEntity,
+          components::CanonicalLink());
     }
   }
 
   // Joints
-  for (uint64_t jointIndex = 0; jointIndex < _model.JointCount(); ++jointIndex)
+  for (uint64_t jointIndex = 0; jointIndex < _model->JointCount();
+      ++jointIndex)
   {
-    auto joint = _model.JointByIndex(jointIndex);
+    auto joint = _model->JointByIndex(jointIndex);
+    auto linkEntity = this->CreateEntities(joint);
 
-    // Entity
-    EntityId jointEntity = this->entityCompMgr->CreateEntity();
-
-    // Components
-    this->entityCompMgr->CreateComponent(jointEntity, components::Joint());
-    this->entityCompMgr->CreateComponent(jointEntity,
-                                         components::JointType(joint->Type()));
-
-    if (joint->Axis(0))
-    {
-      this->entityCompMgr->CreateComponent(
-          jointEntity, components::JointAxis(*joint->Axis(0)));
-    }
-
-    if (joint->Axis(1))
-    {
-      this->entityCompMgr->CreateComponent(
-          jointEntity, components::JointAxis2(*joint->Axis(1)));
-    }
-
-    this->entityCompMgr->CreateComponent(jointEntity,
-                                         components::Pose(joint->Pose()));
-    this->entityCompMgr->CreateComponent(jointEntity,
-                                         components::Name(joint->Name()));
-    this->entityCompMgr->CreateComponent(
-        jointEntity, components::ThreadPitch(joint->ThreadPitch()));
-    this->entityCompMgr->CreateComponent(jointEntity,
-                                         components::ParentEntity(modelEntity));
-    this->entityCompMgr->CreateComponent(
-        jointEntity, components::ParentLinkName(joint->ParentLinkName()));
-    this->entityCompMgr->CreateComponent(
-        jointEntity, components::ChildLinkName(joint->ChildLinkName()));
+    this->runner->entityCompMgr.CreateComponent(linkEntity,
+        components::ParentEntity(modelEntity));
   }
+
+  // Model plugins
+  this->LoadPlugins(_model->Element(), modelEntity);
 
   return modelEntity;
 }
 
-/////////////////////////////////////////////////
-EntityId LevelManager::LoadLight(const sdf::Light &_light,
-                                 const EntityId _worldEntity)
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Light *_light)
 {
   // Entity
-  EntityId lightEntity = this->entityCompMgr->CreateEntity();
+  EntityId lightEntity = this->runner->entityCompMgr.CreateEntity();
 
   // Components
-  this->entityCompMgr->CreateComponent(lightEntity, components::Light(_light));
-  this->entityCompMgr->CreateComponent(lightEntity,
-                                       components::Pose(_light.Pose()));
-  this->entityCompMgr->CreateComponent(lightEntity,
-                                       components::Name(_light.Name()));
-  this->entityCompMgr->CreateComponent(lightEntity,
-                                       components::ParentEntity(_worldEntity));
+  this->runner->entityCompMgr.CreateComponent(
+      lightEntity, components::Light(*_light));
+  this->runner->entityCompMgr.CreateComponent(lightEntity,
+      components::Pose(_light->Pose()));
+  this->runner->entityCompMgr.CreateComponent(lightEntity,
+      components::Name(_light->Name()));
+
   return lightEntity;
 }
+
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Link *_link)
+{
+  // Entity
+  EntityId linkEntity = this->runner->entityCompMgr.CreateEntity();
+
+  // Components
+  this->runner->entityCompMgr.CreateComponent(linkEntity, components::Link());
+  this->runner->entityCompMgr.CreateComponent(linkEntity,
+      components::Pose(_link->Pose()));
+  this->runner->entityCompMgr.CreateComponent(linkEntity,
+      components::Name(_link->Name()));
+  this->runner->entityCompMgr.CreateComponent(linkEntity,
+      components::Inertial(_link->Inertial()));
+
+  // Visuals
+  for (uint64_t visualIndex = 0; visualIndex < _link->VisualCount();
+      ++visualIndex)
+  {
+    auto visual = _link->VisualByIndex(visualIndex);
+    auto visualEntity = this->CreateEntities(visual);
+
+    this->runner->entityCompMgr.CreateComponent(visualEntity,
+        components::ParentEntity(linkEntity));
+  }
+
+  // Collisions
+  for (uint64_t collisionIndex = 0; collisionIndex < _link->CollisionCount();
+      ++collisionIndex)
+  {
+    auto collision = _link->CollisionByIndex(collisionIndex);
+    auto collisionEntity = this->CreateEntities(collision);
+
+    this->runner->entityCompMgr.CreateComponent(collisionEntity,
+        components::ParentEntity(linkEntity));
+  }
+
+  // Lights
+  for (uint64_t lightIndex = 0; lightIndex < _link->LightCount();
+      ++lightIndex)
+  {
+    auto light = _link->LightByIndex(lightIndex);
+    auto lightEntity = this->CreateEntities(light);
+
+    this->runner->entityCompMgr.CreateComponent(lightEntity,
+        components::ParentEntity(linkEntity));
+  }
+
+  return linkEntity;
+}
+
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Joint *_joint)
+{
+  // Entity
+  EntityId jointEntity = this->runner->entityCompMgr.CreateEntity();
+
+  // Components
+  this->runner->entityCompMgr.CreateComponent(jointEntity,
+      components::Joint());
+  this->runner->entityCompMgr.CreateComponent(jointEntity,
+      components::JointType(_joint->Type()));
+
+  if (_joint->Axis(0))
+  {
+    this->runner->entityCompMgr.CreateComponent(jointEntity,
+        components::JointAxis(*_joint->Axis(0)));
+  }
+
+  if (_joint->Axis(1))
+  {
+    this->runner->entityCompMgr.CreateComponent(jointEntity,
+        components::JointAxis2(*_joint->Axis(1)));
+  }
+
+  this->runner->entityCompMgr.CreateComponent(jointEntity,
+      components::Pose(_joint->Pose()));
+  this->runner->entityCompMgr.CreateComponent(jointEntity ,
+      components::Name(_joint->Name()));
+  this->runner->entityCompMgr.CreateComponent(jointEntity ,
+      components::ThreadPitch(_joint->ThreadPitch()));
+  this->runner->entityCompMgr.CreateComponent(jointEntity,
+      components::ParentLinkName(_joint->ParentLinkName()));
+  this->runner->entityCompMgr.CreateComponent(jointEntity,
+      components::ChildLinkName(_joint->ChildLinkName()));
+
+  return jointEntity;
+}
+
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Visual *_visual)
+{
+  // Entity
+  EntityId visualEntity = this->runner->entityCompMgr.CreateEntity();
+
+  // Components
+  this->runner->entityCompMgr.CreateComponent(
+      visualEntity, components::Visual());
+  this->runner->entityCompMgr.CreateComponent(visualEntity,
+      components::Pose(_visual->Pose()));
+  this->runner->entityCompMgr.CreateComponent(visualEntity,
+      components::Name(_visual->Name()));
+
+  if (_visual->Geom())
+  {
+    this->runner->entityCompMgr.CreateComponent(visualEntity,
+        components::Geometry(*_visual->Geom()));
+  }
+
+  // \todo(louise) Populate with default material if undefined
+  if (_visual->Material())
+  {
+    this->runner->entityCompMgr.CreateComponent(visualEntity,
+        components::Material(*_visual->Material()));
+  }
+
+  return visualEntity;
+}
+
+//////////////////////////////////////////////////
+EntityId LevelManager::CreateEntities(const sdf::Collision *_collision)
+{
+  // Entity
+  EntityId collisionEntity = this->runner->entityCompMgr.CreateEntity();
+
+  // Components
+  this->runner->entityCompMgr.CreateComponent(collisionEntity,
+      components::Collision());
+  this->runner->entityCompMgr.CreateComponent(collisionEntity,
+      components::Pose(_collision->Pose()));
+  this->runner->entityCompMgr.CreateComponent(collisionEntity,
+      components::Name(_collision->Name()));
+
+  if (_collision->Geom())
+  {
+    this->runner->entityCompMgr.CreateComponent(collisionEntity,
+        components::Geometry(*_collision->Geom()));
+  }
+
+  return collisionEntity;
+}
+
+//////////////////////////////////////////////////
+void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
+    const EntityId _id)
+{
+  if (!_sdf->HasElement("plugin"))
+    return;
+
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto system = this->runner->systemLoader->LoadPlugin(pluginElem);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(_id, pluginElem,
+                                this->runner->entityCompMgr,
+                                this->runner->eventMgr);
+      }
+      this->runner->AddSystem(system.value());
+    }
+    pluginElem = pluginElem->GetNextElement("plugin");
+  }
+}
+

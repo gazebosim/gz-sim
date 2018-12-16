@@ -22,11 +22,19 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <sdf/Collision.hh>
+#include <sdf/Joint.hh>
+#include <sdf/Light.hh>
+#include <sdf/Link.hh>
+#include <sdf/Model.hh>
+#include <sdf/Physics.hh>
+#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 
 namespace ignition
 {
@@ -36,12 +44,14 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     //
     // forward declaration
-    class EntityComponentManager;
+    class SimulationRunner;
 
     class LevelManager
     {
-      public: LevelManager(EntityComponentManager &_ecm,
-                           const sdf::World *_world);
+      /// \brief Constructor
+      /// \param[in] _runner A pointer to the simulationrunner that owns this
+      /// level manager
+      public: explicit LevelManager(SimulationRunner *_runner);
 
       /// \brief Read level and performer information from the sdf::World object
       public: void ReadLevelPerformerInfo();
@@ -77,6 +87,52 @@ namespace ignition
       private: EntityId LoadLight(const sdf::Light &_light,
                                   const EntityId _worldEntity);
 
+      /// \brief Create all entities that exist in the sdf::World object and
+      /// load their plugins.
+      /// \return Id of world entity.
+      public: EntityId CreateEntities(const sdf::World *_world);
+
+      /// \brief Create all entities that exist in the sdf::Model object and
+      /// load their plugins.
+      /// \param[in] _model SDF model object.
+      /// \return Id of model entity.
+      public: EntityId CreateEntities(const sdf::Model *_model);
+
+      /// \brief Create all entities that exist in the sdf::Light object and
+      /// load their plugins.
+      /// \param[in] _light SDF light object.
+      /// \return Id of light entity.
+      public: EntityId CreateEntities(const sdf::Light *_light);
+
+      /// \brief Create all entities that exist in the sdf::Link object and
+      /// load their plugins.
+      /// \param[in] _link SDF link object.
+      /// \return Id of link entity.
+      public: EntityId CreateEntities(const sdf::Link *_link);
+
+      /// \brief Create all entities that exist in the sdf::Joint object and
+      /// load their plugins.
+      /// \param[in] _joint SDF joint object.
+      /// \return Id of joint entity.
+      public: EntityId CreateEntities(const sdf::Joint *_joint);
+
+      /// \brief Create all entities that exist in the sdf::Visual object and
+      /// load their plugins.
+      /// \param[in] _visual SDF visual object.
+      /// \return Id of visual entity.
+      public: EntityId CreateEntities(const sdf::Visual *_visual);
+
+      /// \brief Create all entities that exist in the sdf::Collision object and
+      /// load their plugins.
+      /// \param[in] _collision SDF collision object.
+      /// \return Id of collision entity.
+      public: EntityId CreateEntities(const sdf::Collision *_collision);
+
+      /// \brief Load system plugins for a given entity.
+      /// \param[in] _sdf SDF element
+      /// \param[in] _id Entity Id
+      public: void LoadPlugins(const sdf::ElementPtr &_sdf, const EntityId _id);
+
       /// \brief Set of currently active (loaded) levels
       private: std::unordered_set<EntityId> activeLevels;
 
@@ -86,14 +142,15 @@ namespace ignition
       /// \brief Set of levels to unload
       private: std::unordered_set<EntityId> levelsToUnload;
 
-      /// \brief Pointer to the Entity Component Manager
-      private: EntityComponentManager *entityCompMgr;
-
-      /// \brief Pointer to the sdf::World object
-      private: const sdf::World *sdfWorld;
+      /// \brief Pointer to the simulation runner associated with the level
+      /// manager.
+      private: SimulationRunner * const runner;
 
       /// \brief Map of names of references to the containing performer
       private: std::unordered_map<std::string, EntityId> performerMap;
+
+      /// \brief EntityId of the world
+      private: EntityId worldEntity = kNullEntity;
     };
     }
   }

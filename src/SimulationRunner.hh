@@ -27,15 +27,6 @@
 #include <utility>
 #include <vector>
 
-#include <sdf/Collision.hh>
-#include <sdf/Joint.hh>
-#include <sdf/Light.hh>
-#include <sdf/Link.hh>
-#include <sdf/Model.hh>
-#include <sdf/Physics.hh>
-#include <sdf/Visual.hh>
-#include <sdf/World.hh>
-
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/transport/Node.hh>
@@ -129,52 +120,6 @@ namespace ignition
 
       /// \brief Publish current world statistics.
       public: void PublishStats();
-
-      /// \brief Create all entities that exist in the sdf::World object and
-      /// load their plugins.
-      /// \return Id of world entity.
-      public: EntityId CreateEntities(const sdf::World *_world);
-
-      /// \brief Create all entities that exist in the sdf::Model object and
-      /// load their plugins.
-      /// \param[in] _model SDF model object.
-      /// \return Id of model entity.
-      public: EntityId CreateEntities(const sdf::Model *_model);
-
-      /// \brief Create all entities that exist in the sdf::Light object and
-      /// load their plugins.
-      /// \param[in] _light SDF light object.
-      /// \return Id of light entity.
-      public: EntityId CreateEntities(const sdf::Light *_light);
-
-      /// \brief Create all entities that exist in the sdf::Link object and
-      /// load their plugins.
-      /// \param[in] _link SDF link object.
-      /// \return Id of link entity.
-      public: EntityId CreateEntities(const sdf::Link *_link);
-
-      /// \brief Create all entities that exist in the sdf::Joint object and
-      /// load their plugins.
-      /// \param[in] _joint SDF joint object.
-      /// \return Id of joint entity.
-      public: EntityId CreateEntities(const sdf::Joint *_joint);
-
-      /// \brief Create all entities that exist in the sdf::Visual object and
-      /// load their plugins.
-      /// \param[in] _visual SDF visual object.
-      /// \return Id of visual entity.
-      public: EntityId CreateEntities(const sdf::Visual *_visual);
-
-      /// \brief Create all entities that exist in the sdf::Collision object and
-      /// load their plugins.
-      /// \param[in] _collision SDF collision object.
-      /// \return Id of collision entity.
-      public: EntityId CreateEntities(const sdf::Collision *_collision);
-
-      /// \brief Load system plugins for a given entity.
-      /// \param[in] _sdf SDF element
-      /// \param[in] _id Entity Id
-      public: void LoadPlugins(const sdf::ElementPtr &_sdf, const EntityId _id);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
