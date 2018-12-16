@@ -28,15 +28,15 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   //
   /// \brief A component that holds a list of names
   using NameSet =
       SimpleWrapper<std::unordered_set<std::string>, class NameSetTag>;
-  }
+}
 }
 }
 }
