@@ -15,7 +15,7 @@ set (sources
   ServerPrivate.cc
   SimulationRunner.cc
   System.cc
-  SystemManager.cc
+  SystemLoader.cc
   View.cc
 )
 
@@ -28,7 +28,7 @@ set (gtest_sources
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
-  SystemManager_TEST.cc
+  SystemLoader_TEST.cc
 )
 
 # Create the library target
@@ -39,7 +39,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-  ${SDFormat_LIBRARIES}
+  sdformat8::sdformat8
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )

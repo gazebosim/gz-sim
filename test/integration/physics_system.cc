@@ -31,7 +31,7 @@
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/Collision.hh"
@@ -94,7 +94,7 @@ class Relay
 
   public: ignition::gazebo::SystemPluginPtr systemPtr;
 
-  private: gazebo::SystemManager sm;
+  private: gazebo::SystemLoader sm;
   private: gazebo::MockSystem *mockSystem;
 };
 

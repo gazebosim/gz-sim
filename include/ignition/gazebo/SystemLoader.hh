@@ -34,17 +34,17 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN SystemManagerPrivate;
+    class IGNITION_GAZEBO_HIDDEN SystemLoaderPrivate;
 
-    /// \class SystemManager SystemManager.hh ignition/gazebo/SystemManager.hh
+    /// \class SystemLoader SystemLoader.hh ignition/gazebo/SystemLoader.hh
     /// \brief Class for loading/unloading System plugins.
-    class IGNITION_GAZEBO_VISIBLE SystemManager
+    class IGNITION_GAZEBO_VISIBLE SystemLoader
     {
       /// \brief Constructor
-      public: explicit SystemManager();
+      public: explicit SystemLoader();
 
       /// \brief Destructor
-      public: ~SystemManager();
+      public: ~SystemLoader();
 
       /// \brief Add path to search for plugins.
       /// \param[in] _path New path to be added.
@@ -70,9 +70,10 @@ namespace ignition
       public: std::string PrettyStr() const;
 
       /// \brief Pointer to private data.
-      private: std::unique_ptr<SystemManagerPrivate> dataPtr;
+      private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
     };
     }
+    using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
 #endif

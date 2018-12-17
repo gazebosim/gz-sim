@@ -64,8 +64,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  SystemManager systemManager;
-  SimulationRunner runner(root.WorldByIndex(0), systemManager);
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -474,8 +474,8 @@ TEST_P(SimulationRunnerTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  SystemManager systemManager;
-  SimulationRunner runner(root.WorldByIndex(0), systemManager);
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -743,8 +743,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  SystemManager systemManager;
-  SimulationRunner runner(root.WorldByIndex(0), systemManager);
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -884,8 +884,8 @@ TEST_P(SimulationRunnerTest, Time)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create simulation runner
-  SystemManager systemManager;
-  SimulationRunner runner(root.WorldByIndex(0), systemManager);
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check state
   EXPECT_TRUE(runner.Paused());
@@ -943,6 +943,60 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, LoadPlugins)
+{
+  common::Console::SetVerbosity(4);
+
+  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/plugins.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  // Get world entity
+  EntityId worldId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
+      const ignition::gazebo::EntityId &_entity,
+      const ignition::gazebo::components::World *_world)->bool
+      {
+        EXPECT_NE(nullptr, _world);
+        worldId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, worldId);
+
+  // Get model entity
+  EntityId modelId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
+      const ignition::gazebo::EntityId &_entity,
+      const ignition::gazebo::components::Model *_model)->bool
+      {
+        EXPECT_NE(nullptr, _model);
+        modelId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, modelId);
+
+  // Check component registered by world plugin
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+        gazebo::EntityComponentManager::ComponentType<double>()));
+  EXPECT_DOUBLE_EQ(*runner.EntityCompMgr().Component<double>(worldId), 0.123);
+
+  // Check component registered by model plugin
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+        gazebo::EntityComponentManager::ComponentType<int>()));
+  EXPECT_EQ(*runner.EntityCompMgr().Component<int>(modelId), 987);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
