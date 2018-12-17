@@ -480,26 +480,18 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
-      /// \brief Call a function for each parameter in a pack.
-      /// \param[in] _f Function to be called.
-      /// \param[in] _components Parameters which should be passed to the function.
-      public: template <class Function, class... ComponentTypeTs>
-      void ForEach(Function _f, ComponentTypeTs... _components)
-      {
-        int x[] = {(_f(_components), 0)...};
-        (void)x;
-      }
-
-      /// \brief Get an entity which matches all the given components. For example,
-      /// the following will return the entity which has an int component equal to
-      /// 123, and a string component equal to "name":
+      /// \brief Get an entity which matches all the given components. For
+      /// example, the following will return the entity which has an int
+      /// component equal to 123, and a string component equal to "name":
       ///
       ///  auto entity = EntityByComponents(123, std::string("name"));
       ///
       /// \param[in] _desiredComponents All the components which must match.
-      /// \return Entity Id or kNullEntity if no entity has the exact components.
+      /// \return Entity Id or kNullEntity if no entity has the exact
+      /// components.
       public: template<typename ...ComponentTypeTs>
-              EntityId EntityByComponents(const ComponentTypeTs ..._desiredComponents)
+              EntityId EntityByComponents(
+                   const ComponentTypeTs ..._desiredComponents)
       {
         // Get all entities which have components of the desired types
         const auto &view = this->FindView<ComponentTypeTs...>();
@@ -510,13 +502,15 @@ namespace ignition
         {
           bool different{false};
 
-          // Iterate over desired components, comparing each of them to the equivalent
-          // component in the entity.
+          // Iterate over desired components, comparing each of them to the
+          // equivalent component in the entity.
           ForEach([&](auto _desiredComponent)
           {
-            auto entityComponent = this->Component<decltype(_desiredComponent)>(entity);
+            auto entityComponent =
+                this->Component<decltype(_desiredComponent)>(entity);
 
-            // TODO(louise) Find a better way to handle floating point comparison
+            // TODO(louise) Find a better way to handle floating point
+            // comparison
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
             if (*entityComponent != _desiredComponent)
@@ -667,6 +661,17 @@ namespace ignition
             break;
           }
         }
+      }
+
+      /// \brief Call a function for each parameter in a pack.
+      /// \param[in] _f Function to be called.
+      /// \param[in] _components Parameters which should be passed to the
+      /// function.
+      public: template <class Function, class... ComponentTypeTs>
+      static void ForEach(Function _f, ComponentTypeTs... _components)
+      {
+        int x[] = {(_f(_components), 0)...};
+        (void)x;
       }
 
       /// \brief Process all entity erase requests. This will remove

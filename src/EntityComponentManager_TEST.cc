@@ -892,7 +892,8 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
   EXPECT_EQ(eIntDouble, manager.EntityByComponents(0.456));
   EXPECT_EQ(eIntDouble, manager.EntityByComponents(std::string("int-double")));
   EXPECT_EQ(eIntDouble, manager.EntityByComponents(456, 0.456));
-  EXPECT_EQ(eIntDouble, manager.EntityByComponents(std::string("int-double"), 456, 0.456));
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(std::string("int-double"),
+      456, 0.456));
 
   EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(123456));
   EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(123.456));
