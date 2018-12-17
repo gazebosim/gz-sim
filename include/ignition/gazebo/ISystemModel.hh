@@ -14,35 +14,33 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINK_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINK_HH_
+#ifndef IGNITION_GAZEBO_ISYSTEMMODEL_HH_
+#define IGNITION_GAZEBO_ISYSTEMMODEL_HH_
+
+#include <memory>
 
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component identifies an entity as being a link.
-  class IGNITION_GAZEBO_VISIBLE Link
+  namespace gazebo
   {
-    public: bool operator==(const Link &) const
-    {
-      return true;
-    }
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    //
+    /// \class ISystemModel ISystemModel.hh ignition/gazebo/ISystemModel.hh
+    /// \brief
+    class IGNITION_GAZEBO_VISIBLE ISystemModel {
+      /// \brief
+      /// \param[in]
+      public: EntityId LinkByName(const std::string &_name, EntityComponentManager &_ecm);
 
-    public: bool operator!=(const Link &) const
-    {
-      return false;
+      protected: EntityId modelId{kNullEntity};
+    };
     }
-  };
-}
-}
-}
+  }
 }
 #endif
