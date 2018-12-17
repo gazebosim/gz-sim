@@ -480,16 +480,6 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
-      /// \brief Call a function for each parameter in a pack.
-      /// \param[in] _f Function to be called.
-      /// \param[in] _components Parameters which should be passed to the function.
-      public: template <class Function, class... ComponentTypeTs>
-      void ForEach(Function _f, ComponentTypeTs... _components)
-      {
-        int x[] = {(_f(_components), 0)...};
-        (void)x;
-      }
-
       /// \brief Get an entity which matches all the given components. For example,
       /// the following will return the entity which has an int component equal to
       /// 123, and a string component equal to "name":
@@ -667,6 +657,16 @@ namespace ignition
             break;
           }
         }
+      }
+
+      /// \brief Call a function for each parameter in a pack.
+      /// \param[in] _f Function to be called.
+      /// \param[in] _components Parameters which should be passed to the function.
+      public: template <class Function, class... ComponentTypeTs>
+      static void ForEach(Function _f, ComponentTypeTs... _components)
+      {
+        int x[] = {(_f(_components), 0)...};
+        (void)x;
       }
 
       /// \brief Process all entity erase requests. This will remove
