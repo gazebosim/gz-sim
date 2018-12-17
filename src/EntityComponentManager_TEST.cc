@@ -856,6 +856,52 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
   EXPECT_EQ(1, count);
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EntityByComponents)
+{
+  ignition::common::Console::SetVerbosity(4);
+  EntityCompMgrTest manager;
+
+  // Create some entities
+  gazebo::EntityId eInt = manager.CreateEntity();
+  gazebo::EntityId eDouble = manager.CreateEntity();
+  gazebo::EntityId eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add components of different types to each entity
+  manager.CreateComponent<int>(eInt, 123);
+  manager.CreateComponent<std::string>(eInt, "int");
+
+  manager.CreateComponent<double>(eDouble, 0.123);
+  manager.CreateComponent<std::string>(eDouble, "double");
+
+  manager.CreateComponent<int>(eIntDouble, 456);
+  manager.CreateComponent<double>(eIntDouble, 0.456);
+  manager.CreateComponent<std::string>(eIntDouble, "int-double");
+
+  // Get entities by the value of their components
+  EXPECT_EQ(eInt, manager.EntityByComponents(123));
+  EXPECT_EQ(eInt, manager.EntityByComponents(std::string("int")));
+  EXPECT_EQ(eInt, manager.EntityByComponents(std::string("int"), 123));
+
+  EXPECT_EQ(eDouble, manager.EntityByComponents(0.123));
+  EXPECT_EQ(eDouble, manager.EntityByComponents(std::string("double")));
+  EXPECT_EQ(eDouble, manager.EntityByComponents(std::string("double"), 0.123));
+
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(456));
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(0.456));
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(std::string("int-double")));
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(456, 0.456));
+  EXPECT_EQ(eIntDouble, manager.EntityByComponents(std::string("int-double"), 456, 0.456));
+
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(123456));
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(123.456));
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents("123456"));
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents("int", 0.123));
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(0.123, 0.456));
+  EXPECT_EQ(gazebo::kNullEntity, manager.EntityByComponents(123, 0.123));
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
