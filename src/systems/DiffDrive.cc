@@ -62,9 +62,6 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief Wheel radius
   public: double wheelRadius{0.2};
-
-  /// \brief Entity id of model which this plugin is attached to.
-  public: EntityId modelId{kNullEntity};
 };
 
 //////////////////////////////////////////////////
@@ -82,7 +79,7 @@ void DiffDrive::Configure(const EntityId &_id,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
-  this->dataPtr->modelId = _id;
+  this->modelId = _id;
 
   this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
       this->dataPtr->leftJointName).first;
@@ -102,36 +99,10 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (this->dataPtr->leftJointId == kNullEntity ||
       this->dataPtr->rightJointId == kNullEntity)
   {
-    _ecm.Each<components::Joint,
-              components::ParentEntity,
-              components::Name>(
-        [&](const EntityId &_entity,
-            const components::Joint *,
-            const components::ParentEntity *_parent,
-            const components::Name *_name) -> bool
-        {
-          if (_parent->Data() != this->dataPtr->modelId)
-          {
-            return true;
-          }
-
-          if (this->dataPtr->leftJointName == _name->Data())
-          {
-            this->dataPtr->leftJointId = _entity;
-            igndbg << "Found joint [" << this->dataPtr->leftJointName << "] = ["
-                   << this->dataPtr->leftJointId << "]" << std::endl;
-          }
-          else if (this->dataPtr->rightJointName == _name->Data())
-          {
-            this->dataPtr->rightJointId = _entity;
-            igndbg << "Found joint [" << this->dataPtr->rightJointName
-                   << "] = [" << this->dataPtr->rightJointId << "]"
-                   << std::endl;
-          }
-
-          return this->dataPtr->leftJointId != kNullEntity ||
-                 this->dataPtr->rightJointId != kNullEntity;
-        });
+    this->dataPtr->leftJointId =
+        this->JointByName(this->dataPtr->leftJointName, _ecm);
+    this->dataPtr->rightJointId =
+        this->JointByName(this->dataPtr->rightJointName, _ecm);
   }
 
   if (this->dataPtr->leftJointId == kNullEntity ||
@@ -186,5 +157,6 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
+                    DiffDrive::ISystemModel,
                     DiffDrive::ISystemPreUpdate)
 

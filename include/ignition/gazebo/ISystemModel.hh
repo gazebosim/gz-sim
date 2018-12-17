@@ -36,8 +36,15 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE ISystemModel {
       /// \brief
       /// \param[in]
-      public: EntityId LinkByName(const std::string &_name, EntityComponentManager &_ecm);
+      public: EntityId LinkByName(const std::string &_name,
+          EntityComponentManager &_ecm);
 
+      /// \brief
+      /// \param[in]
+      public: EntityId JointByName(const std::string &_name,
+          EntityComponentManager &_ecm);
+
+      // TODO(louise): Move this to a place common to all interfaces.
       protected: EntityId modelId{kNullEntity};
     };
     }
