@@ -31,6 +31,15 @@ namespace components
   /// \brief This component identifies an entity as being a joint.
   class IGNITION_GAZEBO_VISIBLE Joint
   {
+    public: bool operator==(const Joint &) const
+    {
+      return true;
+    }
+
+    public: bool operator!=(const Joint &) const
+    {
+      return false;
+    }
   };
 }
 }

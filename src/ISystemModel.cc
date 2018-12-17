@@ -15,6 +15,7 @@
  *
 */
 
+#include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -22,6 +23,16 @@
 #include "ignition/gazebo/ISystemModel.hh"
 
 using namespace ignition::gazebo;
+
+//////////////////////////////////////////////////
+EntityId ISystemModel::JointByName(const std::string &_name,
+    EntityComponentManager &_ecm)
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->modelId),
+      components::Name(_name),
+      components::Joint());
+}
 
 //////////////////////////////////////////////////
 EntityId ISystemModel::LinkByName(const std::string &_name,
