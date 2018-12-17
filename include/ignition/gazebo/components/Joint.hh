@@ -24,15 +24,15 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief This component identifies an entity as being a joint.
   class IGNITION_GAZEBO_VISIBLE Joint
   {
   };
-  }
+}
 }
 }
 }

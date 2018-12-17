@@ -24,7 +24,7 @@
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemManager.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "plugins/MockSystem.hh"
@@ -46,9 +46,8 @@ class Relay
 {
   public: Relay()
   {
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
+    auto plugin = this->systemLoader.LoadPlugin(
+        "libMockSystem.so", "ignition::gazebo::MockSystem", nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
     this->mockSystem = static_cast<gazebo::MockSystem *>(
@@ -75,7 +74,7 @@ class Relay
 
   public: ignition::gazebo::SystemPluginPtr systemPtr;
 
-  private: gazebo::SystemManager sm;
+  private: gazebo::SystemLoader systemLoader;
   private: gazebo::MockSystem *mockSystem;
 };
 
