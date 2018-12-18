@@ -345,7 +345,8 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt != this->entityModelMap.end())
         {
-          for (std::size_t i = 0; i < modelIt->second->GetLinkCount(); ++i) {
+          for (std::size_t i = 0; i < modelIt->second->GetLinkCount(); ++i)
+          {
             auto link = modelIt->second->GetLink(i);
             link->SetLinearVelocity(math::eigen3::convert(_linVel->Data()));
           }

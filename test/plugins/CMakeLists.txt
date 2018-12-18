@@ -21,6 +21,7 @@ set (plugins
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
+
 # Plugin shared libraries
 foreach (src ${plugins})
   add_library(${src} SHARED ${src}.cc)
@@ -30,4 +31,5 @@ foreach (src ${plugins})
       ignition-plugin${IGN_PLUGIN_VER}::register
       ignition-gazebo
   )
+  install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endforeach (src)
