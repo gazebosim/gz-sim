@@ -183,12 +183,8 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   if (this->dataPtr->engine)
   {
-    if (!this->dataPtr->initialized)
-    {
-      this->dataPtr->CreatePhysicsEntities(_ecm);
-      this->dataPtr->initialized = true;
-    }
 
+    this->dataPtr->CreatePhysicsEntities(_ecm);
     // Only step if not paused.
     if (!_info.paused)
     {
@@ -211,7 +207,7 @@ void Physics::PostUpdate(const UpdateInfo &_info,
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
     // Get all the worlds
-  _ecm.Each<components::World, components::Name>(
+  _ecm.EachNew<components::World, components::Name>(
       [&](const EntityId &_entity,
         const components::World * /* _world */,
         const components::Name *_name)->bool
@@ -226,7 +222,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  _ecm.Each<components::Model, components::Name, components::Pose,
+  _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity, components::Static>(
       [&](const EntityId &_entity,
         const components::Model * /* _model */,
@@ -248,7 +244,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  _ecm.Each<components::Link, components::Name, components::Pose,
+  _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const EntityId &_entity,
         const components::Link * /* _link */,
@@ -279,7 +275,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // We don't need to add visuals to the physics engine.
 
   // collisions
-  _ecm.Each<components::Collision, components::Name, components::Pose,
+  _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
       [&](const EntityId & /* _entity */,
         const components::Collision * /* _collision */,
@@ -299,7 +295,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
       });
 
   // joints
-  _ecm.Each<components::Joint, components::Name, components::JointType,
+  _ecm.EachNew<components::Joint, components::Name, components::JointType,
             components::Pose, components::ThreadPitch, components::ParentEntity,
             components::ParentLinkName,
             components::ChildLinkName>(
