@@ -30,7 +30,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/RenderState.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -42,7 +41,7 @@ using namespace systems;
 
 //////////////////////////////////////////////////
 template<typename T>
-void AddLights(T _msg,
+void AddLights(T *_msg,
     const EntityId _id,
     const math::graph::DirectedGraph<
         std::shared_ptr<google::protobuf::Message>, bool> &_graph)
@@ -62,7 +61,7 @@ void AddLights(T _msg,
 }
 
 //////////////////////////////////////////////////
-void AddVisuals(msgs::LinkSharedPtr _msg,
+void AddVisuals(msgs::Link *_msg,
     const EntityId _id,
     const math::graph::DirectedGraph<
         std::shared_ptr<google::protobuf::Message>, bool> &_graph)
@@ -82,7 +81,7 @@ void AddVisuals(msgs::LinkSharedPtr _msg,
 }
 
 //////////////////////////////////////////////////
-void AddLinks(msgs::ModelSharedPtr _msg,
+void AddLinks(msgs::Model *_msg,
     const EntityId _id,
     const math::graph::DirectedGraph<
         std::shared_ptr<google::protobuf::Message>, bool> &_graph)
@@ -98,18 +97,19 @@ void AddLinks(msgs::ModelSharedPtr _msg,
       continue;
 
     // Visuals
-    AddVisuals(linkMsg, vertex.second.get().Id(), _graph);
+    AddVisuals(linkMsg.get(), vertex.second.get().Id(), _graph);
 
     // Lights
-    AddLights(linkMsg, vertex.second.get().Id(), _graph);
+    AddLights(linkMsg.get(), vertex.second.get().Id(), _graph);
 
     _msg->add_link()->CopyFrom(*linkMsg.get());
   }
 }
 
 //////////////////////////////////////////////////
+/// \tparam T Either a msgs::Scene or msgs::Model
 template<typename T>
-void AddModels(T _msg,
+void AddModels(T *_msg,
     const EntityId _id,
     const math::graph::DirectedGraph<
         std::shared_ptr<google::protobuf::Message>, bool> &_graph)
@@ -123,12 +123,30 @@ void AddModels(T _msg,
 
     std::cout << "Adding model: " << modelMsg->name() << std::endl;
     // Nested models
-    AddModels(modelMsg, vertex.second.get().Id(), _graph);
+    AddModels(modelMsg.get(), vertex.second.get().Id(), _graph);
 
     // Links
-    AddLinks(modelMsg, vertex.second.get().Id(), _graph);
+    AddLinks(modelMsg.get(), vertex.second.get().Id(), _graph);
 
     _msg->add_model()->CopyFrom(*modelMsg.get());
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Recursively remove entities from the graph
+/// \param[in] _id Id of entity
+/// \param[in] _graph Scene graph
+/// \param[out] _erasedEntities All erased entities
+void RemoveFromGraph(
+    const EntityId _id,
+    const math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>,
+                                     bool> &_graph,
+    std::vector<EntityId> &_erasedEntities)
+{
+  _erasedEntities.push_back(_id);
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    RemoveFromGraph(vertex.first, _graph, _erasedEntities);
   }
 }
 
@@ -149,14 +167,22 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \return True if successful.
   public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
 
+  /// \brief Updates the scene graph when entities are added/removed
+  /// \param[in] _manager The entity component manager
+  public: void UpdateSceneGraph(const EntityComponentManager &_manager);
+
   /// \brief Transport node.
   public: transport::Node node;
 
   /// \brief Pose publisher.
   public: transport::Node::Publisher posePub;
 
-  /// \brief Visiblity publisher.
-  public: transport::Node::Publisher visPub;
+  /// \brief Scene publisher
+  public: transport::Node::Publisher scenePub;
+
+  /// \brief Request publisher.
+  /// This is used to request entities to be removed
+  public: transport::Node::Publisher requestPub;
 
   /// \brief Graph containing latest information from entities.
   public: math::graph::DirectedGraph<
@@ -164,19 +190,18 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Keep the id of the world entity so we know how to traverse the
   /// graph.
-  public: EntityId worldId;
+  public: EntityId worldId{kNullEntity};
 
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
-
-  /// \brief Counter used to run update in intervals
-  public: uint64_t updateCounter{0};
 };
 
 //////////////////////////////////////////////////
 SceneBroadcaster::SceneBroadcaster()
   : System(), dataPtr(std::make_unique<SceneBroadcasterPrivate>())
 {
+  this->dataPtr->sceneGraph = math::graph::DirectedGraph<
+      std::shared_ptr<google::protobuf::Message>, bool>();
 }
 
 //////////////////////////////////////////////////
@@ -185,255 +210,41 @@ SceneBroadcaster::~SceneBroadcaster()
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Configure(
+    const EntityId &_id, const std::shared_ptr<const sdf::Element> &,
+    EntityComponentManager &_ecm, EventManager &)
+{
+  // World
+  this->dataPtr->worldId = _id;
+  auto name = _ecm.Component<components::Name>(_id);
+  this->dataPtr->SetupTransport(name->Data());
+
+  // Add to graph
+  std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
+  this->dataPtr->sceneGraph.AddVertex(name->Data(), nullptr, _id);
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
-  if ((this->dataPtr->updateCounter++)%10 != 0)
-  {
-    // don't run the update
-    return;
-  }
+  this->dataPtr->UpdateSceneGraph(_manager);
+
   // Populate pose message
+  // TODO(louise) Get <scene> from SDF
+  // TODO(louise) Fill message header
+
+  // Populate a graph with latest information from all entities
+  // TODO(louise) once we know what entities are added/deleted process only
+  // those. For now, recreating graph at every iteration.
+
   msgs::Pose_V poseMsg;
-  msgs::UInt32_V visMsg;
-
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
-
-    // TODO(louise) Get <scene> from SDF
-    // TODO(louise) Fill message header
-
-    // Populate a graph with latest information from all entities
-    // TODO(louise) once we know what entities are added/deleted process only
-    // those. For now, recreating graph at every iteration.
-    this->dataPtr->sceneGraph = math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool>();
-
-    // World
-    // \todo(anyone) It would be convenient to have the following functions:
-    // * _manager.Has<components::World, components::Name>: to tell whether
-    // there
-    //   is an entity which has a given set of components.
-    // * _manager.EntityCount<components::World, components::Name>: returns the
-    //  number of entities which have all the given components.
-    this->dataPtr->worldId = kNullEntity;
-    _manager.Each<components::World,
-                  components::Name>(
-      [&](const EntityId &_entity,
-          const components::World */*_worldComp*/,
-          const components::Name *_nameComp)->bool
-      {
-        if (kNullEntity != this->dataPtr->worldId)
-        {
-          ignerr << "Internal error, more than one world found." << std::endl;
-          return true;
-        }
-        this->dataPtr->worldId = _entity;
-
-        if (!this->dataPtr->posePub)
-        {
-          this->dataPtr->SetupTransport(_nameComp->Data());
-        }
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), nullptr, _entity);
-        return true;
-      });
-
-    if (kNullEntity == this->dataPtr->worldId)
-    {
-      ignerr << "Failed to find world entity" << std::endl;
-      return;
-    }
-
-    // Levels
-    _manager.Each<components::Level,
-                  components::Name,
-                  components::ParentEntity,
-                  components::Pose>(
-      [&](const EntityId &_entity,
-          const components::Level * ,
+  // Levels
+  _manager.Each<components::Level, components::Name, components::Pose>(
+      [&](const EntityId &_entity, const components::Level *,
           const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
+          const components::Pose *_poseComp) -> bool
       {
-        // use a model for level visualization. May need to change later
-        auto levelMsg = std::make_shared<msgs::Model>();
-        levelMsg->set_id(_entity);
-        levelMsg->set_name(_nameComp->Data());
-        levelMsg->mutable_pose()->CopyFrom(msgs::Convert(
-            _poseComp->Data()));
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), levelMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-
-        // add to visibility msg
-        visMsg.add_data(_entity);
-        return true;
-      });
-
-    // Models
-    _manager.Each<components::Model,
-                  components::Name,
-                  components::ParentEntity,
-                  components::Pose>(
-      [&](const EntityId &_entity,
-          const components::Model */*_modelComp*/,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
-      {
-        // see if the model this visual belongs should be rendered
-        const auto renderState =
-          _manager.Component<components::RenderState>(_entity);
-
-
-        auto modelMsg = std::make_shared<msgs::Model>();
-        modelMsg->set_id(_entity);
-        modelMsg->set_name(_nameComp->Data());
-        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(
-            _poseComp->Data()));
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), modelMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-
-        // add to visibility msg
-        if (renderState && renderState->Data())
-          visMsg.add_data(_entity);
-        return true;
-      });
-
-    // Links
-    _manager.Each<components::Link,
-                  components::Name,
-                  components::ParentEntity,
-                  components::Pose>(
-      [&](const EntityId &_entity,
-          const components::Link */*_linkComp*/,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
-      {
-        const auto &parentVertex =
-          this->dataPtr->sceneGraph.VertexFromId(_parentComp->Data());
-        if (!parentVertex.Valid())
-          return true;
-
-        auto linkMsg = std::make_shared<msgs::Link>();
-        linkMsg->set_id(_entity);
-        linkMsg->set_name(_nameComp->Data());
-        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(
-            _poseComp->Data()));
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), linkMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        // visMsg.add_data(_entity);
-        return true;
-      });
-
-    // Visuals
-    _manager.Each<components::Visual,
-                  components::Name,
-                  components::ParentEntity,
-                  components::Pose>(
-      [&](const EntityId &_entity,
-          const components::Visual */*_visualComp*/,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
-      {
-        const auto &parentVertex =
-          this->dataPtr->sceneGraph.VertexFromId(_parentComp->Data());
-        if (!parentVertex.Valid())
-          return true;
-
-        auto visualMsg = std::make_shared<msgs::Visual>();
-        visualMsg->set_id(_entity);
-        visualMsg->set_parent_id(_parentComp->Data());
-        visualMsg->set_name(_nameComp->Data());
-        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(
-            _poseComp->Data()));
-
-        // Geometry is optional
-        auto geometryComp = _manager.Component<components::Geometry>(_entity);
-        if (geometryComp)
-        {
-          visualMsg->mutable_geometry()->CopyFrom(
-              Convert<msgs::Geometry>(geometryComp->Data()));
-        }
-
-        // Material is optional
-        auto materialComp = _manager.Component<components::Material>(_entity);
-        if (materialComp)
-        {
-          visualMsg->mutable_material()->CopyFrom(
-              Convert<msgs::Material>(materialComp->Data()));
-        }
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), visualMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge(
-            {_parentComp->Data(), _entity}, true);
-
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        // visMsg.add_data(_entity);
-        return true;
-      });
-
-    // Lights
-    _manager.Each<components::Light,
-                  components::Name,
-                  components::ParentEntity,
-                  components::Pose>(
-      [&](const EntityId &_entity,
-          const components::Light *_lightComp,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
-      {
-        auto lightMsg = std::make_shared<msgs::Light>();
-        lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
-        lightMsg->set_id(_entity);
-        lightMsg->set_parent_id(_parentComp->Data());
-        lightMsg->set_name(_nameComp->Data());
-        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(
-            _poseComp->Data()));
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), lightMsg, _entity);
-        this->dataPtr->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
         // Add to pose msg
         auto pose = poseMsg.add_pose();
         msgs::Set(pose, _poseComp->Data());
@@ -441,9 +252,65 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         pose->set_id(_entity);
         return true;
       });
-  }
+
+  // Models
+  _manager.Each<components::Model, components::Name, components::Pose>(
+      [&](const EntityId &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+
+        return true;
+      });
+
+  // Links
+  _manager.Each<components::Link, components::Name, components::Pose>(
+      [&](const EntityId &_entity, const components::Link *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
+  // Visuals
+  _manager.Each<components::Visual, components::Name, components::Pose>(
+      [&](const EntityId &_entity, const components::Visual *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
+  // Lights
+  _manager.Each<components::Light, components::Name, components::Pose>(
+      [&](const EntityId &_entity, const components::Light *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
   this->dataPtr->posePub.Publish(poseMsg);
-  this->dataPtr->visPub.Publish(visMsg);
 }
 
 //////////////////////////////////////////////////
@@ -457,6 +324,20 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
 
+  // Scene info service
+  std::string sceneTopic{"/world/" + _worldName + "/scene"};
+
+  this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
+
+  ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
+  // Scene Requests
+  std::string requestTopic{"/world/" + _worldName + "/scene/request"};
+
+  this->requestPub =
+      this->node.Advertise<ignition::msgs::Request>(requestTopic);
+
+  ignmsg << "Publishing scene managements requests on [" << requestTopic << "]"
+         << std::endl;
   // Scene graph service
   std::string graphService{"/world/" + _worldName + "/scene/graph"};
 
@@ -468,21 +349,12 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Pose info publisher
   std::string topic{"/world/" + _worldName + "/pose/info"};
 
-  // Pose info publisher
-  std::string visTopic{"/world/" + _worldName + "/visibility/info"};
+  transport::AdvertiseMessageOptions advertOpts;
+  advertOpts.SetMsgsPerSec(60);
+  this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
 
-  {
-    transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(60);
-    this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
-    ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
-  }
-  {
-    transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(60);
-    this->visPub = this->node.Advertise<msgs::UInt32_V>(visTopic, advertOpts);
-    ignmsg << "Publishing pose messages on [" << visTopic << "]" << std::endl;
-  }
+  ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+
 }
 
 //////////////////////////////////////////////////
@@ -518,6 +390,194 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
   return true;
 }
 
+void SceneBroadcasterPrivate::UpdateSceneGraph(
+    const EntityComponentManager &_manager)
+{
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+
+  // TODO(louise) Get <scene> from SDF
+  // TODO(louise) Fill message header
+
+  // Populate a graph with latest information from all entities
+  // TODO(louise) once we know what entities are added/deleted process only
+  // those. For now, recreating graph at every iteration.
+
+  bool newEntity{false};
+
+  // Levels
+  _manager.EachNew<components::Level, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const EntityId &_entity, const components::Level *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // use a model for level visualization. May need to change later
+        auto levelMsg = std::make_shared<msgs::Model>();
+        levelMsg->set_id(_entity);
+        levelMsg->set_name(_nameComp->Data());
+        levelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        this->sceneGraph.AddVertex(_nameComp->Data(), levelMsg, _entity);
+        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+
+        newEntity = true;
+        return true;
+      });
+
+  // Models
+  _manager.EachNew<components::Model, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const EntityId &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto modelMsg = std::make_shared<msgs::Model>();
+        modelMsg->set_id(_entity);
+        modelMsg->set_name(_nameComp->Data());
+        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        this->sceneGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+
+        newEntity = true;
+        return true;
+      });
+
+  // Links
+  _manager.EachNew<components::Link, components::Name, components::ParentEntity,
+                   components::Pose>(
+      [&](const EntityId &_entity, const components::Link *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto linkMsg = std::make_shared<msgs::Link>();
+        linkMsg->set_id(_entity);
+        linkMsg->set_name(_nameComp->Data());
+        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        this->sceneGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
+        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+
+        newEntity = true;
+        return true;
+      });
+
+  // Visuals
+  _manager.EachNew<components::Visual, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const EntityId &_entity, const components::Visual *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto visualMsg = std::make_shared<msgs::Visual>();
+        visualMsg->set_id(_entity);
+        visualMsg->set_parent_id(_parentComp->Data());
+        visualMsg->set_name(_nameComp->Data());
+        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Geometry is optional
+        auto geometryComp = _manager.Component<components::Geometry>(_entity);
+        if (geometryComp)
+        {
+          visualMsg->mutable_geometry()->CopyFrom(
+              Convert<msgs::Geometry>(geometryComp->Data()));
+        }
+
+        // Material is optional
+        auto materialComp = _manager.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          visualMsg->mutable_material()->CopyFrom(
+              Convert<msgs::Material>(materialComp->Data()));
+        }
+
+        // Add to graph
+        this->sceneGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
+        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+
+        newEntity = true;
+        return true;
+      });
+
+  // Lights
+  _manager.EachNew<components::Light, components::Name,
+                   components::ParentEntity, components::Pose>(
+      [&](const EntityId &_entity, const components::Light *_lightComp,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto lightMsg = std::make_shared<msgs::Light>();
+        lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
+        lightMsg->set_id(_entity);
+        lightMsg->set_parent_id(_parentComp->Data());
+        lightMsg->set_name(_nameComp->Data());
+        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        this->sceneGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
+        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+
+
+  // Handle Erased Entities
+  std::vector<EntityId> erasedEntities;
+
+  // Scene a deleted model deletes all its child entities, we don't have to
+  // handle links. We assume here that links are not deleted by themselves.
+  // TODO(anyone) Handle case where other entities can be deleted without the
+  // parent model being deleted.
+  // Models
+  _manager.EachErased<components::Model>(
+      [&](const EntityId &_entity, const components::Model *) -> bool
+      {
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph, erasedEntities);
+        return true;
+      });
+
+  // Lights
+  _manager.EachErased<components::Light>(
+      [&](const EntityId &_entity, const components::Light *) -> bool
+      {
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph, erasedEntities);
+        return true;
+      });
+
+  if (newEntity)
+  {
+    // TODO(addisu) only add the new entities
+    msgs::Scene sceneMsg;
+
+    AddModels(&sceneMsg, this->worldId, this->sceneGraph);
+
+    // Add lights
+    AddLights(&sceneMsg, this->worldId, this->sceneGraph);
+    this->scenePub.Publish(sceneMsg);
+  }
+  // For each erased entity, we send a delete message
+  for (const auto &entity : erasedEntities)
+  {
+    std::cout << "SceneBroadcaster: Delete " << entity << std::endl;
+    msgs::Request req;
+    req.set_request("delete_entity");
+    req.set_id(entity);
+    this->requestPub.Publish(req);
+  }
+}
+
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
                     ignition::gazebo::System,
+                    SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
