@@ -674,7 +674,7 @@ namespace ignition
       public: template <class Function, class... ComponentTypeTs>
       static void ForEach(Function _f, const ComponentTypeTs &... _components)
       {
-        (_f(_components),...);
+        (_f(_components), ...);
       }
 
       /// \brief Process all entity erase requests. This will remove
