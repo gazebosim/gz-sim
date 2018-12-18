@@ -32,16 +32,23 @@ class Move3dSystemPrivate;
 /// \brief A system for controlling the position of objects in 3d.
 class IGNITION_GAZEBO_VISIBLE Move3dSystem
     : public ignition::gazebo::System,
-      public ignition::gazebo::ISystemPreUpdate {
+      public ignition::gazebo::ISystemConfigure,
+      public ignition::gazebo::ISystemPreUpdate
+{
+  public: Move3dSystem();
 
- public: Move3dSystem();
- public: ~Move3dSystem() override = default;
+  public: ~Move3dSystem();
 
- public: void PreUpdate(
-             const ignition::gazebo::UpdateInfo &_info,
-             ignition::gazebo::EntityComponentManager &_ecm) override;
+  /// Documentation inherited
+  public: void Configure(const EntityId &_id,
+                          const std::shared_ptr<const sdf::Element> &_sdf,
+                          EntityComponentManager &_ecm,
+                          EventManager &_eventMgr) final;
+  public: void PreUpdate(
+              const ignition::gazebo::UpdateInfo &_info,
+                    ignition::gazebo::EntityComponentManager &_ecm) override;
 
- private: std::unique_ptr<Move3dSystemPrivate> dataPtr;
+  private: std::unique_ptr<Move3dSystemPrivate> dataPtr;
 };
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace systems

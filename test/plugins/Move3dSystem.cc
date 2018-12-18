@@ -38,18 +38,6 @@ class ignition::gazebo::systems::Move3dSystemPrivate
   /// \param[in] _msg Velocity message
   public: void OnLinearVel(const ignition::msgs::Vector3d &_msg);
 
-  /// \brief Find an Entity by it's name
-  /// \tparam[in] ComponentTypeT Component that identifies the entity. E.g., 
-  /// components::Model, components::Link, components::Joint, etc.
-  /// \param[in] _ecm Instance of the EntityComponentManager to use for the
-  /// search
-  /// \param[in] _name Name of the model to search
-  /// \return EntityId of the model with the specified name if the model was
-  /// found. Otherwise, returns kNullEntity
-  public: template<typename ComponentTypeT> 
-          EntityId EntityByName(const EntityComponentManager &_ecm,
-                                const std::string &_name);
-
   /// \brief Ignition communication node.
   public: transport::Node node;
 
@@ -58,10 +46,6 @@ class ignition::gazebo::systems::Move3dSystemPrivate
 
   /// \brief EntityId of the performer
   public: EntityId performerId = kNullEntity;
-
-  /// \brief EntityId of the performer
-  /// \todo(addisu) Get this from sdf when the system API adds support for it.
-  public: std::string modelName = "ball";
 };
 
 Move3dSystem::Move3dSystem() : dataPtr(std::make_unique<Move3dSystemPrivate>())
@@ -71,28 +55,23 @@ Move3dSystem::Move3dSystem() : dataPtr(std::make_unique<Move3dSystemPrivate>())
                                 this->dataPtr.get());
 }
 
+Move3dSystem::~Move3dSystem()
+{
+  // do nothing. This is needed because Move3dSystemPrivate is incomplete in
+  // header file
+}
+
+void Move3dSystem::Configure(
+    const EntityId &_id, const std::shared_ptr<const sdf::Element> &,
+    EntityComponentManager &, EventManager &)
+{
+  this->dataPtr->performerId = _id;
+  igndbg << "Move3dSystem attached to: " << this->dataPtr->performerId  << "\n";
+}
+
 void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  // If the performer has not been identified yet, search through the models to 
-  // find it.
-  if (this->dataPtr->performerId == kNullEntity)
-  {
-    _ecm.Each<components::Performer, components::ParentEntity>(
-        [&](const EntityId &/*_entity*/, const components::Performer *,
-            const components::ParentEntity *_parent) -> bool
-        {
-          auto name = _ecm.Component<components::Name>(_parent->Data());
-          if (this->dataPtr->modelName == name->Data())
-          {
-            this->dataPtr->performerId = _parent->Data();
-            igndbg << "Found performer " << this->dataPtr->modelName << " = "
-                   << this->dataPtr->performerId << "\n";
-            return false;
-          } 
-          return true;
-        });
-  } 
 
   if (this->dataPtr->performerId == kNullEntity)
     return;
@@ -101,11 +80,11 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  if ((this->dataPtr->performerId != kNullEntity) && 
+  if ((this->dataPtr->performerId != kNullEntity) &&
       (this->dataPtr->currentCmd.has_value()))
   {
     // update the next position of the model based on the commanded velocity
-    auto linVelocity = 
+    auto linVelocity =
         _ecm.Component<components::LinearVelocity>(this->dataPtr->performerId);
 
 
@@ -119,37 +98,20 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           this->dataPtr->performerId,
           components::LinearVelocity(*this->dataPtr->currentCmd));
     }
-    // clear the command so that we only update the component when there's a new 
+    // clear the command so that we only update the component when there's a new
     // command.
     this->dataPtr->currentCmd.reset();
   }
 
 }
 
-template <typename ComponentTypeT>
-EntityId Move3dSystemPrivate::EntityByName(const EntityComponentManager &_ecm,
-                                           const std::string &_name)
-{
-  EntityId output = kNullEntity;
-  _ecm.Each<ComponentTypeT, components::Name>(
-      [&](const EntityId &_entity, const ComponentTypeT *,
-          const components::Name *_nameComp) -> bool
-      {
-        if (_name == _nameComp->Data())
-        {
-          output = _entity;
-          return false;
-        }
-        return true;
-      });
-  return output;
-}
-
 void Move3dSystemPrivate::OnLinearVel(const msgs::Vector3d &_msg)
 {
+  std::cout << "Got: " << _msg.x() << " " << _msg.y() << std::endl;
   this->currentCmd = msgs::Convert(_msg);
 }
 
 IGNITION_ADD_PLUGIN(Move3dSystem,
                     ignition::gazebo::System,
+                    Move3dSystem::ISystemConfigure,
                     Move3dSystem::ISystemPreUpdate)
