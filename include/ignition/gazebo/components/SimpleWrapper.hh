@@ -50,7 +50,7 @@ namespace components
   class SimpleWrapper
   {
     /// \brief Constructor
-    /// \param[in] _simpleWrapper Ignition math simpleWrapper to copy
+    /// \param[in] _simpleWrapper SimpleWrapper to copy
     public: explicit SimpleWrapper(const DataType &_data);
 
     /// \brief Copy Constructor
@@ -77,12 +77,12 @@ namespace components
     /// \brief Equality operator.
     /// \param[in] _simpleWrapper SimpleWrapper to compare to.
     /// \return True if equal.
-    public: bool operator==(const SimpleWrapper &_simpleWrapper);
+    public: bool operator==(const SimpleWrapper &_simpleWrapper) const;
 
     /// \brief Inequality operator.
     /// \param[in] _simpleWrapper SimpleWrapper to compare to.
     /// \return True if different.
-    public: bool operator!=(const SimpleWrapper &_simpleWrapper);
+    public: bool operator!=(const SimpleWrapper &_simpleWrapper) const;
 
     /// \brief Get the simpleWrapper data.
     /// \return The actual simpleWrapper information.
@@ -102,7 +102,7 @@ namespace components
     {
     }
 
-    /// \brief The simpleWrapper data.
+    /// \brief The data being wrapped.
     public: DataType data;
   };
 
@@ -141,7 +141,7 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool SimpleWrapper<DataType, Identifier>::
-  operator==(const SimpleWrapper<DataType, Identifier> &_simpleWrapper)
+  operator==(const SimpleWrapper<DataType, Identifier> &_simpleWrapper) const
   {
     return this->dataPtr->data == _simpleWrapper.Data();
   }
@@ -149,7 +149,7 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool SimpleWrapper<DataType, Identifier>::
-  operator!=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper)
+  operator!=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper) const
   {
     return this->dataPtr->data != _simpleWrapper.Data();
   }

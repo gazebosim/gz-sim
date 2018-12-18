@@ -20,26 +20,51 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/ISystemModel.hh"
+#include "ignition/gazebo/Model.hh"
+
+class ignition::gazebo::ModelPrivate
+{
+  /// \brief Id of model entity.
+  public: EntityId id{kNullEntity};
+};
 
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-EntityId ISystemModel::JointByName(const std::string &_name,
-    EntityComponentManager &_ecm)
+Model::Model(EntityId _id)
+  : dataPtr(std::make_unique<ModelPrivate>())
+{
+  this->dataPtr->id = _id;
+}
+
+//////////////////////////////////////////////////
+Model::~Model()
+{
+}
+
+//////////////////////////////////////////////////
+Model &Model::operator=(const Model &_model)
+{
+  *this->dataPtr = (*_model.dataPtr);
+  return *this;
+}
+
+//////////////////////////////////////////////////
+EntityId Model::JointByName(EntityComponentManager &_ecm,
+    const std::string &_name)
 {
   return _ecm.EntityByComponents(
-      components::ParentEntity(this->modelId),
+      components::ParentEntity(this->dataPtr->id),
       components::Name(_name),
       components::Joint());
 }
 
 //////////////////////////////////////////////////
-EntityId ISystemModel::LinkByName(const std::string &_name,
-    EntityComponentManager &_ecm)
+EntityId Model::LinkByName(EntityComponentManager &_ecm,
+    const std::string &_name)
 {
   return _ecm.EntityByComponents(
-      components::ParentEntity(this->modelId),
+      components::ParentEntity(this->dataPtr->id),
       components::Name(_name),
       components::Link());
 }
