@@ -507,10 +507,11 @@ namespace ignition
 
           // Iterate over desired components, comparing each of them to the
           // equivalent component in the entity.
-          ForEach([&](auto _desiredComponent)
+          ForEach([&](const auto &_desiredComponent)
           {
-            auto entityComponent =
-                this->Component<decltype(_desiredComponent)>(entity);
+            auto entityComponent = this->Component<
+                std::remove_cv_t<std::remove_reference_t<
+                    decltype(_desiredComponent)>>>(entity);
 
             // TODO(louise) Find a better way to handle floating point
             // comparison
@@ -671,10 +672,9 @@ namespace ignition
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void ForEach(Function _f, ComponentTypeTs... _components)
+      static void ForEach(Function _f, const ComponentTypeTs &... _components)
       {
-        int x[] = {(_f(_components), 0)...};
-        (void)x;
+        (_f(_components),...);
       }
 
       /// \brief Process all entity erase requests. This will remove
