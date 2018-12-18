@@ -35,8 +35,10 @@ set (gtest_sources
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
+  ignition-math${IGN_MATH_VER}
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-fuel_tools${IGN_FUEL_TOOLS_VER}::ignition-fuel_tools${IGN_FUEL_TOOLS_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   sdformat8::sdformat8
