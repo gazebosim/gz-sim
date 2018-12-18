@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ScalarVelocity.hh"
 #include "ignition/gazebo/systems/DiffDrive.hh"
+#include "ignition/gazebo/Model.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -62,6 +63,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
 
   /// \brief Wheel radius
   public: double wheelRadius{0.2};
+
+  /// \brief Model interface
+  public: Model model{kNullEntity};
 };
 
 //////////////////////////////////////////////////
@@ -79,7 +83,7 @@ void DiffDrive::Configure(const EntityId &_id,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
-  this->modelId = _id;
+  this->dataPtr->model = Model(_id);
 
   this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
       this->dataPtr->leftJointName).first;
@@ -100,9 +104,9 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       this->dataPtr->rightJointId == kNullEntity)
   {
     this->dataPtr->leftJointId =
-        this->JointByName(this->dataPtr->leftJointName, _ecm);
+        this->dataPtr->model.JointByName(_ecm, this->dataPtr->leftJointName);
     this->dataPtr->rightJointId =
-        this->JointByName(this->dataPtr->rightJointName, _ecm);
+        this->dataPtr->model.JointByName(_ecm, this->dataPtr->rightJointName);
   }
 
   if (this->dataPtr->leftJointId == kNullEntity ||
@@ -157,6 +161,5 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
-                    DiffDrive::ISystemModel,
                     DiffDrive::ISystemPreUpdate)
 

@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 #define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 
-#include <ignition/gazebo/ISystemModel.hh>
 #include <ignition/gazebo/System.hh>
 #include <memory>
 
@@ -36,7 +35,6 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE DiffDrive
       : public System,
         public ISystemConfigure,
-        public ISystemModel,
         public ISystemPreUpdate
   {
     /// \brief Constructor
