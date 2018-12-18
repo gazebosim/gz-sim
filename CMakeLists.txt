@@ -43,6 +43,11 @@ ign_find_package(ignition-common3 REQUIRED)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-transport
+ign_find_package(ignition-fuel_tools2 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools2_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ignition-gui
 ign_find_package(ignition-gui1 REQUIRED)
 set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
