@@ -490,7 +490,9 @@ In general, the plugin will need to:
 
 On Gazebo, that would look something like this:
 
-~~~
+---
+
+```cpp
 #include <gazebo/common/Plugin.hh>
 
 // Inherit from ModelPlugin
@@ -527,11 +529,15 @@ class MyPlugin : public ModelPlugin
 
 // Register plugin
 GZ_REGISTER_MODEL_PLUGIN(MyPlugin)
-~~~
+```
+
+---
 
 In Ignition Gazebo, that would be implemented as follows:
 
-~~~
+---
+
+```cpp
 #include <ignition/gazebo/Link.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
@@ -545,7 +551,7 @@ class MyPlugin
 {
   // Implement Configure callback, provided by ISystemConfigure
   // and called once at startup.
-  void MyPlugin::Configure(const EntityId &_modelId,
+  void MyPlugin::Configure(const EntityId &_id,
       const std::shared_ptr<const sdf::Element> &_sdf,
       EntityComponentManager &_ecm,
       EventManager &/*_eventMgr*/)
@@ -581,7 +587,9 @@ IGNITION_ADD_PLUGIN(ignition::gazebo::systems::MyPlugin,
                     ignition::gazebo::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
-~~~
+```
+
+---
 
 Some of the key differences are:
 
