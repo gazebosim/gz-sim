@@ -486,12 +486,14 @@ namespace ignition
       ///
       ///  auto entity = EntityByComponents(123, std::string("name"));
       ///
+      /// \detail Component type must have inequality operator.
+      ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return Entity Id or kNullEntity if no entity has the exact
       /// components.
       public: template<typename ...ComponentTypeTs>
               EntityId EntityByComponents(
-                   const ComponentTypeTs ..._desiredComponents)
+                   const ComponentTypeTs &..._desiredComponents)
       {
         // Get all entities which have components of the desired types
         const auto &view = this->FindView<ComponentTypeTs...>();
