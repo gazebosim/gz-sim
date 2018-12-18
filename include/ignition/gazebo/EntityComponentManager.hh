@@ -731,19 +731,6 @@ namespace ignition
         }
       }
 
-      /// \brief Get whether an Entity exists is new
-      ///
-      /// Entities are considered new in the time between their creation and a
-      /// call to ClearNewlyCreatedEntities
-      /// \param[in] _id Entity id to check.
-      /// \return True if the Entity is new.
-      private: bool IsNewEntity(const EntityId _id) const;
-
-      /// \brief Get whether an Entity has been marked for to be erased
-      /// \param[in] _id Entity id to check.
-      /// \return True if the Entity is has been marked to be erased.
-      private: bool IsMarkedForErasure(const EntityId _id) const;
-
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
@@ -753,6 +740,19 @@ namespace ignition
       /// entities and their components. This function is protected to
       /// facilitate testing.
       protected: void ProcessEraseEntityRequests();
+
+      /// \brief Get whether an Entity exists and is new.
+      ///
+      /// Entities are considered new in the time between their creation and a
+      /// call to ClearNewlyCreatedEntities
+      /// \param[in] _id Entity id to check.
+      /// \return True if the Entity is new.
+      private: bool IsNewEntity(const EntityId _id) const;
+
+      /// \brief Get whether an Entity has been marked to be erased.
+      /// \param[in] _id Entity id to check.
+      /// \return True if the Entity has been marked to be erased.
+      private: bool IsMarkedForErasure(const EntityId _id) const;
 
       /// \brief Delete an existing Entity.
       /// \param[in] _id Id of the Entity to erase.

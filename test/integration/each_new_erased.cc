@@ -54,19 +54,19 @@ class Relay
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: Relay & OnPreUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType cb)
   {
     this->mockSystem->preUpdateCallback = cb;
     return *this;
   }
 
-  public: Relay & OnUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType cb)
   {
     this->mockSystem->updateCallback = cb;
     return *this;
   }
 
-  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
+  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
   {
     this->mockSystem->postUpdateCallback = cb;
     return *this;
@@ -135,7 +135,7 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   EntityCount updateCount;
   EntityCount postCount;
 
-  auto counterFunc = [](EntityCount &count)
+  auto counterFunc = [](EntityCount &_count)
   {
     // Lambda to return. This a simple counter that uses the appropriate count
     // variable where count = (pre, update, post)count
@@ -144,12 +144,12 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
     {
       _ecm.EachNew<int>([&](const gazebo::EntityId &, const int *) -> bool
       {
-        ++count.newEntities;
+        ++_count.newEntities;
         return true;
       });
       _ecm.EachErased<int>([&](const gazebo::EntityId &, const int *) -> bool
       {
-        ++count.erasedEntities;
+        ++_count.erasedEntities;
         return true;
       });
     };
