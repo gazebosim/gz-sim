@@ -55,7 +55,7 @@ Move3dSystem::Move3dSystem() : dataPtr(std::make_unique<Move3dSystemPrivate>())
                                 this->dataPtr.get());
 }
 
-Move3dSystem::~Move3dSystem()
+Move3dSystem::~Move3dSystem() //NOLINT
 {
   // do nothing. This is needed because Move3dSystemPrivate is incomplete in
   // header file
