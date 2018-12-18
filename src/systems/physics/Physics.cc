@@ -33,6 +33,7 @@
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
@@ -82,6 +83,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::mesh::AttachMeshShapeFeature,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -286,7 +288,16 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
-        linkPtrPhys->ConstructCollision(collision);
+        if (_geom->Data().Type() == sdf::GeometryType::MESH)
+        {
+          ignition::common::Mesh mesh;
+          linkPtrPhys->AttachMeshShape(_name->Data(), mesh,
+              ignition::math::eigen3::convert(_pose->Data()));
+        }
+        else
+        {
+          linkPtrPhys->ConstructCollision(collision);
+        }
         // for now, we won't have a map to the collision once it's added
         return true;
       });
