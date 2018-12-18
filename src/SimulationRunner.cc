@@ -322,10 +322,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
+    this->UpdateLevels();
+
     // Update all the systems.
     this->UpdateSystems();
-
-    this->UpdateLevels();
 
     if (!this->Paused() && this->pendingSimIterations > 0)
     {
