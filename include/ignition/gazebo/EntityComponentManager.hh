@@ -480,9 +480,10 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
-      /// \brief Get an entity which matches all the given components. For
-      /// example, the following will return the entity which has an int
-      /// component equal to 123, and a string component equal to "name":
+      /// \brief Get an entity which matches the value of all the given
+      /// components. For example, the following will return the entity which
+      /// has an int component equal to 123, and a string component equal to
+      /// "name":
       ///
       ///  auto entity = EntityByComponents(123, std::string("name"));
       ///
