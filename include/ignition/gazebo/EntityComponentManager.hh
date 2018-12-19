@@ -499,6 +499,55 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
+      /// \brief Get an entity which matches the value of all the given
+      /// components. For example, the following will return the entity which
+      /// has an int component equal to 123, and a string component equal to
+      /// "name":
+      ///
+      ///  auto entity = EntityByComponents(123, std::string("name"));
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return Entity Id or kNullEntity if no entity has the exact
+      /// components.
+      public: template<typename ...ComponentTypeTs>
+              EntityId EntityByComponents(
+                   const ComponentTypeTs &..._desiredComponents)
+      {
+        // Get all entities which have components of the desired types
+        const auto &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over entities
+        EntityId result{kNullEntity};
+        for (const EntityId entity : view.entities)
+        {
+          bool different{false};
+
+          // Iterate over desired components, comparing each of them to the
+          // equivalent component in the entity.
+          ForEach([&](const auto &_desiredComponent)
+          {
+            auto entityComponent = this->Component<
+                std::remove_cv_t<std::remove_reference_t<
+                    decltype(_desiredComponent)>>>(entity);
+
+            if (*entityComponent != _desiredComponent)
+            {
+              different = true;
+            }
+          }, _desiredComponents...);
+
+          if (!different)
+          {
+            result = entity;
+            break;
+          }
+        }
+
+        return result;
+      }
+
       /// why is this required?
       private: template <typename T>
                struct identity
@@ -634,6 +683,16 @@ namespace ignition
             break;
           }
         }
+      }
+
+      /// \brief Call a function for each parameter in a pack.
+      /// \param[in] _f Function to be called.
+      /// \param[in] _components Parameters which should be passed to the
+      /// function.
+      public: template <class Function, class... ComponentTypeTs>
+      static void ForEach(Function _f, const ComponentTypeTs &... _components)
+      {
+        (_f(_components), ...);
       }
 
       /// \brief Get all newly created entities which contain given component
