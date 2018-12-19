@@ -23,6 +23,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Gui.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -344,6 +345,8 @@ EntityId SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity, components::World());
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::Gui(*_world->Gui()));
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
