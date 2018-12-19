@@ -121,7 +121,6 @@ void AddModels(T *_msg,
     if (!modelMsg)
       continue;
 
-    std::cout << "Adding model: " << modelMsg->name() << std::endl;
     // Nested models
     AddModels(modelMsg.get(), vertex.second.get().Id(), _graph);
 
@@ -139,15 +138,14 @@ void AddModels(T *_msg,
 /// \param[out] _erasedEntities All erased entities
 void RemoveFromGraph(
     const EntityId _id,
-    const math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>,
-                                     bool> &_graph,
-    std::vector<EntityId> &_erasedEntities)
+    math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>,
+                                     bool> &_graph)
 {
-  _erasedEntities.push_back(_id);
   for (const auto &vertex : _graph.AdjacentsFrom(_id))
   {
-    RemoveFromGraph(vertex.first, _graph, _erasedEntities);
+    RemoveFromGraph(vertex.first, _graph);
   }
+  _graph.RemoveVertex(_id);
 }
 
 // Private data class.
@@ -167,9 +165,13 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \return True if successful.
   public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
 
-  /// \brief Updates the scene graph when entities are added/removed
+  /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
-  public: void UpdateSceneGraph(const EntityComponentManager &_manager);
+  public: void SceneGraphAddEntities(const EntityComponentManager &_manager);
+
+  /// \brief Updates the scene graph when entities are removed
+  /// \param[in] _manager The entity component manager
+  public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
 
   /// \brief Transport node.
   public: transport::Node node;
@@ -228,7 +230,7 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
-  this->dataPtr->UpdateSceneGraph(_manager);
+  this->dataPtr->SceneGraphAddEntities(_manager);
 
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
@@ -311,6 +313,10 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
       });
 
   this->dataPtr->posePub.Publish(poseMsg);
+
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // erased entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
 }
 
 //////////////////////////////////////////////////
@@ -390,7 +396,8 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
   return true;
 }
 
-void SceneBroadcasterPrivate::UpdateSceneGraph(
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SceneGraphAddEntities(
     const EntityComponentManager &_manager)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
@@ -530,31 +537,6 @@ void SceneBroadcasterPrivate::UpdateSceneGraph(
 
 
 
-  // Handle Erased Entities
-  std::vector<EntityId> erasedEntities;
-
-  // Scene a deleted model deletes all its child entities, we don't have to
-  // handle links. We assume here that links are not deleted by themselves.
-  // TODO(anyone) Handle case where other entities can be deleted without the
-  // parent model being deleted.
-  // Models
-  _manager.EachErased<components::Model>(
-      [&](const EntityId &_entity, const components::Model *) -> bool
-      {
-        // Remove from graph
-        RemoveFromGraph(_entity, this->sceneGraph, erasedEntities);
-        return true;
-      });
-
-  // Lights
-  _manager.EachErased<components::Light>(
-      [&](const EntityId &_entity, const components::Light *) -> bool
-      {
-        // Remove from graph
-        RemoveFromGraph(_entity, this->sceneGraph, erasedEntities);
-        return true;
-      });
-
   if (newEntity)
   {
     // TODO(addisu) only add the new entities
@@ -566,10 +548,43 @@ void SceneBroadcasterPrivate::UpdateSceneGraph(
     AddLights(&sceneMsg, this->worldId, this->sceneGraph);
     this->scenePub.Publish(sceneMsg);
   }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
+    const EntityComponentManager &_manager)
+{
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+  // Handle Erased Entities
+  std::vector<EntityId> erasedEntities;
+
+  // Scene a deleted model deletes all its child entities, we don't have to
+  // handle links. We assume here that links are not deleted by themselves.
+  // TODO(anyone) Handle case where other entities can be deleted without the
+  // parent model being deleted.
+  // Models
+  _manager.EachErased<components::Model>(
+      [&](const EntityId &_entity, const components::Model *) -> bool
+      {
+        erasedEntities.push_back(_entity);
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph);
+        return true;
+      });
+
+  // Lights
+  _manager.EachErased<components::Light>(
+      [&](const EntityId &_entity, const components::Light *) -> bool
+      {
+        erasedEntities.push_back(_entity);
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph);
+        return true;
+      });
+
   // For each erased entity, we send a delete message
   for (const auto &entity : erasedEntities)
   {
-    std::cout << "SceneBroadcaster: Delete " << entity << std::endl;
     msgs::Request req;
     req.set_request("delete_entity");
     req.set_id(entity);
