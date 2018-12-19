@@ -50,7 +50,7 @@ namespace components
   class SimpleWrapper
   {
     /// \brief Constructor
-    /// \param[in] _simpleWrapper Ignition math simplewrapper to copy
+    /// \param[in] _simpleWrapper SimpleWrapper to copy
     public: explicit SimpleWrapper(const DataType &_data);
 
     /// \brief Copy Constructor
@@ -74,8 +74,18 @@ namespace components
     /// \return Reference to this.
     public: SimpleWrapper &operator=(const SimpleWrapper &_simpleWrapper);
 
-    /// \brief Get the simplewrapper data.
-    /// \return The actual simplewrapper information.
+    /// \brief Equality operator.
+    /// \param[in] _simpleWrapper SimpleWrapper to compare to.
+    /// \return True if equal.
+    public: bool operator==(const SimpleWrapper &_simpleWrapper) const;
+
+    /// \brief Inequality operator.
+    /// \param[in] _simpleWrapper SimpleWrapper to compare to.
+    /// \return True if different.
+    public: bool operator!=(const SimpleWrapper &_simpleWrapper) const;
+
+    /// \brief Get the simpleWrapper data.
+    /// \return The actual simpleWrapper information.
     public: const DataType &Data() const;
 
     /// \brief Private data pointer.
@@ -92,7 +102,7 @@ namespace components
     {
     }
 
-    /// \brief The simplewrapper data.
+    /// \brief The data being wrapped.
     public: DataType data;
   };
 
@@ -124,8 +134,24 @@ namespace components
   SimpleWrapper<DataType, Identifier> &SimpleWrapper<DataType, Identifier>::
   operator=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper)
   {
-    this->dataPtr->simplewrapper = _simpleWrapper.Data();
+    this->dataPtr->data = _simpleWrapper.Data();
     return *this;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  bool SimpleWrapper<DataType, Identifier>::
+  operator==(const SimpleWrapper<DataType, Identifier> &_simpleWrapper) const
+  {
+    return this->dataPtr->data == _simpleWrapper.Data();
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  bool SimpleWrapper<DataType, Identifier>::
+  operator!=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper) const
+  {
+    return this->dataPtr->data != _simpleWrapper.Data();
   }
 }
 }
