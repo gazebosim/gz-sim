@@ -20,15 +20,18 @@
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
+#include <ignition/msgs/plugin.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
+#include <sdf/Gui.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Plane.hh>
@@ -151,6 +154,56 @@ namespace ignition
         out.set_type(msgs::Light_LightType_SPOT);
       else if (_in.Type() == sdf::LightType::DIRECTIONAL)
         out.set_type(msgs::Light_LightType_DIRECTIONAL);
+      return out;
+    }
+
+    /// \brief Generic conversion from an SDF gui to another type.
+    /// \param[in] _in SDF gui.
+    /// \return Conversion result.
+    /// \tparam OUT Output type.
+    template<class OUT>
+    OUT Convert(const sdf::Gui &_in)
+    {
+      OUT::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF gui to a gui message.
+    /// \param[in] _in SDF gui.
+    /// \return Gui message.
+    template<>
+    msgs::GUI Convert(const sdf::Gui &_in)
+    {
+      msgs::GUI out;
+
+      out.set_fullscreen(_in.Fullscreen());
+
+      // Set gui plugins
+      auto elem = _in.Element();
+      if (elem && elem->HasElement("plugin"))
+      {
+        auto pluginElem = elem->GetElement("plugin");
+        while (pluginElem)
+        {
+          auto pluginMsg = out.add_plugin();
+          pluginMsg->set_name(pluginElem->Get<std::string>("name"));
+          pluginMsg->set_filename(pluginElem->Get<std::string>("filename"));
+
+          std::stringstream ss;
+          for (auto innerElem = pluginElem->GetFirstElement();
+              innerElem; innerElem = innerElem->GetNextElement(""))
+          {
+            ss << innerElem->ToString("");
+          }
+          pluginMsg->set_innerxml(ss.str());
+          pluginElem = pluginElem->GetNextElement("plugin");
+        }
+      }
+
+      if (elem->HasElement("camera"))
+      {
+        ignwarn << "<gui><camera> can't be converted yet" << std::endl;
+      }
+
       return out;
     }
     }

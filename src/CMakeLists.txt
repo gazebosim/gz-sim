@@ -72,7 +72,17 @@ ign_add_executable(ign-gazebo-exec main.cc)
 set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
 target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
-  ign-gazebo-gui
+  ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+)
+
+# Create the gui executable
+ign_add_executable(ign-gazebo-gui gui.cc)
+set_property(TARGET ign-gazebo-gui PROPERTY OUTPUT_NAME ign-gazebo-gui)
+target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
+  gflags
+  ign-gazebo-gui-lib
   ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
@@ -85,3 +95,7 @@ target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
 set_target_properties(ign-gazebo-exec
   PROPERTIES VERSION ${PROJECT_VERSION_FULL})
 install (TARGETS ign-gazebo-exec DESTINATION ${IGN_BIN_INSTALL_DIR})
+
+set_target_properties(ign-gazebo-gui
+  PROPERTIES VERSION ${PROJECT_VERSION_FULL})
+install (TARGETS ign-gazebo-gui DESTINATION ${IGN_BIN_INSTALL_DIR})

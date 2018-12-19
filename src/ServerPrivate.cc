@@ -116,38 +116,3 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
   }
 }
 
-//////////////////////////////////////////////////
-void ServerPrivate::LoadGui(const sdf::Root &_root)
-{
-  if (!gui::App())
-    return;
-
-  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
-  {
-    auto world = _root.WorldByIndex(worldIndex);
-    auto element = world->Element();
-
-    // GUI plugins
-    if (!element->HasElement("gui") ||
-        !element->GetElement("gui")->HasElement("plugin"))
-    {
-      continue;
-    }
-
-    auto pluginElem = element->GetElement("gui")->GetElement("plugin");
-    while (pluginElem)
-    {
-      auto fileName = pluginElem->Get<std::string>("filename");
-
-      auto pluginStr = pluginElem->ToString("");
-
-      tinyxml2::XMLDocument pluginDoc;
-      pluginDoc.Parse(pluginStr.c_str());
-
-      gui::App()->LoadPlugin(fileName,
-          pluginDoc.FirstChildElement("plugin"));
-
-      pluginElem = pluginElem->GetNextElement("plugin");
-    }
-  }
-}

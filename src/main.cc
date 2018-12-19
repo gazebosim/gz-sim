@@ -19,13 +19,9 @@
 
 #include <ignition/common/Console.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
@@ -157,8 +153,8 @@ int main(int _argc, char **_argv)
     if (FLAGS_z > 0.0)
       serverConfig.SetUpdateRate(FLAGS_z);
 
-    // Run only the server (headless)
-    if (FLAGS_s)
+    // Run the server
+    if (!FLAGS_g)
     {
       // Create the Gazebo server
       ignition::gazebo::Server server(serverConfig);
@@ -166,66 +162,11 @@ int main(int _argc, char **_argv)
       // Run the server, and block.
       server.Run(true, FLAGS_iterations, !FLAGS_r);
     }
-    // Run the GUI, or GUI+server
-    else
+
+    // Run the GUI
+    if (!FLAGS_s)
     {
-      // Temporary transport interface
-      auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
-
-      // Initialize Qt app
-      ignition::gui::Application app(_argc, _argv);
-
-      // Load configuration file
-      auto configPath = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-
-      if (!app.LoadConfig(configPath))
-      {
-        return -1;
-      }
-
-      // Customize window
-      auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
-      win->setProperty("title", "Gazebo");
-
-      // Let QML files use TmpIface' functions and properties
-      auto context = new QQmlContext(app.Engine()->rootContext());
-      context->setContextProperty("TmpIface", tmp.get());
-
-      // Instantiate GazeboDrawer.qml file into a component
-      QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
-      auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
-      if (gzDrawerItem)
-      {
-        // C++ ownership
-        QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
-
-        // Add to main window
-        auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
-        gzDrawerItem->setParentItem(parentDrawerItem);
-        gzDrawerItem->setParent(app.Engine());
-      }
-      else
-      {
-        ignerr << "Failed to instantiate custom drawer, drawer will be empty"
-               << std::endl;
-      }
-
-      // Run the server along with the GUI if FLAGS_g is not set.
-      std::unique_ptr<ignition::gazebo::Server> server;
-      if (!FLAGS_g)
-      {
-        // Create the server
-        server.reset(new ignition::gazebo::Server(serverConfig));
-
-        // Run the server, and don't block.
-        server->Run(false, FLAGS_iterations, !FLAGS_r);
-      }
-
-
-      // Run main window.
-      // This blocks until the window is closed or we receive a SIGINT
-      app.exec();
+      // TODO fork process
     }
   }
 
