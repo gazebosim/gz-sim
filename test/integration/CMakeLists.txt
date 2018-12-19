@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  components.cc
   each_new_erased.cc
   entity_erase.cc
   events.cc
