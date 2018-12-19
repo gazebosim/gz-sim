@@ -513,12 +513,7 @@ namespace ignition
                 std::remove_cv_t<std::remove_reference_t<
                     decltype(_desiredComponent)>>>(entity);
 
-            // TODO(louise) Find a better way to handle floating point
-            // comparison
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
             if (*entityComponent != _desiredComponent)
-#pragma GCC diagnostic pop
             {
               different = true;
             }
