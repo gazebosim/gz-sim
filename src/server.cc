@@ -15,32 +15,33 @@
  *
 */
 #include <gflags/gflags.h>
-#include <signal.h>
-#include <tinyxml2.h>
 
 #include <ignition/common/Console.hh>
-
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
 
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/TmpIface.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
+DEFINE_double(z, -1, "Update rate in Hertz.");
+DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
+DEFINE_string(f, "", "Load an SDF file on start.");
+DEFINE_bool(r, false, "Run simulation on start. "
+    "The default is false, which starts simulation paused.");
 
 //////////////////////////////////////////////////
 void Help()
 {
   std::cout
-  << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
+  << "ign-gazebo-server -- Run the Gazebo server." << std::endl
   << std::endl
-  << "`ign-gazebo-gui` [options]" << std::endl
+  << "`ign-gazebo-server` [options]" << std::endl
   << std::endl
   << std::endl
   << "Options:" << std::endl
@@ -50,6 +51,15 @@ void Help()
   << std::endl
   << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
   << " The default verbosity is 1"
+  << std::endl
+  << "  --iterations arg       Number of iterations to execute."
+  << std::endl
+  << "  -f                     Load an SDF file on start. "
+  << std::endl
+  << "  -z arg                 Update rate in Hertz."
+  << std::endl
+  << "  -r                     Run simulation on start."
+  << " The default is false, which starts simulation paused."
   << std::endl
   << std::endl;
 }
@@ -122,91 +132,28 @@ int main(int _argc, char **_argv)
     return 0;
   }
 
+  // Set verbosity
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
-  ignmsg << "Ignition Gazebo GUI v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
-  // Temporary transport interface
-  auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
-
-  // Initialize Qt app
-  ignition::gui::Application app(_argc, _argv);
-
-  // Load configuration file
-  auto configPath = ignition::common::joinPaths(
-      IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
-
-  if (!app.LoadConfig(configPath))
+  ignition::gazebo::ServerConfig serverConfig;
+  if (!serverConfig.SetSdfFile(FLAGS_f))
   {
+    ignerr << "Failed to set SDF file [" << FLAGS_f << "]" << std::endl;
     return -1;
   }
 
-  // Customize window
-  auto win = app.findChild<ignition::gui::MainWindow *>()->QuickWindow();
-  win->setProperty("title", "Gazebo");
+  // Set the update rate.
+  if (FLAGS_z > 0.0)
+    serverConfig.SetUpdateRate(FLAGS_z);
 
-  // Let QML files use TmpIface' functions and properties
-  auto context = new QQmlContext(app.Engine()->rootContext());
-  context->setContextProperty("TmpIface", tmp.get());
+  // Create the Gazebo server
+  ignition::gazebo::Server server(serverConfig);
 
-  // Instantiate GazeboDrawer.qml file into a component
-  QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
-  auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
-  if (gzDrawerItem)
-  {
-    // C++ ownership
-    QQmlEngine::setObjectOwnership(gzDrawerItem, QQmlEngine::CppOwnership);
+  // Run the server
+  server.Run(true, FLAGS_iterations, !FLAGS_r);
 
-    // Add to main window
-    auto parentDrawerItem = win->findChild<QQuickItem *>("sideDrawer");
-    gzDrawerItem->setParentItem(parentDrawerItem);
-    gzDrawerItem->setParent(app.Engine());
-  }
-  else
-  {
-    ignerr << "Failed to instantiate custom drawer, drawer will be empty"
-           << std::endl;
-  }
-
-  // Request GUI info
-  // TODO
-  std::string service{"/world/shapes/gui/info"};
-  ignition::transport::Node node;
-
-  bool executed{false};
-  bool result{false};
-  unsigned int timeout{5000};
-
-  igndbg << std::endl << "Requesting GUI from [" << service
-            << "]..." << std::endl << std::endl;
-
-  // Request and block
-  ignition::msgs::GUI res;
-  executed = node.Request(service, timeout, res, result);
-
-  if (!executed)
-    ignerr << std::endl << "Service call timed out" << std::endl;
-  else if (!result)
-    ignerr << std::endl<< "Service call failed" << std::endl;
-
-  for (int p = 0; p < res.plugin_size(); ++p)
-  {
-    auto plugin = res.plugin(p);
-    auto fileName = plugin.filename();
-    std::string pluginStr = "<plugin filename='" + fileName + "'>" +
-        plugin.innerxml() + "</plugin>";
-
-    tinyxml2::XMLDocument pluginDoc;
-    pluginDoc.Parse(pluginStr.c_str());
-
-    ignition::gui::App()->LoadPlugin(fileName,
-        pluginDoc.FirstChildElement("plugin"));
-  }
-
-  // Run main window.
-  // This blocks until the window is closed or we receive a SIGINT
-  app.exec();
-
-  igndbg << "Shutting down ign-gazebo-gui" << std::endl;
+  igndbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;
 }
