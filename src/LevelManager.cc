@@ -147,40 +147,6 @@ void LevelManager::ReadLevelPerformerInfo()
         levelEntity, components::NameSet(entityNames));
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::Geometry(geometry));
-
-    // Visualization
-    // The levelLinkEntity and levelVisualEntities are only used for visualizing
-    // the level for debugging. They may be removed if this is no longer needed.
-    // TODO(addisu): This won't work with physics
-    const bool visualizeLevels = false;
-    if (visualizeLevels)
-    {
-      EntityId levelLinkEntity = this->runner->entityCompMgr.CreateEntity();
-      this->runner->entityCompMgr.CreateComponent(
-          levelLinkEntity, components::Link());
-      this->runner->entityCompMgr.CreateComponent(
-          levelLinkEntity, components::Pose(math::Pose3d()));
-      this->runner->entityCompMgr.CreateComponent(
-          levelLinkEntity, components::Name(name + "::link"));
-      this->runner->entityCompMgr.CreateComponent(
-          levelLinkEntity, components::ParentEntity(levelEntity));
-
-      EntityId levelVisualEntity = this->runner->entityCompMgr.CreateEntity();
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::Visual());
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::ParentEntity(levelLinkEntity));
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::Pose(math::Pose3d()));
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::Name(name + "::visual"));
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::Geometry(geometry));
-      sdf::Material mat;
-      mat.SetAmbient({1, 1, 1, 0.1});
-      this->runner->entityCompMgr.CreateComponent(
-          levelVisualEntity, components::Material(mat));
-    }
   }
 
   // Create the default level. This level contains all entities not contained by
@@ -418,7 +384,6 @@ void LevelManager::UnloadInactiveLevels()
           }
           return true;
         });
-
   }
 
   this->levelsToUnload.clear();
@@ -472,11 +437,10 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
 
     this->runner->entityCompMgr.CreateComponent(jointEntity,
         components::ParentEntity(modelEntity));
-
   }
 
   // Model plugins
-  // TODO (addisu) Don't load plugins if they have been loaded already. Do we
+  // TODO(addisu) Don't load plugins if they have been loaded already. Do we
   // need to unload plugins if they are attached to an entity that gets unloaded
   this->LoadPlugins(_model->Element(), modelEntity);
 
