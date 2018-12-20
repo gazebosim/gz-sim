@@ -65,7 +65,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/ScalarVelocity.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -352,16 +352,20 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
   // Handle joint state
-  _ecm.Each<components::Joint, components::ScalarVelocity>(
-      [&](const EntityId &_entity, const components::Joint *, const
-          components::ScalarVelocity *_vel)->bool
+  _ecm.Each<components::Joint>(
+      [&](const EntityId &_entity, const components::Joint *)
       {
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt == this->entityJointMap.end())
           return true;
 
-        // TODO(louise) Support multi-axis joints
-        jointIt->second->SetVelocity(0, _vel->Data());
+        auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
+        if (vel1)
+          jointIt->second->SetVelocity(0, vel1->Data());
+
+        auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
+        if (vel2)
+          jointIt->second->SetVelocity(1, vel2->Data());
 
         return true;
       });

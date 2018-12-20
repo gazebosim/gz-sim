@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SCALARVELOCITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SCALARVELOCITY_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -30,8 +30,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief
-  using ScalarVelocity = SimpleWrapper<double, class ScalarVelocityTag>;
+  /// \brief Velocity of a joint's first axis in SI units (rad/s for revolute,
+  /// m/s for prismatic).
+  using JointVelocity = SimpleWrapper<double, class JointVelocityTag>;
+
+  /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
+  /// m/s for prismatic).
+  using JointVelocity2 = SimpleWrapper<double, class JointVelocity2Tag>;
 }
 }
 }
