@@ -15,6 +15,8 @@
  *
 */
 
+#include <chrono>
+
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
@@ -56,7 +58,7 @@ void AddLights(T *_msg,
     if (!lightMsg)
       continue;
 
-    _msg->add_light()->CopyFrom(*lightMsg.get());
+    _msg->add_light()->CopyFrom(*lightMsg);
   }
 }
 
@@ -76,7 +78,7 @@ void AddVisuals(msgs::Link *_msg,
     if (!visualMsg)
       continue;
 
-    _msg->add_visual()->CopyFrom(*visualMsg.get());
+    _msg->add_visual()->CopyFrom(*visualMsg);
   }
 }
 
@@ -96,13 +98,14 @@ void AddLinks(msgs::Model *_msg,
     if (!linkMsg)
       continue;
 
+    auto msgOut = _msg->add_link();
+    msgOut->CopyFrom(*linkMsg);
+
     // Visuals
-    AddVisuals(linkMsg.get(), vertex.second.get().Id(), _graph);
+    AddVisuals(msgOut, vertex.second.get().Id(), _graph);
 
     // Lights
-    AddLights(linkMsg.get(), vertex.second.get().Id(), _graph);
-
-    _msg->add_link()->CopyFrom(*linkMsg.get());
+    AddLights(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 
@@ -121,13 +124,14 @@ void AddModels(T *_msg,
     if (!modelMsg)
       continue;
 
+    auto msgOut = _msg->add_model();
+    msgOut->CopyFrom(*modelMsg);
+
     // Nested models
-    AddModels(modelMsg.get(), vertex.second.get().Id(), _graph);
+    AddModels(msgOut, vertex.first, _graph);
 
     // Links
-    AddLinks(modelMsg.get(), vertex.second.get().Id(), _graph);
-
-    _msg->add_model()->CopyFrom(*modelMsg.get());
+    AddLinks(msgOut, vertex.first, _graph);
   }
 }
 
@@ -187,6 +191,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: transport::Node::Publisher requestPub;
 
   /// \brief Graph containing latest information from entities.
+  /// The data in each node is the message associated with that entity only.
+  /// i.e, a model node only has a message only about the model. It will not
+  /// have any links, joints, etc. To create a the whole scene, one has to
+  /// traverse the graph adding messages as necessary.
   public: math::graph::DirectedGraph<
       std::shared_ptr<google::protobuf::Message>, bool> sceneGraph;
 
@@ -242,18 +250,18 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 
   msgs::Pose_V poseMsg;
   // Levels
-  _manager.Each<components::Level, components::Name, components::Pose>(
-      [&](const EntityId &_entity, const components::Level *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
+  // _manager.Each<components::Level, components::Name, components::Pose>(
+  //     [&](const EntityId &_entity, const components::Level *,
+  //         const components::Name *_nameComp,
+  //         const components::Pose *_poseComp) -> bool
+  //     {
+  //       // Add to pose msg
+  //       auto pose = poseMsg.add_pose();
+  //       msgs::Set(pose, _poseComp->Data());
+  //       pose->set_name(_nameComp->Data());
+  //       pose->set_id(_entity);
+  //       return true;
+  //     });
 
   // Models
   _manager.Each<components::Model, components::Name, components::Pose>(
@@ -412,26 +420,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
   bool newEntity{false};
 
   // Levels
-  _manager.EachNew<components::Level, components::Name,
-                   components::ParentEntity, components::Pose>(
-      [&](const EntityId &_entity, const components::Level *,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // use a model for level visualization. May need to change later
-        auto levelMsg = std::make_shared<msgs::Model>();
-        levelMsg->set_id(_entity);
-        levelMsg->set_name(_nameComp->Data());
-        levelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+  // _manager.EachNew<components::Level, components::Name,
+  //                  components::ParentEntity, components::Pose>(
+  //     [&](const EntityId &_entity, const components::Level *,
+  //         const components::Name *_nameComp,
+  //         const components::ParentEntity *_parentComp,
+  //         const components::Pose *_poseComp) -> bool
+  //     {
+  //       // use a model for level visualization. May need to change later
+  //       auto levelMsg = std::make_shared<msgs::Model>();
+  //       levelMsg->set_id(_entity);
+  //       levelMsg->set_name(_nameComp->Data());
+  //       levelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
-        // Add to graph
-        this->sceneGraph.AddVertex(_nameComp->Data(), levelMsg, _entity);
-        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+  //       // Add to graph
+  //       this->sceneGraph.AddVertex(_nameComp->Data(), levelMsg, _entity);
+  //       this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
-        newEntity = true;
-        return true;
-      });
+  //       newEntity = true;
+  //       return true;
+  //     });
 
   // Models
   _manager.EachNew<components::Model, components::Name,
