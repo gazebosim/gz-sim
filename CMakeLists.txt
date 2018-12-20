@@ -43,7 +43,7 @@ ign_find_package(ignition-common3 REQUIRED)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-transport
+# Find ignition-fuel_tools
 ign_find_package(ignition-fuel_tools2 REQUIRED)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools2_VERSION_MAJOR})
 
