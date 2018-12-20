@@ -31,6 +31,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Link.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -84,6 +85,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::RemoveEntities,
           ignition::physics::SetLinkState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
@@ -191,7 +193,6 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   if (this->dataPtr->engine)
   {
-
     this->dataPtr->CreatePhysicsEntities(_ecm);
     // Only step if not paused.
     if (!_info.paused)
@@ -368,8 +369,13 @@ void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
       [&](const EntityId &_entity,
         const components::Model * /* _model */) -> bool
       {
-        // Erase entity from map if found
-        this->entityModelMap.erase(_entity);
+        // Erase model if found
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt != this->entityModelMap.end())
+        {
+          modelIt->second->Remove();
+          this->entityModelMap.erase(_entity);
+        }
         return true;
       });
 
@@ -377,7 +383,8 @@ void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
       [&](const EntityId &_entity,
         const components::Link * /* _link */) -> bool
       {
-        // Erase entity from map if found
+        // Assume that links will be removed when the containing model gets
+        // removed. Here, only remove the entity from the map.
         this->entityLinkMap.erase(_entity);
         return true;
       });
