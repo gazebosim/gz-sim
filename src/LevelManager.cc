@@ -46,7 +46,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RenderState.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -57,7 +56,6 @@
 
 using namespace ignition;
 using namespace gazebo;
-
 
 /////////////////////////////////////////////////
 LevelManager::LevelManager(SimulationRunner *_runner)
@@ -82,7 +80,7 @@ void LevelManager::ReadLevelPerformerInfo()
   for (auto performer = worldElem->GetElement("performer"); performer;
        performer = performer->GetNextElement("performer"))
   {
-    std::string name = performer->Get<std::string>("name");
+    auto name = performer->Get<std::string>("name");
 
     EntityId performerEntity = this->runner->entityCompMgr.CreateEntity();
     // We use the ref to create a parent entity component later on
@@ -202,7 +200,9 @@ void LevelManager::ReadLevelPerformerInfo()
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     // If model is a performer, it will be handled separately
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
+    {
       continue;
+    }
 
     if (entityNamesInLevels.find(model->Name()) == entityNamesInLevels.end())
     {
@@ -370,7 +370,6 @@ void LevelManager::LoadActiveLevels()
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (entityNamesUnion.find(model->Name()) != entityNamesUnion.end())
     {
-      igndbg << "Creating model: " << model->Name() << "\n";
       EntityId modelEntity = this->CreateEntities(model);
       this->runner->entityCompMgr.CreateComponent(
           modelEntity, components::ParentEntity(this->worldEntity));
@@ -396,9 +395,32 @@ void LevelManager::LoadActiveLevels()
 /////////////////////////////////////////////////
 void LevelManager::UnloadInactiveLevels()
 {
-  // for (auto level : this->levelsToUnload) {
-  //   this->UnloadLevel(level);
-  // }
+  for (auto level : this->levelsToUnload)
+  {
+    this->activeLevels.erase(level);
+    // Erase all entities in the level
+    // TODO(addisu) Handle the case where an entity is in multiple levels.
+    auto nameList =
+        this->runner->entityCompMgr.Component<components::NameSet>(level);
+
+    if (nameList == nullptr)
+    {
+      continue;
+    }
+
+    this->runner->entityCompMgr.Each<components::Model, components::Name>(
+        [&](const EntityId &_entity, const components::Model *,
+            const components::Name *_name) -> bool
+        {
+          if (nameList->Data().find(_name->Data()) != nameList->Data().end())
+          {
+            EraseEntityRecursively(_entity);
+          }
+          return true;
+        });
+
+  }
+
   this->levelsToUnload.clear();
 }
 
@@ -408,6 +430,8 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
   // Entity
   EntityId modelEntity = this->runner->entityCompMgr.CreateEntity();
 
+  this->entityGraph.AddVertex(_model->Name(), modelEntity, modelEntity);
+
   // Components
   this->runner->entityCompMgr.CreateComponent(modelEntity, components::Model());
   this->runner->entityCompMgr.CreateComponent(
@@ -416,8 +440,6 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
       modelEntity, components::Name(_model->Name()));
   this->runner->entityCompMgr.CreateComponent(
       modelEntity, components::Static(_model->Static()));
-  this->runner->entityCompMgr.CreateComponent(
-      modelEntity, components::RenderState(true));
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -428,6 +450,8 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
   {
     auto link = _model->LinkByIndex(linkIndex);
     auto linkEntity = this->CreateEntities(link);
+    // Assume the link entity node is created in CreateEntities(sdf::Link)
+    this->entityGraph.AddEdge({modelEntity, linkEntity}, true);
 
     this->runner->entityCompMgr.CreateComponent(linkEntity,
         components::ParentEntity(modelEntity));
@@ -443,13 +467,17 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
       ++jointIndex)
   {
     auto joint = _model->JointByIndex(jointIndex);
-    auto linkEntity = this->CreateEntities(joint);
+    auto jointEntity = this->CreateEntities(joint);
+    this->entityGraph.AddEdge({modelEntity, jointEntity}, true);
 
-    this->runner->entityCompMgr.CreateComponent(linkEntity,
+    this->runner->entityCompMgr.CreateComponent(jointEntity,
         components::ParentEntity(modelEntity));
+
   }
 
   // Model plugins
+  // TODO (addisu) Don't load plugins if they have been loaded already. Do we
+  // need to unload plugins if they are attached to an entity that gets unloaded
   this->LoadPlugins(_model->Element(), modelEntity);
 
   return modelEntity;
@@ -460,6 +488,8 @@ EntityId LevelManager::CreateEntities(const sdf::Light *_light)
 {
   // Entity
   EntityId lightEntity = this->runner->entityCompMgr.CreateEntity();
+
+  this->entityGraph.AddVertex(_light->Name(), lightEntity, lightEntity);
 
   // Components
   this->runner->entityCompMgr.CreateComponent(
@@ -478,6 +508,8 @@ EntityId LevelManager::CreateEntities(const sdf::Link *_link)
   // Entity
   EntityId linkEntity = this->runner->entityCompMgr.CreateEntity();
 
+  this->entityGraph.AddVertex(_link->Name(), linkEntity, linkEntity);
+
   // Components
   this->runner->entityCompMgr.CreateComponent(linkEntity, components::Link());
   this->runner->entityCompMgr.CreateComponent(linkEntity,
@@ -493,6 +525,7 @@ EntityId LevelManager::CreateEntities(const sdf::Link *_link)
   {
     auto visual = _link->VisualByIndex(visualIndex);
     auto visualEntity = this->CreateEntities(visual);
+    this->entityGraph.AddEdge({linkEntity, visualEntity}, true);
 
     this->runner->entityCompMgr.CreateComponent(visualEntity,
         components::ParentEntity(linkEntity));
@@ -504,6 +537,7 @@ EntityId LevelManager::CreateEntities(const sdf::Link *_link)
   {
     auto collision = _link->CollisionByIndex(collisionIndex);
     auto collisionEntity = this->CreateEntities(collision);
+    this->entityGraph.AddEdge({linkEntity, collisionEntity}, true);
 
     this->runner->entityCompMgr.CreateComponent(collisionEntity,
         components::ParentEntity(linkEntity));
@@ -515,6 +549,7 @@ EntityId LevelManager::CreateEntities(const sdf::Link *_link)
   {
     auto light = _link->LightByIndex(lightIndex);
     auto lightEntity = this->CreateEntities(light);
+    this->entityGraph.AddEdge({linkEntity, lightEntity}, true);
 
     this->runner->entityCompMgr.CreateComponent(lightEntity,
         components::ParentEntity(linkEntity));
@@ -528,6 +563,8 @@ EntityId LevelManager::CreateEntities(const sdf::Joint *_joint)
 {
   // Entity
   EntityId jointEntity = this->runner->entityCompMgr.CreateEntity();
+
+  this->entityGraph.AddVertex(_joint->Name(), jointEntity, jointEntity);
 
   // Components
   this->runner->entityCompMgr.CreateComponent(jointEntity,
@@ -567,6 +604,8 @@ EntityId LevelManager::CreateEntities(const sdf::Visual *_visual)
   // Entity
   EntityId visualEntity = this->runner->entityCompMgr.CreateEntity();
 
+  this->entityGraph.AddVertex(_visual->Name(), visualEntity, visualEntity);
+
   // Components
   this->runner->entityCompMgr.CreateComponent(
       visualEntity, components::Visual());
@@ -596,6 +635,9 @@ EntityId LevelManager::CreateEntities(const sdf::Collision *_collision)
 {
   // Entity
   EntityId collisionEntity = this->runner->entityCompMgr.CreateEntity();
+
+  this->entityGraph.AddVertex(_collision->Name(), collisionEntity,
+                              collisionEntity);
 
   // Components
   this->runner->entityCompMgr.CreateComponent(collisionEntity,
@@ -640,3 +682,20 @@ void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
   }
 }
 
+//////////////////////////////////////////////////
+void LevelManager::EraseEntityRecursively(const EntityId _id)
+{
+  for (const auto &vertex : this->entityGraph.AdjacentsFrom(_id))
+  {
+    this->EraseEntityRecursively(vertex.first);
+  }
+
+  // Remove from ECM
+  this->runner->entityCompMgr.RequestEraseEntity(_id);
+  // Remove the vertex from the graph
+  bool rc = this->entityGraph.RemoveVertex(_id);
+  if (!rc)
+  {
+    ignerr << "Removing node " << _id << " failed\n";
+  }
+}

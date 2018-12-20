@@ -133,6 +133,10 @@ namespace ignition
       /// \param[in] _id Entity Id
       public: void LoadPlugins(const sdf::ElementPtr &_sdf, const EntityId _id);
 
+      // \brief Erase the entity and its children recursively
+      /// \param[in] _id Entity Id
+      public: void EraseEntityRecursively(const EntityId _id);
+
       /// \brief Set of currently active (loaded) levels
       private: std::unordered_set<EntityId> activeLevels;
 
@@ -148,6 +152,11 @@ namespace ignition
 
       /// \brief Map of names of references to the containing performer
       private: std::unordered_map<std::string, EntityId> performerMap;
+
+      /// \brief Graph of entities currenty loaded in the level. This
+      /// is useful for erasing entities when a level is unloaded. This
+      /// graph won't contain performers
+      private: math::graph::DirectedGraph<EntityId, bool> entityGraph;
 
       /// \brief EntityId of the world
       private: EntityId worldEntity = kNullEntity;

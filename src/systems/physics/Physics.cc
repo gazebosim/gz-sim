@@ -106,11 +106,17 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using LinkPtrType = ignition::physics::LinkPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  public: using ShapePtrType = ignition::physics::ShapePtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
   public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Delete physics entities if they are removed from the ECM
+  public: void DeletePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
   public: void UpdatePhysics(const EntityComponentManager &_ecm);
@@ -132,6 +138,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
+
+  /// \brief A map between link entity ids in the ECM to Link Entities in
+  /// ign-physics.
+  public: std::unordered_map<EntityId, ShapePtrType> entityCollisionMap;
 
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
@@ -174,9 +184,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 }
 
 //////////////////////////////////////////////////
-Physics::~Physics()
-{
-}
+Physics::~Physics() = default;
 
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
@@ -192,6 +200,11 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->Step(_info.dt);
       this->dataPtr->UpdateSim(_ecm);
     }
+
+    // Entities scheduled to be erased should be erased from physics after the
+    // simulation step. Otherwise, since the to-be-erased entity still shows up
+    // in the ECM::Each the UpdatePhysics and UpdateSim calls will have an error
+    this->dataPtr->DeletePhysicsEntities(_ecm);
   }
 }
 
@@ -276,21 +289,26 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   // collisions
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
-            components::Geometry, components::ParentEntity>(
-      [&](const EntityId & /* _entity */,
-        const components::Collision * /* _collision */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::Geometry *_geom,
-        const components::ParentEntity *_parent)->bool
+               components::Geometry, components::ParentEntity>(
+      [&](const EntityId &_entity,
+          const components::Collision * /* _collision */,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::ParentEntity *_parent) -> bool
       {
-        sdf::Collision collision;
-        collision.SetName(_name->Data());
-        collision.SetPose(_pose->Data());
-        collision.SetGeom(_geom->Data());
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
-        linkPtrPhys->ConstructCollision(collision);
-        // for now, we won't have a map to the collision once it's added
+        if (this->entityCollisionMap.find(_entity) ==
+            this->entityCollisionMap.end())
+        {
+          sdf::Collision collision;
+          collision.SetName(_name->Data());
+          collision.SetPose(_pose->Data());
+          collision.SetGeom(_geom->Data());
+          auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
+          linkPtrPhys->ConstructCollision(collision);
+          // for now, we won't have a map to the collision once it's added
+          this->entityCollisionMap.insert(std::make_pair(_entity, nullptr));
+        }
         return true;
       });
 
@@ -309,29 +327,65 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::ParentLinkName *_parentLinkName,
         const components::ChildLinkName *_childLinkName)->bool
       {
-        sdf::Joint joint;
-        joint.SetName(_name->Data());
-        joint.SetType(_jointType->Data());
-        joint.SetPose(_pose->Data());
-        joint.SetThreadPitch(_threadPitch->Data());
+        if (this->entityJointMap.find(_entity) == this->entityJointMap.end())
+        {
+          sdf::Joint joint;
+          joint.SetName(_name->Data());
+          joint.SetType(_jointType->Data());
+          joint.SetPose(_pose->Data());
+          joint.SetThreadPitch(_threadPitch->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+          joint.SetParentLinkName(_parentLinkName->Data());
+          joint.SetChildLinkName(_childLinkName->Data());
 
-        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
-        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
-        if (jointAxis)
+          if (jointAxis)
             joint.SetAxis(0, jointAxis->Data());
-        if (jointAxis2)
+          if (jointAxis2)
             joint.SetAxis(1, jointAxis2->Data());
 
-        // Use the parent link's parent model as the model of this joint
-        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
-        modelPtrPhys->ConstructJoint(joint);
+          // Use the parent link's parent model as the model of this joint
+          auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
+          auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
+          this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        }
         return true;
       });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
+{
+  // TODO(addisu) Actually delete entities in ign-physics when that feature is
+  // added
+  // Assume the world will not be erased
+
+  // Models
+  _ecm.EachErased<components::Model>(
+      [&](const EntityId &_entity,
+        const components::Model * /* _model */) -> bool
+      {
+        // Erase entity from map if found
+        this->entityModelMap.erase(_entity);
+        return true;
+      });
+
+  _ecm.EachErased<components::Link>(
+      [&](const EntityId &_entity,
+        const components::Link * /* _link */) -> bool
+      {
+        // Erase entity from map if found
+        this->entityLinkMap.erase(_entity);
+        return true;
+      });
+
+  // We don't have a map of collisions, so skip them
+
+  // We don't have a map of joints, so skip them for now
+  // TODO(addisu) Remove joints
 }
 
 //////////////////////////////////////////////////
@@ -419,7 +473,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         }
         else
         {
-          ignwarn << "Unknown link with id " << _entity << " found\n";
+          // TODO(addisu) Enable warning once we are able to delete entities
+          // from ign-physics. Currently, we only remove entities from the maps
+          // and leaving this uncommented will cause false warnings
+          // ignwarn << "Unknown link with id " << _entity << " found\n";
         }
         return true;
       });
