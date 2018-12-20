@@ -107,8 +107,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
   // World control
-  this->node.Advertise("/world/" + this->worldName + "/control",
-        &SimulationRunner::OnWorldControl, this);
+  transport::NodeOptions opts;
+  opts.SetNameSpace("/world/" + this->worldName);
+  this->node = std::make_unique<transport::Node>(opts);
+
+  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
 
   ignmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
@@ -180,8 +183,8 @@ void SimulationRunner::PublishStats()
   {
     transport::AdvertiseMessageOptions advertOpts;
     advertOpts.SetMsgsPerSec(5);
-    this->statsPub = this->node.Advertise<ignition::msgs::WorldStatistics>(
-          "/world/" + this->worldName + "/stats", advertOpts);
+    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+        "stats", advertOpts);
   }
 
   // Create the world statistics message.
@@ -348,8 +351,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity, components::World());
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
-  this->entityCompMgr.CreateComponent(worldEntity,
-      components::Gui(*_world->Gui()));
+  if (_world->Gui())
+  {
+    this->entityCompMgr.CreateComponent(worldEntity,
+        components::Gui(*_world->Gui()));
+  }
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();

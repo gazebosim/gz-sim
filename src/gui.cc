@@ -123,7 +123,7 @@ int main(int _argc, char **_argv)
   }
 
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
-  ignmsg << "Ignition Gazebo GUI v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Temporary transport interface
@@ -168,39 +168,59 @@ int main(int _argc, char **_argv)
            << std::endl;
   }
 
-  // Request GUI info
-  // TODO
-  std::string service{"/world/shapes/gui/info"};
+  // Get list of worlds
   ignition::transport::Node node;
 
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
+  std::string service{"/gazebo/worlds"};
 
-  igndbg << std::endl << "Requesting GUI from [" << service
-            << "]..." << std::endl << std::endl;
+  igndbg << "Requesting list of world names..." << std::endl;
 
-  // Request and block
-  ignition::msgs::GUI res;
-  executed = node.Request(service, timeout, res, result);
+  ignition::msgs::StringMsg_V worldsMsg;
+  executed = node.Request(service, timeout, worldsMsg, result);
 
   if (!executed)
-    ignerr << std::endl << "Service call timed out" << std::endl;
+    ignerr << "Timed out when getting world names." << std::endl;
   else if (!result)
-    ignerr << std::endl<< "Service call failed" << std::endl;
+    ignerr << "Failed to get world names." << std::endl;
 
-  for (int p = 0; p < res.plugin_size(); ++p)
+  if (!executed || !result)
+    return -1;
+
+  // TODO(anyone) Parallelize this if multiple worlds becomes an important use
+  // case.
+  for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
-    auto plugin = res.plugin(p);
-    auto fileName = plugin.filename();
-    std::string pluginStr = "<plugin filename='" + fileName + "'>" +
-        plugin.innerxml() + "</plugin>";
+    // Request GUI info for each world
+    result = false;
+    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
 
-    tinyxml2::XMLDocument pluginDoc;
-    pluginDoc.Parse(pluginStr.c_str());
+    igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
-    ignition::gui::App()->LoadPlugin(fileName,
-        pluginDoc.FirstChildElement("plugin"));
+    // Request and block
+    ignition::msgs::GUI res;
+    executed = node.Request(service, timeout, res, result);
+
+    if (!executed)
+      ignerr << "Service call timed out for [" << service << "]" << std::endl;
+    else if (!result)
+      ignerr << "Service call failed for [" << service << "]" << std::endl;
+
+    for (int p = 0; p < res.plugin_size(); ++p)
+    {
+      auto plugin = res.plugin(p);
+      auto fileName = plugin.filename();
+      std::string pluginStr = "<plugin filename='" + fileName + "'>" +
+          plugin.innerxml() + "</plugin>";
+
+      tinyxml2::XMLDocument pluginDoc;
+      pluginDoc.Parse(pluginStr.c_str());
+
+      ignition::gui::App()->LoadPlugin(fileName,
+          pluginDoc.FirstChildElement("plugin"));
+    }
   }
 
   // Run main window.

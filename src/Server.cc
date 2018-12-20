@@ -126,6 +126,9 @@ Server::Server(const ServerConfig &_config)
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
+
+  // Advertise available worlds
+  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////

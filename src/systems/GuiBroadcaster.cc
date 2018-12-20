@@ -15,8 +15,9 @@
  *
 */
 
-#include <sdf/Gui.hh>
 #include <ignition/msgs/gui.pb.h>
+
+#include <sdf/Gui.hh>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
 
@@ -39,7 +40,7 @@ class ignition::gazebo::systems::GuiBroadcasterPrivate
   public: bool GuiInfoService(ignition::msgs::GUI &_res);
 
   /// \brief Transport node.
-  public: transport::Node node;
+  public: std::unique_ptr<transport::Node> node{nullptr};
 
   /// \brief Keep the latest GUI message.
   public: msgs::GUI msg;
@@ -70,12 +71,17 @@ void GuiBroadcaster::Configure(const EntityId &_id,
   this->dataPtr->msg = Convert<msgs::GUI>(gui);
 
   // Gui info service
-  std::string infoService{"/world/" + worldName + "/gui/info"};
+  transport::NodeOptions opts;
+  opts.SetNameSpace("/world/" + worldName);
+  this->dataPtr->node = std::make_unique<transport::Node>(opts);
 
-  this->dataPtr->node.Advertise(infoService,
+  std::string infoService{"gui/info"};
+
+  this->dataPtr->node->Advertise(infoService,
       &GuiBroadcasterPrivate::GuiInfoService, this->dataPtr.get());
 
-  ignmsg << "Serving GUI information on [" << infoService << "]" << std::endl;
+  ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
