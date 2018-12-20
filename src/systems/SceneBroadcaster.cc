@@ -15,8 +15,6 @@
  *
 */
 
-#include <chrono>
-
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
@@ -368,7 +366,6 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
 
   ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
-
 }
 
 //////////////////////////////////////////////////
