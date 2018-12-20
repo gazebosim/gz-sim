@@ -42,7 +42,7 @@ namespace ignition
       public: explicit Model(EntityId _id = kNullEntity);
 
       /// \brief Copy constructor
-      /// \param[in] _model Model to move.
+      /// \param[in] _model Model to copy.
       public: Model(const Model &_model);
 
       /// \brief Move constructor
@@ -52,7 +52,7 @@ namespace ignition
       /// \brief Move assignment operator.
       /// \param[in] _model Model component to move.
       /// \return Reference to this.
-      public: Model &operator=(Model &&_model);
+      public: Model &operator=(Model &&_model) noexcept;
 
       /// \brief Copy assignment operator.
       /// \param[in] _model Model to copy.
