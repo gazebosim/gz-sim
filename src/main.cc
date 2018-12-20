@@ -200,7 +200,8 @@ int main(int _argc, char **_argv)
 
   // Run Gazebo
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
-  ignmsg << "Ignition Gazebo v" << IGNITION_GAZEBO_VERSION_FULL << std::endl;
+  ignmsg << "Ignition Gazebo        v" << IGNITION_GAZEBO_VERSION_FULL
+         << std::endl;
 
   // Run the server
   pid_t serverPid;
@@ -237,7 +238,7 @@ int main(int _argc, char **_argv)
   bool guiKilled = false;
   bool serverKilled = false;
   bool sigKilled = false;
-  sigHandler.AddCallback([&](int)
+  sigHandler.AddCallback([&](const int /*_sig*/)
   {
     sigKilled = true;
     KillProcess(guiPid, "ign-gazebo-gui", 5.0, guiKilled);

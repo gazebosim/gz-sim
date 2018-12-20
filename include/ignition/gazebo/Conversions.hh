@@ -37,6 +37,8 @@
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
+#include <string>
+
 namespace ignition
 {
   namespace gazebo
