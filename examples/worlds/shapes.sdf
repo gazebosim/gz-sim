@@ -241,19 +241,5 @@
         </visual>
       </link>
     </model>
-
-    <model name="mesh">
-      <pose>0 2.5 0.5 0 0 0</pose>
-      <link name="link">
-        <visual name="visual">
-          <geometry>
-            <mesh>
-              <uri>https://api.ignitionfuel.org/openrobotics/models/beer</uri>
-            </mesh>
-          </geometry>
-        </visual>
-      </link>
-    </model>
-
   </world>
 </sdf>
