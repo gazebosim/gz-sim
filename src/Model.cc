@@ -47,9 +47,7 @@ Model::Model(const Model &_model)
 Model::Model(Model &&_model) noexcept = default;
 
 //////////////////////////////////////////////////
-Model::~Model()
-{
-}
+Model::~Model() = default;
 
 /////////////////////////////////////////////////
 Model &Model::operator=(const Model &_model)
@@ -59,11 +57,7 @@ Model &Model::operator=(const Model &_model)
 }
 
 /////////////////////////////////////////////////
-Model &Model::operator=(Model &&_model)
-{
-  this->dataPtr = std::move(_model.dataPtr);
-  return *this;
-}
+Model &Model::operator=(Model &&_model) noexcept = default;
 
 //////////////////////////////////////////////////
 EntityId Model::Id() const
