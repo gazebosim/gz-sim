@@ -23,7 +23,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ScalarVelocity.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/systems/DiffDrive.hh"
 #include "ignition/gazebo/Model.hh"
 
@@ -72,19 +72,24 @@ class ignition::gazebo::systems::DiffDrivePrivate
 DiffDrive::DiffDrive()
   : dataPtr(std::make_unique<DiffDrivePrivate>())
 {
-  this->dataPtr->node.Subscribe("/cmd_vel",
-                                &DiffDrivePrivate::OnCmdVel,
-                                this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
 void DiffDrive::Configure(const EntityId &_id,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/,
+    EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_id);
 
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    ignerr << "DiffDrive plugin should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
+
+  // Get params from SDF
   this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
       this->dataPtr->leftJointName).first;
   this->dataPtr->rightJointName = _sdf->Get<std::string>("right_joint",
@@ -93,6 +98,14 @@ void DiffDrive::Configure(const EntityId &_id,
       this->dataPtr->wheelSeparation).first;
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
       this->dataPtr->wheelRadius).first;
+
+  // Subscribe to commands
+  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
+      this->dataPtr.get());
+
+  ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -119,30 +132,30 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   // Update left wheel
   auto leftVel =
-      _ecm.Component<components::ScalarVelocity>(this->dataPtr->leftJointId);
+      _ecm.Component<components::JointVelocity>(this->dataPtr->leftJointId);
 
   if (leftVel == nullptr)
   {
     _ecm.CreateComponent(this->dataPtr->leftJointId,
-        components::ScalarVelocity(this->dataPtr->leftJointSpeed));
+        components::JointVelocity(this->dataPtr->leftJointSpeed));
   }
   else
   {
-    *leftVel = components::ScalarVelocity(this->dataPtr->leftJointSpeed);
+    *leftVel = components::JointVelocity(this->dataPtr->leftJointSpeed);
   }
 
   // Update right wheel
   auto rightVel =
-      _ecm.Component<components::ScalarVelocity>(this->dataPtr->rightJointId);
+      _ecm.Component<components::JointVelocity>(this->dataPtr->rightJointId);
 
   if (rightVel == nullptr)
   {
     _ecm.CreateComponent(this->dataPtr->rightJointId,
-        components::ScalarVelocity(this->dataPtr->rightJointSpeed));
+        components::JointVelocity(this->dataPtr->rightJointSpeed));
   }
   else
   {
-    *rightVel = components::ScalarVelocity(this->dataPtr->rightJointSpeed);
+    *rightVel = components::JointVelocity(this->dataPtr->rightJointSpeed);
   }
 }
 
@@ -152,9 +165,9 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
   auto linVel = _msg.linear().x();
   auto angVel = _msg.angular().z();
 
-  this->leftJointSpeed =
-      (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
   this->rightJointSpeed =
+      (linVel + angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
+  this->leftJointSpeed =
     (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
 }
 

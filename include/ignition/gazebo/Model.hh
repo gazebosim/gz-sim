@@ -66,6 +66,17 @@ namespace ignition
       /// \return Model entity Id.
       public: EntityId Id() const;
 
+      /// \brief Check whether this model correctly refers to an entity that
+      /// has a components::Model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if it's a valid model in the manager.
+      public: bool Valid(EntityComponentManager &_ecm) const;
+
+      /// \brief Get the model's unscoped name.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Model's name.
+      public: std::string Name(EntityComponentManager &_ecm) const;
+
       /// \brief Get the ID of a joint entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.

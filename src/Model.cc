@@ -66,6 +66,22 @@ EntityId Model::Id() const
 }
 
 //////////////////////////////////////////////////
+bool Model::Valid(EntityComponentManager &_ecm) const
+{
+  return nullptr != _ecm.Component<components::Model>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::string Model::Name(EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return "";
+}
+
+//////////////////////////////////////////////////
 EntityId Model::JointByName(EntityComponentManager &_ecm,
     const std::string &_name)
 {
