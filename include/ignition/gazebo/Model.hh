@@ -43,11 +43,11 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _model Model to move.
-      public: Model(const Model &_model);
+      public: Model(const Model &_model) = default;
 
       /// \brief Move constructor
       /// \param[in] _model Model to move.
-      public: Model(Model &&_model) noexcept;
+      public: Model(Model &&_model) noexcept = default;
 
       /// \brief Move assignment operator.
       /// \param[in] _model Model component to move.
