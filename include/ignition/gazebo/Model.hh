@@ -43,11 +43,11 @@ namespace ignition
 
       /// \brief Copy constructor
       /// \param[in] _model Model to move.
-      public: Model(const Model &_model) = default;
+      public: Model(const Model &_model);
 
       /// \brief Move constructor
       /// \param[in] _model Model to move.
-      public: Model(Model &&_model) noexcept = default;
+      public: Model(Model &&_model) noexcept;
 
       /// \brief Move assignment operator.
       /// \param[in] _model Model component to move.
@@ -62,10 +62,15 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~Model();
 
+      /// \brief Get the ID of the entity which this Model is related to.
+      /// \return Model entity Id.
+      public: EntityId Id() const;
+
       /// \brief Get the ID of a joint entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Joint name.
+      /// \return Joint entity Id.
       public: EntityId JointByName(EntityComponentManager &_ecm,
           const std::string &_name);
 
@@ -73,6 +78,7 @@ namespace ignition
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Link name.
+      /// \return Link entity Id.
       public: EntityId LinkByName(EntityComponentManager &_ecm,
           const std::string &_name);
 
