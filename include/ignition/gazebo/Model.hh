@@ -41,13 +41,26 @@ namespace ignition
       /// \param[in] _id Model entity ID
       public: explicit Model(EntityId _id = kNullEntity);
 
-      /// \brief Destructor
-      public: virtual ~Model();
+      /// \brief Copy constructor
+      /// \param[in] _model Model to move.
+      public: Model(const Model &_model);
+
+      /// \brief Move constructor
+      /// \param[in] _model Model to move.
+      public: Model(Model &&_model) noexcept;
+
+      /// \brief Move assignment operator.
+      /// \param[in] _model Model component to move.
+      /// \return Reference to this.
+      public: Model &operator=(Model &&_model);
 
       /// \brief Copy assignment operator.
       /// \param[in] _model Model to copy.
       /// \return Reference to this.
       public: Model &operator=(const Model &_model);
+
+      /// \brief Destructor
+      public: virtual ~Model();
 
       /// \brief Get the ID of a joint entity which is an immediate child of
       /// this model.

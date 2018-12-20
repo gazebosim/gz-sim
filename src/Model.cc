@@ -37,15 +37,34 @@ Model::Model(EntityId _id)
   this->dataPtr->id = _id;
 }
 
+/////////////////////////////////////////////////
+Model::Model(const Model &_model)
+  : dataPtr(std::make_unique<ModelPrivate>(*_model.dataPtr))
+{
+}
+
+/////////////////////////////////////////////////
+Model::Model(Model &&_model) noexcept
+  : dataPtr(std::move(_model.dataPtr))
+{
+}
+
 //////////////////////////////////////////////////
 Model::~Model()
 {
 }
 
-//////////////////////////////////////////////////
+/////////////////////////////////////////////////
 Model &Model::operator=(const Model &_model)
 {
   *this->dataPtr = (*_model.dataPtr);
+  return *this;
+}
+
+/////////////////////////////////////////////////
+Model &Model::operator=(Model &&_model)
+{
+  this->dataPtr = std::move(_model.dataPtr);
   return *this;
 }
 
