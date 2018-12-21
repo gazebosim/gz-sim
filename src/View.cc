@@ -20,9 +20,13 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-void View::AddEntity(const EntityId _id)
+void View::AddEntity(const EntityId _id, const bool _new)
 {
   this->entities.insert(_id);
+  if (_new)
+  {
+    this->newEntities.insert(_id);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -42,6 +46,8 @@ bool View::EraseEntity(const EntityId _id, const ComponentTypeKey &_key)
 
   // Otherwise, remove the entity from the view
   this->entities.erase(_id);
+  this->newEntities.erase(_id);
+  this->toEraseEntities.erase(_id);
 
   // Remove the entity from the components map
   for (const ComponentTypeId &compTypeId : _key)
@@ -57,4 +63,19 @@ const void *View::ComponentImplementation(const EntityId _id,
 {
   return _ecm->ComponentImplementation(
       {_typeId, this->components.at({_id, _typeId})});
+}
+
+//////////////////////////////////////////////////
+void View::ClearNewEntities()
+{
+  this->newEntities.clear();
+}
+
+//////////////////////////////////////////////////
+bool View::AddEntityToErased(const EntityId _id)
+{
+  if (this->entities.find(_id) == this->entities.end())
+    return false;
+  this->toEraseEntities.insert(_id);
+  return true;
 }

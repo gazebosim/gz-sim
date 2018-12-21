@@ -33,12 +33,16 @@ namespace ignition {
       public: size_t updateCallCount {0};
       public: size_t postUpdateCallCount {0};
 
-      public: using CallbackType = std::function<void(const gazebo::UpdateInfo &,
-                  const gazebo::EntityComponentManager &)>;
+      public: using CallbackType = std::function<void(
+              const gazebo::UpdateInfo &, gazebo::EntityComponentManager &)>;
+
+      public: using CallbackTypeConst =
+              std::function<void(const gazebo::UpdateInfo &,
+                                 const gazebo::EntityComponentManager &)>;
 
       public: CallbackType preUpdateCallback;
       public: CallbackType updateCallback;
-      public: CallbackType postUpdateCallback;
+      public: CallbackTypeConst postUpdateCallback;
 
 
       public: void PreUpdate(const gazebo::UpdateInfo &_info,
