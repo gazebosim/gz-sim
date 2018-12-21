@@ -121,7 +121,7 @@
     </model>
 
     <include>
-      <uri>https://api.ignitionfuel.org/1.0/nate/models/my_Backpack</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
     </include>
   </world>
 </sdf>
