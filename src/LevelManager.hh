@@ -137,6 +137,9 @@ namespace ignition
       /// \param[in] _id Entity Id
       public: void EraseEntityRecursively(const EntityId _id);
 
+      private: void ReadPerformers(const sdf::ElementPtr &_sdf);
+      private: void ReadLevels(const sdf::ElementPtr &_sdf);
+
       /// \brief Set of currently active (loaded) levels
       private: std::unordered_set<EntityId> activeLevels;
 
