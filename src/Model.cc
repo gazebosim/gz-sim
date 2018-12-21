@@ -66,13 +66,13 @@ EntityId Model::Id() const
 }
 
 //////////////////////////////////////////////////
-bool Model::Valid(EntityComponentManager &_ecm) const
+bool Model::Valid(const EntityComponentManager &_ecm) const
 {
   return nullptr != _ecm.Component<components::Model>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
-std::string Model::Name(EntityComponentManager &_ecm) const
+std::string Model::Name(const EntityComponentManager &_ecm) const
 {
   auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
   if (comp)
@@ -82,7 +82,7 @@ std::string Model::Name(EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
-EntityId Model::JointByName(EntityComponentManager &_ecm,
+EntityId Model::JointByName(const EntityComponentManager &_ecm,
     const std::string &_name)
 {
   return _ecm.EntityByComponents(
@@ -92,7 +92,7 @@ EntityId Model::JointByName(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-EntityId Model::LinkByName(EntityComponentManager &_ecm,
+EntityId Model::LinkByName(const EntityComponentManager &_ecm,
     const std::string &_name)
 {
   return _ecm.EntityByComponents(
