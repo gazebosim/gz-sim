@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_TEST_TESTMODELSYSTEM_HH_
 #define IGNITION_GAZEBO_TEST_TESTMODELSYSTEM_HH_
 
+#include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
@@ -25,7 +26,7 @@ namespace gazebo
 {
 class TestModelSystem :
   public System,
-  public gazebo::ISystemConfigure
+  public ISystemConfigure
 {
   public: TestModelSystem() = default;
 
@@ -34,9 +35,22 @@ class TestModelSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
+          this->model = Model(_id);
+
+          auto link = this->model.LinkByName(_ecm, "link_1");
+
+          // Fail to create component if link is not found
+          if (link == kNullEntity)
+          {
+            ignerr << "Failed to find link" << std::endl;
+            return;
+          }
+
           auto value = _sdf->Get<int>("model_key");
           _ecm.CreateComponent<int>(_id, value);
         }
+
+  private: Model model;
 };
 }
 }
