@@ -24,7 +24,7 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
@@ -85,11 +85,25 @@
 
     </gui>
 
-    <light type="directional" name="sun">
+    <light type="directional" name="sun1">
       <cast_shadows>true</cast_shadows>
-      <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
       <specular>0.5 0.5 0.5 1</specular>
+      <direction>0.5 0.5 -1</direction>
+    </light>
+
+    <light type="directional" name="sun2">
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+
+    <light type="directional" name="sun3">
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 -0.5 -1</direction>
     </light>
 
     <model name="ground_plane">
