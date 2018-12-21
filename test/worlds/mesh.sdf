@@ -111,9 +111,12 @@
       <link name="link">
         <collision name="collision">
           <geometry>
-            <plane>
+            <!--plane>
               <normal>0 0 1</normal>
-            </plane>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
           </geometry>
         </collision>
         <visual name="visual">
@@ -134,20 +137,21 @@
     </model>
 
     <model name="duck1">
-      <pose>0 0 3 1.57 0.0 0.0</pose>
+      <pose>0 0 3 0.0 0.0</pose>
       <link name="link">
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>3.92</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>3.92</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>3.92</izz>
           </inertia>
-          <mass>1.0</mass>
+          <mass>39</mass>
         </inertial>
         <collision name="collision">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <scale>0.5 0.5 0.5</scale>
@@ -157,6 +161,7 @@
         </collision>
 
         <visual name="visual">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <scale>0.5 0.5 0.5</scale>
@@ -168,20 +173,21 @@
     </model>
 
     <model name="duck2">
-      <pose>2 2 1 0 0 0</pose>
+      <pose>2 2 1 0.5 0.5 0.5</pose>
       <link name="link">
         <inertial>
           <inertia>
-            <ixx>1</ixx>
+            <ixx>3.92</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>1</iyy>
+            <iyy>3.92</iyy>
             <iyz>0</iyz>
-            <izz>1</izz>
+            <izz>3.92</izz>
           </inertia>
-          <mass>1.0</mass>
+          <mass>39</mass>
         </inertial>
         <collision name="collision">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <uri>file://test/media/duck.dae</uri>
@@ -190,6 +196,7 @@
         </collision>
 
         <visual name="visual">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <uri>file://test/media/duck.dae</uri>
