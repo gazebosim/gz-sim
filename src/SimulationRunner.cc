@@ -552,24 +552,6 @@ EntityId SimulationRunner::CreateEntities(const sdf::Visual *_visual)
   if (_visual->Geom())
   {
     const sdf::Geometry *geom = _visual->Geom();
-    if (geom->Type() == sdf::GeometryType::MESH)
-    {
-      const sdf::Mesh *mesh = geom->MeshShape();
-      std::string uri = mesh->Uri();
-      std::cout << "Mesh URI[" << uri << "]\n";
-
-      ignition::fuel_tools::ServerConfig serverConf;
-      serverConf.SetUrl(ignition::common::URI("https://api.ignitionfuel.org"));
-      serverConf.SetVersion("1.0");
-
-      // Setup ClientConfig.
-      ignition::fuel_tools::ClientConfig conf;
-      conf.SetCacheLocation("/home/nkoenig/.ignition/fuel");
-      conf.AddServer(serverConf);
-
-      // Instantiate the FuelClient object with the configuration.
-      ignition::fuel_tools::FuelClient client(conf);
-    }
 
     this->entityCompMgr.CreateComponent(visualEntity,
         components::Geometry(*geom));
