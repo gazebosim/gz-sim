@@ -306,12 +306,7 @@ void LevelManager::UpdateLevels()
 
               if (region.Intersects(performerVolume))
               {
-                // mark the level to be loaded if it's not currently active
-                if (this->activeLevels.find(_entity) ==
-                    this->activeLevels.end())
-                {
-                  this->levelsToLoad.insert(_entity);
-                }
+                this->levelsToLoad.insert(_entity);
               }
               else
               {
@@ -331,18 +326,43 @@ void LevelManager::UpdateLevels()
   // Filter the levelsToUnload so that if a level is marked to be loaded by one
   // performer check and marked to be unloaded by another, we don't end up
   // unloading it
-  for (auto it = this->levelsToUnload.begin();
-       it != this->levelsToUnload.end();)
+  std::set<EntityId> tmpLevelsToUnload;
+  std::set_difference(
+      this->levelsToUnload.begin(), this->levelsToUnload.end(),
+      this->levelsToLoad.begin(), this->levelsToLoad.end(),
+      std::inserter(tmpLevelsToUnload, tmpLevelsToUnload.begin()));
+  this->levelsToUnload = std::move(tmpLevelsToUnload);
+
+  // Filter out levels that are already active
+  std::set<EntityId> tmpLevelsToLoad;
+  std::set_difference(this->levelsToLoad.begin(), this->levelsToLoad.end(),
+                      this->activeLevels.begin(), this->activeLevels.end(),
+                      std::inserter(tmpLevelsToLoad, tmpLevelsToLoad.begin()));
+  this->levelsToLoad = std::move(tmpLevelsToLoad);
+
+
+  // ---------------------- DEBUG ---------------------
+  static std::size_t counter = 0;
+
+  if (this->levelsToLoad.size() > 0)
   {
-    if (this->levelsToLoad.find(*it) != this->levelsToLoad.end())
-    {
-      this->levelsToUnload.erase(it);
-    }
-    else
-    {
-      ++it;
-    }
+    std::stringstream ss;
+    ss << counter << ": Levels to load:";
+    std::copy(this->levelsToLoad.begin(), this->levelsToLoad.end(),
+              std::ostream_iterator<int>(ss, " "));
+    igndbg << ss.str() << std::endl;
   }
+
+  if (this->levelsToUnload.size() > 0)
+  {
+    std::stringstream ss;
+    ss << counter << ": Levels to unload:";
+    std::copy(this->levelsToUnload.begin(), this->levelsToUnload.end(),
+              std::ostream_iterator<int>(ss, " "));
+    igndbg << ss.str() << std::endl;
+  }
+  ++counter;
+  // ---------------------- END DEBUG ---------------------
 }
 
 /////////////////////////////////////////////////

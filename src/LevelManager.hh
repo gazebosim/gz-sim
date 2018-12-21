@@ -141,13 +141,13 @@ namespace ignition
       private: void ReadLevels(const sdf::ElementPtr &_sdf);
 
       /// \brief Set of currently active (loaded) levels
-      private: std::unordered_set<EntityId> activeLevels;
+      private: std::set<EntityId> activeLevels;
 
       /// \brief Set of levels to load
-      private: std::unordered_set<EntityId> levelsToLoad;
+      private: std::set<EntityId> levelsToLoad;
 
       /// \brief Set of levels to unload
-      private: std::unordered_set<EntityId> levelsToUnload;
+      private: std::set<EntityId> levelsToUnload;
 
       /// \brief Pointer to the simulation runner associated with the level
       /// manager.
