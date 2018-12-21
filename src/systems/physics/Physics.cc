@@ -143,7 +143,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
   ignition::plugin::Loader pl;
   // dartsim_plugin_LIB is defined by cmake
-  std::unordered_set<std::string> plugins = pl.LoadLibrary(dartsim_plugin_LIB);
+  std::unordered_set<std::string> plugins = pl.LoadLib(dartsim_plugin_LIB);
   if (!plugins.empty())
   {
     const std::string className = "ignition::physics::dartsim::Plugin";
