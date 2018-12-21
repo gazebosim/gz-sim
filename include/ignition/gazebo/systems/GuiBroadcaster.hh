@@ -35,8 +35,8 @@ namespace systems
   /** \class GuiBroadcaster GuiBroadcaster.hh \
    * ignition/gazebo/systems/GuiBroadcaster.hh
   **/
-  /// \brief System which periodically publishes an ignition::msgs::Gui
-  /// message with updated information.
+  /// \brief System which privides a `/world/<name>/gui/info` service so
+  /// clients can get the current GUI configuration.
   class IGNITION_GAZEBO_VISIBLE GuiBroadcaster:
     public System,
     public ISystemConfigure

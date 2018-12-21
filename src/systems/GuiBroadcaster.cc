@@ -67,8 +67,14 @@ void GuiBroadcaster::Configure(const EntityId &_id,
   auto worldName = _ecm.Component<components::Name>(_id)->Data();
 
   // Get <gui> element
-  auto gui = _ecm.Component<components::Gui>(_id)->Data();
-  this->dataPtr->msg = Convert<msgs::GUI>(gui);
+  auto guiComp = _ecm.Component<components::Gui>(_id);
+  if (nullptr != guiComp)
+  {
+    // Publish empty messages for worlds that have no GUI in the beginning.
+    // In the future, support adding GUI from the server at runtime.
+    auto gui = guiComp->Data();
+    this->dataPtr->msg = Convert<msgs::GUI>(gui);
+  }
 
   // Gui info service
   transport::NodeOptions opts;

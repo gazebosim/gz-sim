@@ -6,6 +6,7 @@ set (systems_sources
 )
 
 set (gtest_sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/GuiBroadcaster_TEST.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/SceneBroadcaster_TEST.cc
   PARENT_SCOPE
 )
