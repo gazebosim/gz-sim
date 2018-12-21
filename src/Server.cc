@@ -16,6 +16,7 @@
 */
 #include "ignition/gazebo/Server.hh"
 
+#include <ignition/fuel_tools.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include "ServerPrivate.hh"
@@ -96,6 +97,9 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Configure SDF to fetch assets from ignition fuel.
+  sdf::setFindCallback(ignition::fuel_tools::fetchAsset);
+
   sdf::Root root;
   sdf::Errors errors;
 

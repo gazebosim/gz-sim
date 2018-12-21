@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <include>
+      <uri>https://api.ignitionfuel.org/1.0/openrobotics/models/ground plane</uri>
+    </include>
+  </world>
+</sdf>
