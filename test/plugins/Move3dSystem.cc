@@ -42,7 +42,7 @@ class ignition::gazebo::systems::Move3dSystemPrivate
   public: transport::Node node;
 
   /// \brief Current velocity command
-  public: std::optional<math::Vector3d> currentCmd;
+  public: std::optional<math::Vector3d> linearVelCmd;
 
   /// \brief EntityId of the performer
   public: EntityId performerId = kNullEntity;
@@ -50,9 +50,6 @@ class ignition::gazebo::systems::Move3dSystemPrivate
 
 Move3dSystem::Move3dSystem() : dataPtr(std::make_unique<Move3dSystemPrivate>())
 {
-  this->dataPtr->node.Subscribe("/move3d/linear_vel",
-                                &Move3dSystemPrivate::OnLinearVel,
-                                this->dataPtr.get());
 }
 
 Move3dSystem::~Move3dSystem() //NOLINT
@@ -63,10 +60,18 @@ Move3dSystem::~Move3dSystem() //NOLINT
 
 void Move3dSystem::Configure(
     const EntityId &_id, const std::shared_ptr<const sdf::Element> &,
-    EntityComponentManager &, EventManager &)
+    EntityComponentManager &_ecm, EventManager &)
 {
   this->dataPtr->performerId = _id;
   igndbg << "Move3dSystem attached to: " << this->dataPtr->performerId  << "\n";
+
+  auto name = _ecm.Component<components::Name>(_id);
+  if (name != nullptr)
+  {
+    this->dataPtr->node.Subscribe(name->Data() + "/move3d/linear_vel",
+                                  &Move3dSystemPrivate::OnLinearVel,
+                                  this->dataPtr.get());
+  }
 }
 
 void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
@@ -81,7 +86,7 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
 
   if ((this->dataPtr->performerId != kNullEntity) &&
-      (this->dataPtr->currentCmd.has_value()))
+      (this->dataPtr->linearVelCmd.has_value()))
   {
     // update the next position of the model based on the commanded velocity
     auto linVelocity =
@@ -90,17 +95,17 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     if (linVelocity != nullptr)
     {
-      *linVelocity = components::LinearVelocity(*this->dataPtr->currentCmd);
+      *linVelocity = components::LinearVelocity(*this->dataPtr->linearVelCmd);
     }
     else
     {
       _ecm.CreateComponent(
           this->dataPtr->performerId,
-          components::LinearVelocity(*this->dataPtr->currentCmd));
+          components::LinearVelocity(*this->dataPtr->linearVelCmd));
     }
     // clear the command so that we only update the component when there's a new
     // command.
-    this->dataPtr->currentCmd.reset();
+    this->dataPtr->linearVelCmd.reset();
   }
 
 }
@@ -108,7 +113,7 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void Move3dSystemPrivate::OnLinearVel(const msgs::Vector3d &_msg)
 {
   std::cout << "Got: " << _msg.x() << " " << _msg.y() << std::endl;
-  this->currentCmd = msgs::Convert(_msg);
+  this->linearVelCmd = msgs::Convert(_msg);
 }
 
 IGNITION_ADD_PLUGIN(Move3dSystem,
