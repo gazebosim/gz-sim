@@ -19,7 +19,7 @@
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
 #include <string>
-#include <unordered_set>
+#include <set>
 #include <unordered_map>
 
 #include <sdf/Collision.hh>
@@ -145,14 +145,16 @@ namespace ignition
       private: void ReadLevels(const sdf::ElementPtr &_sdf);
       private: void ConfigureDefaultLevel();
 
-      /// \brief Set of currently active (loaded) levels
-      private: std::set<EntityId> activeLevels;
+      /// \brief Names of entities to currently active (loaded).
+      private: std::set<std::string> activeEntityNames;
 
-      /// \brief Set of levels to load
-      private: std::set<EntityId> levelsToLoad;
+      /// \brief Names of entities to load. Currently model and lights are the
+      /// only entities to be loaded and unloaded
+      private: std::set<std::string> entityNamesToLoad;
 
-      /// \brief Set of levels to unload
-      private: std::set<EntityId> levelsToUnload;
+      /// \brief Names of entities to unload. Currently model and lights are the
+      /// only entities to be loaded and unloaded
+      private: std::set<std::string> entityNamesToUnload;
 
       /// \brief Pointer to the simulation runner associated with the level
       /// manager.

@@ -98,14 +98,14 @@ void LevelManager::ReadLevelPerformerInfo()
       pluginElem = plugin;
     }
   }
-  // if (pluginElem == nullptr)
-  // {
-  //   ignerr << "Could not find a plugin tag with name " << kPluginName << "\n";
-  //   return;
-  // }
 
   if (this->useLevels)
   {
+    if (pluginElem == nullptr)
+    {
+      ignerr << "Could not find a plugin tag with name " << kPluginName << "\n";
+      return;
+    }
     this->ReadPerformers(pluginElem);
     this->ReadLevels(pluginElem);
   }
@@ -253,7 +253,8 @@ void LevelManager::ConfigureDefaultLevel()
       defaultLevel, components::NameSet(this->entityNamesInDefault));
 
   // Add default level to levels to load
-  this->levelsToLoad.insert(defaultLevel);
+  this->entityNamesToLoad.insert(this->entityNamesInDefault.begin(),
+                                 this->entityNamesInDefault.end());
 }
 
 /////////////////////////////////////////////////
@@ -306,10 +307,12 @@ void LevelManager::UpdateLevelsState()
 
         // loop through levels and check for intersections
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
-                                         components::Geometry>(
-            [&](const EntityId &_entity, const components::Level *,
+                                         components::Geometry,
+                                         components::NameSet>(
+            [&](const EntityId &, const components::Level *,
                 const components::Pose *_pose,
-                const components::Geometry *_levelGeometry) -> bool
+                const components::Geometry *_levelGeometry,
+                const components::NameSet *_nameSet) -> bool
             {
               // Check if the performer is in this level
               // assume a box for now
@@ -320,16 +323,20 @@ void LevelManager::UpdateLevelsState()
 
               if (region.Intersects(performerVolume))
               {
-                this->levelsToLoad.insert(_entity);
+                this->entityNamesToLoad.insert(_nameSet->Data().begin(),
+                                               _nameSet->Data().end());
               }
               else
               {
-                // mark the level to be unloaded if it's currently active
-                if (this->activeLevels.find(_entity) !=
-                    this->activeLevels.end())
-                {
-                  this->levelsToUnload.insert(_entity);
-                }
+                // mark the entity to be unloaded if it's currently active
+                std::copy_if(_nameSet->Data().begin(), _nameSet->Data().end(),
+                             std::inserter(this->entityNamesToUnload,
+                                           this->entityNamesToUnload.begin()),
+                             [this](const std::string &_name) -> bool
+                             {
+                               return this->activeEntityNames.find(_name) !=
+                                      this->activeEntityNames.end();
+                             });
               }
               return true;
             });
@@ -337,42 +344,43 @@ void LevelManager::UpdateLevelsState()
         return true;
       });
 
-  // Filter the levelsToUnload so that if a level is marked to be loaded by one
-  // performer check and marked to be unloaded by another, we don't end up
+  // Filter the entityNamesToUnload so that if a level is marked to be loaded by
+  // one performer check and marked to be unloaded by another, we don't end up
   // unloading it
-  std::set<EntityId> tmpLevelsToUnload;
+  std::set<std::string> tmpToUnload;
   std::set_difference(
-      this->levelsToUnload.begin(), this->levelsToUnload.end(),
-      this->levelsToLoad.begin(), this->levelsToLoad.end(),
-      std::inserter(tmpLevelsToUnload, tmpLevelsToUnload.begin()));
-  this->levelsToUnload = std::move(tmpLevelsToUnload);
+      this->entityNamesToUnload.begin(), this->entityNamesToUnload.end(),
+      this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
+      std::inserter(tmpToUnload, tmpToUnload.begin()));
+  this->entityNamesToUnload = std::move(tmpToUnload);
 
-  // Filter out levels that are already active
-  std::set<EntityId> tmpLevelsToLoad;
-  std::set_difference(this->levelsToLoad.begin(), this->levelsToLoad.end(),
-                      this->activeLevels.begin(), this->activeLevels.end(),
-                      std::inserter(tmpLevelsToLoad, tmpLevelsToLoad.begin()));
-  this->levelsToLoad = std::move(tmpLevelsToLoad);
-
+  // Filter out the entities that are already active
+  std::set<std::string> tmpToLoad;
+  std::set_difference(
+      this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
+      this->activeEntityNames.begin(), this->activeEntityNames.end(),
+      std::inserter(tmpToLoad, tmpToLoad.begin()));
+  this->entityNamesToLoad = std::move(tmpToLoad);
 
   // ---------------------- DEBUG ---------------------
   static std::size_t counter = 0;
 
-  if (this->levelsToLoad.size() > 0)
+  if (this->entityNamesToLoad.size() > 0)
   {
     std::stringstream ss;
     ss << counter << ": Levels to load:";
-    std::copy(this->levelsToLoad.begin(), this->levelsToLoad.end(),
-              std::ostream_iterator<int>(ss, " "));
+    std::copy(this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
+              std::ostream_iterator<std::string>(ss, " "));
     igndbg << ss.str() << std::endl;
   }
 
-  if (this->levelsToUnload.size() > 0)
+  if (this->entityNamesToUnload.size() > 0)
   {
     std::stringstream ss;
     ss << counter << ": Levels to unload:";
-    std::copy(this->levelsToUnload.begin(), this->levelsToUnload.end(),
-              std::ostream_iterator<int>(ss, " "));
+    std::copy(this->entityNamesToUnload.begin(),
+              this->entityNamesToUnload.end(),
+              std::ostream_iterator<std::string>(ss, " "));
     igndbg << ss.str() << std::endl;
   }
   ++counter;
@@ -388,19 +396,6 @@ void LevelManager::LoadActiveLevels()
     return;
   }
 
-  // Create a union of all the entity name sets
-  std::set<std::string> entityNamesUnion;
-  for (auto level : this->levelsToLoad)
-  {
-    auto names =
-        this->runner->entityCompMgr.Component<components::NameSet>(level);
-    if (names != nullptr)
-    {
-      entityNamesUnion.insert(names->Data().begin(), names->Data().end());
-      this->activeLevels.insert(level);
-    }
-  }
-
   // Models
   for (uint64_t modelIndex = 0;
        modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
@@ -408,7 +403,8 @@ void LevelManager::LoadActiveLevels()
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
-    if (entityNamesUnion.find(model->Name()) != entityNamesUnion.end())
+    if (this->entityNamesToLoad.find(model->Name()) !=
+        this->entityNamesToLoad.end())
     {
       EntityId modelEntity = this->CreateEntities(model);
       this->runner->entityCompMgr.CreateComponent(
@@ -421,7 +417,8 @@ void LevelManager::LoadActiveLevels()
        lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
     auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
-    if (entityNamesUnion.find(light->Name()) != entityNamesUnion.end())
+    if (this->entityNamesToLoad.find(light->Name()) !=
+        this->entityNamesToLoad.end())
     {
       EntityId lightEntity = this->CreateEntities(light);
       this->runner->entityCompMgr.CreateComponent(
@@ -429,38 +426,30 @@ void LevelManager::LoadActiveLevels()
     }
   }
 
-  this->levelsToLoad.clear();
+  this->activeEntityNames.insert(this->entityNamesToLoad.begin(),
+                                 this->entityNamesToLoad.end());
+  this->entityNamesToLoad.clear();
 }
 
 /////////////////////////////////////////////////
 void LevelManager::UnloadInactiveLevels()
 {
-  for (auto level : this->levelsToUnload)
-  {
-    this->activeLevels.erase(level);
-    // Erase all entities in the level
-    // TODO(addisu) Handle the case where an entity is in multiple levels.
-    auto nameList =
-        this->runner->entityCompMgr.Component<components::NameSet>(level);
-
-    if (nameList == nullptr)
-    {
-      continue;
-    }
-
-    this->runner->entityCompMgr.Each<components::Model, components::Name>(
-        [&](const EntityId &_entity, const components::Model *,
-            const components::Name *_name) -> bool
+  this->runner->entityCompMgr.Each<components::Model, components::Name>(
+      [&](const EntityId &_entity, const components::Model *,
+          const components::Name *_name) -> bool
+      {
+        if (this->entityNamesToUnload.find(_name->Data()) !=
+            this->entityNamesToUnload.end())
         {
-          if (nameList->Data().find(_name->Data()) != nameList->Data().end())
-          {
-            EraseEntityRecursively(_entity);
-          }
-          return true;
-        });
+          EraseEntityRecursively(_entity);
+        }
+        return true;
+      });
+  for (const auto &_name : this->entityNamesToUnload)
+  {
+    this->activeEntityNames.erase(_name);
   }
-
-  this->levelsToUnload.clear();
+  this->entityNamesToUnload.clear();
 }
 
 //////////////////////////////////////////////////
