@@ -13,6 +13,8 @@
         name="ignition::gazebo::TestModelSystem">
         <model_key>987</model_key>
       </plugin>
+      <link name="link_1">
+      </link>
     </model>
   </world>
 </sdf>

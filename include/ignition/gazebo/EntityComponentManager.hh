@@ -82,7 +82,11 @@ namespace ignition
 
       /// \brief Add an entity to the view.
       /// \param[in] _id Id of the entity to add.
-      public: void AddEntity(const EntityId _id);
+      /// \param[in] _new Whether to add the entity to the list of new entities.
+      /// The new here is to indicate whether the entity is new to the entity
+      /// component manager. An existing entity can be added when creating a new
+      /// view or when rebuilding the view.
+      public: void AddEntity(const EntityId _id, const bool _new = false);
 
       /// \brief Remove an entity from the view.
       /// \param[in] _id Id of the entity to remove.
@@ -91,6 +95,12 @@ namespace ignition
       /// exist in the view.
       public: bool EraseEntity(const EntityId _id,
                                const ComponentTypeKey &_key);
+
+      /// \brief Add the entity to the list of entities to be removed
+      /// \param[in] _id Id of the entity to add.
+      /// \return True if the entity was added to the list, false if the entity
+      /// did not exist in the view.
+      public: bool AddEntityToErased(const EntityId _id);
 
       /// \brief Add a component to an entity.
       /// \param[in] _id Id of the entity.
@@ -109,8 +119,17 @@ namespace ignition
                    ComponentTypeId _typeId,
                    const EntityComponentManager *_ecm) const;
 
+      /// \brief Clear the list of new entities
+      public: void ClearNewEntities();
+
       /// \brief All the entities that belong to this view.
       public: std::set<EntityId> entities;
+
+      /// \brief List of newly created entities
+      public: std::set<EntityId> newEntities;
+
+      /// \brief List of entities about to be erased
+      public: std::set<EntityId> toEraseEntities;
 
       /// \brief All of the components for each entity.
       public: std::map<std::pair<EntityId, ComponentTypeId>,
@@ -480,6 +499,55 @@ namespace ignition
             this->First(this->ComponentType<ComponentTypeT>()));
       }
 
+      /// \brief Get an entity which matches the value of all the given
+      /// components. For example, the following will return the entity which
+      /// has an int component equal to 123, and a string component equal to
+      /// "name":
+      ///
+      ///  auto entity = EntityByComponents(123, std::string("name"));
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return Entity Id or kNullEntity if no entity has the exact
+      /// components.
+      public: template<typename ...ComponentTypeTs>
+              EntityId EntityByComponents(
+                   const ComponentTypeTs &..._desiredComponents)
+      {
+        // Get all entities which have components of the desired types
+        const auto &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over entities
+        EntityId result{kNullEntity};
+        for (const EntityId entity : view.entities)
+        {
+          bool different{false};
+
+          // Iterate over desired components, comparing each of them to the
+          // equivalent component in the entity.
+          ForEach([&](const auto &_desiredComponent)
+          {
+            auto entityComponent = this->Component<
+                std::remove_cv_t<std::remove_reference_t<
+                    decltype(_desiredComponent)>>>(entity);
+
+            if (*entityComponent != _desiredComponent)
+            {
+              different = true;
+            }
+          }, _desiredComponents...);
+
+          if (!different)
+          {
+            result = entity;
+            break;
+          }
+        }
+
+        return result;
+      }
+
       /// why is this required?
       private: template <typename T>
                struct identity
@@ -554,7 +622,9 @@ namespace ignition
       }
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the components.
+      /// as the components. Note that an entity marked for erasure (but not
+      /// processed yet) will be included in the list of entities iterated by
+      /// this call.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -584,7 +654,9 @@ namespace ignition
       }
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the mutable components.
+      /// as the mutable components. Note that an entity marked for erasure (but
+      /// not processed yet) will be included in the list of entities iterated
+      /// by this call.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -613,10 +685,133 @@ namespace ignition
         }
       }
 
+      /// \brief Call a function for each parameter in a pack.
+      /// \param[in] _f Function to be called.
+      /// \param[in] _components Parameters which should be passed to the
+      /// function.
+      public: template <class Function, class... ComponentTypeTs>
+      static void ForEach(Function _f, const ComponentTypeTs &... _components)
+      {
+        (_f(_components), ...);
+      }
+
+      /// \brief Get all newly created entities which contain given component
+      /// types, as well as the components. This "newness" is cleared at the end
+      /// of a simulation step.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template. The callback function can
+      /// return false to stop subsequent calls to the callback, otherwise
+      /// a true value should be returned.
+      /// \tparam ComponentTypeTs All the desired component types.
+      /// \warning This function should not be called outside of System's
+      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      public: template <typename... ComponentTypeTs>
+              void EachNew(typename identity<std::function<
+                           bool(const EntityId &_entity,
+                                ComponentTypeTs *...)>>::type _f)
+      {
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over the entities in the view and in the newly created
+        // entities list, and invoke the callback
+        // function.
+        for (const EntityId entity : view.newEntities)
+        {
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+          {
+            break;
+          }
+        }
+      }
+
+      /// \brief Get all newly created entities which contain given component
+      /// types, as well as the components. This "newness" is cleared at the end
+      /// of a simulation step. This is the const version.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template. The callback function can
+      /// return false to stop subsequent calls to the callback, otherwise
+      /// a true value should be returned.
+      /// \tparam ComponentTypeTs All the desired component types.
+      /// \warning This function should not be called outside of System's
+      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      public: template <typename... ComponentTypeTs>
+              void EachNew(typename identity<std::function<
+                           bool(const EntityId &_entity,
+                                const ComponentTypeTs *...)>>::type _f) const
+      {
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over the entities in the view and in the newly created
+        // entities list, and invoke the callback
+        // function.
+        for (const EntityId entity : view.newEntities)
+        {
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+          {
+            break;
+          }
+        }
+      }
+
+      /// \brief Get all entities which contain given component types and are
+      /// about to be erased, as well as the components.
+      /// \param[in] _f Callback function to be called for each matching entity.
+      /// The function parameter are all the desired component types, in the
+      /// order they're listed on the template. The callback function can
+      /// return false to stop subsequent calls to the callback, otherwise
+      /// a true value should be returned.
+      /// \tparam ComponentTypeTs All the desired component types.
+      /// \warning This function should not be called outside of System's
+      /// PreUpdate, callback. The result of call after PreUpdate is invalid
+      public: template<typename ...ComponentTypeTs>
+              void EachErased(typename identity<std::function<
+                  bool(const EntityId &_entity,
+                       const ComponentTypeTs *...)>>::type _f) const
+      {
+        // Get the view. This will create a new view if one does not already
+        // exist.
+        View &view = this->FindView<ComponentTypeTs...>();
+
+        // Iterate over the entities in the view and in the newly created
+        // entities list, and invoke the callback
+        // function.
+        for (const EntityId entity : view.toEraseEntities)
+        {
+          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
+          {
+            break;
+          }
+        }
+      }
+
+      /// \brief Clear the list of newly added entities so that a call to
+      /// EachAdded after this will have no entities to iterate. This function
+      /// is protected to facilitate testing.
+      protected: void ClearNewlyCreatedEntities();
+
       /// \brief Process all entity erase requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
       protected: void ProcessEraseEntityRequests();
+
+      /// \brief Get whether an Entity exists and is new.
+      ///
+      /// Entities are considered new in the time between their creation and a
+      /// call to ClearNewlyCreatedEntities
+      /// \param[in] _id Entity id to check.
+      /// \return True if the Entity is new.
+      private: bool IsNewEntity(const EntityId _id) const;
+
+      /// \brief Get whether an Entity has been marked to be erased.
+      /// \param[in] _id Entity id to check.
+      /// \return True if the Entity has been marked to be erased.
+      private: bool IsMarkedForErasure(const EntityId _id) const;
 
       /// \brief Delete an existing Entity.
       /// \param[in] _id Id of the Entity to erase.
@@ -754,7 +949,13 @@ namespace ignition
           {
             if (this->EntityMatches(entity.Id(), types))
             {
-              view.AddEntity(entity.Id());
+              view.AddEntity(entity.Id(), this->IsNewEntity(entity.Id()));
+              // If there is a request to delete this entity, update the view as
+              // well
+              if (this->IsMarkedForErasure(entity.Id()))
+              {
+                view.AddEntityToErased(entity.Id());
+              }
 
               // Store pointers to all the components. This recursively adds
               // all the ComponentTypeTs that belong to the entity to the view.
