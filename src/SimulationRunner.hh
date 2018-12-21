@@ -95,7 +95,8 @@ namespace ignition
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        const SystemLoaderPtr &_systemLoader);
+                                        const SystemLoaderPtr &_systemLoader,
+                                        const bool _useLevels = false);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();

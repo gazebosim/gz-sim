@@ -50,28 +50,32 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
-      /// level manager
-      public: explicit LevelManager(SimulationRunner *_runner);
+      /// \param[in] _useLevels Whether to use the levels defined. If false, all
+      /// entities will be added to the default level
+      public: LevelManager(SimulationRunner *_runner, bool _useLevels = false);
 
-      /// \brief Read level and performer information from the sdf::World object
-      public: void ReadLevelPerformerInfo();
-
-      /// \brief Create performers
-      /// Assuming that a simulation runner performer-centered
-      public: void CreatePerformers();
+      /// \brief Configure the level manager
+      public: void Configure();
 
       /// \brief Maintains a state machine for levels and mark them for
       /// loading/unloading depending on the state of performers.
       ///
       /// This is where we compute intersections and determine if a performer is
       /// in a level or not.
-      public: void UpdateLevels();
+      public: void UpdateLevelsState();
 
       /// \brief Load levels that have been marked for loading.
       public: void LoadActiveLevels();
 
       /// \brief Load levels that have been marked for unloading.
       public: void UnloadInactiveLevels();
+
+      /// \brief Read level and performer information from the sdf::World object
+      private: void ReadLevelPerformerInfo();
+
+      /// \brief Create performers
+      /// Assuming that a simulation runner performer-centered
+      private: void CreatePerformers();
 
       /// \brief Create entities and components for a model
       /// \param[in] _model sdf::Model to load
@@ -139,6 +143,7 @@ namespace ignition
 
       private: void ReadPerformers(const sdf::ElementPtr &_sdf);
       private: void ReadLevels(const sdf::ElementPtr &_sdf);
+      private: void ConfigureDefaultLevel();
 
       /// \brief Set of currently active (loaded) levels
       private: std::set<EntityId> activeLevels;
@@ -156,6 +161,13 @@ namespace ignition
       /// \brief Map of names of references to the containing performer
       private: std::unordered_map<std::string, EntityId> performerMap;
 
+      /// \brief Names of all entities that have assigned levels
+      private: std::set<std::string> entityNamesInLevels;
+
+      /// \brief Names of all entities that have not been assigned any level.
+      /// These belong to the default level
+      private: std::set<std::string> entityNamesInDefault;
+
       /// \brief Graph of entities currenty loaded in the level. This
       /// is useful for erasing entities when a level is unloaded. This
       /// graph won't contain performers
@@ -163,6 +175,9 @@ namespace ignition
 
       /// \brief EntityId of the world
       private: EntityId worldEntity = kNullEntity;
+
+      /// \brief EntityId of the world
+      private: bool useLevels{false};
     };
     }
   }

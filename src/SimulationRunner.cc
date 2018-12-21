@@ -47,7 +47,9 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const SystemLoaderPtr &_systemLoader)
+                                   const SystemLoaderPtr &_systemLoader,
+                                   const bool _useLevels
+                                   )
     : sdfWorld(_world)
 {
   // Keep world name
@@ -101,10 +103,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this);
+  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+
   // Read level info and load the active levels
-  this->levelMgr->ReadLevelPerformerInfo();
-  this->levelMgr->CreatePerformers();
+  this->levelMgr->Configure();
   this->UpdateLevels();
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
@@ -251,7 +253,7 @@ void SimulationRunner::UpdateSystems()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateLevels()
 {
-  this->levelMgr->UpdateLevels();
+  this->levelMgr->UpdateLevelsState();
   this->levelMgr->LoadActiveLevels();
   this->levelMgr->UnloadInactiveLevels();
 }

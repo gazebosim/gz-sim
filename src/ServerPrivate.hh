@@ -99,6 +99,9 @@ namespace ignition
       /// This keeps the SDF object in memory so that other classes can keep a
       /// pointer to child nodes of the root
       public: sdf::Root sdfRoot;
+
+      /// \brief Whether to use the level system
+      public: bool useLevels{false};
     };
     }
   }

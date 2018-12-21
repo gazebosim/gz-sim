@@ -58,10 +58,17 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner)
-    : runner(_runner)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
+    : runner(_runner), useLevels(_useLevels)
 {
   // Do nothing
+}
+
+/////////////////////////////////////////////////
+void LevelManager::Configure()
+{
+  this->ReadLevelPerformerInfo();
+  this->CreatePerformers();
 }
 
 /////////////////////////////////////////////////
@@ -97,8 +104,13 @@ void LevelManager::ReadLevelPerformerInfo()
   //   return;
   // }
 
-  this->ReadPerformers(pluginElem);
-  this->ReadLevels(pluginElem);
+  if (this->useLevels)
+  {
+    this->ReadPerformers(pluginElem);
+    this->ReadLevels(pluginElem);
+  }
+
+  this->ConfigureDefaultLevel();
 
   // Load world plugins.
   // \TODO (addisu) Find a better place to load plugins instead of this function
@@ -149,9 +161,6 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 {
   igndbg << "Reading levels info\n";
-  // This holds all entities referenced by at least one level. This will be used
-  // later to create the default level.
-  std::unordered_set<std::string> entityNamesInLevels;
 
   if (_sdf != nullptr)
   {
@@ -162,7 +171,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
       auto pose = level->Get<math::Pose3d>("pose");
       sdf::Geometry geometry;
       geometry.Load(level->GetElement("geometry"));
-      std::unordered_set<std::string> entityNames;
+      std::set<std::string> entityNames;
 
       for (auto ref = level->GetElement("ref"); ref;
            ref = ref->GetNextElement("ref"))
@@ -171,7 +180,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
         // TODO(addisu) Make sure the names are unique
         entityNames.insert(entityName);
 
-        entityNamesInLevels.insert(entityName);
+        this->entityNamesInLevels.insert(entityName);
       }
 
       // Entity
@@ -192,11 +201,14 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
           levelEntity, components::Geometry(geometry));
     }
   }
+}
 
+/////////////////////////////////////////////////
+void LevelManager::ConfigureDefaultLevel()
+{
   // Create the default level. This level contains all entities not contained by
   // any other level.
   EntityId defaultLevel = this->runner->entityCompMgr.CreateEntity();
-  std::unordered_set<std::string> entityNamesInDefault;
 
   // Go through all entities in the world and find ones not in the
   // set entityNamesInLevels
@@ -214,9 +226,10 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
       continue;
     }
 
-    if (entityNamesInLevels.find(model->Name()) == entityNamesInLevels.end())
+    if (this->entityNamesInLevels.find(model->Name()) ==
+        this->entityNamesInLevels.end())
     {
-      entityNamesInDefault.insert(model->Name());
+      this->entityNamesInDefault.insert(model->Name());
     }
   }
 
@@ -225,9 +238,10 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
        lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
     auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
-    if (entityNamesInLevels.find(light->Name()) == entityNamesInLevels.end())
+    if (this->entityNamesInLevels.find(light->Name()) ==
+        this->entityNamesInLevels.end())
     {
-      entityNamesInDefault.insert(light->Name());
+      this->entityNamesInDefault.insert(light->Name());
     }
   }
   // Components
@@ -236,7 +250,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::ParentEntity(this->worldEntity));
   this->runner->entityCompMgr.CreateComponent(
-      defaultLevel, components::NameSet(entityNamesInDefault));
+      defaultLevel, components::NameSet(this->entityNamesInDefault));
 
   // Add default level to levels to load
   this->levelsToLoad.insert(defaultLevel);
@@ -272,7 +286,7 @@ void LevelManager::CreatePerformers()
 }
 
 /////////////////////////////////////////////////
-void LevelManager::UpdateLevels()
+void LevelManager::UpdateLevelsState()
 {
   this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
                                    components::ParentEntity>(
@@ -375,7 +389,7 @@ void LevelManager::LoadActiveLevels()
   }
 
   // Create a union of all the entity name sets
-  std::unordered_set<std::string> entityNamesUnion;
+  std::set<std::string> entityNamesUnion;
   for (auto level : this->levelsToLoad)
   {
     auto names =

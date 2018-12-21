@@ -111,8 +111,8 @@ void ServerPrivate::CreateEntities()
   {
     auto world = this->sdfRoot.WorldByIndex(worldIndex);
 
-    this->simRunners.push_back(
-        std::make_unique<SimulationRunner>(world, this->systemLoader));
+    this->simRunners.push_back(std::make_unique<SimulationRunner>(
+        world, this->systemLoader, this->useLevels));
   }
 }
 
