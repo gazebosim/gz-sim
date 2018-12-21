@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include <ignition/common/MeshManager.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -33,6 +34,7 @@
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
@@ -44,6 +46,7 @@
 #include <sdf/Collision.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Link.hh>
+#include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
@@ -82,6 +85,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::mesh::AttachMeshShapeFeature,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -286,7 +290,34 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
         auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
-        linkPtrPhys->ConstructCollision(collision);
+
+        if (_geom->Data().Type() == sdf::GeometryType::MESH)
+        {
+          auto meshSdf = _geom->Data().MeshShape();
+          if (nullptr == meshSdf)
+          {
+            ignwarn << "Mesh geometry for collision [" << _name->Data()
+                    << "] missing mesh shape." << std::endl;
+            return true;
+          }
+
+          auto &meshManager = *ignition::common::MeshManager::Instance();
+          auto *mesh = meshManager.Load(meshSdf->Uri());
+          if (nullptr == mesh)
+          {
+            ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
+                    << "]." << std::endl;
+            return true;
+          }
+
+          linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
+              ignition::math::eigen3::convert(_pose->Data()));
+        }
+        else
+        {
+          linkPtrPhys->ConstructCollision(collision);
+        }
+
         // for now, we won't have a map to the collision once it's added
         return true;
       });
