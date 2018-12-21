@@ -376,7 +376,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
+              <size>1000 1000</size>
             </plane>
           </geometry>
           <material>
@@ -391,9 +391,7 @@
 
     <!-- Grid tiles -->
   <%
-    count = 0
-    for tile in tiles
-      count = count + 1
+    tiles.each_with_index do |tile, count|
   %>
     <model name="<%= tile[:name] %>_tile_<%= count.to_s %>">
       <pose><%= tile[:x] %> <%= tile[:y] %> 0 0 0 <%= tile[:yaw] %></pose>
@@ -412,8 +410,8 @@
             <%= shape[:geometry] %>
           </geometry>
           <material>
-            <ambient>1 1 1 0.8</ambient>
-            <diffuse>1 1 1 0.8</diffuse>
+            <ambient>0 0 1 0.8</ambient>
+            <diffuse>0 0 1 0.8</diffuse>
             <specular>1 1 1 0.8</specular>
           </material>
         </visual>
@@ -425,20 +423,33 @@
   <%
     end
   %>
-  <model name="ball">
+  <model name="red_ball">
     <pose>0 0 2.5 0 0 0</pose>
     <link name="link1">
-      <collision name="collision">
+      <inertial>
+      <% ball_mass = 1
+         ball_radius = 0.5%>
+        <inertia>
+          <ixx><%= 2.0/5 * ball_mass * (ball_radius**2) %></ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy><%= 2.0/5 * ball_mass * (ball_radius**2) %></iyy>
+          <iyz>0</iyz>
+          <izz><%= 2.0/5 * ball_mass * (ball_radius**2) %></izz>
+        </inertia>
+        <mass><%= ball_mass %></mass>
+      </inertial>
+      <!-- <collision name="collision">
         <geometry>
           <sphere>
-            <radius>0.5</radius>
+            <radius><%= ball_radius %></radius>
           </sphere>
         </geometry>
-      </collision>
+      </collision> -->
       <visual name="visual">
         <geometry>
           <sphere>
-            <radius>0.5</radius>
+            <radius><%= ball_radius %></radius>
           </sphere>
         </geometry>
         <material>
@@ -453,31 +464,81 @@
     </plugin>
   </model>
 
-  <performer name="perf1">
-    <ref>ball</ref>
-    <geometry>
-      <box>
-        <size>5 5 5</size>
-      </box>
-    </geometry>
-  </performer>
-  <%
-    count = 0
-    for tile in tiles
-      count = count + 1
-  %>
-  <level name="level<%= count.to_s %>">
-    <pose><%= tile[:x] %> <%= tile[:y] %> 2.5 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>20 20 10</size>
-      </box>
-    </geometry>
-    <ref><%= tile[:name] %>_tile_<%= count.to_s %></ref>
-  </level>
-  <%
-    end
-  %>
+  <model name="green_ball">
+    <pose>0 4.5 2.5 0 0 0</pose>
+    <link name="link1">
+      <inertial>
+      <% ball_mass = 1
+         ball_radius = 0.5%>
+        <inertia>
+          <ixx><%= 2.0/5 * ball_mass * (ball_radius**2) %></ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy><%= 2.0/5 * ball_mass * (ball_radius**2) %></iyy>
+          <iyz>0</iyz>
+          <izz><%= 2.0/5 * ball_mass * (ball_radius**2) %></izz>
+        </inertia>
+        <mass><%= ball_mass %></mass>
+      </inertial>
+      <!-- <collision name="collision">
+        <geometry>
+          <sphere>
+            <radius><%= ball_radius %></radius>
+          </sphere>
+        </geometry>
+      </collision> -->
+      <visual name="visual">
+        <geometry>
+          <sphere>
+            <radius><%= ball_radius %></radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+        </material>
+      </visual>
+    </link>
+    <plugin
+      filename="libMove3dSystem.so"
+      name="ignition::gazebo::systems::v0::Move3dSystem">
+    </plugin>
+  </model>
+
+  <plugin name="ignition::gazebo" filename="dummy">
+    <performer name="perf1">
+      <ref>red_ball</ref>
+      <geometry>
+        <box>
+          <size>5 5 5</size>
+        </box>
+      </geometry>
+    </performer>
+    <performer name="perf2">
+      <ref>green_ball</ref>
+      <geometry>
+        <box>
+          <size>5 5 5</size>
+        </box>
+      </geometry>
+    </performer>
+    <%
+      tiles.each_with_index do |tile, count|
+      next if count == $n_y/2
+    %>
+    <level name="level<%= count.to_s %>">
+      <pose><%= tile[:x] %> <%= tile[:y] %> 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>40 40 1000</size>
+        </box>
+      </geometry>
+      <ref><%= tile[:name] %>_tile_<%= count.to_s %></ref>
+    </level>
+    <%
+      end
+    %>
+  </plugin>
 
   </world>
 </sdf>
