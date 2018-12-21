@@ -31,6 +31,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
+#include <sdf/Mesh.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
@@ -81,6 +82,18 @@ namespace ignition
       {
         out.set_type(msgs::Geometry::SPHERE);
         out.mutable_sphere()->set_radius(_in.SphereShape()->Radius());
+      }
+      else if (_in.Type() == sdf::GeometryType::MESH && _in.MeshShape())
+      {
+        auto meshSdf = _in.MeshShape();
+
+        out.set_type(msgs::Geometry::MESH);
+        auto meshMsg = out.mutable_mesh();
+
+        msgs::Set(meshMsg->mutable_scale(), meshSdf->Scale());
+        meshMsg->set_filename(meshSdf->Uri());
+        meshMsg->set_submesh(meshSdf->Submesh());
+        meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
       }
       else
       {
