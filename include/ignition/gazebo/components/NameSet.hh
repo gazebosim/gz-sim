@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_NAMESET_HH_
 
 #include <string>
-#include <unordered_set>
+#include <set>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -35,7 +35,7 @@ namespace components
   //
   /// \brief A component that holds a list of names
   using NameSet =
-      SimpleWrapper<std::unordered_set<std::string>, class NameSetTag>;
+      SimpleWrapper<std::set<std::string>, class NameSetTag>;
 }
 }
 }

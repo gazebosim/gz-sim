@@ -117,6 +117,8 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
+  this->dataPtr->useLevels = _config.UseLevels();
+
   this->dataPtr->CreateEntities();
 
   this->dataPtr->LoadGui();
