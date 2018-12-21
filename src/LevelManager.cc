@@ -77,7 +77,43 @@ void LevelManager::ReadLevelPerformerInfo()
 
   auto worldElem = this->runner->sdfWorld->Element();
 
-  for (auto performer = worldElem->GetElement("performer"); performer;
+  // TODO(anyone) This should probaly go somwhere else as it is a global
+  // constant.
+  const std::string kPluginName{"ignition::gazebo"};
+
+  sdf::ElementPtr pluginElem;
+  // Get the ignition::gazebo plugin element
+  for (auto plugin = worldElem->GetElement("plugin"); plugin;
+       plugin = plugin->GetNextElement("plugin"))
+  {
+    if (plugin->Get<std::string>("name") == kPluginName)
+    {
+      pluginElem = plugin;
+    }
+  }
+  // if (pluginElem == nullptr)
+  // {
+  //   ignerr << "Could not find a plugin tag with name " << kPluginName << "\n";
+  //   return;
+  // }
+
+  this->ReadPerformers(pluginElem);
+  this->ReadLevels(pluginElem);
+
+  // Load world plugins.
+  // \TODO (addisu) Find a better place to load plugins instead of this function
+  this->LoadPlugins(this->runner->sdfWorld->Element(), this->worldEntity);
+}
+
+
+/////////////////////////////////////////////////
+void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
+{
+  if (_sdf == nullptr)
+    return;
+
+  igndbg << "Reading performer info\n";
+  for (auto performer = _sdf->GetElement("performer"); performer;
        performer = performer->GetNextElement("performer"))
   {
     auto name = performer->Get<std::string>("name");
@@ -107,46 +143,54 @@ void LevelManager::ReadLevelPerformerInfo()
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Geometry(geometry));
   }
+}
 
+/////////////////////////////////////////////////
+void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
+{
+  igndbg << "Reading levels info\n";
   // This holds all entities referenced by at least one level. This will be used
   // later to create the default level.
   std::unordered_set<std::string> entityNamesInLevels;
 
-  for (auto level = worldElem->GetElement("level"); level;
-       level = level->GetNextElement("level"))
+  if (_sdf != nullptr)
   {
-    auto name = level->Get<std::string>("name");
-    auto pose = level->Get<math::Pose3d>("pose");
-    sdf::Geometry geometry;
-    geometry.Load(level->GetElement("geometry"));
-    std::unordered_set<std::string> entityNames;
-
-    for (auto ref = level->GetElement("ref"); ref;
-         ref = ref->GetNextElement("ref"))
+    for (auto level = _sdf->GetElement("level"); level;
+         level = level->GetNextElement("level"))
     {
-      std::string entityName = ref->GetValue()->GetAsString();
-      // TODO(addisu) Make sure the names are unique
-      entityNames.insert(entityName);
+      auto name = level->Get<std::string>("name");
+      auto pose = level->Get<math::Pose3d>("pose");
+      sdf::Geometry geometry;
+      geometry.Load(level->GetElement("geometry"));
+      std::unordered_set<std::string> entityNames;
 
-      entityNamesInLevels.insert(entityName);
+      for (auto ref = level->GetElement("ref"); ref;
+           ref = ref->GetNextElement("ref"))
+      {
+        std::string entityName = ref->GetValue()->GetAsString();
+        // TODO(addisu) Make sure the names are unique
+        entityNames.insert(entityName);
+
+        entityNamesInLevels.insert(entityName);
+      }
+
+      // Entity
+      EntityId levelEntity = this->runner->entityCompMgr.CreateEntity();
+
+      // Components
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::Level());
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::Pose(pose));
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::Name(name));
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::ParentEntity(worldEntity));
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::NameSet(entityNames));
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::Geometry(geometry));
     }
-
-    // Entity
-    EntityId levelEntity = this->runner->entityCompMgr.CreateEntity();
-
-    // Components
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::Level());
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::Pose(pose));
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::Name(name));
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::ParentEntity(worldEntity));
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::NameSet(entityNames));
-    this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::Geometry(geometry));
   }
 
   // Create the default level. This level contains all entities not contained by
@@ -194,10 +238,6 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::NameSet(entityNamesInDefault));
 
-
-  // Load world plugins.
-  // \TODO (addisu) Find a better place to load plugins instead of this function
-  this->LoadPlugins(this->runner->sdfWorld->Element(), this->worldEntity);
   // Add default level to levels to load
   this->levelsToLoad.insert(defaultLevel);
 }
