@@ -123,5 +123,16 @@
     <include>
       <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
     </include>
+
+    <include>
+      <pose>2 0 0.066040 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_x2_description</uri>
+    </include>
+
+    <include>
+      <pose>-1 -10 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/Rocky Tunnel Tile 1</uri>
+    </include>
+
   </world>
 </sdf>
