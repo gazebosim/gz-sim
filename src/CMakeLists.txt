@@ -10,6 +10,7 @@ set (sources
   Entity.cc
   EntityComponentManager.cc
   EventManager.cc
+  Model.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -25,6 +26,7 @@ set (gtest_sources
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
   EventManager_TEST.cc
+  Model_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
