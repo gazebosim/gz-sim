@@ -241,8 +241,10 @@ int main(int _argc, char **_argv)
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
     sigKilled = true;
-    KillProcess(guiPid, "ign-gazebo-gui", 5.0, guiKilled);
-    KillProcess(serverPid, "ign-gazebo-server", 5.0, serverKilled);
+    if (!FLAGS_s)
+      KillProcess(guiPid, "ign-gazebo-gui", 5.0, guiKilled);
+    if (!FLAGS_g)
+      KillProcess(serverPid, "ign-gazebo-server", 5.0, serverKilled);
   });
 
   // Block until one of the processes ends
@@ -250,7 +252,7 @@ int main(int _argc, char **_argv)
   pid_t deadChild = wait(&child_exit_status);
 
   // Check dead process' return value
-  if ((WIFEXITED(child_exit_status)   == 0) ||
+  if ((WIFEXITED(child_exit_status) == 0) ||
       (WEXITSTATUS(child_exit_status) != 0))
     returnValue = -1;
   else
