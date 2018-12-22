@@ -57,7 +57,7 @@ through
 * **Advanced 3D graphics**: Through
 [Ignition Rendering](https://bitbucket.org/ignitionrobotics/ign-rendering),
 it's possible to use rendering engines such as OGRE v2 for realistic rendering
-of environments including high-quality lighting, shadows, and textures.
+of environments with high-quality lighting, shadows, and textures.
 
 * **Sensors and noise models**: Generate sensor data, optionally with noise,
 from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors,
@@ -74,8 +74,8 @@ through plugin-based graphical interfaces powered by
 * **Simulation models**: Access numerous robots including PR2, Pioneer2 DX,
 iRobot Create, and TurtleBot, and construct environments using other physically
 accurate models available through
-[Ignition Fuel](https://app.ignitionrobotics.org/fuel). Or build a new model
-using [SDF](http://sdformat.org).
+[Ignition Fuel](https://app.ignitionrobotics.org/fuel). You can also build a
+new model using [SDF](http://sdformat.org).
 
 * **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
 Gazebo through socket-based message passing using
