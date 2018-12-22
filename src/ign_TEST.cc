@@ -59,9 +59,10 @@ TEST(CmdLine, Server)
 
   std::string output = custom_exec_str(cmd);
 
-  for (auto i : {"1", "2", "3", "4", "5"})
+  for (auto i : {1, 2, 3, 4, 5})
   {
-    EXPECT_NE(output.find(i), std::string::npos);
+    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
+        << output;
   }
 }
 
@@ -78,7 +79,8 @@ TEST(CmdLine, GazeboServer)
 
   for (auto i : {1, 2, 3, 4, 5})
   {
-    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos);
+    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
+        << output;
   }
 }
 
@@ -95,7 +97,8 @@ TEST(CmdLine, Gazebo)
 
   for (auto i : {1, 2, 3, 4, 5})
   {
-    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos);
+    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
+        << output;
   }
 }
 
