@@ -26,6 +26,7 @@ set (gtest_sources
   EntityComponentManager_TEST.cc
   Entity_TEST.cc
   EventManager_TEST.cc
+  ign_TEST.cc
   Model_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
