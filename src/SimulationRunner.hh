@@ -38,6 +38,7 @@
 
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
+#include <ignition/math/Stopwatch.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
