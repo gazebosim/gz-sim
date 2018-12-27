@@ -60,6 +60,11 @@ ign_find_package(ignition-physics1 REQUIRED COMPONENTS mesh sdf dartsim dartsim-
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-sensors
+ign_find_package(ignition-sensors0 REQUIRED)
+set(IGN_SENSORS_VER ${ignition-sensors0_VERSION_MAJOR})
+
+#--------------------------------------
 # Find gflags
 ign_find_package(gflags
     REQUIRED
