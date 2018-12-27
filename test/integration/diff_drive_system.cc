@@ -119,11 +119,6 @@ TEST_P(DiffDriveTest, PublishCmd)
   // Run server and check that vehicle didn't move
   server.Run(true, 1000, false);
 
-  unsigned int sleep{0u};
-  unsigned int maxSleep{10u};
-  while (poses.size() < 1000 && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
-
   EXPECT_EQ(1000u, poses.size());
 
   for (auto pose : poses)
@@ -142,10 +137,6 @@ TEST_P(DiffDriveTest, PublishCmd)
   pub.Publish(msg);
 
   server.Run(true, 3000, false);
-
-  sleep = 0;
-  while (poses.size() < 4000 && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
 
   EXPECT_EQ(4000u, poses.size());
 
