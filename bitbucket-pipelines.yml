@@ -31,11 +31,11 @@ pipelines:
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
-            # libignition-sensors0-dev
             libignition-tools-dev
             libignition-transport6-dev
             # libignition-gui-dev
             # libignition-msgs3-dev
+            # libignition-sensors0-dev
             # libsdformat8-dev
           # SDFormat (uncomment if a specific branch is needed)
           - apt install -y
