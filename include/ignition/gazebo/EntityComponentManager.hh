@@ -513,7 +513,7 @@ namespace ignition
       /// components.
       public: template<typename ...ComponentTypeTs>
               EntityId EntityByComponents(
-                   const ComponentTypeTs &..._desiredComponents)
+                   const ComponentTypeTs &..._desiredComponents) const
       {
         // Get all entities which have components of the desired types
         const auto &view = this->FindView<ComponentTypeTs...>();

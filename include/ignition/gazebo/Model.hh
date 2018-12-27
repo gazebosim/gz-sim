@@ -35,7 +35,25 @@ namespace ignition
     class IGNITION_GAZEBO_HIDDEN ModelPrivate;
     //
     /// \class Model Model.hh ignition/gazebo/Model.hh
-    /// \brief
+    /// \brief This class provides wrappers around entities and components
+    /// which are more convenient and straight-forward to use than dealing
+    /// with the `EntityComponentManager` directly.
+    /// All the functions provided here are meant to be used with a model
+    /// entity.
+    ///
+    /// For example, given a model's entity Id (`id`), to find the value of its
+    /// name component, one could use the entity-component manager (`ecm`)
+    /// directly as follows:
+    ///
+    ///     std::string name = ecm.Component<components::Name>(id)->Data();
+    ///
+    /// Using this class however, the same information can be obtained with
+    /// a simpler function call:
+    ///
+    ///    Model model(id);
+    ///    std::string name = model.Name(ecm);
+    ///
+    /// \todo(louise) Store the ecm instead of passing it at every API call.
     class IGNITION_GAZEBO_VISIBLE Model {
       /// \brief Constructor
       /// \param[in] _id Model entity ID
@@ -66,12 +84,23 @@ namespace ignition
       /// \return Model entity Id.
       public: EntityId Id() const;
 
+      /// \brief Check whether this model correctly refers to an entity that
+      /// has a components::Model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if it's a valid model in the manager.
+      public: bool Valid(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the model's unscoped name.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Model's name.
+      public: std::string Name(const EntityComponentManager &_ecm) const;
+
       /// \brief Get the ID of a joint entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Joint name.
       /// \return Joint entity Id.
-      public: EntityId JointByName(EntityComponentManager &_ecm,
+      public: EntityId JointByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get the ID of a link entity which is an immediate child of
@@ -79,7 +108,7 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Link name.
       /// \return Link entity Id.
-      public: EntityId LinkByName(EntityComponentManager &_ecm,
+      public: EntityId LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Pointer to private data.
