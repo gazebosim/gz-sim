@@ -58,7 +58,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b build_testing
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
           - cd ign-sensors
           - mkdir build
           - cd build
