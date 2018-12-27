@@ -38,6 +38,7 @@ set (gtest_sources
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
+  ignition-math${IGN_MATH_VER}
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
