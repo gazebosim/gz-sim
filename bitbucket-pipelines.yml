@@ -33,6 +33,7 @@ pipelines:
             libignition-rendering-dev
             libignition-tools-dev
             libignition-transport6-dev
+            # libignition-fuel-tools3-dev
             # libignition-gui-dev
             # libignition-msgs3-dev
             # libsdformat8-dev
@@ -51,6 +52,16 @@ pipelines:
             libprotobuf-dev protobuf-compiler libprotoc-dev
           - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
           - cd ign-msgs
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
+          # Ignition fuel-tools (uncomment if a specific branch is needed)
+          - apt install -y
+            libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b integration_with_ign_gazebo
+          - cd ign-fuel-tools
           - mkdir build
           - cd build
           - cmake .. -DBUILD_TESTING=false
