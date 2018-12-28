@@ -29,12 +29,18 @@
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "SceneManager.hh"
 #include "Sensors.hh"
 
 using namespace ignition;
@@ -47,6 +53,20 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
   public: sensors::Manager sensorManager;
+
+  /// \brief used to store whether rendering objects have been created.
+  public: bool initialized = false;
+
+  /// \brief Create rendering entities
+  public: void CreateRenderingEntities(const EntityComponentManager &_ecm);
+
+
+  public: std::string engineName;
+
+  public: std::map<EntityId, sensors::SensorId>  sensorMap;
+
+  /// \brief Scene manager
+  public: SceneManager sceneManager;
 };
 
 //////////////////////////////////////////////////
@@ -66,31 +86,32 @@ void Sensors::Configure(const EntityId &/*_id*/,
     EventManager &/*_eventMgr*/)
 {
   // Setup rendering
-  auto engineName = _sdf->Get<std::string>("render_engine", "ogre").first;
+  this->dataPtr->engineName =
+      _sdf->Get<std::string>("render_engine", "ogre").first;
 
-  // TODO(anyone) Only do this if we do have rendering sensors
-  auto *engine = ignition::rendering::engine(engineName);
-  if (!engine)
+}
+
+//////////////////////////////////////////////////
+void Sensors::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  if (!this->dataPtr->initialized)
   {
-    ignerr << "Failed to load engine [" << engineName << "]" << std::endl;
-    return;
-  }
-  auto scene = engine->CreateScene("scene");
-
-  // Create simulation runner sensor manager
-  this->dataPtr->sensorManager.SetRenderingScene(scene);
-
-  // Create cameras
-  _ecm.Each<components::Camera>(
-    [&](const EntityId &_entity,
-        const components::Camera *_camera)->bool
+    // TODO(anyone) Only do this if we do have rendering sensors
+    auto *engine = ignition::rendering::engine(this->dataPtr->engineName);
+    if (!engine)
     {
+      ignerr << "Failed to load engine ["
+             << this->dataPtr->engineName << "]" << std::endl;
+      return;
+    }
+    auto scene = engine->CreateScene("scene");
+    // Create simulation runner sensor manager
+    this->dataPtr->sensorManager.SetRenderingScene(scene);
+    this->dataPtr->sceneManager.SetScene(scene);
 
-      auto cameraSensor = this->dataPtr->sensorManager.CreateSensor
-          <sensors::CameraSensor>(_camera->Data());
-
-      return true;
-    });
+    this->dataPtr->CreateRenderingEntities(_ecm);
+    this->dataPtr->initialized = true;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -101,7 +122,111 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
 }
 
+//////////////////////////////////////////////////
+void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
+{
+  // Get all the worlds
+  // _ecm.Each<components::World, components::Name>(
+  //     [&](const EntityId &_entity,
+  //       const components::World * /* _world */,
+  //       const components::Name *_name)->bool
+  //     {
+  //       if (this->entityWorldMap.find(_entity) == this->entityWorldMap.end())
+  //       {
+  //         sdf::World world;
+  //         world.SetName(_name->Data());
+  //         auto worldPtrPhys = this->engine->ConstructWorld(world);
+  //         this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
+  //       }
+  //       return true;
+  //     });
+
+  _ecm.Each<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Model * /* _model */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+      {
+        if (!this->sceneManager.HasEntity(_entity))
+        {
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          this->sceneManager.LoadModel(_entity, model,
+              _parent->Data());
+        }
+        return true;
+      });
+
+  _ecm.Each<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Link * /* _link */,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+      {
+        if (!this->sceneManager.HasEntity(_entity))
+        {
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+
+          this->sceneManager.LoadLink(_entity, link,
+              _parent->Data());
+        }
+        return true;
+      });
+
+  // visuals
+  _ecm.Each<components::Visual, components::Material,
+            components::Name, components::Pose,
+            components::Geometry, components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Visual* /* _visual*/,
+        const components::Material *_material,
+        const components::Name *_name,
+        const components::Pose *_pose,
+        const components::Geometry *_geom,
+        const components::ParentEntity *_parent)->bool
+      {
+        if (!this->sceneManager.HasEntity(_entity))
+        {
+          sdf::Visual visual;
+          visual.SetName(_name->Data());
+          visual.SetPose(_pose->Data());
+          visual.SetGeom(_geom->Data());
+          visual.SetMaterial(_material->Data());
+
+          this->sceneManager.LoadVisual(_entity, visual,
+              _parent->Data());
+        }
+
+        return true;
+      });
+
+  // Create cameras
+  _ecm.Each<components::Camera>(
+    [&](const EntityId &_entity,
+        const components::Camera *_camera)->bool
+    {
+
+      if (this->sensorMap.find(_entity) == this->sensorMap.end())
+      {
+        auto cameraSensor = this->sensorManager.CreateSensor
+          <sensors::CameraSensor>(_camera->Data());
+      }
+
+      return true;
+    });
+
+}
+
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
   Sensors::ISystemPostUpdate
 )
+
+
