@@ -48,6 +48,10 @@ namespace systems
     public: virtual ~Sensors();
 
     // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm);
+
+    // Documentation inherited
     public: void Configure(const EntityId &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
