@@ -186,7 +186,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Request publisher.
   /// This is used to request entities to be removed
-  public: transport::Node::Publisher requestPub;
+  public: transport::Node::Publisher deletionPub;
 
   /// \brief Graph containing latest information from entities.
   /// The data in each node is the message associated with that entity only.
@@ -336,20 +336,6 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
 
-  // Scene info service
-  std::string sceneTopic{"/world/" + _worldName + "/scene"};
-
-  this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
-
-  ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
-  // Scene Requests
-  std::string requestTopic{"/world/" + _worldName + "/scene/request"};
-
-  this->requestPub =
-      this->node.Advertise<ignition::msgs::Request>(requestTopic);
-
-  ignmsg << "Publishing scene managements requests on [" << requestTopic << "]"
-         << std::endl;
   // Scene graph service
   std::string graphService{"/world/" + _worldName + "/scene/graph"};
 
@@ -357,6 +343,22 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
   ignmsg << "Serving scene graph on [" << graphService << "]" << std::endl;
+
+  // Scene info topic
+  std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
+
+  this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
+
+  ignmsg << "Serving scene information on [" << sceneTopic << "]" << std::endl;
+
+  // Entity deletion publisher
+  std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
+
+  this->deletionPub =
+      this->node.Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+
+  ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
+         << std::endl;
 
   // Pose info publisher
   std::string topic{"/world/" + _worldName + "/pose/info"};
@@ -587,14 +589,14 @@ void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
         return true;
       });
 
-  // For each erased entity, we send a delete message
+  // Send the list of deleted entities
+  msgs::UInt32_V deletionMsg;
+
   for (const auto &entity : erasedEntities)
   {
-    msgs::Request req;
-    req.set_request("delete_entity");
-    req.set_id(entity);
-    this->requestPub.Publish(req);
+    deletionMsg.mutable_data()->Add(entity);
   }
+  this->deletionPub.Publish(deletionMsg);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
