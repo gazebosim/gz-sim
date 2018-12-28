@@ -27,7 +27,7 @@ static const std::string g_bin(PROJECT_BINARY_PATH);
 
 static const std::string g_ignCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + g_bin + "/lib " +
-  "LD_LIBRARY_PATH=" + g_bin + "/lib:${LD_LIBRARY_PATH} " +
+  "LD_LIBRARY_PATH=" + g_bin + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} " +
   g_bin + "/bin/");
 
 /////////////////////////////////////////////////
