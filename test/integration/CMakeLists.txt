@@ -1,10 +1,13 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  components.cc
+  diff_drive_system.cc
   each_new_erased.cc
   entity_erase.cc
   events.cc
   examples_build.cc
+  model.cc
   physics_system.cc
   play_pause.cc
 )

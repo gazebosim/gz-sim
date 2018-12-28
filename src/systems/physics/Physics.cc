@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include <ignition/common/MeshManager.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
@@ -33,8 +34,10 @@
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Link.hh>
+#include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
+#include <ignition/physics/mesh/MeshShape.hh>
 #include <ignition/physics/sdf/ConstructCollision.hh>
 #include <ignition/physics/sdf/ConstructJoint.hh>
 #include <ignition/physics/sdf/ConstructLink.hh>
@@ -46,6 +49,7 @@
 #include <sdf/Collision.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Link.hh>
+#include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
@@ -67,6 +71,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -87,6 +92,8 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetEntities,
           ignition::physics::RemoveEntities,
           ignition::physics::SetLinkState,
+          ignition::physics::mesh::AttachMeshShapeFeature,
+          ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
           ignition::physics::sdf::ConstructSdfLink,
@@ -121,12 +128,15 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: void DeletePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
+  /// \param[in] _ecm Constant reference to ECM.
   public: void UpdatePhysics(const EntityComponentManager &_ecm);
 
   /// \brief Step the simulationrfor each world
+  /// \param[in] _dt Duration
   public: void Step(const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Update components from physics simulation
+  /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateSim(EntityComponentManager &_ecm) const;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -161,7 +171,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
   ignition::plugin::Loader pl;
   // dartsim_plugin_LIB is defined by cmake
-  std::unordered_set<std::string> plugins = pl.LoadLibrary(dartsim_plugin_LIB);
+  std::unordered_set<std::string> plugins = pl.LoadLib(dartsim_plugin_LIB);
   if (!plugins.empty())
   {
     const std::string className = "ignition::physics::dartsim::Plugin";
@@ -220,7 +230,7 @@ void Physics::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
-    // Get all the worlds
+  // Get all the worlds
   _ecm.EachNew<components::World, components::Name>(
       [&](const EntityId &_entity,
         const components::World * /* _world */,
@@ -306,7 +316,34 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           collision.SetPose(_pose->Data());
           collision.SetGeom(_geom->Data());
           auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
-          linkPtrPhys->ConstructCollision(collision);
+
+          if (_geom->Data().Type() == sdf::GeometryType::MESH)
+          {
+            auto meshSdf = _geom->Data().MeshShape();
+            if (nullptr == meshSdf)
+            {
+              ignwarn << "Mesh geometry for collision [" << _name->Data()
+                      << "] missing mesh shape." << std::endl;
+              return true;
+            }
+
+            auto &meshManager = *ignition::common::MeshManager::Instance();
+            auto *mesh = meshManager.Load(meshSdf->Uri());
+            if (nullptr == mesh)
+            {
+              ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
+                      << "]." << std::endl;
+              return true;
+            }
+
+            linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
+                ignition::math::eigen3::convert(_pose->Data()));
+          }
+          else
+          {
+            linkPtrPhys->ConstructCollision(collision);
+          }
+
           // for now, we won't have a map to the collision once it's added
           this->entityCollisionMap.insert(std::make_pair(_entity, nullptr));
         }
@@ -398,6 +435,25 @@ void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
+  // Handle joint state
+  _ecm.Each<components::Joint>(
+      [&](const EntityId &_entity, const components::Joint *)
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt == this->entityJointMap.end())
+          return true;
+
+        auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
+        if (vel1)
+          jointIt->second->SetVelocity(0, vel1->Data());
+
+        auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
+        if (vel2)
+          jointIt->second->SetVelocity(1, vel2->Data());
+
+        return true;
+      });
+
   // Handle models, but do so through their canonical links
   _ecm.Each<components::Model, components::LinearVelocity>(
       [&](const EntityId &_entity, const components::Model *, const
