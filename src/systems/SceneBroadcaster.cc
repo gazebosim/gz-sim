@@ -407,38 +407,22 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 void SceneBroadcasterPrivate::SceneGraphAddEntities(
     const EntityComponentManager &_manager)
 {
-  std::lock_guard<std::mutex> lock(this->graphMutex);
-
   // TODO(louise) Get <scene> from SDF
   // TODO(louise) Fill message header
 
   // Populate a graph with latest information from all entities
-  // TODO(louise) once we know what entities are added/deleted process only
-  // those. For now, recreating graph at every iteration.
-
   bool newEntity{false};
 
-  // Levels
-  // _manager.EachNew<components::Level, components::Name,
-  //                  components::ParentEntity, components::Pose>(
-  //     [&](const EntityId &_entity, const components::Level *,
-  //         const components::Name *_nameComp,
-  //         const components::ParentEntity *_parentComp,
-  //         const components::Pose *_poseComp) -> bool
-  //     {
-  //       // use a model for level visualization. May need to change later
-  //       auto levelMsg = std::make_shared<msgs::Model>();
-  //       levelMsg->set_id(_entity);
-  //       levelMsg->set_name(_nameComp->Data());
-  //       levelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
-
-  //       // Add to graph
-  //       this->sceneGraph.AddVertex(_nameComp->Data(), levelMsg, _entity);
-  //       this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
-  //       newEntity = true;
-  //       return true;
-  //     });
+  // scene graph for new entities. This will be used later to create a scene msg
+  // to publish.
+  math::graph::DirectedGraph<
+      std::shared_ptr<google::protobuf::Message>, bool> newGraph;
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    const auto worldVertex = this->sceneGraph.VertexFromId(this->worldId);
+    newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(),
+                       worldVertex.Id());
+  }
 
   // Models
   _manager.EachNew<components::Model, components::Name,
@@ -454,8 +438,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
-        this->sceneGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
-        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         newEntity = true;
         return true;
@@ -475,8 +459,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         linkMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
-        this->sceneGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
-        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         newEntity = true;
         return true;
@@ -513,8 +497,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         }
 
         // Add to graph
-        this->sceneGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
-        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
 
         newEntity = true;
         return true;
@@ -536,23 +520,36 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         lightMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
-        this->sceneGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
-        this->sceneGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
         newEntity = true;
         return true;
       });
 
 
+  // Update the whole scene graph from the new graph
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    for (const auto &[id, vert] : newGraph.Vertices())
+    {
+      if (!this->sceneGraph.VertexFromId(id).Valid())
+        this->sceneGraph.AddVertex(vert.get().Name(), vert.get().Data(), id);
+    }
+    for (const auto &[id, edge] : newGraph.Edges())
+    {
+      if (!this->sceneGraph.EdgeFromId(edge.get().Id()).Valid())
+        this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
+    }
+  }
 
   if (newEntity)
   {
-    // TODO(addisu) only add the new entities
     msgs::Scene sceneMsg;
 
-    AddModels(&sceneMsg, this->worldId, this->sceneGraph);
+    AddModels(&sceneMsg, this->worldId, newGraph);
 
     // Add lights
-    AddLights(&sceneMsg, this->worldId, this->sceneGraph);
+    AddLights(&sceneMsg, this->worldId, newGraph);
     this->scenePub.Publish(sceneMsg);
   }
 }
