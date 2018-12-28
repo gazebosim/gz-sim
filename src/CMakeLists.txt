@@ -7,6 +7,7 @@ set(gui_sources
 )
 
 set (sources
+  Conversions.cc
   Entity.cc
   EntityComponentManager.cc
   EventManager.cc
