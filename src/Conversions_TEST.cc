@@ -25,6 +25,7 @@
 #include <ignition/msgs/Utility.hh>
 
 #include "ignition/gazebo/Conversions.hh"
+#include "ignition/gazebo/test_config.hh"
 
 using namespace ignition;
 using namespace gazebo;
