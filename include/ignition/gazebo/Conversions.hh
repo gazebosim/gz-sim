@@ -42,8 +42,7 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam OUT Output type.
     template<class OUT>
-    IGNITION_GAZEBO_VISIBLE
-    OUT Convert(const sdf::Geometry &_in)
+    OUT IGNITION_GAZEBO_VISIBLE Convert(const sdf::Geometry &_in)
     {
       OUT::ConversionNotImplemented;
     }
@@ -53,16 +52,14 @@ namespace ignition
     /// \param[in] _in SDF geometry.
     /// \return Geometry message.
     template<>
-    IGNITION_GAZEBO_VISIBLE
-    msgs::Geometry Convert(const sdf::Geometry &_in);
+    msgs::Geometry IGNITION_GAZEBO_VISIBLE Convert(const sdf::Geometry &_in);
 
     /// \brief Generic conversion from an SDF material to another type.
     /// \param[in] _in SDF material.
     /// \return Conversion result.
     /// \tparam OUT Output type.
     template<class OUT>
-    IGNITION_GAZEBO_VISIBLE
-    OUT Convert(const sdf::Material &_in)
+    OUT IGNITION_GAZEBO_VISIBLE Convert(const sdf::Material &_in)
     {
       OUT::ConversionNotImplemented;
     }
@@ -72,8 +69,7 @@ namespace ignition
     /// \param[in] _in SDF material.
     /// \return Material message.
     template<>
-    IGNITION_GAZEBO_VISIBLE
-    msgs::Material Convert(const sdf::Material &_in);
+    msgs::Material IGNITION_GAZEBO_VISIBLE Convert(const sdf::Material &_in);
 
     /// \brief Generic conversion from an SDF light to another type.
     /// \param[in] _in SDF light.
@@ -97,8 +93,7 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam OUT Output type.
     template<class OUT>
-    IGNITION_GAZEBO_VISIBLE
-    OUT Convert(const sdf::Gui &_in)
+    OUT IGNITION_GAZEBO_VISIBLE Convert(const sdf::Gui &_in)
     {
       OUT::ConversionNotImplemented;
     }
@@ -107,8 +102,7 @@ namespace ignition
     /// \param[in] _in SDF gui.
     /// \return Gui message.
     template<>
-    IGNITION_GAZEBO_VISIBLE
-    msgs::GUI Convert(const sdf::Gui &_in);
+    msgs::GUI IGNITION_GAZEBO_VISIBLE Convert(const sdf::Gui &_in);
     }
   }
 }
