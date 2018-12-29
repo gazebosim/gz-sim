@@ -39,6 +39,7 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -49,7 +50,7 @@ namespace systems
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm);
+                        EntityComponentManager &_ecm) override final;
 
     // Documentation inherited
     public: void Configure(const EntityId &_id,

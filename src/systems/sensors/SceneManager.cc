@@ -33,7 +33,7 @@ void SceneManager::SetScene(rendering::ScenePtr _scene)
 }
 
 /////////////////////////////////////////////////
-void SceneManager::OnPoseVMsg(const msgs::Pose_V &_msg)
+/*void SceneManager::OnPoseVMsg(const msgs::Pose_V &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   for (int i = 0; i < _msg.pose_size(); ++i)
@@ -50,6 +50,7 @@ void SceneManager::OnPoseVMsg(const msgs::Pose_V &_msg)
     this->poses[_msg.pose(i).id()] = pose;
   }
 }
+*/
 
 /////////////////////////////////////////////////
 void SceneManager::Update()
@@ -100,10 +101,11 @@ rendering::VisualPtr SceneManager::LoadModel(int _id, const sdf::Model &_model,
 
   if (_parentId > 0)
   {
-    auto it = this->visuals.find(_id);
+    auto it = this->visuals.find(_parentId);
     if (it != this->visuals.end())
       it->second->AddChild(modelVis);
   }
+  std::cerr << "adding model " << _model.Name() << std::endl;
 
   return modelVis;
 }
@@ -123,10 +125,12 @@ rendering::VisualPtr SceneManager::LoadLink(int _id, const sdf::Link &_link,
 
   if (_parentId > 0)
   {
-    auto it = this->visuals.find(_id);
+    auto it = this->visuals.find(_parentId);
     if (it != this->visuals.end())
       it->second->AddChild(linkVis);
   }
+
+  std::cerr << "adding link " << _link.Name() << std::endl;
 
   return linkVis;
 }
@@ -207,10 +211,12 @@ rendering::VisualPtr SceneManager::LoadVisual(int _id, const sdf::Visual &_visua
 
   if (_parentId > 0)
   {
-    auto it = this->visuals.find(_id);
+    auto it = this->visuals.find(_parentId);
     if (it != this->visuals.end())
       it->second->AddChild(visualVis);
   }
+
+  std::cerr << "adding visual" << _visual.Name() << std::endl;
 
   return visualVis;
 }
@@ -353,5 +359,5 @@ rendering::LightPtr SceneManager::LoadLight(int _id, const sdf::Light &_light,
 bool SceneManager::HasEntity(int _id) const
 {
   return this->visuals.find(_id) != this->visuals.end() &&
-      this->lights.find(_id) != this->lights.end()
+      this->lights.find(_id) != this->lights.end();
 }
