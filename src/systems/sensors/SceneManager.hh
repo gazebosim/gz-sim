@@ -32,8 +32,9 @@
 
 #include <ignition/common/MeshManager.hh>
 #include <ignition/rendering.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
 namespace ignition
 {
@@ -44,7 +45,7 @@ namespace systems
 
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Scene manager class for loading and managing objects in the scene
-  class SceneManager
+  class IGNITION_GAZEBO_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
@@ -57,7 +58,7 @@ namespace systems
 
     /// \brief Callback function for the pose topic
     /// \param[in] _msg Pose vector msg
-    private: void OnPoseVMsg(const msgs::Pose_V &_msg);
+    // private: void OnPoseVMsg(const msgs::Pose_V &_msg);
 
     /// \brief Load the model from a model msg
     /// \param[in] _msg Model msg
@@ -129,10 +130,6 @@ namespace systems
 
     /// \brief Map of light id to light pointers.
     private: std::map<unsigned int, rendering::LightPtr> lights;
-
-    /// \brief Transport node for making service request and subscribing to
-    /// pose topic
-    private: ignition::transport::Node node;
   };
   }
 }

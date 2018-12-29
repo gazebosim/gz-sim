@@ -61,7 +61,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors0 REQUIRED)
+ign_find_package(ignition-sensors0 REQUIRED COMPONENTS camera)
 set(IGN_SENSORS_VER ${ignition-sensors0_VERSION_MAJOR})
 
 message ("--------------------- sensors:  ${IGNITION-SENSORS_INCLUDE_DIRS} vs ${ignition-sensors0_VERSION_MAJOR} vs ${IGNITION-SENSORS_LIBRARIES}")

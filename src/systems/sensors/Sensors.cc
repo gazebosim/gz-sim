@@ -88,7 +88,6 @@ void Sensors::Configure(const EntityId &/*_id*/,
   // Setup rendering
   this->dataPtr->engineName =
       _sdf->Get<std::string>("render_engine", "ogre").first;
-
 }
 
 //////////////////////////////////////////////////
@@ -96,6 +95,7 @@ void Sensors::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   if (!this->dataPtr->initialized)
   {
+    std::cerr << "sensors intializing!!!!" << std::endl;
     // TODO(anyone) Only do this if we do have rendering sensors
     auto *engine = ignition::rendering::engine(this->dataPtr->engineName);
     if (!engine)
@@ -226,7 +226,6 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
-
-
