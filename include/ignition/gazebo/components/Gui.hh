@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGNITION_GAZEBO_COMPONENTS_GUI_HH_
-#define IGNITION_GAZEBO_COMPONENTS_Gui_HH_
+#define IGNITION_GAZEBO_COMPONENTS_GUI_HH_
 
 #include <sdf/Gui.hh>
 
