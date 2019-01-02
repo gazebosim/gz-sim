@@ -158,7 +158,11 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Keep the id of the world entity so we know how to traverse the
   /// graph.
-  public: EntityId worldId;
+  public: EntityId worldId{kNullEntity};
+
+  /// \brief Keep the name of the world entity so it's easy to create temporary
+  /// scene graphs
+  public: std::string worldName;
 
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
@@ -171,8 +175,23 @@ SceneBroadcaster::SceneBroadcaster()
 }
 
 //////////////////////////////////////////////////
-SceneBroadcaster::~SceneBroadcaster()
+void SceneBroadcaster::Configure(
+    const EntityId &_id, const std::shared_ptr<const sdf::Element> &,
+    EntityComponentManager &_ecm, EventManager &)
 {
+  // World
+  auto name = _ecm.Component<components::Name>(_id);
+  if (name == nullptr)
+  {
+    ignerr << "World with id: " << _id
+           << " has no name. SceneBroadcaster cannot create transport topics\n";
+    return;
+  }
+
+  this->dataPtr->worldId = _id;
+  this->dataPtr->worldName = name->Data();
+
+  this->dataPtr->SetupTransport(this->dataPtr->worldName);
 }
 
 //////////////////////////////////////////////////
@@ -185,8 +204,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
 
-    // TODO(louise) Get <scene> from SDF
-    // TODO(louise) Fill message header
+  // TODO(louise) Get <scene> from SDF
+  // TODO(louise) Fill message header
 
     // Populate a graph with latest information from all entities
     // TODO(louise) once we know what entities are added/deleted process only
@@ -194,44 +213,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     this->dataPtr->sceneGraph = math::graph::DirectedGraph<
         std::shared_ptr<google::protobuf::Message>, bool>();
 
-    // World
-    // \todo(anyone) It would be convenient to have the following functions:
-    // * _manager.Has<components::World, components::Name>: to tell whether
-    // there
-    //   is an entity which has a given set of components.
-    // * _manager.EntityCount<components::World, components::Name>: returns the
-    //  number of entities which have all the given components.
-    this->dataPtr->worldId = kNullEntity;
-    _manager.Each<components::World,
-                  components::Name>(
-      [&](const EntityId &_entity,
-          const components::World */*_worldComp*/,
-          const components::Name *_nameComp)->bool
-      {
-        if (kNullEntity != this->dataPtr->worldId)
-        {
-          ignerr << "Internal error, more than one world found." << std::endl;
-          return true;
-        }
-        this->dataPtr->worldId = _entity;
-
-        if (!this->dataPtr->posePub)
-        {
-          this->dataPtr->SetupTransport(_nameComp->Data());
-        }
-
-        // Add to graph
-        this->dataPtr->sceneGraph.AddVertex(
-            _nameComp->Data(), nullptr, _entity);
-        return true;
-      });
-
-    if (kNullEntity == this->dataPtr->worldId)
-    {
-      ignerr << "Failed to find world entity" << std::endl;
-      return;
-    }
-
+    // Add to graph
+    this->dataPtr->sceneGraph.AddVertex(this->dataPtr->worldName, nullptr,
+                                        this->dataPtr->worldId);
     // Models
     _manager.Each<components::Model,
                   components::Name,
@@ -241,7 +225,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::Model */*_modelComp*/,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
+          const components::Pose *_poseComp) -> bool
       {
         auto modelMsg = std::make_shared<msgs::Model>();
         modelMsg->set_id(_entity);
@@ -262,7 +246,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         return true;
       });
 
-    // Links
+  // Links
     _manager.Each<components::Link,
                   components::Name,
                   components::ParentEntity,
@@ -271,7 +255,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::Link */*_linkComp*/,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
+          const components::Pose *_poseComp) -> bool
       {
         auto linkMsg = std::make_shared<msgs::Link>();
         linkMsg->set_id(_entity);
@@ -292,7 +276,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         return true;
       });
 
-    // Visuals
+  // Visuals
     _manager.Each<components::Visual,
                   components::Name,
                   components::ParentEntity,
@@ -301,7 +285,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::Visual */*_visualComp*/,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
+          const components::Pose *_poseComp) -> bool
       {
         auto visualMsg = std::make_shared<msgs::Visual>();
         visualMsg->set_id(_entity);
@@ -340,7 +324,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
         return true;
       });
 
-    // Lights
+  // Lights
     _manager.Each<components::Light,
                   components::Name,
                   components::ParentEntity,
@@ -349,7 +333,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
           const components::Light *_lightComp,
           const components::Name *_nameComp,
           const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp)->bool
+          const components::Pose *_poseComp) -> bool
       {
         auto lightMsg = std::make_shared<msgs::Light>();
         lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
@@ -439,4 +423,5 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
                     ignition::gazebo::System,
+                    SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
