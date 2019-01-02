@@ -225,7 +225,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   const std::size_t initEntityCount = 14;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
-  // Create requester
+  // Subscribe to deletions
   transport::Node node;
 
   std::vector<msgs::UInt32_V> deletionMsgs;
@@ -246,6 +246,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   // Run server
   server.Run(true, 1, false);
   EXPECT_EQ(0u, deletionMsgs.size());
+
   // Delete the cylinder. Deleting the model and the link to avoid physics
   // warnings
   server.RequestEraseEntity(cylinderModelId.value());
@@ -261,9 +262,9 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   // The id of the deleted entity should have been published
   // Note: Only model entities are currently supported for deletion
   EXPECT_TRUE(std::find_if(delMsg.data().cbegin(), delMsg.data().cend(),
-      [&cylinderModelId](const auto &val)
+      [&cylinderModelId](const auto &_val)
       {
-        return val == cylinderModelId;
+        return _val == cylinderModelId;
       }));
 }
 // Run multiple times
