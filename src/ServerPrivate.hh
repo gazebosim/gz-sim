@@ -77,6 +77,8 @@ namespace ignition
       public: void Stop();
 
       /// \brief Sets up all transport.
+      /// \detail Future publishers and subscribers should be created within i
+      /// this function.
       public: void SetupTransport();
 
       /// \brief Signal handler callback
