@@ -167,7 +167,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 }
 
 /////////////////////////////////////////////////
-///Test whether the scene topic is published only when new entities are added
+/// Test whether the scene topic is published only when new entities are added
 TEST_P(SceneBroadcasterTest, SceneTopic)
 {
   // Start server
@@ -210,7 +210,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 }
 
 /////////////////////////////////////////////////
-///Test whether the scene topic is published only when new entities are added
+/// Test whether the scene topic is published only when new entities are added
 TEST_P(SceneBroadcasterTest, DeletedTopic)
 {
   // Start server

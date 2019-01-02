@@ -38,112 +38,6 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-//////////////////////////////////////////////////
-template<typename T>
-void AddLights(T *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
-        vertex.second.get().Data());
-    if (!lightMsg)
-      continue;
-
-    _msg->add_light()->CopyFrom(*lightMsg);
-  }
-}
-
-//////////////////////////////////////////////////
-void AddVisuals(msgs::Link *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
-        vertex.second.get().Data());
-    if (!visualMsg)
-      continue;
-
-    _msg->add_visual()->CopyFrom(*visualMsg);
-  }
-}
-
-//////////////////////////////////////////////////
-void AddLinks(msgs::Model *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
-        vertex.second.get().Data());
-    if (!linkMsg)
-      continue;
-
-    auto msgOut = _msg->add_link();
-    msgOut->CopyFrom(*linkMsg);
-
-    // Visuals
-    AddVisuals(msgOut, vertex.second.get().Id(), _graph);
-
-    // Lights
-    AddLights(msgOut, vertex.second.get().Id(), _graph);
-  }
-}
-
-//////////////////////////////////////////////////
-template<typename T>
-void AddModels(T *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
-        vertex.second.get().Data());
-    if (!modelMsg)
-      continue;
-
-    auto msgOut = _msg->add_model();
-    msgOut->CopyFrom(*modelMsg);
-
-    // Nested models
-    AddModels(msgOut, vertex.first, _graph);
-
-    // Links
-    AddLinks(msgOut, vertex.first, _graph);
-  }
-}
-
-//////////////////////////////////////////////////
-void RemoveFromGraph(
-    const EntityId _id,
-    math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>, bool>
-        &_graph)
-{
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    RemoveFromGraph(vertex.first, _graph);
-  }
-  _graph.RemoveVertex(_id);
-}
-
 // Private data class.
 class ignition::gazebo::systems::SceneBroadcasterPrivate
 {
@@ -172,6 +66,48 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Updates the scene graph when entities are removed
   /// \param[in] _manager The entity component manager
   public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
+
+  /// \brief Adds models to a msgs::Scene or msgs::Model object based on the
+  /// contents of the scene graph
+  /// \tparam T Either a msgs::Scene or msgs::Model
+  /// \param[in] _msg Pointer to msg object to which the models will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: template <typename T>
+          static void AddModels(T *_msg, const EntityId _id,
+                                const SceneGraphType &_graph);
+
+  /// \brief Adds lights to a msgs::Scene or msgs::Link object based on the
+  /// contents of the scene graph
+  /// \tparam T Either a msgs::Scene or msgs::Link
+  /// \param[in] _msg Pointer to msg object to which the lights will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: template<typename T>
+          static void AddLights(T *_msg, const EntityId _id,
+                                const SceneGraphType &_graph);
+
+  /// \brief Adds links to a msgs::Model object based on the contents of
+  /// the scene graph
+  /// \param[in] _msg Pointer to msg object to which the links will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddLinks(msgs::Model *_msg, const EntityId _id,
+                               const SceneGraphType &_graph);
+
+  /// \brief Adds visuals to a msgs::Link object based on the contents of
+  /// the scene graph
+  /// \param[in] _msg Pointer to msg object to which the visuals will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddVisuals(msgs::Link *_msg, const EntityId _id,
+                                 const SceneGraphType &_graph);
+
+  /// \brief Recursively remove entities from the graph
+  /// \param[in] _id Id of entity
+  /// \param[in/out] _graph Scene graph
+  public: static void RemoveFromGraph(const EntityId _id,
+                                      SceneGraphType &_graph);
 
   /// \brief Transport node.
   public: transport::Node node;
@@ -581,6 +517,104 @@ void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
     this->deletionPub.Publish(deletionMsg);
   }
 }
+
+//////////////////////////////////////////////////
+/// \tparam T Either a msgs::Scene or msgs::Model
+template<typename T>
+void SceneBroadcasterPrivate::AddModels(T *_msg, const EntityId _id,
+                                        const SceneGraphType &_graph)
+{
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
+        vertex.second.get().Data());
+    if (!modelMsg)
+      continue;
+
+    auto msgOut = _msg->add_model();
+    msgOut->CopyFrom(*modelMsg);
+
+    // Nested models
+    AddModels(msgOut, vertex.first, _graph);
+
+    // Links
+    AddLinks(msgOut, vertex.first, _graph);
+  }
+}
+
+//////////////////////////////////////////////////
+template<typename T>
+void SceneBroadcasterPrivate::AddLights(T *_msg, const EntityId _id,
+                                        const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
+        vertex.second.get().Data());
+    if (!lightMsg)
+      continue;
+
+    _msg->add_light()->CopyFrom(*lightMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const EntityId _id,
+                                         const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
+        vertex.second.get().Data());
+    if (!visualMsg)
+      continue;
+
+    _msg->add_visual()->CopyFrom(*visualMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const EntityId _id,
+                                       const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
+        vertex.second.get().Data());
+    if (!linkMsg)
+      continue;
+
+    auto msgOut = _msg->add_link();
+    msgOut->CopyFrom(*linkMsg);
+
+    // Visuals
+    AddVisuals(msgOut, vertex.second.get().Id(), _graph);
+
+    // Lights
+    AddLights(msgOut, vertex.second.get().Id(), _graph);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::RemoveFromGraph(const EntityId _id,
+                                              SceneGraphType &_graph)
+{
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    RemoveFromGraph(vertex.first, _graph);
+  }
+  _graph.RemoveVertex(_id);
+}
+
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
                     ignition::gazebo::System,
