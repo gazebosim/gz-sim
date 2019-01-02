@@ -124,7 +124,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Graph containing latest information from entities.
   /// The data in each node is the message associated with that entity only.
-  /// i.e, a model node only has a message only about the model. It will not
+  /// i.e, a model node only has a message about the model. It will not
   /// have any links, joints, etc. To create a the whole scene, one has to
   /// traverse the graph adding messages as necessary.
   public: SceneGraphType sceneGraph;
