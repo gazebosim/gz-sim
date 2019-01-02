@@ -131,6 +131,19 @@ void AddModels(T *_msg,
   }
 }
 
+//////////////////////////////////////////////////
+void RemoveFromGraph(
+    const EntityId _id,
+    math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>, bool>
+        &_graph)
+{
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    RemoveFromGraph(vertex.first, _graph);
+  }
+  _graph.RemoveVertex(_id);
+}
+
 // Private data class.
 class ignition::gazebo::systems::SceneBroadcasterPrivate
 {
@@ -156,6 +169,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _manager The entity component manager
   public: void SceneGraphAddEntities(const EntityComponentManager &_manager);
 
+  /// \brief Updates the scene graph when entities are removed
+  /// \param[in] _manager The entity component manager
+  public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
+
   /// \brief Transport node.
   public: transport::Node node;
 
@@ -164,6 +181,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Scene publisher
   public: transport::Node::Publisher scenePub;
+
+  /// \brief Request publisher.
+  /// This is used to request entities to be removed
+  public: transport::Node::Publisher deletionPub;
 
   /// \brief Graph containing latest information from entities.
   /// The data in each node is the message associated with that entity only.
@@ -288,6 +309,10 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
       });
 
   this->dataPtr->posePub.Publish(poseMsg);
+
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // erased entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
 }
 
 //////////////////////////////////////////////////
@@ -315,6 +340,16 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
 
   ignmsg << "Serving scene information on [" << sceneTopic << "]" << std::endl;
+
+  // Entity deletion publisher
+  std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
+
+  this->deletionPub =
+      this->node.Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+
+  ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
+         << std::endl;
+
   // Pose info publisher
   std::string topic{"/world/" + _worldName + "/pose/info"};
 
@@ -499,6 +534,51 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     // Add lights
     AddLights(&sceneMsg, this->worldId, newGraph);
     this->scenePub.Publish(sceneMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
+    const EntityComponentManager &_manager)
+{
+  std::lock_guard<std::mutex> lock(this->graphMutex);
+  // Handle Erased Entities
+  std::vector<EntityId> erasedEntities;
+
+  // Scene a deleted model deletes all its child entities, we don't have to
+  // handle links. We assume here that links are not deleted by themselves.
+  // TODO(anyone) Handle case where other entities can be deleted without the
+  // parent model being deleted.
+  // Models
+  _manager.EachErased<components::Model>(
+      [&](const EntityId &_entity, const components::Model *) -> bool
+      {
+        erasedEntities.push_back(_entity);
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph);
+        return true;
+      });
+
+  // Lights
+  _manager.EachErased<components::Light>(
+      [&](const EntityId &_entity, const components::Light *) -> bool
+      {
+        erasedEntities.push_back(_entity);
+        // Remove from graph
+        RemoveFromGraph(_entity, this->sceneGraph);
+        return true;
+      });
+
+  if (!erasedEntities.empty())
+  {
+    // Send the list of deleted entities
+    msgs::UInt32_V deletionMsg;
+
+    for (const auto &entity : erasedEntities)
+    {
+      deletionMsg.mutable_data()->Add(entity);
+    }
+    this->deletionPub.Publish(deletionMsg);
   }
 }
 
