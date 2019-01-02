@@ -16,6 +16,8 @@
 */
 
 #include <gtest/gtest.h>
+#include <google/protobuf/util/message_differencer.h>
+
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
@@ -116,6 +118,13 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
     EXPECT_EQ(res.model(m).name() + "_visual",
         res.model(m).link(0).visual(0).name());
   }
+
+  // Repeat the request to make sure the same information is returned
+  ignition::msgs::Scene res2;
+  EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res2, result));
+  EXPECT_TRUE(result);
+
+  EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(res, res2));
 }
 
 /////////////////////////////////////////////////
@@ -155,6 +164,49 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   EXPECT_NE(res.data().find("sphere (9)"), std::string::npos);
   EXPECT_NE(res.data().find("sphere_link (10)"), std::string::npos);
   EXPECT_NE(res.data().find("sphere_visual (11)"), std::string::npos);
+}
+
+/////////////////////////////////////////////////
+///Test whether the scene topic is published only when new entities are added
+TEST_P(SceneBroadcasterTest, SceneTopic)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                          "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(14u, *server.EntityCount());
+
+  // Create requester
+  transport::Node node;
+
+  std::vector<msgs::Scene> sceneMsgs;
+  auto collectMsgs = std::function([&sceneMsgs](const msgs::Scene &_msg)
+  {
+    sceneMsgs.push_back(_msg);
+  });
+
+  node.Subscribe<msgs::Scene>("/world/default/scene/info", collectMsgs);
+
+  // Run server
+  server.Run(true, 10, false);
+
+  // Should only have one scene even though the simulation ran multiple times
+  ASSERT_EQ(1u, sceneMsgs.size());
+
+  // Compare this scene with one from a service request
+  msgs::Scene &scene = sceneMsgs.front();
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene msg;
+
+  EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, msg, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(msg, scene));
 }
 
 // Run multiple times
