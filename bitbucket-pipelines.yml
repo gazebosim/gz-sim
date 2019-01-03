@@ -25,7 +25,7 @@ pipelines:
           - cd ..
           # Dependency: Ignition packages
           - apt-get -y install
-            libignition-cmake2-dev
+            # libignition-cmake2-dev
             libignition-common3-dev
             libignition-math6-eigen3-dev
             libignition-plugin-dev
@@ -47,6 +47,14 @@ pipelines:
           - cmake .. -DBUILD_TESTING=false
           - make -j4 install
           - cd ../..
+          # Ignition cmake (uncomment if a specific branch is needed)
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
+          - cd ign-cmake
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
           # Ignition msgs (uncomment if a specific branch is needed)
           - apt install -y
             libprotobuf-dev protobuf-compiler libprotoc-dev
@@ -58,7 +66,7 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b build_testing
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b components
           - cd ign-sensors
           - mkdir build
           - cd build
