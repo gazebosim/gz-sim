@@ -60,49 +60,69 @@ namespace systems
     /// \param[in] _msg Pose vector msg
     // private: void OnPoseVMsg(const msgs::Pose_V &_msg);
 
-    /// \brief Load the model from a model msg
-    /// \param[in] _msg Model msg
-    /// \return Model visual created from the msg
-    public: rendering::VisualPtr LoadModel(int _id, const sdf::Model &_model,
+    /// \brief Create a model
+    /// \param[in] _id Unique model id
+    /// \param[in] _model Model sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Model visual created from the sdf dom
+    public: rendering::VisualPtr CreateModel(int _id, const sdf::Model &_model,
         int _parentId = -1);
 
-    /// \brief Load a link from a link msg
-    /// \param[in] _msg Link msg
-    /// \return Link visual created from the msg
-    public: rendering::VisualPtr LoadLink(int _id, const sdf::Link &_link,
+    /// \brief Create a link
+    /// \param[in] _id Unique link id
+    /// \param[in] _link Link sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Link visual created from the sdf dom
+    public: rendering::VisualPtr CreateLink(int _id, const sdf::Link &_link,
         int _parentId = -1);
 
-    /// \brief Load a visual from a visual msg
-    /// \param[in] _msg Visual msg
-    /// \return Visual visual created from the msg
-    public: rendering::VisualPtr LoadVisual(int _id,
+    /// \brief Create a visual
+    /// \param[in] _id Unique visual id
+    /// \param[in] _visual Visual sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Visual object created from the sdf dom
+    public: rendering::VisualPtr CreateVisual(int _id,
         const sdf::Visual &_visual, int _parentId = -1);
 
-    /// \brief Load a geometry from a geometry msg
-    /// \param[in] _msg Geometry msg
-    /// \param[out] _scale Geometry scale that will be set based on msg param
+    /// \brief Load a geometry
+    /// \param[in] __geom Geometry sdf dom
+    /// \param[out] _scale Geometry scale that will be set based on sdf
     /// \param[out] _localPose Additional local pose to be applied after the
     /// visual's pose
-    /// \return Geometry object created from the msg
+    /// \return Geometry object created from the sdf dom
     public: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
         math::Vector3d &_scale, math::Pose3d &_localPose);
 
-    /// \brief Load a material from a material msg
-    /// \param[in] _msg Material msg
-    /// \return Material object created from the msg
+    /// \brief Load a material
+    /// \param[in] _material Material sdf dom
+    /// \return Material object created from the sdf dom
     public: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
 
-    /// \brief Load a light from a light msg
-    /// \param[in] _msg Light msg
+    /// \brief Create a light
+    /// \param[in] _id Unique light id
+    /// \param[in] _light Light sdf dom
+    /// \param[in] _parentId Parent id
     /// \return Light object created from the msg
-    public: rendering::LightPtr LoadLight(int _id, const sdf::Light &_light,
+    public: rendering::LightPtr CreateLight(int _id, const sdf::Light &_light,
         int _parentId);
+
+    /// \brief Add an existing sensor to the scene
+    /// \param[in] _name Name of sensor
+    /// \param[in] _parentId Parent Id
+    /// \return True if sensor is successfully added
+    public: bool AddSensor(int _id, const std::string &_name,
+        int _parentId = -1);
 
     /// \brief Check if entity exists
     /// \param[in] _id Unique entity id
     /// \return true if exists, false otherwise
     public: bool HasEntity(int _id) const;
+
+    /// \brief Get an entity by id
+    /// \param[in] _id Entity's unique id
+    /// \return Pointer to requested entity
+    public: rendering::NodePtr EntityById(int _id) const;
 
     //// \brief Ign-transport scene service name
     private: std::string service;
@@ -130,6 +150,9 @@ namespace systems
 
     /// \brief Map of light id to light pointers.
     private: std::map<unsigned int, rendering::LightPtr> lights;
+
+    /// \brief Map of sensor id to sensors
+    private: std::map<unsigned int, rendering::SensorPtr> sensors;
   };
   }
 }

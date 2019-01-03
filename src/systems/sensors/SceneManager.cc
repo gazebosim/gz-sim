@@ -87,68 +87,121 @@ void SceneManager::Update()
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::LoadModel(int _id, const sdf::Model &_model,
+rendering::VisualPtr SceneManager::CreateModel(int _id, const sdf::Model &_model,
     int _parentId)
 {
   if (this->visuals.find(_id) != this->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
     return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId > 0)
+  {
+    auto it = this->visuals.find(_parentId);
+    if (it == this->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding entity: [" << _id << "]" << std::endl;
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
 
   std::string name = _model.Name().empty() ? std::to_string(_id) :
       _model.Name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
   rendering::VisualPtr modelVis = this->scene->CreateVisual(name);
   modelVis->SetLocalPose(_model.Pose());
   this->visuals[_id] = modelVis;
 
-  if (_parentId > 0)
-  {
-    auto it = this->visuals.find(_parentId);
-    if (it != this->visuals.end())
-      it->second->AddChild(modelVis);
-  }
-  std::cerr << "adding model " << _model.Name() << std::endl;
+  if (parent)
+    parent->AddChild(modelVis);
+  else
+    this->scene->RootVisual()->AddChild(modelVis);
+
+  std::cerr << "adding model " << _model.Name()
+            << ", id " << _id <<  ", parent " << _parentId << std::endl;
 
   return modelVis;
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::LoadLink(int _id, const sdf::Link &_link,
+rendering::VisualPtr SceneManager::CreateLink(int _id, const sdf::Link &_link,
     int _parentId)
 {
   if (this->visuals.find(_id) != this->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
     return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId > 0)
+  {
+    auto it = this->visuals.find(_parentId);
+    if (it == this->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding entity: [" << _id << "]" << std::endl;
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
 
   std::string name = _link.Name().empty() ? std::to_string(_id) :
       _link.Name();
+  if (parent)
+    name = parent->Name() + "::" + name;
   rendering::VisualPtr linkVis = this->scene->CreateVisual(name);
   linkVis->SetLocalPose(_link.Pose());
   this->visuals[_id] = linkVis;
 
-  if (_parentId > 0)
-  {
-    auto it = this->visuals.find(_parentId);
-    if (it != this->visuals.end())
-      it->second->AddChild(linkVis);
-  }
+  if (parent)
+    parent->AddChild(linkVis);
 
-  std::cerr << "adding link " << _link.Name() << std::endl;
+  std::cerr << "adding link " << _link.Name()
+            << ", id " << _id << ", parent " << _parentId << std::endl;
 
   return linkVis;
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::LoadVisual(int _id, const sdf::Visual &_visual,
+rendering::VisualPtr SceneManager::CreateVisual(int _id, const sdf::Visual &_visual,
     int _parentId)
 {
   if (this->visuals.find(_id) != this->visuals.end())
+  {
+    ignerr << "Entity with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
     return rendering::VisualPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId > 0)
+  {
+    auto it = this->visuals.find(_parentId);
+    if (it == this->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding entity: [" << _id << "]" << std::endl;
+      return rendering::VisualPtr();
+    }
+    parent = it->second;
+  }
 
   if (!_visual.Geom())
     return rendering::VisualPtr();
 
   std::string name = _visual.Name().empty() ? std::to_string(_id) :
       _visual.Name();
+  if (parent)
+    name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->scene->CreateVisual(name);
-  this->visuals[_id] = visualVis;
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
@@ -209,14 +262,12 @@ rendering::VisualPtr SceneManager::LoadVisual(int _id, const sdf::Visual &_visua
            << std::endl;
   }
 
-  if (_parentId > 0)
-  {
-    auto it = this->visuals.find(_parentId);
-    if (it != this->visuals.end())
-      it->second->AddChild(visualVis);
-  }
+  this->visuals[_id] = visualVis;
+  if (parent)
+    parent->AddChild(visualVis);
 
-  std::cerr << "adding visual" << _visual.Name() << std::endl;
+  std::cerr << "adding visual" << _visual.Name()
+            << ", id " << _id << ", parent " << _parentId << std::endl;
 
   return visualVis;
 }
@@ -298,11 +349,30 @@ rendering::MaterialPtr SceneManager::LoadMaterial(const sdf::Material &_material
 }
 
 /////////////////////////////////////////////////
-rendering::LightPtr SceneManager::LoadLight(int _id, const sdf::Light &_light,
+rendering::LightPtr SceneManager::CreateLight(int _id, const sdf::Light &_light,
     int _parentId)
 {
-  rendering::LightPtr light;
+  if (this->lights.find(_id) != this->lights.end())
+  {
+    ignerr << "Light with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return rendering::LightPtr();
+  }
 
+  rendering::VisualPtr parent;
+  if (_parentId > 0)
+  {
+    auto it = this->visuals.find(_parentId);
+    if (it == this->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding light: [" << _id << "]" << std::endl;
+      return rendering::LightPtr();
+    }
+    parent = it->second;
+  }
+
+  rendering::LightPtr light;
   switch (_light.Type())
   {
     case sdf::LightType::POINT:
@@ -345,19 +415,88 @@ rendering::LightPtr SceneManager::LoadLight(int _id, const sdf::Light &_light,
 
   this->lights[_id] = light;
 
-  if (_parentId > 0)
-  {
-    auto it = this->lights.find(_id);
-    if (it != this->lights.end())
-      it->second->AddChild(light);
-  }
+  if (parent)
+    parent->AddChild(light);
 
   return light;
 }
 
 /////////////////////////////////////////////////
+bool SceneManager::AddSensor(int _id, const std::string &_name,
+    int _parentId)
+{
+  if (this->sensors.find(_id) != this->sensors.end())
+  {
+    ignerr << "Sensor with Id: [" << _id << "] already exists in the scene"
+           << std::endl;
+    return false;
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId > 0)
+  {
+    auto it = this->visuals.find(_parentId);
+    if (it == this->visuals.end())
+    {
+      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
+             << "Not adding sensor: [" << _id << "]" << std::endl;
+      return false;
+    }
+    parent = it->second;
+  }
+
+  std::cerr << "parent id " << _parentId << std::endl;
+
+  rendering::SensorPtr sensor = this->scene->SensorByName(_name);
+  if (!sensor)
+  {
+    ignerr << "Unable to find sensor: [" << _name << "]" << std::endl;
+    std::cerr << "Unable to find sensor: [" << _name << "]" << std::endl;
+    return false;
+  }
+
+  if (parent)
+  {
+    sensor->RemoveParent();
+    parent->AddChild(sensor);
+  }
+
+
+  this->sensors[_id] = sensor;
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool SceneManager::HasEntity(int _id) const
 {
-  return this->visuals.find(_id) != this->visuals.end() &&
-      this->lights.find(_id) != this->lights.end();
+  return this->visuals.find(_id) != this->visuals.end() ||
+      this->lights.find(_id) != this->lights.end() ||
+      this->sensors.find(_id) != this->sensors.end();
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr SceneManager::EntityById(int _id) const
+{
+  auto vIt = this->visuals.find(_id);
+  if (vIt != this->visuals.end())
+  {
+    return vIt->second;
+  }
+  else
+  {
+    auto lIt = this->lights.find(_id);
+    if (lIt != this->lights.end())
+    {
+      return lIt->second;
+    }
+    else
+    {
+      auto sIt = this->sensors.find(_id);
+      if (sIt != this->sensors.end())
+      {
+        return sIt->second;
+      }
+    }
+  }
+  return rendering::NodePtr();
 }
