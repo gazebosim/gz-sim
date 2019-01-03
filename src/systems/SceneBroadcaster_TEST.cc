@@ -184,12 +184,13 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   transport::Node node;
 
   std::vector<msgs::Scene> sceneMsgs;
-  auto collectMsgs = std::function([&sceneMsgs](const msgs::Scene &_msg)
-  {
-    sceneMsgs.push_back(_msg);
-  });
+  std::function<void(const msgs::Scene &)> collectMsgs =
+      [&sceneMsgs](const msgs::Scene &_msg)
+      {
+        sceneMsgs.push_back(_msg);
+      };
 
-  node.Subscribe<msgs::Scene>("/world/default/scene/info", collectMsgs);
+  node.Subscribe("/world/default/scene/info", collectMsgs);
 
   // Run server
   server.Run(true, 10, false);
@@ -229,10 +230,11 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   transport::Node node;
 
   std::vector<msgs::UInt32_V> deletionMsgs;
-  auto collectMsgs = std::function([&deletionMsgs](const msgs::UInt32_V &_msg)
-  {
-    deletionMsgs.push_back(_msg);
-  });
+  std::function<void(const msgs::UInt32_V &)> collectMsgs =
+      [&deletionMsgs](const msgs::UInt32_V &_msg)
+      {
+        deletionMsgs.push_back(_msg);
+      };
 
   node.Subscribe("/world/default/scene/deletion", collectMsgs);
 
