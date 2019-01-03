@@ -1,11 +1,32 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="placeholder">
-    <plugin name="joy" filename="libJoyPlugin.so">
-      <sticky_buttons>false</sticky_buttons>
-      <dead_zone>0.05</dead_zone>
-      <rate>60</rate>
-      <accumulation_rate>1000</accumulation_rate>
+    <plugin name="joy_to_twist" filename="libJoyToTwistPlugin.so">
+
+      <!-- Normal model -->
+
+      <!-- Button which must be pressed to enable publishing, defaults to zero -->
+      <enable_button>0</enable_button>
+
+      <!-- Joystick axis for linear control of XYZ, defaults to 1 on X -->
+      <axis_linear>1 0 0</axis_linear>
+
+      <!-- Scale for linear XYZ, defaults to 0.5 on X-->
+      <scale_linear>2 0 0</scale_linear>
+
+      <!-- Scale for angular RPY, defaults to 0.5 on Yaw-->
+      <scale_linear>0 0 2</scale_linear>
+
+     <!-- Turbo mode -->
+
+      <!-- Button which must be pressed to enable turbo, defaults to invalid (-1) -->
+      <enable_turbo_button>1</enable_turbo_button>
+
+      <!-- Scale for linear XYZ, defaults to the normal mode scale -->
+      <scale_linear_turbo>5 0 0</scale_linear_turbo>
+
+      <!-- Scale for angular RPY, defaults to the normal mode scale -->
+      <scale_linear>0 0 5</scale_linear>
     </plugin>
   </world>
 </sdf>
