@@ -91,8 +91,12 @@ namespace ignition
               {
                 if (this->events.find(typeid(E)) == this->events.end())
                 {
-                  // If there are no events of type E in the map, there are
-                  // no connections to signal .
+                  // If there are no events of type E in the map, create it.
+                  // But it also means there is nothing to signal.
+                  //
+                  // This is also needed to suppress unused function warnings
+                  // for Events that are purely emitted, with no connections.
+                  this->events[typeid(E)] = std::make_unique<E>();
                   return;
                 }
 
