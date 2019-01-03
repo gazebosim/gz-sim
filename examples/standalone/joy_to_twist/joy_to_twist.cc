@@ -117,12 +117,15 @@ int main(int argc, char **argv)
 
   // Setup transport
   ignition::transport::Node node;
-  cmdVelPub = node.Advertise<ignition::msgs::Twist>(
-      "/model/vehicle_blue/cmd_vel");
+
+  auto twistTopic = plugin->Get<std::string>("twist_topic", "/cmd_vel").first;
+  cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
+
+  auto joyTopic = plugin->Get<std::string>("joy_topic", "/joy").first;
   node.Subscribe("/joy", OnJoy);
 
-   enableButton = plugin->Get<int>("enable_button", 0).first;
-   enableTurboButton = plugin->Get<int>("enable_turbo_button", -1).first;
+  enableButton = plugin->Get<int>("enable_button", 0).first;
+  enableTurboButton = plugin->Get<int>("enable_turbo_button", -1).first;
 
   axisLinear  = plugin->Get<ignition::math::Vector3d>("axis_linear",
       ignition::math::Vector3d::UnitX).first;
