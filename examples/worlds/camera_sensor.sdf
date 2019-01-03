@@ -132,23 +132,6 @@
             <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
-<!--
-        <sensor name="camera" type="camera">
-          <update_rate>10</update_rate>
-          <topic>camera</topic>
-          <camera>
-            <horizontal_fov>1.05</horizontal_fov>
-            <image>
-              <width>256</width>
-              <height>256</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>10.0</far>
-            </clip>
-          </camera>
-        </sensor>
--->
       </link>
     </model>
 

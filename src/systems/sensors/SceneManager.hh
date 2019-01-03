@@ -18,6 +18,10 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_SCENEMANAGER_HH_
 #define IGNITION_GAZEBO_SYSTEMS_SCENEMANAGER_HH_
 
+#include <map>
+#include <memory>
+#include <string>
+
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -42,23 +46,22 @@ namespace gazebo
 {
 namespace systems
 {
-
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  //
+  // Forward declaration
+  class SceneManagerPrivate;
+
   /// \brief Scene manager class for loading and managing objects in the scene
   class IGNITION_GAZEBO_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
 
+    /// \brief Destructor
+    public: ~SceneManager();
+
     /// \brief Set the scene to manager
     public: void SetScene(rendering::ScenePtr _scene);
-
-    /// \brief Update the scene based on pose msgs received
-    public: void Update();
-
-    /// \brief Callback function for the pose topic
-    /// \param[in] _msg Pose vector msg
-    // private: void OnPoseVMsg(const msgs::Pose_V &_msg);
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
@@ -89,13 +92,13 @@ namespace systems
     /// \param[out] _scale Geometry scale that will be set based on sdf
     /// \param[out] _localPose Additional local pose to be applied after the
     /// visual's pose
-    /// \return Geometry object created from the sdf dom
+    /// \return Geometry object loaded from the sdf dom
     public: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
         math::Vector3d &_scale, math::Pose3d &_localPose);
 
     /// \brief Load a material
     /// \param[in] _material Material sdf dom
-    /// \return Material object created from the sdf dom
+    /// \return Material object loaded from the sdf dom
     public: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
 
@@ -103,7 +106,7 @@ namespace systems
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id
-    /// \return Light object created from the msg
+    /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(int _id, const sdf::Light &_light,
         int _parentId);
 
@@ -124,35 +127,9 @@ namespace systems
     /// \return Pointer to requested entity
     public: rendering::NodePtr EntityById(int _id) const;
 
-    //// \brief Ign-transport scene service name
-    private: std::string service;
-
-    //// \brief Ign-transport pose topic name
-    private: std::string poseTopic;
-
-    //// \brief Pointer to the rendering scene
-    private: rendering::ScenePtr scene;
-
-    //// \brief Mutex to protect the pose msgs
-    private: std::mutex mutex;
-
-    /// \brief Map of entity id to pose
-    private: std::map<unsigned int, math::Pose3d> poses;
-
-    /// \brief Map of entity id to initial local poses
-    /// This is currently used to handle the normal vector in plane visuals. In
-    /// general, this can be used to store any local transforms between the
-    /// parent Visual and geometry.
-    private: std::map<unsigned int, math::Pose3d> localPoses;
-
-    /// \brief Map of visual id to visual pointers.
-    private: std::map<unsigned int, rendering::VisualPtr> visuals;
-
-    /// \brief Map of light id to light pointers.
-    private: std::map<unsigned int, rendering::LightPtr> lights;
-
-    /// \brief Map of sensor id to sensors
-    private: std::map<unsigned int, rendering::SensorPtr> sensors;
+    /// \internal
+    /// \brief Pointer to private data class
+    private: std::unique_ptr<SceneManagerPrivate> dataPtr;
   };
   }
 }

@@ -30,6 +30,7 @@
 
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -61,10 +62,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
 
+  /// \brief Name of rendering engine
   public: std::string engineName;
-
-//   public: std::map<EntityId, sensors::SensorId>  sensorMap;
-   public: std::map<EntityId, sensors::Sensor *>  sensorMap;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -83,7 +82,7 @@ Sensors::~Sensors()
 //////////////////////////////////////////////////
 void Sensors::Configure(const EntityId &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm,
+    EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
   // Setup rendering
@@ -92,12 +91,12 @@ void Sensors::Configure(const EntityId &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
+void Sensors::Update(const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
 {
   if (!this->dataPtr->initialized)
   {
     // TODO(anyone) Only do this if we do have rendering sensors
-    auto *engine = ignition::rendering::engine(this->dataPtr->engineName);
+    auto engine = ignition::rendering::engine(this->dataPtr->engineName);
     if (!engine)
     {
       ignerr << "Failed to load engine ["
@@ -223,6 +222,27 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
+  // lights
+  _ecm.Each<components::Light, components::Pose, components::ParentEntity>(
+      [&](const EntityId &_entity,
+        const components::Light*  _light,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (!entity)
+        {
+          this->sceneManager.CreateLight(_entity, _light->Data(),
+              _parent->Data());
+        }
+        else
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+
+        return true;
+      });
+
   // Create cameras
   _ecm.Each<components::Camera, components::Pose, components::ParentEntity>(
     [&](const EntityId &_entity,
@@ -255,7 +275,6 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
         return true;
       });
-
 }
 
 IGNITION_ADD_PLUGIN(Sensors, System,
