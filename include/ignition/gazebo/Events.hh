@@ -36,7 +36,7 @@ namespace ignition
       /// \code
       /// eventManager.Emit<ignition::gazebo::events::Pause>(true);
       /// \endcode
-      using Pause = ignition::common::EventT<void(bool)>;
+      using Pause = ignition::common::EventT<void(bool), struct _Pause>;
       }
     }  // namespace events
   }  // namespace gazebo
