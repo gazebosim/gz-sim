@@ -23,6 +23,13 @@
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+static const std::string g_bin(PROJECT_BINARY_PATH);
+
+static const std::string g_ignCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + g_bin + "/lib " +
+  "LD_LIBRARY_PATH=" + g_bin + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} " +
+  g_bin + "/bin/");
+
 /////////////////////////////////////////////////
 std::string custom_exec_str(std::string _cmd)
 {
@@ -45,13 +52,10 @@ std::string custom_exec_str(std::string _cmd)
   return result;
 }
 
-const char *kPluginPath = "IGN_GAZEBO_SYSTEM_PLUGIN_PATH="
-    PROJECT_BINARY_PATH "/lib ";
-
 /////////////////////////////////////////////////
 TEST(CmdLine, Server)
 {
-  std::string cmd = std::string(kPluginPath) +
+  std::string cmd = g_ignCommand +
     "ign-gazebo-server -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
@@ -69,7 +73,7 @@ TEST(CmdLine, Server)
 /////////////////////////////////////////////////
 TEST(CmdLine, GazeboServer)
 {
-  std::string cmd = std::string(kPluginPath) +
+  std::string cmd = g_ignCommand +
     "ign-gazebo -s -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
@@ -87,7 +91,7 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, Gazebo)
 {
-  std::string cmd = std::string(kPluginPath) +
+  std::string cmd = g_ignCommand +
     "ign-gazebo -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 

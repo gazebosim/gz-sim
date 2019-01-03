@@ -7,6 +7,7 @@ set(gui_sources
 )
 
 set (sources
+  Conversions.cc
   Entity.cc
   EntityComponentManager.cc
   EventManager.cc
@@ -69,7 +70,13 @@ install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_D
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
 # Build the unit tests
-ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
+ign_build_tests(TYPE UNIT
+  SOURCES
+    ${gtest_sources}
+  LIB_DEPS
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ignition-gazebo
+)
 
 # Create the gazebo executable
 ign_add_executable(ign-gazebo-exec main.cc)
