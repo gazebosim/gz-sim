@@ -25,7 +25,6 @@ pipelines:
           - cd ..
           # Dependency: Ignition packages
           - apt-get -y install
-            # libignition-cmake2-dev
             libignition-common3-dev
             libignition-math6-eigen3-dev
             libignition-plugin-dev
@@ -33,6 +32,7 @@ pipelines:
             libignition-rendering-dev
             libignition-tools-dev
             libignition-transport6-dev
+            # libignition-cmake2-dev
             # libignition-gui-dev
             # libignition-msgs3-dev
             # libignition-sensors0-dev
