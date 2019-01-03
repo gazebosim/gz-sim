@@ -3,6 +3,15 @@
   <world name="placeholder">
     <plugin name="joy_to_twist" filename="libJoyToTwistPlugin.so">
 
+      <!-- Topic to subscribe to get joy messages -->
+      <joy_topic>/joy</joy_topic>
+
+      <!--
+        Topic to publish twist messages.
+        Works well with diff_drive.sdf world, see README for instructions.
+      -->
+      <twist_topic>/model/vehicle_blue/cmd_vel</twist_topic>
+
       <!-- Normal model -->
 
       <!-- Button which must be pressed to enable publishing, defaults to zero -->
