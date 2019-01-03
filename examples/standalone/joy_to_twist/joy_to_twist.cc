@@ -15,6 +15,10 @@
  *
 */
 
+/*
+ * Adapted from https://github.com/ros-teleop/teleop_twist_joy
+ */
+
 #include <ignition/transport/Node.hh>
 #include <sdf/sdf.hh>
 
@@ -23,13 +27,13 @@ ignition::transport::Node::Publisher cmdVelPub;
 int enableButton;
 int enableTurboButton;
 
-std::map<std::string, int> axisLinearMap;
-std::map<std::string, double> scaleLinearMap;
-std::map<std::string, double> scaleLinearTurboMap;
+ignition::math::Vector3d axisLinear;
+ignition::math::Vector3d scaleLinear;
+ignition::math::Vector3d scaleLinearTurbo;
 
-std::map<std::string, int> axisAngularMap;
-std::map<std::string, double> scaleAngularMap;
-std::map<std::string, double> scaleAngularTurboMap;
+ignition::math::Vector3d axisAngular;
+ignition::math::Vector3d scaleAngular;
+ignition::math::Vector3d scaleAngularTurbo;
 
 bool sentDisableMsg;
 
@@ -38,70 +42,50 @@ void OnJoy(const ignition::msgs::Joy &_msg)
 {
   ignition::msgs::Twist cmdVelMsg;
 
+  // Turbo mode
   if (enableTurboButton >= 0 && _msg.buttons(enableTurboButton))
   {
-    if (axisLinearMap.find("x") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_x(_msg.axes(axisLinearMap["x"]) * scaleLinearTurboMap["x"]);
-    }
-    if (axisLinearMap.find("y") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_y(_msg.axes(axisLinearMap["y"]) * scaleLinearTurboMap["y"]);
-    }
-    if (axisLinearMap.find("z") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_z(_msg.axes(axisLinearMap["z"]) * scaleLinearTurboMap["z"]);
-    }
-    if (axisAngularMap.find("yaw") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_z(_msg.axes(axisAngularMap["yaw"]) * scaleAngularTurboMap["yaw"]);
-    }
-    if (axisAngularMap.find("pitch") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_y(_msg.axes(axisAngularMap["pitch"]) * scaleAngularTurboMap["pitch"]);
-    }
-    if (axisAngularMap.find("roll") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_x(_msg.axes(axisAngularMap["roll"]) * scaleAngularTurboMap["roll"]);
-    }
+    cmdVelMsg.mutable_linear()->set_x(
+        _msg.axes(axisLinear.X()) * scaleLinearTurbo.X());
+    cmdVelMsg.mutable_linear()->set_y(
+        _msg.axes(axisLinear.Y()) * scaleLinearTurbo.Y());
+    cmdVelMsg.mutable_linear()->set_z(
+        _msg.axes(axisLinear.Z()) * scaleLinearTurbo.Z());
+
+    cmdVelMsg.mutable_angular()->set_x(
+        _msg.axes(axisAngular.X()) * scaleAngularTurbo.X());
+    cmdVelMsg.mutable_angular()->set_y(
+        _msg.axes(axisAngular.Y()) * scaleAngularTurbo.Y());
+    cmdVelMsg.mutable_angular()->set_z(
+        _msg.axes(axisAngular.Z()) * scaleAngularTurbo.Z());
 
     cmdVelPub.Publish(cmdVelMsg);
     sentDisableMsg = false;
   }
+  // Normal mode
   else if (_msg.buttons(enableButton))
   {
-    if (axisLinearMap.find("x") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_x(_msg.axes(axisLinearMap["x"]) * scaleLinearMap["x"]);
-    }
-    if (axisLinearMap.find("y") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_y(_msg.axes(axisLinearMap["y"]) * scaleLinearMap["y"]);
-    }
-    if (axisLinearMap.find("z") != axisLinearMap.end())
-    {
-      cmdVelMsg.mutable_linear()->set_z(_msg.axes(axisLinearMap["z"]) * scaleLinearMap["z"]);
-    }
-    if (axisAngularMap.find("yaw") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_z(_msg.axes(axisAngularMap["yaw"]) * scaleAngularMap["yaw"]);
-    }
-    if (axisAngularMap.find("pitch") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_y(_msg.axes(axisAngularMap["pitch"]) * scaleAngularMap["pitch"]);
-    }
-    if (axisAngularMap.find("roll") != axisAngularMap.end())
-    {
-      cmdVelMsg.mutable_angular()->set_x(_msg.axes(axisAngularMap["roll"]) * scaleAngularMap["roll"]);
-    }
+    cmdVelMsg.mutable_linear()->set_x(
+        _msg.axes(axisLinear.X()) * scaleLinear.X());
+    cmdVelMsg.mutable_linear()->set_y(
+        _msg.axes(axisLinear.Y()) * scaleLinear.Y());
+    cmdVelMsg.mutable_linear()->set_z(
+        _msg.axes(axisLinear.Z()) * scaleLinear.Z());
+
+    cmdVelMsg.mutable_angular()->set_x(
+        _msg.axes(axisAngular.X()) * scaleAngular.X());
+    cmdVelMsg.mutable_angular()->set_y(
+        _msg.axes(axisAngular.Y()) * scaleAngular.Y());
+    cmdVelMsg.mutable_angular()->set_z(
+        _msg.axes(axisAngular.Z()) * scaleAngular.Z());
 
     cmdVelPub.Publish(cmdVelMsg);
     sentDisableMsg = false;
   }
   else
   {
-    // When enable button is released, immediately send a single no-motion command
-    // in order to stop the robot.
+    // When enable button is released, immediately send a single no-motion
+    // command in order to stop the robot.
     if (!sentDisableMsg)
     {
       cmdVelPub.Publish(cmdVelMsg);
@@ -133,41 +117,31 @@ int main(int argc, char **argv)
 
   // Setup transport
   ignition::transport::Node node;
-  cmdVelPub = node.Advertise<ignition::msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  cmdVelPub = node.Advertise<ignition::msgs::Twist>(
+      "/model/vehicle_blue/cmd_vel");
   node.Subscribe("/joy", OnJoy);
 
    enableButton = plugin->Get<int>("enable_button", 0).first;
    enableTurboButton = plugin->Get<int>("enable_turbo_button", -1).first;
 
-//  if (nh_param->getParam("axis_linear", axis_linear_map))
-//  {
-//    nh_param->getParam("axis_linear", axis_linear_map).first;
-//    nh_param->getParam("scale_linear", scale_linear_map).first;
-//    nh_param->getParam("scale_linear_turbo", scale_linear_turbo_map).first;
-//  }
-//  else
-  {
-    axisLinearMap["x"]  = plugin->Get<int>("axis_linear", 1).first;
-    scaleLinearMap["x"] = plugin->Get<double>("scale_linear", 0.5).first;
-    scaleLinearTurboMap["x"] = plugin->Get<double>("scale_linear_turbo", 1.0).first;
-  }
+  axisLinear  = plugin->Get<ignition::math::Vector3d>("axis_linear",
+      ignition::math::Vector3d::UnitX).first;
+  scaleLinear  = plugin->Get<ignition::math::Vector3d>("scale_linear",
+      ignition::math::Vector3d(0.5, 0, 0)).first;
+  scaleLinearTurbo  = plugin->Get<ignition::math::Vector3d>(
+      "scale_linear_turbo", scaleLinear).first;
 
-//  if (nh_param->getParam("axis_angular", axis_angular_map))
-//  {
-//    nh_param->getParam("axis_angular", axis_angular_map).first;
-//    nh_param->getParam("scale_angular", scale_angular_map).first;
-//    nh_param->getParam("scale_angular_turbo", scale_angular_turbo_map).first;
-//  }
-//  else
-  {
-    axisAngularMap["yaw"] = plugin->Get<int>("axis_angular", 0).first;
-    scaleAngularMap["yaw"] = plugin->Get<double>("scale_angular", 0.5).first;
-    scaleAngularTurboMap["yaw"]  = plugin->Get<double>("scale_angular_turbo",
-        scaleAngularMap["yaw"]).first;
-  }
+  axisAngular = plugin->Get<ignition::math::Vector3d>("axis_angular",
+      ignition::math::Vector3d::Zero).first;
+  scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
+      ignition::math::Vector3d(0, 0, 0.5)).first;
+  scaleAngularTurbo  = plugin->Get<ignition::math::Vector3d>(
+      "scale_angular_turbo", scaleAngular).first;
 
   sentDisableMsg = false;
 
-  while (true) {}
+  while (true)
+  {
+  }
 }
 

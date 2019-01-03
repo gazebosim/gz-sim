@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  // TODO(louise) This is not a plugin, we need a new SDF tag
+  // TODO(louise) This is not a plugin, we need a new SDF tag or smth
   auto joy = sdf->Root()->GetElement("world")->GetElement("plugin");
 
   // Get the name of the joystick device.
