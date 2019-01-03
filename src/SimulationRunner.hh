@@ -341,7 +341,7 @@ namespace ignition
       private: SystemLoaderPtr systemLoader;
 
       /// \brief Node for communication.
-      public: std::unique_ptr<transport::Node> node{nullptr};
+      private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
