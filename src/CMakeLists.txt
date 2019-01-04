@@ -87,7 +87,7 @@ target_link_libraries(ign-gazebo-exec PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 # Create the server executable
-ign_add_executable(ign-gazebo-server server.cc)
+ign_add_executable(ign-gazebo-server server_main.cc)
 set_property(TARGET ign-gazebo-server PROPERTY OUTPUT_NAME ign-gazebo-server)
 target_link_libraries(ign-gazebo-server PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
@@ -97,7 +97,7 @@ target_link_libraries(ign-gazebo-server PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 # Create the gui executable
-ign_add_executable(ign-gazebo-gui gui.cc)
+ign_add_executable(ign-gazebo-gui gui_main.cc)
 set_property(TARGET ign-gazebo-gui PROPERTY OUTPUT_NAME ign-gazebo-gui)
 target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
