@@ -18,6 +18,7 @@
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -30,6 +31,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
+#include <sdf/Gui.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
@@ -127,5 +129,43 @@ msgs::Light ignition::gazebo::Convert(const sdf::Light &_in)
     out.set_type(msgs::Light_LightType_SPOT);
   else if (_in.Type() == sdf::LightType::DIRECTIONAL)
     out.set_type(msgs::Light_LightType_DIRECTIONAL);
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::GUI ignition::gazebo::Convert(const sdf::Gui &_in)
+{
+  msgs::GUI out;
+
+  out.set_fullscreen(_in.Fullscreen());
+
+  // Set gui plugins
+  auto elem = _in.Element();
+  if (elem && elem->HasElement("plugin"))
+  {
+    auto pluginElem = elem->GetElement("plugin");
+    while (pluginElem)
+    {
+      auto pluginMsg = out.add_plugin();
+      pluginMsg->set_name(pluginElem->Get<std::string>("name"));
+      pluginMsg->set_filename(pluginElem->Get<std::string>("filename"));
+
+      std::stringstream ss;
+      for (auto innerElem = pluginElem->GetFirstElement();
+          innerElem; innerElem = innerElem->GetNextElement(""))
+      {
+        ss << innerElem->ToString("");
+      }
+      pluginMsg->set_innerxml(ss.str());
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
+
+  if (elem->HasElement("camera"))
+  {
+    ignwarn << "<gui><camera> can't be converted yet" << std::endl;
+  }
+
   return out;
 }

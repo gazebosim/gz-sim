@@ -14,20 +14,15 @@
  * limitations under the License.
  *
 */
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <gflags/gflags.h>
 
 #include <ignition/common/Console.hh>
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/Time.hh>
 
-#include <csignal>
 #include <iostream>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -36,8 +31,6 @@ DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
 DEFINE_double(z, -1, "Update rate in Hertz.");
 DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
-DEFINE_bool(s, false, "Run only the server (headless mode).");
-DEFINE_bool(g, false, "Run only the GUI.");
 DEFINE_string(f, "", "Load an SDF file on start.");
 DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
@@ -46,9 +39,9 @@ DEFINE_bool(r, false, "Run simulation on start. "
 void Help()
 {
   std::cout
-  << "ign-gazebo -- Run the Gazebo server and GUI." << std::endl
+  << "ign-gazebo-server -- Run the Gazebo server (headless mode)." << std::endl
   << std::endl
-  << "`ign-gazebo` [options] <world_file>" << std::endl
+  << "`ign-gazebo-server` [options]" << std::endl
   << std::endl
   << std::endl
   << "Options:" << std::endl
@@ -60,11 +53,6 @@ void Help()
   << " The default verbosity is 1"
   << std::endl
   << "  --iterations arg       Number of iterations to execute."
-  << std::endl
-  << "  -s                     Run only the server (headless mode). This will "
-  << " override -g, if it is also present."
-  << std::endl
-  << "  -g                     Run only the GUI."
   << std::endl
   << "  -f                     Load an SDF file on start. "
   << std::endl
@@ -89,62 +77,8 @@ static bool VerbosityValidator(const char */*_flagname*/, int _value)
 }
 
 //////////////////////////////////////////////////
-/// \brief Try to kill a single process.
-/// \param[in] _pid Process ID.
-/// \param[in] _name Process name.
-/// \param[in] _timeout Total time to wait in seconds.
-/// \param[in, out] _killed Set to true if process was successfully killed.
-static void KillProcess(pid_t _pid, const std::string &_name,
-                        const double _timeout, bool &_killed)
-{
-  kill(_pid, SIGINT);
-
-  // Wait some time and if not dead, escalate to SIGKILL
-  double sleepSecs = 0.001;
-  int status;
-  for (unsigned int i = 0; i < (unsigned int)(_timeout / sleepSecs); ++i)
-  {
-    if (_killed)
-    {
-      break;
-    }
-    else
-    {
-      int p = waitpid(_pid, &status, WNOHANG);
-      if (p == _pid)
-      {
-        _killed = true;
-        break;
-      }
-    }
-    // Sleep briefly
-    ignition::common::Time::Sleep(ignition::common::Time(sleepSecs));
-  }
-  if (!_killed)
-  {
-    ignerr << "Escalating to SIGKILL on [" << _name << "]" << std::endl;
-    kill(_pid, SIGKILL);
-  }
-}
-
-//////////////////////////////////////////////////
 int main(int _argc, char **_argv)
 {
-  int returnValue = 0;
-
-  // Store all arguments for child processes before gflags clears them
-  char **argvServer = new char*[_argc+1];
-  char **argvGui = new char*[_argc+1];
-  argvServer[0] = const_cast<char *>("ign-gazebo-server");
-  argvGui[0] = const_cast<char *>("ign-gazebo-gui");
-  for (int i = 1; i < _argc; ++i)
-  {
-    argvServer[i] = _argv[i];
-    argvGui[i] = _argv[i];
-  }
-  argvServer[_argc] = static_cast<char *>(nullptr);
-  argvGui[_argc] = static_cast<char *>(nullptr);
-
   // Register validators
   gflags::RegisterFlagValidator(&FLAGS_verbose, &VerbosityValidator);
   gflags::RegisterFlagValidator(&FLAGS_v, &VerbosityValidator);
@@ -187,7 +121,7 @@ int main(int _argc, char **_argv)
     gflags::SetCommandLineOption("helpfull", "false");
     gflags::SetCommandLineOption("helpmatch", "");
     Help();
-    return returnValue;
+    return 0;
   }
 
   // If version is requested, override with custom version print function.
@@ -195,81 +129,31 @@ int main(int _argc, char **_argv)
   {
     gflags::SetCommandLineOption("version", "false");
     Version();
-    return returnValue;
+    return 0;
   }
 
-  // Run Gazebo
+  // Set verbosity
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
-  ignmsg << "Ignition Gazebo        v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
+  ignition::gazebo::ServerConfig serverConfig;
+  if (!serverConfig.SetSdfFile(FLAGS_f))
+  {
+    ignerr << "Failed to set SDF file [" << FLAGS_f << "]" << std::endl;
+    return -1;
+  }
+
+  // Set the update rate.
+  if (FLAGS_z > 0.0)
+    serverConfig.SetUpdateRate(FLAGS_z);
+
+  // Create the Gazebo server
+  ignition::gazebo::Server server(serverConfig);
+
   // Run the server
-  pid_t serverPid;
-  if (!FLAGS_g)
-  {
-    serverPid = fork();
-    if (serverPid == 0)
-    {
-      // remove client from foreground process group
-      setpgid(serverPid, 0);
+  server.Run(true, FLAGS_iterations, !FLAGS_r);
 
-      // Spin up server process and block here
-      execvp(argvServer[0], argvServer);
-    }
-  }
-
-  // Run the GUI
-  pid_t  guiPid;
-  if (!FLAGS_s)
-  {
-    guiPid = fork();
-    if (guiPid == 0)
-    {
-      // remove client from foreground process group
-      setpgid(guiPid, 0);
-
-      // Spin up GUI process and block here
-      execvp(argvGui[0], argvGui);
-    }
-  }
-
-  // Signal handler
-  ignition::common::SignalHandler sigHandler;
-  bool guiKilled = false;
-  bool serverKilled = false;
-  bool sigKilled = false;
-  sigHandler.AddCallback([&](const int /*_sig*/)
-  {
-    sigKilled = true;
-    if (!FLAGS_s)
-      KillProcess(guiPid, "ign-gazebo-gui", 5.0, guiKilled);
-    if (!FLAGS_g)
-      KillProcess(serverPid, "ign-gazebo-server", 5.0, serverKilled);
-  });
-
-  // Block until one of the processes ends
-  int child_exit_status;
-  pid_t deadChild = wait(&child_exit_status);
-
-  // Check dead process' return value
-  if ((WIFEXITED(child_exit_status) == 0) ||
-      (WEXITSTATUS(child_exit_status) != 0))
-    returnValue = -1;
-  else
-    returnValue = 0;
-
-  if (deadChild == guiPid)
-    guiKilled = true;
-  else if (deadChild == serverPid)
-    serverKilled = true;
-
-  // one of the children died
-  if (!sigKilled)
-    std::raise(SIGINT);
-
-  delete[] argvServer;
-  delete[] argvGui;
-
-  igndbg << "Shutting down ign-gazebo" << std::endl;
-  return returnValue;
+  igndbg << "Shutting down ign-gazebo-server" << std::endl;
+  return 0;
 }

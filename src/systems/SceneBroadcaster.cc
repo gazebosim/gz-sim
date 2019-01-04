@@ -110,7 +110,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
                                       SceneGraphType &_graph);
 
   /// \brief Transport node.
-  public: transport::Node node;
+  public: std::unique_ptr<transport::Node> node{nullptr};
 
   /// \brief Pose publisher.
   public: transport::Node::Publisher posePub;
@@ -254,26 +254,32 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
-  // Scene info service
-  std::string infoService{"/world/" + _worldName + "/scene/info"};
+  transport::NodeOptions opts;
+  opts.SetNameSpace("/world/" + _worldName);
+  this->node = std::make_unique<transport::Node>(opts);
 
-  this->node.Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
+  // Scene info service
+  std::string infoService{"scene/info"};
+
+  this->node->Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
       this);
 
-  ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
+  ignmsg << "Serving scene information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
 
   // Scene graph service
-  std::string graphService{"/world/" + _worldName + "/scene/graph"};
+  std::string graphService{"scene/graph"};
 
-  this->node.Advertise(graphService,
+  this->node->Advertise(graphService,
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
-  ignmsg << "Serving scene graph on [" << graphService << "]" << std::endl;
+  ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
+         << graphService << "]" << std::endl;
 
   // Scene info topic
   std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
 
-  this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
   ignmsg << "Serving scene information on [" << sceneTopic << "]" << std::endl;
 
@@ -281,19 +287,20 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
 
   this->deletionPub =
-      this->node.Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
 
   // Pose info publisher
-  std::string topic{"/world/" + _worldName + "/pose/info"};
+  std::string topic{"pose/info"};
 
   transport::AdvertiseMessageOptions advertOpts;
   advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
+  this->posePub = this->node->Advertise<msgs::Pose_V>(topic, advertOpts);
 
-  ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/" << topic
+         << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////

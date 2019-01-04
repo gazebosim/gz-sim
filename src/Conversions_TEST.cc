@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <sdf/Gui.hh>
 #include <sdf/Light.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -70,4 +71,46 @@ TEST(Conversions, Light)
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
   EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Gui)
+{
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "  <gui fullscreen='true'>"
+      "    <plugin filename='plugin-file-1' name='plugin-1'>"
+      "      <banana>3</banana>"
+      "    </plugin>"
+      "    <plugin filename='plugin-file-2' name='plugin-2'>"
+      "      <watermelon>0.5</watermelon>"
+      "    </plugin>"
+      "  </gui>"
+      "</world></sdf>");
+
+  auto world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  auto gui = world->Gui();
+  ASSERT_NE(nullptr, gui);
+
+  auto guiMsg = Convert<msgs::GUI>(*gui);
+  EXPECT_TRUE(guiMsg.fullscreen());
+  ASSERT_EQ(2, guiMsg.plugin_size());
+
+  auto plugin1 = guiMsg.plugin(0);
+  EXPECT_EQ("plugin-file-1", plugin1.filename());
+  EXPECT_EQ("plugin-1", plugin1.name());
+
+  EXPECT_NE(plugin1.innerxml().find(
+      "<banana>3</banana>"),
+      std::string::npos);
+
+  auto plugin2 = guiMsg.plugin(1);
+  EXPECT_EQ("plugin-file-2", plugin2.filename());
+  EXPECT_EQ("plugin-2", plugin2.name());
+  EXPECT_NE(plugin2.innerxml().find(
+      "<watermelon>0.5</watermelon>"),
+      std::string::npos);
 }

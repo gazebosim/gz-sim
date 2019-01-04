@@ -51,6 +51,14 @@ using namespace gazebo;
 
 class SimulationRunnerTest : public ::testing::TestWithParam<int>
 {
+  // Documentation inherited
+  protected: virtual void SetUp()
+  {
+    common::Console::SetVerbosity(4);
+
+    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -948,11 +956,6 @@ TEST_P(SimulationRunnerTest, Time)
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, LoadPlugins)
 {
-  common::Console::SetVerbosity(4);
-
-  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-    (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-
   // Load SDF file
   sdf::Root root;
   root.Load(std::string(PROJECT_SOURCE_PATH) +
@@ -997,6 +1000,40 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
         gazebo::EntityComponentManager::ComponentType<int>()));
   EXPECT_EQ(*runner.EntityCompMgr().Component<int>(modelId), 987);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, GuiInfo)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  msgs::GUI res;
+
+  EXPECT_TRUE(node.Request("/world/default/gui/info", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  ASSERT_EQ(1, res.plugin_size());
+
+  auto plugin = res.plugin(0);
+  EXPECT_EQ("3D View", plugin.name());
+  EXPECT_EQ("Scene3D", plugin.filename());
+  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
