@@ -109,45 +109,37 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
   for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
   {
     auto world = _root.WorldByIndex(worldIndex);
-    auto element = world->Element();
 
+    {
+      std::lock_guard<std::mutex> lock(this->worldsMutex);
+      this->worldNames.push_back(world->Name());
+    }
+
+    auto element = world->Element();
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
           _root.WorldByIndex(worldIndex), this->systemLoader));
   }
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::LoadGui(const sdf::Root &_root)
+void ServerPrivate::SetupTransport()
 {
-  if (!gui::App())
-    return;
-
-  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
-  {
-    auto world = _root.WorldByIndex(worldIndex);
-    auto element = world->Element();
-
-    // GUI plugins
-    if (!element->HasElement("gui") ||
-        !element->GetElement("gui")->HasElement("plugin"))
-    {
-      continue;
-    }
-
-    auto pluginElem = element->GetElement("gui")->GetElement("plugin");
-    while (pluginElem)
-    {
-      auto fileName = pluginElem->Get<std::string>("filename");
-
-      auto pluginStr = pluginElem->ToString("");
-
-      tinyxml2::XMLDocument pluginDoc;
-      pluginDoc.Parse(pluginStr.c_str());
-
-      gui::App()->LoadPlugin(fileName,
-          pluginDoc.FirstChildElement("plugin"));
-
-      pluginElem = pluginElem->GetNextElement("plugin");
-    }
-  }
+  // Advertise available worlds.
+  this->node.Advertise("/gazebo/worlds", &ServerPrivate::WorldsService, this);
 }
+
+//////////////////////////////////////////////////
+bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+{
+  std::lock_guard<std::mutex> lock(this->worldsMutex);
+
+  _res.Clear();
+
+  for (auto name : this->worldNames)
+  {
+    _res.add_data(name);
+  }
+
+  return true;
+}
+

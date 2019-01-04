@@ -106,8 +106,24 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
   // World control
-  this->node.Advertise("/world/" + this->worldName + "/control",
-        &SimulationRunner::OnWorldControl, this);
+  transport::NodeOptions opts;
+  opts.SetNameSpace("/world/" + this->worldName);
+  this->node = std::make_unique<transport::Node>(opts);
+
+  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+
+  // Publish empty GUI messages for worlds that have no GUI in the beginning.
+  // In the future, support modifying GUI from the server at runtime.
+  if (_world->Gui())
+  {
+    this->guiMsg = Convert<msgs::GUI>(*_world->Gui());
+  }
+
+  std::string infoService{"gui/info"};
+  this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
+
+  ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
 
   ignmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
@@ -179,8 +195,8 @@ void SimulationRunner::PublishStats()
   {
     transport::AdvertiseMessageOptions advertOpts;
     advertOpts.SetMsgsPerSec(5);
-    this->statsPub = this->node.Advertise<ignition::msgs::WorldStatistics>(
-          "/world/" + this->worldName + "/stats", advertOpts);
+    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+        "stats", advertOpts);
   }
 
   // Create the world statistics message.
@@ -801,4 +817,14 @@ bool SimulationRunner::RequestEraseEntity(const EntityId _id)
   }
 
   return false;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
+{
+  _res.Clear();
+
+  _res.CopyFrom(this->guiMsg);
+
+  return true;
 }
