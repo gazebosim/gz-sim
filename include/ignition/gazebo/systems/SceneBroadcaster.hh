@@ -40,16 +40,23 @@ namespace systems
   /// message with updated information.
   class IGNITION_GAZEBO_VISIBLE SceneBroadcaster:
     public System,
+    public ISystemConfigure,
     public ISystemPostUpdate
   {
     /// \brief Constructor
     public: SceneBroadcaster();
 
     /// \brief Destructor
-    public: virtual ~SceneBroadcaster();
+    public: ~SceneBroadcaster() final = default;
+
+    /// Documentation inherited
+    public: void Configure(const EntityId &_id,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) final;
 
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override final;
+                const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
