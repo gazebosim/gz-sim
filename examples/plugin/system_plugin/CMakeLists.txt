@@ -4,14 +4,12 @@ find_package(ignition-cmake2 REQUIRED)
 
 project(SampleSystem)
 
-#! [build]
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
-ign_find_package(ignition-gazebo REQUIRED)
+find_package(ignition-gazebo REQUIRED)
 add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   PRIVATE ignition-gazebo::ignition-gazebo)
-#! [build]
