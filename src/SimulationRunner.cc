@@ -24,7 +24,6 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gui.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -114,6 +113,19 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+
+  // Publish empty GUI messages for worlds that have no GUI in the beginning.
+  // In the future, support modifying GUI from the server at runtime.
+  if (_world->Gui())
+  {
+    this->guiMsg = Convert<msgs::GUI>(*_world->Gui());
+  }
+
+  std::string infoService{"gui/info"};
+  this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
+
+  ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
 
   ignmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
@@ -353,11 +365,6 @@ EntityId SimulationRunner::CreateEntities(const sdf::World *_world)
   this->entityCompMgr.CreateComponent(worldEntity, components::World());
   this->entityCompMgr.CreateComponent(worldEntity,
       components::Name(_world->Name()));
-  if (_world->Gui())
-  {
-    this->entityCompMgr.CreateComponent(worldEntity,
-        components::Gui(*_world->Gui()));
-  }
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
@@ -853,4 +860,14 @@ bool SimulationRunner::RequestEraseEntity(const EntityId _id)
   }
 
   return false;
+}
+
+//////////////////////////////////////////////////
+bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
+{
+  _res.Clear();
+
+  _res.CopyFrom(this->guiMsg);
+
+  return true;
 }

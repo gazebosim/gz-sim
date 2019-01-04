@@ -59,8 +59,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: bool initialized = false;
 
   /// \brief Create / update rendering entities
+  /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
-
 
   /// \brief Name of rendering engine
   public: std::string engineName;
