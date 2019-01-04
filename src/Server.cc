@@ -127,7 +127,7 @@ Server::Server(const ServerConfig &_config)
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
 
-  // Advertise available worlds
+  // Establish publishers and subscribers.
   this->dataPtr->SetupTransport();
 }
 
