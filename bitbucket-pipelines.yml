@@ -34,19 +34,19 @@ pipelines:
             libignition-rendering-dev
             libignition-tools-dev
             libignition-transport6-dev
-            libsdformat8-dev
+            # libsdformat8-dev
             # libignition-cmake2-dev
             # libignition-sensors0-dev
           # SDFormat (uncomment if a specific branch is needed)
-          # - apt install -y
-          #   libxml2-utils
-          # - hg clone http://bitbucket.org/osrf/sdformat -b gz11
-          # - cd sdformat
-          # - mkdir build
-          # - cd build
-          # - cmake .. -DBUILD_TESTING=false
-          # - make -j4 install
-          # - cd ../..
+          - apt install -y
+            libxml2-utils
+          - hg clone http://bitbucket.org/osrf/sdformat -b gz11
+          - cd sdformat
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
           # Ignition msgs (uncomment if a specific branch is needed)
           # - apt install -y
           #   libprotobuf-dev protobuf-compiler libprotoc-dev
