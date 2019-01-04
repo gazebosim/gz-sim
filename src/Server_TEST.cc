@@ -70,7 +70,7 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
   EXPECT_EQ(14u, *server.EntityCount());
-  EXPECT_EQ(3u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("box", 1));
@@ -297,9 +297,9 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
-  // Run the server to test whether we can add system while system is running
+  // Run the server to test whether we can add systems while system is running
   server.Run(false, 0, false);
-  EXPECT_EQ(3u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 
   gazebo::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
@@ -307,7 +307,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   EXPECT_FALSE(*server.AddSystem(mockSystemPlugin.value()));
-  EXPECT_EQ(3u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 
   // Stop the server
   std::raise(SIGTERM);
@@ -330,9 +330,9 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
       "ignition::gazebo::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  EXPECT_EQ(3u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
   EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-  EXPECT_EQ(4u, *server.SystemCount());
+  EXPECT_EQ(3u, *server.SystemCount());
 
   auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
   EXPECT_NE(system, nullptr);
