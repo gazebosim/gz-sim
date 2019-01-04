@@ -124,6 +124,7 @@ void ServerPrivate::CreateEntities(const sdf::Root &_root)
 //////////////////////////////////////////////////
 void ServerPrivate::SetupTransport()
 {
+  // Advertise available worlds.
   this->node.Advertise("/gazebo/worlds", &ServerPrivate::WorldsService, this);
 }
 

@@ -39,7 +39,7 @@ DEFINE_bool(r, false, "Run simulation on start. "
 void Help()
 {
   std::cout
-  << "ign-gazebo-server -- Run the Gazebo server." << std::endl
+  << "ign-gazebo-server -- Run the Gazebo server (headless mode)." << std::endl
   << std::endl
   << "`ign-gazebo-server` [options]" << std::endl
   << std::endl
