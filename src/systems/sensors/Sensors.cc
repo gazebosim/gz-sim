@@ -124,19 +124,13 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 {
+  // TODO(anyone) support multiple scenes?
   // Get all the worlds
   // _ecm.Each<components::World, components::Name>(
   //     [&](const EntityId &_entity,
   //       const components::World * /* _world */,
   //       const components::Name *_name)->bool
   //     {
-  //       if (this->entityWorldMap.find(_entity) == this->entityWorldMap.end())
-  //       {
-  //         sdf::World world;
-  //         world.SetName(_name->Data());
-  //         auto worldPtrPhys = this->engine->ConstructWorld(world);
-  //         this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
-  //       }
   //       return true;
   //     });
 
