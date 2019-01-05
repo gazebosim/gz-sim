@@ -65,6 +65,34 @@ namespace ignition
     // Forward declarations.
     class SimulationRunnerPrivate;
 
+    /// \brief All user commands should inherit from this class so they can be
+    /// undone / redone.
+    class UserCommand
+    {
+      /// \brief Constructor
+      /// \param[in] _msg Message containing user command
+      public: UserCommand(google::protobuf::Message *_msg);
+
+      /// \brief Execute the command. All subclasses must implement this
+      /// function and update entities and components so the command takes effect.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if command was properly executed.
+      public: virtual bool Execute(const EntityComponentManager &_ecm) = 0;
+
+      /// \brief Message containing command.
+      protected: google::protobuf::Message *msg{nullptr};
+    };
+
+    /// \brief Command to spawn an entity into simulation.
+    class FactoryCommand : public UserCommand
+    {
+      // Documentation inherited
+      public: FactoryCommand(msgs::EntityFactory *_msg);
+
+      // Documentation inherited
+      public: virtual bool Execute(const EntityComponentManager &_ecm) final;
+    };
+
     /// \brief Class to hold systems internally
     class SystemInternal
     {
@@ -284,6 +312,15 @@ namespace ignition
       /// \return True if successful.
       private: bool GuiInfoService(ignition::msgs::GUI &_res);
 
+      /// \brief Callback for factory service
+      /// \param[in] _req Request
+      /// \return True if successful.
+      public: bool FactoryService(const msgs::EntityFactory &_req,
+          msgs::Boolean &_res);
+
+      /// \brief Process all user commands which are pending execution.
+      public: void ProcessUserCommands();
+
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
@@ -379,6 +416,9 @@ namespace ignition
 
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
+
+      /// \brief Queue of commands pending execution.
+      public: std::vector<std::unique_ptr<UserCommand>> pendingCmds;
     };
     }
   }
