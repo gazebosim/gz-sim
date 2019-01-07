@@ -39,7 +39,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
-ign_find_package(ignition-common3 REQUIRED)
+ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------

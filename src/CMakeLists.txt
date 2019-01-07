@@ -42,12 +42,14 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-math${IGN_MATH_VER}
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-common${IGN_COMMON_VER}::profiler
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   sdformat8::sdformat8
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE "IGN_ENABLE_PROFILER=1")
 
 ign_add_component(systems
   SOURCES ${systems_sources}
@@ -57,10 +59,12 @@ ign_add_component(systems
 target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-common${IGN_COMMON_VER}::profiler
   ${SDFormat_LIBRARIES}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
 )
+target_compile_definitions(${SYSTEMS_TARGET} PRIVATE "IGN_ENABLE_PROFILER=1")
 
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
