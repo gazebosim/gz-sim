@@ -17,8 +17,8 @@
 #ifndef IGNITION_GAZEBO_EVENTS_HH_
 #define IGNITION_GAZEBO_EVENTS_HH_
 
-#include "ignition/gazebo/config.hh"
 #include <ignition/common/Event.hh>
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
