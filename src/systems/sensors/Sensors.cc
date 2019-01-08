@@ -185,12 +185,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
       });
 
   // visuals
-  _ecm.Each<components::Visual, components::Material,
-            components::Name, components::Pose,
+  _ecm.Each<components::Visual, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
       [&](const EntityId &_entity,
-        const components::Visual* /* _visual*/,
-        const components::Material *_material,
+        const components::Visual * /*_visual*/,
         const components::Name *_name,
         const components::Pose *_pose,
         const components::Geometry *_geom,
@@ -203,7 +201,13 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
           visual.SetName(_name->Data());
           visual.SetPose(_pose->Data());
           visual.SetGeom(_geom->Data());
-          visual.SetMaterial(_material->Data());
+
+          // Optional components
+          auto material = _ecm.Component<components::Material>(_entity);
+          if (material)
+          {
+            visual.SetMaterial(material->Data());
+          }
 
           this->sceneManager.CreateVisual(_entity, visual,
               _parent->Data());
