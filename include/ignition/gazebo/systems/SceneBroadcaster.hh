@@ -47,7 +47,7 @@ namespace systems
     public: SceneBroadcaster();
 
     /// \brief Destructor
-    public: virtual ~SceneBroadcaster();
+    public: ~SceneBroadcaster() final = default;
 
     /// Documentation inherited
     public: void Configure(const EntityId &_id,
@@ -56,7 +56,7 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override final;
+                const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;

@@ -27,7 +27,7 @@ link_directories(
   ${IGNITION-TRANSPORT_LIBRARY_DIRS}
 )
 
-set(gui_lib ign-gazebo-gui)
+set(gui_lib ign-gazebo-gui-lib)
 
 # TODO(anyone) Creating a separate library now, maybe create a component?
 add_library(${gui_lib}

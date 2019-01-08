@@ -9,7 +9,7 @@ include_directories(
 link_directories(
 )
 
-set (plugins
+set (test_plugins
   EventTriggerSystem
   TestModelSystem
   TestSystem
@@ -23,7 +23,7 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 )
 
 # Plugin shared libraries
-foreach (src ${plugins})
+foreach (src ${test_plugins})
   add_library(${src} SHARED ${src}.cc)
   set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
   target_link_libraries(${src}
