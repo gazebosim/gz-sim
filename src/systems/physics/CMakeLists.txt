@@ -20,6 +20,4 @@ target_link_libraries(${physics_system_target}
 target_compile_definitions(${physics_system_target} PRIVATE
   "dartsim_plugin_LIB=\"$<TARGET_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-dartsim-plugin>\"")
 
-target_compile_definitions(${physics_system_target} PRIVATE "IGN_ENABLE_PROFILER=1")
-
 install(TARGETS ${physics_system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
