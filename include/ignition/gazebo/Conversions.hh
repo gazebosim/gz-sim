@@ -18,11 +18,13 @@
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
 #include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Geometry.hh>
+#include <sdf/Gui.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 
@@ -85,6 +87,22 @@ namespace ignition
     /// \return Light message.
     template<>
     msgs::Light IGNITION_GAZEBO_VISIBLE Convert(const sdf::Light &_in);
+
+    /// \brief Generic conversion from an SDF gui to another type.
+    /// \param[in] _in SDF gui.
+    /// \return Conversion result.
+    /// \tparam OUT Output type.
+    template<class OUT>
+    OUT IGNITION_GAZEBO_VISIBLE Convert(const sdf::Gui &_in)
+    {
+      OUT::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF gui to a gui message.
+    /// \param[in] _in SDF gui.
+    /// \return Gui message.
+    template<>
+    msgs::GUI IGNITION_GAZEBO_VISIBLE Convert(const sdf::Gui &_in);
     }
   }
 }

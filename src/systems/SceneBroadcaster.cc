@@ -23,7 +23,6 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -39,120 +38,13 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-//////////////////////////////////////////////////
-template<typename T>
-void AddLights(T *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
-        vertex.second.get().Data());
-    if (!lightMsg)
-      continue;
-
-    _msg->add_light()->CopyFrom(*lightMsg);
-  }
-}
-
-//////////////////////////////////////////////////
-void AddVisuals(msgs::Link *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
-        vertex.second.get().Data());
-    if (!visualMsg)
-      continue;
-
-    _msg->add_visual()->CopyFrom(*visualMsg);
-  }
-}
-
-//////////////////////////////////////////////////
-void AddLinks(msgs::Model *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  if (!_msg)
-    return;
-
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
-        vertex.second.get().Data());
-    if (!linkMsg)
-      continue;
-
-    auto msgOut = _msg->add_link();
-    msgOut->CopyFrom(*linkMsg);
-
-    // Visuals
-    AddVisuals(msgOut, vertex.second.get().Id(), _graph);
-
-    // Lights
-    AddLights(msgOut, vertex.second.get().Id(), _graph);
-  }
-}
-
-//////////////////////////////////////////////////
-/// \tparam T Either a msgs::Scene or msgs::Model
-template<typename T>
-void AddModels(T *_msg,
-    const EntityId _id,
-    const math::graph::DirectedGraph<
-        std::shared_ptr<google::protobuf::Message>, bool> &_graph)
-{
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
-        vertex.second.get().Data());
-    if (!modelMsg)
-      continue;
-
-    auto msgOut = _msg->add_model();
-    msgOut->CopyFrom(*modelMsg);
-
-    // Nested models
-    AddModels(msgOut, vertex.first, _graph);
-
-    // Links
-    AddLinks(msgOut, vertex.first, _graph);
-  }
-}
-
-//////////////////////////////////////////////////
-/// \brief Recursively remove entities from the graph
-/// \param[in] _id Id of entity
-/// \param[in] _graph Scene graph
-/// \param[out] _erasedEntities All erased entities
-void RemoveFromGraph(
-    const EntityId _id,
-    math::graph::DirectedGraph<std::shared_ptr<google::protobuf::Message>,
-                                     bool> &_graph)
-{
-  for (const auto &vertex : _graph.AdjacentsFrom(_id))
-  {
-    RemoveFromGraph(vertex.first, _graph);
-  }
-  _graph.RemoveVertex(_id);
-}
-
 // Private data class.
 class ignition::gazebo::systems::SceneBroadcasterPrivate
 {
+  /// \brief Type alias for the graph used to represent the scene graph.
+  public: using SceneGraphType = math::graph::DirectedGraph<
+          std::shared_ptr<google::protobuf::Message>, bool>;
+
   /// \brief Setup Ignition transport services and publishers
   /// \param[in] _worldName Name of world.
   public: void SetupTransport(const std::string &_worldName);
@@ -175,8 +67,50 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _manager The entity component manager
   public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
 
+  /// \brief Adds models to a msgs::Scene or msgs::Model object based on the
+  /// contents of the scene graph
+  /// \tparam T Either a msgs::Scene or msgs::Model
+  /// \param[in] _msg Pointer to msg object to which the models will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: template <typename T>
+          static void AddModels(T *_msg, const EntityId _id,
+                                const SceneGraphType &_graph);
+
+  /// \brief Adds lights to a msgs::Scene or msgs::Link object based on the
+  /// contents of the scene graph
+  /// \tparam T Either a msgs::Scene or msgs::Link
+  /// \param[in] _msg Pointer to msg object to which the lights will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: template<typename T>
+          static void AddLights(T *_msg, const EntityId _id,
+                                const SceneGraphType &_graph);
+
+  /// \brief Adds links to a msgs::Model object based on the contents of
+  /// the scene graph
+  /// \param[in] _msg Pointer to msg object to which the links will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddLinks(msgs::Model *_msg, const EntityId _id,
+                               const SceneGraphType &_graph);
+
+  /// \brief Adds visuals to a msgs::Link object based on the contents of
+  /// the scene graph
+  /// \param[in] _msg Pointer to msg object to which the visuals will be added
+  /// \param[in] _id Id of the parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddVisuals(msgs::Link *_msg, const EntityId _id,
+                                 const SceneGraphType &_graph);
+
+  /// \brief Recursively remove entities from the graph
+  /// \param[in] _id Id of entity
+  /// \param[in/out] _graph Scene graph
+  public: static void RemoveFromGraph(const EntityId _id,
+                                      SceneGraphType &_graph);
+
   /// \brief Transport node.
-  public: transport::Node node;
+  public: std::unique_ptr<transport::Node> node{nullptr};
 
   /// \brief Pose publisher.
   public: transport::Node::Publisher posePub;
@@ -190,15 +124,18 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Graph containing latest information from entities.
   /// The data in each node is the message associated with that entity only.
-  /// i.e, a model node only has a message only about the model. It will not
+  /// i.e, a model node only has a message about the model. It will not
   /// have any links, joints, etc. To create a the whole scene, one has to
   /// traverse the graph adding messages as necessary.
-  public: math::graph::DirectedGraph<
-      std::shared_ptr<google::protobuf::Message>, bool> sceneGraph;
+  public: SceneGraphType sceneGraph;
 
   /// \brief Keep the id of the world entity so we know how to traverse the
   /// graph.
   public: EntityId worldId{kNullEntity};
+
+  /// \brief Keep the name of the world entity so it's easy to create temporary
+  /// scene graphs
+  public: std::string worldName;
 
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
@@ -208,13 +145,6 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 SceneBroadcaster::SceneBroadcaster()
   : System(), dataPtr(std::make_unique<SceneBroadcasterPrivate>())
 {
-  this->dataPtr->sceneGraph = math::graph::DirectedGraph<
-      std::shared_ptr<google::protobuf::Message>, bool>();
-}
-
-//////////////////////////////////////////////////
-SceneBroadcaster::~SceneBroadcaster()
-{
 }
 
 //////////////////////////////////////////////////
@@ -223,45 +153,41 @@ void SceneBroadcaster::Configure(
     EntityComponentManager &_ecm, EventManager &)
 {
   // World
-  this->dataPtr->worldId = _id;
   auto name = _ecm.Component<components::Name>(_id);
-  this->dataPtr->SetupTransport(name->Data());
+  if (name == nullptr)
+  {
+    ignerr << "World with id: " << _id
+           << " has no name. SceneBroadcaster cannot create transport topics\n";
+    return;
+  }
+
+  this->dataPtr->worldId = _id;
+  this->dataPtr->worldName = name->Data();
+
+  this->dataPtr->SetupTransport(this->dataPtr->worldName);
 
   // Add to graph
-  std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
-  this->dataPtr->sceneGraph.AddVertex(name->Data(), nullptr, _id);
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
+    this->dataPtr->sceneGraph.AddVertex(this->dataPtr->worldName, nullptr,
+                                        this->dataPtr->worldId);
+  }
 }
 
 //////////////////////////////////////////////////
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
+  // Update scene graph with added entities before populating pose message
   this->dataPtr->SceneGraphAddEntities(_manager);
 
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
   // TODO(louise) Fill message header
 
-  // Populate a graph with latest information from all entities
-  // TODO(louise) once we know what entities are added/deleted process only
-  // those. For now, recreating graph at every iteration.
-
   msgs::Pose_V poseMsg;
-  // Levels
-  // _manager.Each<components::Level, components::Name, components::Pose>(
-  //     [&](const EntityId &_entity, const components::Level *,
-  //         const components::Name *_nameComp,
-  //         const components::Pose *_poseComp) -> bool
-  //     {
-  //       // Add to pose msg
-  //       auto pose = poseMsg.add_pose();
-  //       msgs::Set(pose, _poseComp->Data());
-  //       pose->set_name(_nameComp->Data());
-  //       pose->set_id(_entity);
-  //       return true;
-  //     });
 
-  // Models
+    // Models
   _manager.Each<components::Model, components::Name, components::Pose>(
       [&](const EntityId &_entity, const components::Model *,
           const components::Name *_nameComp,
@@ -328,26 +254,32 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
-  // Scene info service
-  std::string infoService{"/world/" + _worldName + "/scene/info"};
+  transport::NodeOptions opts;
+  opts.SetNameSpace("/world/" + _worldName);
+  this->node = std::make_unique<transport::Node>(opts);
 
-  this->node.Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
+  // Scene info service
+  std::string infoService{"scene/info"};
+
+  this->node->Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
       this);
 
-  ignmsg << "Serving scene information on [" << infoService << "]" << std::endl;
+  ignmsg << "Serving scene information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
 
   // Scene graph service
-  std::string graphService{"/world/" + _worldName + "/scene/graph"};
+  std::string graphService{"scene/graph"};
 
-  this->node.Advertise(graphService,
+  this->node->Advertise(graphService,
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
-  ignmsg << "Serving scene graph on [" << graphService << "]" << std::endl;
+  ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
+         << graphService << "]" << std::endl;
 
   // Scene info topic
   std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
 
-  this->scenePub = this->node.Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
   ignmsg << "Serving scene information on [" << sceneTopic << "]" << std::endl;
 
@@ -355,19 +287,20 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
 
   this->deletionPub =
-      this->node.Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
 
   // Pose info publisher
-  std::string topic{"/world/" + _worldName + "/pose/info"};
+  std::string topic{"pose/info"};
 
   transport::AdvertiseMessageOptions advertOpts;
   advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node.Advertise<msgs::Pose_V>(topic, advertOpts);
+  this->posePub = this->node->Advertise<msgs::Pose_V>(topic, advertOpts);
 
-  ignmsg << "Publishing pose messages on [" << topic << "]" << std::endl;
+  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/" << topic
+         << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -407,22 +340,15 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 void SceneBroadcasterPrivate::SceneGraphAddEntities(
     const EntityComponentManager &_manager)
 {
-  // TODO(louise) Get <scene> from SDF
-  // TODO(louise) Fill message header
-
-  // Populate a graph with latest information from all entities
   bool newEntity{false};
 
-  // scene graph for new entities. This will be used later to create a scene msg
+  // Populate a graph with latest information from all entities
+
+  // Scene graph for new entities. This will be used later to create a scene msg
   // to publish.
-  math::graph::DirectedGraph<
-      std::shared_ptr<google::protobuf::Message>, bool> newGraph;
-  {
-    std::lock_guard<std::mutex> lock(this->graphMutex);
-    const auto worldVertex = this->sceneGraph.VertexFromId(this->worldId);
-    newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(),
-                       worldVertex.Id());
-  }
+  SceneGraphType newGraph;
+  auto worldVertex = this->sceneGraph.VertexFromId(this->worldId);
+  newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(), worldVertex.Id());
 
   // Models
   _manager.EachNew<components::Model, components::Name,
@@ -586,15 +512,116 @@ void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
         return true;
       });
 
-  // Send the list of deleted entities
-  msgs::UInt32_V deletionMsg;
-
-  for (const auto &entity : erasedEntities)
+  if (!erasedEntities.empty())
   {
-    deletionMsg.mutable_data()->Add(entity);
+    // Send the list of deleted entities
+    msgs::UInt32_V deletionMsg;
+
+    for (const auto &entity : erasedEntities)
+    {
+      deletionMsg.mutable_data()->Add(entity);
+    }
+    this->deletionPub.Publish(deletionMsg);
   }
-  this->deletionPub.Publish(deletionMsg);
 }
+
+//////////////////////////////////////////////////
+/// \tparam T Either a msgs::Scene or msgs::Model
+template<typename T>
+void SceneBroadcasterPrivate::AddModels(T *_msg, const EntityId _id,
+                                        const SceneGraphType &_graph)
+{
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
+        vertex.second.get().Data());
+    if (!modelMsg)
+      continue;
+
+    auto msgOut = _msg->add_model();
+    msgOut->CopyFrom(*modelMsg);
+
+    // Nested models
+    AddModels(msgOut, vertex.first, _graph);
+
+    // Links
+    AddLinks(msgOut, vertex.first, _graph);
+  }
+}
+
+//////////////////////////////////////////////////
+template<typename T>
+void SceneBroadcasterPrivate::AddLights(T *_msg, const EntityId _id,
+                                        const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
+        vertex.second.get().Data());
+    if (!lightMsg)
+      continue;
+
+    _msg->add_light()->CopyFrom(*lightMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const EntityId _id,
+                                         const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
+        vertex.second.get().Data());
+    if (!visualMsg)
+      continue;
+
+    _msg->add_visual()->CopyFrom(*visualMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const EntityId _id,
+                                       const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
+        vertex.second.get().Data());
+    if (!linkMsg)
+      continue;
+
+    auto msgOut = _msg->add_link();
+    msgOut->CopyFrom(*linkMsg);
+
+    // Visuals
+    AddVisuals(msgOut, vertex.second.get().Id(), _graph);
+
+    // Lights
+    AddLights(msgOut, vertex.second.get().Id(), _graph);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::RemoveFromGraph(const EntityId _id,
+                                              SceneGraphType &_graph)
+{
+  for (const auto &vertex : _graph.AdjacentsFrom(_id))
+  {
+    RemoveFromGraph(vertex.first, _graph);
+  }
+  _graph.RemoveVertex(_id);
+}
+
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
                     ignition::gazebo::System,

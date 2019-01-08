@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
+#include <ignition/msgs/gui.pb.h>
+
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -27,12 +29,14 @@
 #include <utility>
 #include <vector>
 
+#include <sdf/Gui.hh>
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -225,6 +229,11 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief Callback for GUI info service.
+      /// \param[out] _res Response containing the latest GUI message.
+      /// \return True if successful.
+      private: bool GuiInfoService(ignition::msgs::GUI &_res);
+
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
@@ -287,7 +296,7 @@ namespace ignition
       private: SystemLoaderPtr systemLoader;
 
       /// \brief Node for communication.
-      private: ignition::transport::Node node;
+      private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
@@ -323,6 +332,9 @@ namespace ignition
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
+
+      /// \brief Keep the latest GUI message.
+      public: msgs::GUI guiMsg;
 
       friend class LevelManager;
     };
