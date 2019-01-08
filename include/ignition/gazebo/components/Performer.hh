@@ -20,6 +20,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/TagWrapper.hh"
+
 namespace ignition
 {
 namespace gazebo
@@ -29,9 +31,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component identifies an entity as being a performer.
-  class IGNITION_GAZEBO_VISIBLE Performer
-  {
-  };
+  using Performer = TagWrapper<class PerformerTag>;
 }
 }
 }

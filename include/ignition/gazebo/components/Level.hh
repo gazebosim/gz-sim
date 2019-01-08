@@ -20,6 +20,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/TagWrapper.hh"
+
 namespace ignition
 {
 namespace gazebo
@@ -28,10 +30,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component identifies an entity as being active for rendering.
-  class IGNITION_GAZEBO_VISIBLE Level
-  {
-  };
+  /// \brief This component identifies an entity as being a level.
+  using Level = TagWrapper<class LevelTag>;
 }
 }
 }
