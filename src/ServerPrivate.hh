@@ -68,9 +68,6 @@ namespace ignition
       /// \brief Create all entities that exist in the sdf::Root object.
       public: void CreateEntities();
 
-      /// \brief Load the GUI for each world.
-      public: void LoadGui();
-
       /// \brief Stop server.
       public: void Stop();
 
