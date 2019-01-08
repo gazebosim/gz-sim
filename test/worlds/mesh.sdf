@@ -155,7 +155,7 @@
           <geometry>
             <mesh>
               <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
+              <uri>file://test/media/duck_collider.dae</uri>
             </mesh>
           </geometry>
         </collision>
@@ -190,7 +190,7 @@
           <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
-              <uri>file://test/media/duck.dae</uri>
+              <uri>file://test/media/duck_collider.dae</uri>
             </mesh>
           </geometry>
         </collision>
