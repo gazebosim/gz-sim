@@ -42,7 +42,6 @@ namespace ignition
     /// components.
     namespace components {}
 
-    /// \class Entity Entity.hh ignition/gazebo/Entity.hh
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
@@ -55,11 +54,11 @@ namespace ignition
     /// components.
     ///
     /// An Entity that needs to be identified and used by Systems should be
-    /// created through the Server.
-    using EntityId = int;
+    /// created through the EntityComponentManager.
+    using Entity = int;
 
     /// \brief Indicates a non-existant or invalid Entity.
-    const EntityId kNullEntity = -1;
+    const Entity kNullEntity{-1};
     }
   }
 }
