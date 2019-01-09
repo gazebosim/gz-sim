@@ -321,7 +321,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           }
 
           linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
-              ignition::math::eigen3::convert(_pose->Data()));
+              ignition::math::eigen3::convert(_pose->Data()),
+              ignition::math::eigen3::convert(meshSdf->Scale()));
         }
         else
         {
