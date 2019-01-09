@@ -572,15 +572,15 @@ namespace ignition
                   bool(const EntityId &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
-        for (const Entity &entity : this->Entities())
+        for (const EntityId &entity : this->Entities())
         {
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
-          if (this->EntityMatches(entity.Id(), types))
+          if (this->EntityMatches(entity, types))
           {
-            if (!_f(entity.Id(),
-                    this->Component<ComponentTypeTs>(entity.Id())...))
+            if (!_f(entity,
+                    this->Component<ComponentTypeTs>(entity)...))
             {
               break;
             }
@@ -605,15 +605,15 @@ namespace ignition
                   bool(const EntityId &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
-        for (const Entity &entity : this->Entities())
+        for (const EntityId &entity : this->Entities())
         {
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
-          if (this->EntityMatches(entity.Id(), types))
+          if (this->EntityMatches(entity, types))
           {
-            if (!_f(entity.Id(),
-                    this->Component<ComponentTypeTs>(entity.Id())...))
+            if (!_f(entity,
+                    this->Component<ComponentTypeTs>(entity)...))
             {
               break;
             }
@@ -873,7 +873,7 @@ namespace ignition
 
       /// \brief Get all the entities.
       /// \return All the entities.
-      private: std::vector<Entity> &Entities() const;
+      private: std::vector<EntityId> &Entities() const;
 
       /// \brief End of the AddComponentToView recursion. This function is
       /// called when Rest is empty.
@@ -945,21 +945,21 @@ namespace ignition
           View view;
           // Add all the entities that match the component types to the
           // view.
-          for (const Entity &entity : this->Entities())
+          for (const EntityId &entity : this->Entities())
           {
-            if (this->EntityMatches(entity.Id(), types))
+            if (this->EntityMatches(entity, types))
             {
-              view.AddEntity(entity.Id(), this->IsNewEntity(entity.Id()));
+              view.AddEntity(entity, this->IsNewEntity(entity));
               // If there is a request to delete this entity, update the view as
               // well
-              if (this->IsMarkedForErasure(entity.Id()))
+              if (this->IsMarkedForErasure(entity))
               {
-                view.AddEntityToErased(entity.Id());
+                view.AddEntityToErased(entity);
               }
 
               // Store pointers to all the components. This recursively adds
               // all the ComponentTypeTs that belong to the entity to the view.
-              this->AddComponentsToView<ComponentTypeTs...>(view, entity.Id());
+              this->AddComponentsToView<ComponentTypeTs...>(view, entity);
             }
           }
 
