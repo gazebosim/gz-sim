@@ -31,7 +31,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
           std::unique_ptr<ComponentStorageBase>> components;
 
   /// \brief Instances of entities
-  public: std::vector<Entity> entities;
+  public: std::vector<EntityId> entities;
 
   /// \brief Entities that have just been created
   public: std::set<EntityId> newlyCreatedEntityIds;
@@ -87,13 +87,13 @@ EntityId EntityComponentManager::CreateEntity()
     id = *(this->dataPtr->availableEntityIds.begin());
     this->dataPtr->availableEntityIds.erase(
         this->dataPtr->availableEntityIds.begin());
-    this->dataPtr->entities[id] = Entity(id);
+    this->dataPtr->entities[id] = id;
   }
   else
   {
     // Create a brand new Id
     id = this->dataPtr->entities.size();
-    this->dataPtr->entities.push_back(Entity(id));
+    this->dataPtr->entities.push_back(id);
   }
 
   // Add entity to the list of newly created entities
@@ -440,7 +440,7 @@ void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 }
 
 //////////////////////////////////////////////////
-std::vector<Entity> &EntityComponentManager::Entities() const
+std::vector<EntityId> &EntityComponentManager::Entities() const
 {
   return this->dataPtr->entities;
 }
@@ -500,24 +500,24 @@ void EntityComponentManager::RebuildViews()
     view.second.components.clear();
     // Add all the entities that match the component types to the
     // view.
-    for (const Entity &entity : this->dataPtr->entities)
+    for (const EntityId &entity : this->dataPtr->entities)
     {
-      if (this->EntityMatches(entity.Id(), view.first))
+      if (this->EntityMatches(entity, view.first))
       {
-        view.second.AddEntity(entity.Id(), this->IsNewEntity(entity.Id()));
+        view.second.AddEntity(entity, this->IsNewEntity(entity));
         // If there is a request to delete this entity, update the view as
         // well
-        if (this->IsMarkedForErasure(entity.Id()))
+        if (this->IsMarkedForErasure(entity))
         {
-          view.second.AddEntityToErased(entity.Id());
+          view.second.AddEntityToErased(entity);
         }
         // Store pointers to all the components. This recursively adds
         // all the ComponentTypeTs that belong to the entity to the view.
         for (const ComponentTypeId &compTypeId : view.first)
         {
-          view.second.AddComponent(entity.Id(), compTypeId,
+          view.second.AddComponent(entity, compTypeId,
               this->EntityComponentIdFromType(
-                entity.Id(), compTypeId));
+                entity, compTypeId));
         }
       }
     }
