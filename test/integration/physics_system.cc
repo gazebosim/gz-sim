@@ -149,7 +149,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
     const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::EntityId &, const components::Model *,
+        [&](const ignition::gazebo::Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName) {
@@ -228,7 +228,7 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
     {
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        [&](const ignition::gazebo::Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -296,7 +296,7 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
     const gazebo::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
-        [&](const ignition::gazebo::EntityId &, const components::Link *,
+        [&](const ignition::gazebo::Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (rotatingLinkName == _name->Data())
