@@ -90,7 +90,7 @@ TEST(ModelIntegrationTest, LinkByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Link
   auto eLink = ecm.CreateEntity();
@@ -112,7 +112,7 @@ TEST(ModelIntegrationTest, JointByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Joint
   auto eJoint = ecm.CreateEntity();

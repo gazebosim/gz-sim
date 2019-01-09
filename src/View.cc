@@ -20,49 +20,49 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-void View::AddEntity(const EntityId _id, const bool _new)
+void View::AddEntity(const Entity _entity, const bool _new)
 {
-  this->entities.insert(_id);
+  this->entities.insert(_entity);
   if (_new)
   {
-    this->newEntities.insert(_id);
+    this->newEntities.insert(_entity);
   }
 }
 
 //////////////////////////////////////////////////
-void View::AddComponent(const EntityId _id,
+void View::AddComponent(const Entity _entity,
     const ComponentTypeId _compId,
     const ComponentId _componentId)
 {
   this->components.insert(
-      std::make_pair(std::make_pair(_id, _compId), _componentId));
+      std::make_pair(std::make_pair(_entity, _compId), _componentId));
 }
 
 //////////////////////////////////////////////////
-bool View::EraseEntity(const EntityId _id, const ComponentTypeKey &_key)
+bool View::EraseEntity(const Entity _entity, const ComponentTypeKey &_key)
 {
-  if (this->entities.find(_id) == this->entities.end())
+  if (this->entities.find(_entity) == this->entities.end())
     return false;
 
   // Otherwise, remove the entity from the view
-  this->entities.erase(_id);
-  this->newEntities.erase(_id);
-  this->toEraseEntities.erase(_id);
+  this->entities.erase(_entity);
+  this->newEntities.erase(_entity);
+  this->toEraseEntities.erase(_entity);
 
   // Remove the entity from the components map
   for (const ComponentTypeId &compTypeId : _key)
-    this->components.erase(std::make_pair(_id, compTypeId));
+    this->components.erase(std::make_pair(_entity, compTypeId));
 
   return true;
 }
 
 /////////////////////////////////////////////////
-const void *View::ComponentImplementation(const EntityId _id,
+const void *View::ComponentImplementation(const Entity _entity,
     ComponentTypeId _typeId,
     const EntityComponentManager *_ecm) const
 {
   return _ecm->ComponentImplementation(
-      {_typeId, this->components.at({_id, _typeId})});
+      {_typeId, this->components.at({_entity, _typeId})});
 }
 
 //////////////////////////////////////////////////
@@ -72,10 +72,10 @@ void View::ClearNewEntities()
 }
 
 //////////////////////////////////////////////////
-bool View::AddEntityToErased(const EntityId _id)
+bool View::AddEntityToErased(const Entity _entity)
 {
-  if (this->entities.find(_id) == this->entities.end())
+  if (this->entities.find(_entity) == this->entities.end())
     return false;
-  this->toEraseEntities.insert(_id);
+  this->toEraseEntities.insert(_entity);
   return true;
 }

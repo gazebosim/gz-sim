@@ -50,7 +50,7 @@ namespace systems
     public: ~SceneBroadcaster() final = default;
 
     /// Documentation inherited
-    public: void Configure(const EntityId &_id,
+    public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;

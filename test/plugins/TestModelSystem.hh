@@ -30,12 +30,12 @@ class TestModelSystem :
 {
   public: TestModelSystem() = default;
 
-  public: void Configure(const EntityId &_id,
+  public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          this->model = Model(_id);
+          this->model = Model(_entity);
 
           auto link = this->model.LinkByName(_ecm, "link_1");
 
@@ -47,7 +47,7 @@ class TestModelSystem :
           }
 
           auto value = _sdf->Get<int>("model_key");
-          _ecm.CreateComponent<int>(_id, value);
+          _ecm.CreateComponent<int>(_entity, value);
         }
 
   private: Model model;
