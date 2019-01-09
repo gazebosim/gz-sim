@@ -1,5 +1,6 @@
 set (systems_sources
   ${CMAKE_CURRENT_SOURCE_DIR}/DiffDrive.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/LogRecord.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/Null.cc
   ${CMAKE_CURRENT_SOURCE_DIR}/SceneBroadcaster.cc
   PARENT_SCOPE
