@@ -80,7 +80,7 @@ Sensors::~Sensors()
 }
 
 //////////////////////////////////////////////////
-void Sensors::Configure(const EntityId &/*_id*/,
+void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
@@ -127,7 +127,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
   // TODO(anyone) support multiple scenes?
   // Get all the worlds
   // _ecm.Each<components::World, components::Name>(
-  //     [&](const EntityId &_entity,
+  //     [&](const Entity &_entity,
   //       const components::World * /* _world */,
   //       const components::Name *_name)->bool
   //     {
@@ -136,7 +136,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Model * /* _model */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -160,7 +160,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Link * /* _link */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -187,7 +187,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
   // visuals
   _ecm.Each<components::Visual, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Visual * /*_visual*/,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -222,7 +222,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
   // lights
   _ecm.Each<components::Light, components::Pose, components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Light*  _light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
@@ -243,7 +243,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
   // Create cameras
   _ecm.Each<components::Camera, components::Pose, components::ParentEntity>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Camera *_camera,
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
