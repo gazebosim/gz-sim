@@ -133,43 +133,43 @@ namespace ignition
       /// \brief Create all entities that exist in the sdf::World object and
       /// load their plugins.
       /// \param[in] _world SDF world object.
-      /// \return Id of world entity.
+      /// \return World entity.
       public: Entity CreateEntities(const sdf::World *_world);
 
       /// \brief Create all entities that exist in the sdf::Model object and
       /// load their plugins.
       /// \param[in] _model SDF model object.
-      /// \return Id of model entity.
+      /// \return Model entity.
       public: Entity CreateEntities(const sdf::Model *_model);
 
       /// \brief Create all entities that exist in the sdf::Light object and
       /// load their plugins.
       /// \param[in] _light SDF light object.
-      /// \return Id of light entity.
+      /// \return Light entity.
       public: Entity CreateEntities(const sdf::Light *_light);
 
       /// \brief Create all entities that exist in the sdf::Link object and
       /// load their plugins.
       /// \param[in] _link SDF link object.
-      /// \return Id of link entity.
+      /// \return Link entity.
       public: Entity CreateEntities(const sdf::Link *_link);
 
       /// \brief Create all entities that exist in the sdf::Joint object and
       /// load their plugins.
       /// \param[in] _joint SDF joint object.
-      /// \return Id of joint entity.
+      /// \return Joint entity.
       public: Entity CreateEntities(const sdf::Joint *_joint);
 
       /// \brief Create all entities that exist in the sdf::Visual object and
       /// load their plugins.
       /// \param[in] _visual SDF visual object.
-      /// \return Id of visual entity.
+      /// \return Visual entity.
       public: Entity CreateEntities(const sdf::Visual *_visual);
 
       /// \brief Create all entities that exist in the sdf::Collision object and
       /// load their plugins.
       /// \param[in] _collision SDF collision object.
-      /// \return Id of collision entity.
+      /// \return Collision entity.
       public: Entity CreateEntities(const sdf::Collision *_collision);
 
       /// \brief Load system plugins for a given entity.
