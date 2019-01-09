@@ -998,7 +998,7 @@
   </library_geometries>
   <library_visual_scenes>
     <visual_scene id="DuckCollider" name="DuckCollider">
-      <node name="Duck_Collider" id="Duck_Collider" sid="Duck_Collider"><matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 -0.000000 -1.000000 0.000000 0.000000 1.000000 -0.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix><instance_geometry url="#Duck_Collider-lib"/><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
+      <node name="Duck_Collider" id="Duck_Collider" sid="Duck_Collider"><matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix><instance_geometry url="#Duck_Collider-lib"/><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
       <extra><technique profile="MAX3D"><frame_rate>30.000000</frame_rate></technique><technique profile="FCOLLADA"><start_time>0.000000</start_time><end_time>3.333333</end_time></technique></extra>
     </visual_scene>
   </library_visual_scenes>
