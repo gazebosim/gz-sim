@@ -107,8 +107,8 @@ TEST(EventManager, Ambiguous)
 TEST(EventManager, Disambiguate)
 {
   EventManager eventManager;
-  using TestEvent1 = ignition::common::EventT<void(void), struct _TestEvent1>;
-  using TestEvent2 = ignition::common::EventT<void(void), struct _TestEvent2>;
+  using TestEvent1 = ignition::common::EventT<void(void), struct TestEvent1Tag>;
+  using TestEvent2 = ignition::common::EventT<void(void), struct TestEvent2Tag>;
 
   std::atomic<int> calls = 0;
   auto connection1 = eventManager.Connect<TestEvent1>([&](){ calls++;});
