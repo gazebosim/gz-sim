@@ -32,7 +32,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component holds the ID of an entity's parent entity.
-  using ParentEntity = SimpleWrapper<EntityId, class ParentEntityTag>;
+  using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
 }
 }
 }

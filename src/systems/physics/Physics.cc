@@ -130,19 +130,19 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, WorldPtrType> entityWorldMap;
+  public: std::unordered_map<Entity, WorldPtrType> entityWorldMap;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
+  public: std::unordered_map<Entity, ModelPtrType> entityModelMap;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
+  public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
-  public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
+  public: std::unordered_map<Entity, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -219,7 +219,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Get all the worlds
   _ecm.Each<components::World, components::Name>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::World * /* _world */,
         const components::Name *_name)->bool
       {
@@ -235,7 +235,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Model, components::Name, components::Pose,
             components::ParentEntity, components::Static>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Model * /* _model */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -257,7 +257,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Link * /* _link */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -288,7 +288,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // collisions
   _ecm.Each<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
-      [&](const EntityId & /* _entity */,
+      [&](const Entity & /* _entity */,
         const components::Collision * /* _collision */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -337,7 +337,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             components::Pose, components::ThreadPitch, components::ParentEntity,
             components::ParentLinkName,
             components::ChildLinkName>(
-      [&](const EntityId &  _entity,
+      [&](const Entity &  _entity,
         const components::Joint * /* _joint */,
         const components::Name *_name,
         const components::JointType *_jointType,
@@ -384,7 +384,7 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
   // Handle joint state
   _ecm.Each<components::Joint>(
-      [&](const EntityId &_entity, const components::Joint *)
+      [&](const Entity &_entity, const components::Joint *)
       {
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt == this->entityJointMap.end())
@@ -421,7 +421,7 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 {
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
-      [&](const EntityId &_entity, components::Link * /*_link*/,
+      [&](const Entity &_entity, components::Link * /*_link*/,
           components::Pose *_pose, components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_entity);
