@@ -53,7 +53,7 @@ namespace systems
                         EntityComponentManager &_ecm) override final;
 
     // Documentation inherited
-    public: void Configure(const EntityId &_id,
+    public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override final;

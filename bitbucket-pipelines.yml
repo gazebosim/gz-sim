@@ -8,6 +8,7 @@ pipelines:
           - apt -y install wget lsb-release gnupg
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+          - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-nightly `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-nightly.list'
           - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt-get update
           - apt-get -y install
