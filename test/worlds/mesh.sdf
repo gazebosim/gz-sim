@@ -151,7 +151,7 @@
           <mass>39</mass>
         </inertial>
         <collision name="collision">
-          <pose>0 0 -0.4 0.0 0.0 0.0</pose>
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <scale>0.5 0.5 0.5</scale>
@@ -187,7 +187,7 @@
           <mass>39</mass>
         </inertial>
         <collision name="collision">
-          <pose>0 0 -0.4 0.0 0.0 0.0</pose>
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
             <mesh>
               <uri>file://test/media/duck_collider.dae</uri>
