@@ -36,7 +36,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
 
-  /// \brief Deleted entity ids that can be reused
+  /// \brief Deleted entities that can be reused
   public: std::set<Entity> availableEntities;
 
   /// \brief Entities that need to be erased.
@@ -79,30 +79,30 @@ size_t EntityComponentManager::EntityCount() const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity id = kNullEntity;
+  Entity entity = kNullEntity;
 
   if (!this->dataPtr->availableEntities.empty())
   {
     // Reuse the smallest available Entity
-    id = *(this->dataPtr->availableEntities.begin());
+    entity = *(this->dataPtr->availableEntities.begin());
     this->dataPtr->availableEntities.erase(
         this->dataPtr->availableEntities.begin());
-    this->dataPtr->entities[id] = id;
+    this->dataPtr->entities[entity] = entity;
   }
   else
   {
-    // Create a brand new Id
-    id = this->dataPtr->entities.size();
-    this->dataPtr->entities.push_back(id);
+    // Create a brand new entity
+    entity = this->dataPtr->entities.size();
+    this->dataPtr->entities.push_back(entity);
   }
 
   // Add entity to the list of newly created entities
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-    this->dataPtr->newlyCreatedEntities.insert(id);
+    this->dataPtr->newlyCreatedEntities.insert(entity);
   }
 
-  return id;
+  return entity;
 }
 
 /////////////////////////////////////////////////
@@ -161,33 +161,33 @@ void EntityComponentManager::ProcessEraseEntityRequests()
   else
   {
     // Otherwise iterate through the list of entities to erase.
-    for (const Entity _entity : this->dataPtr->toEraseEntities)
+    for (const Entity entity : this->dataPtr->toEraseEntities)
     {
       // Make sure the entity exists and is not erased.
-      if (!this->HasEntity(_entity))
+      if (!this->HasEntity(entity))
         continue;
 
-      // Insert the entity into the set of available ids.
-      this->dataPtr->availableEntities.insert(_entity);
+      // Insert the entity into the set of available entities.
+      this->dataPtr->availableEntities.insert(entity);
 
       // Remove the components, if any.
-      if (this->dataPtr->entityComponents.find(_entity) !=
+      if (this->dataPtr->entityComponents.find(entity) !=
           this->dataPtr->entityComponents.end())
       {
-        for (const ComponentKey &_key :
-            this->dataPtr->entityComponents.at(_entity))
+        for (const ComponentKey &key :
+            this->dataPtr->entityComponents.at(entity))
         {
-          this->dataPtr->components.at(_key.first)->Remove(_key.second);
+          this->dataPtr->components.at(key.first)->Remove(key.second);
         }
 
         // Remove the entry in the entityComponent map
-        this->dataPtr->entityComponents.erase(_entity);
+        this->dataPtr->entityComponents.erase(entity);
       }
 
       // Remove the entity from views.
       for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
       {
-        view.second.EraseEntity(_entity, view.first);
+        view.second.EraseEntity(entity, view.first);
       }
     }
     // Clear the set of entities to erase.
