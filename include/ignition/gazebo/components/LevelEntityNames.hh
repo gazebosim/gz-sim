@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_NAMESET_HH_
-#define IGNITION_GAZEBO_COMPONENTS_NAMESET_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
+#define IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
 
 #include <string>
 #include <set>
@@ -32,10 +32,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  //
-  /// \brief A component that holds a list of names
-  using NameSet =
-      SimpleWrapper<std::set<std::string>, class NameSetTag>;
+  /// \brief A component that holds a list of names of entities to be loaded in
+  /// a level
+  using LevelEntityNames =
+      SimpleWrapper<std::set<std::string>, class LevelEntityNamesTag>;
 }
 }
 }

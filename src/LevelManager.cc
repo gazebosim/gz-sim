@@ -41,7 +41,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/NameSet.hh"
+#include "ignition/gazebo/components/LevelEntityNames.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -196,7 +196,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
       this->runner->entityCompMgr.CreateComponent(
           levelEntity, components::ParentEntity(worldEntity));
       this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::NameSet(entityNames));
+          levelEntity, components::LevelEntityNames(entityNames));
       this->runner->entityCompMgr.CreateComponent(
           levelEntity, components::Geometry(geometry));
     }
@@ -250,7 +250,7 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::ParentEntity(this->worldEntity));
   this->runner->entityCompMgr.CreateComponent(
-      defaultLevel, components::NameSet(this->entityNamesInDefault));
+      defaultLevel, components::LevelEntityNames(this->entityNamesInDefault));
 
   // Add default level to levels to load
   this->entityNamesToLoad.insert(this->entityNamesInDefault.begin(),
@@ -308,11 +308,11 @@ void LevelManager::UpdateLevelsState()
         // loop through levels and check for intersections
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry,
-                                         components::NameSet>(
+                                         components::LevelEntityNames>(
             [&](const Entity &, const components::Level *,
                 const components::Pose *_pose,
                 const components::Geometry *_levelGeometry,
-                const components::NameSet *_nameSet) -> bool
+                const components::LevelEntityNames *_entityNames) -> bool
             {
               // Check if the performer is in this level
               // assume a box for now
@@ -323,13 +323,14 @@ void LevelManager::UpdateLevelsState()
 
               if (region.Intersects(performerVolume))
               {
-                this->entityNamesToLoad.insert(_nameSet->Data().begin(),
-                                               _nameSet->Data().end());
+                this->entityNamesToLoad.insert(_entityNames->Data().begin(),
+                                               _entityNames->Data().end());
               }
               else
               {
                 // mark the entity to be unloaded if it's currently active
-                std::copy_if(_nameSet->Data().begin(), _nameSet->Data().end(),
+                std::copy_if(_entityNames->Data().begin(),
+                             _entityNames->Data().end(),
                              std::inserter(this->entityNamesToUnload,
                                            this->entityNamesToUnload.begin()),
                              [this](const std::string &_name) -> bool
