@@ -171,9 +171,9 @@ namespace ignition
       /// \details If multiple entities with the same name exist, the first
       /// entity found will be returned.
       /// \param[in] _name Name of the entity.
-      /// \return Id of the entity, if the entity exists in the world. Otherwise
+      /// \return The entity, if the entity exists in the world. Otherwise
       /// std::nullopt.
-      public: std::optional<EntityId> EntityByName(
+      public: std::optional<Entity> EntityByName(
                   const std::string &_name) const;
 
       /// \brief Return true if an entity with the provided name exists.
@@ -198,10 +198,10 @@ namespace ignition
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
       /// first entity found will be deleted.
-      /// \param[in] _id Id of the entity to delete.
+      /// \param[in] _entity The entity to delete.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const EntityId _id);
+      public: bool RequestEraseEntity(const Entity _entity);
 
       /// \brief Get the EventManager
       /// \return Reference to the event manager.

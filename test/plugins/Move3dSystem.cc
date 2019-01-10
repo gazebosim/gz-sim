@@ -44,8 +44,8 @@ class ignition::gazebo::systems::Move3dSystemPrivate
   /// \brief Current velocity command
   public: std::optional<math::Vector3d> linearVelCmd;
 
-  /// \brief EntityId of the performer
-  public: EntityId performerId = kNullEntity;
+  /// \brief Entity of the performer
+  public: Entity performerEntity = kNullEntity;
 };
 
 Move3dSystem::Move3dSystem() : dataPtr(std::make_unique<Move3dSystemPrivate>())
@@ -59,13 +59,14 @@ Move3dSystem::~Move3dSystem() //NOLINT
 }
 
 void Move3dSystem::Configure(
-    const EntityId &_id, const std::shared_ptr<const sdf::Element> &,
+    const Entity &_entity, const std::shared_ptr<const sdf::Element> &,
     EntityComponentManager &_ecm, EventManager &)
 {
-  this->dataPtr->performerId = _id;
-  igndbg << "Move3dSystem attached to: " << this->dataPtr->performerId  << "\n";
+  this->dataPtr->performerEntity = _entity;
+  igndbg << "Move3dSystem attached to: " << this->dataPtr->performerEntity
+         << "\n";
 
-  auto name = _ecm.Component<components::Name>(_id);
+  auto name = _ecm.Component<components::Name>(_entity);
   if (name != nullptr)
   {
     this->dataPtr->node.Subscribe(name->Data() + "/move3d/linear_vel",
@@ -78,20 +79,19 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
 
-  if (this->dataPtr->performerId == kNullEntity)
+  if (this->dataPtr->performerEntity == kNullEntity)
     return;
 
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
-  if ((this->dataPtr->performerId != kNullEntity) &&
+  if ((this->dataPtr->performerEntity != kNullEntity) &&
       (this->dataPtr->linearVelCmd.has_value()))
   {
     // update the next position of the model based on the commanded velocity
-    auto linVelocity =
-        _ecm.Component<components::LinearVelocity>(this->dataPtr->performerId);
-
+    auto linVelocity = _ecm.Component<components::LinearVelocity>(
+        this->dataPtr->performerEntity);
 
     if (linVelocity != nullptr)
     {
@@ -100,7 +100,7 @@ void Move3dSystem::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     else
     {
       _ecm.CreateComponent(
-          this->dataPtr->performerId,
+          this->dataPtr->performerEntity,
           components::LinearVelocity(*this->dataPtr->linearVelCmd));
     }
     // clear the command so that we only update the component when there's a new

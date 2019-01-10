@@ -500,7 +500,7 @@ void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
 bool SimulationRunner::HasEntity(const std::string &_name) const
 {
   bool result = false;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId,
+  this->entityCompMgr.Each<components::Name>([&](const Entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
@@ -518,12 +518,12 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 bool SimulationRunner::RequestEraseEntity(const std::string &_name)
 {
   bool result = false;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+  this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_id);
+        this->entityCompMgr.RequestEraseEntity(_entity);
         result = true;
         return false;
       }
@@ -534,30 +534,30 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
-std::optional<EntityId> SimulationRunner::EntityByName(
+std::optional<Entity> SimulationRunner::EntityByName(
     const std::string &_name) const
 {
-  std::optional<EntityId> id;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+  std::optional<Entity> entity;
+  this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
       {
-        id = _id;
+        entity = _entity;
         return false;
       }
       return true;
     });
 
-  return id;
+  return entity;
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const EntityId _id)
+bool SimulationRunner::RequestEraseEntity(const Entity _entity)
 {
-  if (this->entityCompMgr.HasEntity(_id))
+  if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_id);
+    this->entityCompMgr.RequestEraseEntity(_entity);
     return true;
   }
 

@@ -54,68 +54,68 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE View
     {
       /// Get a pointer to a component for an entity based on a component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _ecm Pointer to the entity component manager.
       /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const EntityId _id,
+              const ComponentTypeT *Component(const Entity _entity,
                   const EntityComponentManager *_ecm) const
       {
         ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
         return static_cast<const ComponentTypeT *>(
-            this->ComponentImplementation(_id, typeId, _ecm));
+            this->ComponentImplementation(_entity, typeId, _ecm));
       }
 
       /// Get a pointer to a component for an entity based on a component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _ecm Pointer to the entity component manager.
       /// \return Pointer to the component.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const EntityId _id,
+              ComponentTypeT *Component(const Entity _entity,
                   const EntityComponentManager *_ecm)
       {
         ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
         return static_cast<ComponentTypeT *>(
             const_cast<void *>(
-              this->ComponentImplementation(_id, typeId, _ecm)));
+              this->ComponentImplementation(_entity, typeId, _ecm)));
       }
 
       /// \brief Add an entity to the view.
-      /// \param[in] _id Id of the entity to add.
+      /// \param[in] _entity The entity to add.
       /// \param[in] _new Whether to add the entity to the list of new entities.
       /// The new here is to indicate whether the entity is new to the entity
       /// component manager. An existing entity can be added when creating a new
       /// view or when rebuilding the view.
-      public: void AddEntity(const EntityId _id, const bool _new = false);
+      public: void AddEntity(const Entity _entity, const bool _new = false);
 
       /// \brief Remove an entity from the view.
-      /// \param[in] _id Id of the entity to remove.
+      /// \param[in] _entity The entity to remove.
       /// \param[in] _key Components that should also be removed.
       /// \return True if the entity was erased, false if the entity did not
       /// exist in the view.
-      public: bool EraseEntity(const EntityId _id,
+      public: bool EraseEntity(const Entity _entity,
                                const ComponentTypeKey &_key);
 
       /// \brief Add the entity to the list of entities to be removed
-      /// \param[in] _id Id of the entity to add.
+      /// \param[in] _entity The entity to add.
       /// \return True if the entity was added to the list, false if the entity
       /// did not exist in the view.
-      public: bool AddEntityToErased(const EntityId _id);
+      public: bool AddEntityToErased(const Entity _entity);
 
       /// \brief Add a component to an entity.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _compTypeId Component type id.
       /// \param[in] _compId Component id.
-      public: void AddComponent(const EntityId _id,
+      public: void AddComponent(const Entity _entity,
                                 const ComponentTypeId _compTypeId,
                                 const ComponentId _compId);
 
       /// \brief Implementation of the Component accessor.
-      /// \param[in] _id Id of the Entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _typeId Type id of the component.
       /// \param[in] _ecm Pointer to the EntityComponentManager.
       /// \return Pointer to the component, or nullptr if not found.
-      private: const void *ComponentImplementation(const EntityId _id,
+      private: const void *ComponentImplementation(const Entity _entity,
                    ComponentTypeId _typeId,
                    const EntityComponentManager *_ecm) const;
 
@@ -123,16 +123,16 @@ namespace ignition
       public: void ClearNewEntities();
 
       /// \brief All the entities that belong to this view.
-      public: std::set<EntityId> entities;
+      public: std::set<Entity> entities;
 
       /// \brief List of newly created entities
-      public: std::set<EntityId> newEntities;
+      public: std::set<Entity> newEntities;
 
       /// \brief List of entities about to be erased
-      public: std::set<EntityId> toEraseEntities;
+      public: std::set<Entity> toEraseEntities;
 
       /// \brief All of the components for each entity.
-      public: std::map<std::pair<EntityId, ComponentTypeId>,
+      public: std::map<std::pair<Entity, ComponentTypeId>,
               ComponentId> components;
     };
     /// \endcond
@@ -332,7 +332,7 @@ namespace ignition
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
-      public: EntityId CreateEntity();
+      public: Entity CreateEntity();
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
@@ -341,7 +341,7 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntity(const EntityId _id);
+      public: void RequestEraseEntity(const Entity _entity);
 
       /// \brief Request to erase all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -349,9 +349,9 @@ namespace ignition
       public: void RequestEraseEntities();
 
       /// \brief Get whether an Entity exists.
-      /// \param[in] _id Entity id to confirm.
+      /// \param[in] _entity Entity id to confirm.
       /// \return True if the Entity exists.
-      public: bool HasEntity(const EntityId _id) const;
+      public: bool HasEntity(const Entity _entity) const;
 
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
@@ -359,34 +359,34 @@ namespace ignition
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component.
-      /// \param[in] _id Id of the entity to check.
+      /// \param[in] _entity The entity to check.
       /// \param[in] _key The component to check.
       /// \return True if the component key belongs to the entity.
-      public: bool EntityHasComponent(const EntityId _id,
+      public: bool EntityHasComponent(const Entity _entity,
                   const ComponentKey &_key) const;
 
       /// \brief Check whether an entity has a specific component type.
-      /// \param[in] _id Id of the entity to check.
+      /// \param[in] _entity The entity to check.
       /// \param[in] _typeId Component type id to check.
       /// \return True if the entity exists and has at least one component
       /// with the provided type.
-      public: bool EntityHasComponentType(const EntityId _id,
+      public: bool EntityHasComponentType(const Entity _entity,
                   const ComponentTypeId &_typeId) const;
 
       /// \brief Get whether an entity has all the given component types.
-      /// \param[in] _id Id of the Entity to check.
+      /// \param[in] _entity The entity to check.
       /// \param[in] _types Component types to check that the Entity has.
       /// \return True if the given entity has all the given types.
-      public: bool EntityMatches(EntityId _id,
+      public: bool EntityMatches(Entity _entity,
         const std::set<ComponentTypeId> &_types) const;
 
       /// \brief Remove a component from an entity based on a key.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return True if the entity and component existed and the component was
       ///  removed.
       public: bool RemoveComponent(
-                  const EntityId _id, const ComponentKey &_key);
+                  const Entity _entity, const ComponentKey &_key);
 
       /// \brief Rebuild all the views. This could be an expensive
       /// operation.
@@ -405,12 +405,12 @@ namespace ignition
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
-      /// \param[in] _entityId Id of the Entity that will be associated with
+      /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _data Data used to construct the component.
       /// \return Key that uniquely identifies the component.
       public: template<typename ComponentTypeT>
-              ComponentKey CreateComponent(const EntityId _entityId,
+              ComponentKey CreateComponent(const Entity _entity,
                   const ComponentTypeT &_data)
       {
         // Get a unique identifier to the component type
@@ -424,37 +424,37 @@ namespace ignition
                 new ComponentStorage<ComponentTypeT>());
         }
 
-        return this->CreateComponentImplementation(_entityId, typeId, &_data);
+        return this->CreateComponentImplementation(_entity, typeId, &_data);
       }
 
       /// \brief Get a component assigned to an entity based on a
       /// component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const EntityId _id) const
+              const ComponentTypeT *Component(const Entity _entity) const
       {
         // Get a unique identifier to the component type
         const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
 
         return static_cast<const ComponentTypeT *>(
-            this->ComponentImplementation(_id, typeId));
+            this->ComponentImplementation(_entity, typeId));
       }
 
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const EntityId _id)
+              ComponentTypeT *Component(const Entity _entity)
       {
         // Get a unique identifier to the component type
         const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
 
         return static_cast<ComponentTypeT *>(
-            this->ComponentImplementation(_id, typeId));
+            this->ComponentImplementation(_entity, typeId));
       }
 
       /// \brief Get a component based on a key.
@@ -512,15 +512,15 @@ namespace ignition
       /// \return Entity Id or kNullEntity if no entity has the exact
       /// components.
       public: template<typename ...ComponentTypeTs>
-              EntityId EntityByComponents(
+              Entity EntityByComponents(
                    const ComponentTypeTs &..._desiredComponents) const
       {
         // Get all entities which have components of the desired types
         const auto &view = this->FindView<ComponentTypeTs...>();
 
         // Iterate over entities
-        EntityId result{kNullEntity};
-        for (const EntityId entity : view.entities)
+        Entity result{kNullEntity};
+        for (const Entity entity : view.entities)
         {
           bool different{false};
 
@@ -569,7 +569,7 @@ namespace ignition
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
               void EachNoCache(typename identity<std::function<
-                  bool(const EntityId &_entity,
+                  bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
         for (const Entity &entity : this->Entities())
@@ -577,10 +577,10 @@ namespace ignition
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
-          if (this->EntityMatches(entity.Id(), types))
+          if (this->EntityMatches(entity, types))
           {
-            if (!_f(entity.Id(),
-                    this->Component<ComponentTypeTs>(entity.Id())...))
+            if (!_f(entity,
+                    this->Component<ComponentTypeTs>(entity)...))
             {
               break;
             }
@@ -602,7 +602,7 @@ namespace ignition
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
               void EachNoCache(typename identity<std::function<
-                  bool(const EntityId &_entity,
+                  bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
         for (const Entity &entity : this->Entities())
@@ -610,10 +610,10 @@ namespace ignition
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
-          if (this->EntityMatches(entity.Id(), types))
+          if (this->EntityMatches(entity, types))
           {
-            if (!_f(entity.Id(),
-                    this->Component<ComponentTypeTs>(entity.Id())...))
+            if (!_f(entity,
+                    this->Component<ComponentTypeTs>(entity)...))
             {
               break;
             }
@@ -635,7 +635,7 @@ namespace ignition
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
-                  bool(const EntityId &_entity,
+                  bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
         // Get the view. This will create a new view if one does not already
@@ -644,7 +644,7 @@ namespace ignition
 
         // Iterate over the entities in the view, and invoke the callback
         // function.
-        for (const EntityId entity : view.entities)
+        for (const Entity entity : view.entities)
         {
           if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
@@ -667,7 +667,7 @@ namespace ignition
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
-                  bool(const EntityId &_entity,
+                  bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
         // Get the view. This will create a new view if one does not already
@@ -676,7 +676,7 @@ namespace ignition
 
         // Iterate over the entities in the view, and invoke the callback
         // function.
-        for (const EntityId entity : view.entities)
+        for (const Entity entity : view.entities)
         {
           if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
@@ -708,7 +708,7 @@ namespace ignition
       /// PreUpdate, callback. The result of call after PreUpdate is invalid
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
-                           bool(const EntityId &_entity,
+                           bool(const Entity &_entity,
                                 ComponentTypeTs *...)>>::type _f)
       {
         // Get the view. This will create a new view if one does not already
@@ -718,7 +718,7 @@ namespace ignition
         // Iterate over the entities in the view and in the newly created
         // entities list, and invoke the callback
         // function.
-        for (const EntityId entity : view.newEntities)
+        for (const Entity entity : view.newEntities)
         {
           if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
@@ -740,7 +740,7 @@ namespace ignition
       /// PreUpdate, callback. The result of call after PreUpdate is invalid
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
-                           bool(const EntityId &_entity,
+                           bool(const Entity &_entity,
                                 const ComponentTypeTs *...)>>::type _f) const
       {
         // Get the view. This will create a new view if one does not already
@@ -750,7 +750,7 @@ namespace ignition
         // Iterate over the entities in the view and in the newly created
         // entities list, and invoke the callback
         // function.
-        for (const EntityId entity : view.newEntities)
+        for (const Entity entity : view.newEntities)
         {
           if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
@@ -771,7 +771,7 @@ namespace ignition
       /// PreUpdate, callback. The result of call after PreUpdate is invalid
       public: template<typename ...ComponentTypeTs>
               void EachErased(typename identity<std::function<
-                  bool(const EntityId &_entity,
+                  bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
         // Get the view. This will create a new view if one does not already
@@ -781,7 +781,7 @@ namespace ignition
         // Iterate over the entities in the view and in the newly created
         // entities list, and invoke the callback
         // function.
-        for (const EntityId entity : view.toEraseEntities)
+        for (const Entity entity : view.toEraseEntities)
         {
           if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
           {
@@ -804,19 +804,19 @@ namespace ignition
       ///
       /// Entities are considered new in the time between their creation and a
       /// call to ClearNewlyCreatedEntities
-      /// \param[in] _id Entity id to check.
+      /// \param[in] _entity Entity id to check.
       /// \return True if the Entity is new.
-      private: bool IsNewEntity(const EntityId _id) const;
+      private: bool IsNewEntity(const Entity _entity) const;
 
       /// \brief Get whether an Entity has been marked to be erased.
-      /// \param[in] _id Entity id to check.
+      /// \param[in] _entity Entity id to check.
       /// \return True if the Entity has been marked to be erased.
-      private: bool IsMarkedForErasure(const EntityId _id) const;
+      private: bool IsMarkedForErasure(const Entity _entity) const;
 
       /// \brief Delete an existing Entity.
-      /// \param[in] _id Id of the Entity to erase.
+      /// \param[in] _entity The entity to erase.
       /// \returns True if the Entity existed and was deleted.
-      private: bool EraseEntity(const EntityId _id);
+      private: bool EraseEntity(const Entity _entity);
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
@@ -824,30 +824,30 @@ namespace ignition
       private: void *First(const ComponentTypeId _componentTypeId);
 
       /// \brief Implmentation of CreateComponent.
-      /// \param[in] _entityId Id of the Entity that will be associated with
+      /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
       /// \return Key that uniquely identifies the component.
       private: ComponentKey CreateComponentImplementation(
-                   const EntityId _entityId,
+                   const Entity _entity,
                    const ComponentTypeId _componentTypeId,
                    const void *_data);
 
       /// \brief Get a component based on a component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      private: const void *ComponentImplementation(const EntityId _id,
+      private: const void *ComponentImplementation(const Entity _entity,
                    const ComponentTypeId _type) const;
 
       /// \brief Get a mutable component based on a component type.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      private: void *ComponentImplementation(const EntityId _id,
+      private: void *ComponentImplementation(const Entity _entity,
                    const ComponentTypeId _type);
 
       /// \brief Get a component based on a key.
@@ -879,23 +879,24 @@ namespace ignition
       /// called when Rest is empty.
       /// \param[in, out] _view The FirstComponent will be added to the
       /// _view.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       private: template<typename FirstComponent,
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) == 0, int>::type = 0>
-               void AddComponentsToView(View &_view, const EntityId _id) const
+               void AddComponentsToView(View &_view, const Entity _entity) const
       {
         const ComponentTypeId typeId = ComponentType<FirstComponent>();
-        const ComponentId compId = this->EntityComponentIdFromType(_id, typeId);
+        const ComponentId compId =
+            this->EntityComponentIdFromType(_entity, typeId);
         if (compId >= 0)
         {
           // Add the component to the view.
-          _view.AddComponent(_id, typeId, compId);
+          _view.AddComponent(_entity, typeId, compId);
         }
         else
         {
-          ignerr << "Entity[" << _id << "] has no component of type["
+          ignerr << "Entity[" << _entity << "] has no component of type["
             << typeId << "]. This should never happen.\n";
         }
       }
@@ -904,28 +905,29 @@ namespace ignition
       /// called when Rest is NOT empty.
       /// \param[in, out] _view The FirstComponent will be added to the
       /// _view.
-      /// \param[in] _id Id of the entity.
+      /// \param[in] _entity The entity.
       private: template<typename FirstComponent,
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) != 0, int>::type = 0>
-              void AddComponentsToView(View &_view, const EntityId _id) const
+              void AddComponentsToView(View &_view, const Entity _entity) const
       {
         const ComponentTypeId typeId = ComponentType<FirstComponent>();
-        const ComponentId compId = this->EntityComponentIdFromType(_id, typeId);
+        const ComponentId compId =
+            this->EntityComponentIdFromType(_entity, typeId);
         if (compId >= 0)
         {
           // Add the component to the view.
-          _view.AddComponent(_id, typeId, compId);
+          _view.AddComponent(_entity, typeId, compId);
         }
         else
         {
-          ignerr << "Entity[" << _id << "] has no component of type["
+          ignerr << "Entity[" << _entity << "] has no component of type["
             << typeId << "]. This should never happen.\n";
         }
 
         // Add the remaining components to the view.
-        this->AddComponentsToView<RemainingComponents...>(_view, _id);
+        this->AddComponentsToView<RemainingComponents...>(_view, _entity);
       }
 
       /// \brief Find a View that matches the set of ComponentTypeIds. If
@@ -947,19 +949,19 @@ namespace ignition
           // view.
           for (const Entity &entity : this->Entities())
           {
-            if (this->EntityMatches(entity.Id(), types))
+            if (this->EntityMatches(entity, types))
             {
-              view.AddEntity(entity.Id(), this->IsNewEntity(entity.Id()));
+              view.AddEntity(entity, this->IsNewEntity(entity));
               // If there is a request to delete this entity, update the view as
               // well
-              if (this->IsMarkedForErasure(entity.Id()))
+              if (this->IsMarkedForErasure(entity))
               {
-                view.AddEntityToErased(entity.Id());
+                view.AddEntityToErased(entity);
               }
 
               // Store pointers to all the components. This recursively adds
               // all the ComponentTypeTs that belong to the entity to the view.
-              this->AddComponentsToView<ComponentTypeTs...>(view, entity.Id());
+              this->AddComponentsToView<ComponentTypeTs...>(view, entity);
             }
           }
 
@@ -988,11 +990,11 @@ namespace ignition
                    const std::set<ComponentTypeId> &_types, View &&_view) const;
 
       /// \brief Update views that contain the provided entity.
-      /// \param[in] _id Id of the entity.
-      private: void UpdateViews(const EntityId _id);
+      /// \param[in] _entity The entity.
+      private: void UpdateViews(const Entity _entity);
 
       private: ComponentId EntityComponentIdFromType(
-                   const EntityId _id, const ComponentTypeId _type) const;
+                   const Entity _entity, const ComponentTypeId _type) const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

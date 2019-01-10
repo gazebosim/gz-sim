@@ -40,10 +40,10 @@ class IGNITION_GAZEBO_VISIBLE Move3dSystem
   public: ~Move3dSystem();
 
   /// Documentation inherited
-  public: void Configure(const EntityId &_id,
-                          const std::shared_ptr<const sdf::Element> &_sdf,
-                          EntityComponentManager &_ecm,
-                          EventManager &_eventMgr) final;
+  public: void Configure(const Entity &_entity,
+                         const std::shared_ptr<const sdf::Element> &_sdf,
+                         EntityComponentManager &_ecm,
+                         EventManager &_eventMgr) final;
   public: void PreUpdate(
               const ignition::gazebo::UpdateInfo &_info,
                     ignition::gazebo::EntityComponentManager &_ecm) override;

@@ -130,7 +130,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
   {
     auto name = performer->Get<std::string>("name");
 
-    EntityId performerEntity = this->runner->entityCompMgr.CreateEntity();
+    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
     // We use the ref to create a parent entity component later on
     std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
     if (this->performerMap.find(ref) == this->performerMap.end())
@@ -184,7 +184,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
       }
 
       // Entity
-      EntityId levelEntity = this->runner->entityCompMgr.CreateEntity();
+      Entity levelEntity = this->runner->entityCompMgr.CreateEntity();
 
       // Components
       this->runner->entityCompMgr.CreateComponent(
@@ -208,7 +208,7 @@ void LevelManager::ConfigureDefaultLevel()
 {
   // Create the default level. This level contains all entities not contained by
   // any other level.
-  EntityId defaultLevel = this->runner->entityCompMgr.CreateEntity();
+  Entity defaultLevel = this->runner->entityCompMgr.CreateEntity();
 
   // Go through all entities in the world and find ones not in the
   // set entityNamesInLevels
@@ -272,7 +272,7 @@ void LevelManager::CreatePerformers()
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (this->performerMap.find(model->Name()) != this->performerMap.end() )
     {
-      EntityId modelEntity = this->CreateEntities(model);
+      Entity modelEntity = this->CreateEntities(model);
       // Create a component on the performer entity that points to this model
       this->runner->entityCompMgr.CreateComponent(
           this->performerMap[model->Name()],
@@ -291,7 +291,7 @@ void LevelManager::UpdateLevelsState()
 {
   this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
                                    components::ParentEntity>(
-      [&](const EntityId &, const components::Performer *,
+      [&](const Entity &, const components::Performer *,
           const components::Geometry *_geometry,
           const components::ParentEntity *_parent) -> bool
       {
@@ -309,7 +309,7 @@ void LevelManager::UpdateLevelsState()
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry,
                                          components::NameSet>(
-            [&](const EntityId &, const components::Level *,
+            [&](const Entity &, const components::Level *,
                 const components::Pose *_pose,
                 const components::Geometry *_levelGeometry,
                 const components::NameSet *_nameSet) -> bool
@@ -406,7 +406,7 @@ void LevelManager::LoadActiveLevels()
     if (this->entityNamesToLoad.find(model->Name()) !=
         this->entityNamesToLoad.end())
     {
-      EntityId modelEntity = this->CreateEntities(model);
+      Entity modelEntity = this->CreateEntities(model);
       this->runner->entityCompMgr.CreateComponent(
           modelEntity, components::ParentEntity(this->worldEntity));
     }
@@ -420,7 +420,7 @@ void LevelManager::LoadActiveLevels()
     if (this->entityNamesToLoad.find(light->Name()) !=
         this->entityNamesToLoad.end())
     {
-      EntityId lightEntity = this->CreateEntities(light);
+      Entity lightEntity = this->CreateEntities(light);
       this->runner->entityCompMgr.CreateComponent(
           lightEntity, components::ParentEntity(this->worldEntity));
     }
@@ -435,7 +435,7 @@ void LevelManager::LoadActiveLevels()
 void LevelManager::UnloadInactiveLevels()
 {
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
-      [&](const EntityId &_entity, const components::Model *,
+      [&](const Entity &_entity, const components::Model *,
           const components::Name *_name) -> bool
       {
         if (this->entityNamesToUnload.find(_name->Data()) !=
@@ -453,10 +453,10 @@ void LevelManager::UnloadInactiveLevels()
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Model *_model)
+Entity LevelManager::CreateEntities(const sdf::Model *_model)
 {
   // Entity
-  EntityId modelEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity modelEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_model->Name(), modelEntity, modelEntity);
 
@@ -511,10 +511,10 @@ EntityId LevelManager::CreateEntities(const sdf::Model *_model)
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Light *_light)
+Entity LevelManager::CreateEntities(const sdf::Light *_light)
 {
   // Entity
-  EntityId lightEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity lightEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_light->Name(), lightEntity, lightEntity);
 
@@ -530,10 +530,10 @@ EntityId LevelManager::CreateEntities(const sdf::Light *_light)
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Link *_link)
+Entity LevelManager::CreateEntities(const sdf::Link *_link)
 {
   // Entity
-  EntityId linkEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity linkEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_link->Name(), linkEntity, linkEntity);
 
@@ -586,10 +586,10 @@ EntityId LevelManager::CreateEntities(const sdf::Link *_link)
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Joint *_joint)
+Entity LevelManager::CreateEntities(const sdf::Joint *_joint)
 {
   // Entity
-  EntityId jointEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity jointEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_joint->Name(), jointEntity, jointEntity);
 
@@ -626,10 +626,10 @@ EntityId LevelManager::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Visual *_visual)
+Entity LevelManager::CreateEntities(const sdf::Visual *_visual)
 {
   // Entity
-  EntityId visualEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity visualEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_visual->Name(), visualEntity, visualEntity);
 
@@ -658,10 +658,10 @@ EntityId LevelManager::CreateEntities(const sdf::Visual *_visual)
 }
 
 //////////////////////////////////////////////////
-EntityId LevelManager::CreateEntities(const sdf::Collision *_collision)
+Entity LevelManager::CreateEntities(const sdf::Collision *_collision)
 {
   // Entity
-  EntityId collisionEntity = this->runner->entityCompMgr.CreateEntity();
+  Entity collisionEntity = this->runner->entityCompMgr.CreateEntity();
 
   this->entityGraph.AddVertex(_collision->Name(), collisionEntity,
                               collisionEntity);
@@ -685,7 +685,7 @@ EntityId LevelManager::CreateEntities(const sdf::Collision *_collision)
 
 //////////////////////////////////////////////////
 void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
-    const EntityId _id)
+    const Entity _entity)
 {
   if (!_sdf->HasElement("plugin"))
     return;
@@ -699,7 +699,7 @@ void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(_id, pluginElem,
+        systemConfig->Configure(_entity, pluginElem,
                                 this->runner->entityCompMgr,
                                 this->runner->eventMgr);
       }
@@ -710,19 +710,19 @@ void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
 }
 
 //////////////////////////////////////////////////
-void LevelManager::EraseEntityRecursively(const EntityId _id)
+void LevelManager::EraseEntityRecursively(const Entity _entity)
 {
-  for (const auto &vertex : this->entityGraph.AdjacentsFrom(_id))
+  for (const auto &vertex : this->entityGraph.AdjacentsFrom(_entity))
   {
     this->EraseEntityRecursively(vertex.first);
   }
 
   // Remove from ECM
-  this->runner->entityCompMgr.RequestEraseEntity(_id);
+  this->runner->entityCompMgr.RequestEraseEntity(_entity);
   // Remove the vertex from the graph
-  bool rc = this->entityGraph.RemoveVertex(_id);
+  bool rc = this->entityGraph.RemoveVertex(_entity);
   if (!rc)
   {
-    ignerr << "Removing node " << _id << " failed\n";
+    ignerr << "Removing node " << _entity << " failed\n";
   }
 }
