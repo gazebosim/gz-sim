@@ -76,14 +76,14 @@ namespace ignition
     /// simulation begins exectution.
     class IGNITION_GAZEBO_VISIBLE ISystemConfigure {
       /// \brief Configure the system
-      /// \param[in] _id Id of the entity this plugin is attached to.
+      /// \param[in] _entity The entity this plugin is attached to.
       /// \param[in] _sdf The SDF Element associated with this system plugin.
       /// \param[in] _ecm The EntityComponentManager of the given simulation
       /// instance.
       /// \param[in] _eventMgr The EventManager of the given simulation
       /// instance.
       public: virtual void Configure(
-                  const EntityId &_id,
+                  const Entity &_entity,
                   const std::shared_ptr<const sdf::Element> &_sdf,
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;

@@ -23,52 +23,52 @@
 TEST(ModelTest, Constructor)
 {
   ignition::gazebo::Model modelNull;
-  EXPECT_EQ(ignition::gazebo::kNullEntity, modelNull.Id());
+  EXPECT_EQ(ignition::gazebo::kNullEntity, modelNull.Entity());
 
-  ignition::gazebo::EntityId id(3);
+  ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
-  EXPECT_EQ(id, model.Id());
+  EXPECT_EQ(id, model.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyConstructor)
 {
-  ignition::gazebo::EntityId id(3);
+  ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
   ignition::gazebo::Model modelCopy(model);
-  EXPECT_EQ(model.Id(), modelCopy.Id());
+  EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyAssignmentOperator)
 {
-  ignition::gazebo::EntityId id(3);
+  ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
   ignition::gazebo::Model modelCopy;
   modelCopy = model;
-  EXPECT_EQ(model.Id(), modelCopy.Id());
+  EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveConstructor)
 {
-  ignition::gazebo::EntityId id(3);
+  ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
   ignition::gazebo::Model modelMoved(std::move(model));
-  EXPECT_EQ(id, modelMoved.Id());
+  EXPECT_EQ(id, modelMoved.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveAssignmentOperator)
 {
-  ignition::gazebo::EntityId id(3);
+  ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
   ignition::gazebo::Model modelMoved;
   modelMoved = std::move(model);
-  EXPECT_EQ(id, modelMoved.Id());
+  EXPECT_EQ(id, modelMoved.Entity());
 }
