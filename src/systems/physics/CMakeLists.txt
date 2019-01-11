@@ -10,6 +10,7 @@ ign_add_component(physics-system
 target_link_libraries(${physics_system_target}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-common${IGN_COMMON_VER}::profiler
   ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
   ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE

@@ -16,6 +16,8 @@
 */
 
 #include <ignition/msgs/scene.pb.h>
+
+#include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
@@ -178,6 +180,7 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
+  IGN_PROFILE("SceneBroadcaster::PostUpdate");
   // Update scene graph with added entities before populating pose message
   this->dataPtr->SceneGraphAddEntities(_manager);
 
