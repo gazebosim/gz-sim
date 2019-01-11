@@ -15,8 +15,9 @@
  *
 */
 
-#include <ignition/common/Profiler.hh>
 #include <ignition/msgs/scene.pb.h>
+
+#include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
