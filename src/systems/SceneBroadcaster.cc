@@ -187,7 +187,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 
   msgs::Pose_V poseMsg;
 
-    // Models
+  // Models
   _manager.Each<components::Model, components::Name, components::Pose>(
       [&](const EntityId &_entity, const components::Model *,
           const components::Name *_nameComp,
