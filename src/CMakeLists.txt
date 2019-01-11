@@ -8,7 +8,6 @@ set(gui_sources
 
 set (sources
   Conversions.cc
-  Entity.cc
   EntityComponentManager.cc
   EventManager.cc
   Model.cc
@@ -25,7 +24,6 @@ set (gtest_sources
   ${gtest_sources}
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
-  Entity_TEST.cc
   EventManager_TEST.cc
   ign_TEST.cc
   Model_TEST.cc

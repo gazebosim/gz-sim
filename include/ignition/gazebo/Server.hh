@@ -192,9 +192,9 @@ namespace ignition
       /// \param [in] _name Name of the entity to get from the specified
       /// world.
       /// \param[in] _worldIndex Index of the world to query.
-      /// \return Id of the Entity, or std::nullopt if the entity or world
+      /// \return The entity, or std::nullopt if the entity or world
       /// doesn't exist.
-      public: std::optional<EntityId> EntityByName(const std::string &_name,
+      public: std::optional<Entity> EntityByName(const std::string &_name,
                   const unsigned int _worldIndex = 0) const;
 
       /// \brief Return true if the specified world has an entity with the
@@ -225,11 +225,11 @@ namespace ignition
       /// the entity is not erased immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
-      /// \param[in] _id Id of the entity to delete.
+      /// \param[in] _entity The entity to delete.
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const EntityId _id,
+      public: bool RequestEraseEntity(const Entity _entity,
                                       const unsigned int _worldIndex = 0);
 
 

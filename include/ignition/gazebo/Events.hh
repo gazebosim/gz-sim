@@ -17,8 +17,8 @@
 #ifndef IGNITION_GAZEBO_EVENTS_HH_
 #define IGNITION_GAZEBO_EVENTS_HH_
 
-#include "ignition/gazebo/config.hh"
 #include <ignition/common/Event.hh>
+#include "ignition/gazebo/config.hh"
 
 namespace ignition
 {
@@ -38,7 +38,7 @@ namespace ignition
       /// \code
       /// eventManager.Emit<ignition::gazebo::events::Pause>(true);
       /// \endcode
-      using Pause = ignition::common::EventT<void(bool), struct _Pause>;
+      using Pause = ignition::common::EventT<void(bool), struct PauseTag>;
       }
     }  // namespace events
   }  // namespace gazebo
