@@ -13,6 +13,8 @@ pipelines:
           # lcov
           - git clone https://github.com/linux-test-project/lcov.git
           - cd lcov
+          # see https://github.com/linux-test-project/lcov/issues/55
+          - git checkout 1e0df571
           - make install
           - cd ..
           # Ignition cmake
