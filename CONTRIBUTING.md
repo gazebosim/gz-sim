@@ -208,7 +208,7 @@ get aquainted with this development process.
 
     Ubuntu users can install via:
 
-        sudo apt-get install clang-tidy-6.0 # or clang-tidy-7 with LLVM PPAs
+        sudo apt-get install clang-tidy-6.0 python3-yaml # or clang-tidy-7 with LLVM PPAs
 
     In order to run clang-tidy, CMake must be used to generate a `compliation_commands.json`, also referred to as a compilation command database. In order to generate this file, add a flag to your `cmake` invokation (or to the `--cmake-args` flag if using `colcon`)
 
