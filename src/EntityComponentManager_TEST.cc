@@ -38,7 +38,7 @@ class EntityCompMgrTest : public gazebo::EntityComponentManager
 
 class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
 {
-  public: void SetUp()
+  public: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
   }

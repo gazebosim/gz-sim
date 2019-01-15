@@ -132,9 +132,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner()
-{
-}
+SimulationRunner::~SimulationRunner() = default;
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()

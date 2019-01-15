@@ -15,7 +15,7 @@
  *
 */
 #include <gflags/gflags.h>
-#include <signal.h>
+#include <csignal>
 #include <tinyxml2.h>
 
 #include <ignition/common/Console.hh>

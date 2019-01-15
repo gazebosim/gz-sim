@@ -97,8 +97,8 @@ namespace components
   {
     /// \brief Constructor.
     /// \param[in] _simpleWrapper SimpleWrapper data.
-    public: explicit SimpleWrapperPrivate(const DataType &_data)
-            : data(_data)
+    public: explicit SimpleWrapperPrivate(DataType _data)
+            : data(std::move(_data))
     {
     }
 

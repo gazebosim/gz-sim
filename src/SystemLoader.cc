@@ -52,9 +52,7 @@ std::string HomePath()
 class ignition::gazebo::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
-  public: explicit SystemLoaderPrivate()
-  {
-  }
+  public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
@@ -139,9 +137,7 @@ SystemLoader::SystemLoader()
 }
 
 //////////////////////////////////////////////////
-SystemLoader::~SystemLoader()
-{
-}
+SystemLoader::~SystemLoader() = default;
 
 //////////////////////////////////////////////////
 void SystemLoader::AddSystemPluginPath(const std::string &_path)

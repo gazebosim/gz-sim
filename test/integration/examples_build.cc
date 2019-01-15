@@ -29,9 +29,9 @@
 using namespace ignition;
 
 #ifndef _WIN32
+#include <climits>  // NOLINT(build/include_order)
+#include <cstdlib>  // NOLINT(build/include_order)
 #include <fcntl.h>  // NOLINT(build/include_order)
-#include <limits.h>  // NOLINT(build/include_order)
-#include <stdlib.h>  // NOLINT(build/include_order)
 #include <sys/stat.h>  // NOLINT(build/include_order)
 #include <sys/types.h>  // NOLINT(build/include_order)
 #include <unistd.h>  // NOLINT(build/include_order)
