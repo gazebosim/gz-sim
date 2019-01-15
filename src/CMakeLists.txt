@@ -8,7 +8,6 @@ set(gui_sources
 
 set (sources
   Conversions.cc
-  Entity.cc
   EntityComponentManager.cc
   EventManager.cc
   Model.cc
@@ -25,7 +24,6 @@ set (gtest_sources
   ${gtest_sources}
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
-  Entity_TEST.cc
   EventManager_TEST.cc
   ign_TEST.cc
   Model_TEST.cc
@@ -42,6 +40,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-math${IGN_MATH_VER}
   ignition-plugin${IGN_PLUGIN_VER}::core
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-common${IGN_COMMON_VER}::profiler
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   sdformat8::sdformat8
@@ -57,6 +56,7 @@ ign_add_component(systems
 target_link_libraries(${SYSTEMS_TARGET}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  ignition-common${IGN_COMMON_VER}::profiler
   ${SDFormat_LIBRARIES}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register

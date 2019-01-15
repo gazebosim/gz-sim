@@ -40,11 +40,11 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief EntityId of the left joint
-  public: EntityId leftJointId = kNullEntity;
+  /// \brief Entity of the left joint
+  public: Entity leftJoint = kNullEntity;
 
-  /// \brief EntityId of the right joint
-  public: EntityId rightJointId = kNullEntity;
+  /// \brief Entity of the right joint
+  public: Entity rightJoint = kNullEntity;
 
   /// \brief Name of left joint
   public: std::string leftJointName = "left_joint";
@@ -75,12 +75,12 @@ DiffDrive::DiffDrive()
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::Configure(const EntityId &_id,
+void DiffDrive::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
-  this->dataPtr->model = Model(_id);
+  this->dataPtr->model = Model(_entity);
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
@@ -113,17 +113,17 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   // If the joints haven't been identified yet, look for them
-  if (this->dataPtr->leftJointId == kNullEntity ||
-      this->dataPtr->rightJointId == kNullEntity)
+  if (this->dataPtr->leftJoint == kNullEntity ||
+      this->dataPtr->rightJoint == kNullEntity)
   {
-    this->dataPtr->leftJointId =
+    this->dataPtr->leftJoint =
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->leftJointName);
-    this->dataPtr->rightJointId =
+    this->dataPtr->rightJoint =
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->rightJointName);
   }
 
-  if (this->dataPtr->leftJointId == kNullEntity ||
-      this->dataPtr->rightJointId == kNullEntity)
+  if (this->dataPtr->leftJoint == kNullEntity ||
+      this->dataPtr->rightJoint == kNullEntity)
     return;
 
   // Nothing left to do if paused.
@@ -132,11 +132,11 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   // Update left wheel
   auto leftVel =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->leftJointId);
+      _ecm.Component<components::JointVelocity>(this->dataPtr->leftJoint);
 
   if (leftVel == nullptr)
   {
-    _ecm.CreateComponent(this->dataPtr->leftJointId,
+    _ecm.CreateComponent(this->dataPtr->leftJoint,
         components::JointVelocity(this->dataPtr->leftJointSpeed));
   }
   else
@@ -146,11 +146,11 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   // Update right wheel
   auto rightVel =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->rightJointId);
+      _ecm.Component<components::JointVelocity>(this->dataPtr->rightJoint);
 
   if (rightVel == nullptr)
   {
-    _ecm.CreateComponent(this->dataPtr->rightJointId,
+    _ecm.CreateComponent(this->dataPtr->rightJoint,
         components::JointVelocity(this->dataPtr->rightJointSpeed));
   }
   else

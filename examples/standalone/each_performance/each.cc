@@ -47,13 +47,13 @@ int main(int argc, char **argv)
     // Create the matching entities
     for (int i = 0; i < 100; ++i)
     {
-      EntityId entity = mgr.CreateEntity();
+      Entity entity = mgr.CreateEntity();
       mgr.CreateComponent(entity, components::World());
       mgr.CreateComponent(entity, components::Name("world_name"));
     }
 
     mgr.Each<components::World, components::Name>(
-        [&](const EntityId &, const components::World *,
+        [&](const Entity &, const components::World *,
           const components::Name *)->bool {return true;});
   }
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
       // Create the matching entities
       for (int i = 0; i < matchingEntityCount; ++i)
       {
-        EntityId worldEntity = mgr.CreateEntity();
+        Entity worldEntity = mgr.CreateEntity();
         mgr.CreateComponent(worldEntity, components::World());
         mgr.CreateComponent(worldEntity, components::Name("world_name"));
       }
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
       // Create the nonmatching entities
       for (int i = 0; i < nonmatchingEntityCount; ++i)
       {
-        EntityId entity = mgr.CreateEntity();
+        Entity entity = mgr.CreateEntity();
         mgr.CreateComponent(entity, components::Name("world_name"));
       }
 
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
       for (int i = 0; i < eachIterations; ++i)
       {
         mgr.EachNoCache<components::World, components::Name>(
-            [&](const EntityId &, const components::World *,
+            [&](const Entity &, const components::World *,
               const components::Name *)->bool
             {
               cachelessMatchedEntityCount++;
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
       for (int i = 0; i < eachIterations; ++i)
       {
         mgr.Each<components::World, components::Name>(
-            [&](const EntityId &, const components::World *,
+            [&](const Entity &, const components::World *,
               const components::Name *)->bool
             {
               cachedMatchedEntityCount++;

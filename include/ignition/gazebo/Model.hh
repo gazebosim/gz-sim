@@ -41,23 +41,23 @@ namespace ignition
     /// All the functions provided here are meant to be used with a model
     /// entity.
     ///
-    /// For example, given a model's entity Id (`id`), to find the value of its
+    /// For example, given a model's entity, to find the value of its
     /// name component, one could use the entity-component manager (`ecm`)
     /// directly as follows:
     ///
-    ///     std::string name = ecm.Component<components::Name>(id)->Data();
+    ///     std::string name = ecm.Component<components::Name>(entity)->Data();
     ///
     /// Using this class however, the same information can be obtained with
     /// a simpler function call:
     ///
-    ///    Model model(id);
+    ///    Model model(entity);
     ///    std::string name = model.Name(ecm);
     ///
     /// \todo(louise) Store the ecm instead of passing it at every API call.
     class IGNITION_GAZEBO_VISIBLE Model {
       /// \brief Constructor
-      /// \param[in] _id Model entity ID
-      public: explicit Model(EntityId _id = kNullEntity);
+      /// \param[in] _entity Model entity
+      public: explicit Model(gazebo::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _model Model to copy.
@@ -80,9 +80,9 @@ namespace ignition
       /// \brief Destructor
       public: virtual ~Model();
 
-      /// \brief Get the ID of the entity which this Model is related to.
-      /// \return Model entity Id.
-      public: EntityId Id() const;
+      /// \brief Get the entity which this Model is related to.
+      /// \return Model entity.
+      public: gazebo::Entity Entity() const;
 
       /// \brief Check whether this model correctly refers to an entity that
       /// has a components::Model.
@@ -99,16 +99,16 @@ namespace ignition
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Joint name.
-      /// \return Joint entity Id.
-      public: EntityId JointByName(const EntityComponentManager &_ecm,
+      /// \return Joint entity.
+      public: gazebo::Entity JointByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get the ID of a link entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Link name.
-      /// \return Link entity Id.
-      public: EntityId LinkByName(const EntityComponentManager &_ecm,
+      /// \return Link entity.
+      public: gazebo::Entity LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Pointer to private data.

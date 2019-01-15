@@ -17,6 +17,8 @@
 
 #include "SimulationRunner.hh"
 
+#include "ignition/common/Profiler.hh"
+
 #include "ignition/gazebo/Events.hh"
 
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -137,6 +139,8 @@ SimulationRunner::~SimulationRunner()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
+  IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
+
   // Store the real time and sim time only if not paused.
   if (this->realTimeWatch.Running())
   {
@@ -190,6 +194,7 @@ void SimulationRunner::UpdateCurrentInfo()
 /////////////////////////////////////////////////
 void SimulationRunner::PublishStats()
 {
+  IGN_PROFILE("SimulationRunner::PublishStats");
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
   {
@@ -243,20 +248,30 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
+  IGN_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
   // an ignition::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
-  for (auto& system : this->systemsPreupdate)
-    system->PreUpdate(this->currentInfo, this->entityCompMgr);
+  {
+    IGN_PROFILE("PreUpdate");
+    for (auto& system : this->systemsPreupdate)
+      system->PreUpdate(this->currentInfo, this->entityCompMgr);
+  }
 
-  for (auto& system : this->systemsUpdate)
-    system->Update(this->currentInfo, this->entityCompMgr);
+  {
+    IGN_PROFILE("Update");
+    for (auto& system : this->systemsUpdate)
+      system->Update(this->currentInfo, this->entityCompMgr);
+  }
 
-  for (auto& system : this->systemsPostupdate)
-    system->PostUpdate(this->currentInfo, this->entityCompMgr);
+  {
+    IGN_PROFILE("PostUpdate");
+    for (auto& system : this->systemsPostupdate)
+      system->PostUpdate(this->currentInfo, this->entityCompMgr);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -273,6 +288,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
+
+  IGN_PROFILE_THREAD_NAME("SimulationRunner");
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
@@ -292,6 +309,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
        this->running && (_iterations == 0 ||
          this->currentInfo.iterations < _iterations + startingIterations);)
   {
+    IGN_PROFILE("SimulationRunner::Run - Iteration");
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
     sleepTime = std::max(0ns, this->prevUpdateRealTime +
@@ -302,6 +320,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Only sleep if needed.
     if (sleepTime > 0ns)
     {
+      IGN_PROFILE("Sleep");
       // Get the current time, sleep for the duration needed to match the
       // updatePeriod, and then record the actual time slept.
       startTime = std::chrono::steady_clock::now();
@@ -354,10 +373,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::World *_world)
+Entity SimulationRunner::CreateEntities(const sdf::World *_world)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::World)");
   // World entity
-  EntityId worldEntity = this->entityCompMgr.CreateEntity();
+  Entity worldEntity = this->entityCompMgr.CreateEntity();
 
   // World components
   this->entityCompMgr.CreateComponent(worldEntity, components::World());
@@ -392,10 +412,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::World *_world)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Model *_model)
+Entity SimulationRunner::CreateEntities(const sdf::Model *_model)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::Model)");
   // Entity
-  EntityId modelEntity = this->entityCompMgr.CreateEntity();
+  Entity modelEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(modelEntity, components::Model());
@@ -443,10 +464,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::Model *_model)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Light *_light)
+Entity SimulationRunner::CreateEntities(const sdf::Light *_light)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::Light)");
   // Entity
-  EntityId lightEntity = this->entityCompMgr.CreateEntity();
+  Entity lightEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(lightEntity, components::Light(*_light));
@@ -459,10 +481,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::Light *_light)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Link *_link)
+Entity SimulationRunner::CreateEntities(const sdf::Link *_link)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::Link)");
   // Entity
-  EntityId linkEntity = this->entityCompMgr.CreateEntity();
+  Entity linkEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(linkEntity, components::Link());
@@ -510,10 +533,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::Link *_link)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Joint *_joint)
+Entity SimulationRunner::CreateEntities(const sdf::Joint *_joint)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::Joint)");
   // Entity
-  EntityId jointEntity = this->entityCompMgr.CreateEntity();
+  Entity jointEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(jointEntity,
@@ -548,10 +572,11 @@ EntityId SimulationRunner::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Visual *_visual)
+Entity SimulationRunner::CreateEntities(const sdf::Visual *_visual)
 {
+  IGN_PROFILE("SimulationRunner::CreateEntities(sdf::Visual)");
   // Entity
-  EntityId visualEntity = this->entityCompMgr.CreateEntity();
+  Entity visualEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(visualEntity, components::Visual());
@@ -577,10 +602,10 @@ EntityId SimulationRunner::CreateEntities(const sdf::Visual *_visual)
 }
 
 //////////////////////////////////////////////////
-EntityId SimulationRunner::CreateEntities(const sdf::Collision *_collision)
+Entity SimulationRunner::CreateEntities(const sdf::Collision *_collision)
 {
   // Entity
-  EntityId collisionEntity = this->entityCompMgr.CreateEntity();
+  Entity collisionEntity = this->entityCompMgr.CreateEntity();
 
   // Components
   this->entityCompMgr.CreateComponent(collisionEntity,
@@ -601,7 +626,7 @@ EntityId SimulationRunner::CreateEntities(const sdf::Collision *_collision)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const sdf::ElementPtr &_sdf,
-    const EntityId _id)
+    const Entity _entity)
 {
   if (!_sdf->HasElement("plugin"))
     return;
@@ -615,7 +640,7 @@ void SimulationRunner::LoadPlugins(const sdf::ElementPtr &_sdf,
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(_id, pluginElem,
+        systemConfig->Configure(_entity, pluginElem,
                                 this->entityCompMgr,
                                 this->eventMgr);
       }
@@ -690,6 +715,7 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessMessages()
 {
+  IGN_PROFILE("SimulationRunner::ProcessMessages");
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
   this->ProcessWorldControl();
 }
@@ -697,6 +723,7 @@ void SimulationRunner::ProcessMessages()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessWorldControl()
 {
+  IGN_PROFILE("SimulationRunner::ProcessWorldControl");
   for (const msgs::WorldControl &msg : this->worldControlMsgs)
   {
     // Play / pause
@@ -755,7 +782,7 @@ void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
 bool SimulationRunner::HasEntity(const std::string &_name) const
 {
   bool result = false;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId,
+  this->entityCompMgr.Each<components::Name>([&](const Entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
@@ -773,12 +800,12 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 bool SimulationRunner::RequestEraseEntity(const std::string &_name)
 {
   bool result = false;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+  this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_id);
+        this->entityCompMgr.RequestEraseEntity(_entity);
         result = true;
         return false;
       }
@@ -789,30 +816,30 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name)
 }
 
 /////////////////////////////////////////////////
-std::optional<EntityId> SimulationRunner::EntityByName(
+std::optional<Entity> SimulationRunner::EntityByName(
     const std::string &_name) const
 {
-  std::optional<EntityId> id;
-  this->entityCompMgr.Each<components::Name>([&](const EntityId _id,
+  std::optional<Entity> entity;
+  this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
         const components::Name *_entityName)->bool
     {
       if (_entityName->Data() == _name)
       {
-        id = _id;
+        entity = _entity;
         return false;
       }
       return true;
     });
 
-  return id;
+  return entity;
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const EntityId _id)
+bool SimulationRunner::RequestEraseEntity(const Entity _entity)
 {
-  if (this->entityCompMgr.HasEntity(_id))
+  if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_id);
+    this->entityCompMgr.RequestEraseEntity(_entity);
     return true;
   }
 
