@@ -20,6 +20,13 @@ ign_configure_project(VERSION_SUFFIX pre1)
 # Set project-specific options
 #============================================================================
 
+option(ENABLE_PROFILER "Enable Ignition Profiler" FALSE)
+
+if(ENABLE_PROFILER)
+  add_definitions("-DIGN_PROFILER_ENABLE=1")
+else()
+  add_definitions("-DIGN_PROFILER_ENABLE=0")
+endif()
 
 #============================================================================
 # Search for project-specific dependencies
@@ -39,7 +46,8 @@ set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
-ign_find_package(ignition-common3 REQUIRED)
+# Always use the profiler component to get the headers, regardless of status.
+ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
