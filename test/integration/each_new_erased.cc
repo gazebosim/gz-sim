@@ -56,19 +56,19 @@ class Relay
 
   public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = _cb;
+    this->mockSystem->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
   public: Relay &OnUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = _cb;
+    this->mockSystem->updateCallback = std::move(_cb);
     return *this;
   }
 
   public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = _cb;
+    this->mockSystem->postUpdateCallback = std::move(_cb);
     return *this;
   }
 

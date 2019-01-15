@@ -144,7 +144,8 @@ void ExamplesBuild::Build(const std::string &_type)
     auto base = ignition::common::basename(*dirIter);
 
     // Source directory for this example
-    auto sourceDir = examplesDir + "/" + base;
+    auto sourceDir = examplesDir;
+    sourceDir += "/" + base;
     ASSERT_TRUE(ignition::common::exists(sourceDir));
     igndbg << "Source: " << sourceDir << std::endl;
 
