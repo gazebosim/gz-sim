@@ -284,8 +284,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       return geom;
     }
     rendering::MeshDescriptor descriptor;
-    // TODO(anyone) resolve filename path?
-    // currently assumes absolute path to mesh file
+
+    // Assume absolute path to mesh file
     descriptor.meshName = _geom.MeshShape()->Uri();
 
     ignition::common::MeshManager* meshManager =
