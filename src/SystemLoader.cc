@@ -35,20 +35,6 @@
 
 using namespace ignition::gazebo;
 
-//////////////////////////////////////////////////
-// \todo(nkoenig) Add 'homePath' to ignition common.
-std::string HomePath()
-{
-  std::string homePath;
-#ifndef _WIN32
-  ignition::common::env("HOME", homePath);
-#else
-  ignition::common::env("HOMEPATH", homePath);
-#endif
-
-  return homePath;
-}
-
 class ignition::gazebo::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
@@ -66,8 +52,9 @@ class ignition::gazebo::SystemLoaderPrivate
     for (const auto &path : systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
-    auto home = HomePath();
-    systemPaths.AddPluginPaths(home + "/.ignition/gazebo/plugins");
+    std::string homePath;
+    ignition::common::env(IGN_HOMEDIR, homePath);
+    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);

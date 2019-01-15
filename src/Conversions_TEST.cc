@@ -51,7 +51,7 @@ TEST(Conversions, Light)
   light.SetSpotFalloff(0.9);
 
   msgs::Light lightMsg;
-  lightMsg = Convert<msgs::Light>(light);
+  lightMsg = convert<msgs::Light>(light);
   EXPECT_EQ("test_convert_light", lightMsg.name());
   EXPECT_EQ(msgs::Light_LightType_DIRECTIONAL, lightMsg.type());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0),
@@ -95,7 +95,7 @@ TEST(Conversions, Gui)
   auto gui = world->Gui();
   ASSERT_NE(nullptr, gui);
 
-  auto guiMsg = Convert<msgs::GUI>(*gui);
+  auto guiMsg = convert<msgs::GUI>(*gui);
   EXPECT_TRUE(guiMsg.fullscreen());
   ASSERT_EQ(2, guiMsg.plugin_size());
 
