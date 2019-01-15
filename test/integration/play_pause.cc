@@ -32,7 +32,7 @@ uint64_t kIterations;
 
 /////////////////////////////////////////////////
 // Send a world control message.
-void WorldControl(bool _paused, uint64_t _steps)
+void worldControl(bool _paused, uint64_t _steps)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [&](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -49,7 +49,7 @@ void WorldControl(bool _paused, uint64_t _steps)
 
 /////////////////////////////////////////////////
 // Get the current paused state from the world stats message
-void TestPaused(bool _paused)
+void testPaused(bool _paused)
 {
   std::condition_variable condition;
   std::mutex mutex;
@@ -72,7 +72,7 @@ void TestPaused(bool _paused)
 
 /////////////////////////////////////////////////
 // Get the current iteration count from the world stats message
-uint64_t Iterations()
+uint64_t iterations()
 {
   std::condition_variable condition;
   std::mutex mutex;
@@ -104,38 +104,38 @@ TEST(PlayPause, PlayPause)
   server.Run(false);
 
   // The server should start paused.
-  TestPaused(true);
-  EXPECT_EQ(0u, Iterations());
+  testPaused(true);
+  EXPECT_EQ(0u, iterations());
 
   // Unpause the server, and check
-  WorldControl(false, 0);
-  TestPaused(false);
-  EXPECT_LT(0u, Iterations());
+  worldControl(false, 0);
+  testPaused(false);
+  EXPECT_LT(0u, iterations());
 
   // Pause the server, and check
-  WorldControl(true, 0);
-  TestPaused(true);
+  worldControl(true, 0);
+  testPaused(true);
 
   // Step forward 1 iteration
-  uint64_t iters = Iterations();
-  WorldControl(true, 1);
-  EXPECT_EQ(iters + 1u, Iterations());
+  uint64_t iters = iterations();
+  worldControl(true, 1);
+  EXPECT_EQ(iters + 1u, iterations());
   // The server should be paused after stepping.
-  TestPaused(true);
+  testPaused(true);
 
   // Step forward 10 iteration
-  iters = Iterations();
-  WorldControl(true, 10);
-  EXPECT_EQ(iters + 10u, Iterations());
+  iters = iterations();
+  worldControl(true, 10);
+  EXPECT_EQ(iters + 10u, iterations());
   // The server should be paused after stepping.
-  TestPaused(true);
+  testPaused(true);
 
   // Unpause the server, and check
-  WorldControl(false, 0);
-  TestPaused(false);
-  EXPECT_GT(Iterations(), iters);
+  worldControl(false, 0);
+  testPaused(false);
+  EXPECT_GT(iterations(), iters);
 
   // Stepping while unpaused should not change the pause state
-  WorldControl(false, 10);
-  TestPaused(false);
+  worldControl(false, 10);
+  testPaused(false);
 }

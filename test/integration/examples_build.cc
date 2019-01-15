@@ -37,7 +37,7 @@ using namespace ignition;
 #include <unistd.h>  // NOLINT(build/include_order)
 
 /////////////////////////////////////////////////
-bool CreateAndSwitchToTempDir(std::string &_newTempPath)
+bool createAndSwitchToTempDir(std::string &_newTempPath)
 {
   std::string tmppath;
   const char *tmp = std::getenv("TMPDIR");
@@ -80,7 +80,7 @@ bool CreateAndSwitchToTempDir(std::string &_newTempPath)
 #include <ignition/common/PrintWindowsSystemWarning.hh>
 
 /////////////////////////////////////////////////
-bool CreateAndSwitchToTempDir(std::string &_newTempPath)
+bool createAndSwitchToTempDir(std::string &_newTempPath)
 {
   char tempPath[MAX_PATH + 1];
   DWORD pathLen = ::GetTempPathA(MAX_PATH, tempPath);
@@ -151,7 +151,7 @@ void ExamplesBuild::Build(const std::string &_type)
 
     // Create a temp build directory
     std::string tmpBuildDir;
-    ASSERT_TRUE(CreateAndSwitchToTempDir(tmpBuildDir));
+    ASSERT_TRUE(createAndSwitchToTempDir(tmpBuildDir));
     EXPECT_TRUE(ignition::common::exists(tmpBuildDir));
     igndbg << "Build directory: " << tmpBuildDir<< std::endl;
 

@@ -31,7 +31,7 @@ static const std::string kIgnCommand(
   kBinPath + "/bin/");
 
 /////////////////////////////////////////////////
-std::string CustomExecStr(std::string _cmd)
+std::string customExecStr(std::string _cmd)
 {
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
@@ -61,7 +61,7 @@ TEST(CmdLine, Server)
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = CustomExecStr(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {
@@ -79,7 +79,7 @@ TEST(CmdLine, GazeboServer)
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = CustomExecStr(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {
@@ -97,7 +97,7 @@ TEST(CmdLine, Gazebo)
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = CustomExecStr(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {

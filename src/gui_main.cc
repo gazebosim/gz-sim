@@ -35,7 +35,7 @@ DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
 
 //////////////////////////////////////////////////
-void Help()
+void help()
 {
   std::cout
   << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
@@ -55,7 +55,7 @@ void Help()
 }
 
 //////////////////////////////////////////////////
-void Version()
+void version()
 {
   std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
 }
@@ -110,7 +110,7 @@ int main(int _argc, char **_argv)
     gflags::SetCommandLineOption("helpshort", "false");
     gflags::SetCommandLineOption("helpfull", "false");
     gflags::SetCommandLineOption("helpmatch", "");
-    Help();
+    help();
     return 0;
   }
 
@@ -118,7 +118,7 @@ int main(int _argc, char **_argv)
   if (showVersion)
   {
     gflags::SetCommandLineOption("version", "false");
-    Version();
+    version();
     return 0;
   }
 
