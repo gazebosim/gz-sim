@@ -14,7 +14,7 @@ pipelines:
           - apt-get -y install
             cmake build-essential curl git mercurial cppcheck valgrind g++-8
             libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev
-            software-properties-common libeigen3-dev clang-tidy-6.0 python3-yaml
+            software-properties-common libeigen3-dev clang-tidy-6.0 python-yaml
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
