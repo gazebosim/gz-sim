@@ -37,7 +37,7 @@ using namespace ignition;
 #include <unistd.h>  // NOLINT(build/include_order)
 
 /////////////////////////////////////////////////
-bool createAndSwitchToTempDir(std::string &_newTempPath)
+bool CreateAndSwitchToTempDir(std::string &_newTempPath)
 {
   std::string tmppath;
   const char *tmp = std::getenv("TMPDIR");
@@ -80,7 +80,7 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #include <ignition/common/PrintWindowsSystemWarning.hh>
 
 /////////////////////////////////////////////////
-bool createAndSwitchToTempDir(std::string &_newTempPath)
+bool CreateAndSwitchToTempDir(std::string &_newTempPath)
 {
   char tempPath[MAX_PATH + 1];
   DWORD pathLen = ::GetTempPathA(MAX_PATH, tempPath);
@@ -150,7 +150,7 @@ void ExamplesBuild::Build(const std::string &_type)
 
     // Create a temp build directory
     std::string tmpBuildDir;
-    ASSERT_TRUE(createAndSwitchToTempDir(tmpBuildDir));
+    ASSERT_TRUE(CreateAndSwitchToTempDir(tmpBuildDir));
     EXPECT_TRUE(ignition::common::exists(tmpBuildDir));
     igndbg << "Build directory: " << tmpBuildDir<< std::endl;
 
@@ -179,8 +179,8 @@ INSTANTIATE_TEST_CASE_P(Plugins, ExamplesBuild, ::testing::Values(
 ));
 
 //////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int _argc, char **_argv)
 {
-  ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleTest(&_argc, _argv);
   return RUN_ALL_TESTS();
 }

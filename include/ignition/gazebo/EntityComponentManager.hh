@@ -550,7 +550,7 @@ namespace ignition
 
       /// why is this required?
       private: template <typename T>
-               struct identity
+               struct identity  // NOLINT
                {
                  typedef T type;
                };
