@@ -34,7 +34,7 @@ pipelines:
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
-            libignition-sensors0-dev
+            libignition-sensors-dev
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
