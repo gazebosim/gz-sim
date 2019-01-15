@@ -87,5 +87,5 @@ pipelines:
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
           - cd ..
-          - run-clang-tidy-6.0.py -j4 -p=./build/ -header-filter=`pwd`/include -quiet
+          - run-clang-tidy-6.0.py -j4 -p=./build/ -header-filter=`pwd`/include/* -quiet
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
