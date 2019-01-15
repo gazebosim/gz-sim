@@ -19,11 +19,7 @@
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-System::System()
-{
-}
+System::System() = default;
 
 //////////////////////////////////////////////////
-System::~System()
-{
-}
+System::~System() = default;

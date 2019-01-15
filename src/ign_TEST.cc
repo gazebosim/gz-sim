@@ -16,8 +16,8 @@
 */
 
 #include <gtest/gtest.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <string>
 
@@ -44,7 +44,7 @@ std::string CustomExecStr(std::string _cmd)
 
   while (!feof(pipe))
   {
-    if (fgets(buffer, 128, pipe) != NULL)
+    if (fgets(buffer, 128, pipe) != nullptr)
       result += buffer;
   }
 
