@@ -14,18 +14,17 @@
  * limitations under the License.
  *
 */
-#include <csignal>
+#include <gflags/gflags.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <gflags/gflags.h>
+
+#include <csignal>
+#include <iostream>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Time.hh>
-
-#include <csignal>
-#include <iostream>
 
 #include "ignition/gazebo/config.hh"
 

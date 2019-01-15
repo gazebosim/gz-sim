@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
+
 #include <gflags/gflags.h>
-#include <csignal>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
+#include <csignal>
+#include <iostream>
 
+#include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-
-#include <iostream>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
@@ -210,8 +210,8 @@ int main(int _argc, char **_argv)
 
     for (int p = 0; p < res.plugin_size(); ++p)
     {
-      auto plugin = res.plugin(p);
-      auto fileName = plugin.filename();
+      const auto &plugin = res.plugin(p);
+      const auto &fileName = plugin.filename();
       std::string pluginStr = "<plugin filename='" + fileName + "'>" +
           plugin.innerxml() + "</plugin>";
 

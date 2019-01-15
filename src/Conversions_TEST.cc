@@ -99,7 +99,7 @@ TEST(Conversions, Gui)
   EXPECT_TRUE(guiMsg.fullscreen());
   ASSERT_EQ(2, guiMsg.plugin_size());
 
-  auto plugin1 = guiMsg.plugin(0);
+  const auto &plugin1 = guiMsg.plugin(0);
   EXPECT_EQ("plugin-file-1", plugin1.filename());
   EXPECT_EQ("plugin-1", plugin1.name());
 
@@ -107,7 +107,7 @@ TEST(Conversions, Gui)
       "<banana>3</banana>"),
       std::string::npos);
 
-  auto plugin2 = guiMsg.plugin(1);
+  const auto &plugin2 = guiMsg.plugin(1);
   EXPECT_EQ("plugin-file-2", plugin2.filename());
   EXPECT_EQ("plugin-2", plugin2.name());
   EXPECT_NE(plugin2.innerxml().find(

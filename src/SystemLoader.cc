@@ -57,7 +57,7 @@ class ignition::gazebo::SystemLoaderPrivate
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
               const std::string &_name,
-              sdf::ElementPtr /*_sdf*/,
+              const sdf::ElementPtr &/*_sdf*/,
               ignition::plugin::PluginPtr &_plugin)
   {
     ignition::common::SystemPaths systemPaths;
@@ -149,7 +149,7 @@ void SystemLoader::AddSystemPluginPath(const std::string &_path)
 std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_filename,
   const std::string &_name,
-  sdf::ElementPtr _sdf)
+  const sdf::ElementPtr &_sdf)
 {
   ignition::plugin::PluginPtr plugin;
 
@@ -173,7 +173,8 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 }
 
 //////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
+  const sdf::ElementPtr &_sdf)
 {
   if (nullptr == _sdf)
   {
