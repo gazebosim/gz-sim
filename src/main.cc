@@ -248,12 +248,12 @@ int main(int _argc, char **_argv)
   });
 
   // Block until one of the processes ends
-  int child_exit_status;
-  pid_t deadChild = wait(&child_exit_status);
+  int childExitStatus;
+  pid_t deadChild = wait(&childExitStatus);
 
   // Check dead process' return value
-  if ((WIFEXITED(child_exit_status) == 0) ||
-      (WEXITSTATUS(child_exit_status) != 0))
+  if ((WIFEXITED(childExitStatus) == 0) ||
+      (WEXITSTATUS(childExitStatus) != 0))
     returnValue = -1;
   else
     returnValue = 0;

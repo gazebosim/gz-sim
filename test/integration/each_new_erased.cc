@@ -54,21 +54,21 @@ class Relay
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = cb;
+    this->mockSystem->preUpdateCallback = _cb;
     return *this;
   }
 
-  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = cb;
+    this->mockSystem->updateCallback = _cb;
     return *this;
   }
 
-  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
+  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = cb;
+    this->mockSystem->postUpdateCallback = _cb;
     return *this;
   }
 
