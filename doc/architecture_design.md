@@ -551,7 +551,7 @@ class MyPlugin
 {
   // Implement Configure callback, provided by ISystemConfigure
   // and called once at startup.
-  void MyPlugin::Configure(const EntityId &_id,
+  void MyPlugin::Configure(const Entity &_entity,
       const std::shared_ptr<const sdf::Element> &_sdf,
       EntityComponentManager &_ecm,
       EventManager &/*_eventMgr*/)
@@ -560,7 +560,7 @@ class MyPlugin
     auto linkName = _sdf->Get<std::string>("link_name");
 
     // Create model object, to access convenient functions
-    auto model = Model(_id);
+    auto model = Model(_entity);
 
     // Get link entity
     auto linkId = model->LinkByName(_ecm, linkName);
