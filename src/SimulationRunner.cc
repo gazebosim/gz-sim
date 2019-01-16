@@ -21,6 +21,7 @@
 
 #include "ignition/gazebo/Events.hh"
 
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -37,6 +38,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -527,6 +529,17 @@ Entity SimulationRunner::CreateEntities(const sdf::Link *_link)
         components::ParentEntity(linkEntity));
   }
 
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _link->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _link->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+
+    this->entityCompMgr.CreateComponent(sensorEntity,
+        components::ParentEntity(linkEntity));
+  }
+
   return linkEntity;
 }
 
@@ -620,6 +633,36 @@ Entity SimulationRunner::CreateEntities(const sdf::Collision *_collision)
   }
 
   return collisionEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SimulationRunner::CreateEntities(const sdf::Sensor *_sensor)
+{
+  // Entity
+  Entity sensorEntity = this->entityCompMgr.CreateEntity();
+
+  // Components
+  this->entityCompMgr.CreateComponent(sensorEntity,
+      components::Sensor());
+  this->entityCompMgr.CreateComponent(sensorEntity,
+      components::Pose(_sensor->Pose()));
+  this->entityCompMgr.CreateComponent(sensorEntity,
+      components::Name(_sensor->Name()));
+
+  if (_sensor->Type() == sdf::SensorType::CAMERA)
+  {
+    auto elem = _sensor->Element();
+
+    this->entityCompMgr.CreateComponent(sensorEntity,
+        components::Camera(elem));
+  }
+  else
+  {
+    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
+            << "] not supported yet." << std::endl;
+  }
+
+  return sensorEntity;
 }
 
 //////////////////////////////////////////////////

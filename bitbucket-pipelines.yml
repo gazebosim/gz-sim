@@ -34,6 +34,7 @@ pipelines:
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
+            libignition-sensors-dev
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
@@ -52,6 +53,22 @@ pipelines:
           #   libprotobuf-dev protobuf-compiler libprotoc-dev
           # - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
           # - cd ign-msgs
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
+          # Ignition cmake (uncomment if a specific branch is needed)
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
+          # - cd ign-cmake
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
+          # Ignition sensors (uncomment if a specific branch is needed)
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - cd ign-sensors
           # - mkdir build
           # - cd build
           # - cmake .. -DBUILD_TESTING=false
