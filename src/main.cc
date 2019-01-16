@@ -132,8 +132,8 @@ int main(int _argc, char **_argv)
   int returnValue = 0;
 
   // Store all arguments for child processes before gflags clears them
-  char **argvServer = new char*[_argc+1];
-  char **argvGui = new char*[_argc+1];
+  auto **argvServer = new char*[_argc+1];
+  auto **argvGui = new char*[_argc+1];
   argvServer[0] = const_cast<char *>("ign-gazebo-server");
   argvGui[0] = const_cast<char *>("ign-gazebo-gui");
   for (int i = 1; i < _argc; ++i)

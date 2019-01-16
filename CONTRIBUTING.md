@@ -210,19 +210,9 @@ get aquainted with this development process.
 
         sudo apt-get install clang-tidy-6.0 libclang-6.0-dev python-yaml
 
-    In order to run clang-tidy, CMake must be used to generate a `compliation_commands.json`, also referred to as a compilation command database. In order to generate this file, add a flag to your `cmake` invokation (or to the `--cmake-args` flag if using `colcon`)
+    clang-tidy can then be executed by running from the source dir:
 
-        # For CMake
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1
-
-        # For colcon
-        colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=1
-
-    Once the database is generated, execute from the `ign-gazebo` source directory:
-
-        run-clang-tidy-6.0.py -p=`pwd`/build/ -header-filter=`pwd`/include\* -j6 -quiet
+        ./tools/clang_tidy.sh
 
     Address issues that are found.
 
