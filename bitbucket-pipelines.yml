@@ -8,6 +8,7 @@ pipelines:
           - apt -y install wget lsb-release gnupg
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
           - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
+          - sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-nightly `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-nightly.list'
           - wget http://packages.osrfoundation.org/gazebo.key -O - | apt-key add -
           - apt-get update
           - apt-get -y install
@@ -27,36 +28,53 @@ pipelines:
           - apt-get -y install
             libignition-cmake2-dev
             libignition-common3-dev
+            libignition-gui-dev
             libignition-math6-eigen3-dev
+            libignition-msgs3-dev
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
+            libignition-sensors-dev
             libignition-tools-dev
             libignition-transport6-dev
             # libignition-fuel-tools3-dev
-            # libignition-gui-dev
-            # libignition-msgs3-dev
-            # libsdformat8-dev
+            libsdformat8-dev
           # SDFormat (uncomment if a specific branch is needed)
-          - apt install -y
-            libxml2-utils
-          - hg clone http://bitbucket.org/osrf/sdformat -b gz11
-          - cd sdformat
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false
-          - make -j4 install
-          - cd ../..
+          # - apt install -y
+          #   libxml2-utils
+          # - hg clone http://bitbucket.org/osrf/sdformat -b gz11
+          # - cd sdformat
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
           # Ignition msgs (uncomment if a specific branch is needed)
-          - apt install -y
-            libprotobuf-dev protobuf-compiler libprotoc-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
-          - cd ign-msgs
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false
-          - make -j4 install
-          - cd ../..
+          # - apt install -y
+          #   libprotobuf-dev protobuf-compiler libprotoc-dev
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-msgs -b gz11
+          # - cd ign-msgs
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
+          # Ignition cmake (uncomment if a specific branch is needed)
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-cmake -b gz11
+          # - cd ign-cmake
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
+          # Ignition sensors (uncomment if a specific branch is needed)
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - cd ign-sensors
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
           # Ignition fuel-tools (uncomment if a specific branch is needed)
           - apt install -y
             libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
@@ -68,24 +86,24 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition gui (uncomment if a specific branch is needed)
-          - apt install -y
-            qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
-            qtdeclarative5-dev
-            qtquickcontrols2-5-dev
-            qml-module-qtquick2
-            qml-module-qtquick-controls
-            qml-module-qtquick-controls2
-            qml-module-qtquick-dialogs
-            qml-module-qtquick-layouts
-            qml-module-qt-labs-folderlistmodel
-            qml-module-qt-labs-settings
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
-          - cd ign-gui
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false
-          - make -j4 install
-          - cd ../..
+          # - apt install -y
+          #   qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+          #   qtdeclarative5-dev
+          #   qtquickcontrols2-5-dev
+          #   qml-module-qtquick2
+          #   qml-module-qtquick-controls
+          #   qml-module-qtquick-controls2
+          #   qml-module-qtquick-dialogs
+          #   qml-module-qtquick-layouts
+          #   qml-module-qt-labs-folderlistmodel
+          #   qml-module-qt-labs-settings
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
+          # - cd ign-gui
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
           # Ignition Gazebo
           - mkdir build
           - cd build

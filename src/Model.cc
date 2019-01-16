@@ -25,16 +25,16 @@
 class ignition::gazebo::ModelPrivate
 {
   /// \brief Id of model entity.
-  public: EntityId id{kNullEntity};
+  public: Entity id{kNullEntity};
 };
 
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
-Model::Model(EntityId _id)
+Model::Model(gazebo::Entity _entity)
   : dataPtr(std::make_unique<ModelPrivate>())
 {
-  this->dataPtr->id = _id;
+  this->dataPtr->id = _entity;
 }
 
 /////////////////////////////////////////////////
@@ -60,13 +60,29 @@ Model &Model::operator=(const Model &_model)
 Model &Model::operator=(Model &&_model) noexcept = default;
 
 //////////////////////////////////////////////////
-EntityId Model::Id() const
+Entity Model::Entity() const
 {
   return this->dataPtr->id;
 }
 
 //////////////////////////////////////////////////
-EntityId Model::JointByName(EntityComponentManager &_ecm,
+bool Model::Valid(const EntityComponentManager &_ecm) const
+{
+  return nullptr != _ecm.Component<components::Model>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::string Model::Name(const EntityComponentManager &_ecm) const
+{
+  auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
+  if (comp)
+    return comp->Data();
+
+  return "";
+}
+
+//////////////////////////////////////////////////
+Entity Model::JointByName(const EntityComponentManager &_ecm,
     const std::string &_name)
 {
   return _ecm.EntityByComponents(
@@ -76,7 +92,7 @@ EntityId Model::JointByName(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-EntityId Model::LinkByName(EntityComponentManager &_ecm,
+Entity Model::LinkByName(const EntityComponentManager &_ecm,
     const std::string &_name)
 {
   return _ecm.EntityByComponents(

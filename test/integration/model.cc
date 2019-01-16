@@ -37,6 +37,52 @@ class ModelIntegrationTest : public ::testing::TestWithParam<int>
 };
 
 //////////////////////////////////////////////////
+TEST(ModelIntegrationTest, Valid)
+{
+  EntityComponentManager ecm;
+
+  // No ID
+  {
+    Model model;
+    EXPECT_FALSE(model.Valid(ecm));
+  }
+
+  // Missing model component
+  {
+    auto id = ecm.CreateEntity();
+    Model model(id);
+    EXPECT_FALSE(model.Valid(ecm));
+  }
+
+  // Valid
+  {
+    auto id = ecm.CreateEntity();
+    ecm.CreateComponent<components::Model>(id, components::Model());
+
+    Model model(id);
+    EXPECT_TRUE(model.Valid(ecm));
+  }
+}
+
+//////////////////////////////////////////////////
+TEST(ModelIntegrationTest, Name)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(id, components::Model());
+
+  Model model(id);
+
+  // No name
+  EXPECT_TRUE(model.Name(ecm).empty());
+
+  // Add name
+  ecm.CreateComponent<components::Name>(id, components::Name("model_name"));
+  EXPECT_EQ("model_name", model.Name(ecm));
+}
+
+//////////////////////////////////////////////////
 TEST(ModelIntegrationTest, LinkByName)
 {
   EntityComponentManager ecm;
@@ -44,7 +90,7 @@ TEST(ModelIntegrationTest, LinkByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Link
   auto eLink = ecm.CreateEntity();
@@ -66,7 +112,7 @@ TEST(ModelIntegrationTest, JointByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Joint
   auto eJoint = ecm.CreateEntity();

@@ -25,18 +25,25 @@ namespace gazebo
 {
 class TestWorldSystem :
   public System,
-  public gazebo::ISystemConfigure
+  public ISystemConfigure,
+  public ISystemUpdate
 {
   public: TestWorldSystem() = default;
 
-  public: void Configure(const EntityId &_id,
+  public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
           auto value = _sdf->Get<double>("world_key");
-          _ecm.CreateComponent<double>(_id, value);
+          _ecm.CreateComponent<double>(_entity, value);
         }
+
+  public: void Update(const gazebo::UpdateInfo &_info,
+                      EntityComponentManager &) override
+          {
+            std::cout << "iteration " << _info.iterations << std::endl;
+          }
 };
 }
 }

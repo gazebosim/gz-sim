@@ -51,6 +51,14 @@ using namespace gazebo;
 
 class SimulationRunnerTest : public ::testing::TestWithParam<int>
 {
+  // Documentation inherited
+  protected: virtual void SetUp()
+  {
+    common::Console::SetVerbosity(4);
+
+    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -99,10 +107,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check worlds
   unsigned int worldCount{0};
-  EntityId worldEntity = kNullEntity;
+  Entity worldEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::World,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::World *_world,
         const components::Name *_name)->bool
     {
@@ -122,14 +130,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check models
   unsigned int modelCount{0};
-  EntityId boxModelEntity = kNullEntity;
-  EntityId cylModelEntity = kNullEntity;
-  EntityId sphModelEntity = kNullEntity;
+  Entity boxModelEntity = kNullEntity;
+  Entity cylModelEntity = kNullEntity;
+  Entity sphModelEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Model,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -174,14 +182,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check links
   unsigned int linkCount{0};
-  EntityId boxLinkEntity = kNullEntity;
-  EntityId cylLinkEntity = kNullEntity;
-  EntityId sphLinkEntity = kNullEntity;
+  Entity boxLinkEntity = kNullEntity;
+  Entity cylLinkEntity = kNullEntity;
+  Entity sphLinkEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Link,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Link *_link,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -229,7 +237,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   // Check inertials
   unsigned int inertialCount{0};
   runner.EntityCompMgr().Each<components::Link, components::Inertial>(
-    [&](const EntityId & _entity,
+    [&](const Entity & _entity,
         const components::Link *_link,
         const components::Inertial *_inertial)->bool
     {
@@ -268,7 +276,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &/*_entity*/,
+    [&](const Entity &/*_entity*/,
         const components::Collision *_collision,
         const components::Geometry *_geometry,
         const components::Pose *_pose,
@@ -337,7 +345,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &/*_entity*/,
+    [&](const Entity &/*_entity*/,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -421,7 +429,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &/*_entity*/,
+    [&](const Entity &/*_entity*/,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -483,10 +491,10 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Check worlds
   unsigned int worldCount{0};
-  EntityId worldEntity = kNullEntity;
+  Entity worldEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::World,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::World *_world,
         const components::Name *_name)->bool
     {
@@ -506,12 +514,12 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Check model
   unsigned int modelCount{0};
-  EntityId sphModelEntity = kNullEntity;
+  Entity sphModelEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Model,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -538,12 +546,12 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Check link
   unsigned int linkCount{0};
-  EntityId sphLinkEntity = kNullEntity;
+  Entity sphLinkEntity = kNullEntity;
   runner.EntityCompMgr().Each<components::Link,
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Link *_link,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -576,7 +584,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &/*_entity*/,
+    [&](const Entity &/*_entity*/,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -618,7 +626,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
                             components::Pose,
                             components::ParentEntity,
                             components::Name>(
-    [&](const EntityId &/*_entity*/,
+    [&](const Entity &/*_entity*/,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -775,7 +783,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   // Check canonical links
   unsigned int canonicalLinkCount{0};
   runner.EntityCompMgr().Each<components::CanonicalLink>(
-    [&](const EntityId &, const components::CanonicalLink *)->bool
+    [&](const Entity &, const components::CanonicalLink *)->bool
     {
       canonicalLinkCount++;
       return true;
@@ -840,7 +848,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
                             components::ChildLinkName,
                             components::Pose,
                             components::Name>(
-    [&](const EntityId &_entity,
+    [&](const Entity &_entity,
         const components::Joint * /*_joint*/,
         const components::JointType *_jointType,
         const components::ParentLinkName *_parentLinkName,
@@ -948,11 +956,6 @@ TEST_P(SimulationRunnerTest, Time)
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, LoadPlugins)
 {
-  common::Console::SetVerbosity(4);
-
-  setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-    (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-
   // Load SDF file
   sdf::Root root;
   root.Load(std::string(PROJECT_SOURCE_PATH) +
@@ -965,9 +968,9 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Get world entity
-  EntityId worldId{kNullEntity};
+  Entity worldId{kNullEntity};
   runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::EntityId &_entity,
+      const ignition::gazebo::Entity &_entity,
       const ignition::gazebo::components::World *_world)->bool
       {
         EXPECT_NE(nullptr, _world);
@@ -977,9 +980,9 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_NE(kNullEntity, worldId);
 
   // Get model entity
-  EntityId modelId{kNullEntity};
+  Entity modelId{kNullEntity};
   runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
-      const ignition::gazebo::EntityId &_entity,
+      const ignition::gazebo::Entity &_entity,
       const ignition::gazebo::components::Model *_model)->bool
       {
         EXPECT_NE(nullptr, _model);
@@ -997,6 +1000,40 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
         gazebo::EntityComponentManager::ComponentType<int>()));
   EXPECT_EQ(*runner.EntityCompMgr().Component<int>(modelId), 987);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, GuiInfo)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  msgs::GUI res;
+
+  EXPECT_TRUE(node.Request("/world/default/gui/info", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  ASSERT_EQ(1, res.plugin_size());
+
+  auto plugin = res.plugin(0);
+  EXPECT_EQ("3D View", plugin.name());
+  EXPECT_EQ("Scene3D", plugin.filename());
+  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

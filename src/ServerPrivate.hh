@@ -17,10 +17,13 @@
 #ifndef IGNITION_GAZEBO_SERVERPRIVATE_HH_
 #define IGNITION_GAZEBO_SERVERPRIVATE_HH_
 
+#include <ignition/msgs/stringmsg_v.pb.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -29,6 +32,8 @@
 
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/WorkerPool.hh>
+
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
@@ -71,9 +76,19 @@ namespace ignition
       /// \brief Stop server.
       public: void Stop();
 
+      /// \brief Sets up all transport.
+      /// \detail Future publishers and subscribers should be created within
+      /// this function.
+      public: void SetupTransport();
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
+
+      /// \brief Callback for worlds service.
+      /// \param[out] _res Response containing the names of all the worlds.
+      /// \return True if successful.
+      private: bool WorldsService(ignition::msgs::StringMsg_V &_res);
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
@@ -96,6 +111,15 @@ namespace ignition
 
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
+
+      /// \brief List of names for all worlds loaded in this server.
+      private: std::vector<std::string> worldNames;
+
+      /// \brief Protects worldNames.
+      private: std::mutex worldsMutex;
+
+      /// \brief Node for transport.
+      private: transport::Node node;
     };
     }
   }
