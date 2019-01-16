@@ -14,26 +14,26 @@
  * limitations under the License.
  *
 */
+#ifndef IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
 
-#include <gtest/gtest.h>
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
-#include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/components/TagWrapper.hh"
 
-using namespace ignition;
-
-/////////////////////////////////////////////////
-TEST(Entity, Constructor)
+namespace ignition
 {
-  gazebo::Entity entity, entity2;
-  EXPECT_EQ(gazebo::kNullEntity, entity.Id());
-  EXPECT_TRUE(entity == entity2);
-
-  gazebo::Entity *entity3 = new gazebo::Entity(std::move(entity));
-  EXPECT_TRUE(entity2 == *entity3);
-  delete entity3;
-  entity3 = nullptr;
-
-  gazebo::Entity entity5;
-  entity5 = std::move(entity2);
-  EXPECT_EQ(gazebo::kNullEntity, entity5.Id());
+namespace gazebo
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace components
+{
+  /// \brief A component that identifies an entity as being a link.
+  using Sensor = TagWrapper<class SensorTag>;
 }
+}
+}
+}
+#endif

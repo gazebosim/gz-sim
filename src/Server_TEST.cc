@@ -297,7 +297,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1us);
 
-  // Run the server to test whether we can add system while system is running
+  // Run the server to test whether we can add systems while system is running
   server.Run(false, 0, false);
   EXPECT_EQ(2u, *server.SystemCount());
 

@@ -124,14 +124,15 @@ Server::Server(const ServerConfig &_config)
 
   this->dataPtr->CreateEntities(root);
 
-  this->dataPtr->LoadGui(root);
-
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
+
+  // Establish publishers and subscribers.
+  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////
@@ -288,7 +289,7 @@ bool Server::HasEntity(const std::string &_name,
 }
 
 //////////////////////////////////////////////////
-std::optional<EntityId> Server::EntityByName(const std::string &_name,
+std::optional<Entity> Server::EntityByName(const std::string &_name,
     const unsigned int _worldIndex) const
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
@@ -308,11 +309,11 @@ bool Server::RequestEraseEntity(const std::string &_name,
 }
 
 //////////////////////////////////////////////////
-bool Server::RequestEraseEntity(const EntityId _id,
+bool Server::RequestEraseEntity(const Entity _entity,
                                 const unsigned int _worldIndex)
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
-    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_id);
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_entity);
 
   return false;
 }
