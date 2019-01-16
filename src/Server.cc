@@ -93,18 +93,12 @@ static const char kDefaultWorld[] =
     "</world>"
   "</sdf>";
 
-std::string findCB(const std::string &_file)
-{
-  std::cout << "Finding[" << _file << "]\n";
-  return ignition::fuel_tools::fetchAsset(_file);
-}
-
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
   // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(findCB);
+  sdf::setFindCallback(ignition::fuel_tools::fetchAsset);
 
   sdf::Root root;
   sdf::Errors errors;
