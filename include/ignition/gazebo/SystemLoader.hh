@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#define IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -77,5 +77,5 @@ namespace ignition
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif
+#endif  // IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
