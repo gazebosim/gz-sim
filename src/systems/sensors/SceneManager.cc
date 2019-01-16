@@ -45,14 +45,12 @@ SceneManager::SceneManager()
 }
 
 /////////////////////////////////////////////////
-SceneManager::~SceneManager()
-{
-}
+SceneManager::~SceneManager() = default;
 
 /////////////////////////////////////////////////
 void SceneManager::SetScene(rendering::ScenePtr _scene)
 {
-  this->dataPtr->scene = _scene;
+  this->dataPtr->scene = std::move(_scene);
 }
 
 /////////////////////////////////////////////////
