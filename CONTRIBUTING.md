@@ -208,7 +208,7 @@ get aquainted with this development process.
 
     Ubuntu users can install via:
 
-        sudo apt-get install clang-tidy-6.0 python-yaml # or clang-tidy-7 with LLVM PPAs
+        sudo apt-get install clang-tidy-6.0 libclang-6.0-dev python-yaml
 
     In order to run clang-tidy, CMake must be used to generate a `compliation_commands.json`, also referred to as a compilation command database. In order to generate this file, add a flag to your `cmake` invokation (or to the `--cmake-args` flag if using `colcon`)
 
@@ -222,7 +222,7 @@ get aquainted with this development process.
 
     Once the database is generated, execute from the `ign-gazebo` source directory:
 
-        run-clang-tidy-6.0.py -p=./build/ -header-filter=`pwd`/include/* -j6 -quiet
+        run-clang-tidy-6.0.py -p=`pwd`/build/ -header-filter=`pwd`/include\* -j6 -quiet
 
     Address issues that are found.
 
