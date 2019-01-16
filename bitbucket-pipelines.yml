@@ -79,7 +79,7 @@ pipelines:
           # Ignition Gazebo
           - mkdir build
           - cd build
-          - cmake .. -DCMAKE_BUILD_TYPE=coverage -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+          - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
           - make test ARGS="-VV"
           - make coverage
