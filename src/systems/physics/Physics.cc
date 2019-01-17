@@ -182,9 +182,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 }
 
 //////////////////////////////////////////////////
-Physics::~Physics()
-{
-}
+Physics::~Physics() = default;
 
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)

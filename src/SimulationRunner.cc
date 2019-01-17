@@ -120,7 +120,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // In the future, support modifying GUI from the server at runtime.
   if (_world->Gui())
   {
-    this->guiMsg = Convert<msgs::GUI>(*_world->Gui());
+    this->guiMsg = convert<msgs::GUI>(*_world->Gui());
   }
 
   std::string infoService{"gui/info"};
@@ -134,9 +134,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner()
-{
-}
+SimulationRunner::~SimulationRunner() = default;
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()

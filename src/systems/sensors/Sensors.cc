@@ -75,9 +75,7 @@ Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 }
 
 //////////////////////////////////////////////////
-Sensors::~Sensors()
-{
-}
+Sensors::~Sensors() = default;
 
 //////////////////////////////////////////////////
 void Sensors::Configure(const Entity &/*_id*/,

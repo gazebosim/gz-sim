@@ -14,18 +14,17 @@
  * limitations under the License.
  *
 */
-#include <signal.h>
+#include <gflags/gflags.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <gflags/gflags.h>
+
+#include <csignal>
+#include <iostream>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Time.hh>
-
-#include <csignal>
-#include <iostream>
 
 #include "ignition/gazebo/config.hh"
 
@@ -43,7 +42,7 @@ DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 
 //////////////////////////////////////////////////
-void Help()
+void help()
 {
   std::cout
   << "ign-gazebo -- Run the Gazebo server and GUI." << std::endl
@@ -77,7 +76,7 @@ void Help()
 }
 
 //////////////////////////////////////////////////
-void Version()
+void version()
 {
   std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
 }
@@ -133,8 +132,8 @@ int main(int _argc, char **_argv)
   int returnValue = 0;
 
   // Store all arguments for child processes before gflags clears them
-  char **argvServer = new char*[_argc+1];
-  char **argvGui = new char*[_argc+1];
+  auto **argvServer = new char*[_argc+1];
+  auto **argvGui = new char*[_argc+1];
   argvServer[0] = const_cast<char *>("ign-gazebo-server");
   argvGui[0] = const_cast<char *>("ign-gazebo-gui");
   for (int i = 1; i < _argc; ++i)
@@ -186,7 +185,7 @@ int main(int _argc, char **_argv)
     gflags::SetCommandLineOption("helpshort", "false");
     gflags::SetCommandLineOption("helpfull", "false");
     gflags::SetCommandLineOption("helpmatch", "");
-    Help();
+    help();
     return returnValue;
   }
 
@@ -194,7 +193,7 @@ int main(int _argc, char **_argv)
   if (showVersion)
   {
     gflags::SetCommandLineOption("version", "false");
-    Version();
+    version();
     return returnValue;
   }
 
@@ -248,12 +247,12 @@ int main(int _argc, char **_argv)
   });
 
   // Block until one of the processes ends
-  int child_exit_status;
-  pid_t deadChild = wait(&child_exit_status);
+  int childExitStatus;
+  pid_t deadChild = wait(&childExitStatus);
 
   // Check dead process' return value
-  if ((WIFEXITED(child_exit_status) == 0) ||
-      (WEXITSTATUS(child_exit_status) != 0))
+  if ((WIFEXITED(childExitStatus) == 0) ||
+      (WEXITSTATUS(childExitStatus) != 0))
     returnValue = -1;
   else
     returnValue = 0;
