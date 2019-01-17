@@ -74,21 +74,21 @@ class Relay
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: Relay & OnPreUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay & OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = cb;
+    this->mockSystem->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay & OnUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay & OnUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = cb;
+    this->mockSystem->updateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
+  public: Relay & OnPostUpdate(gazebo::MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = cb;
+    this->mockSystem->postUpdateCallback = std::move(_cb);
     return *this;
   }
 
@@ -317,9 +317,9 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
 
   const sdf::Model *model = world->ModelByIndex(1);
 
-  auto getCylinderLength = [&model](const std::string &linkName)
+  auto getCylinderLength = [&model](const std::string &_linkName)
   {
-    auto collision = model->LinkByName(linkName)->CollisionByIndex(0);
+    auto collision = model->LinkByName(_linkName)->CollisionByIndex(0);
     auto cylinder = collision->Geom()->CylinderShape();
     return cylinder->Length();
   };

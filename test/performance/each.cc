@@ -27,7 +27,7 @@
 using namespace ignition;
 using namespace gazebo;
 
-void Warmstart()
+void warmstart()
 {
   // Create the entity component manager
   EntityComponentManager mgr;
@@ -52,7 +52,7 @@ TEST(EntityComponentManagerPerfrormance, Each)
   int step = maxEntityCount/10;
 
   // Initial allocation of resources can throw off calculations.
-  Warmstart();
+  warmstart();
 
   for (int matchingEntityCount = 1; matchingEntityCount < maxEntityCount;
        matchingEntityCount += step)

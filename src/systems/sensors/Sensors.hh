@@ -46,21 +46,21 @@ namespace systems
     public: explicit Sensors();
 
     /// \brief Destructor
-    public: virtual ~Sensors();
+    public: ~Sensors() override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) override final;
+                        EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) override final;
+                           EventManager &_eventMgr) final;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override final;
+                const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SensorsPrivate> dataPtr;
