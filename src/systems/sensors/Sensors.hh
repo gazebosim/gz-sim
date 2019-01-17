@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
+#define IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -31,31 +31,39 @@ namespace systems
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declarations.
-  class PhysicsPrivate;
+  class SensorsPrivate;
 
-  /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
-  /// \brief Base class for a System.
-  class IGNITION_GAZEBO_VISIBLE Physics:
+  /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
+  /// \brief TODO(louise) Have one system for all sensors, or one per
+  /// sensor / sensor type?
+  class IGNITION_GAZEBO_VISIBLE Sensors:
     public System,
+    public ISystemConfigure,
     public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit Physics();
+    public: explicit Sensors();
 
     /// \brief Destructor
-    public: ~Physics() override;
+    public: ~Sensors() override;
 
-    /// Documentation inherited
+    // Documentation inherited
     public: void Update(const UpdateInfo &_info,
-                EntityComponentManager &_ecm) final;
+                        EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void Configure(const Entity &_id,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) final;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<PhysicsPrivate> dataPtr;
+    private: std::unique_ptr<SensorsPrivate> dataPtr;
   };
   }
 }

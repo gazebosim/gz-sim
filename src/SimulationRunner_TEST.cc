@@ -52,7 +52,7 @@ using namespace gazebo;
 class SimulationRunnerTest : public ::testing::TestWithParam<int>
 {
   // Documentation inherited
-  protected: virtual void SetUp()
+  protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
 
@@ -831,7 +831,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 
   std::set<std::string> jointsToCheck = {
     "revolute_demo",
-    "gearbox_demo"
+    "gearbox_demo",
     "revolute2_demo",
     "prismatic_demo",
     "ball_demo",

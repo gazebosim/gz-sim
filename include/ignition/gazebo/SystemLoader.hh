@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEM_MANAGER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#define IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -53,7 +53,8 @@ namespace ignition
       /// \brief Load and instantiate system plugin from an SDF element.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      public: std::optional<SystemPluginPtr> LoadPlugin(sdf::ElementPtr _sdf);
+      public: std::optional<SystemPluginPtr> LoadPlugin(
+                  const sdf::ElementPtr &_sdf);
 
       /// \brief Load and instantiate system plugin from name/filename.
       /// \param[in] _filename Shared library filename to load plugin from.
@@ -63,7 +64,7 @@ namespace ignition
       public: std::optional<SystemPluginPtr> LoadPlugin(
                   const std::string &_filename,
                   const std::string &_name,
-                  sdf::ElementPtr _sdf);
+                  const sdf::ElementPtr &_sdf);
 
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
@@ -76,5 +77,5 @@ namespace ignition
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif
+#endif  // IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
