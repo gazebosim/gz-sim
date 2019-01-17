@@ -103,11 +103,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
-  // Create entities and components
-  this->CreateEntities(_world);
-
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
+
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+      std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
+      std::placeholders::_2));
+
+  // Create entities and components
+  this->CreateEntities(_world);
 
   // World control
   transport::NodeOptions opts;
@@ -406,7 +410,7 @@ Entity SimulationRunner::CreateEntities(const sdf::World *_world)
         components::ParentEntity(worldEntity));
   }
 
-  this->LoadPlugins(_world->Element(), worldEntity);
+  this->eventMgr.Emit<events::LoadPlugins>(worldEntity, _world->Element());
 
   return worldEntity;
 }
@@ -458,7 +462,7 @@ Entity SimulationRunner::CreateEntities(const sdf::Model *_model)
   }
 
   // Model plugins
-  this->LoadPlugins(_model->Element(), modelEntity);
+  this->eventMgr.Emit<events::LoadPlugins>(modelEntity, _model->Element());
 
   return modelEntity;
 }
@@ -666,8 +670,8 @@ Entity SimulationRunner::CreateEntities(const sdf::Sensor *_sensor)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadPlugins(const sdf::ElementPtr &_sdf,
-    const Entity _entity)
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
 {
   if (!_sdf->HasElement("plugin"))
     return;

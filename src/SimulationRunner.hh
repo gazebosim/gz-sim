@@ -180,10 +180,10 @@ namespace ignition
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
       /// \brief Load system plugins for a given entity.
-      /// \param[in] _sdf SDF element
       /// \param[in] _entity Entity
-      public: void LoadPlugins(const sdf::ElementPtr &_sdf,
-          const Entity _entity);
+      /// \param[in] _sdf SDF element
+      public: void LoadPlugins(const Entity _entity,
+          const sdf::ElementPtr &_sdf);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -367,6 +367,9 @@ namespace ignition
 
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
+
+      /// \brief Connection to the load plugins event.
+      private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
