@@ -287,7 +287,7 @@ namespace ignition
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
-        const auto iter = this->idMap.find(_id);
+        auto iter = this->idMap.find(_id);
 
         if (iter != this->idMap.end())
         {

@@ -234,7 +234,7 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   if (!this->HasEntity(_entity))
     return false;
 
-  const auto iter = this->dataPtr->entityComponents.find(_entity);
+  auto iter = this->dataPtr->entityComponents.find(_entity);
 
   if (iter == this->dataPtr->entityComponents.end())
     return false;
@@ -304,7 +304,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 bool EntityComponentManager::EntityMatches(Entity _entity,
     const std::set<ComponentTypeId> &_types) const
 {
-  const auto iter = this->dataPtr->entityComponents.find(_entity);
+  auto iter = this->dataPtr->entityComponents.find(_entity);
   if (iter == this->dataPtr->entityComponents.end())
     return false;
 
@@ -335,12 +335,12 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
 ComponentId EntityComponentManager::EntityComponentIdFromType(
     const Entity _entity, const ComponentTypeId _type) const
 {
-  const auto ecIter = this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return -1;
 
-  const auto iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
       [&] (const ComponentKey &_key) {return _key.first == _type;});
 
@@ -354,12 +354,12 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 const void *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
-  const auto ecIter = this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  const auto iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
       [&] (const ComponentKey &_key) {return _key.first == _type;});
 
@@ -373,12 +373,12 @@ const void *EntityComponentManager::ComponentImplementation(
 void *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
-  const auto ecIter = this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  const auto iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key) {return _key.first == _type;});
 
