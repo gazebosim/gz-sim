@@ -14,12 +14,26 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#ifndef IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
 
-using namespace ignition::gazebo;
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
-//////////////////////////////////////////////////
-System::System() = default;
+#include "ignition/gazebo/components/TagWrapper.hh"
 
-//////////////////////////////////////////////////
-System::~System() = default;
+namespace ignition
+{
+namespace gazebo
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace components
+{
+  /// \brief A component that identifies an entity as being a link.
+  using Sensor = TagWrapper<class SensorTag>;
+}
+}
+}
+}
+#endif

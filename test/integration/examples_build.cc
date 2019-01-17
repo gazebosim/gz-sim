@@ -29,9 +29,9 @@
 using namespace ignition;
 
 #ifndef _WIN32
+#include <climits>  // NOLINT(build/include_order)
+#include <cstdlib>  // NOLINT(build/include_order)
 #include <fcntl.h>  // NOLINT(build/include_order)
-#include <limits.h>  // NOLINT(build/include_order)
-#include <stdlib.h>  // NOLINT(build/include_order)
 #include <sys/stat.h>  // NOLINT(build/include_order)
 #include <sys/types.h>  // NOLINT(build/include_order)
 #include <unistd.h>  // NOLINT(build/include_order)
@@ -144,7 +144,8 @@ void ExamplesBuild::Build(const std::string &_type)
     auto base = ignition::common::basename(*dirIter);
 
     // Source directory for this example
-    auto sourceDir = examplesDir + "/" + base;
+    auto sourceDir = examplesDir;
+    sourceDir += "/" + base;
     ASSERT_TRUE(ignition::common::exists(sourceDir));
     igndbg << "Source: " << sourceDir << std::endl;
 
@@ -179,8 +180,8 @@ INSTANTIATE_TEST_CASE_P(Plugins, ExamplesBuild, ::testing::Values(
 ));
 
 //////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int _argc, char **_argv)
 {
-  ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleTest(&_argc, _argv);
   return RUN_ALL_TESTS();
 }
