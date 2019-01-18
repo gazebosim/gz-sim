@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
+#include <ignition/math/graph/Graph.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
@@ -42,6 +43,12 @@ namespace ignition
     /// \cond
     /// \brief A key into the map of views
     using ComponentTypeKey = std::set<ComponentTypeId>;
+
+    /// \brief Type alias for the graph that holds entities.
+    /// Each vertex is an entity, and the direction points from the parent to
+    /// its children.
+    /// All edges are positive booleans.
+    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
 
     /// \brief A view is a cache to entities, and their components, that
     /// match a set of component types. A cache is used because systems will
@@ -341,7 +348,11 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntity(const Entity _entity);
+      /// \param[in] _entity Entity to be erased.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
+      public: void RequestEraseEntity(const Entity _entity,
+          bool _recursive = true);
 
       /// \brief Request to erase all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -349,9 +360,23 @@ namespace ignition
       public: void RequestEraseEntities();
 
       /// \brief Get whether an Entity exists.
-      /// \param[in] _entity Entity id to confirm.
+      /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
+
+      /// \brief Get the entity which parents the given entity.
+      /// \detail If entity has more than one parent, it returns the first one
+      /// found.
+      /// TODO(louise) Either prevent multiple parents or provide full support
+      /// for multiple parents.
+      /// \param[in] _entity Entity.
+      /// \return The parent entity or kNullEntity if there's none.
+      public: Entity ParentEntity(const Entity _entity) const;
+
+      /// \brief Set an entity to parent the given entity.
+      /// \param[in] _entity Entity or kNullEntity to remove current parent.
+      /// \return True if successful. Will fail if entities don't exist.
+      public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
@@ -509,8 +534,7 @@ namespace ignition
       /// \detail Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
-      /// \return Entity Id or kNullEntity if no entity has the exact
-      /// components.
+      /// \return Entity or kNullEntity if no entity has the exact components.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
                    const ComponentTypeTs &..._desiredComponents) const
@@ -526,6 +550,65 @@ namespace ignition
 
           // Iterate over desired components, comparing each of them to the
           // equivalent component in the entity.
+          ForEach([&](const auto &_desiredComponent)
+          {
+            auto entityComponent = this->Component<
+                std::remove_cv_t<std::remove_reference_t<
+                    decltype(_desiredComponent)>>>(entity);
+
+            if (*entityComponent != _desiredComponent)
+            {
+              different = true;
+            }
+          }, _desiredComponents...);
+
+          if (!different)
+          {
+            result = entity;
+            break;
+          }
+        }
+
+        return result;
+      }
+
+      /// \brief Get an entity which matches the value of all the given
+      /// components and is an immediate child of a given parent entity.
+      /// For example, the following will return a child of entity `parent`
+      /// which has an int component equal to 123, and a string component
+      /// equal to "name":
+      ///
+      ///  auto entity = ChildByComponents(parent, 123, std::string("name"));
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _parent Entity which should be an immediate parent of the
+      /// returned entity.
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return Entity or kNullEntity if no child entity has the exact
+      /// components.
+      public: template<typename ...ComponentTypeTs>
+              Entity ChildByComponents(Entity _parent,
+                   const ComponentTypeTs &..._desiredComponents) const
+      {
+        // Get all entities which have components of the desired types
+        const auto &view = this->FindView<ComponentTypeTs...>();
+
+        // Get all entities which are immediate children of the given parent
+        auto children = this->Entities().AdjacentsFrom(_parent);
+
+        // Iterate over entities
+        Entity result{kNullEntity};
+        for (const Entity entity : view.entities)
+        {
+          if (children.find(entity) == children.end())
+          {
+            continue;
+          }
+
+          // Iterate over desired components, comparing each of them to the
+          // equivalent component in the entity.
+          bool different{false};
           ForEach([&](const auto &_desiredComponent)
           {
             auto entityComponent = this->Component<
@@ -572,8 +655,9 @@ namespace ignition
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const
       {
-        for (const Entity &entity : this->Entities())
+        for (const auto &vertex : this->Entities().Vertices())
         {
+          Entity entity = vertex.first;
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
@@ -605,8 +689,9 @@ namespace ignition
                   bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f)
       {
-        for (const Entity &entity : this->Entities())
+        for (const auto &vertex : this->Entities().Vertices())
         {
+          Entity entity = vertex.first;
           auto types = std::set<ComponentTypeId>{
               this->ComponentType<ComponentTypeTs>()...};
 
@@ -790,6 +875,11 @@ namespace ignition
         }
       }
 
+      /// \brief Get a graph with all the entities. Entities are vertices and
+      /// edges point from parent to children.
+      /// \return Entity graph.
+      public: const EntityGraph &Entities() const;
+
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
@@ -871,10 +961,6 @@ namespace ignition
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
 
-      /// \brief Get all the entities.
-      /// \return All the entities.
-      private: std::vector<Entity> &Entities() const;
-
       /// \brief End of the AddComponentToView recursion. This function is
       /// called when Rest is empty.
       /// \param[in, out] _view The FirstComponent will be added to the
@@ -947,8 +1033,9 @@ namespace ignition
           View view;
           // Add all the entities that match the component types to the
           // view.
-          for (const Entity &entity : this->Entities())
+          for (const auto &vertex : this->Entities().Vertices())
           {
+            Entity entity = vertex.first;
             if (this->EntityMatches(entity, types))
             {
               view.AddEntity(entity, this->IsNewEntity(entity));
