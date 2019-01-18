@@ -10,6 +10,7 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
+  Factory.cc
   Model.cc
   Server.cc
   ServerConfig.cc
