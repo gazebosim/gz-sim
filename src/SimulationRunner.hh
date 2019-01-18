@@ -205,7 +205,7 @@ namespace ignition
 
       /// \brief Get the EventManager
       /// \return Reference to the event manager.
-      public: const EventManager &EventMgr() const;
+      public: EventManager &EventMgr();
 
       /// \brief Get the current info object.
       /// \return Current info.
