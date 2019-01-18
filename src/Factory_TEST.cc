@@ -145,6 +145,8 @@ TEST(FactoryTest, CreateEntities)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
+
       if (modelCount == 1)
       {
         EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
@@ -201,7 +203,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
+
         EXPECT_EQ(boxModelEntity, _parent->Data());
+        EXPECT_EQ(boxModelEntity, ecm.ParentEntity(_entity));
+
         boxLinkEntity = _entity;
       }
       else if (linkCount == 2)
@@ -209,7 +214,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
+
         EXPECT_EQ(cylModelEntity, _parent->Data());
+        EXPECT_EQ(cylModelEntity, ecm.ParentEntity(_entity));
+
         cylLinkEntity = _entity;
       }
       else if (linkCount == 3)
@@ -217,7 +225,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
+
         EXPECT_EQ(sphModelEntity, _parent->Data());
+        EXPECT_EQ(sphModelEntity, ecm.ParentEntity(_entity));
+
         sphLinkEntity = _entity;
       }
       return true;
@@ -270,7 +281,7 @@ TEST(FactoryTest, CreateEntities)
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Collision *_collision,
         const components::Geometry *_geometry,
         const components::Pose *_pose,
@@ -293,6 +304,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("box_collision", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
+        EXPECT_EQ(boxLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -307,6 +319,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("cylinder_collision", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
+        EXPECT_EQ(cylLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -321,6 +334,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("sphere_collision", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -339,7 +353,7 @@ TEST(FactoryTest, CreateEntities)
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -364,6 +378,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("box_visual", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
+        EXPECT_EQ(boxLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -383,6 +398,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("cylinder_visual", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
+        EXPECT_EQ(cylLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -402,6 +418,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("sphere_visual", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -423,7 +440,7 @@ TEST(FactoryTest, CreateEntities)
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -442,6 +459,7 @@ TEST(FactoryTest, CreateEntities)
       EXPECT_EQ("sun", _name->Data());
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
@@ -533,6 +551,8 @@ TEST(FactoryTest, CreateLights)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
+
       EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
@@ -568,6 +588,8 @@ TEST(FactoryTest, CreateLights)
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
       EXPECT_EQ(sphModelEntity, _parent->Data());
+      EXPECT_EQ(sphModelEntity, ecm.ParentEntity(_entity));
+
       sphLinkEntity = _entity;
 
       return true;
@@ -584,7 +606,7 @@ TEST(FactoryTest, CreateLights)
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -607,6 +629,7 @@ TEST(FactoryTest, CreateLights)
       EXPECT_EQ("sphere_visual", _name->Data());
 
       EXPECT_EQ(sphLinkEntity, _parent->Data());
+      EXPECT_EQ(sphLinkEntity, ecm.ParentEntity(_entity));
 
       EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -626,7 +649,7 @@ TEST(FactoryTest, CreateLights)
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -645,7 +668,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
+
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, ecm.ParentEntity(_entity));
+
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
@@ -667,7 +693,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
+
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
@@ -691,7 +720,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
+
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
@@ -713,7 +745,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, ecm.ParentEntity(_entity));
+
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
