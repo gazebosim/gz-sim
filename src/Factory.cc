@@ -129,6 +129,7 @@ Entity Factory::CreateEntities(const sdf::World *_world)
 Entity Factory::CreateEntities(const sdf::Model *_model)
 {
   IGN_PROFILE("Factory::CreateEntities(sdf::Model)");
+
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -182,6 +183,7 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
 Entity Factory::CreateEntities(const sdf::Light *_light)
 {
   IGN_PROFILE("Factory::CreateEntities(sdf::Light)");
+
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -199,6 +201,7 @@ Entity Factory::CreateEntities(const sdf::Light *_light)
 Entity Factory::CreateEntities(const sdf::Link *_link)
 {
   IGN_PROFILE("Factory::CreateEntities(sdf::Link)");
+
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -262,6 +265,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
 Entity Factory::CreateEntities(const sdf::Joint *_joint)
 {
   IGN_PROFILE("Factory::CreateEntities(sdf::Joint)");
+
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -301,6 +305,7 @@ Entity Factory::CreateEntities(const sdf::Joint *_joint)
 Entity Factory::CreateEntities(const sdf::Visual *_visual)
 {
   IGN_PROFILE("Factory::CreateEntities(sdf::Visual)");
+
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -330,6 +335,8 @@ Entity Factory::CreateEntities(const sdf::Visual *_visual)
 //////////////////////////////////////////////////
 Entity Factory::CreateEntities(const sdf::Collision *_collision)
 {
+  IGN_PROFILE("Factory::CreateEntities(sdf::Collision)");
+
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -353,6 +360,8 @@ Entity Factory::CreateEntities(const sdf::Collision *_collision)
 //////////////////////////////////////////////////
 Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 {
+  IGN_PROFILE("Factory::CreateEntities(sdf::Sensor)");
+
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
 
