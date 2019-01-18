@@ -507,6 +507,12 @@ const EntityComponentManager &SimulationRunner::EntityCompMgr() const
 }
 
 /////////////////////////////////////////////////
+EventManager &SimulationRunner::EventMgr()
+{
+  return this->eventMgr;
+}
+
+/////////////////////////////////////////////////
 const UpdateInfo &SimulationRunner::CurrentInfo() const
 {
   return this->currentInfo;
