@@ -30,7 +30,7 @@ using namespace ignition;
 class SceneBroadcasterTest : public ::testing::TestWithParam<int>
 {
   // Documentation inherited
-  protected: virtual void SetUp() override
+  protected: void SetUp() override
   {
     common::Console::SetVerbosity(4);
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",

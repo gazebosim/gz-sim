@@ -29,9 +29,7 @@ TestSystem::TestSystem()
 }
 
 /////////////////////////////////////////////////
-TestSystem::~TestSystem()
-{
-}
+TestSystem::~TestSystem() = default;
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)

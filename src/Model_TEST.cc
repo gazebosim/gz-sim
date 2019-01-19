@@ -37,7 +37,9 @@ TEST(ModelTest, CopyConstructor)
   ignition::gazebo::Entity id(3);
   ignition::gazebo::Model model(id);
 
-  ignition::gazebo::Model modelCopy(model);
+  // Marked nolint because we are specifically testing copy
+  // constructor here (clang wants unnecessary copies removed)
+  ignition::gazebo::Model modelCopy(model); // NOLINT
   EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
 

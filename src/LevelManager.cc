@@ -24,9 +24,12 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -46,6 +49,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -121,6 +125,8 @@ void LevelManager::ReadLevelPerformerInfo()
 /////////////////////////////////////////////////
 void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 {
+  IGN_PROFILE("LevelManager::ReadPerformers");
+
   if (_sdf == nullptr)
     return;
 
@@ -160,6 +166,8 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 /////////////////////////////////////////////////
 void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 {
+  IGN_PROFILE("LevelManager::ReadLevels");
+
   igndbg << "Reading levels info\n";
 
   if (_sdf != nullptr)
@@ -206,6 +214,8 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 /////////////////////////////////////////////////
 void LevelManager::ConfigureDefaultLevel()
 {
+  IGN_PROFILE("LevelManager::ConfigureDefaultLevel");
+
   // Create the default level. This level contains all entities not contained by
   // any other level.
   Entity defaultLevel = this->runner->entityCompMgr.CreateEntity();
@@ -260,6 +270,8 @@ void LevelManager::ConfigureDefaultLevel()
 /////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
+  IGN_PROFILE("LevelManager::CreatePerformers");
+
   if (this->worldEntity == kNullEntity)
   {
     ignerr << "Could not find the world entity while creating performers\n";
@@ -289,6 +301,8 @@ void LevelManager::CreatePerformers()
 /////////////////////////////////////////////////
 void LevelManager::UpdateLevelsState()
 {
+  IGN_PROFILE("LevelManager::UpdateLevelsState");
+
   this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
                                    components::ParentEntity>(
       [&](const Entity &, const components::Performer *,
@@ -391,6 +405,8 @@ void LevelManager::UpdateLevelsState()
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveLevels()
 {
+  IGN_PROFILE("LevelManager::LoadActiveLevels");
+
   if (this->worldEntity == kNullEntity)
   {
     ignerr << "Could not find the world entity while loading levels\n";
@@ -435,6 +451,8 @@ void LevelManager::LoadActiveLevels()
 /////////////////////////////////////////////////
 void LevelManager::UnloadInactiveLevels()
 {
+  IGN_PROFILE("LevelManager::UnloadInactiveLevels");
+
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
           const components::Name *_name) -> bool
@@ -456,6 +474,8 @@ void LevelManager::UnloadInactiveLevels()
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Model *_model)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Model)");
+
   // Entity
   Entity modelEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -514,6 +534,8 @@ Entity LevelManager::CreateEntities(const sdf::Model *_model)
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Light *_light)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Light)");
+
   // Entity
   Entity lightEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -533,6 +555,8 @@ Entity LevelManager::CreateEntities(const sdf::Light *_light)
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Link *_link)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Link)");
+
   // Entity
   Entity linkEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -583,12 +607,26 @@ Entity LevelManager::CreateEntities(const sdf::Link *_link)
         components::ParentEntity(linkEntity));
   }
 
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _link->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _link->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+    this->entityGraph.AddEdge({linkEntity, sensorEntity}, true);
+
+    this->runner->entityCompMgr.CreateComponent(sensorEntity,
+        components::ParentEntity(linkEntity));
+  }
+
   return linkEntity;
 }
 
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Joint *_joint)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Joint)");
+
   // Entity
   Entity jointEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -629,6 +667,8 @@ Entity LevelManager::CreateEntities(const sdf::Joint *_joint)
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Visual *_visual)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Visual)");
+
   // Entity
   Entity visualEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -661,6 +701,8 @@ Entity LevelManager::CreateEntities(const sdf::Visual *_visual)
 //////////////////////////////////////////////////
 Entity LevelManager::CreateEntities(const sdf::Collision *_collision)
 {
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Collision)");
+
   // Entity
   Entity collisionEntity = this->runner->entityCompMgr.CreateEntity();
 
@@ -682,6 +724,41 @@ Entity LevelManager::CreateEntities(const sdf::Collision *_collision)
   }
 
   return collisionEntity;
+}
+
+//////////////////////////////////////////////////
+Entity LevelManager::CreateEntities(const sdf::Sensor *_sensor)
+{
+  IGN_PROFILE("LevelManager::CreateEntities(sdf::Sensor)");
+
+  // Entity
+  Entity sensorEntity = this->runner->entityCompMgr.CreateEntity();
+
+  this->entityGraph.AddVertex(_sensor->Name(), sensorEntity,
+                              sensorEntity);
+
+  // Components
+  this->runner->entityCompMgr.CreateComponent(sensorEntity,
+      components::Sensor());
+  this->runner->entityCompMgr.CreateComponent(sensorEntity,
+      components::Pose(_sensor->Pose()));
+  this->runner->entityCompMgr.CreateComponent(sensorEntity,
+      components::Name(_sensor->Name()));
+
+  if (_sensor->Type() == sdf::SensorType::CAMERA)
+  {
+    auto elem = _sensor->Element();
+
+    this->runner->entityCompMgr.CreateComponent(sensorEntity,
+        components::Camera(elem));
+  }
+  else
+  {
+    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
+            << "] not supported yet." << std::endl;
+  }
+
+  return sensorEntity;
 }
 
 //////////////////////////////////////////////////
