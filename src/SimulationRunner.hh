@@ -40,6 +40,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
@@ -127,6 +128,12 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
+      /// \brief Load system plugins for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _sdf SDF element
+      public: void LoadPlugins(const Entity _entity,
+          const sdf::ElementPtr &_sdf);
+
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
       /// \return True if the server is running.
@@ -205,7 +212,7 @@ namespace ignition
 
       /// \brief Get the EventManager
       /// \return Reference to the event manager.
-      public: const EventManager &EventMgr() const;
+      public: EventManager &EventMgr();
 
       /// \brief Get the current info object.
       /// \return Current info.
@@ -312,6 +319,9 @@ namespace ignition
 
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
+
+      /// \brief Connection to the load plugins event.
+      private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
       private: const sdf::World *sdfWorld;

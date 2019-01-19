@@ -106,15 +106,19 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
+  this->pauseConn = this->eventMgr.Connect<events::Pause>(
+      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
+
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+      std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
+      std::placeholders::_2));
+
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
 
   // Read level info and load the active levels
   this->levelMgr->Configure();
   this->UpdateLevels();
-
-  this->pauseConn = this->eventMgr.Connect<events::Pause>(
-      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
   // World control
   transport::NodeOptions opts;
@@ -389,6 +393,32 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   return true;
 }
 
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
+{
+  if (!_sdf->HasElement("plugin"))
+    return;
+
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto system = this->systemLoader->LoadPlugin(pluginElem);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(_entity, pluginElem,
+                                this->entityCompMgr,
+                                this->eventMgr);
+      }
+      this->AddSystem(system.value());
+    }
+    pluginElem = pluginElem->GetNextElement("plugin");
+  }
+}
+
 /////////////////////////////////////////////////
 bool SimulationRunner::Running() const
 {
@@ -490,6 +520,12 @@ bool SimulationRunner::Paused() const
 const EntityComponentManager &SimulationRunner::EntityCompMgr() const
 {
   return this->entityCompMgr;
+}
+
+/////////////////////////////////////////////////
+EventManager &SimulationRunner::EventMgr()
+{
+  return this->eventMgr;
 }
 
 /////////////////////////////////////////////////
