@@ -20,6 +20,8 @@
 #include <set>
 #include <vector>
 
+#include "ignition/common/Profiler.hh"
+
 using namespace ignition;
 using namespace gazebo;
 
@@ -65,9 +67,7 @@ EntityComponentManager::EntityComponentManager()
 }
 
 //////////////////////////////////////////////////
-EntityComponentManager::~EntityComponentManager()
-{
-}
+EntityComponentManager::~EntityComponentManager() = default;
 
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
@@ -139,10 +139,12 @@ void EntityComponentManager::RequestEraseEntities()
 /////////////////////////////////////////////////
 void EntityComponentManager::ProcessEraseEntityRequests()
 {
+  IGN_PROFILE("EntityComponentManager::ProcessEraseEntityRequests");
   std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
   // Short-cut if erasing all entities
   if (this->dataPtr->eraseAllEntities)
   {
+    IGN_PROFILE("EraseAll");
     this->dataPtr->eraseAllEntities = false;
     this->dataPtr->entities.clear();
     this->dataPtr->entityComponents.clear();
@@ -160,6 +162,7 @@ void EntityComponentManager::ProcessEraseEntityRequests()
   }
   else
   {
+    IGN_PROFILE("Erase");
     // Otherwise iterate through the list of entities to erase.
     for (const Entity entity : this->dataPtr->toEraseEntities)
     {
@@ -231,8 +234,7 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   if (!this->HasEntity(_entity))
     return false;
 
-  std::map<Entity, std::vector<ComponentKey>>::const_iterator iter =
-    this->dataPtr->entityComponents.find(_entity);
+  auto iter = this->dataPtr->entityComponents.find(_entity);
 
   if (iter == this->dataPtr->entityComponents.end())
     return false;
@@ -302,8 +304,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 bool EntityComponentManager::EntityMatches(Entity _entity,
     const std::set<ComponentTypeId> &_types) const
 {
-  std::map<Entity, std::vector<ComponentKey>>::const_iterator iter =
-    this->dataPtr->entityComponents.find(_entity);
+  auto iter = this->dataPtr->entityComponents.find(_entity);
   if (iter == this->dataPtr->entityComponents.end())
     return false;
 
@@ -334,15 +335,14 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
 ComponentId EntityComponentManager::EntityComponentIdFromType(
     const Entity _entity, const ComponentTypeId _type) const
 {
-  std::map<Entity, std::vector<ComponentKey>>::const_iterator ecIter =
-    this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return -1;
 
-  std::vector<ComponentKey>::const_iterator iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key) {return _key.first == _type;});
+      [&] (const ComponentKey &_key) {return _key.first == _type;});
 
   if (iter != ecIter->second.end())
     return iter->second;
@@ -354,15 +354,14 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 const void *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
-  std::map<Entity, std::vector<ComponentKey>>::const_iterator ecIter =
-    this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  std::vector<ComponentKey>::const_iterator iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key) {return _key.first == _type;});
+      [&] (const ComponentKey &_key) {return _key.first == _type;});
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
@@ -374,13 +373,12 @@ const void *EntityComponentManager::ComponentImplementation(
 void *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
-  std::map<Entity, std::vector<ComponentKey>>::const_iterator ecIter =
-    this->dataPtr->entityComponents.find(_entity);
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  std::vector<ComponentKey>::const_iterator iter =
+  auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key) {return _key.first == _type;});
 
@@ -433,9 +431,7 @@ void EntityComponentManager::RegisterComponentType(
 /////////////////////////////////////////////////
 void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 {
-  std::map<ComponentTypeId,
-    std::unique_ptr<ComponentStorageBase>>::iterator iter =
-      this->dataPtr->components.find(_componentTypeId);
+  auto iter = this->dataPtr->components.find(_componentTypeId);
   if (iter != this->dataPtr->components.end())
   {
     return iter->second->First();
@@ -470,6 +466,7 @@ std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
 //////////////////////////////////////////////////
 void EntityComponentManager::UpdateViews(const Entity _entity)
 {
+  IGN_PROFILE("EntityComponentManager::UpdateViews");
   for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
   {
     // Add/update the entity if it matches the view.
@@ -498,6 +495,7 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
 //////////////////////////////////////////////////
 void EntityComponentManager::RebuildViews()
 {
+  IGN_PROFILE("EntityComponentManager::RebuildViews");
   for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
   {
     view.second.entities.clear();

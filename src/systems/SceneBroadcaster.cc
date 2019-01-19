@@ -16,6 +16,8 @@
 */
 
 #include <ignition/msgs/scene.pb.h>
+
+#include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
 #include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/Node.hh>
@@ -178,6 +180,7 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
     const EntityComponentManager &_manager)
 {
+  IGN_PROFILE("SceneBroadcaster::PostUpdate");
   // Update scene graph with added entities before populating pose message
   this->dataPtr->SceneGraphAddEntities(_manager);
 
@@ -411,7 +414,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         if (geometryComp)
         {
           visualMsg->mutable_geometry()->CopyFrom(
-              Convert<msgs::Geometry>(geometryComp->Data()));
+              convert<msgs::Geometry>(geometryComp->Data()));
         }
 
         // Material is optional
@@ -419,7 +422,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         if (materialComp)
         {
           visualMsg->mutable_material()->CopyFrom(
-              Convert<msgs::Material>(materialComp->Data()));
+              convert<msgs::Material>(materialComp->Data()));
         }
 
         // Add to graph
@@ -439,7 +442,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::Pose *_poseComp) -> bool
       {
         auto lightMsg = std::make_shared<msgs::Light>();
-        lightMsg->CopyFrom(Convert<msgs::Light>(_lightComp->Data()));
+        lightMsg->CopyFrom(convert<msgs::Light>(_lightComp->Data()));
         lightMsg->set_id(_entity);
         lightMsg->set_parent_id(_parentComp->Data());
         lightMsg->set_name(_nameComp->Data());

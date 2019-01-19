@@ -37,7 +37,7 @@ DEFINE_bool(r, false, "Run simulation on start. "
 DEFINE_bool(levels, false, "Use levels");
 
 //////////////////////////////////////////////////
-void Help()
+void help()
 {
   std::cout
   << "ign-gazebo-server -- Run the Gazebo server (headless mode)." << std::endl
@@ -69,7 +69,7 @@ void Help()
 }
 
 //////////////////////////////////////////////////
-void Version()
+void version()
 {
   std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
 }
@@ -124,7 +124,7 @@ int main(int _argc, char **_argv)
     gflags::SetCommandLineOption("helpshort", "false");
     gflags::SetCommandLineOption("helpfull", "false");
     gflags::SetCommandLineOption("helpmatch", "");
-    Help();
+    help();
     return 0;
   }
 
@@ -132,7 +132,7 @@ int main(int _argc, char **_argv)
   if (showVersion)
   {
     gflags::SetCommandLineOption("version", "false");
-    Version();
+    version();
     return 0;
   }
 
