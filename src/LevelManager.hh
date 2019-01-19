@@ -34,6 +34,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 
@@ -92,64 +93,6 @@ namespace ignition
       private: Entity LoadLight(const sdf::Light &_light,
                                 const Entity _worldEntity);
 
-      /// \brief Create all entities that exist in the sdf::World object and
-      /// load their plugins.
-      /// \param[in] _world SDF World object.
-      /// \return Created world entity.
-      public: Entity CreateEntities(const sdf::World *_world);
-
-      /// \brief Create all entities that exist in the sdf::Model object and
-      /// load their plugins.
-      /// \param[in] _model SDF model object.
-      /// \return Created model entity.
-      public: Entity CreateEntities(const sdf::Model *_model);
-
-      /// \brief Create all entities that exist in the sdf::Light object and
-      /// load their plugins.
-      /// \param[in] _light SDF light object.
-      /// \return Created light entity.
-      public: Entity CreateEntities(const sdf::Light *_light);
-
-      /// \brief Create all entities that exist in the sdf::Link object and
-      /// load their plugins.
-      /// \param[in] _link SDF link object.
-      /// \return Created link entity.
-      public: Entity CreateEntities(const sdf::Link *_link);
-
-      /// \brief Create all entities that exist in the sdf::Joint object and
-      /// load their plugins.
-      /// \param[in] _joint SDF joint object.
-      /// \return Created joint entity.
-      public: Entity CreateEntities(const sdf::Joint *_joint);
-
-      /// \brief Create all entities that exist in the sdf::Visual object and
-      /// load their plugins.
-      /// \param[in] _visual SDF visual object.
-      /// \return Created visual entity.
-      public: Entity CreateEntities(const sdf::Visual *_visual);
-
-      /// \brief Create all entities that exist in the sdf::Collision object and
-      /// load their plugins.
-      /// \param[in] _collision SDF collision object.
-      /// \return Created collision entity.
-      public: Entity CreateEntities(const sdf::Collision *_collision);
-
-      /// \brief Create all entities that exist in the sdf::Sensor object and
-      /// load their plugins.
-      /// \param[in] _sensor SDF sensor object.
-      /// \return Created sensor entity.
-      public: Entity CreateEntities(const sdf::Sensor *_sensor);
-
-      /// \brief Load system plugins for a given entity.
-      /// \param[in] _sdf SDF element
-      /// \param[in] _entity Entity on which the plugin is attached
-      public: void LoadPlugins(const sdf::ElementPtr &_sdf,
-                               const Entity _entity);
-
-      // \brief Erase the entity and its children recursively
-      /// \param[in] _entity Entity to erase
-      public: void EraseEntityRecursively(const Entity _entity);
-
       private: void ReadPerformers(const sdf::ElementPtr &_sdf);
       private: void ReadLevels(const sdf::ElementPtr &_sdf);
       private: void ConfigureDefaultLevel();
@@ -179,16 +122,14 @@ namespace ignition
       /// These belong to the default level
       private: std::set<std::string> entityNamesInDefault;
 
-      /// \brief Graph of entities currenty loaded in the level. This
-      /// is useful for erasing entities when a level is unloaded. This
-      /// graph won't contain performers
-      private: math::graph::DirectedGraph<Entity, bool> entityGraph;
-
       /// \brief Entity of the world
       private: Entity worldEntity = kNullEntity;
 
       /// \brief Entity of the world
       private: bool useLevels{false};
+
+      /// \brief Entity factory API.
+      private: std::unique_ptr<Factory> factory{nullptr};
     };
     }
   }
