@@ -69,7 +69,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors0 REQUIRED COMPONENTS camera)
+ign_find_package(ignition-sensors0 REQUIRED COMPONENTS camera gpu_ray)
 set(IGN_SENSORS_VER ${ignition-sensors0_VERSION_MAJOR})
 
 #--------------------------------------

@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
@@ -657,6 +658,13 @@ Entity SimulationRunner::CreateEntities(const sdf::Sensor *_sensor)
 
     this->entityCompMgr.CreateComponent(sensorEntity,
         components::Camera(elem));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPU_RAY)
+  {
+    auto elem = _sensor->Element();
+
+    this->entityCompMgr.CreateComponent(sensorEntity,
+        components::GpuLidar(elem));
   }
   else
   {
