@@ -16,22 +16,22 @@
 */
 
 #include <gtest/gtest.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <string>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
-static const std::string g_bin(PROJECT_BINARY_PATH);
+static const std::string kBinPath(PROJECT_BINARY_PATH);
 
-static const std::string g_ignCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + g_bin + "/lib " +
-  "LD_LIBRARY_PATH=" + g_bin + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} " +
-  g_bin + "/bin/");
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " +
+  "LD_LIBRARY_PATH=" + kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} " +
+  kBinPath + "/bin/");
 
 /////////////////////////////////////////////////
-std::string custom_exec_str(std::string _cmd)
+std::string customExecStr(std::string _cmd)
 {
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
@@ -44,7 +44,7 @@ std::string custom_exec_str(std::string _cmd)
 
   while (!feof(pipe))
   {
-    if (fgets(buffer, 128, pipe) != NULL)
+    if (fgets(buffer, 128, pipe) != nullptr)
       result += buffer;
   }
 
@@ -55,13 +55,13 @@ std::string custom_exec_str(std::string _cmd)
 /////////////////////////////////////////////////
 TEST(CmdLine, Server)
 {
-  std::string cmd = g_ignCommand +
+  std::string cmd = kIgnCommand +
     "ign-gazebo-server -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = custom_exec_str(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {
@@ -73,13 +73,13 @@ TEST(CmdLine, Server)
 /////////////////////////////////////////////////
 TEST(CmdLine, GazeboServer)
 {
-  std::string cmd = g_ignCommand +
+  std::string cmd = kIgnCommand +
     "ign-gazebo -s -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = custom_exec_str(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {
@@ -91,13 +91,13 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, Gazebo)
 {
-  std::string cmd = g_ignCommand +
+  std::string cmd = kIgnCommand +
     "ign-gazebo -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
-  std::string output = custom_exec_str(cmd);
+  std::string output = customExecStr(cmd);
 
   for (auto i : {1, 2, 3, 4, 5})
   {

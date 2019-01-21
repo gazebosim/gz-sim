@@ -47,7 +47,7 @@ using namespace gazebo;
 
 //////////////////////////////////////////////////
 template<>
-msgs::Geometry ignition::gazebo::Convert(const sdf::Geometry &_in)
+msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
   if (_in.Type() == sdf::GeometryType::BOX && _in.BoxShape())
@@ -96,7 +96,7 @@ msgs::Geometry ignition::gazebo::Convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
-msgs::Material ignition::gazebo::Convert(const sdf::Material &_in)
+msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
@@ -107,7 +107,7 @@ msgs::Material ignition::gazebo::Convert(const sdf::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
-msgs::Light ignition::gazebo::Convert(const sdf::Light &_in)
+msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 {
   msgs::Light out;
   out.set_name(_in.Name());
@@ -134,7 +134,7 @@ msgs::Light ignition::gazebo::Convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
-msgs::GUI ignition::gazebo::Convert(const sdf::Gui &_in)
+msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
 

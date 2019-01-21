@@ -44,7 +44,7 @@ namespace systems
     public: Null();
 
     /// \brief Destructor
-    public: virtual ~Null();
+    public: ~Null() override;
 
     /// Documentation inherited
     public: void Configure(const Entity &_entity,

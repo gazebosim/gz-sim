@@ -70,8 +70,8 @@ namespace ignition
     class SystemInternal
     {
       /// \brief Constructor
-      public: explicit SystemInternal(const SystemPluginPtr &_systemPlugin)
-              : systemPlugin(_systemPlugin),
+      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
+              : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
