@@ -26,9 +26,11 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -263,6 +265,36 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
           data->GetAttribute("name")->Set(scopedName);
           auto sensor =
               this->sensorManager.CreateSensor<sensors::CameraSensor>(data);
+          return this->sceneManager.AddSensor(
+              _entity, sensor->Name(), _parent->Data());
+        }
+        else
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+
+        return true;
+      });
+
+  // Create gpu ray
+  _ecm.Each<components::GpuLidar, components::Pose, components::ParentEntity>(
+    [&](const Entity &_entity,
+        const components::GpuLidar *_gpuLidar,
+        const components::Pose *_pose,
+        const components::ParentEntity *_parent)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (!entity)
+        {
+          auto parent = sceneManager.EntityById(_parent->Data());
+          if (!parent)
+            return false;
+          auto data = _gpuLidar->Data()->Clone();
+          std::string scopedName = parent->Name() + "::"
+              + data->Get<std::string>("name");
+          data->GetAttribute("name")->Set(scopedName);
+          auto sensor =
+              this->sensorManager.CreateSensor<sensors::GpuLidarSensor>(data);
           return this->sceneManager.AddSensor(
               _entity, sensor->Name(), _parent->Data());
         }

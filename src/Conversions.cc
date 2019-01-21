@@ -166,6 +166,10 @@ msgs::GUI ignition::gazebo::Convert(const sdf::Gui &_in)
   {
     ignwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
+  else if (elem->HasElement("gpu_ray"))
+  {
+    ignwarn << "<gui><gpu_ray> can't be converted yet" << std::endl;
+  }
 
   return out;
 }

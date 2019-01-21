@@ -13,6 +13,7 @@ target_link_libraries(${sensors_system_target}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
     ignition-sensors${IGN_SENSORS_VER}::camera
+    ignition-sensors${IGN_SENSORS_VER}::gpu_ray
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register
