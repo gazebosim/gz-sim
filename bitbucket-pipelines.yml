@@ -14,7 +14,7 @@ pipelines:
           - apt-get -y install
             cmake build-essential curl git mercurial cppcheck valgrind g++-8
             libgflags-dev doxygen ruby-ronn libtinyxml2-dev libtinyxml-dev
-            software-properties-common libeigen3-dev
+            software-properties-common libeigen3-dev clang-tidy-6.0 python-yaml libclang-6.0-dev
           - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
           - gcc -v
           - g++ -v
@@ -103,4 +103,6 @@ pipelines:
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout
           - make codecheck
+          - cd ..
+          - ./tools/clang_tidy.sh
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
