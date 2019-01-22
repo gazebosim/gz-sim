@@ -46,16 +46,16 @@ namespace systems
     public: explicit Altimeter();
 
     /// \brief Destructor
-    public: virtual ~Altimeter();
+    public: ~Altimeter() override;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
-                           EntityComponentManager &_ecm) override final;
+                           EntityComponentManager &_ecm) final;
 
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override final;
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<AltimeterPrivate> dataPtr;

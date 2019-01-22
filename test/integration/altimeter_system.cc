@@ -65,21 +65,21 @@ class Relay
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: Relay &OnPreUpdate(MockSystem::CallbackType cb)
+  public: Relay &OnPreUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = cb;
+    this->mockSystem->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay &OnUpdate(MockSystem::CallbackType cb)
+  public: Relay &OnUpdate(MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = cb;
+    this->mockSystem->updateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst cb)
+  public: Relay &OnPostUpdate(MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = cb;
+    this->mockSystem->postUpdateCallback = std::move(_cb);
     return *this;
   }
 
@@ -91,8 +91,9 @@ class Relay
 
 
 std::vector<msgs::Altimeter> altMsgs;
+
 /////////////////////////////////////////////////
-void AltimeterCB(const msgs::Altimeter &_msg)
+void altimeterCb(const msgs::Altimeter &_msg)
 {
   altMsgs.push_back(_msg);
 }
@@ -111,7 +112,7 @@ TEST_F(AltimeterTest, ModelFalling)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string modelName = "altimeter";
+  const std::string sensorName = "altimeter_sensor";
 
   // Create a system that records altimeter data
   Relay testSystem;
@@ -129,11 +130,11 @@ TEST_F(AltimeterTest, ModelFalling)
                 const components::WorldPose *_worldPose,
                 const components::WorldLinearVelocity *_worldLinearVel) -> bool
             {
-              if (_name->Data() == modelName)
-              {
-                poses.push_back(_worldPose->Data());
-                velocities.push_back(_worldLinearVel->Data());
-              }
+              EXPECT_EQ(_name->Data(), sensorName);
+
+              poses.push_back(_worldPose->Data());
+              velocities.push_back(_worldLinearVel->Data());
+
               return true;
             });
       });
@@ -142,7 +143,9 @@ TEST_F(AltimeterTest, ModelFalling)
 
   // subscribe to altimeter topic
   transport::Node node;
-  node.Subscribe("/altimeter", &AltimeterCB);
+  node.Subscribe(
+      "/model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter",
+      &altimeterCb);
 
   // Run server
   size_t iters100 = 100u;
