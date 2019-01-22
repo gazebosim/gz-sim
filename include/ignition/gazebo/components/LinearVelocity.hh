@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_POSE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_POSE_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITY_HH_
+#define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITY_HH_
 
-#include <ignition/math/Pose3.hh>
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -32,13 +32,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
-  /// information.
-  using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
+  /// \brief A component type that contains linear velocity of an entity
+  /// represented by ignition::math::Vector3d.
+  using LinearVelocity = SimpleWrapper<math::Vector3d, class LinearVelocityTag>;
 
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
-  /// information in world frame.
-  using WorldPose = SimpleWrapper<ignition::math::Pose3d, class WorldPoseTag>;
+  /// \brief A component type that contains linear velocity of an entity in the
+  /// world frame represented by ignition::math::Vector3d.
+  using WorldLinearVelocity =
+      SimpleWrapper<math::Vector3d, class WorldLinearVelocityTag>;
 }
 }
 }
