@@ -22,6 +22,7 @@
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 #include <ignition/plugin/Loader.hh>
 #include <ignition/plugin/PluginPtr.hh>
@@ -33,6 +34,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/Link.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -64,6 +66,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -438,6 +441,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto parentPose =
               _ecm.Component<components::Pose>(_parent->Data());
 
+          auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+
           // if the parentPose is a nullptr, something is wrong with ECS
           // creation
           if (!parentPose)
@@ -449,8 +454,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (canonicalLink)
           {
             // This is the canonical link, update the model
-            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
-            // the Pose component, _pose, of this link is the initial
+            // The Pose component, _pose, of this link is the initial
             // transform of the link w.r.t its model. This component never
             // changes because it's "fixed" to the model. Instead, we change
             // the model's pose here. The physics engine gives us the pose of
@@ -462,7 +466,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           }
           else
           {
-            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
             // Compute the relative pose of this link from the model
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentPose->Data().Inverse());
@@ -472,6 +475,83 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         {
           ignwarn << "Unknown link with id " << _entity << " found\n";
         }
+        return true;
+      });
+
+
+  // world pose
+  _ecm.Each<components::Pose, components::WorldPose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose, components::WorldPose *_worldPose,
+          components::ParentEntity *_parent)->bool
+      {
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          *_worldPose = components::WorldPose(
+              math::eigen3::convert(frameDataWorld.pose));
+          return true;
+        }
+
+        // check if parent entity is a link, e.g. entity is sensor / collision
+        linkIt = this->entityLinkMap.find(_parent->Data());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          auto linkWorldPose = frameDataWorld.pose;
+          auto entityWorldPose = _pose->Data() +
+              math::eigen3::convert(linkWorldPose);
+          *_worldPose = components::WorldPose(entityWorldPose);
+          return true;
+        }
+
+        return true;
+      });
+
+  // world linear velocity
+  _ecm.Each<components::Pose, components::WorldLinearVelocity,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::WorldLinearVelocity *_worldLinearVel,
+          components::ParentEntity *_parent)->bool
+      {
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          *_worldLinearVel = components::WorldLinearVelocity(
+              math::eigen3::convert(frameDataWorld.linearVelocity));
+          return true;
+        }
+
+        // check if parent entity is a link, e.g. entity is sensor / collision
+        linkIt = this->entityLinkMap.find(_parent->Data());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          // offset is entity pos relative to parent link
+          physics::FrameData3d entityFromLink;
+          math::Vector3d offset = _pose->Data().Pos();
+          entityFromLink.pose.translation() = math::eigen3::convert(offset);
+          entityFromLink.pose.linear() =
+              math::eigen3::convert(math::Matrix3d::Identity);
+
+          physics::RelativeFrameData3d relFrameData(
+              linkIt->second->GetFrameID(), entityFromLink);
+          auto entityFrameData =
+              this->engine->Resolve(relFrameData, physics::FrameID::World());
+
+          // set entity world linear velocity
+          *_worldLinearVel = components::WorldLinearVelocity(
+              math::eigen3::convert(entityFrameData.linearVelocity));
+
+          return true;
+        }
+
         return true;
       });
 }
