@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -99,14 +100,10 @@ class ignition::gazebo::systems::AltimeterPrivate
 };
 
 //////////////////////////////////////////////////
-AltimeterSensor::AltimeterSensor()
-{
-}
+AltimeterSensor::AltimeterSensor() = default;
 
 //////////////////////////////////////////////////
-AltimeterSensor::~AltimeterSensor()
-{
-}
+AltimeterSensor::~AltimeterSensor() = default;
 
 //////////////////////////////////////////////////
 void AltimeterSensor::Load(const sdf::ElementPtr &_sdf)
@@ -122,7 +119,11 @@ void AltimeterSensor::Publish()
     return;
 
   if (!this->pub)
+  {
     this->pub = this->node.Advertise<ignition::msgs::Altimeter>(this->topic);
+    ignmsg << "Altimeter publishing messages on [" << this->topic << "]"
+           << std::endl;
+  }
 
   msgs::Altimeter msg;
   msg.set_vertical_position(this->verticalPosition);
@@ -137,9 +138,7 @@ Altimeter::Altimeter() : System(), dataPtr(std::make_unique<AltimeterPrivate>())
 }
 
 //////////////////////////////////////////////////
-Altimeter::~Altimeter()
-{
-}
+Altimeter::~Altimeter() = default;
 
 //////////////////////////////////////////////////
 void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
@@ -241,8 +240,11 @@ std::string AltimeterPrivate::DefaultTopic(const Entity &_entity,
   // also handle nested models
   while (p)
   {
+    if (nullptr != _ecm.Component<components::World>(p->Data()))
+      break;
+
     std::string modelName = _ecm.Component<components::Name>(p->Data())->Data();
-    topic = "/model/" + modelName + topic;
+    topic.insert(0, "/model/" + modelName);
 
     // keep going up the tree
     p = _ecm.Component<components::ParentEntity>(p->Data());
