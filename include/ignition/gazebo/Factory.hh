@@ -79,7 +79,7 @@ namespace ignition
       public: Factory &operator=(const Factory &_factory);
 
       /// \brief Destructor.
-      public: virtual ~Factory();
+      public: ~Factory();
 
       /// \brief Create all entities that exist in the sdf::World object and
       /// load their plugins.
