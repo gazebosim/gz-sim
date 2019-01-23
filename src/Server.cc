@@ -98,8 +98,7 @@ Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
   // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(static_cast<std::string (*)(const std::string &)>(
-      &ignition::fuel_tools::fetchResource));
+  sdf::setFindCallback(ignition::fuel_tools::fetchResource);
 
   sdf::Root root;
   sdf::Errors errors;
