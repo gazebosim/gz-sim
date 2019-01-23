@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_POSE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_POSE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
+#define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 
-#include <ignition/math/Pose3.hh>
+#include <sdf/Element.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -32,13 +32,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
-  /// information.
-  using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
-
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
-  /// information in world frame.
-  using WorldPose = SimpleWrapper<ignition::math::Pose3d, class WorldPoseTag>;
+  /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
+  /// This is currently the whole <sensor> element.
+  using Altimeter = SimpleWrapper<sdf::ElementPtr, class AltimeterTag>;
 }
 }
 }
