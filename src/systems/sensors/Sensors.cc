@@ -291,6 +291,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
           std::string scopedName = parent->Name() + "::"
               + data->Get<std::string>("name");
           data->GetAttribute("name")->Set(scopedName);
+    			data->GetAttribute("type")->Set("gpu_lidar");
           auto sensor =
               this->sensorManager.CreateSensor<sensors::GpuLidarSensor>(data);
           return this->sceneManager.AddSensor(
