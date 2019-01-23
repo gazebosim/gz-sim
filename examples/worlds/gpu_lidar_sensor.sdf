@@ -90,12 +90,6 @@
         <iterations>true</iterations>
         <topic>/world/gpu_ray_sensor/stats</topic>
       </plugin>
-
-      <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
-          <property key="state" type="string">docked</property>
-        </ignition-gui>
-      </plugin>
     </gui>
 
     <light type="directional" name="sun">
