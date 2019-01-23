@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_GPU_RAY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_GPU_RAY_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_GPU_LIDAR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_GPU_LIDAR_HH_
 
 #include <sdf/Element.hh>
 
