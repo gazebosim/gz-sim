@@ -22,11 +22,8 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
     EventManager* _eventMgr,
-    const ignition::transport::NodeOptions &_options
-    ):
+    const ignition::transport::NodeOptions &_options):
   node(_options),
-  heartbeat_period(std::chrono::milliseconds(100)),
-  stale_multiplier(5),
   eventMgr(_eventMgr)
 {
 }
@@ -40,25 +37,25 @@ PeerTracker::~PeerTracker()
 /////////////////////////////////////////////////
 void PeerTracker::SetHeartbeatPeriod(const Duration &_period)
 {
-  this->heartbeat_period = _period;
+  this->heartbeatPeriod = _period;
 }
 
 /////////////////////////////////////////////////
 PeerTracker::Duration PeerTracker::HeartbeatPeriod() const
 {
-  return this->heartbeat_period;
+  return this->heartbeatPeriod;
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::SetStaleMultiplier(const size_t &_multiplier)
 {
-  this->stale_multiplier = _multiplier;
+  this->staleMultiplier = _multiplier;
 }
 
 /////////////////////////////////////////////////
 size_t PeerTracker::StaleMultiplier() const
 {
-  return this->stale_multiplier;
+  return this->staleMultiplier;
 }
 
 /////////////////////////////////////////////////
@@ -66,35 +63,35 @@ void PeerTracker::Connect(std::shared_ptr<PeerInfo> _info)
 {
   this->info = _info;
 
-  this->heartbeat_pub = this->node.Advertise<msgs::PeerInfo>("heartbeat");
-  this->announce_pub = this->node.Advertise<msgs::PeerAnnounce>("announce");
+  this->heartbeatPub = this->node.Advertise<msgs::PeerInfo>("heartbeat");
+  this->announcePub = this->node.Advertise<msgs::PeerAnnounce>("announce");
   this->node.Subscribe("heartbeat", &PeerTracker::OnPeerHeartbeat, this);
   this->node.Subscribe("announce", &PeerTracker::OnPeerAnnounce, this);
 
   msgs::PeerAnnounce msg;
-  *msg.mutable_info() = ToProto(*this->info);
+  *msg.mutable_info() = toProto(*this->info);
   msg.set_state(msgs::PeerAnnounce::CONNECTING);
-  this->announce_pub.Publish(msg);
+  this->announcePub.Publish(msg);
 
-  this->heartbeat_running = true;
-  this->heartbeat_thread = std::thread([this](){ this->HeartbeatLoop(); });
+  this->heartbeatRunning = true;
+  this->heartbeatThread = std::thread([this](){ this->HeartbeatLoop(); });
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::Disconnect()
 {
-  this->heartbeat_running = false;
-  if (this->heartbeat_thread.joinable()) {
-    this->heartbeat_thread.join();
+  this->heartbeatRunning = false;
+  if (this->heartbeatThread.joinable()) {
+    this->heartbeatThread.join();
   }
 
   if (this->info)
   {
     msgs::PeerAnnounce msg;
-    *msg.mutable_info() = ToProto(*this->info);
+    *msg.mutable_info() = toProto(*this->info);
     msg.set_state(msgs::PeerAnnounce::DISCONNECTING);
 
-    this->announce_pub.Publish(msg);
+    this->announcePub.Publish(msg);
     this->info.reset();
   }
 
@@ -105,14 +102,14 @@ void PeerTracker::Disconnect()
 /////////////////////////////////////////////////
 size_t PeerTracker::NumPeers() const
 {
-  auto lock = PeerLock(this->peers_mutex);
+  auto lock = PeerLock(this->peersMutex);
   return this->peers.size();
 }
 
 /////////////////////////////////////////////////
 size_t PeerTracker::NumPeers(const NetworkRole &_role) const
 {
-  auto lock = PeerLock(this->peers_mutex);
+  auto lock = PeerLock(this->peersMutex);
 
   size_t count = 0;
   for (auto peer : peers)
@@ -131,16 +128,16 @@ void PeerTracker::HeartbeatLoop()
   using Clock = std::chrono::steady_clock;
   Clock::time_point lastUpdateTime;
 
-  while (this->heartbeat_running)
+  while (this->heartbeatRunning)
   {
     lastUpdateTime = Clock::now();
-    this->heartbeat_pub.Publish(ToProto(*this->info));
+    this->heartbeatPub.Publish(toProto(*this->info));
 
     std::vector<PeerInfo> toRemove;
     for (auto peer : peers)
     {
-      auto age = Clock::now() - peer.second.last_seen;
-      if (age > (this->stale_multiplier * this->heartbeat_period))
+      auto age = Clock::now() - peer.second.lastSeen;
+      if (age > (this->staleMultiplier * this->heartbeatPeriod))
       {
         toRemove.push_back(peer.second.info);
       }
@@ -155,7 +152,7 @@ void PeerTracker::HeartbeatLoop()
     // Compute sleep time to keep update loop as close to
     // heartbeatPeriod as possible.
     auto sleepTime = std::max(std::chrono::nanoseconds(0),
-          lastUpdateTime + this->heartbeat_period - Clock::now());
+          lastUpdateTime + this->heartbeatPeriod - Clock::now());
 
     if (sleepTime > std::chrono::nanoseconds(0))
     {
@@ -167,18 +164,18 @@ void PeerTracker::HeartbeatLoop()
 /////////////////////////////////////////////////
 void PeerTracker::AddPeer(const PeerInfo &_info)
 {
-  auto lock = PeerLock(this->peers_mutex);
+  auto lock = PeerLock(this->peersMutex);
 
   auto peerState = PeerState();
   peerState.info = _info;
-  peerState.last_seen = std::chrono::steady_clock::now();
+  peerState.lastSeen = std::chrono::steady_clock::now();
   this->peers[_info.id] = peerState;
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::RemovePeer(const PeerInfo &_info)
 {
-  auto lock = PeerLock(this->peers_mutex);
+  auto lock = PeerLock(this->peersMutex);
 
   auto iter = this->peers.find(_info.id);
   if (iter == this->peers.end())
@@ -194,7 +191,7 @@ void PeerTracker::RemovePeer(const PeerInfo &_info)
 /////////////////////////////////////////////////
 void PeerTracker::OnPeerAnnounce(const msgs::PeerAnnounce &_announce)
 {
-  auto peer = FromProto(_announce.info());
+  auto peer = fromProto(_announce.info());
 
   // Skip announcements from self.
   if (this->info && peer.id == this->info->id)
@@ -218,7 +215,7 @@ void PeerTracker::OnPeerAnnounce(const msgs::PeerAnnounce &_announce)
 /////////////////////////////////////////////////
 void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
 {
-  auto peer = FromProto(_info);
+  auto peer = fromProto(_info);
 
   if (!this->info)
   {
@@ -231,7 +228,7 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
     return;
   }
 
-  auto lock = PeerLock(this->peers_mutex);
+  auto lock = PeerLock(this->peersMutex);
 
   // We may have missed a peer announce, add it on heartbeat.
   if (this->peers.find(peer.id) == this->peers.end())
@@ -241,8 +238,8 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
 
   // Update information about the state of this peer.
   auto& peerState = this->peers[peer.id];
-  peerState.last_seen = std::chrono::steady_clock::now();
-  peerState.last_header = std::chrono::steady_clock::time_point(
+  peerState.lastSeen = std::chrono::steady_clock::now();
+  peerState.lastHeader = std::chrono::steady_clock::time_point(
       std::chrono::seconds(_info.header().stamp().sec()) +
       std::chrono::nanoseconds(_info.header().stamp().nsec()));
 }

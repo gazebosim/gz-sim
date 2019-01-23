@@ -18,64 +18,66 @@
 
 #include "ignition/common/Uuid.hh"
 
-namespace ignition
+using namespace ignition;
+using namespace gazebo;
+
+/////////////////////////////////////////////////
+PeerInfo::PeerInfo():
+  id(ignition::common::Uuid().String()),
+  role(NetworkRole::None)
 {
-  namespace gazebo
-  {
-    PeerInfo::PeerInfo():
-      id(ignition::common::Uuid().String()),
-      role(NetworkRole::None)
-    {
-    }
+}
 
-    msgs::PeerInfo ToProto(const PeerInfo &_info)
-    {
-      msgs::PeerInfo proto;
-      proto.set_id(_info.id);
-      proto.set_hostname(_info.hostname);
+/////////////////////////////////////////////////
+ignition::gazebo::msgs::PeerInfo ignition::gazebo::toProto(
+    const PeerInfo &_info)
+{
+  ignition::gazebo::msgs::PeerInfo proto;
+  proto.set_id(_info.id);
+  proto.set_hostname(_info.hostname);
 
-      switch (_info.role) {
-        case NetworkRole::None:
-          proto.set_role(msgs::PeerInfo::NONE);
-          break;
-        case NetworkRole::ReadOnly:
-          proto.set_role(msgs::PeerInfo::READ_ONLY);
-          break;
-        case NetworkRole::SimulationPrimary:
-          proto.set_role(msgs::PeerInfo::SIMULATION_PRIMARY);
-          break;
-        case NetworkRole::SimulationSecondary:
-          proto.set_role(msgs::PeerInfo::SIMULATION_SECONDARY);
-          break;
-        default:
-          proto.set_role(msgs::PeerInfo::NONE);
-      }
-      return proto;
-    }
-
-    PeerInfo FromProto(const msgs::PeerInfo& _proto)
-    {
-      PeerInfo info;
-      info.id = _proto.id();
-      info.hostname = _proto.hostname();
-
-      switch (_proto.role())
-      {
-        case ignition::gazebo::msgs::PeerInfo::READ_ONLY:
-          info.role = NetworkRole::ReadOnly;
-          break;
-        case ignition::gazebo::msgs::PeerInfo::SIMULATION_PRIMARY:
-          info.role = NetworkRole::SimulationPrimary;
-          break;
-        case ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY:
-          info.role = NetworkRole::SimulationSecondary;
-          break;
-        case ignition::gazebo::msgs::PeerInfo::NONE:
-        default:
-          info.role = NetworkRole::None;
-          break;
-      }
-      return info;
-    }
+  switch (_info.role) {
+    case NetworkRole::None:
+      proto.set_role(ignition::gazebo::msgs::PeerInfo::NONE);
+      break;
+    case NetworkRole::ReadOnly:
+      proto.set_role(ignition::gazebo::msgs::PeerInfo::READ_ONLY);
+      break;
+    case NetworkRole::SimulationPrimary:
+      proto.set_role(ignition::gazebo::msgs::PeerInfo::SIMULATION_PRIMARY);
+      break;
+    case NetworkRole::SimulationSecondary:
+      proto.set_role(ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY);
+      break;
+    default:
+      proto.set_role(ignition::gazebo::msgs::PeerInfo::NONE);
   }
+  return proto;
+}
+
+/////////////////////////////////////////////////
+PeerInfo ignition::gazebo::fromProto(
+    const ignition::gazebo::msgs::PeerInfo& _proto)
+{
+  PeerInfo info;
+  info.id = _proto.id();
+  info.hostname = _proto.hostname();
+
+  switch (_proto.role())
+  {
+    case ignition::gazebo::msgs::PeerInfo::READ_ONLY:
+      info.role = NetworkRole::ReadOnly;
+      break;
+    case ignition::gazebo::msgs::PeerInfo::SIMULATION_PRIMARY:
+      info.role = NetworkRole::SimulationPrimary;
+      break;
+    case ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY:
+      info.role = NetworkRole::SimulationSecondary;
+      break;
+    case ignition::gazebo::msgs::PeerInfo::NONE:
+    default:
+      info.role = NetworkRole::None;
+      break;
+  }
+  return info;
 }
