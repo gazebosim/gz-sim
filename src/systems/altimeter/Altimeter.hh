@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_ALTIMETER_HH_
+#define IGNITION_GAZEBO_SYSTEMS_ALTIMETER_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -31,31 +31,34 @@ namespace systems
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declarations.
-  class PhysicsPrivate;
+  class AltimeterPrivate;
+  class AltimeterSensor;
 
-  /// \class Physics Physics.hh ignition/gazebo/systems/Physics.hh
-  /// \brief Base class for a System.
-  class IGNITION_GAZEBO_VISIBLE Physics:
+  /// \class Altimeter Altimeter.hh ignition/gazebo/systems/Altimeter.hh
+  /// \brief An altimeter sensor that reports vertical position and velocity
+  /// readings over ign transport
+  class IGNITION_GAZEBO_VISIBLE Altimeter:
     public System,
-    public ISystemUpdate,
+    public ISystemPreUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit Physics();
+    public: explicit Altimeter();
 
     /// \brief Destructor
-    public: ~Physics() override;
+    public: ~Altimeter() override;
 
     /// Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                EntityComponentManager &_ecm) final;
+    public: void PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) final;
+
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) final;
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<PhysicsPrivate> dataPtr;
+    private: std::unique_ptr<AltimeterPrivate> dataPtr;
   };
   }
 }

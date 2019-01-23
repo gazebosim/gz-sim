@@ -204,12 +204,12 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: bool Remove(const ComponentId _id) override final
+      public: bool Remove(const ComponentId _id) final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
         // Get an iterator to the component that should be removed.
-        std::map<ComponentId, int>::iterator iter = this->idMap.find(_id);
+        auto iter = this->idMap.find(_id);
 
         // Make sure the component exists.
         if (iter != this->idMap.end())
@@ -224,8 +224,8 @@ namespace ignition
                       this->components.back());
 
             // After the swap, we have to fix all the id mappings.
-            for (std::map<ComponentId, int>::iterator idIter =
-                 this->idMap.begin(); idIter != this->idMap.end(); ++idIter)
+            for (auto idIter =this->idMap.begin();
+                idIter != this->idMap.end(); ++idIter)
             {
               if (static_cast<unsigned int>(idIter->second) ==
                   this->components.size()-1)
@@ -246,7 +246,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void RemoveAll() override final
+      public: void RemoveAll() final
       {
         this->idCounter = 0;
         this->idMap.clear();
@@ -255,7 +255,7 @@ namespace ignition
 
       // Documentation inherited.
       public: std::pair<ComponentId, bool> Create(
-                  const void *_data) override final
+                  const void *_data) final
       {
         ComponentId result;  // = kComponentIdInvalid;
         bool expanded = false;
@@ -276,18 +276,18 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: const void *Component(const ComponentId _id) const override final
+      public: const void *Component(const ComponentId _id) const final
       {
         return static_cast<const void*>(
             const_cast<ComponentStorage<ComponentTypeT>*>(
               this)->Component(_id));
       }
 
-      public: void *Component(const ComponentId _id) override final
+      public: void *Component(const ComponentId _id) final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
-        std::map<ComponentId, int>::const_iterator iter = this->idMap.find(_id);
+        auto iter = this->idMap.find(_id);
 
         if (iter != this->idMap.end())
         {
@@ -297,7 +297,7 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: void *First() override final
+      public: void *First() final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         if (!this->components.empty())
@@ -550,9 +550,9 @@ namespace ignition
 
       /// why is this required?
       private: template <typename T>
-               struct identity
+               struct identity  // NOLINT
                {
-                 typedef T type;
+                 using type = T;
                };
 
       /// \brief A version of Each() that doesn't use a cache. The cached

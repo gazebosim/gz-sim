@@ -30,7 +30,7 @@ using namespace ignition::gazebo;
 
 class ModelIntegrationTest : public ::testing::TestWithParam<int>
 {
-  public: void SetUp()
+  public: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
   }

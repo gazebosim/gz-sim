@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 
 #include <memory>
+#include <utility>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -59,7 +60,7 @@ namespace components
 
     /// \brief Move Constructor
     /// \param[in] _simpleWrapper SimpleWrapper component to move.
-    public: SimpleWrapper(SimpleWrapper &&_simpleWrapper) = default;
+    public: SimpleWrapper(SimpleWrapper &&_simpleWrapper) noexcept = default;
 
     /// \brief Destructor.
     public: virtual ~SimpleWrapper() = default;
@@ -67,7 +68,8 @@ namespace components
     /// \brief Move assignment operator.
     /// \param[in] _simpleWrapper SimpleWrapper component to move.
     /// \return Reference to this.
-    public: SimpleWrapper &operator=(SimpleWrapper &&_simpleWrapper) = default;
+    public: SimpleWrapper &operator=(
+                SimpleWrapper &&_simpleWrapper) noexcept = default;
 
     /// \brief Copy assignment operator.
     /// \param[in] _simpleWrapper SimpleWrapper component to copy.
@@ -97,8 +99,8 @@ namespace components
   {
     /// \brief Constructor.
     /// \param[in] _simpleWrapper SimpleWrapper data.
-    public: explicit SimpleWrapperPrivate(const DataType &_data)
-            : data(_data)
+    public: explicit SimpleWrapperPrivate(DataType _data)
+            : data(std::move(_data))
     {
     }
 

@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  altimeter_system.cc
   components.cc
   diff_drive_system.cc
   each_new_erased.cc
