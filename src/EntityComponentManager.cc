@@ -137,18 +137,19 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestEraseEntity(Entity _entity, bool _recursive)
 {
-  if (!_recursive)
-  {
-    ignwarn << "Erasing entities non-recursively is not yet supported."
-            << " Not erasing" << std::endl;
-    return;
-  }
-
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-    this->dataPtr->InsertEntityRecursive(_entity,
-        this->dataPtr->toEraseEntities);
+    if (!_recursive)
+    {
+      this->dataPtr->toEraseEntities.insert(_entity);
+    }
+    else
+    {
+      this->dataPtr->InsertEntityRecursive(_entity,
+          this->dataPtr->toEraseEntities);
+    }
   }
+
   this->UpdateViews(_entity);
 }
 
