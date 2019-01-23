@@ -28,7 +28,8 @@ using namespace gazebo;
 TEST(SdfInclude, DownloadFromFuel)
 {
   // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(ignition::fuel_tools::fetchAsset);
+  sdf::setFindCallback(static_cast<std::string (*)(const std::string &)>(
+      &ignition::fuel_tools::fetchResource));
 
   // Configure the gazebo server, which will cause a model to be downloaded.
   ignition::gazebo::ServerConfig serverConfig;
