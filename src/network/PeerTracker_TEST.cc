@@ -15,9 +15,9 @@
  *
 */
 
-#include <cstdlib>
-
 #include <gtest/gtest.h>
+
+#include <cstdlib>
 
 #include "PeerTracker.hh"
 #include "ignition/gazebo/EventManager.hh"

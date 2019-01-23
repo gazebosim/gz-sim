@@ -36,7 +36,6 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
     // Network Events
     /// \brief PeerError fired when there is an unexpected error in a peer
     using PeerError = common::EventT<void(PeerInfo), struct PeerErrorTag>;
@@ -57,12 +56,15 @@ namespace ignition
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
     class IGNITION_GAZEBO_VISIBLE PeerTracker {
+      /// \brief Convenience type alias
+      public: using NodeOptions = ignition::transport::NodeOptions;
+
       /// \brief Constructor
       /// \param[in] _eventMgr - Event Manager to emit network events on.
       /// \param[in] _options - Advanced options for underlying ign-transport
       public: explicit PeerTracker(
                   EventManager* _eventMgr = nullptr,
-                  const transport::NodeOptions &_options = transport::NodeOptions());
+                  const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor
       public: ~PeerTracker();
@@ -133,39 +135,43 @@ namespace ignition
       private: ignition::transport::Node node;
 
       /// \brief Heartbeat publisher
-      private: ignition::transport::Node::Publisher heartbeat_pub;
+      private: ignition::transport::Node::Publisher heartbeatPub;
 
       /// \brief Announcement publisher
-      private: ignition::transport::Node::Publisher announce_pub;
+      private: ignition::transport::Node::Publisher announcePub;
 
       /// \brief Information about discovered peers
       struct PeerState
       {
         PeerInfo info;
-        std::chrono::steady_clock::time_point last_header;
-        std::chrono::steady_clock::time_point last_seen;
+        std::chrono::steady_clock::time_point lastHeader;
+        std::chrono::steady_clock::time_point lastSeen;
       };
 
+      /// \brief Convenience type alias
       private: using PeerMutex = std::recursive_mutex;
 
+      /// \brief Convenience type alias
       private: using PeerLock = std::lock_guard<PeerMutex>;
 
-      private: mutable PeerMutex peers_mutex;
+      /// \brief Used for guarding map of peers.
+      /// N.b. marked mutable to allow const in places that are read only.
+      private: mutable PeerMutex peersMutex;
 
       /// \brief Information about discovered peers
       private: std::map<std::string, PeerState> peers;
 
       /// \brief Thread for executing heartbeat loop
-      private: std::thread heartbeat_thread;
+      private: std::thread heartbeatThread;
 
       /// \brief Flag for exection of heartbeat loop
-      private: std::atomic<bool> heartbeat_running;
+      private: std::atomic<bool> heartbeatRunning;
 
       /// \brief Period to publish heartbeat at
-      private: Duration heartbeat_period;
+      private: Duration heartbeatPeriod {std::chrono::milliseconds(100)};
 
       /// \brief Timeout to mark a peer as stale.
-      private: size_t stale_multiplier;
+      private: size_t staleMultiplier {5};
 
       /// \brief Event manager instance to be used to emit network events.
       private: EventManager* eventMgr;

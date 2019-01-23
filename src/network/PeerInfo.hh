@@ -39,8 +39,8 @@ namespace ignition
     };
     }
 
-    IGNITION_GAZEBO_VISIBLE PeerInfo FromProto(const msgs::PeerInfo &_proto);
-    IGNITION_GAZEBO_VISIBLE msgs::PeerInfo ToProto(const PeerInfo &_info);
+    IGNITION_GAZEBO_VISIBLE PeerInfo fromProto(const msgs::PeerInfo &_proto);
+    IGNITION_GAZEBO_VISIBLE msgs::PeerInfo toProto(const PeerInfo &_info);
 
 
   }  // namespace gazebo
