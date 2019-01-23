@@ -15,6 +15,8 @@
  *
 */
 
+#include <cstdlib>
+
 #include <gtest/gtest.h>
 
 #include "PeerTracker.hh"
@@ -251,5 +253,50 @@ TEST(PeerTracker, Namespaced)
   EXPECT_EQ(1u, tracker2.NumPeers());
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
-
 }
+
+// Only on Linux for the moment
+#ifdef  __linux__
+TEST(PeerTracker, Partitioned_env)
+{
+  EventManager eventMgr;
+
+  setenv("IGN_PARTITION", "p1", 1);
+  auto tracker1 = PeerTracker(&eventMgr);
+  auto info1 = std::make_shared<PeerInfo>();
+  info1->role = NetworkRole::SimulationPrimary;
+  tracker1.Connect(info1);
+
+  setenv("IGN_PARTITION", "p2", 1);
+  auto tracker2 = PeerTracker(&eventMgr);
+  auto info2 = std::make_shared<PeerInfo>();
+  info2->role = NetworkRole::SimulationPrimary;
+  tracker2.Connect(info2);
+
+  // Trackers should not detect peers in different partitions
+  EXPECT_EQ(0u, tracker1.NumPeers());
+  EXPECT_EQ(0u, tracker2.NumPeers());
+
+  setenv("IGN_PARTITION", "p1", 1);
+  auto tracker3 = PeerTracker(&eventMgr);
+  auto info3 = std::make_shared<PeerInfo>();
+  info3->role = NetworkRole::SimulationSecondary;
+  tracker3.Connect(info3);
+
+  setenv("IGN_PARTITION", "p2", 1);
+  auto tracker4 = PeerTracker(&eventMgr);
+  auto info4 = std::make_shared<PeerInfo>();
+  info4->role = NetworkRole::SimulationSecondary;
+  tracker4.Connect(info4);
+
+  // Allow some time for heartbeats to propagate
+  // TODO(mjcarroll): Send heartbeats on announce
+  std::this_thread::sleep_for(std::chrono::milliseconds(110));
+
+  // Trackers should detect peers in the same partition.
+  EXPECT_EQ(1u, tracker1.NumPeers());
+  EXPECT_EQ(1u, tracker2.NumPeers());
+  EXPECT_EQ(1u, tracker3.NumPeers());
+  EXPECT_EQ(1u, tracker4.NumPeers());
+}
+#endif
