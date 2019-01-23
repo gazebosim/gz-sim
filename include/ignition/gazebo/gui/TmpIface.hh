@@ -44,7 +44,7 @@ namespace ignition
       public: TmpIface();
 
       /// \brief Destructor
-      public: ~TmpIface() = default;
+      public: ~TmpIface() override = default;
 
       /// \brief Callback when user asks to start a new world.
       /// This is the client-side logic which requests the server_control

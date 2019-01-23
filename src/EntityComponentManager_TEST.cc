@@ -38,7 +38,7 @@ class EntityCompMgrTest : public gazebo::EntityComponentManager
 
 class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
 {
-  public: void SetUp()
+  public: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
   }
@@ -831,7 +831,7 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
 //////////////////////////////////////////////////
 /// \brief Helper function to count the number of "new" entities
 template<typename ...Ts>
-int NewCount(EntityCompMgrTest &_manager)
+int newCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
   _manager.EachNew<Ts...>(
@@ -866,7 +866,7 @@ int NewCount(EntityCompMgrTest &_manager)
 //////////////////////////////////////////////////
 /// \brief Helper function to count the number of "erased" entities
 template<typename ...Ts>
-int ErasedCount(EntityCompMgrTest &_manager)
+int erasedCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
   _manager.EachErased<Ts ...>(
@@ -885,7 +885,7 @@ int ErasedCount(EntityCompMgrTest &_manager)
 /// \brief Helper function to count the number of entities returned by an Each
 /// call
 template<typename ...Ts>
-int EachCount(EntityCompMgrTest &_manager)
+int eachCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
   _manager.Each<Ts ...>(
@@ -912,12 +912,12 @@ TEST_P(EntityComponentManagerFixture, EachNewBasic)
   manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<int>(e2, 456);
 
-  EXPECT_EQ(2, NewCount<int>(manager));
+  EXPECT_EQ(2, newCount<int>(manager));
 
   // This would normally be done after each simulation step after systems are
   // updated
   manager.RunClearNewlyCreatedEntities();
-  EXPECT_EQ(0, NewCount<int>(manager));
+  EXPECT_EQ(0, newCount<int>(manager));
 }
 
 //////////////////////////////////////////////////
@@ -928,13 +928,13 @@ TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
   auto comp1 = manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<double>(e1, 0.0);
 
-  EXPECT_EQ(1, NewCount<int>(manager));
+  EXPECT_EQ(1, newCount<int>(manager));
 
   manager.RemoveComponent(e1, comp1);
-  EXPECT_EQ(1, NewCount<double>(manager));
+  EXPECT_EQ(1, newCount<double>(manager));
 
   manager.RunClearNewlyCreatedEntities();
-  EXPECT_EQ(0, NewCount<double>(manager));
+  EXPECT_EQ(0, newCount<double>(manager));
 }
 
 //////////////////////////////////////////////////
@@ -945,14 +945,14 @@ TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromErasedEntity)
   manager.CreateComponent<int>(e1, 123);
   manager.RunClearNewlyCreatedEntities();
   // Nothing new after cleared
-  EXPECT_EQ(0, NewCount<int>(manager));
+  EXPECT_EQ(0, newCount<int>(manager));
 
   gazebo::Entity e2 = manager.CreateEntity();
   manager.CreateComponent<int>(e2, 456);
-  EXPECT_EQ(1, NewCount<int>(manager));
+  EXPECT_EQ(1, newCount<int>(manager));
   // Check if this true after RebuildViews
   manager.RebuildViews();
-  EXPECT_EQ(1, NewCount<int>(manager));
+  EXPECT_EQ(1, newCount<int>(manager));
 }
 
 //////////////////////////////////////////////////
@@ -965,7 +965,7 @@ TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
   manager.CreateComponent<int>(e2, 456);
   manager.RunClearNewlyCreatedEntities();
   // Nothing new after cleared
-  EXPECT_EQ(0, NewCount<int>(manager));
+  EXPECT_EQ(0, newCount<int>(manager));
 
   // Create a new entity
   gazebo::Entity e3 = manager.CreateEntity();
@@ -976,9 +976,9 @@ TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
 
   // e1 and e2 have a new double component, but they are not considered new
   // entities
-  EXPECT_EQ(0, (NewCount<int, double>(manager)));
+  EXPECT_EQ(0, (newCount<int, double>(manager)));
   // Only e3 is considered new
-  EXPECT_EQ(1, NewCount<int>(manager));
+  EXPECT_EQ(1, newCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -995,18 +995,18 @@ TEST_P(EntityComponentManagerFixture, EachErasedBasic)
 
   // Erase an entity.
   manager.RequestEraseEntity(e1);
-  EXPECT_EQ(1, ErasedCount<int>(manager));
+  EXPECT_EQ(1, erasedCount<int>(manager));
   manager.RequestEraseEntity(e2);
-  EXPECT_EQ(2, ErasedCount<int>(manager));
+  EXPECT_EQ(2, erasedCount<int>(manager));
 
   // This would normally be done after each simulation step after systems are
   // updated
   manager.RunClearNewlyCreatedEntities();
   // But it shouldn't affect erased entities
-  EXPECT_EQ(2, ErasedCount<int>(manager));
+  EXPECT_EQ(2, erasedCount<int>(manager));
 
   manager.ProcessEntityErasures();
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -1026,7 +1026,7 @@ TEST_P(EntityComponentManagerFixture, EachErasedAlreadyErased)
 
   // try erasing an already erased entity
   manager.RequestEraseEntity(e2);
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -1037,14 +1037,14 @@ TEST_P(EntityComponentManagerFixture, EachErasedAfterRebuild)
   EXPECT_EQ(1u, manager.EntityCount());
 
   manager.CreateComponent<int>(e1, 123);
-  EXPECT_EQ(1, NewCount<int>(manager));
+  EXPECT_EQ(1, newCount<int>(manager));
   manager.RunClearNewlyCreatedEntities();
 
   manager.RequestEraseEntity(e1);
-  EXPECT_EQ(1, ErasedCount<int>(manager));
+  EXPECT_EQ(1, erasedCount<int>(manager));
 
   manager.RebuildViews();
-  EXPECT_EQ(1, ErasedCount<int>(manager));
+  EXPECT_EQ(1, erasedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -1058,8 +1058,8 @@ TEST_P(EntityComponentManagerFixture, EachErasedAddComponentToErasedEntity)
   // Add a new component to an erased entity. This should be possible since the
   // entity is only scheduled to be erased.
   manager.CreateComponent<double>(e1, 0.0);
-  EXPECT_EQ(1, ErasedCount<int>(manager));
-  EXPECT_EQ(1, (ErasedCount<int, double>(manager)));
+  EXPECT_EQ(1, erasedCount<int>(manager));
+  EXPECT_EQ(1, (erasedCount<int, double>(manager)));
 }
 
 ////////////////////////////////////////////////
@@ -1073,10 +1073,10 @@ TEST_P(EntityComponentManagerFixture, EachErasedAllErased)
   EXPECT_EQ(2u, manager.EntityCount());
 
   manager.RequestEraseEntities();
-  EXPECT_EQ(2, ErasedCount<int>(manager));
+  EXPECT_EQ(2, erasedCount<int>(manager));
 
   manager.ProcessEntityErasures();
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -1089,22 +1089,22 @@ TEST_P(EntityComponentManagerFixture, EachNewEachErased)
   manager.CreateComponent<int>(e2, 456);
   EXPECT_EQ(2u, manager.EntityCount());
 
-  EXPECT_EQ(2, NewCount<int>(manager));
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(2, newCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 
   // Erase an entity.
   manager.RequestEraseEntity(e1);
   // An entity can be considered new even if there is a request to erase it.
-  EXPECT_EQ(2, NewCount<int>(manager));
-  EXPECT_EQ(1, ErasedCount<int>(manager));
+  EXPECT_EQ(2, newCount<int>(manager));
+  EXPECT_EQ(1, erasedCount<int>(manager));
 
   // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
   // together after a simulation step
   manager.RunClearNewlyCreatedEntities();
   manager.ProcessEntityErasures();
 
-  EXPECT_EQ(0, NewCount<int>(manager));
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(0, newCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
@@ -1117,17 +1117,17 @@ TEST_P(EntityComponentManagerFixture, EachGetsNewOldErased)
   manager.CreateComponent<int>(e2, 456);
   EXPECT_EQ(2u, manager.EntityCount());
 
-  EXPECT_EQ(2, EachCount<int>(manager));
-  EXPECT_EQ(2, NewCount<int>(manager));
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(2, eachCount<int>(manager));
+  EXPECT_EQ(2, newCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 
   // Erase an entity.
   manager.RequestEraseEntity(e1);
   // Each gets entities that erased
-  EXPECT_EQ(2, EachCount<int>(manager));
+  EXPECT_EQ(2, eachCount<int>(manager));
   // An entity can be considered new even if there is a request to erase it.
-  EXPECT_EQ(2, NewCount<int>(manager));
-  EXPECT_EQ(1, ErasedCount<int>(manager));
+  EXPECT_EQ(2, newCount<int>(manager));
+  EXPECT_EQ(1, erasedCount<int>(manager));
 
   // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
   // together after a simulation step
@@ -1135,9 +1135,9 @@ TEST_P(EntityComponentManagerFixture, EachGetsNewOldErased)
   manager.ProcessEntityErasures();
 
   // One entity is erased, one left
-  EXPECT_EQ(1, EachCount<int>(manager));
-  EXPECT_EQ(0, NewCount<int>(manager));
-  EXPECT_EQ(0, ErasedCount<int>(manager));
+  EXPECT_EQ(1, eachCount<int>(manager));
+  EXPECT_EQ(0, newCount<int>(manager));
+  EXPECT_EQ(0, erasedCount<int>(manager));
 }
 
 //////////////////////////////////////////////////

@@ -137,9 +137,7 @@ Server::Server(const ServerConfig &_config)
 }
 
 /////////////////////////////////////////////////
-Server::~Server()
-{
-}
+Server::~Server() = default;
 
 /////////////////////////////////////////////////
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
