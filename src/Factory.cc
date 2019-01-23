@@ -21,6 +21,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/Factory.hh"
 
+#include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -31,6 +32,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -389,6 +391,19 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::Camera(elem));
+  }
+  else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
+  {
+     auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::Altimeter(elem));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
   }
   else
   {
