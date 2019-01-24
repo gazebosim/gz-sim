@@ -295,20 +295,26 @@ std::optional<Entity> Server::EntityByName(const std::string &_name,
 
 //////////////////////////////////////////////////
 bool Server::RequestEraseEntity(const std::string &_name,
-                       const unsigned int _worldIndex)
+    bool _recursive, const unsigned int _worldIndex)
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
-    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_name);
+  {
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_name,
+        _recursive);
+  }
 
   return false;
 }
 
 //////////////////////////////////////////////////
 bool Server::RequestEraseEntity(const Entity _entity,
-                                const unsigned int _worldIndex)
+    bool _recursive, const unsigned int _worldIndex)
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
-    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_entity);
+  {
+    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_entity,
+        _recursive);
+  }
 
   return false;
 }

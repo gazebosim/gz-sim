@@ -551,7 +551,8 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const std::string &_name)
+bool SimulationRunner::RequestEraseEntity(const std::string &_name,
+    bool _recursive)
 {
   bool result = false;
   this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
@@ -559,7 +560,7 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name)
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_entity);
+        this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
         result = true;
         return false;
       }
@@ -589,11 +590,12 @@ std::optional<Entity> SimulationRunner::EntityByName(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const Entity _entity)
+bool SimulationRunner::RequestEraseEntity(const Entity _entity,
+    bool _recursive)
 {
   if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_entity);
+    this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
     return true;
   }
 
