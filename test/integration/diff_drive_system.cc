@@ -40,6 +40,7 @@ class DiffDriveTest : public ::testing::TestWithParam<int>
   // Documentation inherited
   protected: void SetUp() override
   {
+    common::Console::SetVerbosity(4);
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
