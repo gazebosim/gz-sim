@@ -35,9 +35,7 @@ ServerConfig::ServerConfig()
 }
 
 //////////////////////////////////////////////////
-ServerConfig::~ServerConfig()
-{
-}
+ServerConfig::~ServerConfig() = default;
 
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)

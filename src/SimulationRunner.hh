@@ -29,16 +29,6 @@
 #include <utility>
 #include <vector>
 
-#include <sdf/Collision.hh>
-#include <sdf/Gui.hh>
-#include <sdf/Joint.hh>
-#include <sdf/Light.hh>
-#include <sdf/Link.hh>
-#include <sdf/Model.hh>
-#include <sdf/Physics.hh>
-#include <sdf/Visual.hh>
-#include <sdf/World.hh>
-
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
@@ -49,6 +39,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
@@ -69,8 +60,8 @@ namespace ignition
     class SystemInternal
     {
       /// \brief Constructor
-      public: explicit SystemInternal(const SystemPluginPtr &_systemPlugin)
-              : systemPlugin(_systemPlugin),
+      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
+              : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
@@ -130,52 +121,11 @@ namespace ignition
       /// \brief Publish current world statistics.
       public: void PublishStats();
 
-      /// \brief Create all entities that exist in the sdf::World object and
-      /// load their plugins.
-      /// \param[in] _world SDF world object.
-      /// \return Id of world entity.
-      public: EntityId CreateEntities(const sdf::World *_world);
-
-      /// \brief Create all entities that exist in the sdf::Model object and
-      /// load their plugins.
-      /// \param[in] _model SDF model object.
-      /// \return Id of model entity.
-      public: EntityId CreateEntities(const sdf::Model *_model);
-
-      /// \brief Create all entities that exist in the sdf::Light object and
-      /// load their plugins.
-      /// \param[in] _light SDF light object.
-      /// \return Id of light entity.
-      public: EntityId CreateEntities(const sdf::Light *_light);
-
-      /// \brief Create all entities that exist in the sdf::Link object and
-      /// load their plugins.
-      /// \param[in] _link SDF link object.
-      /// \return Id of link entity.
-      public: EntityId CreateEntities(const sdf::Link *_link);
-
-      /// \brief Create all entities that exist in the sdf::Joint object and
-      /// load their plugins.
-      /// \param[in] _joint SDF joint object.
-      /// \return Id of joint entity.
-      public: EntityId CreateEntities(const sdf::Joint *_joint);
-
-      /// \brief Create all entities that exist in the sdf::Visual object and
-      /// load their plugins.
-      /// \param[in] _visual SDF visual object.
-      /// \return Id of visual entity.
-      public: EntityId CreateEntities(const sdf::Visual *_visual);
-
-      /// \brief Create all entities that exist in the sdf::Collision object and
-      /// load their plugins.
-      /// \param[in] _collision SDF collision object.
-      /// \return Id of collision entity.
-      public: EntityId CreateEntities(const sdf::Collision *_collision);
-
       /// \brief Load system plugins for a given entity.
+      /// \param[in] _entity Entity
       /// \param[in] _sdf SDF element
-      /// \param[in] _id Entity Id
-      public: void LoadPlugins(const sdf::ElementPtr &_sdf, const EntityId _id);
+      public: void LoadPlugins(const Entity _entity,
+          const sdf::ElementPtr &_sdf);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -221,9 +171,9 @@ namespace ignition
       /// \details If multiple entities with the same name exist, the first
       /// entity found will be returned.
       /// \param[in] _name Name of the entity.
-      /// \return Id of the entity, if the entity exists in the world. Otherwise
+      /// \return The entity, if the entity exists in the world. Otherwise
       /// std::nullopt.
-      public: std::optional<EntityId> EntityByName(
+      public: std::optional<Entity> EntityByName(
                   const std::string &_name) const;
 
       /// \brief Return true if an entity with the provided name exists.
@@ -248,14 +198,14 @@ namespace ignition
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
       /// first entity found will be deleted.
-      /// \param[in] _id Id of the entity to delete.
+      /// \param[in] _entity The entity to delete.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const EntityId _id);
+      public: bool RequestEraseEntity(const Entity _entity);
 
       /// \brief Get the EventManager
       /// \return Reference to the event manager.
-      public: const EventManager &EventMgr() const;
+      public: EventManager &EventMgr();
 
       /// \brief Get the current info object.
       /// \return Current info.
@@ -359,6 +309,9 @@ namespace ignition
 
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
+
+      /// \brief Connection to the load plugins event.
+      private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
