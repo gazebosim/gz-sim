@@ -51,45 +51,53 @@ namespace ignition
     using PeerStale = common::EventT<void(PeerInfo), struct PeerStaleTag>;
 
     /// \brief The PeerTracker is used to track the state of multiple peers in
-    /// a distriubted simulation environment.
+    /// a distributed simulation environment.
     ///
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
     class IGNITION_GAZEBO_VISIBLE PeerTracker {
-      /// \brief Convenience type alias
+      /// \brief Convenience type aliases
       public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using Duration = std::chrono::steady_clock::duration;
 
       /// \brief Constructor
-      /// \param[in] _eventMgr - Event Manager to emit network events on.
-      /// \param[in] _options - Advanced options for underlying ign-transport
+      /// \param[in] _eventMgr Event Manager to emit network events on.
+      /// \param[in] _options Advanced options for underlying ign-transport
       public: explicit PeerTracker(
-                  EventManager* _eventMgr = nullptr,
+                  EventManager *_eventMgr = nullptr,
                   const NodeOptions &_options = NodeOptions());
 
       /// \brief Destructor
       public: ~PeerTracker();
 
-      public: using Duration = std::chrono::steady_clock::duration;
-
-      /// \brief Set heartbeat period.
-      /// \param[in] _period - frequency at which heartbeat occurs.
+      /// \brief Set heartbeat period for this peer.
+      /// \param[in] _period Period at which heartbeat occurs.
       public: void SetHeartbeatPeriod(const Duration &_period);
 
       /// \brief Get heartbeat period.
+      /// \return Heartbeat period.
       public: Duration HeartbeatPeriod() const;
 
-      /// \brief Set number of heartbeats before a peer is marked stale.
-      /// \param[in] _multipler - Multiplier of heartbeat period.
+      /// \brief Set number of heartbeats of this peer before a peer is marked
+      /// stale.
+      ///
+      /// Note that the total time to consider a peer stale is based on this
+      /// peer's heartbeat period. The maximum stale time is:
+      ///
+      /// max = heartbeatPeriod * staleMultiplier
+      ///
+      /// \param[in] _multipler Multiplier of heartbeat period.
       public: void SetStaleMultiplier(const size_t &_multiplier);
 
       /// \brief Get current heartbeat multiplier
+      /// \return Number of hearbeats before a peer is marked stale.
       public: size_t StaleMultiplier() const;
 
       /// \brief Connect to the network graph.
       ///
-      /// Announce the exitence of a peer with given information _info,
+      /// Announce the existence of a peer with given information _info,
       /// and start executing heartbeats and peer tracking.
-      /// \param[in] _info - Peer information to announce
+      /// \param[in] _info Peer information to announce
       public: void Connect(std::shared_ptr<PeerInfo> _info);
 
       /// \brief Disconnect from the network graph.
@@ -101,34 +109,44 @@ namespace ignition
       public: size_t NumPeers() const;
 
       /// \brief Retrieve number of detected peers in the network by role.
-      /// \param[in] _role - Role of peers to enumerate
+      /// \param[in] _role Role of peers to enumerate
+      /// \return Number of peers with the given role.
       public: size_t NumPeers(const NetworkRole &_role) const;
 
       /// \brief Internal loop to announce and check stale peers.
       private: void HeartbeatLoop();
 
-      /// \brief Helper function for removing a peer
+      /// \brief Helper function for adding a peer
+      /// \param[in] _info Peer to add
       private: void AddPeer(const PeerInfo &_info);
 
       /// \brief Helper function for removing a peer
-      private: void RemovePeer(const PeerInfo &_info);
+      /// \param[in] _info Peer to remove
+      /// \return True if successfully removed.
+      private: bool RemovePeer(const PeerInfo &_info);
 
       /// \brief Callback for the announcement of a peer
+      /// \param[in] _info Announcement from another peer.
       private: void OnPeerAnnounce(const msgs::PeerAnnounce &_info);
 
       /// \brief Callback for peer heartbeat
+      /// \param[in] _info Heartbeat from another peer.
       private: void OnPeerHeartbeat(const msgs::PeerInfo &_info);
 
       /// \brief Callback for when peer errors are detected.
+      /// \param[in] _info Info from peer which had an error.
       private: void OnPeerError(const PeerInfo &_info);
 
       /// \brief Callback for when a peer is added.
+      /// \param[in] _info Info from peer which was added.
       private: void OnPeerAdded(const PeerInfo &_info);
 
       /// \brief Callback for when a peer is removed.
+      /// \param[in] _info Info from peer which was removed.
       private: void OnPeerRemoved(const PeerInfo &_info);
 
       /// \brief Callback for when a peer goes stale.
+      /// \param[in] _info Info from peer which is stale.
       private: void OnPeerStale(const PeerInfo &_info);
 
       /// \brief Transport node
@@ -143,8 +161,13 @@ namespace ignition
       /// \brief Information about discovered peers
       struct PeerState
       {
+        /// \brief Peer info
         PeerInfo info;
+
+         /// \brief Keep last header time
         std::chrono::steady_clock::time_point lastHeader;
+
+        /// \brief Keep last time heartbeat was received
         std::chrono::steady_clock::time_point lastSeen;
       };
 
@@ -164,7 +187,7 @@ namespace ignition
       /// \brief Thread for executing heartbeat loop
       private: std::thread heartbeatThread;
 
-      /// \brief Flag for exection of heartbeat loop
+      /// \brief Flag for execution of heartbeat loop
       private: std::atomic<bool> heartbeatRunning;
 
       /// \brief Period to publish heartbeat at
@@ -174,7 +197,7 @@ namespace ignition
       private: size_t staleMultiplier {5};
 
       /// \brief Event manager instance to be used to emit network events.
-      private: EventManager* eventMgr;
+      private: EventManager *eventMgr;
 
       /// \brief Peer information that this tracker announces.
       private: std::shared_ptr<PeerInfo> info;

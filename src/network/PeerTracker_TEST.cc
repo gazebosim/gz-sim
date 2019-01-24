@@ -18,25 +18,30 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <ignition/common/Console.hh>
 
 #include "PeerTracker.hh"
 #include "ignition/gazebo/EventManager.hh"
 
 using namespace ignition::gazebo;
 
+//////////////////////////////////////////////////
 TEST(PeerTracker, PeerTracker)
 {
+  ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   std::atomic<int> peers = 0;
-  auto added = eventMgr.Connect<PeerAdded>([&peers](PeerInfo _peer){
-      (void) _peer;
-      peers++;
+  auto added = eventMgr.Connect<PeerAdded>([&peers](PeerInfo _peer)
+  {
+    (void) _peer;
+    peers++;
   });
 
-  auto removed = eventMgr.Connect<PeerRemoved>([&peers](PeerInfo _peer){
-      (void) _peer;
-      peers--;
+  auto removed = eventMgr.Connect<PeerRemoved>([&peers](PeerInfo _peer)
+  {
+    (void) _peer;
+    peers--;
   });
 
   auto tracker1 = PeerTracker(&eventMgr);
@@ -44,6 +49,7 @@ TEST(PeerTracker, PeerTracker)
   auto tracker3 = PeerTracker();
   auto tracker4 = PeerTracker();
   auto tracker5 = PeerTracker();
+  auto tracker6 = PeerTracker();
 
   auto info1 = std::make_shared<PeerInfo>();
   info1->role = NetworkRole::SimulationPrimary;
@@ -59,6 +65,9 @@ TEST(PeerTracker, PeerTracker)
 
   auto info5 = std::make_shared<PeerInfo>();
   info5->role = NetworkRole::ReadOnly;
+
+  auto info6 = std::make_shared<PeerInfo>();
+  info6->role = NetworkRole::None;
 
   tracker1.Connect(info1);
   EXPECT_EQ(0, peers);
@@ -79,64 +88,76 @@ TEST(PeerTracker, PeerTracker)
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
   EXPECT_EQ(4, peers);
 
+  tracker6.Connect(info6);
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  EXPECT_EQ(5, peers);
+
   // Allow all the heartbeats to propagate
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // All counts exclude self.
-  EXPECT_EQ(4u, tracker1.NumPeers());
-  EXPECT_EQ(4u, tracker2.NumPeers());
-  EXPECT_EQ(4u, tracker3.NumPeers());
-  EXPECT_EQ(4u, tracker4.NumPeers());
-  EXPECT_EQ(4u, tracker5.NumPeers());
+  EXPECT_EQ(5u, tracker1.NumPeers());
+  EXPECT_EQ(5u, tracker2.NumPeers());
+  EXPECT_EQ(5u, tracker3.NumPeers());
+  EXPECT_EQ(5u, tracker4.NumPeers());
+  EXPECT_EQ(5u, tracker5.NumPeers());
 
   EXPECT_EQ(0u, tracker1.NumPeers(NetworkRole::SimulationPrimary));
   EXPECT_EQ(2u, tracker1.NumPeers(NetworkRole::SimulationSecondary));
   EXPECT_EQ(2u, tracker1.NumPeers(NetworkRole::ReadOnly));
+  EXPECT_EQ(1u, tracker1.NumPeers(NetworkRole::None));
 
   EXPECT_EQ(1u, tracker2.NumPeers(NetworkRole::SimulationPrimary));
   EXPECT_EQ(1u, tracker2.NumPeers(NetworkRole::SimulationSecondary));
   EXPECT_EQ(2u, tracker2.NumPeers(NetworkRole::ReadOnly));
+  EXPECT_EQ(1u, tracker2.NumPeers(NetworkRole::None));
 
   EXPECT_EQ(1u, tracker3.NumPeers(NetworkRole::SimulationPrimary));
   EXPECT_EQ(1u, tracker3.NumPeers(NetworkRole::SimulationSecondary));
   EXPECT_EQ(2u, tracker3.NumPeers(NetworkRole::ReadOnly));
+  EXPECT_EQ(1u, tracker3.NumPeers(NetworkRole::None));
 
   EXPECT_EQ(1u, tracker4.NumPeers(NetworkRole::SimulationPrimary));
   EXPECT_EQ(2u, tracker4.NumPeers(NetworkRole::SimulationSecondary));
   EXPECT_EQ(1u, tracker4.NumPeers(NetworkRole::ReadOnly));
+  EXPECT_EQ(1u, tracker4.NumPeers(NetworkRole::None));
 
   EXPECT_EQ(1u, tracker5.NumPeers(NetworkRole::SimulationPrimary));
   EXPECT_EQ(2u, tracker5.NumPeers(NetworkRole::SimulationSecondary));
   EXPECT_EQ(1u, tracker5.NumPeers(NetworkRole::ReadOnly));
+  EXPECT_EQ(1u, tracker5.NumPeers(NetworkRole::None));
+
+  tracker6.Disconnect();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_EQ(4, peers);
 
   tracker5.Disconnect();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_EQ(3, peers);
 
   tracker4.Disconnect();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_EQ(2, peers);
 
   tracker3.Disconnect();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_EQ(1, peers);
 
   tracker2.Disconnect();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_EQ(0, peers);
 
   tracker1.Disconnect();
 }
 
+//////////////////////////////////////////////////
 TEST(PeerTracker, PeerTrackerStale)
 {
+  ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
-  std::atomic<int> stalePeers = 0;
-
-  auto stale = eventMgr.Connect<PeerStale>([&stalePeers](PeerInfo _peer){
-      (void) _peer;
-      stalePeers++;
-  });
-
+  // Tracker with artificially short timeout.
   auto tracker1 = PeerTracker(&eventMgr);
-  // Make heartbeat timeout artificially short.
   tracker1.SetHeartbeatPeriod(std::chrono::milliseconds(10));
   tracker1.SetStaleMultiplier(1);
 
@@ -149,6 +170,13 @@ TEST(PeerTracker, PeerTrackerStale)
   auto info2 = std::make_shared<PeerInfo>();
   info2->role = NetworkRole::SimulationSecondary;
 
+  std::atomic<int> stalePeers = 0;
+  auto stale = eventMgr.Connect<PeerStale>([&](PeerInfo _peer)
+  {
+    EXPECT_EQ(_peer.id, info2->id);
+    stalePeers++;
+  });
+
   tracker1.Connect(info1);
   tracker2.Connect(info2);
 
@@ -159,10 +187,15 @@ TEST(PeerTracker, PeerTrackerStale)
   // not true.
   EXPECT_EQ(0u, tracker1.NumPeers());
   EXPECT_EQ(1u, tracker2.NumPeers());
+
+  // PeerTracker will print a debug message when DISCONNECTING message is
+  // received from stale peer
 }
 
+//////////////////////////////////////////////////
 TEST(PeerTracker, Partitioned)
 {
+  ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   auto options1 = ignition::transport::NodeOptions();
@@ -180,6 +213,9 @@ TEST(PeerTracker, Partitioned)
   auto info2 = std::make_shared<PeerInfo>();
   info2->role = NetworkRole::SimulationPrimary;
   tracker2.Connect(info2);
+
+  // Allow all the heartbeats to propagate
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Trackers should not detect peers in different partitions
   EXPECT_EQ(0u, tracker1.NumPeers());
@@ -208,8 +244,10 @@ TEST(PeerTracker, Partitioned)
   EXPECT_EQ(1u, tracker4.NumPeers());
 }
 
+//////////////////////////////////////////////////
 TEST(PeerTracker, Namespaced)
 {
+  ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   auto options1 = ignition::transport::NodeOptions();
@@ -227,6 +265,9 @@ TEST(PeerTracker, Namespaced)
   auto info2 = std::make_shared<PeerInfo>();
   info2->role = NetworkRole::SimulationPrimary;
   tracker2.Connect(info2);
+
+  // Allow some time for heartbeats to propagate
+  std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
   // Trackers should not detect peers in different namespaces
   EXPECT_EQ(0u, tracker1.NumPeers());
@@ -255,10 +296,12 @@ TEST(PeerTracker, Namespaced)
   EXPECT_EQ(1u, tracker4.NumPeers());
 }
 
+//////////////////////////////////////////////////
 // Only on Linux for the moment
 #ifdef  __linux__
-TEST(PeerTracker, Partitioned_env)
+TEST(PeerTracker, PartitionedEnv)
 {
+  ignition::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   setenv("IGN_PARTITION", "p1", 1);
@@ -272,6 +315,9 @@ TEST(PeerTracker, Partitioned_env)
   auto info2 = std::make_shared<PeerInfo>();
   info2->role = NetworkRole::SimulationPrimary;
   tracker2.Connect(info2);
+
+  // Allow some time for heartbeats to propagate
+  std::this_thread::sleep_for(std::chrono::milliseconds(110));
 
   // Trackers should not detect peers in different partitions
   EXPECT_EQ(0u, tracker1.NumPeers());
@@ -298,5 +344,7 @@ TEST(PeerTracker, Partitioned_env)
   EXPECT_EQ(1u, tracker2.NumPeers());
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
+
+  unsetenv("IGN_PARTITION");
 }
 #endif
