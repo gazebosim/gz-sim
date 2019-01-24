@@ -44,15 +44,15 @@ namespace systems
     public: explicit Physics();
 
     /// \brief Destructor
-    public: virtual ~Physics();
+    public: ~Physics() override;
 
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
-                EntityComponentManager &_ecm) override final;
+                EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) override final;
+                const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;

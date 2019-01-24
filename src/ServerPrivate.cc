@@ -135,7 +135,7 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 
   _res.Clear();
 
-  for (auto name : this->worldNames)
+  for (const auto &name : this->worldNames)
   {
     _res.add_data(name);
   }

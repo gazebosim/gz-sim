@@ -1,2 +1,4 @@
 codecov:
   branch: default
+ignore:
+  - "test"

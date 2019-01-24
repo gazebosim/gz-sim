@@ -35,6 +35,10 @@ namespace components
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information.
   using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
+
+  /// \brief A component type that contains pose, ignition::math::Pose3d,
+  /// information in world frame.
+  using WorldPose = SimpleWrapper<ignition::math::Pose3d, class WorldPoseTag>;
 }
 }
 }

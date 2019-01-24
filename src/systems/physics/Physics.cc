@@ -17,10 +17,12 @@
 
 #include <iostream>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/math/eigen3/Conversions.hh>
 #include <ignition/physics/FeatureList.hh>
 #include <ignition/physics/FeaturePolicy.hh>
+#include <ignition/physics/RelativeQuantity.hh>
 #include <ignition/physics/RequestEngine.hh>
 #include <ignition/plugin/Loader.hh>
 #include <ignition/plugin/PluginPtr.hh>
@@ -63,6 +65,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -130,19 +133,19 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, WorldPtrType> entityWorldMap;
+  public: std::unordered_map<Entity, WorldPtrType> entityWorldMap;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, ModelPtrType> entityModelMap;
+  public: std::unordered_map<Entity, ModelPtrType> entityModelMap;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
-  public: std::unordered_map<EntityId, LinkPtrType> entityLinkMap;
+  public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
-  public: std::unordered_map<EntityId, JointPtrType> entityJointMap;
+  public: std::unordered_map<Entity, JointPtrType> entityJointMap;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -181,13 +184,12 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 }
 
 //////////////////////////////////////////////////
-Physics::~Physics()
-{
-}
+Physics::~Physics() = default;
 
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Physics::Update");
   if (this->dataPtr->engine)
   {
     if (!this->dataPtr->initialized)
@@ -210,6 +212,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 void Physics::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Physics::PostUpdate");
   (void)_info;
   (void)_ecm;
 }
@@ -219,7 +222,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Get all the worlds
   _ecm.Each<components::World, components::Name>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::World * /* _world */,
         const components::Name *_name)->bool
       {
@@ -235,7 +238,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Model, components::Name, components::Pose,
             components::ParentEntity, components::Static>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Model * /* _model */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -257,7 +260,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   _ecm.Each<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
-      [&](const EntityId &_entity,
+      [&](const Entity &_entity,
         const components::Link * /* _link */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -288,7 +291,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   // collisions
   _ecm.Each<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
-      [&](const EntityId & /* _entity */,
+      [&](const Entity & /* _entity */,
         const components::Collision * /* _collision */,
         const components::Name *_name,
         const components::Pose *_pose,
@@ -337,7 +340,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             components::Pose, components::ThreadPitch, components::ParentEntity,
             components::ParentLinkName,
             components::ChildLinkName>(
-      [&](const EntityId &  _entity,
+      [&](const Entity &  _entity,
         const components::Joint * /* _joint */,
         const components::Name *_name,
         const components::JointType *_jointType,
@@ -382,9 +385,10 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
   // Handle joint state
   _ecm.Each<components::Joint>(
-      [&](const EntityId &_entity, const components::Joint *)
+      [&](const Entity &_entity, const components::Joint *)
       {
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt == this->entityJointMap.end())
@@ -405,6 +409,7 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 {
+  IGN_PROFILE("PhysicsPrivate::Step");
   ignition::physics::ForwardStep::Input input;
   ignition::physics::ForwardStep::State state;
   ignition::physics::ForwardStep::Output output;
@@ -420,8 +425,9 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 {
+  IGN_PROFILE("PhysicsPrivate::UpdateSim");
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
-      [&](const EntityId &_entity, components::Link * /*_link*/,
+      [&](const Entity &_entity, components::Link * /*_link*/,
           components::Pose *_pose, components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_entity);
@@ -434,6 +440,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto parentPose =
               _ecm.Component<components::Pose>(_parent->Data());
 
+          auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
+
           // if the parentPose is a nullptr, something is wrong with ECS
           // creation
           if (!parentPose)
@@ -445,8 +453,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (canonicalLink)
           {
             // This is the canonical link, update the model
-            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
-            // the Pose component, _pose, of this link is the initial
+            // The Pose component, _pose, of this link is the initial
             // transform of the link w.r.t its model. This component never
             // changes because it's "fixed" to the model. Instead, we change
             // the model's pose here. The physics engine gives us the pose of
@@ -458,7 +465,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           }
           else
           {
-            auto worldPose = linkIt->second->FrameDataRelativeToWorld().pose;
             // Compute the relative pose of this link from the model
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentPose->Data().Inverse());
@@ -468,6 +474,83 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         {
           ignwarn << "Unknown link with id " << _entity << " found\n";
         }
+        return true;
+      });
+
+
+  // world pose
+  _ecm.Each<components::Pose, components::WorldPose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose, components::WorldPose *_worldPose,
+          components::ParentEntity *_parent)->bool
+      {
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          *_worldPose = components::WorldPose(
+              math::eigen3::convert(frameDataWorld.pose));
+          return true;
+        }
+
+        // check if parent entity is a link, e.g. entity is sensor / collision
+        linkIt = this->entityLinkMap.find(_parent->Data());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          auto linkWorldPose = frameDataWorld.pose;
+          auto entityWorldPose = _pose->Data() +
+              math::eigen3::convert(linkWorldPose);
+          *_worldPose = components::WorldPose(entityWorldPose);
+          return true;
+        }
+
+        return true;
+      });
+
+  // world linear velocity
+  _ecm.Each<components::Pose, components::WorldLinearVelocity,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::WorldLinearVelocity *_worldLinearVel,
+          components::ParentEntity *_parent)->bool
+      {
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          auto frameDataWorld = linkIt->second->FrameDataRelativeToWorld();
+          *_worldLinearVel = components::WorldLinearVelocity(
+              math::eigen3::convert(frameDataWorld.linearVelocity));
+          return true;
+        }
+
+        // check if parent entity is a link, e.g. entity is sensor / collision
+        linkIt = this->entityLinkMap.find(_parent->Data());
+        if (linkIt != this->entityLinkMap.end())
+        {
+          // offset is entity pos relative to parent link
+          physics::FrameData3d entityFromLink;
+          math::Vector3d offset = _pose->Data().Pos();
+          entityFromLink.pose.translation() = math::eigen3::convert(offset);
+          entityFromLink.pose.linear() =
+              math::eigen3::convert(math::Matrix3d::Identity);
+
+          physics::RelativeFrameData3d relFrameData(
+              linkIt->second->GetFrameID(), entityFromLink);
+          auto entityFrameData =
+              this->engine->Resolve(relFrameData, physics::FrameID::World());
+
+          // set entity world linear velocity
+          *_worldLinearVel = components::WorldLinearVelocity(
+              math::eigen3::convert(entityFrameData.linearVelocity));
+
+          return true;
+        }
+
         return true;
       });
 }
