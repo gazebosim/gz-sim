@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_ENTITY_HH_
 #define IGNITION_GAZEBO_ENTITY_HH_
 
+#include <limits>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -55,10 +57,10 @@ namespace ignition
     ///
     /// An Entity that needs to be identified and used by Systems should be
     /// created through the EntityComponentManager.
-    using Entity = int;
+    using Entity = uint64_t;
 
     /// \brief Indicates a non-existant or invalid Entity.
-    const Entity kNullEntity{-1};
+    const Entity kNullEntity{std::numeric_limits<uint64_t>::max()};
     }
   }
 }
