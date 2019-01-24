@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <ignition/math/Angle.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Quaternion.hh>
 
@@ -58,21 +59,35 @@ int main(int argc, char **argv)
   double y = strToDouble(argv[3]);
   double z = strToDouble(argv[4]);
 
-  std::cout << "Converting Quaternion:"
+  std::cout << "Normalizing Quaternion components:"
             << "\n  W " << w
             << "\n  X " << x
             << "\n  Y " << y
             << "\n  Z " << z
             << std::endl;
   ignition::math::Quaterniond q(w, x, y, z);
+  q.Normalize();
+  std::cout << "\nto"
+            << "\n  W " << q.W()
+            << "\n  X " << q.X()
+            << "\n  Y " << q.Y()
+            << "\n  Z " << q.Z()
+            << std::endl;
+
   ignition::math::Matrix3d m(q);
   ignition::math::Vector3d euler(q.Euler());
 
-  std::cout << "\nto Euler angles\n";
-  printf(" roll  % .6f\n"
-         " pitch % .6f\n"
-         " yaw   % .6f\n",
+  std::cout << "\nConverting to Euler angles\n";
+  printf(" roll  % .6f radians\n"
+         " pitch % .6f radians\n"
+         " yaw   % .6f radians\n\n",
           euler.X(), euler.Y(), euler.Z());
+  printf(" roll  % .6f degrees\n"
+         " pitch % .6f degrees\n"
+         " yaw   % .6f degrees\n",
+          IGN_RTOD(euler.X()),
+          IGN_RTOD(euler.Y()),
+          IGN_RTOD(euler.Z()));
 
   std::cout << "\nto Rotation matrix\n";
   printf("   % .6f  % .6f  % .6f\n"
