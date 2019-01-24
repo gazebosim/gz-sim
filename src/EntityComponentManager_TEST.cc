@@ -54,7 +54,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   int count = 10;
 
   gazebo::Entity entity = manager.CreateEntity();
-  EXPECT_EQ(0, entity);
+  EXPECT_EQ(0u, entity);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -105,7 +105,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   int count = 100000;
 
   gazebo::Entity entity = manager.CreateEntity();
-  EXPECT_EQ(0, entity);
+  EXPECT_EQ(0u, entity);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -162,8 +162,8 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
   EXPECT_FALSE(manager.RemoveComponent(1, key));
 
   // Can't remove a component that doesn't exist.
-  EXPECT_EQ(0, manager.CreateEntity());
-  EXPECT_EQ(1, manager.CreateEntity());
+  EXPECT_EQ(0u, manager.CreateEntity());
+  EXPECT_EQ(1u, manager.CreateEntity());
   EXPECT_TRUE(manager.HasEntity(1));
   EXPECT_FALSE(manager.RemoveComponent(1, key));
 
@@ -726,20 +726,30 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
 TEST_P(EntityComponentManagerFixture, EraseEntity)
 {
   // Create some entities
-  gazebo::Entity eInt = manager.CreateEntity();
-  gazebo::Entity eDouble = manager.CreateEntity();
-  gazebo::Entity eIntDouble = manager.CreateEntity();
+  auto e0 = manager.CreateEntity();
+  EXPECT_EQ(0u, e0);
+  EXPECT_TRUE(manager.HasEntity(e0));
+
+  auto e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, e1);
+  EXPECT_TRUE(manager.HasEntity(e1));
+
+  auto e2 = manager.CreateEntity();
+  EXPECT_EQ(2u, e2);
+  EXPECT_TRUE(manager.HasEntity(e2));
+
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete an Entity
-  manager.RequestEraseEntity(eDouble);
+  manager.RequestEraseEntity(e1);
   EXPECT_EQ(3u, manager.EntityCount());
   manager.ProcessEntityErasures();
   EXPECT_EQ(2u, manager.EntityCount());
+  EXPECT_FALSE(manager.HasEntity(e1));
 
-  // Creating an new entity should reuse the previously deleted entity.
-  gazebo::Entity eDoubleAgain = manager.CreateEntity();
-  EXPECT_EQ(eDouble, eDoubleAgain);
+  // Creating an new entity shouldn't reuse the previously deleted entity.
+  auto e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, e3);
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Can not delete an invalid entity.
@@ -755,24 +765,16 @@ TEST_P(EntityComponentManagerFixture, EraseEntity)
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Delete another
-  manager.RequestEraseEntity(1);
+  manager.RequestEraseEntity(2);
   EXPECT_EQ(2u, manager.EntityCount());
   manager.ProcessEntityErasures();
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Delete last
-  manager.RequestEraseEntity(2);
+  manager.RequestEraseEntity(3);
   EXPECT_EQ(1u, manager.EntityCount());
   manager.ProcessEntityErasures();
   EXPECT_EQ(0u, manager.EntityCount());
-
-  // Recreate entities
-  eInt = manager.CreateEntity();
-  EXPECT_EQ(0, eInt);
-  eDouble = manager.CreateEntity();
-  EXPECT_EQ(1, eDouble);
-  eIntDouble = manager.CreateEntity();
-  EXPECT_EQ(2, eIntDouble);
 }
 
 //////////////////////////////////////////////////
