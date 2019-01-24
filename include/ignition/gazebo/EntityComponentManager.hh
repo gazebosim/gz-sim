@@ -146,6 +146,9 @@ namespace ignition
       /// \brief Constructor
       public: ComponentStorageBase() = default;
 
+      /// \brief Destructor
+      public: virtual ~ComponentStorageBase() = default;
+
       /// \brief Create a new component using the provided data.
       /// \param[in] _data Data used to construct the component.
       /// \return Id of the new component, and whether the components array
