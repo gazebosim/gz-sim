@@ -32,19 +32,32 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     class IGNITION_GAZEBO_VISIBLE PeerInfo {
+      //
+      /// \brief Constructor
       public: PeerInfo();
+
+      /// \brief Unique peer ID in the network
       public: std::string id;
+
+      /// \brief Peer hostname
       public: std::string hostname;
+
+      /// \brief Peer's role in the network
       public: NetworkRole role;
     };
     }
 
+    /// \brief Construct a `PeerInfo` object from a message.
+    /// \param[in] _proto Message
+    /// \result Equivalent PeerInfo
     IGNITION_GAZEBO_VISIBLE PeerInfo fromProto(const msgs::PeerInfo &_proto);
+
+    /// \brief Construct a `PeerInfo` message from an object.
+    /// \param[in] _info Peer info object
+    /// \result Equivalent message
     IGNITION_GAZEBO_VISIBLE msgs::PeerInfo toProto(const PeerInfo &_info);
-
-
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKCONFIG_HH_
+#endif  // IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
 

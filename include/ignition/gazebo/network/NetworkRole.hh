@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
 #define IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
 
-#include <memory>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
