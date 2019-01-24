@@ -21,7 +21,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
-    EventManager* _eventMgr,
+    EventManager *_eventMgr,
     const ignition::transport::NodeOptions &_options):
   node(_options),
   eventMgr(_eventMgr)
@@ -31,7 +31,7 @@ PeerTracker::PeerTracker(
 /////////////////////////////////////////////////
 PeerTracker::~PeerTracker()
 {
-  Disconnect();
+  this->Disconnect();
 }
 
 /////////////////////////////////////////////////
@@ -74,14 +74,21 @@ void PeerTracker::Connect(std::shared_ptr<PeerInfo> _info)
   this->announcePub.Publish(msg);
 
   this->heartbeatRunning = true;
-  this->heartbeatThread = std::thread([this](){ this->HeartbeatLoop(); });
+  this->heartbeatThread = std::thread([this]()
+    {
+      this->HeartbeatLoop();
+    });
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::Disconnect()
 {
+  this->node.Unsubscribe("heartbeat");
+  this->node.Unsubscribe("announce");
+
   this->heartbeatRunning = false;
-  if (this->heartbeatThread.joinable()) {
+  if (this->heartbeatThread.joinable())
+  {
     this->heartbeatThread.join();
   }
 
@@ -94,9 +101,6 @@ void PeerTracker::Disconnect()
     this->announcePub.Publish(msg);
     this->info.reset();
   }
-
-  this->node.Unsubscribe("heartbeat");
-  this->node.Unsubscribe("announce");
 }
 
 /////////////////////////////////////////////////
@@ -134,7 +138,7 @@ void PeerTracker::HeartbeatLoop()
     this->heartbeatPub.Publish(toProto(*this->info));
 
     std::vector<PeerInfo> toRemove;
-    for (auto peer : peers)
+    for (auto peer : this->peers)
     {
       auto age = Clock::now() - peer.second.lastSeen;
       if (age > (this->staleMultiplier * this->heartbeatPeriod))
@@ -173,19 +177,26 @@ void PeerTracker::AddPeer(const PeerInfo &_info)
 }
 
 /////////////////////////////////////////////////
-void PeerTracker::RemovePeer(const PeerInfo &_info)
+bool PeerTracker::RemovePeer(const PeerInfo &_info)
 {
+  if (!this->info)
+  {
+    ignerr << "Internal error: peer missing info." << std::endl;
+    return false;
+  }
+
   auto lock = PeerLock(this->peersMutex);
 
   auto iter = this->peers.find(_info.id);
   if (iter == this->peers.end())
   {
-    igndbg << "Atempting to remove a peer that wasn't connected" << std::endl;
+    igndbg << "Attempting to remove peer [" << _info.id << "] from ["
+           << this->info->id << "] but it wasn't connected" << std::endl;
+    return false;
   }
-  else
-  {
-    this->peers.erase(iter);
-  }
+
+  this->peers.erase(iter);
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -197,7 +208,8 @@ void PeerTracker::OnPeerAnnounce(const msgs::PeerAnnounce &_announce)
   if (this->info && peer.id == this->info->id)
     return;
 
-  switch (_announce.state()) {
+  switch (_announce.state())
+  {
     case msgs::PeerAnnounce::CONNECTING:
       this->OnPeerAdded(peer);
       break;
@@ -237,7 +249,7 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
   }
 
   // Update information about the state of this peer.
-  auto& peerState = this->peers[peer.id];
+  auto &peerState = this->peers[peer.id];
   peerState.lastSeen = std::chrono::steady_clock::now();
   peerState.lastHeader = std::chrono::steady_clock::time_point(
       std::chrono::seconds(_info.header().stamp().sec()) +
@@ -247,10 +259,10 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
 /////////////////////////////////////////////////
 void PeerTracker::OnPeerError(const PeerInfo &_info)
 {
-  this->RemovePeer(_info);
+  auto success = this->RemovePeer(_info);
 
   // Emit event for any consumers
-  if (eventMgr)
+  if (success && eventMgr)
     eventMgr->Emit<PeerError>(_info);
 }
 
@@ -267,19 +279,19 @@ void PeerTracker::OnPeerAdded(const PeerInfo &_info)
 /////////////////////////////////////////////////
 void PeerTracker::OnPeerRemoved(const PeerInfo &_info)
 {
-  this->RemovePeer(_info);
+  auto success = this->RemovePeer(_info);
 
   // Emit event for any consumers
-  if (eventMgr)
+  if (success && eventMgr)
     eventMgr->Emit<PeerRemoved>(_info);
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::OnPeerStale(const PeerInfo &_info)
 {
-  this->RemovePeer(_info);
+  auto success = this->RemovePeer(_info);
 
   // Emit event for any consumers
-  if (eventMgr)
+  if (success && eventMgr)
     eventMgr->Emit<PeerStale>(_info);
 }

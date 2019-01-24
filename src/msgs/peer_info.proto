@@ -21,6 +21,7 @@ package ignition.gazebo.msgs;
 
 import "ignition/msgs/header.proto";
 
+/// \brief Holds information about a peer in the network.
 message PeerInfo
 {
   /// \brief Optional header data
@@ -29,30 +30,48 @@ message PeerInfo
   /// \brief ID of the peer
   string id = 2;
 
-  /// \brief hostname of the peer
+  /// \brief Hostname of the peer
   string hostname = 3;
 
+  /// \brief Possible roles for a peer
   enum PeerRole
   {
+    /// \brief No role in the network
     NONE = 0;
+
+    /// \brief Read-only role, not executing simulation
     READ_ONLY = 1;
+
+    /// \brief Configures and assigns work to secondaries
     SIMULATION_PRIMARY = 2;
+
+    /// \brief Receives work from primary and executes
     SIMULATION_SECONDARY = 3;
   };
 
+  /// \brief This peer's role in the network
   PeerRole role = 4;
 };
 
+/// \brief Notify a peer's state to the network.
 message PeerAnnounce
 {
+  /// \brief General information about the peer
   PeerInfo info = 1;
 
+  /// \brief Possible states announced by a peer
   enum PeerState
   {
+    /// \brief An error occurred
     ERROR = 0;
+
+    /// \brief Peer is connecting right now
     CONNECTING = 1;
+
+    /// \brief Peer is disconnecting right now
     DISCONNECTING = 2;
   };
 
+  /// \brief State which the peer is announcing
   PeerState state = 2;
 };

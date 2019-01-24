@@ -36,10 +36,8 @@ ignition::gazebo::msgs::PeerInfo ignition::gazebo::toProto(
   proto.set_id(_info.id);
   proto.set_hostname(_info.hostname);
 
-  switch (_info.role) {
-    case NetworkRole::None:
-      proto.set_role(ignition::gazebo::msgs::PeerInfo::NONE);
-      break;
+  switch (_info.role)
+  {
     case NetworkRole::ReadOnly:
       proto.set_role(ignition::gazebo::msgs::PeerInfo::READ_ONLY);
       break;
@@ -49,6 +47,7 @@ ignition::gazebo::msgs::PeerInfo ignition::gazebo::toProto(
     case NetworkRole::SimulationSecondary:
       proto.set_role(ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY);
       break;
+    case NetworkRole::None:
     default:
       proto.set_role(ignition::gazebo::msgs::PeerInfo::NONE);
   }
