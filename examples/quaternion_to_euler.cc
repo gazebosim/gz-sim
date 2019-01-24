@@ -67,7 +67,7 @@ int main(int argc, char **argv)
             << std::endl;
   ignition::math::Quaterniond q(w, x, y, z);
   q.Normalize();
-  std::cout << "\nto"
+  std::cout << "to"
             << "\n  W " << q.W()
             << "\n  X " << q.X()
             << "\n  Y " << q.Y()
