@@ -120,8 +120,18 @@
       </link>
     </model>
 
-<include><uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base</uri></include>
+    <include>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base</uri>
+    </include>
 
-<include><uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri></include>
+    <include>
+      <pose>1 0 0 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
+    </include>
+
+    <include>
+      <pose>0 4 1 0 0 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Textured Shapes</uri>
+    </include>
   </world>
 </sdf>
