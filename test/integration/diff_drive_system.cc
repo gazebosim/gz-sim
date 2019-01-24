@@ -29,7 +29,7 @@
 
 #include "plugins/MockSystem.hh"
 
-#define tol 10e-6
+#define tol 10e-4
 
 using namespace ignition;
 using namespace gazebo;
