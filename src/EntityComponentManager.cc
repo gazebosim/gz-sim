@@ -65,7 +65,7 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: mutable std::map<ComponentTypeKey, View> views;
 
   /// \brief Keep track of entities already used to ensure uniqueness.
-  public: unsigned long long int entityCount{0};
+  public: uint64_t entityCount{0};
 };
 
 //////////////////////////////////////////////////
