@@ -46,9 +46,6 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
 
-  /// \brief Deleted entities that can be reused
-  public: std::set<Entity> availableEntities;
-
   /// \brief Entities that need to be erased.
   public: std::set<Entity> toEraseEntities;
 
@@ -66,6 +63,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief The set of all views.
   public: mutable std::map<ComponentTypeKey, View> views;
+
+  /// \brief Keep track of entities already used to ensure uniqueness.
+  public: unsigned long long int entityCount{0};
 };
 
 //////////////////////////////////////////////////
@@ -80,27 +80,21 @@ EntityComponentManager::~EntityComponentManager() = default;
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->dataPtr->entities.Vertices().size() -
-    this->dataPtr->availableEntities.size();
+  return this->dataPtr->entities.Vertices().size();
 }
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity entity = kNullEntity;
+  Entity entity = this->dataPtr->entityCount++;
 
-  if (!this->dataPtr->availableEntities.empty())
+  if (entity == kNullEntity)
   {
-    // Reuse the smallest available Entity
-    entity = *(this->dataPtr->availableEntities.begin());
-    this->dataPtr->availableEntities.erase(
-        this->dataPtr->availableEntities.begin());
+    ignwarn << "Reached maximum number of entities [" << entity << "]"
+            << std::endl;
+    return entity;
   }
-  else
-  {
-    // Create a brand new entity
-    entity = this->dataPtr->entities.Vertices().size();
-  }
+
   this->dataPtr->entities.AddVertex(std::to_string(entity), entity, entity);
 
   // Add entity to the list of newly created entities
@@ -175,7 +169,6 @@ void EntityComponentManager::ProcessEraseEntityRequests()
     this->dataPtr->eraseAllEntities = false;
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
-    this->dataPtr->availableEntities.clear();
     this->dataPtr->toEraseEntities.clear();
 
     for (std::pair<const ComponentTypeId,
@@ -197,8 +190,8 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       if (!this->HasEntity(entity))
         continue;
 
-      // Insert the entity into the set of available entities.
-      this->dataPtr->availableEntities.insert(entity);
+      // Remove from graph
+      this->dataPtr->entities.RemoveVertex(entity);
 
       // Remove the components, if any.
       if (this->dataPtr->entityComponents.find(entity) !=
@@ -296,13 +289,7 @@ bool EntityComponentManager::IsMarkedForErasure(const Entity _entity) const
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
-  return
-    // Check that the _entity is in range
-    _entity >= 0 &&
-    _entity < static_cast<Entity>(this->dataPtr->entities.Vertices().size())
-    // Check that the _entity is not deleted (not in the available entity set)
-    && this->dataPtr->availableEntities.find(_entity) ==
-       this->dataPtr->availableEntities.end();
+  return this->dataPtr->entities.Vertices().count(_entity) > 0;
 }
 
 /////////////////////////////////////////////////
