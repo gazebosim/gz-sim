@@ -19,6 +19,7 @@ set (sources
   SimulationRunner.cc
   System.cc
   SystemLoader.cc
+  Util.cc
   View.cc
 )
 
