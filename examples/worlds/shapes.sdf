@@ -1,4 +1,9 @@
 <?xml version="1.0" ?>
+<!--
+  Try inserting a model:
+
+      ign service -s /world/shapes/factory --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: "<model></model>"'
+-->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ode">
@@ -8,6 +13,10 @@
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::v0::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
