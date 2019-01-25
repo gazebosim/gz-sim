@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
+
 #include <gflags/gflags.h>
-#include <signal.h>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
+#include <csignal>
+#include <iostream>
 
+#include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
-
-#include <iostream>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
@@ -35,7 +35,7 @@ DEFINE_int32(verbose, 1, "");
 DEFINE_int32(v, 1, "");
 
 //////////////////////////////////////////////////
-void Help()
+void help()
 {
   std::cout
   << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
@@ -55,7 +55,7 @@ void Help()
 }
 
 //////////////////////////////////////////////////
-void Version()
+void version()
 {
   std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
 }
@@ -110,7 +110,7 @@ int main(int _argc, char **_argv)
     gflags::SetCommandLineOption("helpshort", "false");
     gflags::SetCommandLineOption("helpfull", "false");
     gflags::SetCommandLineOption("helpmatch", "");
-    Help();
+    help();
     return 0;
   }
 
@@ -118,7 +118,7 @@ int main(int _argc, char **_argv)
   if (showVersion)
   {
     gflags::SetCommandLineOption("version", "false");
-    Version();
+    version();
     return 0;
   }
 
@@ -210,8 +210,8 @@ int main(int _argc, char **_argv)
 
     for (int p = 0; p < res.plugin_size(); ++p)
     {
-      auto plugin = res.plugin(p);
-      auto fileName = plugin.filename();
+      const auto &plugin = res.plugin(p);
+      const auto &fileName = plugin.filename();
       std::string pluginStr = "<plugin filename='" + fileName + "'>" +
           plugin.innerxml() + "</plugin>";
 

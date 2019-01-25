@@ -54,21 +54,21 @@ class Relay
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnPreUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->preUpdateCallback = cb;
+    this->mockSystem->preUpdateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType cb)
+  public: Relay &OnUpdate(gazebo::MockSystem::CallbackType _cb)
   {
-    this->mockSystem->updateCallback = cb;
+    this->mockSystem->updateCallback = std::move(_cb);
     return *this;
   }
 
-  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst cb)
+  public: Relay &OnPostUpdate(gazebo::MockSystem::CallbackTypeConst _cb)
   {
-    this->mockSystem->postUpdateCallback = cb;
+    this->mockSystem->postUpdateCallback = std::move(_cb);
     return *this;
   }
 
@@ -95,8 +95,8 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   // Entities to be created in a system. These have to be out here so the
   // entityCreator can set the ids when it creates the entities and the
   // entityEraser system can access them easily
-  gazebo::EntityId e1 = gazebo::kNullEntity;
-  gazebo::EntityId e2 = gazebo::kNullEntity;
+  gazebo::Entity e1 = gazebo::kNullEntity;
+  gazebo::Entity e2 = gazebo::kNullEntity;
 
   Relay entityCreator;
   entityCreator.OnPreUpdate(
@@ -142,12 +142,12 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
     auto counterImpl = [&](const gazebo::UpdateInfo &,
                            const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.EachNew<int>([&](const gazebo::EntityId &, const int *) -> bool
+      _ecm.EachNew<int>([&](const gazebo::Entity &, const int *) -> bool
       {
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachErased<int>([&](const gazebo::EntityId &, const int *) -> bool
+      _ecm.EachErased<int>([&](const gazebo::Entity &, const int *) -> bool
       {
         ++_count.erasedEntities;
         return true;
