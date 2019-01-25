@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EventManager.hh"
 
@@ -85,3 +87,35 @@ TEST(EventManager, NewEvent)
   EXPECT_EQ("foo", val1);
   EXPECT_EQ("bar", val2);
 }
+
+TEST(EventManager, Ambiguous)
+{
+  EventManager eventManager;
+  using TestEvent1 = ignition::common::EventT<void(void)>;
+  using TestEvent2 = ignition::common::EventT<void(void)>;
+
+  std::atomic<int> calls = 0;
+  auto connection = eventManager.Connect<TestEvent1>([&](){ calls++;});
+
+  // The expectation would be that firing both events would cause only 1 call,
+  // but it gets matched twice based on fcn signature.
+  eventManager.Emit<TestEvent1>();
+  eventManager.Emit<TestEvent2>();
+  EXPECT_EQ(2, calls);
+}
+
+TEST(EventManager, Disambiguate)
+{
+  EventManager eventManager;
+  using TestEvent1 = ignition::common::EventT<void(void), struct TestEvent1Tag>;
+  using TestEvent2 = ignition::common::EventT<void(void), struct TestEvent2Tag>;
+
+  std::atomic<int> calls = 0;
+  auto connection1 = eventManager.Connect<TestEvent1>([&](){ calls++;});
+
+  // Firing both events should only call the callback once.
+  eventManager.Emit<TestEvent1>();
+  eventManager.Emit<TestEvent2>();
+  EXPECT_EQ(1, calls);
+}
+
