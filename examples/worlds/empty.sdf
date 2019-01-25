@@ -2,10 +2,10 @@
 <!--
   Try inserting a model:
 
-      ign service -s /world/shapes/factory --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: "<?xml version=\"1.0\" ?><sdf version=\"1.5\"><model name=\"spawned_model\"><static>true</static><link name=\"spawned_link\"><visual name=\"spawned_visual\"><geometry><sphere><radius>1.0</radius></sphere></geometry></visual></link></model></sdf>"'
+      ign service -s /world/empty/factory --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: "<?xml version=\"1.0\" ?><sdf version=\"1.5\"><model name=\"spawned_model\"><static>true</static><link name=\"spawned_link\"><visual name=\"spawned_visual\"><geometry><sphere><radius>1.0</radius></sphere></geometry></visual></link></model></sdf>"'
 -->
 <sdf version="1.6">
-  <world name="shapes">
+  <world name="empty">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -38,8 +38,8 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
+        <service>/world/empty/scene/info</service>
+        <pose_topic>/world/empty/pose/info</pose_topic>
       </plugin>
 
       <!-- World control -->
@@ -62,8 +62,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes/control</service>
-        <stats_topic>/world/shapes/stats</stats_topic>
+        <service>/world/empty/control</service>
+        <stats_topic>/world/empty/stats</stats_topic>
 
       </plugin>
 
@@ -88,7 +88,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes/stats</topic>
+        <topic>/world/empty/stats</topic>
 
       </plugin>
 
@@ -135,120 +135,5 @@
       </link>
     </model>
 
-    <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
-      <link name="box_link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="box_collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-
-        <visual name="box_visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
-            <emissive>1 0 0 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="cylinder">
-      <pose>0 -1.5 0.5 0 0 0</pose>
-      <link name="cylinder_link">
-        <inertial>
-          <inertia>
-            <ixx>2</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2</iyy>
-            <iyz>0</iyz>
-            <izz>2</izz>
-          </inertia>
-          <mass>2.0</mass>
-        </inertial>
-        <collision name="cylinder_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-        </collision>
-
-        <visual name="cylinder_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-            <emissive>0 1 0 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="sphere">
-      <pose>0 1.5 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>3</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3</iyy>
-            <iyz>0</iyz>
-            <izz>3</izz>
-          </inertia>
-          <mass>3.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 0 1 1</ambient>
-            <diffuse>0 0 1 1</diffuse>
-            <specular>0 0 1 1</specular>
-            <emissive>0 0 1 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
   </world>
 </sdf>
