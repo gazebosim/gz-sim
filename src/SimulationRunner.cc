@@ -116,14 +116,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
-
-  // Spawn service
-  std::string factoryService{"factory"};
-  this->node->Advertise(factoryService, &SimulationRunner::FactoryService,
-      this);
-
-  ignmsg << "Factory service on [" << opts.NameSpace() << "/"
-         << factoryService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -350,9 +342,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
         this->SetPaused(true);
       }
     }
-
-    // TODO(louise) Figure out relationship to other Process*
-    this->ProcessUserCommands();
 
     // Process world control messages.
     this->ProcessMessages();
@@ -606,68 +595,3 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
   return true;
 }
 
-//////////////////////////////////////////////////
-bool SimulationRunner::FactoryService(const msgs::EntityFactory &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<FactoryCommand>(msg);
-
-  // Push to pending
-  this->pendingCmds.push_back(std::move(cmd));
-
-  _res.Clear();
-  return true;
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::ProcessUserCommands()
-{
-  if (this->pendingCmds.empty())
-    return;
-
-  // TODO(louise) Record current world state for undo
-
-  // Execute pending commands
-  for (auto &cmd : this->pendingCmds)
-  {
-    // Execute
-    if (!cmd->Execute(this->entityCompMgr))
-      continue;
-
-    // TODO(louise) Update command with current world state
-
-    // TODO(louise) Move to undo list
-  }
-
-  // TODO(louise) Clear redo list
-
-  this->pendingCmds.clear();
-}
-
-//////////////////////////////////////////////////
-UserCommand::UserCommand(google::protobuf::Message *_msg) : msg(_msg)
-{
-}
-
-//////////////////////////////////////////////////
-FactoryCommand::FactoryCommand(msgs::EntityFactory *_msg) : UserCommand(_msg)
-{
-}
-
-//////////////////////////////////////////////////
-bool FactoryCommand::Execute(const EntityComponentManager &_ecm)
-{
-  auto factoryMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
-  if (nullptr == factoryMsg)
-  {
-    ignerr << "Internal error, null factory message" << std::endl;
-    return false;
-  }
-
-  // TODO(louise) Use CreateEntities to spawn model
-
-  return true;
-}
