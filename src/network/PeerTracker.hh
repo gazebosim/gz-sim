@@ -37,9 +37,6 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Network Events
-    /// \brief PeerError fired when there is an unexpected error in a peer
-    using PeerError = common::EventT<void(PeerInfo), struct PeerErrorTag>;
-
     /// \brief PeerAdded fired when a peer announces itself or detected via
     /// heartbeat
     using PeerAdded = common::EventT<void(PeerInfo), struct PeerAddedTag>;
@@ -61,9 +58,15 @@ namespace ignition
       public: using Duration = std::chrono::steady_clock::duration;
 
       /// \brief Constructor
+      ///
+      /// Announce the existence of a peer with given information _info,
+      /// and start executing heartbeats and peer tracking.
+      ///
       /// \param[in] _eventMgr Event Manager to emit network events on.
       /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _info Peer information to announce
       public: explicit PeerTracker(
+                  const PeerInfo  &_info,
                   EventManager *_eventMgr = nullptr,
                   const NodeOptions &_options = NodeOptions());
 
@@ -93,19 +96,7 @@ namespace ignition
       /// \return Number of hearbeats before a peer is marked stale.
       public: size_t StaleMultiplier() const;
 
-      /// \brief Connect to the network graph.
-      ///
-      /// Announce the existence of a peer with given information _info,
-      /// and start executing heartbeats and peer tracking.
-      /// \param[in] _info Peer information to announce
-      public: void Connect(std::shared_ptr<PeerInfo> _info);
-
-      /// \brief Disconnect from the network graph.
-      ///
-      /// Also announce that this peer is leaving the network.
-      public: void Disconnect();
-
-      /// \brief Retrieve number of detected peers in the network.
+      /// \brief Retrieve total number of detected peers in the network.
       public: size_t NumPeers() const;
 
       /// \brief Retrieve number of detected peers in the network by role.
@@ -113,12 +104,19 @@ namespace ignition
       /// \return Number of peers with the given role.
       public: size_t NumPeers(const NetworkRole &_role) const;
 
+      /// \brief Connect to the network graph.
+      ///
+      /// Announce the existence of a peer with given information _info,
+      /// and start executing heartbeats and peer tracking.
+      private: void Connect();
+
+      /// \brief Disconnect from the network graph.
+      ///
+      /// Also announce that this peer is leaving the network.
+      private: void Disconnect();
+
       /// \brief Internal loop to announce and check stale peers.
       private: void HeartbeatLoop();
-
-      /// \brief Helper function for adding a peer
-      /// \param[in] _info Peer to add
-      private: void AddPeer(const PeerInfo &_info);
 
       /// \brief Helper function for removing a peer
       /// \param[in] _info Peer to remove
@@ -133,10 +131,6 @@ namespace ignition
       /// \param[in] _info Heartbeat from another peer.
       private: void OnPeerHeartbeat(const msgs::PeerInfo &_info);
 
-      /// \brief Callback for when peer errors are detected.
-      /// \param[in] _info Info from peer which had an error.
-      private: void OnPeerError(const PeerInfo &_info);
-
       /// \brief Callback for when a peer is added.
       /// \param[in] _info Info from peer which was added.
       private: void OnPeerAdded(const PeerInfo &_info);
@@ -148,15 +142,6 @@ namespace ignition
       /// \brief Callback for when a peer goes stale.
       /// \param[in] _info Info from peer which is stale.
       private: void OnPeerStale(const PeerInfo &_info);
-
-      /// \brief Transport node
-      private: ignition::transport::Node node;
-
-      /// \brief Heartbeat publisher
-      private: ignition::transport::Node::Publisher heartbeatPub;
-
-      /// \brief Announcement publisher
-      private: ignition::transport::Node::Publisher announcePub;
 
       /// \brief Information about discovered peers
       struct PeerState
@@ -196,11 +181,22 @@ namespace ignition
       /// \brief Timeout to mark a peer as stale.
       private: size_t staleMultiplier {5};
 
+      /// \brief Peer information that this tracker announces.
+      private: PeerInfo info;
+
       /// \brief Event manager instance to be used to emit network events.
       private: EventManager *eventMgr;
 
-      /// \brief Peer information that this tracker announces.
-      private: std::shared_ptr<PeerInfo> info;
+      /// \brief Transport node
+      private: ignition::transport::Node node;
+
+      /// \brief Heartbeat publisher
+      private: ignition::transport::Node::Publisher heartbeatPub;
+
+      /// \brief Announcement publisher
+      private: ignition::transport::Node::Publisher announcePub;
+
+
     };
     }
   }  // namespace gazebo

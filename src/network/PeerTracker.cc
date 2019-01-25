@@ -21,17 +21,47 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
+    const PeerInfo &_info,
     EventManager *_eventMgr,
     const ignition::transport::NodeOptions &_options):
-  node(_options),
-  eventMgr(_eventMgr)
+  info(_info),
+  eventMgr(_eventMgr),
+  node(_options)
 {
+  this->heartbeatPub = this->node.Advertise<msgs::PeerInfo>("heartbeat");
+  this->announcePub = this->node.Advertise<msgs::PeerAnnounce>("announce");
+  this->node.Subscribe("heartbeat", &PeerTracker::OnPeerHeartbeat, this);
+  this->node.Subscribe("announce", &PeerTracker::OnPeerAnnounce, this);
+
+  msgs::PeerAnnounce msg;
+  *msg.mutable_info() = toProto(this->info);
+  msg.set_state(msgs::PeerAnnounce::CONNECTING);
+  this->announcePub.Publish(msg);
+
+  this->heartbeatRunning = true;
+  this->heartbeatThread = std::thread([this]()
+    {
+      this->HeartbeatLoop();
+    });
 }
 
 /////////////////////////////////////////////////
 PeerTracker::~PeerTracker()
 {
-  this->Disconnect();
+  this->node.Unsubscribe("heartbeat");
+  this->node.Unsubscribe("announce");
+
+  this->heartbeatRunning = false;
+  if (this->heartbeatThread.joinable())
+  {
+    this->heartbeatThread.join();
+  }
+
+  msgs::PeerAnnounce msg;
+  *msg.mutable_info() = toProto(this->info);
+  msg.set_state(msgs::PeerAnnounce::DISCONNECTING);
+
+  this->announcePub.Publish(msg);
 }
 
 /////////////////////////////////////////////////
@@ -56,51 +86,6 @@ void PeerTracker::SetStaleMultiplier(const size_t &_multiplier)
 size_t PeerTracker::StaleMultiplier() const
 {
   return this->staleMultiplier;
-}
-
-/////////////////////////////////////////////////
-void PeerTracker::Connect(std::shared_ptr<PeerInfo> _info)
-{
-  this->info = _info;
-
-  this->heartbeatPub = this->node.Advertise<msgs::PeerInfo>("heartbeat");
-  this->announcePub = this->node.Advertise<msgs::PeerAnnounce>("announce");
-  this->node.Subscribe("heartbeat", &PeerTracker::OnPeerHeartbeat, this);
-  this->node.Subscribe("announce", &PeerTracker::OnPeerAnnounce, this);
-
-  msgs::PeerAnnounce msg;
-  *msg.mutable_info() = toProto(*this->info);
-  msg.set_state(msgs::PeerAnnounce::CONNECTING);
-  this->announcePub.Publish(msg);
-
-  this->heartbeatRunning = true;
-  this->heartbeatThread = std::thread([this]()
-    {
-      this->HeartbeatLoop();
-    });
-}
-
-/////////////////////////////////////////////////
-void PeerTracker::Disconnect()
-{
-  this->node.Unsubscribe("heartbeat");
-  this->node.Unsubscribe("announce");
-
-  this->heartbeatRunning = false;
-  if (this->heartbeatThread.joinable())
-  {
-    this->heartbeatThread.join();
-  }
-
-  if (this->info)
-  {
-    msgs::PeerAnnounce msg;
-    *msg.mutable_info() = toProto(*this->info);
-    msg.set_state(msgs::PeerAnnounce::DISCONNECTING);
-
-    this->announcePub.Publish(msg);
-    this->info.reset();
-  }
 }
 
 /////////////////////////////////////////////////
@@ -135,7 +120,7 @@ void PeerTracker::HeartbeatLoop()
   while (this->heartbeatRunning)
   {
     lastUpdateTime = Clock::now();
-    this->heartbeatPub.Publish(toProto(*this->info));
+    this->heartbeatPub.Publish(toProto(this->info));
 
     std::vector<PeerInfo> toRemove;
     for (auto peer : this->peers)
@@ -166,32 +151,15 @@ void PeerTracker::HeartbeatLoop()
 }
 
 /////////////////////////////////////////////////
-void PeerTracker::AddPeer(const PeerInfo &_info)
-{
-  auto lock = PeerLock(this->peersMutex);
-
-  auto peerState = PeerState();
-  peerState.info = _info;
-  peerState.lastSeen = std::chrono::steady_clock::now();
-  this->peers[_info.id] = peerState;
-}
-
-/////////////////////////////////////////////////
 bool PeerTracker::RemovePeer(const PeerInfo &_info)
 {
-  if (!this->info)
-  {
-    ignerr << "Internal error: peer missing info." << std::endl;
-    return false;
-  }
-
   auto lock = PeerLock(this->peersMutex);
 
   auto iter = this->peers.find(_info.id);
   if (iter == this->peers.end())
   {
     igndbg << "Attempting to remove peer [" << _info.id << "] from ["
-           << this->info->id << "] but it wasn't connected" << std::endl;
+           << this->info.id << "] but it wasn't connected" << std::endl;
     return false;
   }
 
@@ -205,7 +173,7 @@ void PeerTracker::OnPeerAnnounce(const msgs::PeerAnnounce &_announce)
   auto peer = fromProto(_announce.info());
 
   // Skip announcements from self.
-  if (this->info && peer.id == this->info->id)
+  if (peer.id == this->info.id)
     return;
 
   switch (_announce.state())
@@ -215,9 +183,6 @@ void PeerTracker::OnPeerAnnounce(const msgs::PeerAnnounce &_announce)
       break;
     case msgs::PeerAnnounce::DISCONNECTING:
       this->OnPeerRemoved(peer);
-      break;
-    case msgs::PeerAnnounce::ERROR:
-      this->OnPeerError(peer);
       break;
     default:
       break;
@@ -229,20 +194,16 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
 {
   auto peer = fromProto(_info);
 
-  if (!this->info)
-  {
-    return;
-  }
-
   // Skip hearbeats from self.
-  if (peer.id == this->info->id)
+  if (peer.id == this->info.id)
   {
     return;
   }
 
   auto lock = PeerLock(this->peersMutex);
 
-  // We may have missed a peer announce, add it on heartbeat.
+  // If it doesn't exist, we may have missed a peer announce,
+  // so add it here on the heartbeat.
   if (this->peers.find(peer.id) == this->peers.end())
   {
     this->OnPeerAdded(peer);
@@ -257,19 +218,13 @@ void PeerTracker::OnPeerHeartbeat(const msgs::PeerInfo &_info)
 }
 
 /////////////////////////////////////////////////
-void PeerTracker::OnPeerError(const PeerInfo &_info)
-{
-  auto success = this->RemovePeer(_info);
-
-  // Emit event for any consumers
-  if (success && eventMgr)
-    eventMgr->Emit<PeerError>(_info);
-}
-
-/////////////////////////////////////////////////
 void PeerTracker::OnPeerAdded(const PeerInfo &_info)
 {
-  this->AddPeer(_info);
+  auto lock = PeerLock(this->peersMutex);
+  auto peerState = PeerState();
+  peerState.info = _info;
+  peerState.lastSeen = std::chrono::steady_clock::now();
+  this->peers[_info.id] = peerState;
 
   // Emit event for any consumers
   if (eventMgr)
