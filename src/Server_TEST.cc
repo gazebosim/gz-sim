@@ -37,7 +37,7 @@ using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
 {
-  protected: virtual void SetUp()
+  protected: void SetUp() override
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
@@ -336,7 +336,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
 
   auto system = mockSystemPlugin.value()->QueryInterface<gazebo::System>();
   EXPECT_NE(system, nullptr);
-  gazebo::MockSystem* mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
+  auto mockSystem = dynamic_cast<gazebo::MockSystem*>(system);
   EXPECT_NE(mockSystem, nullptr);
 
   server.SetUpdatePeriod(1us);

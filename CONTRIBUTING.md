@@ -202,8 +202,24 @@ get aquainted with this development process.
 
     The tool does not catch all style errors. See the [code style](#markdown-header-style-guides) section below for more information.
 
+1. **(optional) Use clang-tidy for additional checks.**
+
+    clang-tidy should return no errors when run against the code base.
+
+    Ubuntu users can install via:
+
+        sudo apt-get install clang-tidy-6.0 libclang-6.0-dev python-yaml
+
+    clang-tidy can then be executed by running from the source dir:
+
+        ./tools/clang_tidy.sh
+
+    Address issues that are found.
+
+    If you are feeling adventurous, you can experiment with adding additional checks to the `.clang-tidy` file by referencing the full list of options in the [clang-tidy documentation](http://clang.llvm.org/extra/clang-tidy/checks/list.html)
+
 1. **Tests must pass.** You can check by running `make test` in
-    your build directory. Running tests may take a bit of time, be patient. 
+    your build directory. Running tests may take a bit of time, be patient.
 
 1. **Write documentation.** Document all your code. Every class, function, member variable must have doxygen comments. All code in source files must have documentation that describes the functionality. This will help reviewers and future developers.
 
