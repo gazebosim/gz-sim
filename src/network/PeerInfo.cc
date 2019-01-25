@@ -22,9 +22,9 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-PeerInfo::PeerInfo():
+PeerInfo::PeerInfo(const NetworkRole &_role):
   id(ignition::common::Uuid().String()),
-  role(NetworkRole::None)
+  role(_role)
 {
 }
 

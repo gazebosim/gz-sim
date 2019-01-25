@@ -62,14 +62,11 @@ message PeerAnnounce
   /// \brief Possible states announced by a peer
   enum PeerState
   {
-    /// \brief An error occurred
-    ERROR = 0;
-
     /// \brief Peer is connecting right now
-    CONNECTING = 1;
+    CONNECTING = 0;
 
     /// \brief Peer is disconnecting right now
-    DISCONNECTING = 2;
+    DISCONNECTING = 1;
   };
 
   /// \brief State which the peer is announcing
