@@ -129,6 +129,8 @@ namespace ignition
       /// \return Sensor entity.
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
+      public: void SetParent(Entity _child, Entity _parent);
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<FactoryPrivate> dataPtr;
     };

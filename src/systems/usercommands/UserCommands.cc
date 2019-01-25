@@ -16,6 +16,8 @@
  */
 
 #include <google/protobuf/message.h>
+#include <sdf/Root.hh>
+#include <sdf/Error.hh>
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
@@ -66,6 +68,8 @@ class FactoryCommand : public UserCommand
   public: virtual bool Execute() final;
 
   private: std::shared_ptr<Factory> factory{nullptr};
+
+  public: Entity worldEntity{kNullEntity};
 };
 }
 }
@@ -87,6 +91,8 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: transport::Node node;
 
   public: std::shared_ptr<Factory> factory{nullptr};
+
+  public: Entity worldEntity{kNullEntity};
 };
 
 //////////////////////////////////////////////////
@@ -105,6 +111,7 @@ void UserCommands::Configure(const Entity &_entity,
     EventManager &_eventManager)
 {
   this->dataPtr->factory = std::make_shared<Factory>(_ecm, _eventManager);
+  this->dataPtr->worldEntity = _entity;
 
   auto worldName = _ecm.Component<components::Name>(_entity)->Data();
 
@@ -150,6 +157,8 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<FactoryCommand>(msg, this->factory);
+  // TODO(louise) Improve this
+  cmd->worldEntity = this->worldEntity;
 
   // Push to pending
   this->pendingCmds.push_back(std::move(cmd));
@@ -180,10 +189,26 @@ bool FactoryCommand::Execute()
     return false;
   }
 
-  igndbg << factoryMsg->DebugString() << std::endl;
+  // TODO(louise): Support other message fields
+  sdf::Root root;
+  auto errors = root.LoadSdfString(factoryMsg->sdf());
 
-  // TODO(louise) Use CreateEntities to spawn model
-  // this->factory->CreateEntities();
+  if (!errors.empty())
+  {
+    for (auto &err : errors)
+      ignerr << err << std::endl;
+    return false;
+  }
+
+  if (root.ModelCount() != 1)
+  {
+    ignerr << "Expected exactly 1 <model> on SDF string:" << std::endl
+           << factoryMsg->sdf() << std::endl;
+    return false;
+  }
+
+  auto modelEntity = this->factory->CreateEntities(root.ModelByIndex(0));
+  this->factory->SetParent(modelEntity, this->worldEntity);
 
   return true;
 }

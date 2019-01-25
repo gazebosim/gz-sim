@@ -404,3 +404,10 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   return sensorEntity;
 }
 
+//////////////////////////////////////////////////
+void Factory::SetParent(Entity _child, Entity _parent)
+{
+  this->dataPtr->ecm->CreateComponent(_child,
+      components::ParentEntity(_parent));
+}
+
