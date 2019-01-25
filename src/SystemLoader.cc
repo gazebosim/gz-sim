@@ -35,31 +35,15 @@
 
 using namespace ignition::gazebo;
 
-//////////////////////////////////////////////////
-// \todo(nkoenig) Add 'homePath' to ignition common.
-std::string homePath()
-{
-  std::string homePath;
-#ifndef _WIN32
-  ignition::common::env("HOME", homePath);
-#else
-  ignition::common::env("HOMEPATH", homePath);
-#endif
-
-  return homePath;
-}
-
 class ignition::gazebo::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
-  public: explicit SystemLoaderPrivate()
-  {
-  }
+  public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const std::string &_filename,
               const std::string &_name,
-              sdf::ElementPtr /*_sdf*/,
+              const sdf::ElementPtr &/*_sdf*/,
               ignition::plugin::PluginPtr &_plugin)
   {
     ignition::common::SystemPaths systemPaths;
@@ -68,8 +52,9 @@ class ignition::gazebo::SystemLoaderPrivate
     for (const auto &path : systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
-    auto home = homePath();
-    systemPaths.AddPluginPaths(home + "/.ignition/gazebo/plugins");
+    std::string homePath;
+    ignition::common::env(IGN_HOMEDIR, homePath);
+    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
@@ -139,9 +124,7 @@ SystemLoader::SystemLoader()
 }
 
 //////////////////////////////////////////////////
-SystemLoader::~SystemLoader()
-{
-}
+SystemLoader::~SystemLoader() = default;
 
 //////////////////////////////////////////////////
 void SystemLoader::AddSystemPluginPath(const std::string &_path)
@@ -153,7 +136,7 @@ void SystemLoader::AddSystemPluginPath(const std::string &_path)
 std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_filename,
   const std::string &_name,
-  sdf::ElementPtr _sdf)
+  const sdf::ElementPtr &_sdf)
 {
   ignition::plugin::PluginPtr plugin;
 
@@ -177,7 +160,8 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 }
 
 //////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(sdf::ElementPtr _sdf)
+std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
+  const sdf::ElementPtr &_sdf)
 {
   if (nullptr == _sdf)
   {

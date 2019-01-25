@@ -42,16 +42,6 @@ namespace ignition
     /// components.
     namespace components {}
 
-    /// \brief An Entity is an id.
-    using EntityId = int;
-
-    /// \brief Indicates a non-existant or invalid Entity.
-    const EntityId kNullEntity = -1;
-
-    // Forward Declaration
-    class EntityPrivate;
-
-    /// \class Entity Entity.hh ignition/gazebo/Entity.hh
     /// \brief An Entity identifies a single object in simulation such as
     /// a model, link, or light. At its core, an Entity is just an identifier.
     ///
@@ -64,41 +54,11 @@ namespace ignition
     /// components.
     ///
     /// An Entity that needs to be identified and used by Systems should be
-    /// created through the Server.
-    class IGNITION_GAZEBO_VISIBLE Entity
-    {
-      /// \brief Default constructor
-      public: Entity() = default;
+    /// created through the EntityComponentManager.
+    using Entity = int;
 
-      /// \brief Construct an Entity with an id value.
-      /// \param[in] _id Id of an entity to create.
-      public: explicit Entity(const EntityId _id);
-
-      /// \brief Move constructor.
-      /// \param[in] _entity Entity ID to copy.
-      public: explicit Entity(Entity &&_entity) noexcept;
-
-      /// \brief Equality operator. Checks if this Entity is equivalent to
-      /// the provided Entity.
-      /// \param[in] _entity Entity to compare.
-      /// \returns true if the Entity Id's are the same.
-      public: bool operator==(const Entity &_entity) const;
-
-      /// \brief Move assignment operator.
-      /// \param[in] _entity Entity to move.
-      /// \return Reference to this object.
-      public: Entity &operator=(Entity &&_entity);
-
-      /// \brief Return id of entity.
-      /// \return Id of this Entity.
-      public: EntityId Id() const;
-
-      // Note: We are not using the private data pattern on purpose. An Entity
-      // should only have an Id.
-
-      /// \brief Id of the entity
-      private: EntityId id = kNullEntity;
-    };
+    /// \brief Indicates a non-existant or invalid Entity.
+    const Entity kNullEntity{-1};
     }
   }
 }

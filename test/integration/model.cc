@@ -30,7 +30,7 @@ using namespace ignition::gazebo;
 
 class ModelIntegrationTest : public ::testing::TestWithParam<int>
 {
-  public: void SetUp()
+  public: void SetUp() override
   {
     ignition::common::Console::SetVerbosity(4);
   }
@@ -90,7 +90,7 @@ TEST(ModelIntegrationTest, LinkByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Link
   auto eLink = ecm.CreateEntity();
@@ -112,7 +112,7 @@ TEST(ModelIntegrationTest, JointByName)
   // Model
   auto eModel = ecm.CreateEntity();
   Model model(eModel);
-  EXPECT_EQ(eModel, model.Id());
+  EXPECT_EQ(eModel, model.Entity());
 
   // Joint
   auto eJoint = ecm.CreateEntity();
