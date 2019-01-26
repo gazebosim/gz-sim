@@ -580,23 +580,23 @@ namespace ignition
         return result;
       }
 
-      /// \brief Get an entity which matches the value of all the given
-      /// components and is an immediate child of a given parent entity.
+      /// \brief Get all entities which match the value of all the given
+      /// components and are immediate children of a given parent entity.
       /// For example, the following will return a child of entity `parent`
       /// which has an int component equal to 123, and a string component
       /// equal to "name":
       ///
-      ///  auto entity = ChildByComponents(parent, 123, std::string("name"));
+      ///  auto entity = ChildrenByComponents(parent, 123, std::string("name"));
       ///
       /// \detail Component type must have inequality operator.
       ///
       /// \param[in] _parent Entity which should be an immediate parent of the
       /// returned entity.
       /// \param[in] _desiredComponents All the components which must match.
-      /// \return Entity or kNullEntity if no child entity has the exact
-      /// components.
+      /// \return All matching entities, or an empty vector if no child entity
+      /// has the exact components.
       public: template<typename ...ComponentTypeTs>
-              Entity ChildByComponents(Entity _parent,
+              std::vector<Entity> ChildrenByComponents(Entity _parent,
                    const ComponentTypeTs &..._desiredComponents) const
       {
         // Get all entities which have components of the desired types
@@ -606,7 +606,7 @@ namespace ignition
         auto children = this->Entities().AdjacentsFrom(_parent);
 
         // Iterate over entities
-        Entity result{kNullEntity};
+        std::vector<Entity> result;
         for (const Entity entity : view.entities)
         {
           if (children.find(entity) == children.end())
@@ -631,8 +631,7 @@ namespace ignition
 
           if (!different)
           {
-            result = entity;
-            break;
+            result.push_back(entity);
           }
         }
 

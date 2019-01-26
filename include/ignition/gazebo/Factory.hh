@@ -129,6 +129,12 @@ namespace ignition
       /// \return Sensor entity.
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
+      /// \brief Set an entity's parent entity. This function takes care of
+      /// updating the `EntityComponentManager` and necessary components.
+      /// \param[in] _child Entity which should be parented.
+      /// \param[in] _parent Entity which should be _child's parent.
+      public: void SetParent(Entity _child, Entity _parent);
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<FactoryPrivate> dataPtr;
     };
