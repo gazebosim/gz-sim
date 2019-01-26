@@ -106,11 +106,7 @@ Entity Factory::CreateEntities(const sdf::World *_world)
     auto model = _world->ModelByIndex(modelIndex);
     auto modelEntity = this->CreateEntities(model);
 
-    // TODO(louise) Figure out a way to avoid duplication while keeping all
-    // state in components and also keeping a convenient graph in the ECM
-    this->dataPtr->ecm->SetParentEntity(modelEntity, worldEntity);
-    this->dataPtr->ecm->CreateComponent(modelEntity,
-        components::ParentEntity(worldEntity));
+    this->SetParent(modelEntity, worldEntity);
   }
 
   // Lights
@@ -120,9 +116,7 @@ Entity Factory::CreateEntities(const sdf::World *_world)
     auto light = _world->LightByIndex(lightIndex);
     auto lightEntity = this->CreateEntities(light);
 
-    this->dataPtr->ecm->SetParentEntity(lightEntity, worldEntity);
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::ParentEntity(worldEntity));
+    this->SetParent(lightEntity, worldEntity);
   }
 
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
@@ -158,9 +152,7 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
     auto link = _model->LinkByIndex(linkIndex);
     auto linkEntity = this->CreateEntities(link);
 
-    this->dataPtr->ecm->SetParentEntity(linkEntity, modelEntity);
-    this->dataPtr->ecm->CreateComponent(linkEntity,
-        components::ParentEntity(modelEntity));
+    this->SetParent(linkEntity, modelEntity);
     if (linkIndex == 0)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
@@ -175,9 +167,7 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
     auto joint = _model->JointByIndex(jointIndex);
     auto jointEntity = this->CreateEntities(joint);
 
-    this->dataPtr->ecm->SetParentEntity(jointEntity, modelEntity);
-    this->dataPtr->ecm->CreateComponent(jointEntity,
-        components::ParentEntity(modelEntity));
+    this->SetParent(jointEntity, modelEntity);
   }
 
   // Model plugins
@@ -229,9 +219,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto visual = _link->VisualByIndex(visualIndex);
     auto visualEntity = this->CreateEntities(visual);
 
-    this->dataPtr->ecm->SetParentEntity(visualEntity, linkEntity);
-    this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(visualEntity, linkEntity);
   }
 
   // Collisions
@@ -241,9 +229,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto collision = _link->CollisionByIndex(collisionIndex);
     auto collisionEntity = this->CreateEntities(collision);
 
-    this->dataPtr->ecm->SetParentEntity(collisionEntity, linkEntity);
-    this->dataPtr->ecm->CreateComponent(collisionEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(collisionEntity, linkEntity);
   }
 
   // Lights
@@ -253,9 +239,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto light = _link->LightByIndex(lightIndex);
     auto lightEntity = this->CreateEntities(light);
 
-    this->dataPtr->ecm->SetParentEntity(lightEntity, linkEntity);
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(lightEntity, linkEntity);
   }
 
   // Sensors
@@ -265,9 +249,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto sensor = _link->SensorByIndex(sensorIndex);
     auto sensorEntity = this->CreateEntities(sensor);
 
-    this->dataPtr->ecm->SetParentEntity(sensorEntity, linkEntity);
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(sensorEntity, linkEntity);
   }
 
   return linkEntity;
@@ -412,5 +394,15 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   }
 
   return sensorEntity;
+}
+
+//////////////////////////////////////////////////
+void Factory::SetParent(Entity _child, Entity _parent)
+{
+  // TODO(louise) Figure out a way to avoid duplication while keeping all
+  // state in components and also keeping a convenient graph in the ECM
+  this->dataPtr->ecm->SetParentEntity(_child, _parent);
+  this->dataPtr->ecm->CreateComponent(_child,
+      components::ParentEntity(_parent));
 }
 

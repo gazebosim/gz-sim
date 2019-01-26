@@ -289,7 +289,8 @@ bool EntityComponentManager::IsMarkedForErasure(const Entity _entity) const
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
-  return this->dataPtr->entities.Vertices().count(_entity) > 0;
+  auto vertex = this->dataPtr->entities.VertexFromId(_entity);
+  return vertex.Id() != math::graph::kNullId;
 }
 
 /////////////////////////////////////////////////
