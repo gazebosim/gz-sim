@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_TAGWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_TAGWRAPPER_HH_
 
+#include <iostream>
 #include <memory>
 
 #include <ignition/gazebo/config.hh>
@@ -51,6 +52,28 @@ namespace components
     /// \param[in] _tagWrapper TagWrapper to compare to.
     /// \return True if different.
     public: bool operator!=(const TagWrapper &_tagWrapper) const;
+
+    /// \brief Stream insertion operator
+    /// \param _out output stream
+    /// \param _tw TagWrapper to output
+    /// \return the stream
+    public: friend std::ostream &operator<<(
+        std::ostream &_out,
+        const TagWrapper<Identifier> &/*_tw*/)
+    {
+      _out << "serialized_component";
+      return _out;
+    }
+
+    /// \brief Stream extraction operator
+    /// \param _in input stream
+    /// \param _tw TagWrapper to read values into
+    /// \return the stream
+    public: friend std::istream &operator>>(
+                std::istream &_in, TagWrapper<Identifier> &/*_tw*/)
+    {
+      return _in;
+    }
   };
 
   //////////////////////////////////////////////////

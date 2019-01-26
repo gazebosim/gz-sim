@@ -34,7 +34,7 @@ namespace components
   /// \brief A component used to indicate that a model is childlinkname (i.e.
   /// not moveable).
   using ChildLinkName = SimpleWrapper<std::string, class ChildLinkNameTag>;
-  }
+}
 }
 }
 }

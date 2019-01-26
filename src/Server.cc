@@ -33,7 +33,7 @@ static const char kDefaultWorld[] =
       "<plugin filename='libignition-gazebo-systems.so'"
       "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
       "</plugin>"
-      "<plugin filename='libignition-gazebo-systems.so'"
+      "<plugin filename='libignition-gazebo-log-system.so'"
       "        name='ignition::gazebo::systems::v0::LogRecord'>"
       "</plugin>"
       "<gui fullscreen='0'>"

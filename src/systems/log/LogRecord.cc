@@ -15,9 +15,11 @@
  *
 */
 
+#include <fstream>
+
 #include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -42,77 +44,28 @@ LogRecord::~LogRecord()
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const EntityId &/*_id*/,
+void LogRecord::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &/*_sdf*/,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
 }
 
 //////////////////////////////////////////////////
-void LogRecord::PostUpdate(const UpdateInfo &/*_info*/,
-    const EntityComponentManager &_manager)
+void LogRecord::Update(const UpdateInfo &/*_info*/,
+    EntityComponentManager &_manager)
 {
-  ignition::msgs::Pose_V poseMsg;
-
-  // Models
-  _manager.Each<components::Model, components::Name, components::Pose>(
-      [&](const EntityId &_entity, const components::Model *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-
-        return true;
-      });
-
-  // Links
-  _manager.Each<components::Link, components::Name, components::Pose>(
-      [&](const EntityId &_entity, const components::Link *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
-
-  // Visuals
-  _manager.Each<components::Visual, components::Name, components::Pose>(
-      [&](const EntityId &_entity, const components::Visual *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
-
-  // Lights
-  _manager.Each<components::Light, components::Name, components::Pose>(
-      [&](const EntityId &_entity, const components::Light *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
+  {
+    std::ofstream ofs("myfile.log");
+    ofs << _manager;
+  }
+  {
+    // Read the object back in.
+    std::ifstream ifs("myfile.log");
+    ifs >> _manager;
+  }
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure,
-                    LogRecord::ISystemPostUpdate)
+                    LogRecord::ISystemUpdate)

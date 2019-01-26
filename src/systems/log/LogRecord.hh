@@ -36,23 +36,27 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE LogRecord:
     public System,
     public ISystemConfigure,
-    public ISystemPostUpdate
+    public ISystemUpdate
   {
     /// \brief Constructor
-    public: LogRecord();
+    public: explicit LogRecord();
 
     /// \brief Destructor
-    public: virtual ~LogRecord();
+    public: ~LogRecord() override;
 
     /// Documentation inherited
-    public: void Configure(const EntityId &_id,
+    public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) override;
+                           EventManager &_eventMgr) final;
 
     /// Documentation inherited
-    public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override;
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
+
+    /// \brief A private entity component manager to store a copy of all
+    /// entities and components (just for fun).
+    private: EntityComponentManager entityCompMgr;
   };
   }
 }
