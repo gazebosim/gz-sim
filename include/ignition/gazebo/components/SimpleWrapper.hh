@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 
+#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -85,6 +86,28 @@ namespace components
     /// \param[in] _simpleWrapper SimpleWrapper to compare to.
     /// \return True if different.
     public: bool operator!=(const SimpleWrapper &_simpleWrapper) const;
+
+    /// \brief Stream insertion operator
+    /// \param _out output stream
+    /// \param _sw SimpleWrapper to output
+    /// \return the stream
+    public: friend std::ostream &operator<<(
+        std::ostream &_out,
+        const SimpleWrapper<DataType, Identifier> &/*_sw*/)
+    {
+      _out << "serialized_component";
+      return _out;
+    }
+
+    /// \brief Stream extraction operator
+    /// \param _in input stream
+    /// \param _sw SimpleWrapper to read values into
+    /// \return the stream
+    public: friend std::istream &operator>>(
+                std::istream &_in, SimpleWrapper<DataType, Identifier> &/*_sw*/)
+    {
+      return _in;
+    }
 
     /// \brief Get the simpleWrapper data.
     /// \return The actual simpleWrapper information.

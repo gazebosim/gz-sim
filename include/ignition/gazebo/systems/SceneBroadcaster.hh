@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
 
 #include <memory>
-#include <vector>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -55,6 +54,7 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
+    /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
