@@ -30,6 +30,9 @@
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
+#include "ignition/gazebo/detail/ComponentStorageBase.hh"
+#include "ignition/gazebo/detail/View.hh"
+
 namespace ignition
 {
   namespace gazebo
@@ -38,287 +41,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
-
-    /// \cond
-    /// \brief A key into the map of views
-    using ComponentTypeKey = std::set<ComponentTypeId>;
-
-    /// \brief A view is a cache to entities, and their components, that
-    /// match a set of component types. A cache is used because systems will
-    /// frequently, potentially every iteration, query the
-    /// EntityComponentManager for sets of entities that match a set of
-    /// component types. Rather than look up the entities every time, we can
-    /// use a cache to improve performance. The assumption is that entities
-    /// and the types of components assigned to entities change infrequently
-    /// compared to the frequency of queries performed by systems.
-    class IGNITION_GAZEBO_VISIBLE View
-    {
-      /// Get a pointer to a component for an entity based on a component type.
-      /// \param[in] _entity The entity.
-      /// \param[in] _ecm Pointer to the entity component manager.
-      /// \return Pointer to the component.
-      public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const Entity _entity,
-                  const EntityComponentManager *_ecm) const
-      {
-        ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
-        return static_cast<const ComponentTypeT *>(
-            this->ComponentImplementation(_entity, typeId, _ecm));
-      }
-
-      /// Get a pointer to a component for an entity based on a component type.
-      /// \param[in] _entity The entity.
-      /// \param[in] _ecm Pointer to the entity component manager.
-      /// \return Pointer to the component.
-      public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const Entity _entity,
-                  const EntityComponentManager *_ecm)
-      {
-        ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
-        return static_cast<ComponentTypeT *>(
-            const_cast<void *>(
-              this->ComponentImplementation(_entity, typeId, _ecm)));
-      }
-
-      /// \brief Add an entity to the view.
-      /// \param[in] _entity The entity to add.
-      /// \param[in] _new Whether to add the entity to the list of new entities.
-      /// The new here is to indicate whether the entity is new to the entity
-      /// component manager. An existing entity can be added when creating a new
-      /// view or when rebuilding the view.
-      public: void AddEntity(const Entity _entity, const bool _new = false);
-
-      /// \brief Remove an entity from the view.
-      /// \param[in] _entity The entity to remove.
-      /// \param[in] _key Components that should also be removed.
-      /// \return True if the entity was erased, false if the entity did not
-      /// exist in the view.
-      public: bool EraseEntity(const Entity _entity,
-                               const ComponentTypeKey &_key);
-
-      /// \brief Add the entity to the list of entities to be removed
-      /// \param[in] _entity The entity to add.
-      /// \return True if the entity was added to the list, false if the entity
-      /// did not exist in the view.
-      public: bool AddEntityToErased(const Entity _entity);
-
-      /// \brief Add a component to an entity.
-      /// \param[in] _entity The entity.
-      /// \param[in] _compTypeId Component type id.
-      /// \param[in] _compId Component id.
-      public: void AddComponent(const Entity _entity,
-                                const ComponentTypeId _compTypeId,
-                                const ComponentId _compId);
-
-      /// \brief Implementation of the Component accessor.
-      /// \param[in] _entity The entity.
-      /// \param[in] _typeId Type id of the component.
-      /// \param[in] _ecm Pointer to the EntityComponentManager.
-      /// \return Pointer to the component, or nullptr if not found.
-      private: const void *ComponentImplementation(const Entity _entity,
-                   ComponentTypeId _typeId,
-                   const EntityComponentManager *_ecm) const;
-
-      /// \brief Clear the list of new entities
-      public: void ClearNewEntities();
-
-      /// \brief All the entities that belong to this view.
-      public: std::set<Entity> entities;
-
-      /// \brief List of newly created entities
-      public: std::set<Entity> newEntities;
-
-      /// \brief List of entities about to be erased
-      public: std::set<Entity> toEraseEntities;
-
-      /// \brief All of the components for each entity.
-      public: std::map<std::pair<Entity, ComponentTypeId>,
-              ComponentId> components;
-    };
-    /// \endcond
-
-    /// \cond
-    /// \brief All component instances of the same type are stored
-    /// squentially in memory. This is a base class for storing components
-    /// of a particular type.
-    class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
-    {
-      /// \brief Constructor
-      public: ComponentStorageBase() = default;
-
-      /// \brief Destructor
-      public: virtual ~ComponentStorageBase() = default;
-
-      /// \brief Create a new component using the provided data.
-      /// \param[in] _data Data used to construct the component.
-      /// \return Id of the new component, and whether the components array
-      /// was expanded. kComponentIdInvalid is returned
-      /// if the component could not be created.
-      public: virtual std::pair<ComponentId, bool> Create(
-                  const void *_data) = 0;
-
-      /// \brief Remove a component based on an id.
-      /// \param[in] _id Id of the component to remove.
-      /// \return True if the component was removed.
-      public: virtual bool Remove(const ComponentId _id) = 0;
-
-      /// \brief Remove all components
-      public: virtual void RemoveAll() = 0;
-
-      /// \brief Get a component based on an id.
-      /// \param[in] _id Id of the component to get.
-      /// \return A pointer to the component, or nullptr if the component
-      /// could not be found.
-      public: virtual const void *Component(const ComponentId _id) const = 0;
-
-      /// \brief Get a mutable component based on an id.
-      /// \param[in] _id Id of the component to get.
-      /// \return A pointer to the component, or nullptr if the component
-      /// could not be found.
-      public: virtual void *Component(const ComponentId _id) = 0;
-
-      /// \brief Get the first component.
-      /// \return First component or nullptr if there are no components.
-      public: virtual void *First() = 0;
-
-      /// \brief Mutex used to prevent data corruption.
-      protected: mutable std::mutex mutex;
-    };
-
-    /// \brief Templated implementation of component storage.
-    template<typename ComponentTypeT>
-    class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
-    {
-      /// \brief Constructor
-      public: explicit ComponentStorage()
-              : ComponentStorageBase()
-      {
-        // Reserve a chunk of memory for the components. The size here will
-        // effect how often Views are rebuilt when
-        // EntityComponentManager::CreateComponent() is called.
-        //
-        // Views would be rebuilt if the components vector capacity is
-        // exceeded after an EntityComponentManager::Each call has already
-        // been executed.
-        //
-        // See also this class's Create() function, which expands the value
-        // of components vector whenever the capacity is reached.
-        this->components.reserve(100);
-      }
-
-      // Documentation inherited.
-      public: bool Remove(const ComponentId _id) final
-      {
-        std::lock_guard<std::mutex> lock(this->mutex);
-
-        // Get an iterator to the component that should be removed.
-        auto iter = this->idMap.find(_id);
-
-        // Make sure the component exists.
-        if (iter != this->idMap.end())
-        {
-          // Handle the case where there are more components than the
-          // component to be removed
-          if (this->components.size() > 1)
-          {
-            // Swap the component to be removed with the component at the
-            // back of the vector.
-            std::swap(this->components[iter->second],
-                      this->components.back());
-
-            // After the swap, we have to fix all the id mappings.
-            for (auto idIter =this->idMap.begin();
-                idIter != this->idMap.end(); ++idIter)
-            {
-              if (static_cast<unsigned int>(idIter->second) ==
-                  this->components.size()-1)
-              {
-                idIter->second = iter->second;
-              }
-            }
-          }
-
-          // Remove the component.
-          this->components.pop_back();
-
-          // Remove the id mapping.
-          this->idMap.erase(iter);
-          return true;
-        }
-        return false;
-      }
-
-      // Documentation inherited.
-      public: void RemoveAll() final
-      {
-        this->idCounter = 0;
-        this->idMap.clear();
-        this->components.clear();
-      }
-
-      // Documentation inherited.
-      public: std::pair<ComponentId, bool> Create(
-                  const void *_data) final
-      {
-        ComponentId result;  // = kComponentIdInvalid;
-        bool expanded = false;
-        if (this->components.size() == this->components.capacity())
-        {
-          this->components.reserve(this->components.capacity() + 100);
-          expanded = true;
-        }
-
-        std::lock_guard<std::mutex> lock(this->mutex);
-        result = this->idCounter++;
-        this->idMap[result] = this->components.size();
-        // Copy the component
-        this->components.push_back(std::move(
-              ComponentTypeT(*static_cast<const ComponentTypeT *>(_data))));
-
-        return {result, expanded};
-      }
-
-      // Documentation inherited.
-      public: const void *Component(const ComponentId _id) const final
-      {
-        return static_cast<const void*>(
-            const_cast<ComponentStorage<ComponentTypeT>*>(
-              this)->Component(_id));
-      }
-
-      public: void *Component(const ComponentId _id) final
-      {
-        std::lock_guard<std::mutex> lock(this->mutex);
-
-        auto iter = this->idMap.find(_id);
-
-        if (iter != this->idMap.end())
-        {
-          return static_cast<void *>(&this->components.at(iter->second));
-        }
-        return nullptr;
-      }
-
-      // Documentation inherited.
-      public: void *First() final
-      {
-        std::lock_guard<std::mutex> lock(this->mutex);
-        if (!this->components.empty())
-          return static_cast<void *>(&this->components[0]);
-        return nullptr;
-      }
-
-      /// \brief The id counter is used to get unique ids within this
-      /// storage class.
-      private: ComponentId idCounter = 0;
-
-      /// \brief Map of ComponentId to Components (see the components vector).
-      private: std::map<ComponentId, int> idMap;
-
-      /// \brief Sequential storage of components.
-      public: std::vector<ComponentTypeT> components;
-    };
-    /// \endcond
 
     /** \class EntityComponentManager EntityComponentManager.hh \
      * ignition/gazebo/EntityComponentManager.hh
@@ -400,11 +122,7 @@ namespace ignition
       /// \return The ComponentTypeId associated with the provided
       /// ComponentTypeT.
       public: template<typename ComponentTypeT>
-              static ComponentTypeId ComponentType()
-      {
-        // Get a unique identifier to the component type
-        return typeid(ComponentTypeT).hash_code();
-      }
+              static ComponentTypeId ComponentType();
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
@@ -414,21 +132,7 @@ namespace ignition
       /// \return Key that uniquely identifies the component.
       public: template<typename ComponentTypeT>
               ComponentKey CreateComponent(const Entity _entity,
-                  const ComponentTypeT &_data)
-      {
-        // Get a unique identifier to the component type
-        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
-
-        // Create the component storage if one does not exist for
-        // the component type.
-        if (!this->HasComponentType(typeId))
-        {
-          this->RegisterComponentType(typeId,
-                new ComponentStorage<ComponentTypeT>());
-        }
-
-        return this->CreateComponentImplementation(_entity, typeId, &_data);
-      }
+                  const ComponentTypeT &_data);
 
       /// \brief Get a component assigned to an entity based on a
       /// component type.
@@ -436,14 +140,7 @@ namespace ignition
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const Entity _entity) const
-      {
-        // Get a unique identifier to the component type
-        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
-
-        return static_cast<const ComponentTypeT *>(
-            this->ComponentImplementation(_entity, typeId));
-      }
+              const ComponentTypeT *Component(const Entity _entity) const;
 
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type.
@@ -451,56 +148,33 @@ namespace ignition
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const Entity _entity)
-      {
-        // Get a unique identifier to the component type
-        const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
-
-        return static_cast<ComponentTypeT *>(
-            this->ComponentImplementation(_entity, typeId));
-      }
+              ComponentTypeT *Component(const Entity _entity);
 
       /// \brief Get a component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *Component(const ComponentKey &_key) const
-      {
-        return static_cast<const ComponentTypeT *>(
-            this->ComponentImplementation(_key));
-      }
+              const ComponentTypeT *Component(const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *Component(const ComponentKey &_key)
-      {
-        return static_cast<ComponentTypeT *>(
-            this->ComponentImplementation(_key));
-      }
+              ComponentTypeT *Component(const ComponentKey &_key);
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT *First() const
-      {
-        return static_cast<const ComponentTypeT *>(
-            this->First(this->ComponentType<ComponentTypeT>()));
-      }
+              const ComponentTypeT *First() const;
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
       public: template<typename ComponentTypeT>
-              ComponentTypeT *First()
-      {
-        return static_cast<ComponentTypeT *>(
-            this->First(this->ComponentType<ComponentTypeT>()));
-      }
+              ComponentTypeT *First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
@@ -516,47 +190,11 @@ namespace ignition
       /// components.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
-                   const ComponentTypeTs &..._desiredComponents) const
-      {
-        // Get all entities which have components of the desired types
-        const auto &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over entities
-        Entity result{kNullEntity};
-        for (const Entity entity : view.entities)
-        {
-          bool different{false};
-
-          // Iterate over desired components, comparing each of them to the
-          // equivalent component in the entity.
-          ForEach([&](const auto &_desiredComponent)
-          {
-            auto entityComponent = this->Component<
-                std::remove_cv_t<std::remove_reference_t<
-                    decltype(_desiredComponent)>>>(entity);
-
-            if (*entityComponent != _desiredComponent)
-            {
-              different = true;
-            }
-          }, _desiredComponents...);
-
-          if (!different)
-          {
-            result = entity;
-            break;
-          }
-        }
-
-        return result;
-      }
+                   const ComponentTypeTs &..._desiredComponents) const;
 
       /// why is this required?
       private: template <typename T>
-               struct identity  // NOLINT
-               {
-                 using type = T;
-               };
+               struct identity;  // NOLINT
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -573,23 +211,7 @@ namespace ignition
       public: template<typename ...ComponentTypeTs>
               void EachNoCache(typename identity<std::function<
                   bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const
-      {
-        for (const Entity &entity : this->Entities())
-        {
-          auto types = std::set<ComponentTypeId>{
-              this->ComponentType<ComponentTypeTs>()...};
-
-          if (this->EntityMatches(entity, types))
-          {
-            if (!_f(entity,
-                    this->Component<ComponentTypeTs>(entity)...))
-            {
-              break;
-            }
-          }
-        }
-      }
+                       const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -606,23 +228,7 @@ namespace ignition
       public: template<typename ...ComponentTypeTs>
               void EachNoCache(typename identity<std::function<
                   bool(const Entity &_entity,
-                       ComponentTypeTs *...)>>::type _f)
-      {
-        for (const Entity &entity : this->Entities())
-        {
-          auto types = std::set<ComponentTypeId>{
-              this->ComponentType<ComponentTypeTs>()...};
-
-          if (this->EntityMatches(entity, types))
-          {
-            if (!_f(entity,
-                    this->Component<ComponentTypeTs>(entity)...))
-            {
-              break;
-            }
-          }
-        }
-      }
+                       ComponentTypeTs *...)>>::type _f);
 
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for erasure (but not
@@ -639,22 +245,7 @@ namespace ignition
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const
-      {
-        // Get the view. This will create a new view if one does not already
-        // exist.
-        View &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over the entities in the view, and invoke the callback
-        // function.
-        for (const Entity entity : view.entities)
-        {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
-          {
-            break;
-          }
-        }
-      }
+                       const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types, as well
       /// as the mutable components. Note that an entity marked for erasure (but
@@ -671,32 +262,14 @@ namespace ignition
       public: template<typename ...ComponentTypeTs>
               void Each(typename identity<std::function<
                   bool(const Entity &_entity,
-                       ComponentTypeTs *...)>>::type _f)
-      {
-        // Get the view. This will create a new view if one does not already
-        // exist.
-        View &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over the entities in the view, and invoke the callback
-        // function.
-        for (const Entity entity : view.entities)
-        {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
-          {
-            break;
-          }
-        }
-      }
+                       ComponentTypeTs *...)>>::type _f);
 
       /// \brief Call a function for each parameter in a pack.
       /// \param[in] _f Function to be called.
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void ForEach(Function _f, const ComponentTypeTs &... _components)
-      {
-        (_f(_components), ...);
-      }
+      static void ForEach(Function _f, const ComponentTypeTs &... _components);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -712,23 +285,7 @@ namespace ignition
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
-                                ComponentTypeTs *...)>>::type _f)
-      {
-        // Get the view. This will create a new view if one does not already
-        // exist.
-        View &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over the entities in the view and in the newly created
-        // entities list, and invoke the callback
-        // function.
-        for (const Entity entity : view.newEntities)
-        {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
-          {
-            break;
-          }
-        }
-      }
+                                ComponentTypeTs *...)>>::type _f);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -744,23 +301,7 @@ namespace ignition
       public: template <typename... ComponentTypeTs>
               void EachNew(typename identity<std::function<
                            bool(const Entity &_entity,
-                                const ComponentTypeTs *...)>>::type _f) const
-      {
-        // Get the view. This will create a new view if one does not already
-        // exist.
-        View &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over the entities in the view and in the newly created
-        // entities list, and invoke the callback
-        // function.
-        for (const Entity entity : view.newEntities)
-        {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
-          {
-            break;
-          }
-        }
-      }
+                                const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types and are
       /// about to be erased, as well as the components.
@@ -775,23 +316,7 @@ namespace ignition
       public: template<typename ...ComponentTypeTs>
               void EachErased(typename identity<std::function<
                   bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const
-      {
-        // Get the view. This will create a new view if one does not already
-        // exist.
-        View &view = this->FindView<ComponentTypeTs...>();
-
-        // Iterate over the entities in the view and in the newly created
-        // entities list, and invoke the callback
-        // function.
-        for (const Entity entity : view.toEraseEntities)
-        {
-          if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
-          {
-            break;
-          }
-        }
-      }
+                       const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
@@ -887,22 +412,7 @@ namespace ignition
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) == 0, int>::type = 0>
-               void AddComponentsToView(View &_view, const Entity _entity) const
-      {
-        const ComponentTypeId typeId = ComponentType<FirstComponent>();
-        const ComponentId compId =
-            this->EntityComponentIdFromType(_entity, typeId);
-        if (compId >= 0)
-        {
-          // Add the component to the view.
-          _view.AddComponent(_entity, typeId, compId);
-        }
-        else
-        {
-          ignerr << "Entity[" << _entity << "] has no component of type["
-            << typeId << "]. This should never happen.\n";
-        }
-      }
+               void AddComponentsToView(detail::View &_view, const Entity _entity) const;
 
       /// \brief Recursively add components to a view. This function is
       /// called when Rest is NOT empty.
@@ -913,67 +423,13 @@ namespace ignition
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) != 0, int>::type = 0>
-              void AddComponentsToView(View &_view, const Entity _entity) const
-      {
-        const ComponentTypeId typeId = ComponentType<FirstComponent>();
-        const ComponentId compId =
-            this->EntityComponentIdFromType(_entity, typeId);
-        if (compId >= 0)
-        {
-          // Add the component to the view.
-          _view.AddComponent(_entity, typeId, compId);
-        }
-        else
-        {
-          ignerr << "Entity[" << _entity << "] has no component of type["
-            << typeId << "]. This should never happen.\n";
-        }
-
-        // Add the remaining components to the view.
-        this->AddComponentsToView<RemainingComponents...>(_view, _entity);
-      }
+              void AddComponentsToView(detail::View &_view, const Entity _entity) const;
 
       /// \brief Find a View that matches the set of ComponentTypeIds. If
       /// a match is not found, then a new view is created.
       /// \tparam ComponentTypeTs All the component types that define a view.
       /// \return A reference to the view.
-      private: template<typename ...ComponentTypeTs> View &FindView() const
-      {
-        auto types = std::set<ComponentTypeId>{
-            this->ComponentType<ComponentTypeTs>()...};
-
-        std::map<ComponentTypeKey, View>::iterator viewIter;
-
-        // Find the view. If the view doesn't exist, then create a new view.
-        if (!this->FindView(types, viewIter))
-        {
-          View view;
-          // Add all the entities that match the component types to the
-          // view.
-          for (const Entity &entity : this->Entities())
-          {
-            if (this->EntityMatches(entity, types))
-            {
-              view.AddEntity(entity, this->IsNewEntity(entity));
-              // If there is a request to delete this entity, update the view as
-              // well
-              if (this->IsMarkedForErasure(entity))
-              {
-                view.AddEntityToErased(entity);
-              }
-
-              // Store pointers to all the components. This recursively adds
-              // all the ComponentTypeTs that belong to the entity to the view.
-              this->AddComponentsToView<ComponentTypeTs...>(view, entity);
-            }
-          }
-
-          // Store the view.
-          return this->AddView(types, std::move(view))->second;
-        }
-
-        return viewIter->second;
-      }
+      private: template<typename ...ComponentTypeTs> detail::View &FindView() const;
 
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
@@ -982,15 +438,15 @@ namespace ignition
       /// Check the return value to see if this iterator is valid.
       /// \return True if the view was found, false otherwise.
       private: bool FindView(const std::set<ComponentTypeId> &_types,
-                   std::map<ComponentTypeKey, View>::iterator &_iter) const;
+                   std::map<detail::ComponentTypeKey, detail::View>::iterator &_iter) const;
 
       /// \brief Add a new view to the set of stored views.
       /// \param[in] _types The set of component type ids that is the key
       /// for the view.
       /// \param[in] _view The view to add.
       /// \return An iterator to the view.
-      private: std::map<ComponentTypeKey, View>::iterator AddView(
-                   const std::set<ComponentTypeId> &_types, View &&_view) const;
+      private: std::map<detail::ComponentTypeKey, detail::View>::iterator AddView(
+                   const std::set<ComponentTypeId> &_types, detail::View &&_view) const;
 
       /// \brief Update views that contain the provided entity.
       /// \param[in] _entity The entity.
@@ -1009,9 +465,12 @@ namespace ignition
 
       /// Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
-      friend class View;
+      friend class detail::View;
     };
     }
   }
 }
+
+#include "ignition/gazebo/detail/EntityComponentManager.hh"
+
 #endif
