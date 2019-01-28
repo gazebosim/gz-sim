@@ -176,12 +176,12 @@ TEST(PeerTracker, Partitioned)
   auto options1 = ignition::transport::NodeOptions();
   options1.SetPartition("p1");
   auto tracker1 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr, options1);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options1);
 
   auto options2 = ignition::transport::NodeOptions();
   options2.SetPartition("p2");
   auto tracker2 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr, options2);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
 
   // Allow all the heartbeats to propagate
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -191,10 +191,10 @@ TEST(PeerTracker, Partitioned)
   EXPECT_EQ(0u, tracker2.NumPeers());
 
   auto tracker3 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr, options1);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr, options1);
 
   auto tracker4 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr, options2);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr, options2);
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
@@ -216,12 +216,12 @@ TEST(PeerTracker, Namespaced)
   auto options1 = ignition::transport::NodeOptions();
   options1.SetNameSpace("ns1");
   auto tracker1 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr, options1);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options1);
 
   auto options2 = ignition::transport::NodeOptions();
   options2.SetNameSpace("ns2");
   auto tracker2 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr, options2);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
 
   // Allow some time for heartbeats to propagate
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
@@ -231,10 +231,10 @@ TEST(PeerTracker, Namespaced)
   EXPECT_EQ(0u, tracker2.NumPeers());
 
   auto tracker3 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr, options1);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr, options1);
 
   auto tracker4 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr, options2);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr, options2);
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
@@ -257,11 +257,11 @@ TEST(PeerTracker, PartitionedEnv)
 
   setenv("IGN_PARTITION", "p1", 1);
   auto tracker1 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
   setenv("IGN_PARTITION", "p2", 1);
   auto tracker2 = PeerTracker(
-      {NetworkRole::SimulationPrimary}, &eventMgr);
+      PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
   // Allow some time for heartbeats to propagate
   std::this_thread::sleep_for(std::chrono::milliseconds(110));
@@ -272,11 +272,11 @@ TEST(PeerTracker, PartitionedEnv)
 
   setenv("IGN_PARTITION", "p1", 1);
   auto tracker3 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
   setenv("IGN_PARTITION", "p2", 1);
   auto tracker4 = PeerTracker(
-      {NetworkRole::SimulationSecondary}, &eventMgr);
+      PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
