@@ -396,6 +396,14 @@ detail::View &EntityComponentManager::FindView() const
 
   return viewIter->second;
 }
+
+//////////////////////////////////////////////////
+template<typename ComponentTypeT>
+bool EntityComponentManager::RemoveComponent(Entity _entity)
+{
+  const auto typeId = ComponentType<ComponentTypeT>();
+  return this->RemoveComponent(_entity, typeId);
+}
 }
 }
 
