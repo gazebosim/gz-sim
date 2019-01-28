@@ -29,3 +29,9 @@ sudo apt-get install -y \
   python3-dbg \
   python3-pip \
   python3-venv
+
+sudo apt-get install -y \
+  clang-tidy-6.0 \
+  python-yaml \
+  libclang-6.0-dev
+
