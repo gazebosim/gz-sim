@@ -24,7 +24,7 @@ PeerTracker::PeerTracker(
     const PeerInfo &_info,
     EventManager *_eventMgr,
     const ignition::transport::NodeOptions &_options):
-  info(_info),
+  info(std::move(_info)),
   eventMgr(_eventMgr),
   node(_options)
 {

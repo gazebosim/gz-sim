@@ -53,8 +53,10 @@ namespace ignition
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
     class IGNITION_GAZEBO_VISIBLE PeerTracker {
-      /// \brief Convenience type aliases
+      /// \brief Convenience type alias for NodeOptions
       public: using NodeOptions = ignition::transport::NodeOptions;
+
+      /// \brief Convenience type alias for duration
       public: using Duration = std::chrono::steady_clock::duration;
 
       /// \brief Constructor
@@ -66,7 +68,7 @@ namespace ignition
       /// \param[in] _options Advanced options for underlying ign-transport
       /// \param[in] _info Peer information to announce
       public: explicit PeerTracker(
-                  const PeerInfo  &_info,
+                  const PeerInfo &_info,
                   EventManager *_eventMgr = nullptr,
                   const NodeOptions &_options = NodeOptions());
 
@@ -195,8 +197,6 @@ namespace ignition
 
       /// \brief Announcement publisher
       private: ignition::transport::Node::Publisher announcePub;
-
-
     };
     }
   }  // namespace gazebo
