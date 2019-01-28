@@ -5,7 +5,7 @@ pipelines:
     - step:
         script:
           - apt-get update
-          - apt -y install wget lsb-release gnupg
+          - apt -y install wget lsb-release gnupg sudo
           - docker/scripts/enable_ign_stable.sh
           - docker/scripts/enable_ign_prerelease.sh
           - docker/scripts/enable_ign_nightly.sh
