@@ -113,6 +113,22 @@ namespace ignition
       public: bool RemoveComponent(
                   const Entity _entity, const ComponentKey &_key);
 
+      /// \brief Remove a component from an entity based on a type id.
+      /// \param[in] _entity The entity.
+      /// \param[in] _typeId Component's type Id.
+      /// \return True if the entity and component existed and the component was
+      ///  removed.
+      public: bool RemoveComponent(
+                  const Entity _entity, const ComponentTypeId &_typeId);
+
+      /// \brief Remove a component from an entity based on a type.
+      /// \param[in] _entity The entity.
+      /// \tparam Component type.
+      /// \return True if the entity and component existed and the component was
+      ///  removed.
+      public: template<typename ComponentTypeT>
+              bool RemoveComponent(Entity _entity);
+
       /// \brief Rebuild all the views. This could be an expensive
       /// operation.
       public: void RebuildViews();

@@ -172,6 +172,47 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
 }
 
 /////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, RemoveComponent)
+{
+  // Create some entities
+  auto eInt = manager.CreateEntity();
+  auto eDouble = manager.CreateEntity();
+  auto eIntDouble = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add components and keep their unique ComponentKeys
+  auto cIntEInt = manager.CreateComponent<int>(eInt, 123);
+  auto cDoubleEDouble = manager.CreateComponent<double>(eDouble, 0.123);
+  auto cIntEIntDouble = manager.CreateComponent<int>(eIntDouble, 456);
+  auto cDoubleEIntDouble = manager.CreateComponent<double>(eIntDouble, 0.456);
+
+  // Check entities have the components
+  EXPECT_TRUE(manager.EntityHasComponent(eInt, cIntEInt));
+  EXPECT_TRUE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
+  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
+  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+
+  // Remove component by key
+  EXPECT_TRUE(manager.RemoveComponent(eInt, cIntEInt));
+  EXPECT_FALSE(manager.EntityHasComponent(eInt, cIntEInt));
+
+  // Remove component by type id
+  auto typeDouble = manager.ComponentType<double>();
+
+  EXPECT_TRUE(manager.RemoveComponent(eDouble, typeDouble));
+  EXPECT_FALSE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
+
+  // Remove component by type
+  EXPECT_TRUE(manager.RemoveComponent<int>(eIntDouble));
+  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
+  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+
+  EXPECT_TRUE(manager.RemoveComponent<double>(eIntDouble));
+  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
+  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
+}
+
+/////////////////////////////////////////////////
 // Removing a component should guarantee that existing components remain
 // adjacent to each other.
 TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
