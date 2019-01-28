@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
 
 #include <map>
+#include <utility>
 #include <vector>
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
