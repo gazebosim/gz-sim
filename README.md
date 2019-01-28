@@ -9,9 +9,9 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-gazebo/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-gazebo)  
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-bionic-amd64)  
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-homebrew-amd64)  
+Test coverage | [![codecov](https://codecov.io/bb/ignitionrobotics/ign-gazebo/branch/default/graph/badge.svg)](https://codecov.io/bb/ignitionrobotics/ign-gazebo)
+Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-bionic-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-default-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-default-windows7-amd64)
 
 Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
@@ -29,7 +29,7 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 * [Source Install](#markdown-header-source-install)
 
     * [Prerequisites](#markdown-header-prerequisites)
-  
+
     * [Building from Source](#markdown-header-building-from-source)
 
 [Usage](#markdown-header-usage)
@@ -106,19 +106,19 @@ installing Ignition Gazebo from source.
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
     ```
-    
+
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
     ```
-    
+
     ```
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
     ```
-    
+
     ```
     sudo apt-get update
     ```
-    
+
 2. Install Ignition Gazebo
 
     ```
@@ -148,19 +148,19 @@ for dependency installation instructions for each supported operating system.
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
     ```
-    
+
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-prerelease `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-prerelease.list'
     ```
-    
+
     ```
     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
     ```
-    
+
     ```
     sudo apt-get update
     ```
-    
+
     ```
     sudo apt-get -y install libignition-cmake2-dev libignition-common3-dev libignition-math6-eigen3-dev libignition-plugin-dev libignition-physics-dev libignition-rendering-dev libignition-tools-dev libignition-transport6-dev libignition-gui-dev libignition-msgs3-dev libsdformat8-dev
     ```
@@ -172,11 +172,11 @@ for dependency installation instructions for each supported operating system.
 2. Configure gcc8
 
     * Ubuntu
-    
+
         ```
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
         ```
-        
+
 1. Clone the repository.
 
     ```
@@ -240,7 +240,7 @@ You can also generate the documentation from a clone of this repository by follo
     ```
     firefox doxygen/html/index.html
     ```
-    
+
 # Testing
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
@@ -271,20 +271,21 @@ ign-gazebo
 │   ├── plugin                   Example plugins.
 │   ├── standalone               Example standalone programs that use ign-gazebo as a library.
 │   └── worlds                   Example SDF world files.
-├── include/ignition/gazebo      Header files.
-├── src                          Source files and unit tests.  
-│   ├── gui                      Graphical interface source code.  
+├── include/ignition/gazebo      Header files that downstream users are expected to use.
+│   └── detail                   Header files that are not intended for downstream use, mainly template implementations.
+├── src                          Source files and unit tests.
+│   ├── gui                      Graphical interface source code.
 │   └── systems                  System source code.
 ├── test
 │   ├── integration              Integration tests.
 │   ├── performance              Performance tests.
 │   ├── plugins                  Plugins used in tests.
 │   ├── regression               Regression tests.
-│   └── tutorials                Tutorials, written in markdown. 
+│   └── tutorials                Tutorials, written in markdown.
 ├── Changelog.md                 Changelog.
-├── CMakeLists.txt               CMake build script.  
-├── Migration.md                 Migration guide.  
-└── README.md                    This readme.  
+├── CMakeLists.txt               CMake build script.
+├── Migration.md                 Migration guide.
+└── README.md                    This readme.
 ```
 
 # Contributing
