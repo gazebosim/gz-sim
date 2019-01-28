@@ -1,6 +1,13 @@
 <?xml version="1.0" ?>
+<!--
+  Ignition Gazebo altimeter sensor demo
+
+  Listen to sensor readings:
+
+    ign topic -e -t /altimeter
+-->
 <sdf version="1.6">
-  <world name="shapes">
+  <world name="altimeter_sensor">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -8,6 +15,10 @@
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::v0::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-altimeter-system.so"
+      name="ignition::gazebo::systems::v0::Altimeter">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
@@ -24,13 +35,13 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
+        <service>/world/altimeter_sensor/scene/info</service>
+        <pose_topic>/world/altimeter_sensor/pose/info</pose_topic>
       </plugin>
 
       <!-- World control -->
@@ -53,8 +64,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes/control</service>
-        <stats_topic>/world/shapes/stats</stats_topic>
+        <service>/world/altimeter_sensor/control</service>
+        <stats_topic>/world/altimeter_sensor/stats</stats_topic>
 
       </plugin>
 
@@ -79,31 +90,22 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes/stats</topic>
-
+        <topic>/world/altimeter_sensor/stats</topic>
       </plugin>
-
     </gui>
 
-    <light type="directional" name="sun1">
+    <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.5 0.5 0.5 1</specular>
-      <direction>0.5 0.5 -1</direction>
-    </light>
-
-    <light type="directional" name="sun2">
-      <cast_shadows>true</cast_shadows>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.5 0.5 0.5 1</specular>
-      <direction>-0.5 0.5 -1</direction>
-    </light>
-
-    <light type="directional" name="sun3">
-      <cast_shadows>true</cast_shadows>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.5 0.5 0.5 1</specular>
-      <direction>-0.5 -0.5 -1</direction>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
     </light>
 
     <model name="ground_plane">
@@ -111,23 +113,17 @@
       <link name="link">
         <collision name="collision">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <!--plane>
+            <plane>
               <normal>0 0 1</normal>
               <size>100 100</size>
-            </plane-->
-            <box>
-              <size>20 20 0.1</size>
-            </box>
+            </plane>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
@@ -139,73 +135,38 @@
       </link>
     </model>
 
-    <model name="duck1">
-      <pose>0 0 3 0.0 0.0</pose>
+    <model name="altimeter">
+      <pose>4 0 3.0 0 0.0 3.14</pose>
       <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
+          <mass>0.1</mass>
           <inertia>
-            <ixx>3.92</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3.92</iyy>
-            <iyz>0</iyz>
-            <izz>3.92</izz>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
           </inertia>
-          <mass>39</mass>
         </inertial>
         <collision name="collision">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck_collider.dae</uri>
-            </mesh>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
           </geometry>
         </collision>
-
         <visual name="visual">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
           <geometry>
-            <mesh>
-              <scale>0.5 0.5 0.5</scale>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
           </geometry>
         </visual>
-      </link>
-    </model>
-
-    <model name="duck2">
-      <pose>2 2 1 0.5 0.5 0.5</pose>
-      <link name="link">
-        <inertial>
-          <inertia>
-            <ixx>3.92</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3.92</iyy>
-            <iyz>0</iyz>
-            <izz>3.92</izz>
-          </inertia>
-          <mass>39</mass>
-        </inertial>
-        <collision name="collision">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <uri>file://test/media/duck_collider.dae</uri>
-            </mesh>
-          </geometry>
-        </collision>
-
-        <visual name="visual">
-          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
-          <geometry>
-            <mesh>
-              <uri>file://test/media/duck.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
+        <sensor name="altimeter" type="altimeter">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>altimeter</topic>
+        </sensor>
       </link>
     </model>
 
