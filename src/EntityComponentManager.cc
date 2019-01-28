@@ -200,6 +200,15 @@ void EntityComponentManager::ProcessEraseEntityRequests()
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::RemoveComponent(
+    const Entity _entity, const ComponentTypeId &_typeId)
+{
+  auto componentId = this->EntityComponentIdFromType(_entity, _typeId);
+  ComponentKey key{_typeId, componentId};
+  return this->RemoveComponent(_entity, key);
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentKey &_key)
 {
   // Make sure the entity exists and has the component.
@@ -342,7 +351,10 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _type;});
+      [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return iter->second;
@@ -382,7 +394,10 @@ void *EntityComponentManager::ComponentImplementation(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key) {return _key.first == _type;});
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
