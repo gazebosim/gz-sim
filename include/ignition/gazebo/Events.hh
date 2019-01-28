@@ -17,8 +17,12 @@
 #ifndef IGNITION_GAZEBO_EVENTS_HH_
 #define IGNITION_GAZEBO_EVENTS_HH_
 
+#include <sdf/Element.hh>
+
 #include <ignition/common/Event.hh>
+
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Entity.hh"
 
 namespace ignition
 {
@@ -39,6 +43,12 @@ namespace ignition
       /// eventManager.Emit<ignition::gazebo::events::Pause>(true);
       /// \endcode
       using Pause = ignition::common::EventT<void(bool), struct PauseTag>;
+
+      /// \brief Event used to load plugins for an entity into simulation.
+      /// Pass in the entity which will own the plugins, and an SDF element for
+      /// the entity, which may contain multiple <plugin> tags.
+      using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
+          struct LoadPluginsTag>;
       }
     }  // namespace events
   }  // namespace gazebo

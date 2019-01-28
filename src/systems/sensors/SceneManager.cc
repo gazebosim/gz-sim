@@ -290,7 +290,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
         ignition::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
-    _scale = _geom.MeshShape()->Scale();
+    scale = _geom.MeshShape()->Scale();
   }
   else
   {
