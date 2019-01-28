@@ -127,10 +127,13 @@
         </collision>
         <visual name="visual">
           <geometry>
-            <plane>
+            <!--plane>
               <normal>0 0 1</normal>
               <size>100 100</size>
-            </plane>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
