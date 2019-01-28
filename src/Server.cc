@@ -16,7 +16,7 @@
 */
 #include "ignition/gazebo/Server.hh"
 
-#include <ignition/fuel_tools.hh>
+#include <ignition/fuel_tools/Interface.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include "ServerPrivate.hh"
