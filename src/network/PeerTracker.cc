@@ -21,7 +21,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
-    const PeerInfo &_info,
+    PeerInfo _info,
     EventManager *_eventMgr,
     const ignition::transport::NodeOptions &_options):
   info(std::move(_info)),
@@ -133,7 +133,7 @@ void PeerTracker::HeartbeatLoop()
     }
 
     // Remove peers that were marked as stale.
-    for (auto peer : toRemove)
+    for (const auto &peer : toRemove)
     {
       this->OnPeerStale(peer);
     }

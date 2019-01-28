@@ -68,7 +68,7 @@ namespace ignition
       /// \param[in] _options Advanced options for underlying ign-transport
       /// \param[in] _info Peer information to announce
       public: explicit PeerTracker(
-                  const PeerInfo &_info,
+                  PeerInfo _info,
                   EventManager *_eventMgr = nullptr,
                   const NodeOptions &_options = NodeOptions());
 
@@ -105,17 +105,6 @@ namespace ignition
       /// \param[in] _role Role of peers to enumerate
       /// \return Number of peers with the given role.
       public: size_t NumPeers(const NetworkRole &_role) const;
-
-      /// \brief Connect to the network graph.
-      ///
-      /// Announce the existence of a peer with given information _info,
-      /// and start executing heartbeats and peer tracking.
-      private: void Connect();
-
-      /// \brief Disconnect from the network graph.
-      ///
-      /// Also announce that this peer is leaving the network.
-      private: void Disconnect();
 
       /// \brief Internal loop to announce and check stale peers.
       private: void HeartbeatLoop();
