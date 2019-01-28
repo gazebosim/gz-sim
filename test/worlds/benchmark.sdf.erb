@@ -50,20 +50,6 @@
 
   ###############################################
   #                                             #
-  #           IMPORT OTHER ERB FILES            #
-  #                                             #
-  ###############################################
-
-  # Relative path from where the script is being run to the script's directory
-  DIR = File.dirname(__FILE__)
-
-  # Helper function to import another erb file
-  def fromFile filename
-    return ERB.new(File.read(filename), nil, nil, '_sub01').result(binding)
-  end
-
-  ###############################################
-  #                                             #
   #                TILE PARAMS                  #
   #                                             #
   ###############################################
@@ -106,15 +92,7 @@
         :geometry => "<box><size>5 20 0.5</size></box>"
       },
       {
-        :pose => "<pose>0 0 4.25 0 0 0</pose>",
-        :geometry => "<box><size>5 20 0.5</size></box>"
-      },
-      {
         :pose => "<pose>0 0 -0.25 0 0 1.57</pose>",
-        :geometry => "<box><size>5 20 0.5</size></box>"
-      },
-      {
-        :pose => "<pose>0 0 4.25 0 0 1.57</pose>",
         :geometry => "<box><size>5 20 0.5</size></box>"
       },
       {
@@ -154,10 +132,6 @@
       {
         :pose => "<pose>4 0 -0.25 0 0 0</pose>",
         :geometry => "<box><size>5 7.5 0.05</size></box>"
-      },
-      {
-        :pose => "<pose>0 0 4.25 0 0 -1.57</pose>",
-        :geometry => "<box><size>5 7.5 0.5</size></box>"
       },
       {
         :pose => "<pose>6.25 2.5 -0.25 0 0 0</pose>",
@@ -208,48 +182,28 @@
       tile =
       {
         :name => tile_types.sample(),
-        :x => entrance_offset + tile_dimension * x,
-        :y => tile_dimension * y,
+        :x => entrance_offset + 1.1*tile_dimension * x,
+        :y => 1.1*tile_dimension * y + 1,
         :yaw => [0, Math::PI*0.5, -Math::PI*0.5, Math::PI].sample()
       }
       tiles.push(tile)
     end
   end
 
-  # Cap blockers
-  cap_blockers = []
-  for x in (0..($n_x - 1))
-    for y in [-half_n_y - 1, half_n_y + 1]
-
-      cap_blocker =
-      {
-        :name => $blocker_tile,
-        :x => entrance_offset + tile_dimension * x,
-        :y => tile_dimension * y + tile_dimension * 0.5 * -sign(y),
-        :yaw => 0
-      }
-      cap_blockers.push(cap_blocker)
-    end
-  end
-  for y in (-half_n_y..half_n_y)
-    for x in [-1, $n_x]
-
-      # Skip start tile
-      if y == 0 and x == -1
-        next
-      end
-
-      cap_blocker =
-      {
-        :name => $blocker_tile,
-        :x => entrance_offset +
-              tile_dimension * x + tile_dimension * 0.5 * -sign(x),
-        :y => tile_dimension * y,
-        :yaw => 0
-      }
-      cap_blockers.push(cap_blocker)
-    end
-  end
+  # Create vehilce at given pose
+  vehicles =
+  [
+    {
+      :name => "vehicle_red",
+      :pose => "0 0 0.325 0 0 0",
+      :color => "1.0 0.5 0.5 1"
+    },
+    {
+      :name => "vehicle_blue",
+      :pose => "0 20 0.325 0 0 0",
+      :color => "0.5 0.5 1.0 1"
+    },
+  ]
 %>
 <!--
   Generated from tile.world.erb
@@ -395,7 +349,7 @@
     tiles.each_with_index do |tile, count|
   %>
     <model name="<%= tile[:name] %>_tile_<%= count.to_s %>">
-      <pose><%= tile[:x] %> <%= tile[:y] %> 0 0 0 <%= tile[:yaw] %></pose>
+      <pose><%= tile[:x] %> <%= tile[:y] %> 1 0 0 <%= tile[:yaw] %></pose>
       <static>true</static>
       <link name="link">
       <% shapesCollection[tile[:name]].each_with_index do |shape, index| %>
@@ -424,105 +378,203 @@
   <%
     end
   %>
-  <model name="red_ball">
-    <pose>0 0 2.5 0 0 0</pose>
-    <link name="link1">
-      <inertial>
-      <% ball_mass = 1
-         ball_radius = 0.5%>
-        <inertia>
-          <ixx><%= 2.0/5 * ball_mass * (ball_radius**2) %></ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyy><%= 2.0/5 * ball_mass * (ball_radius**2) %></iyy>
-          <iyz>0</iyz>
-          <izz><%= 2.0/5 * ball_mass * (ball_radius**2) %></izz>
-        </inertia>
-        <mass><%= ball_mass %></mass>
-      </inertial>
-      <!-- <collision name="collision">
-        <geometry>
-          <sphere>
-            <radius><%= ball_radius %></radius>
-          </sphere>
-        </geometry>
-      </collision> -->
-      <visual name="visual">
-        <geometry>
-          <sphere>
-            <radius><%= ball_radius %></radius>
-          </sphere>
-        </geometry>
-        <material>
-          <ambient>1 0 0 1</ambient>
-          <diffuse>1 0 0 1</diffuse>
-        </material>
-      </visual>
-    </link>
-    <plugin
-      filename="libMove3dSystem.so"
-      name="ignition::gazebo::systems::v0::Move3dSystem">
-    </plugin>
-  </model>
 
-  <model name="green_ball">
-    <pose>0 4.5 2.5 0 0 0</pose>
-    <link name="link1">
+  <% vehicles.each do |vehicle| %>
+  <model name='<%= vehicle[:name] %>'>
+    <pose><%= vehicle[:pose] %></pose>
+    <link name='chassis'>
+      <pose>-0.151427 -0 0.175 0 -0 0</pose>
       <inertial>
-      <% ball_mass = 1
-         ball_radius = 0.5%>
+        <mass>1.14395</mass>
         <inertia>
-          <ixx><%= 2.0/5 * ball_mass * (ball_radius**2) %></ixx>
+          <ixx>0.126164</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy><%= 2.0/5 * ball_mass * (ball_radius**2) %></iyy>
+          <iyy>0.416519</iyy>
           <iyz>0</iyz>
-          <izz><%= 2.0/5 * ball_mass * (ball_radius**2) %></izz>
+          <izz>0.481014</izz>
         </inertia>
-        <mass><%= ball_mass %></mass>
       </inertial>
-      <!-- <collision name="collision">
+      <visual name='visual'>
         <geometry>
-          <sphere>
-            <radius><%= ball_radius %></radius>
-          </sphere>
+          <box>
+            <size>2.01142 1 0.568726</size>
+          </box>
         </geometry>
-      </collision> -->
-      <visual name="visual">
+        <material>
+          <ambient><%= vehicle[:color] %></ambient>
+          <diffuse><%= vehicle[:color] %></diffuse>
+          <specular><%= vehicle[:color] %></specular>
+          <emissive><%= vehicle[:color] %></emissive>
+        </material>
+      </visual>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>2.01142 1 0.568726</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='left_wheel'>
+      <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
+      <inertial>
+        <mass>2</mass>
+        <inertia>
+          <ixx>0.145833</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.145833</iyy>
+          <iyz>0</iyz>
+          <izz>0.125</izz>
+        </inertia>
+      </inertial>
+      <visual name='visual'>
         <geometry>
           <sphere>
-            <radius><%= ball_radius %></radius>
+            <radius>0.3</radius>
           </sphere>
         </geometry>
         <material>
-          <ambient>0 1 0 1</ambient>
-          <diffuse>0 1 0 1</diffuse>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+          <emissive>0.2 0.2 0.2 1</emissive>
         </material>
       </visual>
+      <collision name='collision'>
+        <geometry>
+          <sphere>
+            <radius>0.3</radius>
+          </sphere>
+        </geometry>
+      </collision>
     </link>
+
+    <link name='right_wheel'>
+      <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+      <inertial>
+        <mass>2</mass>
+        <inertia>
+          <ixx>0.145833</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.145833</iyy>
+          <iyz>0</iyz>
+          <izz>0.125</izz>
+        </inertia>
+      </inertial>
+      <visual name='visual'>
+        <geometry>
+          <sphere>
+            <radius>0.3</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+          <emissive>0.2 0.2 0.2 1</emissive>
+        </material>
+      </visual>
+      <collision name='collision'>
+        <geometry>
+          <sphere>
+            <radius>0.3</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='caster'>
+      <pose>-0.957138 -0 -0.125 0 -0 0</pose>
+      <inertial>
+        <mass>1</mass>
+        <inertia>
+          <ixx>0.1</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.1</iyy>
+          <iyz>0</iyz>
+          <izz>0.1</izz>
+        </inertia>
+      </inertial>
+      <visual name='visual'>
+        <geometry>
+          <sphere>
+            <radius>0.2</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+          <emissive>0.2 0.2 0.2 1</emissive>
+        </material>
+      </visual>
+      <collision name='collision'>
+        <geometry>
+          <sphere>
+            <radius>0.2</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name='left_wheel_joint' type='revolute'>
+      <parent>chassis</parent>
+      <child>left_wheel</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.79769e+308</lower>
+          <upper>1.79769e+308</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name='right_wheel_joint' type='revolute'>
+      <parent>chassis</parent>
+      <child>right_wheel</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.79769e+308</lower>
+          <upper>1.79769e+308</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <joint name='caster_wheel' type='ball'>
+      <parent>chassis</parent>
+      <child>caster</child>
+    </joint>
+
     <plugin
-      filename="libMove3dSystem.so"
-      name="ignition::gazebo::systems::v0::Move3dSystem">
+      filename="libignition-gazebo-systems.so"
+      name="ignition::gazebo::systems::v0::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <wheel_separation>1.25</wheel_separation>
+      <wheel_radius>0.3</wheel_radius>
     </plugin>
+
   </model>
+  <% end %>
 
   <plugin name="ignition::gazebo" filename="dummy">
-    <performer name="perf1">
-      <ref>red_ball</ref>
+  <% vehicles.each do |vehicle| %>
+    <performer name="perf_<%= vehicle[:name] %>">
+      <ref><%= vehicle[:name] %></ref>
       <geometry>
         <box>
           <size>5 5 5</size>
         </box>
       </geometry>
     </performer>
-    <performer name="perf2">
-      <ref>green_ball</ref>
-      <geometry>
-        <box>
-          <size>5 5 5</size>
-        </box>
-      </geometry>
-    </performer>
+  <% end %>
+
     <%
       tiles.each_with_index do |tile, count|
       next if count == $n_y/2

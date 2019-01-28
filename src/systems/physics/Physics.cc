@@ -35,7 +35,6 @@
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/Link.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -93,7 +92,6 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::RemoveEntities,
-          ignition::physics::SetLinkState,
           ignition::physics::mesh::AttachMeshShapeFeature,
           ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
@@ -457,23 +455,6 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (vel2)
           jointIt->second->SetVelocity(1, vel2->Data());
 
-        return true;
-      });
-
-  // Handle models, but do so through their canonical links
-  _ecm.Each<components::Model, components::LinearVelocity>(
-      [&](const Entity &_entity, const components::Model *, const
-          components::LinearVelocity *_linVel)->bool
-      {
-        auto modelIt = this->entityModelMap.find(_entity);
-        if (modelIt != this->entityModelMap.end())
-        {
-          for (std::size_t i = 0; i < modelIt->second->GetLinkCount(); ++i)
-          {
-            auto link = modelIt->second->GetLink(i);
-            link->SetLinearVelocity(math::eigen3::convert(_linVel->Data()));
-          }
-        }
         return true;
       });
 }

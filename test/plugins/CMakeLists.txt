@@ -15,7 +15,6 @@ set (test_plugins
   TestSystem
   TestWorldSystem
   MockSystem
-  Move3dSystem
 )
 
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
