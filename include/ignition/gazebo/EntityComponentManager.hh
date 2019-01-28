@@ -412,7 +412,8 @@ namespace ignition
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) == 0, int>::type = 0>
-               void AddComponentsToView(detail::View &_view, const Entity _entity) const;
+          void AddComponentsToView(detail::View &_view,
+               const Entity _entity) const;
 
       /// \brief Recursively add components to a view. This function is
       /// called when Rest is NOT empty.
@@ -423,13 +424,15 @@ namespace ignition
                         typename ...RemainingComponents,
                         typename std::enable_if<
                           sizeof...(RemainingComponents) != 0, int>::type = 0>
-              void AddComponentsToView(detail::View &_view, const Entity _entity) const;
+          void AddComponentsToView(detail::View &_view,
+              const Entity _entity) const;
 
       /// \brief Find a View that matches the set of ComponentTypeIds. If
       /// a match is not found, then a new view is created.
       /// \tparam ComponentTypeTs All the component types that define a view.
       /// \return A reference to the view.
-      private: template<typename ...ComponentTypeTs> detail::View &FindView() const;
+      private: template<typename ...ComponentTypeTs>
+          detail::View &FindView() const;
 
       /// \brief Find a view based on the provided component type ids.
       /// \param[in] _types The component type ids that serve as a key into
@@ -438,22 +441,24 @@ namespace ignition
       /// Check the return value to see if this iterator is valid.
       /// \return True if the view was found, false otherwise.
       private: bool FindView(const std::set<ComponentTypeId> &_types,
-                   std::map<detail::ComponentTypeKey, detail::View>::iterator &_iter) const;
+          std::map<detail::ComponentTypeKey,
+          detail::View>::iterator &_iter) const;
 
       /// \brief Add a new view to the set of stored views.
       /// \param[in] _types The set of component type ids that is the key
       /// for the view.
       /// \param[in] _view The view to add.
       /// \return An iterator to the view.
-      private: std::map<detail::ComponentTypeKey, detail::View>::iterator AddView(
-                   const std::set<ComponentTypeId> &_types, detail::View &&_view) const;
+      private: std::map<detail::ComponentTypeKey, detail::View>::iterator
+          AddView(const std::set<ComponentTypeId> &_types,
+              detail::View &&_view) const;
 
       /// \brief Update views that contain the provided entity.
       /// \param[in] _entity The entity.
       private: void UpdateViews(const Entity _entity);
 
       private: ComponentId EntityComponentIdFromType(
-                   const Entity _entity, const ComponentTypeId _type) const;
+          const Entity _entity, const ComponentTypeId _type) const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

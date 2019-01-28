@@ -17,6 +17,10 @@
 #ifndef IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
+#include <map>
+#include <set>
+#include <utility>
+
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
@@ -52,7 +56,8 @@ ComponentKey EntityComponentManager::CreateComponent(const Entity _entity,
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
-const ComponentTypeT *EntityComponentManager::Component(const Entity _entity) const
+const ComponentTypeT *EntityComponentManager::Component(
+    const Entity _entity) const
 {
   // Get a unique identifier to the component type
   const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
@@ -74,7 +79,8 @@ ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
-const ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key) const
+const ComponentTypeT *EntityComponentManager::Component(
+    const ComponentKey &_key) const
 {
   return static_cast<const ComponentTypeT *>(
       this->ComponentImplementation(_key));
@@ -106,7 +112,8 @@ ComponentTypeT *EntityComponentManager::First()
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-Entity EntityComponentManager::EntityByComponents(const ComponentTypeTs &..._desiredComponents) const
+Entity EntityComponentManager::EntityByComponents(
+    const ComponentTypeTs &..._desiredComponents) const
 {
   // Get all entities which have components of the desired types
   const auto &view = this->FindView<ComponentTypeTs...>();
@@ -232,7 +239,8 @@ void EntityComponentManager::Each(typename identity<std::function<
 
 //////////////////////////////////////////////////
 template <class Function, class... ComponentTypeTs>
-void EntityComponentManager::ForEach(Function _f, const ComponentTypeTs &... _components)
+void EntityComponentManager::ForEach(Function _f,
+    const ComponentTypeTs &... _components)
 {
   (_f(_components), ...);
 }
@@ -305,7 +313,8 @@ template<typename FirstComponent,
          typename ...RemainingComponents,
          typename std::enable_if<
            sizeof...(RemainingComponents) == 0, int>::type>
-void EntityComponentManager::AddComponentsToView(detail::View &_view, const Entity _entity) const
+void EntityComponentManager::AddComponentsToView(detail::View &_view,
+    const Entity _entity) const
 {
   const ComponentTypeId typeId = ComponentType<FirstComponent>();
   const ComponentId compId =
@@ -327,7 +336,8 @@ template<typename FirstComponent,
          typename ...RemainingComponents,
          typename std::enable_if<
            sizeof...(RemainingComponents) != 0, int>::type>
-void EntityComponentManager::AddComponentsToView(detail::View &_view, const Entity _entity) const
+void EntityComponentManager::AddComponentsToView(detail::View &_view,
+    const Entity _entity) const
 {
   const ComponentTypeId typeId = ComponentType<FirstComponent>();
   const ComponentId compId =
