@@ -121,7 +121,7 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base/2</uri>
     </include>
 
     <include>
