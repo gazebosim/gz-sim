@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,73 +44,66 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Events.hh"
-#include "SimulationRunner.hh"
+#include "ignition/gazebo/Factory.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
-class SimulationRunnerTest : public ::testing::TestWithParam<int>
-{
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-};
-
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, CreateEntities)
+TEST(FactoryTest, CreateEntities)
 {
+  // ECM and Event Manager
+  EventManager evm;
+  EntityComponentManager ecm;
+  EXPECT_EQ(0u, ecm.EntityCount());
+
+  // Factory
+  Factory factory(ecm, evm);
+
   // Load SDF file
   sdf::Root root;
   root.Load(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
-
   ASSERT_EQ(1u, root.WorldCount());
 
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  // Create entities
+  factory.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Model>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::CanonicalLink>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Collision>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Visual>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Light>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Geometry>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Material>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
-  EXPECT_EQ(14u, runner.EntityCompMgr().EntityCount());
+  EXPECT_EQ(14u, ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::World,
-                            components::Name>(
+  ecm.Each<components::World,
+           components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
         const components::Name *_name)->bool
@@ -134,10 +127,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   Entity boxModelEntity = kNullEntity;
   Entity cylModelEntity = kNullEntity;
   Entity sphModelEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::Model,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Model,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
@@ -186,10 +179,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   Entity boxLinkEntity = kNullEntity;
   Entity cylLinkEntity = kNullEntity;
   Entity sphLinkEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::Link,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Link,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &_entity,
         const components::Link *_link,
         const components::Pose *_pose,
@@ -237,7 +230,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check inertials
   unsigned int inertialCount{0};
-  runner.EntityCompMgr().Each<components::Link, components::Inertial>(
+  ecm.Each<components::Link, components::Inertial>(
     [&](const Entity & _entity,
         const components::Link *_link,
         const components::Inertial *_inertial)->bool
@@ -272,11 +265,11 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check collisions
   unsigned int collisionCount{0};
-  runner.EntityCompMgr().Each<components::Collision,
-                            components::Geometry,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Collision,
+           components::Geometry,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &/*_entity*/,
         const components::Collision *_collision,
         const components::Geometry *_geometry,
@@ -340,12 +333,12 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check visuals
   unsigned int visualCount{0};
-  runner.EntityCompMgr().Each<components::Visual,
-                            components::Geometry,
-                            components::Material,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Visual,
+           components::Geometry,
+           components::Material,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &/*_entity*/,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
@@ -426,10 +419,10 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check lights
   unsigned int lightCount{0};
-  runner.EntityCompMgr().Each<components::Light,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Light,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &/*_entity*/,
         const components::Light *_light,
         const components::Pose *_pose,
@@ -473,27 +466,33 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, CreateLights)
+TEST(FactoryTest, CreateLights)
 {
+  // ECM and Event Manager
+  EventManager evm;
+  EntityComponentManager ecm;
+  EXPECT_EQ(0u, ecm.EntityCount());
+
+  // Factory
+  Factory factory(ecm, evm);
+
   // Load SDF file
   sdf::Root root;
   root.Load(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/lights.sdf");
-
   ASSERT_EQ(1u, root.WorldCount());
 
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  // Create entities
+  factory.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
-  EXPECT_EQ(8u, runner.EntityCompMgr().EntityCount());
+  EXPECT_EQ(8u, ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::World,
+  ecm.Each<components::World,
                             components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
@@ -516,10 +515,10 @@ TEST_P(SimulationRunnerTest, CreateLights)
   // Check model
   unsigned int modelCount{0};
   Entity sphModelEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::Model,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Model,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
@@ -548,10 +547,10 @@ TEST_P(SimulationRunnerTest, CreateLights)
   // Check link
   unsigned int linkCount{0};
   Entity sphLinkEntity = kNullEntity;
-  runner.EntityCompMgr().Each<components::Link,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Link,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &_entity,
         const components::Link *_link,
         const components::Pose *_pose,
@@ -579,12 +578,12 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Check visuals
   unsigned int visualCount{0};
-  runner.EntityCompMgr().Each<components::Visual,
-                            components::Geometry,
-                            components::Material,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Visual,
+           components::Geometry,
+           components::Material,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &/*_entity*/,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
@@ -623,10 +622,10 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Check lights
   unsigned int lightCount{0};
-  runner.EntityCompMgr().Each<components::Light,
-                            components::Pose,
-                            components::ParentEntity,
-                            components::Name>(
+  ecm.Each<components::Light,
+           components::Pose,
+           components::ParentEntity,
+           components::Name>(
     [&](const Entity &/*_entity*/,
         const components::Light *_light,
         const components::Pose *_pose,
@@ -742,48 +741,54 @@ TEST_P(SimulationRunnerTest, CreateLights)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, CreateJointEntities)
+TEST(FactoryTest, CreateJointEntities)
 {
+  // ECM and Event Manager
+  EventManager evm;
+  EntityComponentManager ecm;
+  EXPECT_EQ(0u, ecm.EntityCount());
+
+  // Factory
+  Factory factory(ecm, evm);
+
   // Load SDF file
   sdf::Root root;
   root.Load(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/demo_joint_types.sdf");
-
   ASSERT_EQ(1u, root.WorldCount());
 
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  // Create entities
+  factory.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::CanonicalLink>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Joint>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::JointAxis>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::JointType>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ChildLinkName>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentLinkName>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Pose>()));
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+  EXPECT_TRUE(ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 
   // Check canonical links
   unsigned int canonicalLinkCount{0};
-  runner.EntityCompMgr().Each<components::CanonicalLink>(
+  ecm.Each<components::CanonicalLink>(
     [&](const Entity &, const components::CanonicalLink *)->bool
     {
       canonicalLinkCount++;
@@ -843,12 +848,12 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   };
 
   std::set<sdf::JointType> jointTypes;
-  runner.EntityCompMgr().Each<components::Joint,
-                            components::JointType,
-                            components::ParentLinkName,
-                            components::ChildLinkName,
-                            components::Pose,
-                            components::Name>(
+  ecm.Each<components::Joint,
+           components::JointType,
+           components::ParentLinkName,
+           components::ChildLinkName,
+           components::Pose,
+           components::Name>(
     [&](const Entity &_entity,
         const components::Joint * /*_joint*/,
         const components::JointType *_jointType,
@@ -859,9 +864,9 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
     {
       jointTypes.insert(_jointType->Data());
       auto axis =
-          runner.EntityCompMgr().Component<components::JointAxis>(_entity);
+          ecm.Component<components::JointAxis>(_entity);
       auto axis2 =
-          runner.EntityCompMgr().Component<components::JointAxis2>(_entity);
+          ecm.Component<components::JointAxis2>(_entity);
 
       const sdf::Joint *joint = model->JointByName(_name->Data());
 
@@ -882,208 +887,3 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
   EXPECT_EQ(8u, jointTypes.size());
 }
 
-/////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, Time)
-{
-  // Load SDF file
-  sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
-
-  ASSERT_EQ(1u, root.WorldCount());
-
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
-
-  // Check state
-  EXPECT_TRUE(runner.Paused());
-  EXPECT_EQ(0u, runner.CurrentInfo().iterations);
-  EXPECT_EQ(0ms, runner.CurrentInfo().simTime);
-  EXPECT_EQ(0ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
-  EXPECT_EQ(1ms, runner.StepSize());
-
-  runner.SetPaused(false);
-
-  // Run
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(100u, runner.CurrentInfo().iterations);
-  EXPECT_EQ(100ms, runner.CurrentInfo().simTime);
-  EXPECT_EQ(1ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
-  EXPECT_EQ(1ms, runner.StepSize());
-
-  // Change step size and run
-  runner.SetStepSize(2ms);
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(200u, runner.CurrentInfo().iterations);
-  EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
-  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
-  EXPECT_EQ(2ms, runner.StepSize());
-
-  // Set paused
-  runner.SetPaused(true);
-  EXPECT_TRUE(runner.Paused());
-  runner.SetPaused(false);
-  EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(200u, runner.CurrentInfo().iterations);
-  EXPECT_EQ(300ms, runner.CurrentInfo().simTime);
-  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
-  EXPECT_EQ(2ms, runner.StepSize());
-
-  // Unpause and run
-  runner.SetPaused(false);
-  EXPECT_TRUE(runner.Run(100));
-
-  // Check state
-  EXPECT_FALSE(runner.Paused());
-  EXPECT_EQ(300u, runner.CurrentInfo().iterations);
-  EXPECT_EQ(500ms, runner.CurrentInfo().simTime)
-    << runner.CurrentInfo().simTime.count();
-  EXPECT_EQ(2ms, runner.CurrentInfo().dt);
-  EXPECT_EQ(1ms, runner.UpdatePeriod());
-  EXPECT_EQ(2ms, runner.StepSize());
-}
-
-/////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPlugins)
-{
-  // Load SDF file
-  sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/plugins.sdf");
-
-  ASSERT_EQ(1u, root.WorldCount());
-
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
-
-  // Get world entity
-  Entity worldId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
-      {
-        EXPECT_NE(nullptr, _world);
-        worldId = _entity;
-        return true;
-      });
-  EXPECT_NE(kNullEntity, worldId);
-
-  // Get model entity
-  Entity modelId{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::Model>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::Model *_model)->bool
-      {
-        EXPECT_NE(nullptr, _model);
-        modelId = _entity;
-        return true;
-      });
-  EXPECT_NE(kNullEntity, modelId);
-
-  // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
-  EXPECT_DOUBLE_EQ(*runner.EntityCompMgr().Component<double>(worldId), 0.123);
-
-  // Check component registered by model plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<int>()));
-  EXPECT_EQ(*runner.EntityCompMgr().Component<int>(modelId), 987);
-}
-
-/////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, LoadPluginsEvent)
-{
-  // Load SDF file without plugins
-  sdf::Root rootWithout;
-  rootWithout.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
-  ASSERT_EQ(1u, rootWithout.WorldCount());
-
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
-
-  // Get world entity
-  Entity worldEntity{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
-      {
-        EXPECT_NE(nullptr, _world);
-        worldEntity = _entity;
-        return true;
-      });
-  EXPECT_NE(kNullEntity, worldEntity);
-
-  // Check there's no double component
-  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
-
-  // Load SDF file with plugins
-  sdf::Root rootWith;
-  rootWith.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/plugins.sdf");
-  ASSERT_EQ(1u, rootWith.WorldCount());
-
-  // Emit plugin loading event
-  runner.EventMgr().Emit<events::LoadPlugins>(worldEntity,
-      rootWith.WorldByIndex(0)->Element());
-
-  // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
-  EXPECT_DOUBLE_EQ(*runner.EntityCompMgr().Component<double>(worldEntity),
-      0.123);
-}
-
-/////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, GuiInfo)
-{
-  // Load SDF file
-  sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
-
-  ASSERT_EQ(1u, root.WorldCount());
-
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
-
-  // Create requester
-  transport::Node node;
-
-  bool result{false};
-  unsigned int timeout{5000};
-  msgs::GUI res;
-
-  EXPECT_TRUE(node.Request("/world/default/gui/info", timeout, res, result));
-  EXPECT_TRUE(result);
-
-  ASSERT_EQ(1, res.plugin_size());
-
-  auto plugin = res.plugin(0);
-  EXPECT_EQ("3D View", plugin.name());
-  EXPECT_EQ("Scene3D", plugin.filename());
-  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
-  EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
-  EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
-}
-
-// Run multiple times. We want to make sure that static globals don't cause
-// problems.
-INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest,
-    ::testing::Range(1, 2));
