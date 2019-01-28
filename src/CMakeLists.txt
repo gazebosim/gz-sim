@@ -12,7 +12,8 @@ add_subdirectory(msgs)
 set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
                             PROPERTIES GENERATED TRUE)
 
-message(STATUS ${PROTO_SRC})
+# Suppress compiler warnings in generated protobuf C++ code.
+set_source_files_properties(${PROTO_SRC} COMPILE_FLAGS -Wno-unused-parameter)
 
 set(network_sources
   network/PeerInfo.cc
