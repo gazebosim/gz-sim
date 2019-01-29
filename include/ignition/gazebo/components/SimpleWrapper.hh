@@ -20,6 +20,7 @@
 #include <memory>
 #include <utility>
 
+#include <ignition/gazebo/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -48,8 +49,10 @@ namespace components
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
   template <typename DataType, typename Identifier>
-  class SimpleWrapper
+  class SimpleWrapper: public Component
   {
+    public: explicit SimpleWrapper() = default;
+
     /// \brief Constructor
     /// \param[in] _simpleWrapper SimpleWrapper to copy
     public: explicit SimpleWrapper(const DataType &_data);

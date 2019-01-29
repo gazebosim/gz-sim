@@ -14,16 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
-
-#include <sdf/Light.hh>
+#ifndef IGNITION_GAZEBO_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENT_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -31,16 +26,16 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief This component contains light source information. For more
-  /// information on lights, see [SDF's Light
-  /// element](http://sdformat.org/spec?ver=1.6&elem=light).
-  using Light = SimpleWrapper<sdf::Light, class LightTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
-}
-}
-}
-}
+  /// ToDo.
+  class IGNITION_GAZEBO_VISIBLE Component
+  {
+    /// \brief ToDo
+    public: Component();
 
+    /// \brief ToDo
+    public: virtual ~Component();
+  };
+}
+}
+}
 #endif
