@@ -33,8 +33,16 @@ namespace systems
   // Forward declarations.
   class UserCommandsPrivate;
 
-  /// \class UserCommands UserCommands.hh ignition/gazebo/systems/UserCommands.hh
-  /// \brief
+  /// \brief This system provides an Ignition Transport interface to execute
+  /// commands while simulation is running.
+  ///
+  /// \todo(louise) In the future, an interface undo/redo commands will also
+  /// be provided.
+  ///
+  /// # Spawn entity
+  ///
+  ///     * **Topic**: `/world/<world name>/factory`
+  ///     * **Message type*: ignition.msgs.EntityFactory
   class IGNITION_GAZEBO_VISIBLE UserCommands:
     public System,
     public ISystemConfigure,

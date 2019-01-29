@@ -40,13 +40,26 @@ namespace gazebo
 {
 namespace systems
 {
+/// \brief This class is passed to every command and contains interfaces that
+/// can be shared among all commands. For example, all factory and delete
+/// commands can use the `factory` object.
+class UserCommandsInterface
+{
+  /// \brief Factory interface, shared among all commands that need it.
+  public: std::unique_ptr<Factory> factory{nullptr};
+
+  /// \brief World entity.
+  public: Entity worldEntity{kNullEntity};
+};
+
 /// \brief All user commands should inherit from this class so they can be
 /// undone / redone.
 class UserCommand
 {
   /// \brief Constructor
   /// \param[in] _msg Message containing user command
-  public: UserCommand(google::protobuf::Message *_msg);
+  public: UserCommand(google::protobuf::Message *_msg,
+      const std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -55,21 +68,22 @@ class UserCommand
 
   /// \brief Message containing command.
   protected: google::protobuf::Message *msg{nullptr};
+
+  /// \brief Keep pointer to interfaces shared among commands.
+  protected: const std::shared_ptr<UserCommandsInterface> iface{nullptr};
 };
 
 /// \brief Command to spawn an entity into simulation.
 class FactoryCommand : public UserCommand
 {
-  /// \brief
+  /// \brief Constructor
+  /// \param[in] _msg Factory message.
+  /// \param[in] _iface Pointer to user commands interface.
   public: FactoryCommand(msgs::EntityFactory *_msg,
-      const std::shared_ptr<Factory> &_factory);
+      const std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
   public: virtual bool Execute() final;
-
-  private: std::shared_ptr<Factory> factory{nullptr};
-
-  public: Entity worldEntity{kNullEntity};
 };
 }
 }
@@ -90,9 +104,8 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  public: std::shared_ptr<Factory> factory{nullptr};
-
-  public: Entity worldEntity{kNullEntity};
+  /// \brief
+  public: std::shared_ptr<UserCommandsInterface> iface{nullptr};
 };
 
 //////////////////////////////////////////////////
@@ -110,12 +123,14 @@ void UserCommands::Configure(const Entity &_entity,
     EntityComponentManager &_ecm,
     EventManager &_eventManager)
 {
-  this->dataPtr->factory = std::make_shared<Factory>(_ecm, _eventManager);
-  this->dataPtr->worldEntity = _entity;
-
-  auto worldName = _ecm.Component<components::Name>(_entity)->Data();
+  // Create interfaces shared among commands
+  this->dataPtr->iface = std::make_shared<UserCommandsInterface>();
+  this->dataPtr->iface->worldEntity = _entity;
+  this->dataPtr->iface->factory = std::make_unique<Factory>(_ecm, _eventManager);
 
   // Spawn service
+  auto worldName = _ecm.Component<components::Name>(_entity)->Data();
+
   std::string factoryService{"/world/" + worldName + "/factory"};
   this->dataPtr->node.Advertise(factoryService, &UserCommandsPrivate::FactoryService,
       this->dataPtr.get());
@@ -156,9 +171,7 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
   // Create command and push it to queue
   auto msg = _req.New();
   msg->CopyFrom(_req);
-  auto cmd = std::make_unique<FactoryCommand>(msg, this->factory);
-  // TODO(louise) Improve this
-  cmd->worldEntity = this->worldEntity;
+  auto cmd = std::make_unique<FactoryCommand>(msg, this->iface);
 
   // Push to pending
   this->pendingCmds.push_back(std::move(cmd));
@@ -168,14 +181,16 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
 }
 
 //////////////////////////////////////////////////
-UserCommand::UserCommand(google::protobuf::Message *_msg) : msg(_msg)
+UserCommand::UserCommand(google::protobuf::Message *_msg,
+    const std::shared_ptr<UserCommandsInterface> &_iface)
+    : msg(_msg), iface(_iface)
 {
 }
 
 //////////////////////////////////////////////////
 FactoryCommand::FactoryCommand(msgs::EntityFactory *_msg,
-    const std::shared_ptr<Factory> &_factory)
-    : UserCommand(_msg), factory(_factory)
+    const std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommand(_msg, _iface)
 {
 }
 
@@ -190,6 +205,12 @@ bool FactoryCommand::Execute()
   }
 
   // TODO(louise): Support other message fields
+  if (factoryMsg->sdf().empty())
+  {
+    ignerr << "Missing `sdf` field in factory message." << std::endl;
+    return false;
+  }
+
   sdf::Root root;
   auto errors = root.LoadSdfString(factoryMsg->sdf());
 
@@ -203,11 +224,11 @@ bool FactoryCommand::Execute()
   Entity entity{kNullEntity};
   if (root.ModelCount() == 1)
   {
-    entity = this->factory->CreateEntities(root.ModelByIndex(0));
+    entity = this->iface->factory->CreateEntities(root.ModelByIndex(0));
   }
   else if (root.LightCount() == 1)
   {
-    entity = this->factory->CreateEntities(root.LightByIndex(0));
+    entity = this->iface->factory->CreateEntities(root.LightByIndex(0));
   }
   else
   {
@@ -216,7 +237,7 @@ bool FactoryCommand::Execute()
     return false;
   }
 
-  this->factory->SetParent(entity, this->worldEntity);
+  this->iface->factory->SetParent(entity, this->iface->worldEntity);
 
   return true;
 }

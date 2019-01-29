@@ -218,7 +218,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (this->entityWorldMap.find(_entity) != this->entityWorldMap.end())
         {
           ignwarn << "World entity [" << _entity
-                  << "] marked as new, but it's already on the map." << std::endl;
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
           return true;
         }
 
@@ -242,7 +243,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (this->entityModelMap.find(_entity) != this->entityModelMap.end())
         {
           ignwarn << "Model entity [" << _entity
-                  << "] marked as new, but it's already on the map." << std::endl;
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
           return true;
         }
 
@@ -284,7 +286,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (this->entityLinkMap.find(_entity) != this->entityLinkMap.end())
         {
           ignwarn << "Model entity [" << _entity
-                  << "] marked as new, but it's already on the map." << std::endl;
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
           return true;
         }
 
@@ -393,7 +396,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
         {
           ignwarn << "Joint entity [" << _entity
-                  << "] marked as new, but it's already on the map." << std::endl;
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
           return true;
         }
 
