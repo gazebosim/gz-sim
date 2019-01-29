@@ -94,16 +94,15 @@ namespace ignition
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
 
-      /// \brief Get the entity which parents the given entity.
-      /// \detail If entity has more than one parent, it returns the first one
-      /// found.
+      /// \brief Get the first parent of the given entity.
+      /// \detail Entities are not expected to have multiple parents.
       /// TODO(louise) Either prevent multiple parents or provide full support
       /// for multiple parents.
       /// \param[in] _entity Entity.
       /// \return The parent entity or kNullEntity if there's none.
       public: Entity ParentEntity(const Entity _entity) const;
 
-      /// \brief Set an entity to parent the given entity.
+      /// \brief Set the parent of an entity.
       ///
       /// \detail It is recommended that systems don't call this function
       /// directly, and instead use the `gazebo::Factory` class to create
