@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <ignition/gazebo/Component.hh>
+#include <ignition/gazebo/components/Component.hh>
 
 namespace ignition
 {
@@ -31,12 +31,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  //
   /// \typedef FactoryFn
   /// \brief Prototype for component factory generation
-  typedef std::unique_ptr<Component> (*FactoryFn) ();
+  using FactoryFn = std::unique_ptr<Component> (*)();
 
-  /// \class ToDo.
+  /// \brief A factory that generates a component based on a string type.
   class IGNITION_GAZEBO_VISIBLE Factory
   {
     /// \brief Register a component.
@@ -45,11 +44,7 @@ namespace components
     public: static void Register(const std::string &_compType,
                                  FactoryFn _factoryfn)
     {
-      // Create the compMap if it's null
-      if (!compMap)
-        compMap = new std::map<std::string, FactoryFn>;
-
-      (*compMap)[_compType] = _factoryfn;
+      compMap[_compType] = _factoryfn;
     }
 
     /// \brief Create a new instance of a component.
@@ -69,10 +64,8 @@ namespace components
     /// type could not be handled.
     public: static std::unique_ptr<Component> New(const std::string &_compType)
     {
-      std::unique_ptr<Component> comp;
-
       std::string type;
-      const std::string kCompStr = "ign_gazebo_components.";
+      const std::string kCompStr  = "ign_gazebo_components.";
       const std::string kCompStr1 = "ignition.gazebo.components.";
       const std::string kCompStr2 = ".ignition.gazebo.components.";
       // Convert "ignition.gazebo.components." to "ign_gazebo_components.".
@@ -94,39 +87,40 @@ namespace components
         type += _compType;
       }
 
-      // Create a new message if a FactoryFn has been assigned
-      // to the message type.
-      if (compMap->find(type) != compMap->end())
-        comp = ((*compMap)[type]) ();
+      // Create a new component if a FactoryFn has been assigned to this type.
+      std::unique_ptr<Component> comp;
+      auto it = compMap.find(type);
+      if (it != compMap.end())
+        comp = it->second();
 
       return comp;
     }
 
-    /// \brief Get all the component types
+    /// \brief Get all the component types.
     /// \param[out] _types Vector of strings of the component types.
-    public: static std::vector<std::string> Types()
+    public: static std::vector<std::string> Components()
     {
       std::vector<std::string> types;
 
-      // Return the list of all known message types.
-      for (const auto & [name, funct] : *compMap)
+      // Return the list of all known component types.
+      for (const auto & [name, funct] : compMap)
         types.push_back(name);
 
       return types;
     }
 
     /// \brief A list of registered component types
-    private: inline static std::map<std::string, FactoryFn> *compMap = nullptr;
+    private: inline static std::map<std::string, FactoryFn> compMap;
   };
 
-  /// \brief Static message registration macro
+  /// \brief Static component registration macro.
   ///
-  /// Use this macro to register messages.
+  /// Use this macro to register components.
   /// \param[in] _compType Component type name.
-  /// \param[in] _classname Class name for message.
+  /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
   IGNITION_GAZEBO_VISIBLE \
-  std::unique_ptr<ignition::gazebo::Component> New##_classname() \
+  std::unique_ptr<ignition::gazebo::components::Component> New##_classname() \
   { \
     return std::unique_ptr<ignition::gazebo::components::_classname>(\
         new ignition::gazebo::components::_classname); \
@@ -141,8 +135,9 @@ namespace components
   }; \
   static IgnGazeboComponents##_classname\
     IgnitionGazeboComponentsInitializer##_classname;
-  }
 }
 }
 }
+}
+
 #endif

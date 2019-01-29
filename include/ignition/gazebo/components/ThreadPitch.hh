@@ -29,7 +29,6 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  //
   /// \brief A component used to store the thread pitch of a screw joint
   using ThreadPitch = SimpleWrapper<double, class ThreadPitchTag>;
   inline IGN_GAZEBO_REGISTER_COMPONENT(

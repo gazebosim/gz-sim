@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include <ignition/gazebo/Component.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
