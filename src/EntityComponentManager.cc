@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include <map>
@@ -64,6 +66,11 @@ class ignition::gazebo::EntityComponentManagerPrivate
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
+  auto comps = gazebo::components::Factory::Types();
+
+  std::cout << "List of components registered:" << std::endl;
+  for (auto const name : comps)
+    std::cout << name << std::endl;
 }
 
 //////////////////////////////////////////////////

@@ -18,12 +18,9 @@
 #define IGNITION_GAZEBO_COMPONENTS_POSE_HH_
 
 #include <ignition/math/Pose3.hh>
-
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -36,16 +33,16 @@ namespace components
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information.
   using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
+  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
 
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information in world frame.
   using WorldPose = SimpleWrapper<ignition::math::Pose3d, class WorldPoseTag>;
+  inline IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.WorldPose", WorldPose)
 }
 }
 }
 }
-
-// IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
-// IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPose", WorldPose)
 
 #endif

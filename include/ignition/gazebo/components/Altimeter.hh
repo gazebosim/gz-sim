@@ -18,12 +18,9 @@
 #define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 
 #include <sdf/Element.hh>
-
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -36,7 +33,8 @@ namespace components
   /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
   /// This is currently the whole <sensor> element.
   using Altimeter = SimpleWrapper<sdf::ElementPtr, class AltimeterTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
+  inline IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.Altimeter", Altimeter)
 }
 }
 }

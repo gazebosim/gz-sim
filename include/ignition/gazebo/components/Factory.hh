@@ -19,6 +19,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 #include <ignition/gazebo/Component.hh>
 
@@ -71,25 +72,30 @@ namespace components
       std::unique_ptr<Component> comp;
 
       std::string type;
+      const std::string kCompStr = "ign_gazebo_components.";
+      const std::string kCompStr1 = "ignition.gazebo.components.";
+      const std::string kCompStr2 = ".ignition.gazebo.components.";
       // Convert "ignition.gazebo.components." to "ign_gazebo_components.".
-      if (_compType.find("ignition.gazebo.components.") == 0)
+      if (_compType.compare(0, kCompStr1.size(), kCompStr1) == 0)
       {
-        type = "ign_gazebo_components." + _compType.substr(27);
+        type = kCompStr + _compType.substr(kCompStr1.size());
       }
-      // Convert ".ignition.msgs." to "ign_msgs.".
-      else if (_compType.find(".ignition.gazebo.components.") == 0)
+      // Convert ".ignition.gazebo.components" to "ign_gazebo_components.".
+      else if (_compType.compare(0, kCompStr2.size(), kCompStr2) == 0)
       {
-        type = "ign_gazebo_components." + _compType.substr(28);
+        type = kCompStr + _compType.substr(kCompStr2.size());
       }
       else
       {
-        // Fix typenames that are missing "ign_gazebo_components." at the beginning.
-        if (_compType.find("ign_gazebo_components.") != 0)
-          type = "ign_gazebo_components.";
+        // Fix typenames that are missing "ign_gazebo_components."
+        // at the beginning.
+        if (_compType.compare(0, kCompStr.size(), kCompStr) != 0)
+          type = kCompStr;
         type += _compType;
       }
 
-      // Create a new message if a FactoryFn has been assigned to the message type
+      // Create a new message if a FactoryFn has been assigned
+      // to the message type.
       if (compMap->find(type) != compMap->end())
         comp = ((*compMap)[type]) ();
 
@@ -98,14 +104,20 @@ namespace components
 
     /// \brief Get all the component types
     /// \param[out] _types Vector of strings of the component types.
-    public: static void Types(std::vector<std::string> &_types);
+    public: static std::vector<std::string> Types()
+    {
+      std::vector<std::string> types;
+
+      // Return the list of all known message types.
+      for (const auto & [name, funct] : *compMap)
+        types.push_back(name);
+
+      return types;
+    }
 
     /// \brief A list of registered component types
     private: inline static std::map<std::string, FactoryFn> *compMap = nullptr;
   };
-
-  // Initialization of static members,
-  //std::map<std::string, FactoryFn> *Factory::compMap = NULL;
 
   /// \brief Static message registration macro
   ///

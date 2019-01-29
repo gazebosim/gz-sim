@@ -17,12 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PARENTENTITY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PARENTENTITY_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -34,8 +32,8 @@ namespace components
 {
   /// \brief This component holds the ID of an entity's parent entity.
   using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
-  // IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ParentEntity",
-  //     ParentEntity)
+  inline IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.ParentEntity", ParentEntity)
 }
 }
 }
