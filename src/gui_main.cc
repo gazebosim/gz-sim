@@ -175,11 +175,18 @@ int main(int _argc, char **_argv)
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-
-  igndbg << "Requesting list of world names..." << std::endl;
-
   ignition::msgs::StringMsg_V worldsMsg;
-  executed = node.Request(service, timeout, worldsMsg, result);
+
+  // This loop is here to allow the server time to download resources.
+  // \todo(nkoenig) Async resource download. Search for "Async resource
+  // download in `src/Server.cc` for corresponding todo item. This todo is
+  // resolved when this while loop can be removed.
+  while (!executed)
+  {
+    igndbg << "Requesting list of world names. The server may be busy "
+      << "downloading resources. Please be patient." << std::endl;
+    executed = node.Request(service, timeout, worldsMsg, result);
+  }
 
   if (!executed)
     ignerr << "Timed out when getting world names." << std::endl;
