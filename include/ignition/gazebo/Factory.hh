@@ -142,9 +142,6 @@ namespace ignition
       /// \param[in] _factoryfn Function that generates the component.
       public: static void Register(const std::string &_type,
                                    FactoryFn _factoryfn);
-      // {
-      //   compMap[_type] = _factoryfn;
-      // }
 
       /// \brief Create a new instance of a component.
       /// \param[in] _type Type of component to create.
@@ -196,7 +193,6 @@ namespace ignition
     }; \
     static IgnGazeboComponents##_classname\
       IgnitionGazeboComponentsInitializer##_classname;
-
     }
   }
 }
