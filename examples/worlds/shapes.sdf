@@ -1,9 +1,4 @@
 <?xml version="1.0" ?>
-<!--
-  Try inserting a model:
-
-      ign service -s /world/shapes/factory --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: "<?xml version=\"1.0\" ?><sdf version=\"1.5\"><model name=\"spawned_model\"><static>true</static><link name=\"spawned_link\"><visual name=\"spawned_visual\"><geometry><sphere><radius>1.0</radius></sphere></geometry></visual></link></model></sdf>"'
--->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ode">
@@ -40,6 +35,8 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <service>/world/shapes/scene/info</service>
         <pose_topic>/world/shapes/pose/info</pose_topic>
+        <scene_topic>/world/shapes/scene/info</scene_topic>
+        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->

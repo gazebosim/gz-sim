@@ -200,15 +200,23 @@ bool FactoryCommand::Execute()
     return false;
   }
 
-  if (root.ModelCount() != 1)
+  Entity entity{kNullEntity};
+  if (root.ModelCount() == 1)
   {
-    ignerr << "Expected exactly 1 <model> on SDF string:" << std::endl
-           << factoryMsg->sdf() << std::endl;
+    entity = this->factory->CreateEntities(root.ModelByIndex(0));
+  }
+  else if (root.LightCount() == 1)
+  {
+    entity = this->factory->CreateEntities(root.LightByIndex(0));
+  }
+  else
+  {
+    ignerr << "Expected exactly 1 top-level <model> or <light> on SDF string:"
+           << std::endl << factoryMsg->sdf() << std::endl;
     return false;
   }
 
-  auto modelEntity = this->factory->CreateEntities(root.ModelByIndex(0));
-  this->factory->SetParent(modelEntity, this->worldEntity);
+  this->factory->SetParent(entity, this->worldEntity);
 
   return true;
 }
