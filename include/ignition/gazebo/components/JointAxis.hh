@@ -18,9 +18,9 @@
 #define IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 
 #include <sdf/JointAxis.hh>
-#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Factory.hh>
 
 namespace ignition
 {

@@ -26,7 +26,6 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -403,4 +402,57 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   }
 
   return sensorEntity;
+}
+
+//////////////////////////////////////////////////
+void Factory::Register(const std::string &_type, FactoryFn _factoryfn)
+{
+  compMap[_type] = _factoryfn;
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<components::Component> Factory::New(const std::string &_type)
+{
+  std::string type;
+  const std::string kCompStr  = "ign_gazebo_components.";
+  const std::string kCompStr1 = "ignition.gazebo.components.";
+  const std::string kCompStr2 = ".ignition.gazebo.components.";
+  // Convert "ignition.gazebo.components." to "ign_gazebo_components.".
+  if (_type.compare(0, kCompStr1.size(), kCompStr1) == 0)
+  {
+    type = kCompStr + _type.substr(kCompStr1.size());
+  }
+  // Convert ".ignition.gazebo.components" to "ign_gazebo_components.".
+  else if (_type.compare(0, kCompStr2.size(), kCompStr2) == 0)
+  {
+    type = kCompStr + _type.substr(kCompStr2.size());
+  }
+  else
+  {
+    // Fix typenames that are missing "ign_gazebo_components."
+    // at the beginning.
+    if (_type.compare(0, kCompStr.size(), kCompStr) != 0)
+      type = kCompStr;
+    type += _type;
+  }
+
+  // Create a new component if a FactoryFn has been assigned to this type.
+  std::unique_ptr<components::Component> comp;
+  auto it = compMap.find(type);
+  if (it != compMap.end())
+    comp = it->second();
+
+  return comp;
+}
+
+//////////////////////////////////////////////////
+std::vector<std::string> Factory::Components()
+{
+  std::vector<std::string> types;
+
+  // Return the list of all known component types.
+  for (const auto & [name, funct] : compMap)
+    types.push_back(name);
+
+  return types;
 }

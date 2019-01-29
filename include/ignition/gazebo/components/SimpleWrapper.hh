@@ -51,6 +51,7 @@ namespace components
   template <typename DataType, typename Identifier>
   class SimpleWrapper: public Component
   {
+    /// \brief Default constructor
     public: explicit SimpleWrapper() = default;
 
     /// \brief Constructor
