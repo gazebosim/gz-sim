@@ -397,6 +397,24 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 }
 
 //////////////////////////////////////////////////
+void Factory::RequestEraseEntity(Entity _entity, bool _recursive)
+{
+  // Leave children parentless
+  if (!_recursive)
+  {
+    auto childEntities = this->dataPtr->ecm->ChildrenByComponents(_entity,
+        components::ParentEntity(_entity));
+    for (const auto childEntity : childEntities)
+    {
+      this->dataPtr->ecm->RemoveComponent<components::ParentEntity>(
+          childEntity);
+    }
+  }
+
+  this->dataPtr->ecm->RequestEraseEntity(_entity, _recursive);
+}
+
+//////////////////////////////////////////////////
 void Factory::SetParent(Entity _child, Entity _parent)
 {
   // TODO(louise) Figure out a way to avoid duplication while keeping all

@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <utility>
+#include <vector>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
