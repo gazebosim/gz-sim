@@ -16,6 +16,9 @@
 */
 
 #include <gtest/gtest.h>
+#include <algorithm>
+#include <string>
+#include <vector>
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -887,3 +890,21 @@ TEST(FactoryTest, CreateJointEntities)
   EXPECT_EQ(8u, jointTypes.size());
 }
 
+/////////////////////////////////////////////////
+TEST(FactoryTest, New)
+{
+  auto comp = Factory::New<components::Pose>("__unknown_component__");
+  ASSERT_TRUE(comp.get() == nullptr);
+
+  comp = Factory::New<components::Pose>("ign_gazebo_components.Pose");
+  ASSERT_TRUE(comp.get() != nullptr);
+}
+
+///////////////////////////////////////////////
+TEST(FactoryTest, Components)
+{
+  std::vector<std::string> comps = Factory::Components();
+  EXPECT_FALSE(comps.empty());
+  EXPECT_TRUE(std::find(comps.begin(), comps.end(),
+      std::string("ign_gazebo_components.Altimeter")) != comps.end());
+}

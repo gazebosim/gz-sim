@@ -7,7 +7,6 @@ set(gui_sources
 )
 
 set (sources
-  #Component.cc
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
@@ -35,7 +34,6 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
-  components/ComponentFactory_TEST.cc
 )
 
 # Create the library target

@@ -19,9 +19,9 @@
 
 #include <memory>
 #include <sdf/Joint.hh>
-#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Factory.hh>
 
 namespace ignition
 {
