@@ -20,6 +20,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
@@ -33,13 +34,17 @@ namespace components
   /// \brief Velocity of a joint's first axis in SI units (rad/s for revolute,
   /// m/s for prismatic).
   using JointVelocity = SimpleWrapper<double, class JointVelocityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointVelocity",
+      JointVelocity)
 
   /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
   /// m/s for prismatic).
   using JointVelocity2 = SimpleWrapper<double, class JointVelocity2Tag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointVelocity2",
+      JointVelocity2)
 }
 }
 }
 }
-#endif
 
+#endif

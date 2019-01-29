@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include <ignition/gazebo/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -38,7 +39,7 @@ namespace components
   ///     using Joint = TagWrapper<class JointTag>;
   ///
   template <typename Identifier>
-  class TagWrapper
+  class TagWrapper : public Component
   {
     /// \brief Equality operator, always returns true, since tags don't have
     /// data.

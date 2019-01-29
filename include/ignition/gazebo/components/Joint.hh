@@ -20,6 +20,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/TagWrapper.hh"
 
 namespace ignition
@@ -32,8 +33,10 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a joint.
   using Joint = TagWrapper<class JointTag>;
+  //IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
 }
 }
 }
 }
+
 #endif

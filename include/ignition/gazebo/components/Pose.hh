@@ -22,6 +22,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
@@ -43,4 +44,8 @@ namespace components
 }
 }
 }
+
+// IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
+// IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPose", WorldPose)
+
 #endif

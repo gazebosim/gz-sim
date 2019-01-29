@@ -26,6 +26,7 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -403,4 +404,3 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 
   return sensorEntity;
 }
-
