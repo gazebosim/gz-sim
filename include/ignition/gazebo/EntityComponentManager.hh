@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
+#include <ignition/math/graph/Graph.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
@@ -41,6 +42,12 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+
+    /// \brief Type alias for the graph that holds entities.
+    /// Each vertex is an entity, and the direction points from the parent to
+    /// its children.
+    /// All edges are positive booleans.
+    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
 
     /** \class EntityComponentManager EntityComponentManager.hh \
      * ignition/gazebo/EntityComponentManager.hh
@@ -66,7 +73,16 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntity(const Entity _entity);
+      ///
+      /// \detail It is recommended that systems don't call this function
+      /// directly, and instead use the `gazebo::Factory` class to erase
+      /// entities.
+      ///
+      /// \param[in] _entity Entity to be erased.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
+      public: void RequestEraseEntity(const Entity _entity,
+          bool _recursive = true);
 
       /// \brief Request to erase all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -74,9 +90,27 @@ namespace ignition
       public: void RequestEraseEntities();
 
       /// \brief Get whether an Entity exists.
-      /// \param[in] _entity Entity id to confirm.
+      /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
+
+      /// \brief Get the first parent of the given entity.
+      /// \detail Entities are not expected to have multiple parents.
+      /// TODO(louise) Either prevent multiple parents or provide full support
+      /// for multiple parents.
+      /// \param[in] _entity Entity.
+      /// \return The parent entity or kNullEntity if there's none.
+      public: Entity ParentEntity(const Entity _entity) const;
+
+      /// \brief Set the parent of an entity.
+      ///
+      /// \detail It is recommended that systems don't call this function
+      /// directly, and instead use the `gazebo::Factory` class to create
+      /// entities that have the correct parent-child relationship.
+      ///
+      /// \param[in] _entity Entity or kNullEntity to remove current parent.
+      /// \return True if successful. Will fail if entities don't exist.
+      public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
@@ -202,10 +236,28 @@ namespace ignition
       /// \detail Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
-      /// \return Entity Id or kNullEntity if no entity has the exact
-      /// components.
+      /// \return Entity or kNullEntity if no entity has the exact components.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
+                   const ComponentTypeTs &..._desiredComponents) const;
+
+      /// \brief Get all entities which match the value of all the given
+      /// components and are immediate children of a given parent entity.
+      /// For example, the following will return a child of entity `parent`
+      /// which has an int component equal to 123, and a string component
+      /// equal to "name":
+      ///
+      ///  auto entity = ChildrenByComponents(parent, 123, std::string("name"));
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _parent Entity which should be an immediate parent of the
+      /// returned entity.
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return All matching entities, or an empty vector if no child entity
+      /// has the exact components.
+      public: template<typename ...ComponentTypeTs>
+              std::vector<Entity> ChildrenByComponents(Entity _parent,
                    const ComponentTypeTs &..._desiredComponents) const;
 
       /// why is this required?
@@ -334,6 +386,11 @@ namespace ignition
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const;
 
+      /// \brief Get a graph with all the entities. Entities are vertices and
+      /// edges point from parent to children.
+      /// \return Entity graph.
+      public: const EntityGraph &Entities() const;
+
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
@@ -414,10 +471,6 @@ namespace ignition
       private: void RegisterComponentType(
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
-
-      /// \brief Get all the entities.
-      /// \return All the entities.
-      private: std::vector<Entity> &Entities() const;
 
       /// \brief End of the AddComponentToView recursion. This function is
       /// called when Rest is empty.
