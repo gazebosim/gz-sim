@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/detail/View.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
+using namespace detail;
 
 //////////////////////////////////////////////////
 void View::AddEntity(const Entity _entity, const bool _new)
