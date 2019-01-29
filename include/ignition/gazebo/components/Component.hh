@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENT_HH_
-#define IGNITION_GAZEBO_COMPONENT_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -26,16 +26,20 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace components
+{
   /// ToDo.
   class IGNITION_GAZEBO_VISIBLE Component
   {
     /// \brief ToDo
-    public: Component();
+    public: Component() = default;
 
     /// \brief ToDo
-    public: virtual ~Component();
+    public: virtual ~Component() = default;
   };
 }
 }
 }
+}
+
 #endif

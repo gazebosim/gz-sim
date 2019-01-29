@@ -29,7 +29,6 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  //
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = SimpleWrapper<bool, class StaticTag>;

@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 #include <map>
 #include <set>
 #include <vector>
 
 #include "ignition/common/Profiler.hh"
+#include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -57,13 +58,15 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::mutex entityEraseMutex;
 
   /// \brief The set of all views.
-  public: mutable std::map<ComponentTypeKey, View> views;
+  public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
 };
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
+  for (auto comp : components::Factory::Components())
+    std::cout << comp << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -110,7 +113,7 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->dataPtr->newlyCreatedEntities.clear();
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     view.second.ClearNewEntities();
   }
@@ -188,7 +191,7 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       }
 
       // Remove the entity from views.
-      for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+      for (auto &view : this->dataPtr->views)
       {
         view.second.EraseEntity(entity, view.first);
       }
@@ -196,6 +199,15 @@ void EntityComponentManager::ProcessEraseEntityRequests()
     // Clear the set of entities to erase.
     this->dataPtr->toEraseEntities.clear();
   }
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::RemoveComponent(
+    const Entity _entity, const ComponentTypeId &_typeId)
+{
+  auto componentId = this->EntityComponentIdFromType(_entity, _typeId);
+  ComponentKey key{_typeId, componentId};
+  return this->RemoveComponent(_entity, key);
 }
 
 /////////////////////////////////////////////////
@@ -342,7 +354,10 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _type;});
+      [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return iter->second;
@@ -359,9 +374,11 @@ const void *EntityComponentManager::ComponentImplementation(
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  auto iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _type;});
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+      [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
@@ -380,7 +397,10 @@ void *EntityComponentManager::ComponentImplementation(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key) {return _key.first == _type;});
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
@@ -447,15 +467,16 @@ std::vector<Entity> &EntityComponentManager::Entities() const
 
 //////////////////////////////////////////////////
 bool EntityComponentManager::FindView(const std::set<ComponentTypeId> &_types,
-    std::map<ComponentTypeKey, View>::iterator &_iter) const
+    std::map<detail::ComponentTypeKey, detail::View>::iterator &_iter) const
 {
   _iter = this->dataPtr->views.find(_types);
   return _iter != this->dataPtr->views.end();
 }
 
 //////////////////////////////////////////////////
-std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
-    const std::set<ComponentTypeId> &_types, View &&_view) const
+std::map<detail::ComponentTypeKey, detail::View>::iterator
+    EntityComponentManager::AddView(const std::set<ComponentTypeId> &_types,
+    detail::View &&_view) const
 {
   // If the view already exists, then the map will return the iterator to
   // the location that prevented the insertion.
@@ -467,7 +488,7 @@ std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
 void EntityComponentManager::UpdateViews(const Entity _entity)
 {
   IGN_PROFILE("EntityComponentManager::UpdateViews");
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     // Add/update the entity if it matches the view.
     if (this->EntityMatches(_entity, view.first))
@@ -496,7 +517,7 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
 void EntityComponentManager::RebuildViews()
 {
   IGN_PROFILE("EntityComponentManager::RebuildViews");
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     view.second.entities.clear();
     view.second.components.clear();
@@ -524,13 +545,4 @@ void EntityComponentManager::RebuildViews()
       }
     }
   }
-}
-
-//////////////////////////////////////////////////
-std::ostream &EntityComponentManager::Serialize(std::ostream &_out) const
-{
-  _out << this->dataPtr->entityComponents.size();
-  for (const auto &entity : this->dataPtr->entityComponents)
-
-  return _out;
 }
