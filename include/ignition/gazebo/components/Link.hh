@@ -17,11 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LINK_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LINK_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/TagWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/TagWrapper.hh"
 
 namespace ignition
 {
@@ -33,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a link.
   using Link = TagWrapper<class LinkTag>;
-  //IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Link", Link)
+  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Link", Link)
 }
 }
 }

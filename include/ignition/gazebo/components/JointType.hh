@@ -18,14 +18,10 @@
 #define IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
 
 #include <memory>
-
 #include <sdf/Joint.hh>
-
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -38,7 +34,8 @@ namespace components
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
   using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointType", JointType)
+  inline IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointType", JointType)
 }
 }
 }

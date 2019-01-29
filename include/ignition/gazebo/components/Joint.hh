@@ -17,11 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINT_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/TagWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/TagWrapper.hh"
 
 namespace ignition
 {
@@ -33,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a joint.
   using Joint = TagWrapper<class JointTag>;
-  //IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
+  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
 }
 }
 }

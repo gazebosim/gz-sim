@@ -17,11 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
 #define IGNITION_GAZEBO_COMPONENTS_STATIC_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -35,12 +33,10 @@ namespace components
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = SimpleWrapper<bool, class StaticTag>;
+  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Static", Static)
 }
 }
 }
 }
-
-// IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Static", Static)
 
 #endif
-
