@@ -73,6 +73,11 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
+      ///
+      /// \detail It is recommended that systems don't call this function
+      /// directly, and instead use the `gazebo::Factory` class to erase
+      /// entities.
+      ///
       /// \param[in] _entity Entity to be erased.
       /// \param[in] _recursive Whether to recursively delete all child
       /// entities. True by default.
