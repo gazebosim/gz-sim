@@ -106,6 +106,11 @@ Server::Server(const ServerConfig &_config)
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
+    // \todo(nkoenig) Async resource download.
+    // This call can block for a long period of time while
+    // resources are downloaded. Blocking here causes the GUI to block with
+    // a black screen (search for "Async resource download" in
+    // 'src/gui_main.cc'.
     errors = root.Load(_config.SdfFile());
   }
   else
