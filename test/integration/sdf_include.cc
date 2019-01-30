@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <sdf/sdf.hh>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/fuel_tools.hh>
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -27,12 +28,16 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 TEST(SdfInclude, DownloadFromFuel)
 {
-  // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(ignition::fuel_tools::fetchResource);
+  std::string path = common::cwd() + "/test_cache";
 
   // Configure the gazebo server, which will cause a model to be downloaded.
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
+  serverConfig.SetResourceCache(path);
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include.sdf");
   gazebo::Server server(serverConfig);
+
+  EXPECT_TRUE(common::exists(path +
+        "/fuel.ignitionrobotics.org/openrobotics/models/ground plane" +
+        "/1/model.sdf"));
 }
