@@ -21,10 +21,13 @@
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Factory.hh"
 
@@ -45,6 +48,9 @@ namespace systems
 /// commands can use the `factory` object.
 class UserCommandsInterface
 {
+  /// \brief Pointer to entity component manager. We don't assume ownership.
+  public: EntityComponentManager *ecm{nullptr};
+
   /// \brief Factory interface, shared among all commands that need it.
   public: std::unique_ptr<Factory> factory{nullptr};
 
@@ -104,7 +110,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Ignition communication node.
   public: transport::Node node;
 
-  /// \brief
+  /// \brief Object holding several interfaces that can be used by any command.
   public: std::shared_ptr<UserCommandsInterface> iface{nullptr};
 };
 
@@ -126,6 +132,7 @@ void UserCommands::Configure(const Entity &_entity,
   // Create interfaces shared among commands
   this->dataPtr->iface = std::make_shared<UserCommandsInterface>();
   this->dataPtr->iface->worldEntity = _entity;
+  this->dataPtr->iface->ecm = &_ecm;
   this->dataPtr->iface->factory = std::make_unique<Factory>(_ecm, _eventManager);
 
   // Spawn service
@@ -204,15 +211,45 @@ bool FactoryCommand::Execute()
     return false;
   }
 
-  // TODO(louise): Support other message fields
-  if (factoryMsg->sdf().empty())
-  {
-    ignerr << "Missing `sdf` field in factory message." << std::endl;
-    return false;
-  }
-
+  // Load SDF
   sdf::Root root;
-  auto errors = root.LoadSdfString(factoryMsg->sdf());
+  sdf::Errors errors;
+  switch (factoryMsg->from_case())
+  {
+    case msgs::EntityFactory::kSdf:
+    {
+      errors = root.LoadSdfString(factoryMsg->sdf());
+      break;
+    }
+    case msgs::EntityFactory::kSdfFilename:
+    {
+      errors = root.Load(factoryMsg->sdf_filename());
+      break;
+    }
+    case msgs::EntityFactory::kModel:
+    {
+      // TODO(louise) Support model msg
+      ignerr << "model field not yet supported." << std::endl;
+      return false;
+    }
+    case msgs::EntityFactory::kLight:
+    {
+      // TODO(louise) Support light msg
+      ignerr << "light field not yet supported." << std::endl;
+      return false;
+    }
+    case msgs::EntityFactory::kCloneName:
+    {
+      // TODO(louise) Implement clone
+      ignerr << "Cloning an entity is not yet supported." << std::endl;
+      return false;
+    }
+    default:
+    {
+      ignerr << "Missing [from] field in factory message." << std::endl;
+      return false;
+    }
+  }
 
   if (!errors.empty())
   {
@@ -221,6 +258,54 @@ bool FactoryCommand::Execute()
     return false;
   }
 
+  if (root.ModelCount() != 1 && root.LightCount() != 1)
+  {
+    ignerr << "Expected exactly 1 top-level <model> or <light> on SDF."
+           << std::endl;
+    return false;
+  }
+
+  // Check the name of the entity being spawned
+  std::string desiredName;
+  if (!factoryMsg->name().empty())
+  {
+    desiredName = factoryMsg->name();
+  }
+  else if (root.ModelCount() == 1)
+  {
+    desiredName = root.ModelByIndex(0)->Name();
+  }
+  else if (root.LightCount() == 1)
+  {
+    desiredName = root.LightByIndex(0)->Name();
+  }
+
+  // Check if there's already a top-level entity with the given name
+  if (kNullEntity != this->iface->ecm->EntityByComponents(
+      components::Name(desiredName),
+      components::ParentEntity(this->iface->worldEntity)))
+  {
+    if (!factoryMsg->allow_renaming())
+    {
+      ignwarn << "Entity named [" << desiredName << "] already exists and "
+              << "[allow_renaming] is false. Entity not spawned."
+              << std::endl;
+      return false;
+    }
+
+    // Generate unique name
+    std::string newName = desiredName;
+    int i = 0;
+    while (kNullEntity != this->iface->ecm->EntityByComponents(
+      components::Name(newName),
+      components::ParentEntity(this->iface->worldEntity)))
+    {
+      newName = desiredName + "_" + std::to_string(i++);
+    }
+    desiredName = newName;
+  }
+
+  // Create entities
   Entity entity{kNullEntity};
   if (root.ModelCount() == 1)
   {
@@ -230,14 +315,19 @@ bool FactoryCommand::Execute()
   {
     entity = this->iface->factory->CreateEntities(root.LightByIndex(0));
   }
-  else
-  {
-    ignerr << "Expected exactly 1 top-level <model> or <light> on SDF string:"
-           << std::endl << factoryMsg->sdf() << std::endl;
-    return false;
-  }
 
   this->iface->factory->SetParent(entity, this->iface->worldEntity);
+
+  // Pose
+  if (factoryMsg->has_pose())
+  {
+    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+    *poseComp = components::Pose(msgs::Convert(factoryMsg->pose()));
+  }
+
+  // Update name
+  auto nameComp = this->iface->ecm->Component<components::Name>(entity);
+  *nameComp = components::Name(desiredName);
 
   return true;
 }

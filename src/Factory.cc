@@ -48,7 +48,10 @@
 
 class ignition::gazebo::FactoryPrivate
 {
+  /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
+
+  /// \brief Pointer to event manager. We don't assume ownership.
   public: EventManager *eventManager{nullptr};
 };
 

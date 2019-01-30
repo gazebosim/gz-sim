@@ -60,7 +60,11 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
 
-    /// Documentation inherited
+    /// \brief All received commands are queued in order of reception and
+    /// executed in order during PreUpdate.
+    /// \param[in] _info Contains information about the current simulation
+    /// iteration.
+    /// \param[in] _ecm The entity component manager.
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
 
