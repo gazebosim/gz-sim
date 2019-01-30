@@ -119,6 +119,7 @@ namespace ignition
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
 
+      /// \brief Client used to download resources from Ignition Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 
       /// \brief List of names for all worlds loaded in this server.
