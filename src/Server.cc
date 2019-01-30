@@ -95,16 +95,6 @@ static const char kDefaultWorld[] =
   "</sdf>";
 
 /////////////////////////////////////////////////
-/*std::string customFetchResource(const std::string &_uri)
-{
-  if (!fuelClient)
-
-  std::cout << common::cwd() + "/test_fuel_cache" << std::endl;
-  fuel_tools::FuelClient client(config);
-  return fuel_tools::fetchResourceWithClient(_uri, client);
-}*/
-
-/////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
