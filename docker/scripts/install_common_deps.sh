@@ -14,24 +14,14 @@ sudo apt-get install -y \
 sudo apt-get install -y \
   build-essential \
   cmake \
+  cppcheck \
   curl \
   git \
   g++-8 \
   mercurial \
-  pkg-config
-
-sudo apt-get install -y \
-  cppcheck \
-  valgrind
-
-sudo apt-get install -y \
-  python3 \
-  python3-dbg \
-  python3-pip \
-  python3-venv
+  pkg-config \
 
 sudo apt-get install -y \
   clang-tidy-6.0 \
   python-yaml \
   libclang-6.0-dev
-
