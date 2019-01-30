@@ -32,7 +32,7 @@ namespace components
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = SimpleWrapper<bool, class StaticTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Static", Static)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Static", Static)
 }
 }
 }

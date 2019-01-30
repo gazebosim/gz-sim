@@ -32,7 +32,7 @@ namespace components
 {
   /// \brief This component holds an entity's geometry.
   using Geometry = SimpleWrapper<sdf::Geometry, class GeometryTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Geometry", Geometry)
 }
 }

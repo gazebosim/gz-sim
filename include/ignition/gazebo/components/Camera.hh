@@ -33,7 +33,7 @@ namespace components
   /// \brief TODO(louise) Substitute with sdf::Camera once that exists?
   /// This is currently the whole <sensor> element.
   using Camera = SimpleWrapper<sdf::ElementPtr, class CameraTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
 }
 }
 }

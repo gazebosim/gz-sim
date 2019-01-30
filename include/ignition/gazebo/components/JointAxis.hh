@@ -33,13 +33,13 @@ namespace components
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
   using JointAxis = SimpleWrapper<sdf::JointAxis, class JointAxisTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = SimpleWrapper<sdf::JointAxis, class JointAxis2Tag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis2", JointAxis2)
 }
 }

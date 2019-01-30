@@ -1062,17 +1062,44 @@ TEST_F(FactoryTest, EraseEntities)
 }
 
 /////////////////////////////////////////////////
-TEST(FactoryTest, New)
+TEST_F(FactoryTest, Register)
 {
-  auto comp = Factory::New<components::Pose>("__unknown_component__");
-  ASSERT_TRUE(comp.get() == nullptr);
+  // Create a custom component.
+  using MyCustom = components::TagWrapper<class MyCustomTag>;
+  Factory::Register<MyCustom>("ign_gazebo_components.MyCustom");
+  auto components = Factory::Components();
+  EXPECT_NE(components.end(),
+      std::find(components.begin(), components.end(),
+          "ign_gazebo_components.MyCustom"));
+}
 
-  comp = Factory::New<components::Pose>("ign_gazebo_components.Pose");
-  ASSERT_TRUE(comp.get() != nullptr);
+/////////////////////////////////////////////////
+TEST_F(FactoryTest, New)
+{
+  {
+    auto comp = Factory::New<components::Pose>("__unknown_component__");
+    ASSERT_TRUE(comp == nullptr);
+  }
+
+  {
+    auto comp = Factory::New<components::Pose>("ign_gazebo_components.Pose");
+    ASSERT_TRUE(comp != nullptr);
+  }
+
+  {
+    auto comp = Factory::New("ign_gazebo_components.Pose");
+    ASSERT_TRUE(comp != nullptr);
+  }
+
+  {
+    auto id = EntityComponentManager::ComponentType<components::Pose>();
+    auto comp = Factory::New(id);
+    ASSERT_TRUE(comp != nullptr);
+  }
 }
 
 ///////////////////////////////////////////////
-TEST(FactoryTest, Components)
+TEST_F(FactoryTest, Components)
 {
   std::vector<std::string> comps = Factory::Components();
   EXPECT_FALSE(comps.empty());

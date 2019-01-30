@@ -33,7 +33,7 @@ namespace components
   /// \brief A component used to indicate that a model is parentlinkname (i.e.
   /// not moveable).
   using ParentLinkName = SimpleWrapper<std::string, class ParentLinkNameTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
     "ign_gazebo_components.ParentLinkName", ParentLinkName)
 }
 }

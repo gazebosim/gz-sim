@@ -33,14 +33,14 @@ namespace components
   /// \brief A component type that contains linear velocity of an entity
   /// represented by ignition::math::Vector3d.
   using LinearVelocity = SimpleWrapper<math::Vector3d, class LinearVelocityTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.LinearVelocity", LinearVelocity)
 
   /// \brief A component type that contains linear velocity of an entity in the
   /// world frame represented by ignition::math::Vector3d.
   using WorldLinearVelocity =
       SimpleWrapper<math::Vector3d, class WorldLinearVelocityTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.WorldLinearVelocity", WorldLinearVelocity)
 }
 }

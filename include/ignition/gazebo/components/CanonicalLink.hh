@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a canonical link.
   using CanonicalLink = TagWrapper<class CanonicalLinkTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.CanonicalLink", CanonicalLink)
 }
 }

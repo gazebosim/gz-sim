@@ -34,7 +34,7 @@ namespace components
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
   using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointType", JointType)
 }
 }

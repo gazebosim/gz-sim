@@ -424,13 +424,6 @@ void Factory::SetParent(Entity _child, Entity _parent)
       components::ParentEntity(_parent));
 }
 
-// //////////////////////////////////////////////////
-// void Factory::Register(const std::string &_type, FactoryFn _factoryfn)
-// {
-//   auto key = EntityComponentManager::
-//   compsByName[_type] = _factoryfn;
-// }
-
 //////////////////////////////////////////////////
 std::unique_ptr<components::Component> Factory::New(const std::string &_type)
 {
@@ -468,7 +461,7 @@ std::unique_ptr<components::Component> Factory::New(const std::string &_type)
 
 //////////////////////////////////////////////////
 std::unique_ptr<components::Component> Factory::New(
-  const ComponentTypeId &_type)
+    const ComponentTypeId &_type)
 {
   // Create a new component if a FactoryFn has been assigned to this type.
   std::unique_ptr<components::Component> comp;
@@ -490,4 +483,3 @@ std::vector<std::string> Factory::Components()
 
   return types;
 }
-
