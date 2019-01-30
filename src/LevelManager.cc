@@ -45,6 +45,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -182,6 +183,14 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
       auto pose = level->Get<math::Pose3d>("pose");
       sdf::Geometry geometry;
       geometry.Load(level->GetElement("geometry"));
+
+      double buffer = level->Get<double>("buffer", 0.0).first;
+      if (buffer < 0)
+      {
+        ignwarn << "The buffer parameter for Level [" << name << "]cannot be a "
+                << " negative number. Setting to 0.0\n";
+      }
+
       std::set<std::string> entityNames;
 
       for (auto ref = level->GetElement("ref"); ref;
@@ -210,6 +219,8 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
           levelEntity, components::LevelEntityNames(entityNames));
       this->runner->entityCompMgr.CreateComponent(
           levelEntity, components::Geometry(geometry));
+      this->runner->entityCompMgr.CreateComponent(
+          levelEntity, components::LevelBuffer(buffer));
     }
   }
 }
@@ -324,18 +335,25 @@ void LevelManager::UpdateLevelsState()
         // loop through levels and check for intersections
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry,
+                                         components::LevelBuffer,
                                          components::LevelEntityNames>(
             [&](const Entity &, const components::Level *,
                 const components::Pose *_pose,
                 const components::Geometry *_levelGeometry,
+                const components::LevelBuffer *_levelBuffer,
                 const components::LevelEntityNames *_entityNames) -> bool
             {
               // Check if the performer is in this level
               // assume a box for now
               auto box = _levelGeometry->Data().BoxShape();
+              auto buffer = _levelBuffer->Data();
               auto center = _pose->Data().Pos();
               math::AxisAlignedBox region{center - box->Size() / 2,
                                           center + box->Size() / 2};
+
+              math::AxisAlignedBox outerRegion{
+                  center - (box->Size() / 2 + buffer),
+                  center + (box->Size() / 2 + buffer)};
 
               if (region.Intersects(performerVolume))
               {
@@ -344,7 +362,12 @@ void LevelManager::UpdateLevelsState()
               }
               else
               {
-                // mark the entity to be unloaded if it's currently active
+                // Check if the performer is outside of the buffer of this level
+                if (outerRegion.Intersects(performerVolume)){
+                  return true;
+                }
+                // Otherwise, mark the entity to be unloaded if it's currently
+                // active
                 std::copy_if(_entityNames->Data().begin(),
                              _entityNames->Data().end(),
                              std::inserter(this->entityNamesToUnload,
@@ -466,9 +489,9 @@ void LevelManager::UnloadInactiveLevels()
         }
         return true;
       });
-  for (const auto &_name : this->entityNamesToUnload)
+  for (const auto &name : this->entityNamesToUnload)
   {
-    this->activeEntityNames.erase(_name);
+    this->activeEntityNames.erase(name);
   }
   this->entityNamesToUnload.clear();
 }

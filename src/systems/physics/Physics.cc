@@ -400,10 +400,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
 {
-  // TODO(addisu) Actually delete entities in ign-physics when that feature is
-  // added
   // Assume the world will not be erased
-
   // Models
   _ecm.EachErased<components::Model>(
       [&](const Entity &_entity,
