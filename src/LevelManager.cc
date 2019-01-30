@@ -261,6 +261,8 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::Level());
   this->runner->entityCompMgr.CreateComponent(
+      defaultLevel, components::DefaultLevel());
+  this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::ParentEntity(this->worldEntity));
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::LevelEntityNames(this->entityNamesInDefault));
