@@ -289,17 +289,11 @@ void LevelManager::CreatePerformers()
     {
       Entity modelEntity = this->factory->CreateEntities(model);
 
-      // Create a component on the performer entity that points to this model
-      this->runner->entityCompMgr.SetParentEntity(
-          this->performerMap[model->Name()], modelEntity);
-      this->runner->entityCompMgr.CreateComponent(
-          this->performerMap[model->Name()],
-          components::ParentEntity(modelEntity));
+      // Make the model a parent of this performer
+      this->factory->SetParent(this->performerMap[model->Name()], modelEntity);
 
       // Add parent world to the model
-      this->runner->entityCompMgr.SetParentEntity(modelEntity, this->worldEntity);
-      this->runner->entityCompMgr.CreateComponent(
-          modelEntity, components::ParentEntity(this->worldEntity));
+      this->factory->SetParent(modelEntity, this->worldEntity);
     }
   }
 }
@@ -431,10 +425,7 @@ void LevelManager::LoadActiveLevels()
     {
       Entity modelEntity = this->factory->CreateEntities(model);
 
-      this->runner->entityCompMgr.SetParentEntity(modelEntity,
-          this->worldEntity);
-      this->runner->entityCompMgr.CreateComponent(
-          modelEntity, components::ParentEntity(this->worldEntity));
+      this->factory->SetParent(modelEntity, this->worldEntity);
     }
   }
 
@@ -448,10 +439,7 @@ void LevelManager::LoadActiveLevels()
     {
       Entity lightEntity = this->factory->CreateEntities(light);
 
-      this->runner->entityCompMgr.SetParentEntity(lightEntity,
-          this->worldEntity);
-      this->runner->entityCompMgr.CreateComponent(
-          lightEntity, components::ParentEntity(this->worldEntity));
+      this->factory->SetParent(lightEntity, this->worldEntity);
     }
   }
 
