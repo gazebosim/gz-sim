@@ -76,7 +76,7 @@ class ignition::gazebo::systems::MagnetometerPrivate
   /// \brief Used to store whether objects have been created.
   public: bool initialized = false;
 
-  /// \brief A map of magnetometer entity to its vertical reference
+  /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity, std::unique_ptr<MagnetometerSensor>>
       entitySensorMap;
 
@@ -89,7 +89,7 @@ class ignition::gazebo::systems::MagnetometerPrivate
   public: void UpdateMagnetometers(const EntityComponentManager &_ecm);
 
   /// \brief Helper function to generate default topic name for the sensor
-  /// \param[in] _entity Entity to get the world pose for
+  /// \param[in] _entity Entity to get the topic for.
   /// \param[in] _ecm Immutable reference to ECM.
   public: std::string DefaultTopic(const Entity &_entity,
     const EntityComponentManager &_ecm);

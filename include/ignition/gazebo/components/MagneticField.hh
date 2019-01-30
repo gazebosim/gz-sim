@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETIC_FIELD_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MAGNETIC_FIELD_HH_
 
-#include <sdf/Element.hh>
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -32,7 +32,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::MagneticField once that exists?
+  /// \brief Stores the 3D magnetic field in teslas.
   using MagneticField = SimpleWrapper<math::Vector3d, class MagneticFieldTag>;
 }
 }
