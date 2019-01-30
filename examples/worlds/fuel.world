@@ -129,11 +129,5 @@
       <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
     </include>
 
-    <include>
-      <pose>0 4 1 0 0 0</pose>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/nate/models/my_x2_description
-      </uri>
-    </include>
   </world>
 </sdf>

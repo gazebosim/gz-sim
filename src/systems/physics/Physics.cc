@@ -306,7 +306,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
         {
-          auto meshSdf = _geom->Data().MeshShape();
+          const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
           if (nullptr == meshSdf)
           {
             ignwarn << "Mesh geometry for collision [" << _name->Data()
