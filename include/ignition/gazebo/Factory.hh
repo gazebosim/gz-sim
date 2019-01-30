@@ -190,7 +190,7 @@ namespace ignition
           const ComponentTypeId &_type);
 
       /// \brief Get all the component types.
-      /// \param[out] _types Vector of strings of the component types.
+      /// return Vector of strings of the component types.
       public: static std::vector<std::string> Components();
 
       /// \typedef FactoryFn
