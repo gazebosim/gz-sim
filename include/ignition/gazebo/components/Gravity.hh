@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
 
-#include <sdf/Element.hh>
-
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -32,6 +30,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
+  /// \brief Store the gravity acceleration.
   using Gravity = SimpleWrapper<math::Vector3d, class GravityTag>;
 }
 }
