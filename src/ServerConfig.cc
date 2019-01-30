@@ -26,6 +26,10 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
+
+  /// \brief Path to where simulation resources, such as models downloaded
+  /// from fuel.ignitionrobotics.org, should be stored.
+  public: std::string resourceCache = "";
 };
 
 //////////////////////////////////////////////////
@@ -75,4 +79,16 @@ std::optional<std::chrono::steady_clock::duration>
   }
 
   return std::nullopt;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::ResourceCache() const
+{
+  return this->dataPtr->resourceCache;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetResourceCache(const std::string &_path)
+{
+  this->dataPtr->resourceCache = _path;
 }

@@ -17,6 +17,7 @@
 #include "ignition/gazebo/Server.hh"
 
 #include <ignition/fuel_tools/Interface.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include "ServerPrivate.hh"
@@ -94,11 +95,28 @@ static const char kDefaultWorld[] =
   "</sdf>";
 
 /////////////////////////////////////////////////
+/*std::string customFetchResource(const std::string &_uri)
+{
+  if (!fuelClient)
+
+  std::cout << common::cwd() + "/test_fuel_cache" << std::endl;
+  fuel_tools::FuelClient client(config);
+  return fuel_tools::fetchResourceWithClient(_uri, client);
+}*/
+
+/////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Configure the fuel client
+  fuel_tools::ClientConfig config;
+  if (!_config.ResourceCache().empty())
+    config.SetCacheLocation(_config.ResourceCache());
+  this->dataPtr->fuelClient.reset(new fuel_tools::FuelClient(config));
+
   // Configure SDF to fetch assets from ignition fuel.
-  sdf::setFindCallback(ignition::fuel_tools::fetchResource);
+  sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
+        this->dataPtr.get(), std::placeholders::_1));
 
   sdf::Root root;
   sdf::Errors errors;
