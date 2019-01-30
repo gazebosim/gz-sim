@@ -28,13 +28,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// ToDo.
+  /// A component base class.
   class IGNITION_GAZEBO_VISIBLE Component
   {
-    /// \brief ToDo
+    /// \brief Default constructor.
     public: Component() = default;
 
-    /// \brief ToDo
+    /// \brief Default destructor.
     public: virtual ~Component() = default;
   };
 }

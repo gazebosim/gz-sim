@@ -404,11 +404,12 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   return sensorEntity;
 }
 
-//////////////////////////////////////////////////
-void Factory::Register(const std::string &_type, FactoryFn _factoryfn)
-{
-  compMap[_type] = _factoryfn;
-}
+// //////////////////////////////////////////////////
+// void Factory::Register(const std::string &_type, FactoryFn _factoryfn)
+// {
+//   auto key = EntityComponentManager::
+//   compsByName[_type] = _factoryfn;
+// }
 
 //////////////////////////////////////////////////
 std::unique_ptr<components::Component> Factory::New(const std::string &_type)
@@ -438,8 +439,21 @@ std::unique_ptr<components::Component> Factory::New(const std::string &_type)
 
   // Create a new component if a FactoryFn has been assigned to this type.
   std::unique_ptr<components::Component> comp;
-  auto it = compMap.find(type);
-  if (it != compMap.end())
+  auto it = compsByName.find(type);
+  if (it != compsByName.end())
+    comp = it->second();
+
+  return comp;
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<components::Component> Factory::New(
+  const ComponentTypeId &_type)
+{
+  // Create a new component if a FactoryFn has been assigned to this type.
+  std::unique_ptr<components::Component> comp;
+  auto it = compsById.find(_type);
+  if (it != compsById.end())
     comp = it->second();
 
   return comp;
@@ -451,7 +465,7 @@ std::vector<std::string> Factory::Components()
   std::vector<std::string> types;
 
   // Return the list of all known component types.
-  for (const auto & [name, funct] : compMap)
+  for (const auto & [name, funct] : compsByName)
     types.push_back(name);
 
   return types;

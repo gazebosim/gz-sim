@@ -37,6 +37,7 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/EventManager.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
@@ -140,15 +141,21 @@ namespace ignition
       /// \brief Register a component.
       /// \param[in] _type Type of component to register.
       /// \param[in] _factoryfn Function that generates the component.
-      public: static void Register(const std::string &_type,
-                                   FactoryFn _factoryfn);
+      public: template<typename ComponentTypeT>
+      static void Register(const std::string &_type,
+                           FactoryFn _factoryfn)
+      {
+        auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
+        compsByName[_type] = _factoryfn;
+        compsById[id] = _factoryfn;
+      }
 
       /// \brief Create a new instance of a component.
-      /// \param[in] _type Type of component to create.
+      /// \param[in] _type Component key to create.
       /// \return Pointer to a component. Null if the component
       /// type could not be handled.
-      public: template<typename T>
-      static std::unique_ptr<T> New(const std::string &_type)
+      public: template<typename T, typename KeyT>
+      static std::unique_ptr<T> New(const KeyT &_type)
       {
         return std::unique_ptr<T>(static_cast<T*>(New(_type).release()));
       }
@@ -160,6 +167,13 @@ namespace ignition
       public: static std::unique_ptr<components::Component> New(
           const std::string &_type);
 
+      /// \brief Create a new instance of a component.
+      /// \param[in] _type Type of component to create.
+      /// \return Pointer to a component. Null if the component
+      /// type could not be handled.
+      public: static std::unique_ptr<components::Component> New(
+          const ComponentTypeId &_type);
+
       /// \brief Get all the component types.
       /// \param[out] _types Vector of strings of the component types.
       public: static std::vector<std::string> Components();
@@ -167,8 +181,11 @@ namespace ignition
       /// \brief Pointer to private data.
       private: std::unique_ptr<FactoryPrivate> dataPtr;
 
-      /// \brief A list of registered component types.
-      private: inline static std::map<std::string, FactoryFn> compMap;
+      /// \brief A list of registered components where the key is its name.
+      private: inline static std::map<std::string, FactoryFn> compsByName;
+
+      /// \brief A list of registered components where the key is its id.
+      private: inline static std::map<ComponentTypeId, FactoryFn> compsById;
     };
 
     /// \brief Static component registration macro.
@@ -187,7 +204,7 @@ namespace ignition
     { \
       public: IgnGazeboComponents##_classname() \
       { \
-        ignition::gazebo::Factory::Register(\
+        ignition::gazebo::Factory::Register<_classname>(\
           _compType, New##_classname);\
       } \
     }; \
