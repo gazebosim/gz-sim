@@ -27,19 +27,24 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
+  /// \brief Recursively insert an entity and all its descendants into a given
+  /// set.
+  /// \param[in] _entity Entity to be inserted.
+  /// \param[in, out] _set Set to be filled.
+  public: void InsertEntityRecursive(Entity _entity,
+      std::set<Entity> &_set);
+
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
-  /// \brief Instances of entities
-  public: std::vector<Entity> entities;
+  /// \brief A graph holding all entities, arranged according to their
+  /// parenting.
+  public: EntityGraph entities;
 
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
-
-  /// \brief Deleted entities that can be reused
-  public: std::set<Entity> availableEntities;
 
   /// \brief Entities that need to be erased.
   public: std::set<Entity> toEraseEntities;
@@ -57,7 +62,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::mutex entityEraseMutex;
 
   /// \brief The set of all views.
-  public: mutable std::map<ComponentTypeKey, View> views;
+  public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
+
+  /// \brief Keep track of entities already used to ensure uniqueness.
+  public: uint64_t entityCount{0};
 };
 
 //////////////////////////////////////////////////
@@ -72,29 +80,22 @@ EntityComponentManager::~EntityComponentManager() = default;
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->dataPtr->entities.size() -
-    this->dataPtr->availableEntities.size();
+  return this->dataPtr->entities.Vertices().size();
 }
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity entity = kNullEntity;
+  Entity entity = this->dataPtr->entityCount++;
 
-  if (!this->dataPtr->availableEntities.empty())
+  if (entity == std::numeric_limits<int64_t>::max())
   {
-    // Reuse the smallest available Entity
-    entity = *(this->dataPtr->availableEntities.begin());
-    this->dataPtr->availableEntities.erase(
-        this->dataPtr->availableEntities.begin());
-    this->dataPtr->entities[entity] = entity;
+    ignwarn << "Reached maximum number of entities [" << entity << "]"
+            << std::endl;
+    return entity;
   }
-  else
-  {
-    // Create a brand new entity
-    entity = this->dataPtr->entities.size();
-    this->dataPtr->entities.push_back(entity);
-  }
+
+  this->dataPtr->entities.AddVertex(std::to_string(entity), entity, entity);
 
   // Add entity to the list of newly created entities
   {
@@ -110,19 +111,39 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->dataPtr->newlyCreatedEntities.clear();
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     view.second.ClearNewEntities();
   }
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::RequestEraseEntity(Entity _entity)
+void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
+    std::set<Entity> &_set)
+{
+  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  {
+    this->InsertEntityRecursive(vertex.first, _set);
+  }
+  _set.insert(_entity);
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::RequestEraseEntity(Entity _entity, bool _recursive)
 {
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-    this->dataPtr->toEraseEntities.insert(_entity);
+    if (!_recursive)
+    {
+      this->dataPtr->toEraseEntities.insert(_entity);
+    }
+    else
+    {
+      this->dataPtr->InsertEntityRecursive(_entity,
+          this->dataPtr->toEraseEntities);
+    }
   }
+
   this->UpdateViews(_entity);
 }
 
@@ -146,9 +167,8 @@ void EntityComponentManager::ProcessEraseEntityRequests()
   {
     IGN_PROFILE("EraseAll");
     this->dataPtr->eraseAllEntities = false;
-    this->dataPtr->entities.clear();
+    this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
-    this->dataPtr->availableEntities.clear();
     this->dataPtr->toEraseEntities.clear();
 
     for (std::pair<const ComponentTypeId,
@@ -170,8 +190,8 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       if (!this->HasEntity(entity))
         continue;
 
-      // Insert the entity into the set of available entities.
-      this->dataPtr->availableEntities.insert(entity);
+      // Remove from graph
+      this->dataPtr->entities.RemoveVertex(entity);
 
       // Remove the components, if any.
       if (this->dataPtr->entityComponents.find(entity) !=
@@ -188,7 +208,7 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       }
 
       // Remove the entity from views.
-      for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+      for (auto &view : this->dataPtr->views)
       {
         view.second.EraseEntity(entity, view.first);
       }
@@ -196,6 +216,15 @@ void EntityComponentManager::ProcessEraseEntityRequests()
     // Clear the set of entities to erase.
     this->dataPtr->toEraseEntities.clear();
   }
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::RemoveComponent(
+    const Entity _entity, const ComponentTypeId &_typeId)
+{
+  auto componentId = this->EntityComponentIdFromType(_entity, _typeId);
+  ComponentKey key{_typeId, componentId};
+  return this->RemoveComponent(_entity, key);
 }
 
 /////////////////////////////////////////////////
@@ -269,13 +298,42 @@ bool EntityComponentManager::IsMarkedForErasure(const Entity _entity) const
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
-  return
-    // Check that the _entity is in range
-    _entity >= 0 &&
-    _entity < static_cast<Entity>(this->dataPtr->entities.size())
-    // Check that the _entity is not deleted (not in the available entity set)
-    && this->dataPtr->availableEntities.find(_entity) ==
-       this->dataPtr->availableEntities.end();
+  auto vertex = this->dataPtr->entities.VertexFromId(_entity);
+  return vertex.Id() != math::graph::kNullId;
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::ParentEntity(const Entity _entity) const
+{
+  auto parents = this->Entities().AdjacentsTo(_entity);
+  if (parents.empty())
+    return kNullEntity;
+
+  // TODO(louise) Do we want to support multiple parents?
+  return parents.begin()->first;
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::SetParentEntity(const Entity _child,
+    const Entity _parent)
+{
+  // Remove current parent(s)
+  auto parents = this->Entities().AdjacentsTo(_child);
+  for (const auto &parent : parents)
+  {
+    auto edge = this->dataPtr->entities.EdgeFromVertices(parent.first, _child);
+    this->dataPtr->entities.RemoveEdge(edge);
+  }
+
+  // Leave parent-less
+  if (_parent == kNullEntity)
+  {
+    return true;
+  }
+
+  // Add edge
+  auto edge = this->dataPtr->entities.AddEdge({_parent, _child}, true);
+  return (math::graph::kNullId != edge.Id());
 }
 
 /////////////////////////////////////////////////
@@ -342,7 +400,10 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _type;});
+      [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return iter->second;
@@ -359,9 +420,11 @@ const void *EntityComponentManager::ComponentImplementation(
   if (ecIter == this->dataPtr->entityComponents.end())
     return nullptr;
 
-  auto iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
-      [&] (const ComponentKey &_key) {return _key.first == _type;});
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+      [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
@@ -380,7 +443,10 @@ void *EntityComponentManager::ComponentImplementation(
 
   auto iter =
     std::find_if(ecIter->second.begin(), ecIter->second.end(),
-        [&] (const ComponentKey &_key) {return _key.first == _type;});
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _type;
+  });
 
   if (iter != ecIter->second.end())
     return this->dataPtr->components.at(iter->first)->Component(iter->second);
@@ -440,22 +506,23 @@ void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 }
 
 //////////////////////////////////////////////////
-std::vector<Entity> &EntityComponentManager::Entities() const
+const EntityGraph &EntityComponentManager::Entities() const
 {
   return this->dataPtr->entities;
 }
 
 //////////////////////////////////////////////////
 bool EntityComponentManager::FindView(const std::set<ComponentTypeId> &_types,
-    std::map<ComponentTypeKey, View>::iterator &_iter) const
+    std::map<detail::ComponentTypeKey, detail::View>::iterator &_iter) const
 {
   _iter = this->dataPtr->views.find(_types);
   return _iter != this->dataPtr->views.end();
 }
 
 //////////////////////////////////////////////////
-std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
-    const std::set<ComponentTypeId> &_types, View &&_view) const
+std::map<detail::ComponentTypeKey, detail::View>::iterator
+    EntityComponentManager::AddView(const std::set<ComponentTypeId> &_types,
+    detail::View &&_view) const
 {
   // If the view already exists, then the map will return the iterator to
   // the location that prevented the insertion.
@@ -467,7 +534,7 @@ std::map<ComponentTypeKey, View>::iterator EntityComponentManager::AddView(
 void EntityComponentManager::UpdateViews(const Entity _entity)
 {
   IGN_PROFILE("EntityComponentManager::UpdateViews");
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     // Add/update the entity if it matches the view.
     if (this->EntityMatches(_entity, view.first))
@@ -496,14 +563,15 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
 void EntityComponentManager::RebuildViews()
 {
   IGN_PROFILE("EntityComponentManager::RebuildViews");
-  for (std::pair<const ComponentTypeKey, View> &view : this->dataPtr->views)
+  for (auto &view : this->dataPtr->views)
   {
     view.second.entities.clear();
     view.second.components.clear();
     // Add all the entities that match the component types to the
     // view.
-    for (const Entity &entity : this->dataPtr->entities)
+    for (const auto &vertex : this->dataPtr->entities.Vertices())
     {
+      Entity entity = vertex.first;
       if (this->EntityMatches(entity, view.first))
       {
         view.second.AddEntity(entity, this->IsNewEntity(entity));

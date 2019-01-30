@@ -10,6 +10,7 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
+  Factory.cc
   LevelManager.cc
   Model.cc
   Server.cc
@@ -18,6 +19,7 @@ set (sources
   SimulationRunner.cc
   System.cc
   SystemLoader.cc
+  Util.cc
   View.cc
 )
 
@@ -26,6 +28,7 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
+  Factory_TEST.cc
   ign_TEST.cc
   Model_TEST.cc
   Server_TEST.cc
