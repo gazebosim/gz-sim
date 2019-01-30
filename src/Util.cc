@@ -45,5 +45,3 @@ math::Pose3d Util::WorldPose(const Entity &_entity,
   }
   return pose;
 }
-
-

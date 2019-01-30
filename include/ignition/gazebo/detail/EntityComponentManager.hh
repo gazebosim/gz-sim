@@ -17,11 +17,13 @@
 #ifndef IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
+#include <cstring>
 #include <map>
 #include <set>
 #include <utility>
 #include <vector>
 
+#include <ignition/common/Util.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
@@ -33,7 +35,8 @@ template<typename ComponentTypeT>
 ComponentTypeId EntityComponentManager::ComponentType()
 {
   // Get a unique identifier to the component type
-  return typeid(ComponentTypeT).hash_code();
+  auto name = typeid(ComponentTypeT).name();
+  return ignition::common::hash64(name);
 }
 
 //////////////////////////////////////////////////
