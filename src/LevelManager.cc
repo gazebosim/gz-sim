@@ -28,6 +28,7 @@
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Factory.hh"
 
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
@@ -65,7 +66,9 @@ using namespace gazebo;
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
     : runner(_runner), useLevels(_useLevels)
 {
-  // Do nothing
+  this->factory = std::make_unique<Factory>(
+      this->runner->entityCompMgr,
+      this->runner->eventMgr);
 }
 
 /////////////////////////////////////////////////
@@ -117,8 +120,8 @@ void LevelManager::ReadLevelPerformerInfo()
   this->ConfigureDefaultLevel();
 
   // Load world plugins.
-  // \TODO (addisu) Find a better place to load plugins instead of this function
-  this->LoadPlugins(this->runner->sdfWorld->Element(), this->worldEntity);
+  this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
+      this->runner->sdfWorld->Element());
 }
 
 
@@ -284,16 +287,13 @@ void LevelManager::CreatePerformers()
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (this->performerMap.find(model->Name()) != this->performerMap.end() )
     {
-      Entity modelEntity = this->CreateEntities(model);
-      // Create a component on the performer entity that points to this model
-      this->runner->entityCompMgr.CreateComponent(
-          this->performerMap[model->Name()],
-          components::ParentEntity(modelEntity));
+      Entity modelEntity = this->factory->CreateEntities(model);
+
+      // Make the model a parent of this performer
+      this->factory->SetParent(this->performerMap[model->Name()], modelEntity);
 
       // Add parent world to the model
-      this->runner->entityCompMgr.CreateComponent(
-          modelEntity,
-          components::ParentEntity(this->worldEntity));
+      this->factory->SetParent(modelEntity, this->worldEntity);
     }
   }
 }
@@ -423,9 +423,9 @@ void LevelManager::LoadActiveLevels()
     if (this->entityNamesToLoad.find(model->Name()) !=
         this->entityNamesToLoad.end())
     {
-      Entity modelEntity = this->CreateEntities(model);
-      this->runner->entityCompMgr.CreateComponent(
-          modelEntity, components::ParentEntity(this->worldEntity));
+      Entity modelEntity = this->factory->CreateEntities(model);
+
+      this->factory->SetParent(modelEntity, this->worldEntity);
     }
   }
 
@@ -437,9 +437,9 @@ void LevelManager::LoadActiveLevels()
     if (this->entityNamesToLoad.find(light->Name()) !=
         this->entityNamesToLoad.end())
     {
-      Entity lightEntity = this->CreateEntities(light);
-      this->runner->entityCompMgr.CreateComponent(
-          lightEntity, components::ParentEntity(this->worldEntity));
+      Entity lightEntity = this->factory->CreateEntities(light);
+
+      this->factory->SetParent(lightEntity, this->worldEntity);
     }
   }
 
@@ -460,7 +460,7 @@ void LevelManager::UnloadInactiveLevels()
         if (this->entityNamesToUnload.find(_name->Data()) !=
             this->entityNamesToUnload.end())
         {
-          EraseEntityRecursively(_entity);
+          this->runner->entityCompMgr.RequestEraseEntity(_entity);
         }
         return true;
       });
@@ -471,336 +471,3 @@ void LevelManager::UnloadInactiveLevels()
   this->entityNamesToUnload.clear();
 }
 
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Model *_model)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Model)");
-
-  // Entity
-  Entity modelEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_model->Name(), modelEntity, modelEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(modelEntity, components::Model());
-  this->runner->entityCompMgr.CreateComponent(
-      modelEntity, components::Pose(_model->Pose()));
-  this->runner->entityCompMgr.CreateComponent(
-      modelEntity, components::Name(_model->Name()));
-  this->runner->entityCompMgr.CreateComponent(
-      modelEntity, components::Static(_model->Static()));
-
-  // NOTE: Pose components of links, visuals, and collisions are expressed in
-  // the parent frame until we get frames working.
-
-  // Links
-  for (uint64_t linkIndex = 0; linkIndex < _model->LinkCount();
-      ++linkIndex)
-  {
-    auto link = _model->LinkByIndex(linkIndex);
-    auto linkEntity = this->CreateEntities(link);
-    // Assume the link entity node is created in CreateEntities(sdf::Link)
-    this->entityGraph.AddEdge({modelEntity, linkEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(linkEntity,
-        components::ParentEntity(modelEntity));
-    if (linkIndex == 0)
-    {
-      this->runner->entityCompMgr.CreateComponent(linkEntity,
-          components::CanonicalLink());
-    }
-  }
-
-  // Joints
-  for (uint64_t jointIndex = 0; jointIndex < _model->JointCount();
-      ++jointIndex)
-  {
-    auto joint = _model->JointByIndex(jointIndex);
-    auto jointEntity = this->CreateEntities(joint);
-    this->entityGraph.AddEdge({modelEntity, jointEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(jointEntity,
-        components::ParentEntity(modelEntity));
-  }
-
-  // Model plugins
-  // TODO(addisu) Don't load plugins if they have been loaded already. Do we
-  // need to unload plugins if they are attached to an entity that gets unloaded
-  this->LoadPlugins(_model->Element(), modelEntity);
-
-  return modelEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Light *_light)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Light)");
-
-  // Entity
-  Entity lightEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_light->Name(), lightEntity, lightEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(
-      lightEntity, components::Light(*_light));
-  this->runner->entityCompMgr.CreateComponent(lightEntity,
-      components::Pose(_light->Pose()));
-  this->runner->entityCompMgr.CreateComponent(lightEntity,
-      components::Name(_light->Name()));
-
-  return lightEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Link *_link)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Link)");
-
-  // Entity
-  Entity linkEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_link->Name(), linkEntity, linkEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(linkEntity, components::Link());
-  this->runner->entityCompMgr.CreateComponent(linkEntity,
-      components::Pose(_link->Pose()));
-  this->runner->entityCompMgr.CreateComponent(linkEntity,
-      components::Name(_link->Name()));
-  this->runner->entityCompMgr.CreateComponent(linkEntity,
-      components::Inertial(_link->Inertial()));
-
-  // Visuals
-  for (uint64_t visualIndex = 0; visualIndex < _link->VisualCount();
-      ++visualIndex)
-  {
-    auto visual = _link->VisualByIndex(visualIndex);
-    auto visualEntity = this->CreateEntities(visual);
-    this->entityGraph.AddEdge({linkEntity, visualEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(visualEntity,
-        components::ParentEntity(linkEntity));
-  }
-
-  // Collisions
-  for (uint64_t collisionIndex = 0; collisionIndex < _link->CollisionCount();
-      ++collisionIndex)
-  {
-    auto collision = _link->CollisionByIndex(collisionIndex);
-    auto collisionEntity = this->CreateEntities(collision);
-    this->entityGraph.AddEdge({linkEntity, collisionEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(collisionEntity,
-        components::ParentEntity(linkEntity));
-  }
-
-  // Lights
-  for (uint64_t lightIndex = 0; lightIndex < _link->LightCount();
-      ++lightIndex)
-  {
-    auto light = _link->LightByIndex(lightIndex);
-    auto lightEntity = this->CreateEntities(light);
-    this->entityGraph.AddEdge({linkEntity, lightEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(lightEntity,
-        components::ParentEntity(linkEntity));
-  }
-
-  // Sensors
-  for (uint64_t sensorIndex = 0; sensorIndex < _link->SensorCount();
-      ++sensorIndex)
-  {
-    auto sensor = _link->SensorByIndex(sensorIndex);
-    auto sensorEntity = this->CreateEntities(sensor);
-    this->entityGraph.AddEdge({linkEntity, sensorEntity}, true);
-
-    this->runner->entityCompMgr.CreateComponent(sensorEntity,
-        components::ParentEntity(linkEntity));
-  }
-
-  return linkEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Joint *_joint)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Joint)");
-
-  // Entity
-  Entity jointEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_joint->Name(), jointEntity, jointEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(jointEntity,
-      components::Joint());
-  this->runner->entityCompMgr.CreateComponent(jointEntity,
-      components::JointType(_joint->Type()));
-
-  if (_joint->Axis(0))
-  {
-    this->runner->entityCompMgr.CreateComponent(jointEntity,
-        components::JointAxis(*_joint->Axis(0)));
-  }
-
-  if (_joint->Axis(1))
-  {
-    this->runner->entityCompMgr.CreateComponent(jointEntity,
-        components::JointAxis2(*_joint->Axis(1)));
-  }
-
-  this->runner->entityCompMgr.CreateComponent(jointEntity,
-      components::Pose(_joint->Pose()));
-  this->runner->entityCompMgr.CreateComponent(jointEntity ,
-      components::Name(_joint->Name()));
-  this->runner->entityCompMgr.CreateComponent(jointEntity ,
-      components::ThreadPitch(_joint->ThreadPitch()));
-  this->runner->entityCompMgr.CreateComponent(jointEntity,
-      components::ParentLinkName(_joint->ParentLinkName()));
-  this->runner->entityCompMgr.CreateComponent(jointEntity,
-      components::ChildLinkName(_joint->ChildLinkName()));
-
-  return jointEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Visual *_visual)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Visual)");
-
-  // Entity
-  Entity visualEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_visual->Name(), visualEntity, visualEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(
-      visualEntity, components::Visual());
-  this->runner->entityCompMgr.CreateComponent(visualEntity,
-      components::Pose(_visual->Pose()));
-  this->runner->entityCompMgr.CreateComponent(visualEntity,
-      components::Name(_visual->Name()));
-
-  if (_visual->Geom())
-  {
-    this->runner->entityCompMgr.CreateComponent(visualEntity,
-        components::Geometry(*_visual->Geom()));
-  }
-
-  // \todo(louise) Populate with default material if undefined
-  if (_visual->Material())
-  {
-    this->runner->entityCompMgr.CreateComponent(visualEntity,
-        components::Material(*_visual->Material()));
-  }
-
-  return visualEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Collision *_collision)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Collision)");
-
-  // Entity
-  Entity collisionEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_collision->Name(), collisionEntity,
-                              collisionEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(collisionEntity,
-      components::Collision());
-  this->runner->entityCompMgr.CreateComponent(collisionEntity,
-      components::Pose(_collision->Pose()));
-  this->runner->entityCompMgr.CreateComponent(collisionEntity,
-      components::Name(_collision->Name()));
-
-  if (_collision->Geom())
-  {
-    this->runner->entityCompMgr.CreateComponent(collisionEntity,
-        components::Geometry(*_collision->Geom()));
-  }
-
-  return collisionEntity;
-}
-
-//////////////////////////////////////////////////
-Entity LevelManager::CreateEntities(const sdf::Sensor *_sensor)
-{
-  IGN_PROFILE("LevelManager::CreateEntities(sdf::Sensor)");
-
-  // Entity
-  Entity sensorEntity = this->runner->entityCompMgr.CreateEntity();
-
-  this->entityGraph.AddVertex(_sensor->Name(), sensorEntity,
-                              sensorEntity);
-
-  // Components
-  this->runner->entityCompMgr.CreateComponent(sensorEntity,
-      components::Sensor());
-  this->runner->entityCompMgr.CreateComponent(sensorEntity,
-      components::Pose(_sensor->Pose()));
-  this->runner->entityCompMgr.CreateComponent(sensorEntity,
-      components::Name(_sensor->Name()));
-
-  if (_sensor->Type() == sdf::SensorType::CAMERA)
-  {
-    auto elem = _sensor->Element();
-
-    this->runner->entityCompMgr.CreateComponent(sensorEntity,
-        components::Camera(elem));
-  }
-  else
-  {
-    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
-            << "] not supported yet." << std::endl;
-  }
-
-  return sensorEntity;
-}
-
-//////////////////////////////////////////////////
-void LevelManager::LoadPlugins(const sdf::ElementPtr &_sdf,
-    const Entity _entity)
-{
-  if (!_sdf->HasElement("plugin"))
-    return;
-
-  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
-  while (pluginElem)
-  {
-    auto system = this->runner->systemLoader->LoadPlugin(pluginElem);
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(_entity, pluginElem,
-                                this->runner->entityCompMgr,
-                                this->runner->eventMgr);
-      }
-      this->runner->AddSystem(system.value());
-    }
-    pluginElem = pluginElem->GetNextElement("plugin");
-  }
-}
-
-//////////////////////////////////////////////////
-void LevelManager::EraseEntityRecursively(const Entity _entity)
-{
-  for (const auto &vertex : this->entityGraph.AdjacentsFrom(_entity))
-  {
-    this->EraseEntityRecursively(vertex.first);
-  }
-
-  // Remove from ECM
-  this->runner->entityCompMgr.RequestEraseEntity(_entity);
-  // Remove the vertex from the graph
-  bool rc = this->entityGraph.RemoveVertex(_entity);
-  if (!rc)
-  {
-    ignerr << "Removing node " << _entity << " failed\n";
-  }
-}

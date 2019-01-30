@@ -21,28 +21,7 @@
 
 #include "ignition/gazebo/Events.hh"
 
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -106,15 +85,19 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->updatePeriod = std::chrono::nanoseconds(
       static_cast<int>(this->stepSize.count() / desiredRtf));
 
+  this->pauseConn = this->eventMgr.Connect<events::Pause>(
+      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
+
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+      std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
+      std::placeholders::_2));
+
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
 
   // Read level info and load the active levels
   this->levelMgr->Configure();
   this->UpdateLevels();
-
-  this->pauseConn = this->eventMgr.Connect<events::Pause>(
-      std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
   // World control
   transport::NodeOptions opts;
@@ -389,6 +372,32 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   return true;
 }
 
+//////////////////////////////////////////////////
+void SimulationRunner::LoadPlugins(const Entity _entity,
+    const sdf::ElementPtr &_sdf)
+{
+  if (!_sdf->HasElement("plugin"))
+    return;
+
+  sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
+  while (pluginElem)
+  {
+    auto system = this->systemLoader->LoadPlugin(pluginElem);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(_entity, pluginElem,
+                                this->entityCompMgr,
+                                this->eventMgr);
+      }
+      this->AddSystem(system.value());
+    }
+    pluginElem = pluginElem->GetNextElement("plugin");
+  }
+}
+
 /////////////////////////////////////////////////
 bool SimulationRunner::Running() const
 {
@@ -493,6 +502,12 @@ const EntityComponentManager &SimulationRunner::EntityCompMgr() const
 }
 
 /////////////////////////////////////////////////
+EventManager &SimulationRunner::EventMgr()
+{
+  return this->eventMgr;
+}
+
+/////////////////////////////////////////////////
 const UpdateInfo &SimulationRunner::CurrentInfo() const
 {
   return this->currentInfo;
@@ -536,7 +551,8 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const std::string &_name)
+bool SimulationRunner::RequestEraseEntity(const std::string &_name,
+    bool _recursive)
 {
   bool result = false;
   this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
@@ -544,7 +560,7 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name)
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_entity);
+        this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
         result = true;
         return false;
       }
@@ -574,11 +590,12 @@ std::optional<Entity> SimulationRunner::EntityByName(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const Entity _entity)
+bool SimulationRunner::RequestEraseEntity(const Entity _entity,
+    bool _recursive)
 {
   if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_entity);
+    this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
     return true;
   }
 
