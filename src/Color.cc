@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 #include "ignition/math/Color.hh"
