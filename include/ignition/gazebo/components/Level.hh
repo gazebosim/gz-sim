@@ -32,6 +32,9 @@ namespace components
 {
   /// \brief This component identifies an entity as being a level.
   using Level = TagWrapper<class LevelTag>;
+
+  /// \brief This component identifies an entity as being a default level.
+  using DefaultLevel = TagWrapper<class DefaultLevelTag>;
 }
 }
 }
