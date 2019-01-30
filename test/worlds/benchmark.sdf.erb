@@ -182,8 +182,8 @@
       tile =
       {
         :name => tile_types.sample(),
-        :x => entrance_offset + 1.1*tile_dimension * x,
-        :y => 1.1*tile_dimension * y + 1,
+        :x => entrance_offset + tile_dimension * x,
+        :y => tile_dimension * y,
         :yaw => [0, Math::PI*0.5, -Math::PI*0.5, Math::PI].sample()
       }
       tiles.push(tile)
@@ -317,22 +317,22 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <model name="ground_plane">
+    <model name="stage">
+      <pose>-12 0 -5 0 0 0</pose>
       <static>true</static>
       <link name="link">
         <collision name="collision">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-            </plane>
+            <box>
+              <size>50 100 10</size>
+            </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>1000 1000</size>
-            </plane>
+            <box>
+              <size>50 100 10</size>
+            </box>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
@@ -349,7 +349,7 @@
     tiles.each_with_index do |tile, count|
   %>
     <model name="<%= tile[:name] %>_tile_<%= count.to_s %>">
-      <pose><%= tile[:x] %> <%= tile[:y] %> 1 0 0 <%= tile[:yaw] %></pose>
+      <pose><%= tile[:x] %> <%= tile[:y] %> 0 0 0 <%= tile[:yaw] %></pose>
       <static>true</static>
       <link name="link">
       <% shapesCollection[tile[:name]].each_with_index do |shape, index| %>
