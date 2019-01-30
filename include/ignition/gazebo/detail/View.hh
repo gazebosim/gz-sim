@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
-#include <cstring>
 #include <map>
 #include <set>
 #include <string>
