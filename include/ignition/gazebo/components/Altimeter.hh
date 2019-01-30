@@ -33,8 +33,7 @@ namespace components
   /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
   /// This is currently the whole <sensor> element.
   using Altimeter = SimpleWrapper<sdf::ElementPtr, class AltimeterTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Altimeter", Altimeter)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
 }
 }
 }

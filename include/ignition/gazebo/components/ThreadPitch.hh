@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to store the thread pitch of a screw joint
   using ThreadPitch = SimpleWrapper<double, class ThreadPitchTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.ThreadPitch", ThreadPitch)
 }
 }

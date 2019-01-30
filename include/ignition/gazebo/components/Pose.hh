@@ -33,12 +33,12 @@ namespace components
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information.
   using Pose = SimpleWrapper<ignition::math::Pose3d, class PoseTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
 
   /// \brief A component type that contains pose, ignition::math::Pose3d,
   /// information in world frame.
   using WorldPose = SimpleWrapper<ignition::math::Pose3d, class WorldPoseTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.WorldPose", WorldPose)
 }
 }

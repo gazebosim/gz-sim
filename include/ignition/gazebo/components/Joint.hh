@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a joint.
   using Joint = TagWrapper<class JointTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Joint", Joint)
 }
 }
 }

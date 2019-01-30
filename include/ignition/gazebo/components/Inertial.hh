@@ -33,7 +33,7 @@ namespace components
   /// \brief A component type that contains inertial, ignition::math::Inertiald,
   /// information.
   using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Inertial", Inertial)
 }
 }

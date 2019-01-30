@@ -34,7 +34,7 @@ namespace components
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light = SimpleWrapper<sdf::Light, class LightTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
 }
 }
 }

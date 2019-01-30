@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a link.
   using Sensor = TagWrapper<class SensorTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Sensor", Sensor)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Sensor", Sensor)
 }
 }
 }

@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a model.
   using Model = TagWrapper<class ModelTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
 }
 }
 }

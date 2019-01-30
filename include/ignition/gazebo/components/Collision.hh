@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a collision.
   using Collision = TagWrapper<class CollisionTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT(
+  IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Collision", Collision)
 }
 }

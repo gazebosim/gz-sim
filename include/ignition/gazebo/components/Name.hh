@@ -33,7 +33,7 @@ namespace components
   /// \brief This component holds an entity's name. The component has no concept
   /// of scoped names nor does it care about uniqueness.
   using Name = SimpleWrapper<std::string, class NameTag>;
-  inline IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Name", Name)
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Name", Name)
 }
 }
 }
