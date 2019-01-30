@@ -56,15 +56,18 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -146,6 +149,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
   public: std::unordered_map<Entity, JointPtrType> entityJointMap;
+
+  /// \brief store gravity vector
+  public: math::Vector3d gravity;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -233,6 +239,16 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto worldPtrPhys = this->engine->ConstructWorld(world);
           this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
         }
+        return true;
+      });
+
+  _ecm.Each<components::Gravity,
+            components::ParentEntity>(
+      [&](const Entity & /*_entity*/,
+          const components::Gravity *_gravity,
+          const components::ParentEntity * /* _parent */)->bool
+      {
+        this->gravity = _gravity->Data();
         return true;
       });
 
@@ -552,6 +568,125 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           return true;
         }
 
+        return true;
+      });
+
+  // body angular velocity
+  _ecm.Each<components::Pose, components::AngularVelocity,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::AngularVelocity *_angularVel,
+          components::ParentEntity *_parent)->bool
+      {
+        physics::FrameData3d entityFrameData;
+        ignition::math::Pose3d entityWorldPose;
+
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          entityFrameData = linkIt->second->FrameDataRelativeToWorld();
+          entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+        }
+        else
+        {
+          // check if parent entity is a link, e.g. entity is sensor / collision
+          linkIt = this->entityLinkMap.find(_parent->Data());
+          if (linkIt != this->entityLinkMap.end())
+          {
+            // offset is entity pos relative to parent link
+            physics::FrameData3d entityFromLink;
+            math::Vector3d offset = _pose->Data().Pos();
+            entityFromLink.pose.translation() = math::eigen3::convert(offset);
+            entityFromLink.pose.linear() =
+                math::eigen3::convert(math::Matrix3d::Identity);
+
+            physics::RelativeFrameData3d relFrameData(
+                linkIt->second->GetFrameID(), entityFromLink);
+            entityFrameData =
+                this->engine->Resolve(relFrameData, physics::FrameID::World());
+            entityWorldPose = _pose->Data() +
+                math::eigen3::convert(entityFrameData.pose);
+          }
+        }
+
+        if (linkIt != this->entityLinkMap.end())
+        {
+          ignition::math::Vector3d entityWorldAngularVel =
+            math::eigen3::convert(entityFrameData.angularVelocity);
+
+          auto entityBodyAngularVel =
+            _pose->Data().Rot().Inverse().RotateVector(
+              entityWorldAngularVel);
+          *_angularVel = components::AngularVelocity(entityBodyAngularVel);
+        }
+
+        return true;
+      });
+
+  // body linear acceleration
+  _ecm.Each<components::Pose, components::LinearAcceleration,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::LinearAcceleration *_linearAcc,
+          components::ParentEntity *_parent)->bool
+      {
+        physics::FrameData3d entityFrameData;
+        ignition::math::Pose3d entityWorldPose;
+
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          entityFrameData = linkIt->second->FrameDataRelativeToWorld();
+          entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+        }
+        else
+        {
+          // check if parent entity is a link, e.g. entity is sensor / collision
+          linkIt = this->entityLinkMap.find(_parent->Data());
+          if (linkIt != this->entityLinkMap.end())
+          {
+            // offset is entity pos relative to parent link
+            physics::FrameData3d entityFromLink;
+            math::Vector3d offset = _pose->Data().Pos();
+            entityFromLink.pose.translation() = math::eigen3::convert(offset);
+            entityFromLink.pose.linear() =
+                math::eigen3::convert(math::Matrix3d::Identity);
+
+            physics::RelativeFrameData3d relFrameData(
+                linkIt->second->GetFrameID(), entityFromLink);
+            entityFrameData =
+                this->engine->Resolve(relFrameData, physics::FrameID::World());
+            entityWorldPose = _pose->Data() +
+                math::eigen3::convert(entityFrameData.pose);
+          }
+        }
+
+        if (linkIt != this->entityLinkMap.end())
+        {
+          ignition::math::Vector3d entityWorldLinearAcc = math::eigen3::convert(
+              entityFrameData.linearAcceleration);
+
+          auto entityBodyLinearAcc = _pose->Data().Rot().Inverse().RotateVector(
+              entityWorldLinearAcc);
+          *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
+        }
+
+        return true;
+      });
+
+  // update gravity
+  // TODO(anyone): this should be latched and there is no need to update
+  // unless we want to use a world model where we update the gravity value
+  // based on a World Gravity Map like WGM2012
+  _ecm.Each<components::Gravity>(
+      [&](const Entity & /*_entity*/,
+          components::Gravity *_gravity)->bool
+      {
+        *_gravity = components::Gravity(this->gravity);
         return true;
       });
 }
