@@ -10,7 +10,7 @@
         Topic to publish twist messages.
         Works well with diff_drive.sdf world, see README for instructions.
       -->
-      <twist_topic>/model/x1/cmd_vel</twist_topic>
+      <twist_topic>/model/vehicle_blue/cmd_vel</twist_topic>
 
       <!-- Normal model -->
 
