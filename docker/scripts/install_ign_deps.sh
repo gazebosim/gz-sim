@@ -8,7 +8,6 @@ sudo apt-get update
 # Things that are used all over the ign stack
 sudo apt-get install -y \
   doxygen \
-  libboost-all-dev \
   libbullet-dev \
   libeigen3-dev \
   libgflags-dev \
@@ -46,7 +45,6 @@ sudo apt-get install -y \
 
 # ign-rendering dependencies
 sudo apt-get install -y \
-  libogre-1.9-dev \
   libglew-dev \
   libfreeimage-dev \
   freeglut3-dev \

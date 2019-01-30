@@ -27,3 +27,6 @@ RUN apt-get update \
 COPY . ign-gazebo
 RUN cd ign-gazebo \
  && ./docker/scripts/build_ign_gazebo.sh
+
+COPY ./docker/scripts/entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
