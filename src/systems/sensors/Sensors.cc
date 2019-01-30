@@ -274,7 +274,7 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  // Create gpu ray
+  // Create gpu lidar
   _ecm.Each<components::GpuLidar, components::Pose, components::ParentEntity>(
     [&](const Entity &_entity,
         const components::GpuLidar *_gpuLidar,

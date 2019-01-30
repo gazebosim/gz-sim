@@ -383,7 +383,7 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::Camera(elem));
   }
-  else if (_sensor->Type() == sdf::SensorType::GPU_RAY)
+  else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
   {
     auto elem = _sensor->Element();
 
