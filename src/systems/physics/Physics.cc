@@ -66,6 +66,7 @@
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -146,6 +147,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
   public: std::unordered_map<Entity, JointPtrType> entityJointMap;
+
+  /// \brief store magnetic field vector
+  public: math::Vector3d magneticField;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -233,6 +237,16 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto worldPtrPhys = this->engine->ConstructWorld(world);
           this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
         }
+        return true;
+      });
+
+  _ecm.Each<components::MagneticField,
+            components::ParentEntity>(
+      [&](const Entity & /*_entity*/,
+        const components::MagneticField *_magneticField,
+        const components::ParentEntity * /* _parent */)->bool
+      {
+        this->magneticField = _magneticField->Data();
         return true;
       });
 
