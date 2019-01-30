@@ -1365,7 +1365,7 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
     ASSERT_TRUE(result.empty());
   }
 
-  // Erase recursively (e1, e3, e4)
+  // Erase recursively (e1, e3, e5)
   manager.RequestEraseEntity(e1);
   manager.ProcessEntityErasures();
   EXPECT_EQ(4u, manager.EntityCount());
