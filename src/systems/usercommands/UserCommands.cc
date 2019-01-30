@@ -183,7 +183,7 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
   // Push to pending
   this->pendingCmds.push_back(std::move(cmd));
 
-  _res.Clear();
+  _res.set_data(true);
   return true;
 }
 
