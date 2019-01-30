@@ -10,7 +10,6 @@ ign_add_component(magnetometer-system
 target_link_libraries(${magnetometer_system_target}
   PUBLIC
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register

@@ -408,7 +408,7 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
         components::WorldPose(math::Pose3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::MagneticField(math::Vector3d::Zero));
-	}
+  }
   else
   {
     ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
