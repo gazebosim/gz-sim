@@ -214,10 +214,13 @@ namespace ignition
       /// \details If multiple entities with the same name exist, only the
       /// first entity found will be deleted.
       /// \param[in] _name Name of the entity to delete.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
       public: bool RequestEraseEntity(const std::string &_name,
+                                      bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
       /// \brief Return true if the specified world has an entity with the
@@ -226,10 +229,13 @@ namespace ignition
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _entity The entity to delete.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
       public: bool RequestEraseEntity(const Entity _entity,
+                                      bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
 
