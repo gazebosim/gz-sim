@@ -78,7 +78,7 @@ pipelines:
           # Ignition fuel-tools (uncomment if a specific branch is needed)
           - apt install -y
             libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b integration_with_ign_gazebo
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b default
           - cd ign-fuel-tools
           - mkdir build
           - cd build
