@@ -138,6 +138,21 @@ namespace ignition
       /// \return Sensor entity.
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
+      /// \brief Request an entity deletion. This will insert the request
+      /// into a queue. The queue is processed toward the end of a simulation
+      /// update step.
+      /// \param[in] _entity Entity to be erased.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
+      public: void RequestEraseEntity(const Entity _entity,
+          bool _recursive = true);
+
+      /// \brief Set an entity's parent entity. This function takes care of
+      /// updating the `EntityComponentManager` and necessary components.
+      /// \param[in] _child Entity which should be parented.
+      /// \param[in] _parent Entity which should be _child's parent.
+      public: void SetParent(Entity _child, Entity _parent);
+
       /// \brief Register a component.
       /// \param[in] _type Type of component to register.
       /// \param[in] _factoryfn Function that generates the component.

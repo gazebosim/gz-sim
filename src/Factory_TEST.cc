@@ -53,15 +53,32 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TEST(FactoryTest, CreateEntities)
+class EntityCompMgrTest : public gazebo::EntityComponentManager
 {
-  // ECM and Event Manager
-  EventManager evm;
-  EntityComponentManager ecm;
-  EXPECT_EQ(0u, ecm.EntityCount());
+  public: void ProcessEntityErasures()
+  {
+    this->ProcessEraseEntityRequests();
+  }
+};
+
+/////////////////////////////////////////////////
+class FactoryTest : public ::testing::Test
+{
+  public: void SetUp() override
+  {
+    ignition::common::Console::SetVerbosity(4);
+  }
+  public: EntityCompMgrTest ecm;
+  public: EventManager evm;
+};
+
+/////////////////////////////////////////////////
+TEST_F(FactoryTest, CreateEntities)
+{
+  EXPECT_EQ(0u, this->ecm.EntityCount());
 
   // Factory
-  Factory factory(ecm, evm);
+  Factory factory(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -73,39 +90,39 @@ TEST(FactoryTest, CreateEntities)
   factory.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Model>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::CanonicalLink>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Collision>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Visual>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Light>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Geometry>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Material>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
-  EXPECT_EQ(14u, ecm.EntityCount());
+  EXPECT_EQ(14u, this->ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
-  ecm.Each<components::World,
+  this->ecm.Each<components::World,
            components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
@@ -130,7 +147,7 @@ TEST(FactoryTest, CreateEntities)
   Entity boxModelEntity = kNullEntity;
   Entity cylModelEntity = kNullEntity;
   Entity sphModelEntity = kNullEntity;
-  ecm.Each<components::Model,
+  this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
            components::Name>(
@@ -148,6 +165,8 @@ TEST(FactoryTest, CreateEntities)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
+
       if (modelCount == 1)
       {
         EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
@@ -182,7 +201,7 @@ TEST(FactoryTest, CreateEntities)
   Entity boxLinkEntity = kNullEntity;
   Entity cylLinkEntity = kNullEntity;
   Entity sphLinkEntity = kNullEntity;
-  ecm.Each<components::Link,
+  this->ecm.Each<components::Link,
            components::Pose,
            components::ParentEntity,
            components::Name>(
@@ -204,7 +223,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
+
         EXPECT_EQ(boxModelEntity, _parent->Data());
+        EXPECT_EQ(boxModelEntity, this->ecm.ParentEntity(_entity));
+
         boxLinkEntity = _entity;
       }
       else if (linkCount == 2)
@@ -212,7 +234,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
+
         EXPECT_EQ(cylModelEntity, _parent->Data());
+        EXPECT_EQ(cylModelEntity, this->ecm.ParentEntity(_entity));
+
         cylLinkEntity = _entity;
       }
       else if (linkCount == 3)
@@ -220,7 +245,10 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
+
         EXPECT_EQ(sphModelEntity, _parent->Data());
+        EXPECT_EQ(sphModelEntity, this->ecm.ParentEntity(_entity));
+
         sphLinkEntity = _entity;
       }
       return true;
@@ -233,7 +261,7 @@ TEST(FactoryTest, CreateEntities)
 
   // Check inertials
   unsigned int inertialCount{0};
-  ecm.Each<components::Link, components::Inertial>(
+  this->ecm.Each<components::Link, components::Inertial>(
     [&](const Entity & _entity,
         const components::Link *_link,
         const components::Inertial *_inertial)->bool
@@ -268,12 +296,12 @@ TEST(FactoryTest, CreateEntities)
 
   // Check collisions
   unsigned int collisionCount{0};
-  ecm.Each<components::Collision,
+  this->ecm.Each<components::Collision,
            components::Geometry,
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Collision *_collision,
         const components::Geometry *_geometry,
         const components::Pose *_pose,
@@ -296,6 +324,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("box_collision", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
+        EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -310,6 +339,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("cylinder_collision", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
+        EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -324,6 +354,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("sphere_collision", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -336,13 +367,13 @@ TEST(FactoryTest, CreateEntities)
 
   // Check visuals
   unsigned int visualCount{0};
-  ecm.Each<components::Visual,
+  this->ecm.Each<components::Visual,
            components::Geometry,
            components::Material,
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -367,6 +398,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("box_visual", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
+        EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
@@ -386,6 +418,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("cylinder_visual", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
+        EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
@@ -405,6 +438,7 @@ TEST(FactoryTest, CreateEntities)
         EXPECT_EQ("sphere_visual", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -422,11 +456,11 @@ TEST(FactoryTest, CreateEntities)
 
   // Check lights
   unsigned int lightCount{0};
-  ecm.Each<components::Light,
+  this->ecm.Each<components::Light,
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -445,6 +479,7 @@ TEST(FactoryTest, CreateEntities)
       EXPECT_EQ("sun", _name->Data());
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
@@ -469,15 +504,12 @@ TEST(FactoryTest, CreateEntities)
 }
 
 /////////////////////////////////////////////////
-TEST(FactoryTest, CreateLights)
+TEST_F(FactoryTest, CreateLights)
 {
-  // ECM and Event Manager
-  EventManager evm;
-  EntityComponentManager ecm;
-  EXPECT_EQ(0u, ecm.EntityCount());
+  EXPECT_EQ(0u, this->ecm.EntityCount());
 
   // Factory
-  Factory factory(ecm, evm);
+  Factory factory(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -490,12 +522,12 @@ TEST(FactoryTest, CreateLights)
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
-  EXPECT_EQ(8u, ecm.EntityCount());
+  EXPECT_EQ(8u, this->ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
-  ecm.Each<components::World,
+  this->ecm.Each<components::World,
                             components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
@@ -518,7 +550,7 @@ TEST(FactoryTest, CreateLights)
   // Check model
   unsigned int modelCount{0};
   Entity sphModelEntity = kNullEntity;
-  ecm.Each<components::Model,
+  this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
            components::Name>(
@@ -536,6 +568,8 @@ TEST(FactoryTest, CreateLights)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
+      EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
+
       EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
@@ -550,7 +584,7 @@ TEST(FactoryTest, CreateLights)
   // Check link
   unsigned int linkCount{0};
   Entity sphLinkEntity = kNullEntity;
-  ecm.Each<components::Link,
+  this->ecm.Each<components::Link,
            components::Pose,
            components::ParentEntity,
            components::Name>(
@@ -571,6 +605,8 @@ TEST(FactoryTest, CreateLights)
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
       EXPECT_EQ(sphModelEntity, _parent->Data());
+      EXPECT_EQ(sphModelEntity, this->ecm.ParentEntity(_entity));
+
       sphLinkEntity = _entity;
 
       return true;
@@ -581,13 +617,13 @@ TEST(FactoryTest, CreateLights)
 
   // Check visuals
   unsigned int visualCount{0};
-  ecm.Each<components::Visual,
+  this->ecm.Each<components::Visual,
            components::Geometry,
            components::Material,
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Visual *_visual,
         const components::Geometry *_geometry,
         const components::Material *_material,
@@ -610,6 +646,7 @@ TEST(FactoryTest, CreateLights)
       EXPECT_EQ("sphere_visual", _name->Data());
 
       EXPECT_EQ(sphLinkEntity, _parent->Data());
+      EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
 
       EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
       EXPECT_NE(nullptr, _geometry->Data().SphereShape());
@@ -625,11 +662,11 @@ TEST(FactoryTest, CreateLights)
 
   // Check lights
   unsigned int lightCount{0};
-  ecm.Each<components::Light,
+  this->ecm.Each<components::Light,
            components::Pose,
            components::ParentEntity,
            components::Name>(
-    [&](const Entity &/*_entity*/,
+    [&](const Entity &_entity,
         const components::Light *_light,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
@@ -648,7 +685,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
+
         EXPECT_EQ(sphLinkEntity, _parent->Data());
+        EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
+
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 1, 0, 0, 0),
@@ -670,7 +710,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
+
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
@@ -694,7 +737,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
+
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
@@ -716,7 +762,10 @@ TEST(FactoryTest, CreateLights)
         EXPECT_EQ(ignition::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
+
         EXPECT_EQ(worldEntity, _parent->Data());
+        EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
+
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
         EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
@@ -744,15 +793,12 @@ TEST(FactoryTest, CreateLights)
 }
 
 /////////////////////////////////////////////////
-TEST(FactoryTest, CreateJointEntities)
+TEST_F(FactoryTest, CreateJointEntities)
 {
-  // ECM and Event Manager
-  EventManager evm;
-  EntityComponentManager ecm;
-  EXPECT_EQ(0u, ecm.EntityCount());
+  EXPECT_EQ(0u, this->ecm.EntityCount());
 
   // Factory
-  Factory factory(ecm, evm);
+  Factory factory(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -764,34 +810,34 @@ TEST(FactoryTest, CreateJointEntities)
   factory.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::World>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::CanonicalLink>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Link>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Joint>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::JointAxis>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::JointType>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ChildLinkName>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentLinkName>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::ParentEntity>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Pose>()));
-  EXPECT_TRUE(ecm.HasComponentType(
+  EXPECT_TRUE(this->ecm.HasComponentType(
       EntityComponentManager::ComponentType<components::Name>()));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 
   // Check canonical links
   unsigned int canonicalLinkCount{0};
-  ecm.Each<components::CanonicalLink>(
+  this->ecm.Each<components::CanonicalLink>(
     [&](const Entity &, const components::CanonicalLink *)->bool
     {
       canonicalLinkCount++;
@@ -851,7 +897,7 @@ TEST(FactoryTest, CreateJointEntities)
   };
 
   std::set<sdf::JointType> jointTypes;
-  ecm.Each<components::Joint,
+  this->ecm.Each<components::Joint,
            components::JointType,
            components::ParentLinkName,
            components::ChildLinkName,
@@ -867,9 +913,9 @@ TEST(FactoryTest, CreateJointEntities)
     {
       jointTypes.insert(_jointType->Data());
       auto axis =
-          ecm.Component<components::JointAxis>(_entity);
+          this->ecm.Component<components::JointAxis>(_entity);
       auto axis2 =
-          ecm.Component<components::JointAxis2>(_entity);
+          this->ecm.Component<components::JointAxis2>(_entity);
 
       const sdf::Joint *joint = model->JointByName(_name->Data());
 
@@ -891,6 +937,131 @@ TEST(FactoryTest, CreateJointEntities)
 }
 
 /////////////////////////////////////////////////
+TEST_F(FactoryTest, EraseEntities)
+{
+  EXPECT_EQ(0u, this->ecm.EntityCount());
+
+  // Factory
+  Factory factory(this->ecm, evm);
+
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create entities
+  factory.CreateEntities(root.WorldByIndex(0));
+
+  // Check entities
+  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
+  EXPECT_EQ(14u, this->ecm.EntityCount());
+
+  auto world = this->ecm.EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, world);
+
+  auto models = this->ecm.ChildrenByComponents(world, components::Model());
+  ASSERT_EQ(3u, models.size());
+
+  for (auto model : models)
+  {
+    auto links = this->ecm.ChildrenByComponents(model, components::Link());
+    ASSERT_EQ(1u, links.size());
+
+    auto collisions = this->ecm.ChildrenByComponents(links.front(),
+        components::Collision());
+    ASSERT_EQ(1u, collisions.size());
+
+    auto visuals = this->ecm.ChildrenByComponents(links.front(),
+        components::Visual());
+    ASSERT_EQ(1u, visuals.size());
+  }
+
+  // Delete a model recursively
+  factory.RequestEraseEntity(models.front());
+  this->ecm.ProcessEntityErasures();
+
+  EXPECT_EQ(10u, this->ecm.EntityCount());
+
+  models = this->ecm.ChildrenByComponents(world, components::Model());
+  ASSERT_EQ(2u, models.size());
+
+  for (auto model : models)
+  {
+    auto links = this->ecm.ChildrenByComponents(model, components::Link());
+    ASSERT_EQ(1u, links.size());
+
+    auto collisions = this->ecm.ChildrenByComponents(links.front(),
+        components::Collision());
+    ASSERT_EQ(1u, collisions.size());
+
+    auto visuals = this->ecm.ChildrenByComponents(links.front(),
+        components::Visual());
+    ASSERT_EQ(1u, visuals.size());
+  }
+
+  // Delete a model but leave its children
+  factory.RequestEraseEntity(models.front(), false);
+  this->ecm.ProcessEntityErasures();
+
+  EXPECT_EQ(9u, this->ecm.EntityCount());
+
+  // There's only 1 model left
+  models = this->ecm.ChildrenByComponents(world, components::Model());
+  ASSERT_EQ(1u, models.size());
+  EXPECT_EQ(world, this->ecm.ParentEntity(models.front()));
+
+  // There are 2 links, but one is parentless
+  unsigned int linkCount{0};
+  this->ecm.Each<components::Link>(
+    [&](const Entity &_entity,
+        const components::Link *_link)->bool
+    {
+      EXPECT_NE(nullptr, _link);
+      auto parent = this->ecm.ParentEntity(_entity);
+      if (linkCount == 0)
+      {
+        EXPECT_EQ(kNullEntity, parent);
+      }
+      else
+      {
+        EXPECT_NE(kNullEntity, parent);
+      }
+      linkCount++;
+      return true;
+    });
+  EXPECT_EQ(2u, linkCount);
+
+  // There are 2 collisions, both with parents
+  unsigned int collisionCount{0};
+  this->ecm.Each<components::Collision>(
+    [&](const Entity &_entity,
+        const components::Collision *_collision)->bool
+    {
+      EXPECT_NE(nullptr, _collision);
+      auto parent = this->ecm.ParentEntity(_entity);
+      EXPECT_NE(kNullEntity, parent);
+      collisionCount++;
+      return true;
+    });
+  EXPECT_EQ(2u, collisionCount);
+
+  // There are 2 visuals, both with parents
+  unsigned int visualCount{0};
+  this->ecm.Each<components::Visual>(
+    [&](const Entity &_entity,
+        const components::Visual *_visual)->bool
+    {
+      EXPECT_NE(nullptr, _visual);
+      auto parent = this->ecm.ParentEntity(_entity);
+      EXPECT_NE(kNullEntity, parent);
+      visualCount++;
+      return true;
+    });
+  EXPECT_EQ(2u, visualCount);
+}
+
+/////////////////////////////////////////////////
 TEST(FactoryTest, New)
 {
   auto comp = Factory::New<components::Pose>("__unknown_component__");
@@ -908,3 +1079,4 @@ TEST(FactoryTest, Components)
   EXPECT_TRUE(std::find(comps.begin(), comps.end(),
       std::string("ign_gazebo_components.Altimeter")) != comps.end());
 }
+
