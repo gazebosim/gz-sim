@@ -31,7 +31,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds the ID of an entity's parent entity.
+  /// \brief This component holds an entity's parent entity.
+  ///
+  /// Note that the EntityComponentManager also keeps the parent-child
+  /// relationship stored in a graph, and that information should be
+  /// kept in sync with the parent entity components. Therefore,
+  /// it is recommended that the `ParentEntity` component is never
+  /// edited by hand, and instead, entities should be created using
+  /// the `gazebo::Factory` class.
   using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
 }
 }
