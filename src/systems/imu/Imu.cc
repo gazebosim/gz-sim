@@ -92,7 +92,7 @@ class ignition::gazebo::systems::ImuPrivate
   /// \brief Used to store whether objects have been created.
   public: bool initialized = false;
 
-  /// \brief A map of imu entity to its vertical reference
+  /// \brief A map of imu entity to its imu sensor.
   public: std::unordered_map<Entity, std::unique_ptr<ImuSensor>>
       entitySensorMap;
 
