@@ -86,7 +86,7 @@ namespace ignition
       /// \brief Set the path to where simulation resources, such as models
       /// downloaded from fuel.ignitionrobotics.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
-      /// indicates thatthe default value will be used, which is currently
+      /// indicates that the default value will be used, which is currently
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
 
