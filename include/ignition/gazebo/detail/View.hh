@@ -17,10 +17,12 @@
 #ifndef IGNITION_GAZEBO_DETAIL_VIEW_HH_
 #define IGNITION_GAZEBO_DETAIL_VIEW_HH_
 
+#include <cstring>
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
+#include <ignition/common/Util.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
@@ -54,7 +56,8 @@ class IGNITION_GAZEBO_VISIBLE View
           const ComponentTypeT *Component(const Entity _entity,
               const EntityComponentManager *_ecm) const
   {
-    ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
+    auto name = typeid(ComponentTypeT).name();
+    ComponentTypeId typeId = ignition::common::hash64(name);
     return static_cast<const ComponentTypeT *>(
         this->ComponentImplementation(_entity, typeId, _ecm));
   }
@@ -67,7 +70,8 @@ class IGNITION_GAZEBO_VISIBLE View
           ComponentTypeT *Component(const Entity _entity,
               const EntityComponentManager *_ecm)
   {
-    ComponentTypeId typeId = typeid(ComponentTypeT).hash_code();
+    auto name = typeid(ComponentTypeT).name();
+    ComponentTypeId typeId = ignition::common::hash64(name);
     return static_cast<ComponentTypeT *>(
         const_cast<void *>(
           this->ComponentImplementation(_entity, typeId, _ecm)));

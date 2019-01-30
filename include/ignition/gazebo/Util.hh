@@ -22,6 +22,7 @@
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
+#include <ignition/math/Pose3.hh>
 
 namespace ignition
 {
