@@ -17,3 +17,4 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 add_subdirectory(physics)
 add_subdirectory(sensors)
 add_subdirectory(altimeter)
+add_subdirectory(magnetometer)
