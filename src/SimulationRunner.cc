@@ -93,10 +93,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   auto factory = Factory(this->entityCompMgr, this->eventMgr);
   factory.CreateEntities(_world);
 
-  ignmsg << "World [" << _world->Name() << "] initialized with ["
-         << physics->Name() << "] physics profile." << std::endl;
-
-
   // World control
   transport::NodeOptions opts;
   opts.SetNameSpace("/world/" + this->worldName);
@@ -116,6 +112,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
+
+  ignmsg << "World [" << _world->Name() << "] initialized with ["
+         << physics->Name() << "] physics profile." << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -596,4 +595,3 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
 
   return true;
 }
-
