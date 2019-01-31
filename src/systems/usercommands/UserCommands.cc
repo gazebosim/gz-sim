@@ -63,7 +63,8 @@ class UserCommandsInterface
 class UserCommand
 {
   /// \brief Constructor
-  /// \param[in] _msg Message containing user command
+  /// \param[in] _msg Message containing user command.
+  /// \param[in] _iface Pointer to interfaces shared by all commands.
   public: UserCommand(google::protobuf::Message *_msg,
       const std::shared_ptr<UserCommandsInterface> &_iface);
 
@@ -100,6 +101,8 @@ class ignition::gazebo::systems::UserCommandsPrivate
 {
   /// \brief Callback for factory service
   /// \param[in] _req Request
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
   public: bool FactoryService(const msgs::EntityFactory &_req,
       msgs::Boolean &_res);
@@ -112,6 +115,9 @@ class ignition::gazebo::systems::UserCommandsPrivate
 
   /// \brief Object holding several interfaces that can be used by any command.
   public: std::shared_ptr<UserCommandsInterface> iface{nullptr};
+
+  /// \brief Mutex to protect pending queue.
+  public: std::mutex pendingMutex;
 };
 
 //////////////////////////////////////////////////
@@ -149,6 +155,7 @@ void UserCommands::Configure(const Entity &_entity,
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->pendingMutex);
   if (this->dataPtr->pendingCmds.empty())
     return;
 
@@ -181,7 +188,10 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
   auto cmd = std::make_unique<FactoryCommand>(msg, this->iface);
 
   // Push to pending
-  this->pendingCmds.push_back(std::move(cmd));
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
 
   _res.set_data(true);
   return true;
@@ -258,11 +268,27 @@ bool FactoryCommand::Execute()
     return false;
   }
 
-  if (root.ModelCount() != 1 && root.LightCount() != 1)
+  bool isModel{false};
+  bool isLight{false};
+  if (root.ModelCount() > 0)
   {
-    ignerr << "Expected exactly 1 top-level <model> or <light> on SDF."
+    isModel = true;
+  }
+  else if (root.LightCount() > 0)
+  {
+    isLight = true;
+  }
+  else
+  {
+    ignerr << "Expected exactly one top-level <model> or <light> on SDF."
            << std::endl;
     return false;
+  }
+
+  if ((root.ModelCount() + root.LightCount()) > 1)
+  {
+    ignwarn << "Expected exactly one top-level <model> or <light>, "
+            << "but found more. Only the 1st will be spawned." << std::endl;
   }
 
   // Check the name of the entity being spawned
@@ -271,11 +297,11 @@ bool FactoryCommand::Execute()
   {
     desiredName = factoryMsg->name();
   }
-  else if (root.ModelCount() == 1)
+  else if (isModel)
   {
     desiredName = root.ModelByIndex(0)->Name();
   }
-  else if (root.LightCount() == 1)
+  else if (isLight)
   {
     desiredName = root.LightByIndex(0)->Name();
   }
@@ -307,11 +333,11 @@ bool FactoryCommand::Execute()
 
   // Create entities
   Entity entity{kNullEntity};
-  if (root.ModelCount() == 1)
+  if (isModel)
   {
     entity = this->iface->factory->CreateEntities(root.ModelByIndex(0));
   }
-  else if (root.LightCount() == 1)
+  else if (isLight)
   {
     entity = this->iface->factory->CreateEntities(root.LightByIndex(0));
   }

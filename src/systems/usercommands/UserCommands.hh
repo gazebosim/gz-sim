@@ -41,8 +41,11 @@ namespace systems
   ///
   /// # Spawn entity
   ///
-  ///     * **Topic**: `/world/<world name>/factory`
-  ///     * **Message type*: ignition.msgs.EntityFactory
+  /// * **Service**: `/world/<world name>/factory`
+  /// * **Request type*: ignition.msgs.EntityFactory
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
+  /// Try some examples described on examples/worlds/empty.sdf
   class IGNITION_GAZEBO_VISIBLE UserCommands:
     public System,
     public ISystemConfigure,
