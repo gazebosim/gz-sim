@@ -176,12 +176,14 @@
   # Grid tiles
   half_n_y = ($n_y/2).floor
   tiles = []
+  tile_count = 0
   for x in (0..($n_x - 1))
     for y in (-half_n_y..half_n_y)
-
+      tile_count += 1
       tile =
       {
-        :name => tile_types.sample(),
+        :name => "tile_#{tile_count}",
+        :type => tile_types.sample(),
         :x => entrance_offset + tile_dimension * x,
         :y => tile_dimension * y,
         :yaw => [0, Math::PI*0.5, -Math::PI*0.5, Math::PI].sample()
@@ -348,11 +350,11 @@
   <%
     tiles.each_with_index do |tile, count|
   %>
-    <model name="<%= tile[:name] %>_tile_<%= count.to_s %>">
+    <model name="<%= tile[:name] %>">
       <pose><%= tile[:x] %> <%= tile[:y] %> 0 0 0 <%= tile[:yaw] %></pose>
       <static>true</static>
       <link name="link">
-      <% shapesCollection[tile[:name]].each_with_index do |shape, index| %>
+      <% shapesCollection[tile[:type]].each_with_index do |shape, index| %>
         <collision name="collision_<%= index %>">
           <%= shape[:pose] %>
           <geometry>
@@ -365,8 +367,8 @@
             <%= shape[:geometry] %>
           </geometry>
           <material>
-            <ambient>0 0 1 0.8</ambient>
-            <diffuse>0 0 1 0.8</diffuse>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
             <specular>1 1 1 0.8</specular>
           </material>
         </visual>
@@ -569,7 +571,7 @@
       <ref><%= vehicle[:name] %></ref>
       <geometry>
         <box>
-          <size>5 5 5</size>
+          <size>2 2 2</size>
         </box>
       </geometry>
     </performer>
@@ -586,7 +588,31 @@
           <size>40 40 1000</size>
         </box>
       </geometry>
-      <ref><%= tile[:name] %>_tile_<%= count.to_s %></ref>
+      <ref><%= tile[:name] %></ref>
+    </level>
+    <%
+      end
+    %>
+
+    <%
+      tiles.each_slice(half_n_y*2).with_index do |(*slice), count|
+        xavg = slice.map{|tile| tile[:x]}.reduce(:+)/slice.size
+        yavg = slice.map{|tile| tile[:y]}.reduce(:+)/slice.size
+
+        # comment this out to have extra levels
+        next
+
+    %>
+    <level name="levelA_<%= count.to_s %>">
+      <pose><%= xavg %> <%= yavg %> 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+        <size>40 <%= slice.size*40 %> 1000</size>
+        </box>
+      </geometry>
+      <% slice.each do |tile| %>
+      <ref><%= tile[:name] %></ref>
+      <% end %>
     </level>
     <%
       end

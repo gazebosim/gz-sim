@@ -197,7 +197,6 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
            ref = ref->GetNextElement("ref"))
       {
         std::string entityName = ref->GetValue()->GetAsString();
-        // TODO(addisu) Make sure the names are unique
         entityNames.insert(entityName);
 
         this->entityNamesInLevels.insert(entityName);
@@ -237,6 +236,8 @@ void LevelManager::ConfigureDefaultLevel()
   // Go through all entities in the world and find ones not in the
   // set entityNamesInLevels
 
+  std::set<std::string> entityNamesInDefault;
+
   // Models
   for (uint64_t modelIndex = 0;
        modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
@@ -253,7 +254,7 @@ void LevelManager::ConfigureDefaultLevel()
     if (this->entityNamesInLevels.find(model->Name()) ==
         this->entityNamesInLevels.end())
     {
-      this->entityNamesInDefault.insert(model->Name());
+      entityNamesInDefault.insert(model->Name());
     }
   }
 
@@ -265,7 +266,7 @@ void LevelManager::ConfigureDefaultLevel()
     if (this->entityNamesInLevels.find(light->Name()) ==
         this->entityNamesInLevels.end())
     {
-      this->entityNamesInDefault.insert(light->Name());
+      entityNamesInDefault.insert(light->Name());
     }
   }
   // Components
@@ -276,11 +277,7 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::ParentEntity(this->worldEntity));
   this->runner->entityCompMgr.CreateComponent(
-      defaultLevel, components::LevelEntityNames(this->entityNamesInDefault));
-
-  // Add default level to levels to load
-  this->entityNamesToLoad.insert(this->entityNamesInDefault.begin(),
-                                 this->entityNamesInDefault.end());
+      defaultLevel, components::LevelEntityNames(entityNamesInDefault));
 }
 
 /////////////////////////////////////////////////
@@ -316,6 +313,21 @@ void LevelManager::UpdateLevelsState()
 {
   IGN_PROFILE("LevelManager::UpdateLevelsState");
 
+  std::vector<Entity> levelsToLoad;
+  std::vector<Entity> levelsToUnload;
+
+  // Handle default level
+  this->runner->entityCompMgr.Each<components::DefaultLevel>(
+      [&](const Entity &_entity, const components::DefaultLevel *) -> bool
+      {
+        if (!this->IsLevelActive(_entity))
+        {
+          levelsToLoad.push_back(_entity);
+        }
+        // We assume one default level
+        return false;
+      });
+
   this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
                                    components::ParentEntity>(
       [&](const Entity &, const components::Performer *,
@@ -333,15 +345,15 @@ void LevelManager::UpdateLevelsState()
 
 
         // loop through levels and check for intersections
+        // Add all levels with inersections to the levelsToLoad even if they are
+        // currently active.
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry,
-                                         components::LevelBuffer,
-                                         components::LevelEntityNames>(
-            [&](const Entity &, const components::Level *,
+                                         components::LevelBuffer >(
+            [&](const Entity &_entity, const components::Level *,
                 const components::Pose *_pose,
                 const components::Geometry *_levelGeometry,
-                const components::LevelBuffer *_levelBuffer,
-                const components::LevelEntityNames *_entityNames) -> bool
+                const components::LevelBuffer *_levelBuffer) -> bool
             {
               // Check if the performer is in this level
               // assume a box for now
@@ -357,26 +369,27 @@ void LevelManager::UpdateLevelsState()
 
               if (region.Intersects(performerVolume))
               {
-                this->entityNamesToLoad.insert(_entityNames->Data().begin(),
-                                               _entityNames->Data().end());
+                levelsToLoad.push_back(_entity);
               }
               else
               {
-                // Check if the performer is outside of the buffer of this level
-                if (outerRegion.Intersects(performerVolume)){
-                  return true;
+                // If the level is active, check if the performer is outside of
+                // the buffer of this level
+                if (this->IsLevelActive(_entity))
+                {
+                  if (outerRegion.Intersects(performerVolume))
+                  {
+                    levelsToLoad.push_back(_entity);
+                    return true;
+                  }
+                  // Otherwise, mark the level to be unloaded if it's not
+                  // scheduled to be loaded by another performer.
+                  if (std::find(levelsToLoad.begin(), levelsToLoad.end(),
+                                _entity) == levelsToLoad.end())
+                  {
+                    levelsToUnload.push_back(_entity);
+                  }
                 }
-                // Otherwise, mark the entity to be unloaded if it's currently
-                // active
-                std::copy_if(_entityNames->Data().begin(),
-                             _entityNames->Data().end(),
-                             std::inserter(this->entityNamesToUnload,
-                                           this->entityNamesToUnload.begin()),
-                             [this](const std::string &_name) -> bool
-                             {
-                               return this->activeEntityNames.find(_name) !=
-                                      this->activeEntityNames.end();
-                             });
               }
               return true;
             });
@@ -384,53 +397,79 @@ void LevelManager::UpdateLevelsState()
         return true;
       });
 
-  // Filter the entityNamesToUnload so that if a level is marked to be loaded by
-  // one performer check and marked to be unloaded by another, we don't end up
-  // unloading it
-  std::set<std::string> tmpToUnload;
-  std::set_difference(
-      this->entityNamesToUnload.begin(), this->entityNamesToUnload.end(),
-      this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
-      std::inserter(tmpToUnload, tmpToUnload.begin()));
-  this->entityNamesToUnload = std::move(tmpToUnload);
-
-  // Filter out the entities that are already active
-  std::set<std::string> tmpToLoad;
-  std::set_difference(
-      this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
-      this->activeEntityNames.begin(), this->activeEntityNames.end(),
-      std::inserter(tmpToLoad, tmpToLoad.begin()));
-  this->entityNamesToLoad = std::move(tmpToLoad);
-
-  // ---------------------- DEBUG ---------------------
-  static std::size_t counter = 0;
-
-  if (this->entityNamesToLoad.size() > 0)
+  // Make a list of entity names from all the levels that have been marked to be
+  // loaded
+  std::set<std::string> entityNamesMarked;
+  for (const auto &toLoad : levelsToLoad)
   {
-    std::stringstream ss;
-    ss << counter << ": Levels to load:";
-    std::copy(this->entityNamesToLoad.begin(), this->entityNamesToLoad.end(),
-              std::ostream_iterator<std::string>(ss, " "));
-    igndbg << ss.str() << std::endl;
+    auto entityNames = this->runner->entityCompMgr
+                           .Component<components::LevelEntityNames>(toLoad)
+                           ->Data();
+    for (const auto &name : entityNames)
+    {
+      entityNamesMarked.insert(name);
+    }
   }
 
-  if (this->entityNamesToUnload.size() > 0)
+  // Filter out currently active entities from the marked entities and create a
+  // new set of entities. These entities will be the ones that are loaded
+  std::set<std::string> entityNamesToLoad;
+  for (const auto &name : entityNamesMarked)
   {
-    std::stringstream ss;
-    ss << counter << ": Levels to unload:";
-    std::copy(this->entityNamesToUnload.begin(),
-              this->entityNamesToUnload.end(),
-              std::ostream_iterator<std::string>(ss, " "));
-    igndbg << ss.str() << std::endl;
+    if (this->activeEntityNames.find(name) == this->activeEntityNames.end())
+    {
+      entityNamesToLoad.insert(name);
+    }
   }
-  ++counter;
-  // ---------------------- END DEBUG ---------------------
+  // Make a list of entity names to unload making sure to leave out the ones
+  // that have been marked to be loaded above
+  std::set<std::string> entityNamesToUnload;
+  for (const auto &toUnload : levelsToUnload)
+  {
+    auto entityNames = this->runner->entityCompMgr
+                           .Component<components::LevelEntityNames>(toUnload)
+                           ->Data();
+
+    for (const auto &name : entityNames)
+    {
+      if (entityNamesMarked.find(name) == entityNamesMarked.end())
+      {
+        entityNamesToUnload.insert(name);
+      }
+    }
+  }
+
+  // Load and unload the entities
+  if (entityNamesToLoad.size() > 0)
+  {
+    this->LoadActiveEntities(entityNamesToLoad);
+  }
+  if (entityNamesToUnload.size() > 0)
+  {
+    this->UnloadInactiveEntities(entityNamesToUnload);
+  }
+
+  // Finally, upadte the list of active levels
+  for (const auto &level : levelsToLoad) {
+    if (!this->IsLevelActive(level))
+    {
+      this->activeLevels.push_back(level);
+    }
+  }
+
+  auto pendingEnd = this->activeLevels.end();
+  for (const auto &toUnload : levelsToUnload)
+  {
+    pendingEnd = std::remove(this->activeLevels.begin(), pendingEnd, toUnload);
+  }
+  // Erase from vector
+  this->activeLevels.erase(pendingEnd, this->activeLevels.end());
 }
 
 /////////////////////////////////////////////////
-void LevelManager::LoadActiveLevels()
+void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 {
-  IGN_PROFILE("LevelManager::LoadActiveLevels");
+  IGN_PROFILE("LevelManager::LoadActiveEntities");
 
   if (this->worldEntity == kNullEntity)
   {
@@ -445,8 +484,7 @@ void LevelManager::LoadActiveLevels()
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
-    if (this->entityNamesToLoad.find(model->Name()) !=
-        this->entityNamesToLoad.end())
+    if (_namesToLoad.find(model->Name()) != _namesToLoad.end())
     {
       Entity modelEntity = this->factory->CreateEntities(model);
 
@@ -459,8 +497,7 @@ void LevelManager::LoadActiveLevels()
        lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
     auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
-    if (this->entityNamesToLoad.find(light->Name()) !=
-        this->entityNamesToLoad.end())
+    if (_namesToLoad.find(light->Name()) != _namesToLoad.end())
     {
       Entity lightEntity = this->factory->CreateEntities(light);
 
@@ -468,31 +505,35 @@ void LevelManager::LoadActiveLevels()
     }
   }
 
-  this->activeEntityNames.insert(this->entityNamesToLoad.begin(),
-                                 this->entityNamesToLoad.end());
-  this->entityNamesToLoad.clear();
+  this->activeEntityNames.insert(_namesToLoad.begin(), _namesToLoad.end());
 }
 
 /////////////////////////////////////////////////
-void LevelManager::UnloadInactiveLevels()
+void LevelManager::UnloadInactiveEntities(
+    const std::set<std::string> &_namesToUnload)
 {
-  IGN_PROFILE("LevelManager::UnloadInactiveLevels");
+  IGN_PROFILE("LevelManager::UnloadInactiveEntities");
 
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
           const components::Name *_name) -> bool
       {
-        if (this->entityNamesToUnload.find(_name->Data()) !=
-            this->entityNamesToUnload.end())
+        if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
         {
           this->runner->entityCompMgr.RequestEraseEntity(_entity);
         }
         return true;
       });
-  for (const auto &name : this->entityNamesToUnload)
+
+  for (const auto &name : _namesToUnload)
   {
     this->activeEntityNames.erase(name);
   }
-  this->entityNamesToUnload.clear();
 }
 
+/////////////////////////////////////////////////
+bool LevelManager::IsLevelActive(const Entity _entity) const
+{
+  return std::find(this->activeLevels.begin(), this->activeLevels.end(),
+                   _entity) != this->activeLevels.end();
+}

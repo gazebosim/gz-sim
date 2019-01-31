@@ -522,10 +522,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         }
         else
         {
-          // TODO(addisu) Enable warning once we are able to delete entities
-          // from ign-physics. Currently, we only remove entities from the maps
-          // and leaving this uncommented will cause false warnings
-          // ignwarn << "Unknown link with id " << _entity << " found\n";
+          ignwarn << "Unknown link with id " << _entity << " found\n";
         }
         return true;
       });
