@@ -145,6 +145,18 @@ TEST_F(UserCommandsTest, Factory)
       "</light>" +
       "</sdf>";
 
+  auto lightsStr = std::string("<?xml version=\"1.0\" ?>") +
+      "<sdf version=\"1.6\">" +
+      "<light name=\"accepted_light\" type=\"directional\">" +
+      "</light>" +
+      "<light name=\"ignored_light\" type=\"directional\">" +
+      "</light>" +
+      "</sdf>";
+
+  auto badStr = std::string("<?xml version=\"1.0\" ?>") +
+      "<sdf version=\"1.6\">" +
+      "</sdfo>";
+
   // Request entity spawn
   msgs::EntityFactory req;
   req.set_sdf(modelStr);
@@ -169,7 +181,7 @@ TEST_F(UserCommandsTest, Factory)
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
-  EXPECT_LT(entityCount, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   auto model = ecm->EntityByComponents(components::Model(),
@@ -206,7 +218,7 @@ TEST_F(UserCommandsTest, Factory)
   // Run an iteration and check it was created with a new name
   server.Run(true, 1, false);
 
-  EXPECT_LT(entityCount, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
@@ -225,7 +237,7 @@ TEST_F(UserCommandsTest, Factory)
   // Run an iteration and check it was created with given name
   server.Run(true, 1, false);
 
-  EXPECT_LT(entityCount, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
@@ -243,7 +255,7 @@ TEST_F(UserCommandsTest, Factory)
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_LT(entityCount, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   auto light = ecm->EntityByComponents(components::Name("spawned_light"));
@@ -278,11 +290,62 @@ TEST_F(UserCommandsTest, Factory)
   // Run an iteration and check both models were created
   server.Run(true, 1, false);
 
-  EXPECT_LT(entityCount, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 8, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("acerola")));
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("coconut")));
+
+  // Try to spawn 2 entities at once
+  req.Clear();
+  req.set_sdf(lightsStr);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check only the 1st was created
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("ignored_light")));
+
+  light = ecm->EntityByComponents(components::Name("accepted_light"));
+  EXPECT_NE(kNullEntity, light);
+
+  EXPECT_NE(nullptr, ecm->Component<components::Light>(light));
+
+  // Try to spawn a malformed SDF
+  req.Clear();
+  req.set_sdf(badStr);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check nothing was created
+  server.Run(true, 1, false);
+
+  EXPECT_EQ(entityCount, ecm->EntityCount());
+
+  // Spawn from file
+  auto testModel = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
+      "test_model.sdf");
+  req.Clear();
+  req.set_sdf_filename(testModel);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was created
+  server.Run(true, 1, false);
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("test_model")));
 }
