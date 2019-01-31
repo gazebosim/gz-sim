@@ -517,3 +517,37 @@ TEST(HelpersTest, Pair)
 #endif
   }
 }
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, durationToSecNsec)
+{
+  std::pair<int64_t, int64_t> parts;
+
+  parts = math::durationToSecNsec(std::chrono::nanoseconds(9834249021));
+  EXPECT_EQ(9, parts.first);
+  EXPECT_EQ(834249021, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::nanoseconds(-9834249021));
+  EXPECT_EQ(-9, parts.first);
+  EXPECT_EQ(-834249021, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::nanoseconds());
+  EXPECT_EQ(0, parts.first);
+  EXPECT_EQ(0, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::nanoseconds(1234));
+  EXPECT_EQ(0, parts.first);
+  EXPECT_EQ(1234, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::seconds(89743));
+  EXPECT_EQ(89743, parts.first);
+  EXPECT_EQ(0, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::seconds(-1));
+  EXPECT_EQ(-1, parts.first);
+  EXPECT_EQ(0, parts.second);
+
+  parts = math::durationToSecNsec(std::chrono::milliseconds(3487));
+  EXPECT_EQ(3, parts.first);
+  EXPECT_EQ(487000000, parts.second);
+}

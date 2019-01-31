@@ -1,6 +1,5 @@
 os:
   - Visual Studio 2017
-  - Visual Studio 2015
 
 configuration:
   - Debug
@@ -13,7 +12,7 @@ install:
   - hg summary
   - hg clone https://bitbucket.org/ignitionrobotics/ign-cmake
   - cd ign-cmake
-  - hg up default
+  - hg up ign-cmake2
   - md build
   - cd build
   - cmake .. -DBUILD_TESTING:BOOL=False

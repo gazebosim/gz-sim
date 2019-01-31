@@ -17,6 +17,7 @@
 #ifndef IGNITION_MATH_FUNCTIONS_HH_
 #define IGNITION_MATH_FUNCTIONS_HH_
 
+#include <chrono>
 #include <cmath>
 #include <algorithm>
 #include <limits>
@@ -701,6 +702,18 @@ namespace ignition
       }
     }
 
+    /// \brief Convert a std::chrono::steady_clock::duration to a seconds and
+    /// nanoseconds pair.
+    /// \param[in] _dur The duration to convert.
+    /// \return A pair where the first element is the number of seconds and
+    /// the second is the number of nanoseconds.
+    inline std::pair<int64_t, int64_t> durationToSecNsec(
+        const std::chrono::steady_clock::duration &_dur)
+    {
+      auto s = std::chrono::duration_cast<std::chrono::seconds>(_dur);
+      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_dur-s);
+      return {s.count(), ns.count()};
+    }
 
     // Degrade precision on Windows, which cannot handle 'long double'
     // values properly. See the implementation of Unpair.

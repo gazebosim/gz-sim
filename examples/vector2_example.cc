@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-
+//! [complete]
 #include <iostream>
 #include <ignition/math.hh>
 
@@ -61,6 +61,7 @@ int main(int argc, char **argv)
   // between two vectors
   std::cout << vec2.Distance(vec2a) << std::endl;
 
-  // There are more functions in Vector2. Take a look at the API;
-  // http://ignitionrobotics.org/libraries/ign_mat/api
+  // There are more functions in Vector2. Take a look at the API:
+  // https://ignitionrobotics.org/libs/math
 }
+//! [complete]
