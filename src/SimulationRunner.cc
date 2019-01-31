@@ -268,8 +268,6 @@ void SimulationRunner::UpdateSystems()
 void SimulationRunner::UpdateLevels()
 {
   this->levelMgr->UpdateLevelsState();
-  this->levelMgr->LoadActiveLevels();
-  this->levelMgr->UnloadInactiveLevels();
 }
 
 /////////////////////////////////////////////////

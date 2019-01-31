@@ -15,9 +15,11 @@
  *
  */
 
-#include <array>
 
 #include <gtest/gtest.h>
+
+#include <array>
+
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -46,18 +48,6 @@
 using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
-
-class LevelManagerFixture : public ::testing::Test
-{
-  // Documentation inherited
-  protected: void SetUp() override
-  {
-    common::Console::SetVerbosity(4);
-
-    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
-      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
-  }
-};
 
 class Relay
 {
@@ -97,11 +87,11 @@ class Relay
   protected: gazebo::MockSystem *mockSystem;
 };
 
-///\brief A system to move models to arbitrary poses. Note that this does not
-///work if the physics system is running.
+/// \brief A system to move models to arbitrary poses. Note that this does not
+/// work if the physics system is running.
 class ModelMover: public Relay
 {
-  public: ModelMover(Entity _entity): Relay(), entity(_entity)
+  public: explicit ModelMover(Entity _entity): Relay(), entity(_entity)
   {
     using namespace std::placeholders;
     this->mockSystem->preUpdateCallback =
@@ -134,30 +124,87 @@ class ModelMover: public Relay
   private: std::optional<math::Pose3d> poseCmd;
 };
 
+class LevelManagerFixture : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+
+    setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+
+    ignition::gazebo::ServerConfig serverConfig;
+
+    // Except tile_0, which is on the default level, every tile belongs to a
+    // level. The name of the level corresponds to the tile in its suffix, i.e.,
+    // level1 contains tile_1.
+    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+                            "/test/worlds/levels.sdf");
+    serverConfig.SetUseLevels(true);
+
+    server = std::make_unique<gazebo::Server>(serverConfig);
+
+    Relay testSystem;
+    // Check entities loaded on the default level
+    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                            const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name) -> bool
+          {
+            this->loadedModels.push_back(_name->Data());
+            return true;
+          });
+
+      _ecm.Each<components::Light, components::Name>(
+          [&](const Entity &, const components::Light *,
+              const components::Name *_name) -> bool
+          {
+            this->loadedLights.push_back(_name->Data());
+            return true;
+          });
+
+      _ecm.EachErased<components::Model, components::Name>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name) -> bool
+          {
+            this->unloadedModels.push_back(_name->Data());
+            return true;
+          });
+    });
+
+    this->server->AddSystem(testSystem.systemPtr);
+  }
+
+  public: void RunServer()
+  {
+    // 3 iterations are required for unloading a level because the request to
+    // erase entities is processed in the next iteration
+    this->server->Run(true, 2, false);
+    this->loadedModels.clear();
+    this->loadedLights.clear();
+    this->server->Run(true, 1, false);
+  }
+
+  public: std::unique_ptr<gazebo::Server> server;
+  public: std::vector<std::string> loadedModels;
+  public: std::vector<std::string> unloadedModels;
+  public: std::vector<std::string> loadedLights;
+};
+
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
 TEST_F(LevelManagerFixture, DefaultLevel)
 {
-  ignition::gazebo::ServerConfig serverConfig;
-
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/levels.sdf");
-  serverConfig.SetUseLevels(true);
-
-  gazebo::Server server(serverConfig);
-
-  server.SetUpdatePeriod(1ns);
-
-  Relay testSystem;
-
   std::vector<std::set<std::string>> levelEntityNamesList;
-  std::vector<std::string> loadedModels;
-  std::vector<std::string> loadedLights;
 
+  Relay recorder;
   // Check entities loaded on the default level
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                          const gazebo::EntityComponentManager &_ecm)
-  {
+  recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
+                            const gazebo::EntityComponentManager &_ecm)
+      {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,
             const components::LevelEntityNames *_levelEntityNames) -> bool
@@ -165,27 +212,12 @@ TEST_F(LevelManagerFixture, DefaultLevel)
           levelEntityNamesList.push_back(_levelEntityNames->Data());
           return true;
         });
-
-    _ecm.Each<components::Model, components::Name>(
-        [&](const Entity &, const components::Model *,
-            const components::Name *_name) -> bool
-        {
-          loadedModels.push_back(_name->Data());
-          return true;
-        });
-    _ecm.Each<components::Light, components::Name>(
-        [&](const Entity &, const components::Light *,
-            const components::Name *_name) -> bool
-        {
-          loadedLights.push_back(_name->Data());
-          return true;
-        });
   });
 
-  server.AddSystem(testSystem.systemPtr);
-  const size_t iters = 10;
-  server.Run(true, iters, false);
-  EXPECT_EQ(iters, levelEntityNamesList.size());
+  this->server->AddSystem(recorder.systemPtr);
+  const int iters = 10;
+  this->server->Run(true, iters, false);
+  EXPECT_EQ(static_cast<std::size_t>(iters), levelEntityNamesList.size());
 
   for (const auto &levelEntityNames : levelEntityNamesList)
   {
@@ -195,12 +227,13 @@ TEST_F(LevelManagerFixture, DefaultLevel)
     EXPECT_FALSE(levelEntityNames.find("tile_1") != levelEntityNames.end());
   }
 
-  EXPECT_EQ(static_cast<int>(iters),
-            std::count(loadedLights.begin(), loadedLights.end(), "sun"));
-  EXPECT_EQ(static_cast<int>(iters),
-            std::count(loadedModels.begin(), loadedModels.end(), "tile_0"));
+  EXPECT_EQ(iters, std::count(this->loadedLights.begin(),
+                              this->loadedLights.end(), "sun"));
+  EXPECT_EQ(iters, std::count(this->loadedModels.begin(),
+                              this->loadedModels.end(), "tile_0"));
   // tile_1 should not be loaded
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
 }
 
 ///////////////////////////////////////////////
@@ -208,168 +241,210 @@ TEST_F(LevelManagerFixture, DefaultLevel)
 /// Check a level is unloaded when a performer is outside a level
 TEST_F(LevelManagerFixture, LevelLoadUnload)
 {
-  // Except tile_0, which is on the default level, every tile belongs to a
-  // level. The name of the level corresponds to the tile in its suffix, i.e.,
-  // level1 contains tile_1.
-  ignition::gazebo::ServerConfig serverConfig;
-
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/levels.sdf");
-  serverConfig.SetUseLevels(true);
-
-  gazebo::Server server(serverConfig);
-
-  auto sphereEntity = server.EntityByName("sphere");
-
-  // This system will move the sphere to desired locations
-  ModelMover sphereMover(*sphereEntity);
-
-  std::vector<std::string> loadedModels;
-
-  Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm) {
-    _ecm.Each<components::Model, components::Name>(
-        [&](const Entity &, const components::Model *,
-            const components::Name *_name) -> bool
-        {
-          loadedModels.push_back(_name->Data());
-          return true;
-        });
-  });
-
-  server.AddSystem(sphereMover.systemPtr);
-  server.AddSystem(testSystem.systemPtr);
+  ModelMover sphereMover(*this->server->EntityByName("sphere"));
+  this->server->AddSystem(sphereMover.systemPtr);
 
   std::array entitiesNonDefault{"tile_1", "tile_2", "tile_3", "tile_4",
                                 "tile_5"};
 
   // Run once and check levels
-  server.Run(true, 1, false);
+  this->server->Run(true, 1, false);
 
   // Non of the non-default levels should be loaded
   for (const auto &name : entitiesNonDefault)
   {
-    EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), name));
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), name));
   }
 
   // Move sphere into level1
   sphereMover.SetPose({40, 0, 0, 0, 0, 0});
-
-  loadedModels.clear();
-  // 2 iterations are required to set the sphere in position and to let the
-  // level manager load entities
-  server.Run(true, 2, false);
-
+  this->RunServer();
   // Level1 should be loaded
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
 
   // Move sphere out of level1
   sphereMover.SetPose({0, 0, 0, 0, 0, 0});
-
-  // 3 iterations are required for unloading a level because the request to
-  // erase entities is processed in the next iteration
-  server.Run(true, 2, false);
-  loadedModels.clear();
-  server.Run(true, 1, false);
-
+  this->RunServer();
   // Level1 should be unloaded
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+}
+
+///////////////////////////////////////////////
+/// Check behaviour of level buffers
+TEST_F(LevelManagerFixture, LevelBuffers)
+{
+  ModelMover sphereMover(*this->server->EntityByName("sphere"));
+  this->server->AddSystem(sphereMover.systemPtr);
+
+  // Move sphere into level1
+  sphereMover.SetPose({40, 0, 0, 0, 0, 0});
+  this->RunServer();
+  // Level1 should be loaded
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+
+  // Move sphere out of level1 but remain in the buffer
+  sphereMover.SetPose({40, 20, 0, 0, 0, 0});
+  this->RunServer();
+  // Level1 should still be loaded
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+
+  // Move sphere out of level1
+  sphereMover.SetPose({0, 0, 0, 0, 0, 0});
+  this->RunServer();
+  // Level1 should be unloaded
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+
+  // Move sphere into level1's buffer
+  sphereMover.SetPose({40, 20, 0, 0, 0, 0});
+  this->RunServer();
+  // Level1 should remain unloaded when entering from outside the level
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
 }
 
 ///////////////////////////////////////////////
 /// Check that multiple performers can load/unload multiple levels independently
 TEST_F(LevelManagerFixture, LevelsWithMultiplePerformers)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ModelMover sphereMover(*this->server->EntityByName("sphere"));
+  ModelMover boxMover(*this->server->EntityByName("box"));
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/levels.sdf");
-  serverConfig.SetUseLevels(true);
+  this->server->AddSystem(sphereMover.systemPtr);
+  this->server->AddSystem(boxMover.systemPtr);
 
-  gazebo::Server server(serverConfig);
+  const math::Pose3d noLevelPose{0, 0, 0, 0, 0, 0};
+  const math::Pose3d level1Pose{40, -10, 0, 0, 0, 0};
+  const math::Pose3d level2Pose{40, 30, 0, 0, 0, 0};
 
-  auto sphereEntity = server.EntityByName("sphere");
-  auto boxEntity = server.EntityByName("box");
-
-  ModelMover sphereMover(*sphereEntity);
-  ModelMover boxMover(*boxEntity);
-
-  std::vector<std::string> loadedModels;
-
-  Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm) {
-    _ecm.Each<components::Model, components::Name>(
-        [&](const Entity &, const components::Model *,
-            const components::Name *_name) -> bool
-        {
-          loadedModels.push_back(_name->Data());
-          return true;
-        });
-  });
-
-  server.AddSystem(sphereMover.systemPtr);
-  server.AddSystem(boxMover.systemPtr);
-  server.AddSystem(testSystem.systemPtr);
-
-  const math::Pose3d noLevelPose {0, 0, 0, 0, 0, 0};
-  const math::Pose3d level1Pose {40, 0, 0, 0, 0, 0};
-  const math::Pose3d level2Pose {40, 20, 0, 0, 0, 0};
   // Move sphere into level1 and box to level2
   sphereMover.SetPose(level1Pose);
   boxMover.SetPose(level2Pose);
 
-  loadedModels.clear();
-  // 2 iterations are required to set the sphere in position and to let the
-  // level manager load entities
-  server.Run(true, 2, false);
+  EXPECT_EQ(0u, this->unloadedModels.size());
+
+  this->RunServer();
 
   // Level1 should be loaded
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_2"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+  EXPECT_EQ(0u, this->unloadedModels.size());
 
   // Move sphere out of level1
   sphereMover.SetPose(noLevelPose);
 
-  // 3 iterations are required for unloading a level because the request to
-  // erase entities is processed in the next iteration
-  server.Run(true, 2, false);
-  loadedModels.clear();
-  server.Run(true, 1, false);
+  this->RunServer();
 
   // Level1 should be unloaded
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1, std::count(this->unloadedModels.begin(),
+                          this->unloadedModels.end(), "tile_1"));
   // Level2 should remain loaded because the box is still in there
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_2"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+  EXPECT_EQ(0, std::count(this->unloadedModels.begin(),
+                          this->unloadedModels.end(), "tile_2"));
+
+  // Check that the state of the levels remains the same for n iterations
+  const int iters = 100;
+  this->server->Run(true, iters, false);
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  // Level2 should remain loaded because the box is still in there
+  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                  this->loadedModels.end(), "tile_2"));
 
   // Check that a level remains loaded when performers move out of the level if
   // there is at least one performer left in the level
 
   // Move sphere to level2
   sphereMover.SetPose(level2Pose);
-  server.Run(true, 2, false);
-  loadedModels.clear();
-  server.Run(true, 1, false);
+  this->RunServer();
   // Both performers are in level2
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_2"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+
+  this->server->Run(true, iters, false);
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                  this->loadedModels.end(), "tile_2"));
 
   // Move box out of level2.
   boxMover.SetPose(noLevelPose);
-  server.Run(true, 2, false);
-  loadedModels.clear();
-  server.Run(true, 1, false);
+  this->RunServer();
   // sphere is still in level2 so it should still be loaded
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
-  EXPECT_EQ(1, std::count(loadedModels.begin(), loadedModels.end(), "tile_2"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+
+  this->server->Run(true, iters, false);
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                  this->loadedModels.end(), "tile_2"));
 
   // Move sphere out of level2
   sphereMover.SetPose(noLevelPose);
-  server.Run(true, 2, false);
-  loadedModels.clear();
-  server.Run(true, 1, false);
+  this->RunServer();
   // All performers are outside of levels
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_1"));
-  EXPECT_EQ(0, std::count(loadedModels.begin(), loadedModels.end(), "tile_2"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+
+  this->server->Run(true, iters, false);
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+}
+
+///////////////////////////////////////////////
+/// Check that buffers work properly with multiple performers
+TEST_F(LevelManagerFixture, LevelBuffersWithMultiplePerformers)
+{
+  ModelMover sphereMover(*this->server->EntityByName("sphere"));
+  ModelMover boxMover(*this->server->EntityByName("box"));
+
+  this->server->AddSystem(sphereMover.systemPtr);
+  this->server->AddSystem(boxMover.systemPtr);
+
+  const math::Pose3d noLevelPose{0, 0, 0, 0, 0, 0};
+  const math::Pose3d level1Pose{40, 0, 0, 0, 0, 0};
+  const math::Pose3d level1BufferPose{40, -20, 0, 0, 0, 0};
+
+  // Move sphere into level1 and box to level1's buffer
+  sphereMover.SetPose(level1Pose);
+  boxMover.SetPose(level1BufferPose);
+
+  this->RunServer();
+
+  // Level1 should be loaded
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
+
+  // Move sphere to level1's buffer
+  sphereMover.SetPose(level1BufferPose);
+  this->RunServer();
+
+  // Level1 should still be loaded
+  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_1"));
+  // Level2 should remain unloaded
+  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
+                          "tile_2"));
 }
