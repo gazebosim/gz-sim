@@ -184,7 +184,7 @@ TEST(PeerTracker, Partitioned)
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
 
   // Allow all the heartbeats to propagate
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Trackers should not detect peers in different partitions
   EXPECT_EQ(0u, tracker1.NumPeers());
@@ -198,7 +198,7 @@ TEST(PeerTracker, Partitioned)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(110));
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Trackers should detect peers in the same partition.
   EXPECT_EQ(1u, tracker1.NumPeers());
@@ -224,7 +224,7 @@ TEST(PeerTracker, Namespaced)
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
 
   // Allow some time for heartbeats to propagate
-  std::this_thread::sleep_for(std::chrono::milliseconds(110));
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Trackers should not detect peers in different namespaces
   EXPECT_EQ(0u, tracker1.NumPeers());
@@ -238,7 +238,7 @@ TEST(PeerTracker, Namespaced)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(110));
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // Trackers should detect peers in the same partition.
   EXPECT_EQ(1u, tracker1.NumPeers());
