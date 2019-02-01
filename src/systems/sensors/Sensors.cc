@@ -89,11 +89,13 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Update(const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
+void Sensors::PostUpdate(const UpdateInfo &_info,
+                         const EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->initialized)
+  // Only initialize if there are rendering sensors
+  if (!this->dataPtr->initialized &&
+      _ecm.HasComponentType(_ecm.ComponentType<components::Camera>()))
   {
-    // TODO(anyone) Only do this if we do have rendering sensors
     auto engine = ignition::rendering::engine(this->dataPtr->engineName);
     if (!engine)
     {
@@ -102,19 +104,16 @@ void Sensors::Update(const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
       return;
     }
     auto scene = engine->CreateScene("scene");
+
     // Create simulation runner sensor manager
     this->dataPtr->sensorManager.SetRenderingScene(scene);
     this->dataPtr->sceneManager.SetScene(scene);
 
     this->dataPtr->initialized = true;
   }
-  this->dataPtr->UpdateRenderingEntities(_ecm);
-}
 
-//////////////////////////////////////////////////
-void Sensors::PostUpdate(const UpdateInfo &_info,
-                         const EntityComponentManager &/*_ecm*/)
-{
+  this->dataPtr->UpdateRenderingEntities(_ecm);
+
   auto time = math::durationToSecNsec(_info.simTime);
   this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
 }
@@ -275,6 +274,5 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
 
 IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
-  Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
