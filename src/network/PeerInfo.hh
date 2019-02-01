@@ -33,7 +33,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     class IGNITION_GAZEBO_VISIBLE PeerInfo {
       /// \brief Constructor
-      public: PeerInfo(const NetworkRole &_role = NetworkRole::None);
+      public: explicit PeerInfo(const NetworkRole &_role = NetworkRole::None);
 
       /// \brief Unique peer ID in the network
       public: std::string id;
