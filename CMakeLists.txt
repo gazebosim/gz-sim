@@ -47,7 +47,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler)
+ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
