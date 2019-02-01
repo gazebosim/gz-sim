@@ -252,8 +252,8 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 
   // Delete the cylinder. Deleting the model and the link to avoid physics
   // warnings
-  server.RequestEraseEntity(cylinderModelId.value());
-  server.RequestEraseEntity(cylinderLinkId.value());
+  server.RequestEraseEntity(cylinderModelId.value(), false);
+  server.RequestEraseEntity(cylinderLinkId.value(), false);
   server.Run(true, 10, false);
 
   EXPECT_EQ(initEntityCount - 2, server.EntityCount());
