@@ -382,13 +382,8 @@ void LevelManager::UpdateLevelsState()
                     levelsToLoad.push_back(_entity);
                     return true;
                   }
-                  // Otherwise, mark the level to be unloaded if it's not
-                  // scheduled to be loaded by another performer.
-                  if (std::find(levelsToLoad.begin(), levelsToLoad.end(),
-                                _entity) == levelsToLoad.end())
-                  {
-                    levelsToUnload.push_back(_entity);
-                  }
+                  // Otherwise, mark the level to be unloaded
+                  levelsToUnload.push_back(_entity);
                 }
               }
               return true;
@@ -396,6 +391,16 @@ void LevelManager::UpdateLevelsState()
 
         return true;
       });
+
+  {
+    auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
+    levelsToLoad.erase(pendingEnd, levelsToLoad.end());
+  }
+  {
+    auto pendingEnd = std::unique(levelsToUnload.begin(), levelsToUnload.end());
+    levelsToUnload.erase(pendingEnd, levelsToUnload.end());
+  }
+
 
   // Make a list of entity names from all the levels that have been marked to be
   // loaded
@@ -421,6 +426,17 @@ void LevelManager::UpdateLevelsState()
       entityNamesToLoad.insert(name);
     }
   }
+
+  // First filter levelsToUnload so it doesn't contain any levels that are
+  // already in levelsToLoad
+  auto pendingRemove = std::remove_if(
+      levelsToUnload.begin(), levelsToUnload.end(), [&](Entity _entity)
+      {
+        return std::find(levelsToLoad.begin(), levelsToLoad.end(), _entity) !=
+               levelsToLoad.end();
+      });
+  levelsToUnload.erase(pendingRemove, levelsToUnload.end());
+
   // Make a list of entity names to unload making sure to leave out the ones
   // that have been marked to be loaded above
   std::set<std::string> entityNamesToUnload;
