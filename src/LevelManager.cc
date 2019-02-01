@@ -536,7 +536,7 @@ void LevelManager::UnloadInactiveEntities(
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
         {
-          this->runner->entityCompMgr.RequestEraseEntity(_entity);
+          this->factory->RequestEraseEntity(_entity, true);
         }
         return true;
       });
