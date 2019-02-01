@@ -1,6 +1,26 @@
 add_subdirectory(gui)
 add_subdirectory(systems)
 
+set(REQ_PROTOBUF_VER 3)
+ign_find_package(IgnProtobuf
+                 VERSION ${REQ_PROTOBUF_VER}
+                 REQUIRED
+                 COMPONENTS all
+                 PRETTY Protobuf)
+
+add_subdirectory(msgs)
+set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
+                            PROPERTIES GENERATED TRUE)
+
+# Suppress compiler warnings in generated protobuf C++ code.
+set_source_files_properties(${PROTO_SRC} COMPILE_FLAGS -Wno-unused-parameter)
+
+set(network_sources
+  network/PeerInfo.cc
+  network/PeerTracker.cc
+  ${PROTO_SRC}
+)
+
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -20,6 +40,7 @@ set (sources
   SystemLoader.cc
   Util.cc
   View.cc
+  ${network_sources}
 )
 
 set (gtest_sources
@@ -34,6 +55,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  network/PeerTracker_TEST.cc
 )
 
 # Create the library target
@@ -48,9 +70,17 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   sdformat8::sdformat8
+  protobuf::libprotobuf
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
+
+target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+
+add_dependencies(${PROJECT_LIBRARY_TARGET_NAME} protobuf_compilation)
 
 ign_add_component(systems
   SOURCES ${systems_sources}
