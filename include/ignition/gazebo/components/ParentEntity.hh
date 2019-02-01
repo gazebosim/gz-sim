@@ -38,7 +38,7 @@ namespace components
   /// kept in sync with the parent entity components. Therefore,
   /// it is recommended that the `ParentEntity` component is never
   /// edited by hand, and instead, entities should be created using
-  /// the `gazebo::Factory` class.
+  /// the `gazebo::CreateRemove` class.
   using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
 }
 }

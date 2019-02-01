@@ -75,19 +75,19 @@ namespace ignition
       /// update step.
       ///
       /// \detail It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::Factory` class to erase
+      /// directly, and instead use the `gazebo::CreateRemove` class to remove
       /// entities.
       ///
-      /// \param[in] _entity Entity to be erased.
+      /// \param[in] _entity Entity to be removed.
       /// \param[in] _recursive Whether to recursively delete all child
       /// entities. True by default.
-      public: void RequestEraseEntity(const Entity _entity,
+      public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
-      /// \brief Request to erase all entities. This will insert the request
+      /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntities();
+      public: void RequestRemoveEntities();
 
       /// \brief Get whether an Entity exists.
       /// \param[in] _entity Entity to confirm.
@@ -105,7 +105,7 @@ namespace ignition
       /// \brief Set the parent of an entity.
       ///
       /// \detail It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::Factory` class to create
+      /// directly, and instead use the `gazebo::CreateRemove` class to create
       /// entities that have the correct parent-child relationship.
       ///
       /// \param[in] _entity Entity or kNullEntity to remove current parent.
@@ -299,7 +299,7 @@ namespace ignition
                        ComponentTypeTs *...)>>::type _f);
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the components. Note that an entity marked for erasure (but not
+      /// as the components. Note that an entity marked for removal (but not
       /// processed yet) will be included in the list of entities iterated by
       /// this call.
       /// \param[in] _f Callback function to be called for each matching entity.
@@ -316,7 +316,7 @@ namespace ignition
                        const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the mutable components. Note that an entity marked for erasure (but
+      /// as the mutable components. Note that an entity marked for removal (but
       /// not processed yet) will be included in the list of entities iterated
       /// by this call.
       /// \param[in] _f Callback function to be called for each matching entity.
@@ -372,7 +372,7 @@ namespace ignition
                                 const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types and are
-      /// about to be erased, as well as the components.
+      /// about to be removed, as well as the components.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -382,7 +382,7 @@ namespace ignition
       /// \warning This function should not be called outside of System's
       /// PreUpdate, callback. The result of call after PreUpdate is invalid
       public: template<typename ...ComponentTypeTs>
-              void EachErased(typename identity<std::function<
+              void EachRemoved(typename identity<std::function<
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const;
 
@@ -396,10 +396,10 @@ namespace ignition
       /// is protected to facilitate testing.
       protected: void ClearNewlyCreatedEntities();
 
-      /// \brief Process all entity erase requests. This will remove
+      /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
-      protected: void ProcessEraseEntityRequests();
+      protected: void ProcessRemoveEntityRequests();
 
       /// \brief Get whether an Entity exists and is new.
       ///
@@ -409,15 +409,15 @@ namespace ignition
       /// \return True if the Entity is new.
       private: bool IsNewEntity(const Entity _entity) const;
 
-      /// \brief Get whether an Entity has been marked to be erased.
+      /// \brief Get whether an Entity has been marked to be removed.
       /// \param[in] _entity Entity id to check.
-      /// \return True if the Entity has been marked to be erased.
-      private: bool IsMarkedForErasure(const Entity _entity) const;
+      /// \return True if the Entity has been marked to be removed.
+      private: bool IsMarkedForRemoval(const Entity _entity) const;
 
       /// \brief Delete an existing Entity.
-      /// \param[in] _entity The entity to erase.
+      /// \param[in] _entity The entity to remove.
       /// \returns True if the Entity existed and was deleted.
-      private: bool EraseEntity(const Entity _entity);
+      private: bool RemoveEntity(const Entity _entity);
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
@@ -533,7 +533,7 @@ namespace ignition
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
       /// Make simulation runner a friend so that it can trigger entity
-      /// erasures. This should be safe since SimulationRunner is internal
+      /// removals. This should be safe since SimulationRunner is internal
       /// to Gazebo.
       friend class SimulationRunner;
 

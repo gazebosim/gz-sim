@@ -19,7 +19,7 @@
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/CreateRemove.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -46,7 +46,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
-class ignition::gazebo::FactoryPrivate
+class ignition::gazebo::CreateRemovePrivate
 {
   public: EntityComponentManager *ecm{nullptr};
   public: EventManager *eventManager{nullptr};
@@ -56,40 +56,41 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-Factory::Factory(EntityComponentManager &_ecm,
+CreateRemove::CreateRemove(EntityComponentManager &_ecm,
           EventManager &_eventManager)
-  : dataPtr(std::make_unique<FactoryPrivate>())
+  : dataPtr(std::make_unique<CreateRemovePrivate>())
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(const Factory &_factory)
-  : dataPtr(std::make_unique<FactoryPrivate>(*_factory.dataPtr))
+CreateRemove::CreateRemove(const CreateRemove &_createRemove)
+  : dataPtr(std::make_unique<CreateRemovePrivate>(*_createRemove.dataPtr))
 {
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(Factory &&_factory) noexcept = default;
+CreateRemove::CreateRemove(CreateRemove &&_createRemove) noexcept = default;
 
 //////////////////////////////////////////////////
-Factory::~Factory() = default;
+CreateRemove::~CreateRemove() = default;
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(const Factory &_factory)
+CreateRemove &CreateRemove::operator=(const CreateRemove &_createRemove)
 {
-  *this->dataPtr = (*_factory.dataPtr);
+  *this->dataPtr = (*_createRemove.dataPtr);
   return *this;
 }
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(Factory &&_factory) noexcept = default;
+CreateRemove &CreateRemove::operator=(CreateRemove &&_createRemove) noexcept
+    = default;
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::World *_world)
+Entity CreateRemove::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::World)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -126,9 +127,9 @@ Entity Factory::CreateEntities(const sdf::World *_world)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Model *_model)
+Entity CreateRemove::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Model)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Model)");
 
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -178,9 +179,9 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Light *_light)
+Entity CreateRemove::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Light)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -196,9 +197,9 @@ Entity Factory::CreateEntities(const sdf::Light *_light)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Link *_link)
+Entity CreateRemove::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Link)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -256,9 +257,9 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Joint *_joint)
+Entity CreateRemove::CreateEntities(const sdf::Joint *_joint)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Joint)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -296,9 +297,9 @@ Entity Factory::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Visual *_visual)
+Entity CreateRemove::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Visual)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -327,9 +328,9 @@ Entity Factory::CreateEntities(const sdf::Visual *_visual)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Collision *_collision)
+Entity CreateRemove::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Collision)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -352,9 +353,9 @@ Entity Factory::CreateEntities(const sdf::Collision *_collision)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
+Entity CreateRemove::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Sensor)");
+  IGN_PROFILE("CreateRemove::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
@@ -397,7 +398,7 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 }
 
 //////////////////////////////////////////////////
-void Factory::RequestEraseEntity(Entity _entity, bool _recursive)
+void CreateRemove::RequestRemoveEntity(Entity _entity, bool _recursive)
 {
   // Leave children parentless
   if (!_recursive)
@@ -411,11 +412,11 @@ void Factory::RequestEraseEntity(Entity _entity, bool _recursive)
     }
   }
 
-  this->dataPtr->ecm->RequestEraseEntity(_entity, _recursive);
+  this->dataPtr->ecm->RequestRemoveEntity(_entity, _recursive);
 }
 
 //////////////////////////////////////////////////
-void Factory::SetParent(Entity _child, Entity _parent)
+void CreateRemove::SetParent(Entity _child, Entity _parent)
 {
   // TODO(louise) Figure out a way to avoid duplication while keeping all
   // state in components and also keeping a convenient graph in the ECM
