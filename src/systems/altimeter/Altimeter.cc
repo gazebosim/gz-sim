@@ -77,9 +77,6 @@ class ignition::gazebo::systems::AltimeterSensor
 /// \brief Private Altimeter data class.
 class ignition::gazebo::systems::AltimeterPrivate
 {
-  /// \brief Used to store whether objects have been created.
-  public: bool initialized = false;
-
   /// \brief A map of altimeter entity to its vertical reference
   public: std::unordered_map<Entity, std::unique_ptr<AltimeterSensor>>
       entitySensorMap;
@@ -144,11 +141,7 @@ Altimeter::~Altimeter() = default;
 void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->initialized)
-  {
-    this->dataPtr->CreateAltimeterEntities(_ecm);
-    this->dataPtr->initialized = true;
-  }
+  this->dataPtr->CreateAltimeterEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -171,7 +164,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
 {
   // Create altimeters
-  _ecm.Each<components::Altimeter>(
+  _ecm.EachNew<components::Altimeter>(
     [&](const Entity &_entity,
         const components::Altimeter *_altimeter)->bool
       {
