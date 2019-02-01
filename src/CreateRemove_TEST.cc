@@ -44,7 +44,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/CreateRemove.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -52,14 +52,14 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class EntityCompMgrTest : public gazebo::EntityComponentManager
 {
-  public: void ProcessEntityErasures()
+  public: void ProcessEntityRemovals()
   {
-    this->ProcessEraseEntityRequests();
+    this->ProcessRemoveEntityRequests();
   }
 };
 
 /////////////////////////////////////////////////
-class FactoryTest : public ::testing::Test
+class CreateRemoveTest : public ::testing::Test
 {
   public: void SetUp() override
   {
@@ -70,12 +70,12 @@ class FactoryTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateEntities)
+TEST_F(CreateRemoveTest, CreateEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // CreateRemove
+  CreateRemove createRemove(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -84,7 +84,7 @@ TEST_F(FactoryTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  createRemove.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(
@@ -501,12 +501,12 @@ TEST_F(FactoryTest, CreateEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateLights)
+TEST_F(CreateRemoveTest, CreateLights)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // CreateRemove
+  CreateRemove createRemove(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -515,7 +515,7 @@ TEST_F(FactoryTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  createRemove.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -790,12 +790,12 @@ TEST_F(FactoryTest, CreateLights)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateJointEntities)
+TEST_F(CreateRemoveTest, CreateJointEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // CreateRemove
+  CreateRemove createRemove(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -804,7 +804,7 @@ TEST_F(FactoryTest, CreateJointEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  createRemove.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(
@@ -934,12 +934,12 @@ TEST_F(FactoryTest, CreateJointEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, EraseEntities)
+TEST_F(CreateRemoveTest, RemoveEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // CreateRemove
+  CreateRemove createRemove(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -948,7 +948,7 @@ TEST_F(FactoryTest, EraseEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  createRemove.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
@@ -975,8 +975,8 @@ TEST_F(FactoryTest, EraseEntities)
   }
 
   // Delete a model recursively
-  factory.RequestEraseEntity(models.front());
-  this->ecm.ProcessEntityErasures();
+  createRemove.RequestRemoveEntity(models.front());
+  this->ecm.ProcessEntityRemovals();
 
   EXPECT_EQ(10u, this->ecm.EntityCount());
 
@@ -998,8 +998,8 @@ TEST_F(FactoryTest, EraseEntities)
   }
 
   // Delete a model but leave its children
-  factory.RequestEraseEntity(models.front(), false);
-  this->ecm.ProcessEntityErasures();
+  createRemove.RequestRemoveEntity(models.front(), false);
+  this->ecm.ProcessEntityRemovals();
 
   EXPECT_EQ(9u, this->ecm.EntityCount());
 
