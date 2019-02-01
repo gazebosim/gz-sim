@@ -187,9 +187,12 @@ namespace ignition
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _name Name of the entity to delete.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const std::string &_name);
+      public: bool RequestEraseEntity(const std::string &_name,
+          bool _recursive = true);
 
       /// \brief Return true if an entity exists with the
       /// provided id and the entity was queued for deletion. Note that
@@ -199,9 +202,12 @@ namespace ignition
       /// \details If multiple entities with the same name exist, only the
       /// first entity found will be deleted.
       /// \param[in] _entity The entity to delete.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const Entity _entity);
+      public: bool RequestEraseEntity(const Entity _entity,
+          bool _recursive = true);
 
       /// \brief Get the EventManager
       /// \return Reference to the event manager.
