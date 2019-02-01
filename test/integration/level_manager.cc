@@ -34,6 +34,7 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "ignition/gazebo/components/Level.hh"
+#include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -105,6 +106,11 @@ class ModelMover: public Relay
     poseCmd = std::move(_pose);
   }
 
+  public: gazebo::Entity Id() const
+  {
+    return entity;
+  }
+
   /// \brief Sets the pose component of the entity to the commanded pose. This
   /// function meant to be called in the preupdate phase
   private: void MoveModel(const gazebo::UpdateInfo &,
@@ -118,8 +124,9 @@ class ModelMover: public Relay
     }
   }
 
+
   /// \brief Entity to move
-  private: Entity entity;
+  private: gazebo::Entity entity;
   /// \brief Pose command
   private: std::optional<math::Pose3d> poseCmd;
 };
@@ -182,6 +189,7 @@ class LevelManagerFixture : public ::testing::Test
   {
     // 3 iterations are required for unloading a level because the request to
     // erase entities is processed in the next iteration
+    this->unloadedModels.clear();
     this->server->Run(true, 2, false);
     this->loadedModels.clear();
     this->loadedLights.clear();
@@ -241,8 +249,8 @@ TEST_F(LevelManagerFixture, DefaultLevel)
 /// Check a level is unloaded when a performer is outside a level
 TEST_F(LevelManagerFixture, LevelLoadUnload)
 {
-  ModelMover sphereMover(*this->server->EntityByName("sphere"));
-  this->server->AddSystem(sphereMover.systemPtr);
+  ModelMover perf1(*this->server->EntityByName("sphere"));
+  this->server->AddSystem(perf1.systemPtr);
 
   std::array entitiesNonDefault{"tile_1", "tile_2", "tile_3", "tile_4",
                                 "tile_5"};
@@ -257,51 +265,55 @@ TEST_F(LevelManagerFixture, LevelLoadUnload)
                             this->loadedModels.end(), name));
   }
 
-  // Move sphere into level1
-  sphereMover.SetPose({40, 0, 0, 0, 0, 0});
+  // Move performer into level1
+  perf1.SetPose({40, 0, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should be loaded
   EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
 
-  // Move sphere out of level1
-  sphereMover.SetPose({0, 0, 0, 0, 0, 0});
+  // Move performer out of level1
+  perf1.SetPose({0, 0, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should be unloaded
   EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
+  EXPECT_EQ(1, std::count(this->unloadedModels.begin(),
+                          this->unloadedModels.end(), "tile_1"));
 }
 
 ///////////////////////////////////////////////
 /// Check behaviour of level buffers
 TEST_F(LevelManagerFixture, LevelBuffers)
 {
-  ModelMover sphereMover(*this->server->EntityByName("sphere"));
-  this->server->AddSystem(sphereMover.systemPtr);
+  ModelMover perf1(*this->server->EntityByName("sphere"));
+  this->server->AddSystem(perf1.systemPtr);
 
-  // Move sphere into level1
-  sphereMover.SetPose({40, 0, 0, 0, 0, 0});
+  // Move performer into level1
+  perf1.SetPose({40, 0, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should be loaded
   EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
 
-  // Move sphere out of level1 but remain in the buffer
-  sphereMover.SetPose({40, 20, 0, 0, 0, 0});
+  // Move performer out of level1 but remain in the buffer
+  perf1.SetPose({40, 20, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should still be loaded
   EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
 
-  // Move sphere out of level1
-  sphereMover.SetPose({0, 0, 0, 0, 0, 0});
+  // Move performer out of level1
+  perf1.SetPose({0, 0, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should be unloaded
   EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
+  EXPECT_EQ(1, std::count(this->unloadedModels.begin(),
+                          this->unloadedModels.end(), "tile_1"));
 
-  // Move sphere into level1's buffer
-  sphereMover.SetPose({40, 20, 0, 0, 0, 0});
+  // Move performer into level1's buffer
+  perf1.SetPose({40, 20, 0, 0, 0, 0});
   this->RunServer();
   // Level1 should remain unloaded when entering from outside the level
   EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
@@ -312,139 +324,161 @@ TEST_F(LevelManagerFixture, LevelBuffers)
 /// Check that multiple performers can load/unload multiple levels independently
 TEST_F(LevelManagerFixture, LevelsWithMultiplePerformers)
 {
-  ModelMover sphereMover(*this->server->EntityByName("sphere"));
-  ModelMover boxMover(*this->server->EntityByName("box"));
+  ModelMover perf1(*this->server->EntityByName("sphere"));
+  ModelMover perf2(*this->server->EntityByName("box"));
 
-  this->server->AddSystem(sphereMover.systemPtr);
-  this->server->AddSystem(boxMover.systemPtr);
+  this->server->AddSystem(perf1.systemPtr);
+  this->server->AddSystem(perf2.systemPtr);
 
   const math::Pose3d noLevelPose{0, 0, 0, 0, 0, 0};
   const math::Pose3d level1Pose{40, -10, 0, 0, 0, 0};
   const math::Pose3d level2Pose{40, 30, 0, 0, 0, 0};
 
-  // Move sphere into level1 and box to level2
-  sphereMover.SetPose(level1Pose);
-  boxMover.SetPose(level2Pose);
+  auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
+  {
+    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+           << _perf2.Id() << "]\n";
 
-  EXPECT_EQ(0u, this->unloadedModels.size());
+    // Reset positions
+    perf1.SetPose(noLevelPose);
+    perf2.SetPose(noLevelPose);
+    this->RunServer();
 
-  this->RunServer();
+    // Move performer1 into level1 and performer2 to level2
+    _perf1.SetPose(level1Pose);
+    _perf2.SetPose(level2Pose);
 
-  // Level1 should be loaded
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
-  EXPECT_EQ(0u, this->unloadedModels.size());
+    EXPECT_EQ(0u, this->unloadedModels.size());
 
-  // Move sphere out of level1
-  sphereMover.SetPose(noLevelPose);
+    this->RunServer();
 
-  this->RunServer();
+    // Level1 should be loaded
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
+    EXPECT_EQ(0u, this->unloadedModels.size());
 
-  // Level1 should be unloaded
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1, std::count(this->unloadedModels.begin(),
-                          this->unloadedModels.end(), "tile_1"));
-  // Level2 should remain loaded because the box is still in there
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
-  EXPECT_EQ(0, std::count(this->unloadedModels.begin(),
-                          this->unloadedModels.end(), "tile_2"));
+    // Move performer1 out of level1
+    _perf1.SetPose(noLevelPose);
 
-  // Check that the state of the levels remains the same for n iterations
-  const int iters = 100;
-  this->server->Run(true, iters, false);
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  // Level2 should remain loaded because the box is still in there
-  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
-                                  this->loadedModels.end(), "tile_2"));
+    this->RunServer();
 
-  // Check that a level remains loaded when performers move out of the level if
-  // there is at least one performer left in the level
+    // Level1 should be unloaded
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1, std::count(this->unloadedModels.begin(),
+                            this->unloadedModels.end(), "tile_1"));
+    // Level2 should remain loaded because the performer2 is still in there
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
+    EXPECT_EQ(0, std::count(this->unloadedModels.begin(),
+                            this->unloadedModels.end(), "tile_2"));
 
-  // Move sphere to level2
-  sphereMover.SetPose(level2Pose);
-  this->RunServer();
-  // Both performers are in level2
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    // Check that the state of the levels remains the same for n iterations
+    const int iters = 100;
+    this->server->Run(true, iters, false);
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    // Level2 should remain loaded because the performer2 is still in there
+    EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                    this->loadedModels.end(), "tile_2"));
 
-  this->server->Run(true, iters, false);
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
-                                  this->loadedModels.end(), "tile_2"));
+    // Check that a level remains loaded when performers move out of the level
+    // if there is at least one performer left in the level
 
-  // Move box out of level2.
-  boxMover.SetPose(noLevelPose);
-  this->RunServer();
-  // sphere is still in level2 so it should still be loaded
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    // Move performer1 to level2
+    _perf1.SetPose(level2Pose);
+    this->RunServer();
+    // Both performers are in level2
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
 
-  this->server->Run(true, iters, false);
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
-                                  this->loadedModels.end(), "tile_2"));
+    this->server->Run(true, iters, false);
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                    this->loadedModels.end(), "tile_2"));
 
-  // Move sphere out of level2
-  sphereMover.SetPose(noLevelPose);
-  this->RunServer();
-  // All performers are outside of levels
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    // Move performer2 out of level2.
+    _perf2.SetPose(noLevelPose);
+    this->RunServer();
+    // performer1 is still in level2 so it should still be loaded
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
 
-  this->server->Run(true, iters, false);
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    this->server->Run(true, iters, false);
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(1 + iters, std::count(this->loadedModels.begin(),
+                                    this->loadedModels.end(), "tile_2"));
+
+    // Move performer1 out of level2
+    _perf1.SetPose(noLevelPose);
+    this->RunServer();
+    // All performers are outside of levels
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
+
+    this->server->Run(true, iters, false);
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
+  };
+
+  testSequence(perf1, perf2);
+  testSequence(perf2, perf1);
 }
 
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
 TEST_F(LevelManagerFixture, LevelBuffersWithMultiplePerformers)
 {
-  ModelMover sphereMover(*this->server->EntityByName("sphere"));
-  ModelMover boxMover(*this->server->EntityByName("box"));
+  ModelMover perf1(*this->server->EntityByName("sphere"));
+  ModelMover perf2(*this->server->EntityByName("box"));
 
-  this->server->AddSystem(sphereMover.systemPtr);
-  this->server->AddSystem(boxMover.systemPtr);
+  this->server->AddSystem(perf1.systemPtr);
+  this->server->AddSystem(perf2.systemPtr);
 
   const math::Pose3d noLevelPose{0, 0, 0, 0, 0, 0};
   const math::Pose3d level1Pose{40, 0, 0, 0, 0, 0};
   const math::Pose3d level1BufferPose{40, -20, 0, 0, 0, 0};
 
-  // Move sphere into level1 and box to level1's buffer
-  sphereMover.SetPose(level1Pose);
-  boxMover.SetPose(level1BufferPose);
+  auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
+  {
+    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+           << _perf2.Id() << "]\n";
+    // Move performer1 into level1 and performer2 to level1's buffer
+    _perf1.SetPose(level1Pose);
+    _perf2.SetPose(level1BufferPose);
 
-  this->RunServer();
+    this->RunServer();
 
-  // Level1 should be loaded
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    // Level1 should be loaded
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
 
-  // Move sphere to level1's buffer
-  sphereMover.SetPose(level1BufferPose);
-  this->RunServer();
+    // Move performer1 to level1's buffer
+    _perf1.SetPose(level1BufferPose);
+    this->RunServer();
 
-  // Level1 should still be loaded
-  EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_1"));
-  // Level2 should remain unloaded
-  EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
-                          "tile_2"));
+    // Level1 should still be loaded
+    EXPECT_EQ(1, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_1"));
+    // Level2 should remain unloaded
+    EXPECT_EQ(0, std::count(this->loadedModels.begin(),
+                            this->loadedModels.end(), "tile_2"));
+  };
+
+  testSequence(perf1, perf2);
+  testSequence(perf2, perf1);
 }
