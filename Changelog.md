@@ -2,6 +2,9 @@
 
 ### Ignition Math 5.x.x
 
+
+### Ignition Math 5.0.0 (2018-12-12)
+
 1. Added a Stopwatch class
     * [Pull request 279](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/279)
 
