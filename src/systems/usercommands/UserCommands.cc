@@ -20,11 +20,14 @@
 #include <sdf/Error.hh>
 
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/entity.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -92,6 +95,19 @@ class FactoryCommand : public UserCommand
   // Documentation inherited
   public: virtual bool Execute() final;
 };
+
+/// \brief Command to remove an entity from simulation.
+class DeleteCommand : public UserCommand
+{
+  /// \brief Constructor
+  /// \param[in] _msg Delete message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: DeleteCommand(msgs::Entity *_msg,
+      const std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: virtual bool Execute() final;
+};
 }
 }
 }
@@ -100,11 +116,19 @@ class FactoryCommand : public UserCommand
 class ignition::gazebo::systems::UserCommandsPrivate
 {
   /// \brief Callback for factory service
-  /// \param[in] _req Request
+  /// \param[in] _req Request containing entity description.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
   public: bool FactoryService(const msgs::EntityFactory &_req,
+      msgs::Boolean &_res);
+
+  /// \brief Callback for delete service
+  /// \param[in] _req Request containing identification of entity to be removed.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully deleted.
+  /// \return True if successful.
+  public: bool DeleteService(const msgs::Entity &_req,
       msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
@@ -141,14 +165,21 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->iface->ecm = &_ecm;
   this->dataPtr->iface->factory = std::make_unique<Factory>(_ecm, _eventManager);
 
-  // Spawn service
   auto worldName = _ecm.Component<components::Name>(_entity)->Data();
 
+  // Spawn service
   std::string factoryService{"/world/" + worldName + "/factory"};
   this->dataPtr->node.Advertise(factoryService, &UserCommandsPrivate::FactoryService,
       this->dataPtr.get());
 
   ignmsg << "Factory service on [" << factoryService << "]" << std::endl;
+
+  // Delete service
+  std::string deleteService{"/world/" + worldName + "/delete"};
+  this->dataPtr->node.Advertise(deleteService, &UserCommandsPrivate::DeleteService,
+      this->dataPtr.get());
+
+  ignmsg << "Delete service on [" << deleteService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -186,6 +217,25 @@ bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<FactoryCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::DeleteService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<DeleteCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -355,6 +405,70 @@ bool FactoryCommand::Execute()
   auto nameComp = this->iface->ecm->Component<components::Name>(entity);
   *nameComp = components::Name(desiredName);
 
+  return true;
+}
+
+//////////////////////////////////////////////////
+DeleteCommand::DeleteCommand(msgs::Entity *_msg,
+    const std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommand(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool DeleteCommand::Execute()
+{
+  auto deleteMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == deleteMsg)
+  {
+    ignerr << "Internal error, null delete message" << std::endl;
+    return false;
+  }
+
+  Entity entity{kNullEntity};
+  if (deleteMsg->id() != kNullEntity)
+  {
+    entity = deleteMsg->id();
+  }
+  else if (!deleteMsg->name().empty() &&
+      deleteMsg->type() != msgs::Entity::NONE)
+  {
+    if (deleteMsg->type() == msgs::Entity::MODEL)
+    {
+      entity = this->iface->ecm->EntityByComponents(components::Model(),
+        components::Name(deleteMsg->name()));
+    }
+    else if (deleteMsg->type() == msgs::Entity::LIGHT)
+    {
+      entity = this->iface->ecm->EntityByComponents(
+        components::Name(deleteMsg->name()));
+
+      auto lightComp = this->iface->ecm->Component<components::Light>(entity);
+      if (nullptr == lightComp)
+        entity = kNullEntity;
+    }
+    else
+    {
+      ignerr << "Deleting entities of type [" << deleteMsg->type()
+             << "] is not supported." << std::endl;
+      return false;
+    }
+  }
+  else
+  {
+    ignerr << "Delete command missing either entity's ID or name + type"
+           << std::endl;
+    return false;
+  }
+
+  if (entity == kNullEntity)
+  {
+    ignerr << "Entity named [" << deleteMsg->name() << "] of type ["
+           << deleteMsg->type() << "] not found, so not deleted." << std::endl;
+    return false;
+  }
+
+  this->iface->factory->RequestEraseEntity(entity);
   return true;
 }
 
