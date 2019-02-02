@@ -17,11 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_TAGWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_TAGWRAPPER_HH_
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 
 namespace ignition
 {
@@ -52,6 +53,12 @@ namespace components
     /// \param[in] _tagWrapper TagWrapper to compare to.
     /// \return True if different.
     public: bool operator!=(const TagWrapper &_tagWrapper) const;
+
+    /// \brief Component name.
+    public: inline static std::string name = "";
+
+    /// \brief Component id.
+    public: inline static uint64_t id = 0;
   };
 
   //////////////////////////////////////////////////
