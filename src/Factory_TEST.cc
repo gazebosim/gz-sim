@@ -1063,7 +1063,7 @@ size_t erasedCount(EntityCompMgrTest &_manager)
 {
   size_t count = 0;
   _manager.EachErased<Ts...>(
-      [&](const ignition::gazebo::Entity &, const Ts *... ) -> bool
+      [&](const ignition::gazebo::Entity &, const Ts *...) -> bool
       {
         ++count;
         return true;
