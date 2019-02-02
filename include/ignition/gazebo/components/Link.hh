@@ -17,9 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LINK_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LINK_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/TagWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Factory.hh>
 
 namespace ignition
 {

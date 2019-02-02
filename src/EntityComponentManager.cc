@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "ignition/common/Profiler.hh"
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -72,6 +73,9 @@ class ignition::gazebo::EntityComponentManagerPrivate
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
+  std::cout << "Components: " << std::endl;
+  for (auto c : components::Factory::Instance()->Components())
+    std::cout << c << std::endl;
 }
 
 //////////////////////////////////////////////////

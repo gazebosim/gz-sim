@@ -17,7 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 
+#include <cstdint>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include <ignition/gazebo/components/Component.hh>
@@ -96,6 +98,12 @@ namespace components
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SimpleWrapperPrivate<DataType>> dataPtr;
+
+    /// \brief Component name.
+    public: inline static std::string name = "";
+
+    /// \brief Component id.
+    public: inline static uint64_t id = 0;
   };
 
   template <typename DataType>
