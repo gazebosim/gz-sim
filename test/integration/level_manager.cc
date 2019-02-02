@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include <array>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
@@ -252,8 +252,8 @@ TEST_F(LevelManagerFixture, LevelLoadUnload)
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
 
-  std::array entitiesNonDefault{"tile_1", "tile_2", "tile_3", "tile_4",
-                                "tile_5"};
+  std::vector<std::string> entitiesNonDefault{"tile_1", "tile_2", "tile_3",
+                                              "tile_4", "tile_5"};
 
   // Run once and check levels
   this->server->Run(true, 1, false);
