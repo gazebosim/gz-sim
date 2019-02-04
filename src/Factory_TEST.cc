@@ -16,9 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-#include <algorithm>
-#include <string>
-#include <vector>
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -1059,4 +1056,63 @@ TEST_F(FactoryTest, EraseEntities)
       return true;
     });
   EXPECT_EQ(2u, visualCount);
+}
+
+template <typename... Ts>
+size_t erasedCount(EntityCompMgrTest &_manager)
+{
+  size_t count = 0;
+  _manager.EachErased<Ts...>(
+      [&](const ignition::gazebo::Entity &, const Ts *...) -> bool
+      {
+        ++count;
+        return true;
+      });
+  return count;
+}
+
+/////////////////////////////////////////////////
+TEST_F(FactoryTest, EachErasedRecursiveErased)
+{
+  // Factory
+  Factory factory(this->ecm, evm);
+
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create entities
+  factory.CreateEntities(root.WorldByIndex(0));
+
+  auto world = this->ecm.EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, world);
+
+  auto models = this->ecm.ChildrenByComponents(world, components::Model());
+  ASSERT_EQ(3u, models.size());
+
+  // Erased should be 0 before requesting erasure
+  EXPECT_EQ(0u, erasedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Visual>(ecm));
+
+  // Delete a model recursively
+  factory.RequestEraseEntity(models.front());
+
+  // Since the model is deleted recursively, the child links, collisions and
+  // visuals should be returned by an EachErased call
+  EXPECT_EQ(1u, erasedCount<components::Model>(ecm));
+  EXPECT_EQ(1u, erasedCount<components::Link>(ecm));
+  EXPECT_EQ(1u, erasedCount<components::Collision>(ecm));
+  EXPECT_EQ(1u, erasedCount<components::Visual>(ecm));
+
+  this->ecm.ProcessEntityErasures();
+
+  // Erased should be 0 after requesting erasure
+  EXPECT_EQ(0u, erasedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, erasedCount<components::Visual>(ecm));
 }
