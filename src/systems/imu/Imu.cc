@@ -102,7 +102,7 @@ class ignition::gazebo::systems::ImuPrivate
 
   /// \brief Update imu sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateImus(const EntityComponentManager &_ecm);
+  public: void Update(const EntityComponentManager &_ecm);
 
   /// \brief Helper function to generate default topic name for the sensor
   /// \param[in] _entity Entity to get the world pose for
@@ -170,13 +170,13 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
 
 //////////////////////////////////////////////////
 void Imu::PostUpdate(const UpdateInfo &_info,
-                           const EntityComponentManager &_ecm)
+                     const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
   if (_info.paused)
     return;
 
-  this->dataPtr->UpdateImus(_ecm);
+  this->dataPtr->Update(_ecm);
 
   for (auto &it : this->dataPtr->entitySensorMap)
   {
@@ -210,7 +210,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::UpdateImus(const EntityComponentManager &_ecm)
+void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
   _ecm.Each<components::Imu,
             components::WorldPose,
