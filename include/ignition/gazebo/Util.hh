@@ -39,6 +39,8 @@ namespace ignition
       /// \return World pose of entity
       public: static math::Pose3d WorldPose(const Entity &_entity,
           const EntityComponentManager &_ecm);
+      public: static Entity Root(const Entity &_entity,
+          const EntityComponentManager &_ecm);
     };
     }
   }
