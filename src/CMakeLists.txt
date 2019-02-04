@@ -16,7 +16,11 @@ set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
 set_source_files_properties(${PROTO_SRC} COMPILE_FLAGS -Wno-unused-parameter)
 
 set(network_sources
+  network/NetworkConfig.cc
   network/NetworkManager.cc
+  network/NetworkManagerPrimary.cc
+  network/NetworkManagerSecondary.cc
+  network/NetworkManagerReadOnly.cc
   network/PeerInfo.cc
   network/PeerTracker.cc
   ${PROTO_SRC}
@@ -56,6 +60,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
   network/NetworkManager_TEST.cc
 )

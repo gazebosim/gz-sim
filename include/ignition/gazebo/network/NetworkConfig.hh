@@ -33,6 +33,8 @@ namespace ignition
     /// \brief Configuration parameters for a distributed simulation instance
     class IGNITION_GAZEBO_VISIBLE NetworkConfig
     {
+      public: static NetworkConfig FromEnv();
+
       /// \brief Role of this network participant
       public: NetworkRole role { NetworkRole::None };
 
