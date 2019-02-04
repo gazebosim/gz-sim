@@ -14,10 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
-
-#include <memory>
+#ifndef IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
+#define IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -31,18 +29,18 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
-  /// \brief Log state recorder
-  class IGNITION_GAZEBO_VISIBLE LogRecord:
+  /// \class LogPlayback LogPlayback.hh ignition/gazebo/systems/log/LogPlayback.hh
+  /// \brief Log state playback
+  class IGNITION_GAZEBO_VISIBLE LogPlayback:
     public System,
     public ISystemConfigure,
     public ISystemUpdate
   {
     /// \brief Constructor
-    public: explicit LogRecord();
+    public: explicit LogPlayback();
 
     /// \brief Destructor
-    public: ~LogRecord() override;
+    public: ~LogPlayback() override;
 
     /// Documentation inherited
     public: void Configure(const Entity &_id,
@@ -54,11 +52,7 @@ namespace systems
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 
-    /// \brief A private entity component manager to store a copy of all
-    /// entities and components (just for fun).
-    private: EntityComponentManager entityCompMgr;
-
-    /// \brief Name of log file to record
+    /// \brief Name of log file to play back
     public: std::string logPath = "file.log";
   };
   }
