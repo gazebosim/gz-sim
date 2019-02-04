@@ -19,7 +19,7 @@
 
 #include <ignition/plugin/Register.hh>
 
-#include <sdf/Sensor.hh>
+#include <sdf/Element.hh>
 
 #include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
@@ -135,12 +135,9 @@ void ImuSensor::Publish()
     this->pub = this->node.Advertise<ignition::msgs::IMU>(this->topic);
 
   msgs::IMU msg;
-  msgs::Set(msg.mutable_orientation(),
-      this->imuReferenceOrientation);
-  msgs::Set(msg.mutable_angular_velocity(),
-      this->angularVel);
-  msgs::Set(msg.mutable_linear_acceleration(),
-      this->linearAcc);
+  msgs::Set(msg.mutable_orientation(), this->imuReferenceOrientation);
+  msgs::Set(msg.mutable_angular_velocity(), this->angularVel);
+  msgs::Set(msg.mutable_linear_acceleration(), this->linearAcc);
   this->pub.Publish(msg);
 }
 
@@ -250,7 +247,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
         }
         else
         {
-          std::cout << "Failed to update imu: " << _entity << ". "
+          ignerr << "Failed to update imu: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
