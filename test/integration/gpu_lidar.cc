@@ -134,15 +134,18 @@ TEST_F(AltimeterTest, ModelFalling)
   server.Run(true, iters100, false);
   EXPECT_GT(laserMsgs.size(), 0u);
 
+  ignition::common::Time waitTime = ignition::common::Time(0.01);
+  int i = 0;
+  while (laserMsgs.size() < 1 && i < 300)
+  {
+    ignition::common::Time::Sleep(waitTime);
+    i++;
+  }
+  EXPECT_LT(i, 300);
+
   int mid = horzSamples / 2;
   int last = (horzSamples - 1);
   double expectedRangeAtMidPointBox1 = 0.5;
-
-  // // DEBUG
-  // for (int i=0; i< laserMsgs.back().ranges_size(); i++)
-  // {
-  //   std::cout << laserMsgs.back().ranges(i) << " | ";
-  // }
 
   // Sensor 1 should see TestBox1
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(0), ignition::math::INF_D);
