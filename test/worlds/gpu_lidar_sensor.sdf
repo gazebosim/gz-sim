@@ -175,7 +175,7 @@
     </model>
 
     <model name="gpu_lidar">
-      <pose>0 0 0.5 0 0.0 0</pose>
+      <pose>0 0 0.5 0 0 0.0 </pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
@@ -219,7 +219,7 @@
               </vertical>
             </scan>
             <range>
-              <min>0.0001</min>
+              <min>0.08</min>
               <max>10.0</max>
               <resolution>0.01</resolution>
             </range>
