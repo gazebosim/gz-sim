@@ -125,7 +125,7 @@ TEST_F(ImuTest, ModelFalling)
 
   // Create a system that records imu data
   Relay testSystem;
-  math::Vector3d worldGravity;
+  math::Vector3d worldGravity(0, 0, -9.8);
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> accelerations;
   std::vector<math::Vector3d> angularVelocities;
@@ -145,7 +145,7 @@ TEST_F(ImuTest, ModelFalling)
                 const components::LinearAcceleration *_linearAcc) -> bool
             {
               EXPECT_EQ(_name->Data(), sensorName);
-              worldGravity = math::Vector3d(0, 0, -9.8);
+
               poses.push_back(_worldPose->Data());
               accelerations.push_back(_linearAcc->Data());
               angularVelocities.push_back(_angularVel->Data());
