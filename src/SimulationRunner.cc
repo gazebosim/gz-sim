@@ -39,8 +39,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->systemLoader = _systemLoader;
 
   // Check if this is going to be a distributed runner
-  this->networkMgr = std::make_unique<NetworkManager>();
-  if (!this->networkMgr->Valid())
+  // Attempt to create the manager based on environment variables.
+  this->networkMgr = NetworkManager::Create();
+  if (this->networkMgr && !this->networkMgr->Valid())
   {
     // If not, release the networkMgr, it's not needed.
     this->networkMgr.reset();

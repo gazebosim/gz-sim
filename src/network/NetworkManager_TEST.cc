@@ -33,8 +33,8 @@ TEST(NetworkManager, ConfigConstructor)
     // Primary without number of secondaries is invalid
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
-    NetworkManager nm(conf);
-    ASSERT_FALSE(nm.Valid());
+    auto nm = NetworkManager::Create(conf);
+    ASSERT_FALSE(nm->Valid());
     // Expect console warning as well
   }
 
@@ -43,78 +43,26 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
     conf.numSecondariesExpected = 5;
-    NetworkManager nm(conf);
-    ASSERT_TRUE(nm.Valid());
+    auto nm = NetworkManager::Create(conf);
+    ASSERT_TRUE(nm->Valid());
   }
 
   {
     // Secondary is always valid
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationSecondary;
-    NetworkManager nm(conf);
-    ASSERT_TRUE(nm.Valid());
+    auto nm = NetworkManager::Create(conf);
+    ASSERT_TRUE(nm->Valid());
   }
 
   {
     // Readonly is always valid
     NetworkConfig conf;
     conf.role = NetworkRole::ReadOnly;
-    NetworkManager nm(conf);
-    ASSERT_TRUE(nm.Valid());
+    auto nm = NetworkManager::Create(conf);
+    ASSERT_TRUE(nm->Valid());
   }
 }
-
-//////////////////////////////////////////////////
-// Only on Linux for the moment
-#ifdef  __linux__
-TEST(NetworkManager, EnvConstructor)
-{
-  ignition::common::Console::SetVerbosity(4);
-
-  {
-    // Primary without number of secondaries is invalid
-    setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
-    NetworkManager nm;
-    ASSERT_FALSE(nm.Valid());
-    unsetenv("IGN_GAZEBO_NETWORK_ROLE");
-    // Expect console warning as well
-  }
-
-  {
-    // Primary with number of secondaries is valid
-    setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
-    setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "3", 1);
-    NetworkManager nm;
-    ASSERT_TRUE(nm.Valid());
-    unsetenv("IGN_GAZEBO_NETWORK_ROLE");
-    unsetenv("IGN_GAZEBO_NETWORK_SECONDARIES");
-  }
-
-  {
-    // Secondary is always valid
-    setenv("IGN_GAZEBO_NETWORK_ROLE", "SECONDARY", 1);
-    NetworkManager nm;
-    ASSERT_TRUE(nm.Valid());
-    unsetenv("IGN_GAZEBO_NETWORK_ROLE");
-  }
-
-  {
-    // Readonly is always valid
-    setenv("IGN_GAZEBO_NETWORK_ROLE", "READONLY", 1);
-    NetworkManager nm;
-    ASSERT_TRUE(nm.Valid());
-    unsetenv("IGN_GAZEBO_NETWORK_ROLE");
-  }
-
-  {
-    // Anything else is invalid
-    setenv("IGN_GAZEBO_NETWORK_ROLE", "READ_WRITE", 1);
-    NetworkManager nm;
-    ASSERT_FALSE(nm.Valid());
-    unsetenv("IGN_GAZEBO_NETWORK_ROLE");
-  }
-}
-#endif
 
 //////////////////////////////////////////////////
 TEST(NetworkManager, EstablishComms)
@@ -124,26 +72,29 @@ TEST(NetworkManager, EstablishComms)
   confPrimary.role = NetworkRole::SimulationPrimary;
   confPrimary.numSecondariesExpected = 2;
 
-  NetworkManager nmPrimary(confPrimary);
-  ASSERT_TRUE(nmPrimary.Valid());
+  auto nmPrimary = NetworkManager::Create(confPrimary);
+  ASSERT_TRUE(nmPrimary->IsPrimary());
+  ASSERT_TRUE(nmPrimary->Valid());
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
-  NetworkManager nmSecondary1(confSecondary1);
-  ASSERT_TRUE(nmSecondary1.Valid());
+  auto nmSecondary1 = NetworkManager::Create(confSecondary1);
+  ASSERT_TRUE(nmSecondary1->IsSecondary());
+  ASSERT_TRUE(nmSecondary1->Valid());
 
   NetworkConfig confSecondary2;
-  confSecondary2.role = NetworkRole::SimulationSecondary;
-  NetworkManager nmSecondary2(confSecondary2);
-  ASSERT_TRUE(nmSecondary2.Valid());
+  confSecondary1.role = NetworkRole::SimulationSecondary;
+  auto nmSecondary2 = NetworkManager::Create(confSecondary1);
+  ASSERT_TRUE(nmSecondary2->IsSecondary());
+  ASSERT_TRUE(nmSecondary2->Valid());
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // All participants should be "ready" in that the correct
   // number of peers are discovered for their respective role.
-  ASSERT_TRUE(nmPrimary.Ready());
-  ASSERT_TRUE(nmSecondary1.Ready());
-  ASSERT_TRUE(nmSecondary2.Ready());
+  ASSERT_TRUE(nmPrimary->Ready());
+  ASSERT_TRUE(nmSecondary1->Ready());
+  ASSERT_TRUE(nmSecondary2->Ready());
 }
 
 

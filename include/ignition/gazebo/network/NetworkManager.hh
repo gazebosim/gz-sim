@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 
-#include <ignition/common/Uuid.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -40,32 +39,35 @@ namespace ignition
     /// \brief The server instantiates and controls simulation.
     class IGNITION_GAZEBO_VISIBLE NetworkManager
     {
-      /// \brief Constructor (reads config from environment)
-      public: explicit NetworkManager();
+      public: static std::unique_ptr<NetworkManager> Create(
+                  const NetworkConfig &_config = NetworkConfig::FromEnv());
 
       /// \brief Constructor with configuration passed in.
-      public: explicit NetworkManager(const NetworkConfig &_config);
+      protected: explicit NetworkManager(const NetworkConfig &_config);
 
       /// \brief Destructor.
-      public: ~NetworkManager();
+      public: virtual ~NetworkManager() = 0;
 
       /// \brief Indicate if NetworkManager configuraiton is in a valid state.
-      public: bool Valid() const;
+      public: virtual bool Valid() const = 0;
 
       /// \brief Indicate if NetworkManager is ready to execute.
-      public: bool Ready() const;
+      public: virtual bool Ready() const = 0;
 
       /// \brief Get a unique namespace for this runner
-      public: std::string Namespace() const;
+      public: virtual std::string Namespace() const = 0;
 
       /// \brief Convenience method for retrieving role.
-      public: bool IsPrimary() const;
+      public: virtual bool IsPrimary() const = 0;
 
       /// \brief Convenience method for retrieving role.
-      public: bool IsSecondary() const;
+      public: virtual bool IsSecondary() const = 0;
+
+      /// \brief Convenience method for retrieving role.
+      public: virtual bool IsReadOnly() const = 0;
 
       /// \brief Private data
-      private: std::unique_ptr<NetworkManagerPrivate> dataPtr;
+      protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };
     }
   }  // namespace gazebo
