@@ -124,11 +124,8 @@ Entity Factory::CreateEntities(const sdf::World *_world)
   }
 
   // Gravity
-  auto gravityEntity = this->dataPtr->ecm->CreateEntity();
-  this->dataPtr->ecm->CreateComponent(gravityEntity,
+  this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Gravity(_world->Gravity()));
-  this->dataPtr->ecm->CreateComponent(gravityEntity,
-      components::ParentEntity(worldEntity));
 
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
@@ -400,7 +397,7 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {
-     auto elem = _sensor->Element();
+    auto elem = _sensor->Element();
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::Imu(elem));
@@ -412,8 +409,6 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
             components::AngularVelocity(math::Vector3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-            components::Gravity(math::Vector3d::Zero));
   }
   else
   {

@@ -37,8 +37,6 @@
 
 #include "plugins/MockSystem.hh"
 
-// TODO(anyone): magnetometer physics doesn't match with default physics
-// gravity.
 #define TOL 1e-2
 
 using namespace ignition;
@@ -136,20 +134,18 @@ TEST_F(ImuTest, ModelFalling)
       {
         _ecm.Each<components::Imu,
                   components::Name,
-                  components::Gravity,
                   components::WorldPose,
                   components::AngularVelocity,
                   components::LinearAcceleration>(
             [&](const ignition::gazebo::Entity &,
                 const components::Imu *,
                 const components::Name *_name,
-                const components::Gravity *_gravity,
                 const components::WorldPose *_worldPose,
                 const components::AngularVelocity *_angularVel,
                 const components::LinearAcceleration *_linearAcc) -> bool
             {
               EXPECT_EQ(_name->Data(), sensorName);
-              worldGravity = _gravity->Data();
+              worldGravity = math::Vector3d(0, 0, -9.8);
               poses.push_back(_worldPose->Data());
               accelerations.push_back(_linearAcc->Data());
               angularVelocities.push_back(_angularVel->Data());

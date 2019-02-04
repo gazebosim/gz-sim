@@ -89,9 +89,6 @@ class ignition::gazebo::systems::ImuSensor
 /// \brief Private Imu data class.
 class ignition::gazebo::systems::ImuPrivate
 {
-  /// \brief Used to store whether objects have been created.
-  public: bool initialized = false;
-
   /// \brief A map of imu entity to its imu sensor.
   public: std::unordered_map<Entity, std::unique_ptr<ImuSensor>>
       entitySensorMap;
@@ -161,11 +158,7 @@ Imu::~Imu()
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->initialized)
-  {
-    this->dataPtr->CreateImuEntities(_ecm);
-    this->dataPtr->initialized = true;
-  }
+  this->dataPtr->CreateImuEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -188,13 +181,10 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
   // Create imus
-  _ecm.Each<components::Imu>(
+  _ecm.EachNew<components::Imu>(
     [&](const Entity &_entity,
         const components::Imu *_imu)->bool
       {
-        // Get initial pose of parent link and set the reference z pos
-        // The WorldPose component was just created and so it's empty
-        // We'll compute the world pose manually here
         auto sensor = std::make_unique<ImuSensor>();
         sensor->Load(_imu->Data());
 
@@ -212,15 +202,23 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
+  // Get world Gravity
+  math::Vector3d worldGravity;
+  _ecm.Each<components::Gravity>(
+    [&](const Entity & /*_entity*/,
+        const components::Gravity *_gravity)->bool
+      {
+        worldGravity = _gravity->Data();
+        return true;
+      });
+
   _ecm.Each<components::Imu,
             components::WorldPose,
-            components::Gravity,
             components::AngularVelocity,
             components::LinearAcceleration>(
     [&](const Entity &_entity,
         const components::Imu * /*_imu*/,
         const components::WorldPose *_worldPose,
-        const components::Gravity *_worldGravity,
         const components::AngularVelocity *_angularVel,
         const components::LinearAcceleration *_linearAccel)->bool
       {
@@ -232,7 +230,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           math::Vector3d imuAngularVel = _angularVel->Data();
 
           // Get the IMU angular velocity (defined in imu's local frame)
-          it->second->gravity = _worldGravity->Data();
+          it->second->gravity = worldGravity;
 
           // Get the IMU angular velocity (defined in imu's local frame)
           it->second->angularVel = _angularVel->Data();
@@ -242,7 +240,6 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
 
           // Add contribution from gravity
           // Do we want to skip if link does not have gravity enabled?
-          //   e.g. if (this->dataPtr->parentEntity->GetGravityMode())
           it->second->linearAcc -= imuWorldPose.Rot().Inverse().RotateVector(
               it->second->gravity);
 

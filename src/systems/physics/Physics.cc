@@ -150,9 +150,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics
   public: std::unordered_map<Entity, JointPtrType> entityJointMap;
 
-  /// \brief store gravity vector
-  public: math::Vector3d gravity;
-
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
@@ -239,16 +236,6 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           auto worldPtrPhys = this->engine->ConstructWorld(world);
           this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
         }
-        return true;
-      });
-
-  _ecm.Each<components::Gravity,
-            components::ParentEntity>(
-      [&](const Entity & /*_entity*/,
-          const components::Gravity *_gravity,
-          const components::ParentEntity * /* _parent */)->bool
-      {
-        this->gravity = _gravity->Data();
         return true;
       });
 
@@ -675,18 +662,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
         }
 
-        return true;
-      });
-
-  // update gravity
-  // TODO(anyone): this should be latched and there is no need to update
-  // unless we want to use a world model where we update the gravity value
-  // based on a World Gravity Map like WGM2012
-  _ecm.Each<components::Gravity>(
-      [&](const Entity & /*_entity*/,
-          components::Gravity *_gravity)->bool
-      {
-        *_gravity = components::Gravity(this->gravity);
         return true;
       });
 }
