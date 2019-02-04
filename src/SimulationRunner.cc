@@ -33,6 +33,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const bool _useLevels
                                    )
+    // \todo(nkoenig) Either copy the world, or add copy constructor to the
+    // World and other elements.
     : sdfWorld(_world)
 {
   // Keep world name
