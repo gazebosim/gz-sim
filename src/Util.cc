@@ -46,25 +46,3 @@ math::Pose3d Util::WorldPose(const Entity &_entity,
   }
   return pose;
 }
-
-
-//////////////////////////////////////////////////
-Entity Util::Root(const Entity &_entity,
-    const EntityComponentManager &_ecm)
-{
-  // default topic name:
-  // /model/model_name/link/link_name/sensor/sensor_name/imu
-  auto p = _ecm.ParentEntity(_entity);
-  auto previous = kNullEntity;
-  // also handle nested models
-  while (p != previous)
-  {
-    previous = p;
-    p = _ecm.ParentEntity(_entity);
-    // keep going up the tree
-    if (_ecm.Component<components::World>(p));
-      return p;
-  }
-
-  return kNullEntity;
-}
