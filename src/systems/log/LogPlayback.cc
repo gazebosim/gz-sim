@@ -17,60 +17,46 @@
 
 #include <fstream>
 
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
+#include <ignition/plugin/RegisterMore.hh>
 
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Visual.hh"
-
-#include "Log.hh"
-#include "LogRecord.hh"
+#include "LogPlayback.hh"
 
 using namespace ignition::gazebo::systems;
 
 //////////////////////////////////////////////////
-LogRecord::LogRecord()
+LogPlayback::LogPlayback()
   : System()
 {
 }
 
 //////////////////////////////////////////////////
-LogRecord::~LogRecord()
+LogPlayback::~LogPlayback()
 {
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const Entity &/*_id*/,
+void LogPlayback::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
   // Get params from SDF
   this->logPath = _sdf->Get<std::string>("log_path",
       this->logPath).first;
-  ignmsg << "Recording to log file " << this->logPath << std::endl;
+  ignmsg << "Playing back log file " << this->logPath << std::endl;
+
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Update(const UpdateInfo &/*_info*/,
+void LogPlayback::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_manager)
 {
-  {
-    std::ofstream ofs(this->logPath);
-    ofs << _manager;
-  }
-  {
-    // Read the object back in.
-    std::ifstream ifs(this->logPath);
-    ifs >> _manager;
-  }
+  std::ifstream ifs(this->logPath);
+  ifs >> _manager;
+
+  // TODO: Look into how to actually move the joints etc
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
+IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
                     ignition::gazebo::System,
-                    LogRecord::ISystemConfigure,
-                    LogRecord::ISystemUpdate)
+                    LogPlayback::ISystemConfigure,
+                    LogPlayback::ISystemUpdate)

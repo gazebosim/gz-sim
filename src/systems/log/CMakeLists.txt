@@ -1,5 +1,6 @@
 set (log_system_sources
   LogRecord.cc
+  LogPlayback.cc
 )
 
 ign_add_component(log-system
