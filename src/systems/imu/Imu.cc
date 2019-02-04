@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -177,6 +178,11 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
+  // Get World Entity
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  // Get the world acceleration (defined in world frame)
+  auto gravity = _ecm.Component<components::Gravity>(worldEntity);
+
   // Create imus
   _ecm.EachNew<components::Imu>(
     [&](const Entity &_entity,
@@ -184,6 +190,9 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
       {
         auto sensor = std::make_unique<ImuSensor>();
         sensor->Load(_imu->Data());
+
+        // Set sensors gravity
+        sensor->gravity = gravity->Data();
 
         // create default topic for sensor if not specified
         if (sensor->topic.empty())
@@ -199,16 +208,6 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
-  // Get world Gravity
-  math::Vector3d worldGravity;
-  _ecm.Each<components::Gravity>(
-    [&](const Entity & /*_entity*/,
-        const components::Gravity *_gravity)->bool
-      {
-        worldGravity = _gravity->Data();
-        return true;
-      });
-
   _ecm.Each<components::Imu,
             components::WorldPose,
             components::AngularVelocity,
@@ -225,9 +224,6 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           math::Pose3d imuWorldPose = _worldPose->Data();
           math::Vector3d imuLinearAccel = _linearAccel->Data();
           math::Vector3d imuAngularVel = _angularVel->Data();
-
-          // Get the IMU angular velocity (defined in imu's local frame)
-          it->second->gravity = worldGravity;
 
           // Get the IMU angular velocity (defined in imu's local frame)
           it->second->angularVel = _angularVel->Data();
