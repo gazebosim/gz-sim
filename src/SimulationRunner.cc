@@ -97,8 +97,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
 
-  // Read level info and load the active levels
-  this->levelMgr->Configure();
+  // Load the active levels
   this->UpdateLevels();
 
   // World control
