@@ -155,16 +155,16 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   EXPECT_TRUE(result);
 
   EXPECT_FALSE(res.data().empty());
-  EXPECT_NE(res.data().find("default (0)"), std::string::npos);
-  EXPECT_NE(res.data().find("box (1)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_link (2)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_visual (3)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder (5)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_link (6)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_visual (7)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere (9)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_link (10)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_visual (11)"), std::string::npos);
+  EXPECT_NE(res.data().find("default (1)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (2)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (3)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (4)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (7)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (8)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (11)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (12)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
