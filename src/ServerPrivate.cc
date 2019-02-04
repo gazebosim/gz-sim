@@ -78,6 +78,21 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
   bool result = true;
 
+  // Check for ready (needed for distributed sim)
+  bool ready = false;
+  while (!ready)
+  {
+    ready = true;
+    for (const auto &runner : this->simRunners)
+    {
+      ready &= runner->Ready();
+    }
+    if (!ready)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+
   // Minor performance tweak. In many situations there will only be one
   // simulation runner, and we can avoid using the thread pool.
   if (this->simRunners.size() == 1)
