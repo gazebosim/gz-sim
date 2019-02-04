@@ -9,6 +9,7 @@ set(tests
   events.cc
   examples_build.cc
   model.cc
+  network_handshake.cc
   physics_system.cc
   play_pause.cc
 )

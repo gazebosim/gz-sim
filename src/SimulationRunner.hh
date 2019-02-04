@@ -44,6 +44,7 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/network/NetworkManager.hh"
 
 using namespace std::chrono_literals;
 
@@ -131,6 +132,10 @@ namespace ignition
       /// then simulation is stepping forward.
       /// \return True if the server is running.
       public: bool Running() const;
+
+      /// \brief Get whether the runner is ready to execute.
+      /// \return True if the runner is ready
+      public: bool Ready() const;
 
       /// \brief Get the number of iterations the server has executed.
       /// \return The current iteration count.
@@ -274,6 +279,9 @@ namespace ignition
 
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
+
+      /// \brief Manager of distributing/receiving network work.
+      private: std::unique_ptr<NetworkManager> networkMgr;
 
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
