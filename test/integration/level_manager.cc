@@ -50,6 +50,7 @@ using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
+//////////////////////////////////////////////////
 class Relay
 {
   public: Relay()
@@ -88,6 +89,7 @@ class Relay
   protected: gazebo::MockSystem *mockSystem;
 };
 
+//////////////////////////////////////////////////
 /// \brief A system to move models to arbitrary poses. Note that this does not
 /// work if the physics system is running.
 class ModelMover: public Relay
@@ -131,6 +133,7 @@ class ModelMover: public Relay
   private: std::optional<math::Pose3d> poseCmd;
 };
 
+//////////////////////////////////////////////////
 class LevelManagerFixture : public ::testing::Test
 {
   // Documentation inherited
@@ -212,7 +215,7 @@ TEST_F(LevelManagerFixture, DefaultLevel)
   // Check entities loaded on the default level
   recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
                             const gazebo::EntityComponentManager &_ecm)
-      {
+  {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,
             const components::LevelEntityNames *_levelEntityNames) -> bool

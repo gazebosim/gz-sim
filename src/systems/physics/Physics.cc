@@ -122,9 +122,11 @@ class ignition::gazebo::systems::PhysicsPrivate
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
+  /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Delete physics entities if they are removed from the ECM
+  /// \param[in] _ecm Constant reference to ECM.
   public: void DeletePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
@@ -151,7 +153,7 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
-  /// \brief A map between link entity ids in the ECM to Link Entities in
+  /// \brief A map between collision entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, ShapePtrType> entityCollisionMap;
 
