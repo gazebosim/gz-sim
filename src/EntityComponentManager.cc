@@ -131,20 +131,28 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestEraseEntity(Entity _entity, bool _recursive)
 {
+  // Store the to-be-erased entities in a temporary set so we can call
+  // UpdateViews on each of them
+  std::set<Entity> tmpToEraseEntities;
+  if (!_recursive)
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-    if (!_recursive)
-    {
-      this->dataPtr->toEraseEntities.insert(_entity);
-    }
-    else
-    {
-      this->dataPtr->InsertEntityRecursive(_entity,
-          this->dataPtr->toEraseEntities);
-    }
+    tmpToEraseEntities.insert(_entity);
+  }
+  else
+  {
+    this->dataPtr->InsertEntityRecursive(_entity, tmpToEraseEntities);
   }
 
-  this->UpdateViews(_entity);
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
+    this->dataPtr->toEraseEntities.insert(tmpToEraseEntities.begin(),
+                                          tmpToEraseEntities.end());
+  }
+
+  for (const auto &erasedEntity : tmpToEraseEntities)
+  {
+    this->UpdateViews(erasedEntity);
+  }
 }
 
 /////////////////////////////////////////////////
