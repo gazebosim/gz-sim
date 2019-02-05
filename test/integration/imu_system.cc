@@ -206,4 +206,7 @@ TEST_F(ImuTest, ModelFalling)
       -gravity.Y(), TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->z(),
       -gravity.Z(), TOL);
+
+  // Verify reported name
+  EXPECT_EQ(imuMsgs.back().entity_name(), sensorName);
 }

@@ -57,6 +57,9 @@ class ignition::gazebo::systems::ImuSensor
   /// \brief Publish imu data over ign transport
   public: void Publish();
 
+  /// \brief Sensors name
+  public: std::string sensorName;
+
   /// \brief Topic to publish data to
   public: std::string topic;
 
@@ -72,11 +75,6 @@ class ignition::gazebo::systems::ImuSensor
   /// \brief transform from Imu frame to Imu reference frame.
   ignition::math::Quaterniond imuReferenceOrientation;
 
-  /// \brief Save previous imu linear velocity in the specified frame
-  /// for computing acceleration in the specified frame.
-  /// \sa worldToReference
-  public: ignition::math::Vector3d lastImuWorldLinearVel;
-
   /// \brief store gravity vector to be added to the imu output.
   public: ignition::math::Vector3d gravity;
 
@@ -85,6 +83,9 @@ class ignition::gazebo::systems::ImuSensor
 
   /// \brief publisher for imu data
   public: transport::Node::Publisher pub;
+
+  /// \brief common::Time from when the sensor was updated
+  public: common::Time lastMeasurementTime;
 };
 
 /// \brief Private Imu data class.
@@ -136,6 +137,11 @@ void ImuSensor::Publish()
     this->pub = this->node.Advertise<ignition::msgs::IMU>(this->topic);
 
   msgs::IMU msg;
+  msg.set_entity_name(this->sensorName);
+  msg.mutable_header()->mutable_stamp()->set_sec(
+      this->lastMeasurementTime.sec);
+  msg.mutable_header()->mutable_stamp()->set_nsec(
+      this->lastMeasurementTime.nsec);
   msgs::Set(msg.mutable_orientation(), this->imuReferenceOrientation);
   msgs::Set(msg.mutable_angular_velocity(), this->angularVel);
   msgs::Set(msg.mutable_linear_acceleration(), this->linearAcc);
@@ -171,6 +177,11 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 
   for (auto &it : this->dataPtr->entitySensorMap)
   {
+    // Update measurement time
+    auto time = math::durationToSecNsec(_info.simTime);
+    it.second->lastMeasurementTime = common::Time(time.first, time.second);
+
+    // Publish sensor data
     it.second->Publish();
   }
 }
@@ -191,8 +202,12 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
         auto sensor = std::make_unique<ImuSensor>();
         sensor->Load(_imu->Data());
 
-        // Set sensors gravity
+        // Set sensors world gravity
         sensor->gravity = gravity->Data();
+
+        // Set sensor name
+        sensor->sensorName = _ecm.Component<components::Name>(
+            _entity)->Data();
 
         // create default topic for sensor if not specified
         if (sensor->topic.empty())
