@@ -43,7 +43,8 @@ namespace ignition
     // Forward declarations.
     class SdfEntityCreatorPrivate;
     //
-    /// \class SdfEntityCreator SdfEntityCreator.hh ignition/gazebo/SdfEntityCreator.hh
+    /// \class SdfEntityCreator SdfEntityCreator.hh
+    ///      ignition/gazebo/SdfEntityCreator.hh
     /// \brief Provides convenient functions to spawn entities and load their
     /// plugins from SDF elements, to remove them, and to change their
     /// hierarchy.

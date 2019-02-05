@@ -71,7 +71,8 @@ SdfEntityCreator::SdfEntityCreator(const SdfEntityCreator &_creator)
 }
 
 /////////////////////////////////////////////////
-SdfEntityCreator::SdfEntityCreator(SdfEntityCreator &&_creator) noexcept = default;
+SdfEntityCreator::SdfEntityCreator(SdfEntityCreator &&_creator) noexcept
+    = default;
 
 //////////////////////////////////////////////////
 SdfEntityCreator::~SdfEntityCreator() = default;
@@ -84,8 +85,8 @@ SdfEntityCreator &SdfEntityCreator::operator=(const SdfEntityCreator &_creator)
 }
 
 /////////////////////////////////////////////////
-SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator) noexcept
-    = default;
+SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
+    noexcept = default;
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
