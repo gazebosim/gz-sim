@@ -100,10 +100,10 @@ namespace components
     private: std::unique_ptr<SimpleWrapperPrivate<DataType>> dataPtr;
 
     /// \brief Component name.
-    public: inline static std::string name = "";
+    // public: inline static std::string name = "";
 
     /// \brief Component id.
-    public: inline static uint64_t id = 0;
+    // public: inline static uint64_t id = 0;
   };
 
   template <typename DataType>
