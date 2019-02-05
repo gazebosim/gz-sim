@@ -159,7 +159,7 @@ TEST_F(ImuTest, ModelFalling)
   // subscribe to imu topic
   transport::Node node;
   node.Subscribe(
-      "/model/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu",
+      "/world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu",
       &imuCb);
 
   // step world and verify imu's linear acceleration is zero on free fall
@@ -171,6 +171,9 @@ TEST_F(ImuTest, ModelFalling)
   EXPECT_NEAR(accelerations.back().X(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Z(), worldGravity.Z(), TOL);
+
+  // Check we received messages
+  EXPECT_GT(imuMsgs.size(), 0);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->z(), 0, TOL);
