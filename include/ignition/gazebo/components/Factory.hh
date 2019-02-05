@@ -42,23 +42,16 @@ namespace components
     /// \brief Register a component.
     /// \param[in] _type Type of component to register.
     public: template<typename ComponentTypeT>
-    void Register(const std::string &_type)
+    static void Register(const std::string &_type)
     {
       std::function<std::unique_ptr<ComponentTypeT>()> f = []()
       {
         return std::make_unique<ComponentTypeT>();
       };
 
-      // Create the maps if are null.
-      if (!compsByName)
-        compsByName = new std::map<std::string, FactoryFn>;
-
-      if (!compsById)
-        compsById = new std::map<ComponentTypeId, FactoryFn>;
-
       auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      (*compsByName)[_type] = f;
-      (*compsById)[id] = f;
+      compsByName[_type] = f;
+      compsById[id] = f;
 
       // Initialize static member variables.
       ComponentTypeT::name = _type;
@@ -70,7 +63,7 @@ namespace components
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
     public: template<typename T, typename KeyT>
-    std::unique_ptr<T> New(const KeyT &_type)
+    static std::unique_ptr<T> New(const KeyT &_type)
     {
       return std::unique_ptr<T>(static_cast<T*>(New(_type).release()));
     }
@@ -79,7 +72,7 @@ namespace components
     /// \param[in] _type Type of component to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: std::unique_ptr<components::Component> New(
+    public: static std::unique_ptr<components::Component> New(
         const std::string &_type)
     {
       std::string type;
@@ -107,13 +100,9 @@ namespace components
 
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-
-      if (compsByName)
-      {
-        auto it = compsByName->find(type);
-        if (it != compsByName->end())
-          comp = it->second();
-      }
+      auto it = compsByName.find(type);
+      if (it != compsByName.end())
+        comp = it->second();
 
       return comp;
 }
@@ -122,34 +111,27 @@ namespace components
     /// \param[in] _type Component id to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: std::unique_ptr<components::Component> New(
+    public: static std::unique_ptr<components::Component> New(
         const ComponentTypeId &_type)
     {
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-
-      if (compsById)
-      {
-        auto it = compsById->find(_type);
-        if (it != compsById->end())
-          comp = it->second();
-      }
+      auto it = compsById.find(_type);
+      if (it != compsById.end())
+        comp = it->second();
 
       return comp;
     }
 
     /// \brief Get all the component types.
     /// return Vector of strings of the component types.
-    public: std::vector<std::string> Components()
+    public: static std::vector<std::string> Components()
     {
       std::vector<std::string> types;
 
-      if (compsByName)
-      {
-        // Return the list of all known component types.
-        for (const auto & [name, funct] : *compsByName)
-          types.push_back(name);
-      }
+      // Return the list of all known component types.
+      for (const auto & [name, funct] : compsByName)
+        types.push_back(name);
 
       return types;
     }
@@ -160,10 +142,10 @@ namespace components
         std::function<std::unique_ptr<components::Component>()>;
 
     /// \brief A list of registered components where the key is its name.
-    private: std::map<std::string, FactoryFn> *compsByName;
+    private: inline static std::map<std::string, FactoryFn> compsByName;
 
     /// \brief A list of registered components where the key is its id.
-    private: std::map<ComponentTypeId, FactoryFn> *compsById;
+    private: inline static std::map<ComponentTypeId, FactoryFn> compsById;
   };
 
   /// \brief Static component registration macro.
