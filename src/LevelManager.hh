@@ -28,7 +28,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Types.hh"
 
 namespace ignition
@@ -140,8 +140,8 @@ namespace ignition
       /// \brief Flag whether to use levels or not.
       private: bool useLevels{false};
 
-      /// \brief Entity factory API.
-      private: std::unique_ptr<Factory> factory{nullptr};
+      /// \brief Entity creator API.
+      private: std::unique_ptr<SdfEntityCreator> creator{nullptr};
     };
     }
   }

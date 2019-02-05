@@ -409,11 +409,11 @@ void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
   // We assume the links, joints and collisions will be removed from the
   // physics engine when the containing model gets removed so, here, we only
   // remove the entities from the gazebo entity->physics entity map.
-  _ecm.EachErased<components::Model>(
+  _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *
           /* _model */) -> bool
       {
-        // Erase model if found
+        // Remove model if found
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt != this->entityModelMap.end())
         {
