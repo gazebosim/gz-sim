@@ -73,7 +73,7 @@ void help()
   << "  -r                     Run simulation on start."
   << " The default is false, which starts simulation paused."
   << std::endl
-  << "  --levels               Use the level system."
+  << "  --levels               Use the level manager."
   << " The default is false, which loads all models."
   << std::endl
   << std::endl;
