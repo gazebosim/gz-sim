@@ -24,21 +24,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <sdf/Collision.hh>
-#include <sdf/Joint.hh>
-#include <sdf/Light.hh>
-#include <sdf/Link.hh>
-#include <sdf/Model.hh>
-#include <sdf/Physics.hh>
-#include <sdf/Sensor.hh>
-#include <sdf/Visual.hh>
-#include <sdf/World.hh>
+#include <sdf/Element.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/SystemLoader.hh"
 
 namespace ignition
 {
@@ -50,6 +41,32 @@ namespace ignition
     // forward declaration
     class SimulationRunner;
 
+    /// \brief Used to load / unload levels as performers move in a world.
+    ///
+    /// The manager will create entities to represent each level and performer.
+    /// There will also be a default level to hold all entities which are
+    /// outside other levels and should be present in simulation at all times.
+    ///
+    /// Level entities are direct children of the world entity, and performer
+    /// entities are direct children of the models they correspond to. The
+    /// final hierarchy looks as follows:
+    ///
+    /// world
+    ///  - default level
+    ///  - level
+    ///  - light
+    ///  - model
+    ///    - performer
+    ///    - link
+    ///    - nested model
+    ///
+    /// The levels feature works with a few assumptions (currently):
+    ///
+    /// * Entities which are part of a level should not be modified during
+    ///   simulation. Any component changes or additions will be ignored
+    ///   when the level is reloaded. Likewise, they should not be deleted.
+    /// * Entities spawned during simulation are part of the default level.
+    ///
     class LevelManager
     {
       /// \brief Constructor
@@ -57,9 +74,6 @@ namespace ignition
       /// \param[in] _useLevels Whether to use the levels defined. If false, all
       /// entities will be added to the default level
       public: LevelManager(SimulationRunner *_runner, bool _useLevels = false);
-
-      /// \brief Configure the level manager
-      public: void Configure();
 
       /// \brief Load and unload levels
       /// This is where we compute intersections and determine if a performer is
@@ -107,12 +121,12 @@ namespace ignition
       /// \brief List of currently active levels
       private: std::vector<Entity> activeLevels;
 
-      /// \brief Names of entities to currently active (loaded).
+      /// \brief Names of entities that are currently active (loaded).
       private: std::set<std::string> activeEntityNames;
 
       /// \brief Pointer to the simulation runner associated with the level
       /// manager.
-      private: SimulationRunner * const runner;
+      private: SimulationRunner *const runner;
 
       /// \brief Map of names of references to the containing performer
       private: std::unordered_map<std::string, Entity> performerMap;
@@ -120,10 +134,10 @@ namespace ignition
       /// \brief Names of all entities that have assigned levels
       private: std::set<std::string> entityNamesInLevels;
 
-      /// \brief Entity of the world
-      private: Entity worldEntity = kNullEntity;
+      /// \brief Entity of the world.
+      private: Entity worldEntity{kNullEntity};
 
-      /// \brief Entity of the world
+      /// \brief Flag whether to use levels or not.
       private: bool useLevels{false};
 
       /// \brief Entity factory API.
