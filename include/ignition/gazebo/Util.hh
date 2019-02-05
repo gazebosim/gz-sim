@@ -17,12 +17,14 @@
 #ifndef IGNITION_GAZEBO_UTIL_HH_
 #define IGNITION_GAZEBO_UTIL_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <string>
+
 #include <ignition/math/Pose3.hh>
+#include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/Entity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Types.hh"
 
 namespace ignition
 {
@@ -30,17 +32,20 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-    /// \class Util Util.hh ignition/gazebo/Util.hh
-    /// \brief Utility class that provides a set of convenient helper functions
-    class IGNITION_GAZEBO_VISIBLE Util
-    {
-      /// \brief Helper function to compute world pose of an entity
-      /// \param[in] _entity Entity to get the world pose for
-      /// \param[in] _ecm Immutable reference to ECM.
-      /// \return World pose of entity
-      public: static math::Pose3d WorldPose(const Entity &_entity,
-          const EntityComponentManager &_ecm);
-    };
+    //
+    /// \brief Helper function to compute world pose of an entity
+    /// \param[in] _entity Entity to get the world pose for
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return World pose of entity
+    math::Pose3d IGNITION_GAZEBO_VISIBLE worldPose(const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Helper function to generate scoped name for an entity.
+    /// \param[in] _entity Entity to get the name for.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _delim Delimiter to put between names, defaults to "/".
+    std::string IGNITION_GAZEBO_VISIBLE scopedName(const Entity &_entity,
+      const EntityComponentManager &_ecm, const std::string &_delim = "/");
     }
   }
 }

@@ -37,7 +37,7 @@ namespace components
   /// kept in sync with the parent entity components. Therefore,
   /// it is recommended that the `ParentEntity` component is never
   /// edited by hand, and instead, entities should be created using
-  /// the `gazebo::Factory` class.
+  /// the `gazebo::SdfEntityCreator` class.
   using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.ParentEntity", ParentEntity)

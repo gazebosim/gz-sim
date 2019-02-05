@@ -46,11 +46,11 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
 
-  /// \brief Entities that need to be erased.
-  public: std::set<Entity> toEraseEntities;
+  /// \brief Entities that need to be removed.
+  public: std::set<Entity> toRemoveEntities;
 
-  /// \brief Flag that indicates if all entities should be erased.
-  public: bool eraseAllEntities{false};
+  /// \brief Flag that indicates if all entities should be removed.
+  public: bool removeAllEntities{false};
 
   /// \brief The set of components that each entity has
   public: std::map<Entity, std::vector<ComponentKey>> entityComponents;
@@ -58,8 +58,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief A mutex to protect newly created entityes.
   public: std::mutex entityCreatedMutex;
 
-  /// \brief A mutex to protect entity erase.
-  public: std::mutex entityEraseMutex;
+  /// \brief A mutex to protect entity remove.
+  public: std::mutex entityRemoveMutex;
 
   /// \brief The set of all views.
   public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
@@ -129,55 +129,56 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::RequestEraseEntity(Entity _entity, bool _recursive)
+void EntityComponentManager::RequestRemoveEntity(Entity _entity,
+    bool _recursive)
 {
-  // Store the to-be-erased entities in a temporary set so we can call
+  // Store the to-be-removed entities in a temporary set so we can call
   // UpdateViews on each of them
-  std::set<Entity> tmpToEraseEntities;
+  std::set<Entity> tmpToRemoveEntities;
   if (!_recursive)
   {
-    tmpToEraseEntities.insert(_entity);
+    tmpToRemoveEntities.insert(_entity);
   }
   else
   {
-    this->dataPtr->InsertEntityRecursive(_entity, tmpToEraseEntities);
+    this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
   }
 
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-    this->dataPtr->toEraseEntities.insert(tmpToEraseEntities.begin(),
-                                          tmpToEraseEntities.end());
+    std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+    this->dataPtr->toRemoveEntities.insert(tmpToRemoveEntities.begin(),
+                                          tmpToRemoveEntities.end());
   }
 
-  for (const auto &erasedEntity : tmpToEraseEntities)
+  for (const auto &removedEntity : tmpToRemoveEntities)
   {
-    this->UpdateViews(erasedEntity);
+    this->UpdateViews(removedEntity);
   }
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::RequestEraseEntities()
+void EntityComponentManager::RequestRemoveEntities()
 {
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-    this->dataPtr->eraseAllEntities = true;
+    std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+    this->dataPtr->removeAllEntities = true;
   }
   this->RebuildViews();
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::ProcessEraseEntityRequests()
+void EntityComponentManager::ProcessRemoveEntityRequests()
 {
-  IGN_PROFILE("EntityComponentManager::ProcessEraseEntityRequests");
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
+  IGN_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   // Short-cut if erasing all entities
-  if (this->dataPtr->eraseAllEntities)
+  if (this->dataPtr->removeAllEntities)
   {
-    IGN_PROFILE("EraseAll");
-    this->dataPtr->eraseAllEntities = false;
+    IGN_PROFILE("RemoveAll");
+    this->dataPtr->removeAllEntities = false;
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->entityComponents.clear();
-    this->dataPtr->toEraseEntities.clear();
+    this->dataPtr->toRemoveEntities.clear();
 
     for (std::pair<const ComponentTypeId,
         std::unique_ptr<ComponentStorageBase>> &comp: this->dataPtr->components)
@@ -190,11 +191,11 @@ void EntityComponentManager::ProcessEraseEntityRequests()
   }
   else
   {
-    IGN_PROFILE("Erase");
-    // Otherwise iterate through the list of entities to erase.
-    for (const Entity entity : this->dataPtr->toEraseEntities)
+    IGN_PROFILE("Remove");
+    // Otherwise iterate through the list of entities to remove.
+    for (const Entity entity : this->dataPtr->toRemoveEntities)
     {
-      // Make sure the entity exists and is not erased.
+      // Make sure the entity exists and is not removed.
       if (!this->HasEntity(entity))
         continue;
 
@@ -218,11 +219,11 @@ void EntityComponentManager::ProcessEraseEntityRequests()
       // Remove the entity from views.
       for (auto &view : this->dataPtr->views)
       {
-        view.second.EraseEntity(entity, view.first);
+        view.second.RemoveEntity(entity, view.first);
       }
     }
-    // Clear the set of entities to erase.
-    this->dataPtr->toEraseEntities.clear();
+    // Clear the set of entities to remove.
+    this->dataPtr->toRemoveEntities.clear();
   }
 }
 
@@ -292,15 +293,15 @@ bool EntityComponentManager::IsNewEntity(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::IsMarkedForErasure(const Entity _entity) const
+bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityEraseMutex);
-  if (this->dataPtr->eraseAllEntities)
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+  if (this->dataPtr->removeAllEntities)
   {
     return true;
   }
-  return this->dataPtr->toEraseEntities.find(_entity) !=
-         this->dataPtr->toEraseEntities.end();
+  return this->dataPtr->toRemoveEntities.find(_entity) !=
+         this->dataPtr->toRemoveEntities.end();
 }
 
 /////////////////////////////////////////////////
@@ -550,9 +551,9 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
       view.second.AddEntity(_entity, this->IsNewEntity(_entity));
       // If there is a request to delete this entity, update the view as
       // well
-      if (this->IsMarkedForErasure(_entity))
+      if (this->IsMarkedForRemoval(_entity))
       {
-        view.second.AddEntityToErased(_entity);
+        view.second.AddEntityToRemoved(_entity);
       }
       for (const ComponentTypeId &compTypeId : view.first)
       {
@@ -562,7 +563,7 @@ void EntityComponentManager::UpdateViews(const Entity _entity)
     }
     else
     {
-      view.second.EraseEntity(_entity, view.first);
+      view.second.RemoveEntity(_entity, view.first);
     }
   }
 }
@@ -585,9 +586,9 @@ void EntityComponentManager::RebuildViews()
         view.second.AddEntity(entity, this->IsNewEntity(entity));
         // If there is a request to delete this entity, update the view as
         // well
-        if (this->IsMarkedForErasure(entity))
+        if (this->IsMarkedForRemoval(entity))
         {
-          view.second.AddEntityToErased(entity);
+          view.second.AddEntityToRemoved(entity);
         }
         // Store pointers to all the components. This recursively adds
         // all the ComponentTypeTs that belong to the entity to the view.
