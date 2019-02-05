@@ -15,10 +15,17 @@
  *
 */
 
-
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
 
 #include "ignition/gazebo/Util.hh"
 
@@ -26,7 +33,7 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-math::Pose3d Util::WorldPose(const Entity &_entity,
+math::Pose3d ignition::gazebo::worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   // work out pose in world frame
@@ -44,6 +51,78 @@ math::Pose3d Util::WorldPose(const Entity &_entity,
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
   return pose;
+}
+
+//////////////////////////////////////////////////
+std::string ignition::gazebo::scopedName(const Entity &_entity,
+    const EntityComponentManager &_ecm, const std::string &_delim)
+{
+  std::string result;
+
+  auto entity = _entity;
+
+  while (true)
+  {
+    // Get entity name
+    auto nameComp = _ecm.Component<components::Name>(entity);
+    if (nullptr == nameComp)
+      break;
+    auto name = nameComp->Data();
+
+    // Get entity type
+    std::string prefix;
+    if (_ecm.Component<components::World>(entity))
+    {
+      prefix = "world";
+    }
+    else if (_ecm.Component<components::Model>(entity))
+    {
+      prefix = "model";
+    }
+    else if (_ecm.Component<components::Light>(entity))
+    {
+      prefix = "light";
+    }
+    else if (_ecm.Component<components::Link>(entity))
+    {
+      prefix = "link";
+    }
+    else if (_ecm.Component<components::Collision>(entity))
+    {
+      prefix = "collision";
+    }
+    else if (_ecm.Component<components::Visual>(entity))
+    {
+      prefix = "visual";
+    }
+    else if (_ecm.Component<components::Joint>(entity))
+    {
+      prefix = "joint";
+    }
+    else if (_ecm.Component<components::Sensor>(entity))
+    {
+      prefix = "sensor";
+    }
+    else
+    {
+      ignwarn << "Skipping entity [" << name
+              << "] when generating scoped name, entity type not known."
+              << std::endl;
+    }
+
+    if (!prefix.empty())
+    {
+      result.insert(0, _delim + prefix + _delim + name);
+    }
+
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    if (nullptr == parentComp)
+      break;
+
+    entity = parentComp->Data();
+  }
+
+  return result;
 }
 
 
