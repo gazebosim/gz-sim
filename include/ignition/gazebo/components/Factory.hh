@@ -49,9 +49,16 @@ namespace components
         return std::make_unique<ComponentTypeT>();
       };
 
+      // Create the maps if are null.
+      if (!compsByName)
+        compsByName = new std::map<std::string, FactoryFn>;
+
+      if (!compsById)
+        compsById = new std::map<ComponentTypeId, FactoryFn>;
+
       auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      compsByName[_type] = f;
-      compsById[id] = f;
+      (*compsByName)[_type] = f;
+      (*compsById)[id] = f;
 
       // Initialize static member variables.
       ComponentTypeT::name = _type;
@@ -100,9 +107,13 @@ namespace components
 
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      auto it = compsByName.find(type);
-      if (it != compsByName.end())
-        comp = it->second();
+
+      if (compsByName)
+      {
+        auto it = compsByName->find(type);
+        if (it != compsByName->end())
+          comp = it->second();
+      }
 
       return comp;
 }
@@ -116,9 +127,13 @@ namespace components
     {
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      auto it = compsById.find(_type);
-      if (it != compsById.end())
-        comp = it->second();
+
+      if (compsById)
+      {
+        auto it = compsById->find(_type);
+        if (it != compsById->end())
+          comp = it->second();
+      }
 
       return comp;
     }
@@ -129,9 +144,12 @@ namespace components
     {
       std::vector<std::string> types;
 
-      // Return the list of all known component types.
-      for (const auto & [name, funct] : compsByName)
-        types.push_back(name);
+      if (compsByName)
+      {
+        // Return the list of all known component types.
+        for (const auto & [name, funct] : *compsByName)
+          types.push_back(name);
+      }
 
       return types;
     }
@@ -142,10 +160,10 @@ namespace components
         std::function<std::unique_ptr<components::Component>()>;
 
     /// \brief A list of registered components where the key is its name.
-    private: std::map<std::string, FactoryFn> compsByName;
+    private: std::map<std::string, FactoryFn> *compsByName;
 
     /// \brief A list of registered components where the key is its id.
-    private: std::map<ComponentTypeId, FactoryFn> compsById;
+    private: std::map<ComponentTypeId, FactoryFn> *compsById;
   };
 
   /// \brief Static component registration macro.
