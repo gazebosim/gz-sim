@@ -32,7 +32,7 @@
 using namespace ignition;
 using namespace std::chrono_literals;
 
-class EachNewErasedFixture : public ::testing::Test
+class EachNewRemovedFixture : public ::testing::Test
 {
   protected: void SetUp() override
   {
@@ -79,7 +79,7 @@ class Relay
 };
 
 /////////////////////////////////////////////////
-TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
+TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -90,11 +90,11 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   // Create entities on preupdate only once
   bool shouldCreateEntities{true};
   // Flag for erasing enties in the test system
-  bool shouldEraseEntities{false};
+  bool shouldRemoveEntities{false};
 
   // Entities to be created in a system. These have to be out here so the
   // entityCreator can set the ids when it creates the entities and the
-  // entityEraser system can access them easily
+  // entityRemover system can access them easily
   gazebo::Entity e1 = gazebo::kNullEntity;
   gazebo::Entity e2 = gazebo::kNullEntity;
 
@@ -113,14 +113,14 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
       }
   });
 
-  Relay entityEraser;
-  entityEraser.OnPreUpdate(
+  Relay entityRemover;
+  entityRemover.OnPreUpdate(
     [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
     {
-      if (shouldEraseEntities)
+      if (shouldRemoveEntities)
       {
-        _ecm.RequestEraseEntity(e1);
-        shouldEraseEntities = false;
+        _ecm.RequestRemoveEntity(e1);
+        shouldRemoveEntities = false;
       }
     });
 
@@ -128,7 +128,7 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   struct EntityCount
   {
     int newEntities = 0;
-    int erasedEntities = 0;
+    int removedEntities = 0;
   };
 
   EntityCount preCount;
@@ -147,9 +147,9 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachErased<int>([&](const gazebo::Entity &, const int *) -> bool
+      _ecm.EachRemoved<int>([&](const gazebo::Entity &, const int *) -> bool
       {
-        ++_count.erasedEntities;
+        ++_count.removedEntities;
         return true;
       });
     };
@@ -162,7 +162,7 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   entityCounter.OnPostUpdate(counterFunc(postCount));
 
   server.AddSystem(entityCreator.systemPtr);
-  server.AddSystem(entityEraser.systemPtr);
+  server.AddSystem(entityRemover.systemPtr);
   server.AddSystem(entityCounter.systemPtr);
 
   EXPECT_FALSE(server.Running());
@@ -176,10 +176,10 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   EXPECT_EQ(2, updateCount.newEntities);
   EXPECT_EQ(2, postCount.newEntities);
 
-  // Verify no erasures
-  EXPECT_EQ(0, preCount.erasedEntities);
-  EXPECT_EQ(0, updateCount.erasedEntities);
-  EXPECT_EQ(0, postCount.erasedEntities);
+  // Verify no removals
+  EXPECT_EQ(0, preCount.removedEntities);
+  EXPECT_EQ(0, updateCount.removedEntities);
+  EXPECT_EQ(0, postCount.removedEntities);
 
   // reset counts
   preCount = EntityCount();
@@ -193,26 +193,26 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   EXPECT_EQ(0, preCount.newEntities);
   EXPECT_EQ(0, updateCount.newEntities);
   EXPECT_EQ(0, postCount.newEntities);
-  EXPECT_EQ(0, preCount.erasedEntities);
-  EXPECT_EQ(0, updateCount.erasedEntities);
-  EXPECT_EQ(0, postCount.erasedEntities);
+  EXPECT_EQ(0, preCount.removedEntities);
+  EXPECT_EQ(0, updateCount.removedEntities);
+  EXPECT_EQ(0, postCount.removedEntities);
 
   // reset counts
   preCount = EntityCount();
   updateCount = EntityCount();
   postCount = EntityCount();
 
-  shouldEraseEntities = true;
+  shouldRemoveEntities = true;
   server.Run(true, 1, false);
-  // Erase requested
+  // Remove requested
   // Again, assuming systems will run in the order they were inserted to the
-  // server, the entityCounter system will see the erased entities in the
+  // server, the entityCounter system will see the removed entities in the
   // preupdate phase.
-  EXPECT_EQ(1, preCount.erasedEntities);
-  // The update and postupdate should see the erased entities regardless of the
+  EXPECT_EQ(1, preCount.removedEntities);
+  // The update and postupdate should see the removed entities regardless of the
   // order of execution of systems
-  EXPECT_EQ(1, updateCount.erasedEntities);
-  EXPECT_EQ(1, postCount.erasedEntities);
+  EXPECT_EQ(1, updateCount.removedEntities);
+  EXPECT_EQ(1, postCount.removedEntities);
 
   // reset counts
   preCount = EntityCount();
@@ -220,8 +220,8 @@ TEST_F(EachNewErasedFixture, EachNewEachErasedInSystem)
   postCount = EntityCount();
   server.Run(true, 1, false);
 
-  // Erased requests should be cleared after last simulation step
-  EXPECT_EQ(0, preCount.erasedEntities);
-  EXPECT_EQ(0, updateCount.erasedEntities);
-  EXPECT_EQ(0, postCount.erasedEntities);
+  // Removed requests should be cleared after last simulation step
+  EXPECT_EQ(0, preCount.removedEntities);
+  EXPECT_EQ(0, updateCount.removedEntities);
+  EXPECT_EQ(0, postCount.removedEntities);
 }

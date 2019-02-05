@@ -44,7 +44,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -52,14 +52,14 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 class EntityCompMgrTest : public gazebo::EntityComponentManager
 {
-  public: void ProcessEntityErasures()
+  public: void ProcessEntityRemovals()
   {
-    this->ProcessEraseEntityRequests();
+    this->ProcessRemoveEntityRequests();
   }
 };
 
 /////////////////////////////////////////////////
-class FactoryTest : public ::testing::Test
+class SdfEntityCreatorTest : public ::testing::Test
 {
   public: void SetUp() override
   {
@@ -70,12 +70,12 @@ class FactoryTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateEntities)
+TEST_F(SdfEntityCreatorTest, CreateEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -84,7 +84,7 @@ TEST_F(FactoryTest, CreateEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(
@@ -501,12 +501,12 @@ TEST_F(FactoryTest, CreateEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateLights)
+TEST_F(SdfEntityCreatorTest, CreateLights)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -515,7 +515,7 @@ TEST_F(FactoryTest, CreateLights)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
   // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
@@ -790,12 +790,12 @@ TEST_F(FactoryTest, CreateLights)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, CreateJointEntities)
+TEST_F(SdfEntityCreatorTest, CreateJointEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -804,7 +804,7 @@ TEST_F(FactoryTest, CreateJointEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(
@@ -934,12 +934,12 @@ TEST_F(FactoryTest, CreateJointEntities)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, EraseEntities)
+TEST_F(SdfEntityCreatorTest, RemoveEntities)
 {
   EXPECT_EQ(0u, this->ecm.EntityCount());
 
-  // Factory
-  Factory factory(this->ecm, evm);
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -948,7 +948,7 @@ TEST_F(FactoryTest, EraseEntities)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
@@ -975,8 +975,8 @@ TEST_F(FactoryTest, EraseEntities)
   }
 
   // Delete a model recursively
-  factory.RequestEraseEntity(models.front());
-  this->ecm.ProcessEntityErasures();
+  creator.RequestRemoveEntity(models.front());
+  this->ecm.ProcessEntityRemovals();
 
   EXPECT_EQ(10u, this->ecm.EntityCount());
 
@@ -998,8 +998,8 @@ TEST_F(FactoryTest, EraseEntities)
   }
 
   // Delete a model but leave its children
-  factory.RequestEraseEntity(models.front(), false);
-  this->ecm.ProcessEntityErasures();
+  creator.RequestRemoveEntity(models.front(), false);
+  this->ecm.ProcessEntityRemovals();
 
   EXPECT_EQ(9u, this->ecm.EntityCount());
 
@@ -1059,10 +1059,10 @@ TEST_F(FactoryTest, EraseEntities)
 }
 
 template <typename... Ts>
-size_t erasedCount(EntityCompMgrTest &_manager)
+size_t removedCount(EntityCompMgrTest &_manager)
 {
   size_t count = 0;
-  _manager.EachErased<Ts...>(
+  _manager.EachRemoved<Ts...>(
       [&](const ignition::gazebo::Entity &, const Ts *...) -> bool
       {
         ++count;
@@ -1072,10 +1072,10 @@ size_t erasedCount(EntityCompMgrTest &_manager)
 }
 
 /////////////////////////////////////////////////
-TEST_F(FactoryTest, EachErasedRecursiveErased)
+TEST_F(SdfEntityCreatorTest, EachRemovedRecursiveRemoved)
 {
-  // Factory
-  Factory factory(this->ecm, evm);
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
 
   // Load SDF file
   sdf::Root root;
@@ -1084,7 +1084,7 @@ TEST_F(FactoryTest, EachErasedRecursiveErased)
   ASSERT_EQ(1u, root.WorldCount());
 
   // Create entities
-  factory.CreateEntities(root.WorldByIndex(0));
+  creator.CreateEntities(root.WorldByIndex(0));
 
   auto world = this->ecm.EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, world);
@@ -1092,27 +1092,28 @@ TEST_F(FactoryTest, EachErasedRecursiveErased)
   auto models = this->ecm.ChildrenByComponents(world, components::Model());
   ASSERT_EQ(3u, models.size());
 
-  // Erased should be 0 before requesting erasure
-  EXPECT_EQ(0u, erasedCount<components::Model>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Link>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Collision>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Visual>(ecm));
+  // Removed should be 0 before requesting removure
+  EXPECT_EQ(0u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Visual>(ecm));
 
   // Delete a model recursively
-  factory.RequestEraseEntity(models.front());
+  creator.RequestRemoveEntity(models.front());
 
   // Since the model is deleted recursively, the child links, collisions and
-  // visuals should be returned by an EachErased call
-  EXPECT_EQ(1u, erasedCount<components::Model>(ecm));
-  EXPECT_EQ(1u, erasedCount<components::Link>(ecm));
-  EXPECT_EQ(1u, erasedCount<components::Collision>(ecm));
-  EXPECT_EQ(1u, erasedCount<components::Visual>(ecm));
+  // visuals should be returned by an EachRemoved call
+  EXPECT_EQ(1u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Visual>(ecm));
 
-  this->ecm.ProcessEntityErasures();
+  this->ecm.ProcessEntityRemovals();
 
-  // Erased should be 0 after requesting erasure
-  EXPECT_EQ(0u, erasedCount<components::Model>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Link>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Collision>(ecm));
-  EXPECT_EQ(0u, erasedCount<components::Visual>(ecm));
+  // Removed should be 0 after requesting removure
+  EXPECT_EQ(0u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Visual>(ecm));
 }
+
