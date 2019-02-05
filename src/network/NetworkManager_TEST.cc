@@ -90,7 +90,7 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_TRUE(nmPrimary->IsPrimary());
   EXPECT_TRUE(nmPrimary->Valid());
   // Primary namespace is an empty string.
-  EXPECT_TRUE(nmPrimary->Namespace().length() == 0);
+  EXPECT_EQ(0u, nmPrimary->Namespace().length());
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
@@ -101,18 +101,18 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_TRUE(nmSecondary1->IsSecondary());
   EXPECT_TRUE(nmSecondary1->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
-  EXPECT_TRUE(nmSecondary1->Namespace().length() > 0);
+  EXPECT_LT(0u, nmSecondary1->Namespace().length());
 
   NetworkConfig confSecondary2;
-  confSecondary1.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary2 = NetworkManager::Create(confSecondary1);
+  confSecondary2.role = NetworkRole::SimulationSecondary;
+  auto nmSecondary2 = NetworkManager::Create(confSecondary2);
   ASSERT_NE(nullptr, nmSecondary2);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
   EXPECT_TRUE(nmSecondary2->IsSecondary());
   EXPECT_TRUE(nmSecondary2->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
-  EXPECT_TRUE(nmSecondary2->Namespace().length() > 0);
+  EXPECT_LT(0u, nmSecondary2->Namespace().length());
   // Secondary namespace should be unique.
   EXPECT_TRUE(nmSecondary1->Namespace() != nmSecondary2->Namespace());
 
