@@ -30,7 +30,7 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
-  CreateRemove.cc
+  SdfEntityCreator.cc
   Model.cc
   Server.cc
   ServerConfig.cc
@@ -48,7 +48,7 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
-  CreateRemove_TEST.cc
+  SdfEntityCreator_TEST.cc
   ign_TEST.cc
   Model_TEST.cc
   Server_TEST.cc
