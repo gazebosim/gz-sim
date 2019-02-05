@@ -403,35 +403,44 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Assume the world will not be erased
-  // Models
+  // Only removing models is supported by ign-physics right now so we only
+  // remove links, joints and collisions if they are children of the removed
+  // model.
+  // We assume the links, joints and collisions will be removed from the
+  // physics engine when the containing model gets removed so, here, we only
+  // remove the entities from the gazebo entity->physics entity map.
   _ecm.EachErased<components::Model>(
-      [&](const Entity &_entity,
-        const components::Model * /* _model */) -> bool
+      [&](const Entity &_entity, const components::Model *
+          /* _model */) -> bool
       {
         // Erase model if found
         auto modelIt = this->entityModelMap.find(_entity);
         if (modelIt != this->entityModelMap.end())
         {
+          // Remove child links, collisions and joints first
+          for (const auto &childLink :
+               _ecm.ChildrenByComponents(_entity, components::Link()))
+          {
+            for (const auto &childCollision :
+                 _ecm.ChildrenByComponents(childLink, components::Collision()))
+            {
+              this->entityCollisionMap.erase(childCollision);
+            }
+            this->entityLinkMap.erase(childLink);
+          }
+
+          for (const auto &childJoint :
+               _ecm.ChildrenByComponents(_entity, components::Joint()))
+          {
+            this->entityJointMap.erase(childJoint);
+          }
+
+          // Remove the model from the physics engine
           modelIt->second->Remove();
           this->entityModelMap.erase(_entity);
         }
         return true;
       });
-
-  _ecm.EachErased<components::Link>(
-      [&](const Entity &_entity,
-        const components::Link * /* _link */) -> bool
-      {
-        // Assume that links will be removed when the containing model gets
-        // removed. Here, only remove the entity from the map.
-        this->entityLinkMap.erase(_entity);
-        return true;
-      });
-
-  // We don't have a map of collisions, so skip them
-
-  // We don't have a map of joints, so skip them for now
-  // TODO(addisu) Remove joints
 }
 
 //////////////////////////////////////////////////
