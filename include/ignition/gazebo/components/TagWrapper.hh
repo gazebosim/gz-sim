@@ -55,10 +55,10 @@ namespace components
     public: bool operator!=(const TagWrapper &_tagWrapper) const;
 
     /// \brief Component name.
-    public: inline static std::string name = "";
+    // public: inline static std::string name = "";
 
     /// \brief Component id.
-    public: inline static uint64_t id = 0;
+    // public: inline static uint64_t id = 0;
   };
 
   //////////////////////////////////////////////////
