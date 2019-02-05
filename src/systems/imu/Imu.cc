@@ -211,7 +211,9 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 
         // create default topic for sensor if not specified
         if (sensor->topic.empty())
-          sensor->topic = this->DefaultTopic(_entity, _ecm);
+        {
+          sensor->topic = scopedName(_entity, _ecm, "/") + "/imu";
+        }
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -264,30 +266,6 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
 
         return true;
       });
-}
-
-//////////////////////////////////////////////////
-std::string ImuPrivate::DefaultTopic(const Entity &_entity,
-    const EntityComponentManager &_ecm)
-{
-  // default topic name:
-  // /model/model_name/link/link_name/sensor/sensor_name/imu
-  std::string sensorName = _ecm.Component<components::Name>(_entity)->Data();
-  auto p = _ecm.Component<components::ParentEntity>(_entity);
-  std::string linkName = _ecm.Component<components::Name>(p->Data())->Data();
-  std::string topic =
-      "/link/" + linkName + "/sensor/" + sensorName + "/imu";
-  p = _ecm.Component<components::ParentEntity>(p->Data());
-  // also handle nested models
-  while (p)
-  {
-    std::string modelName = _ecm.Component<components::Name>(p->Data())->Data();
-    topic = "/model/" + modelName + topic;
-
-    // keep going up the tree
-    p = _ecm.Component<components::ParentEntity>(p->Data());
-  }
-  return topic;
 }
 
 IGNITION_ADD_PLUGIN(Imu, System,
