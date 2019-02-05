@@ -34,20 +34,24 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
+using namespace gazebo;
 using namespace std::chrono_literals;
 namespace components = ignition::gazebo::components;
 
@@ -337,4 +341,86 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
 
   EXPECT_NEAR(expMinDist, *minmax.first, 1e-3);
   EXPECT_NEAR(expMaxDist, *minmax.second, 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, CreateRuntime)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+  server.SetPaused(false);
+
+  // Create a system just to get the ECM
+  // TODO(louise) It would be much more convenient if the Server just returned
+  // the ECM for us. This would save all the trouble which is causing us to
+  // create `Relay` systems in the first place. Consider keeping the ECM in a
+  // shared pointer owned by the SimulationRunner.
+  EntityComponentManager *ecm{nullptr};
+  Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check we don't have a new model yet
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("new_model")));
+
+  // Get world
+  auto worldEntity = ecm->EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, worldEntity);
+
+  // Spawn a new model
+  auto modelEntity = ecm->CreateEntity();
+  ecm->CreateComponent(modelEntity, components::Model());
+  ecm->CreateComponent(modelEntity, components::Pose(math::Pose3d::Zero));
+  ecm->CreateComponent(modelEntity, components::Name("new_model"));
+  ecm->CreateComponent(modelEntity, components::Static(false));
+  ecm->SetParentEntity(modelEntity, worldEntity);
+  ecm->CreateComponent(modelEntity, components::ParentEntity(worldEntity));
+
+  auto linkEntity = ecm->CreateEntity();
+  ecm->CreateComponent(linkEntity, components::Link());
+  ecm->CreateComponent(linkEntity, components::CanonicalLink());
+  ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
+  ecm->CreateComponent(linkEntity, components::Name("link"));
+
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(1.0);
+  massMatrix.SetInertiaMatrix(0.4, 0.4, 0.4, 0, 0, 0);
+  math::Inertiald inertia;
+  inertia.SetMassMatrix(massMatrix);
+  ecm->CreateComponent(linkEntity, components::Inertial(inertia));
+
+  ecm->SetParentEntity(linkEntity, modelEntity);
+  ecm->CreateComponent(linkEntity, components::ParentEntity(modelEntity));
+
+  // Check we have a new model
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("new_model")));
+
+  // Run server and check new model keeps falling due to gravity
+  auto poseComp = ecm->Component<components::Pose>(modelEntity);
+  ASSERT_NE(nullptr, poseComp);
+
+  auto pose = poseComp->Data();
+  EXPECT_EQ(math::Pose3d::Zero, pose);
+
+  for (int i = 0; i < 10; ++i)
+  {
+    server.Run(true, 100, false);
+
+    poseComp = ecm->Component<components::Pose>(modelEntity);
+    ASSERT_NE(nullptr, poseComp);
+
+    EXPECT_GT(pose.Pos().Z(), poseComp->Data().Pos().Z());
+    pose = poseComp->Data();
+  }
 }
