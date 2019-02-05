@@ -1058,3 +1058,62 @@ TEST_F(CreateRemoveTest, RemoveEntities)
   EXPECT_EQ(2u, visualCount);
 }
 
+template <typename... Ts>
+size_t removedCount(EntityCompMgrTest &_manager)
+{
+  size_t count = 0;
+  _manager.EachRemoved<Ts...>(
+      [&](const ignition::gazebo::Entity &, const Ts *...) -> bool
+      {
+        ++count;
+        return true;
+      });
+  return count;
+}
+
+/////////////////////////////////////////////////
+TEST_F(CreateRemoveTest, EachRemovedRecursiveRemoved)
+{
+  // CreateRemove
+  CreateRemove createRemove(this->ecm, evm);
+
+  // Load SDF file
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create entities
+  createRemove.CreateEntities(root.WorldByIndex(0));
+
+  auto world = this->ecm.EntityByComponents(components::World());
+  EXPECT_NE(kNullEntity, world);
+
+  auto models = this->ecm.ChildrenByComponents(world, components::Model());
+  ASSERT_EQ(3u, models.size());
+
+  // Removed should be 0 before requesting removure
+  EXPECT_EQ(0u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Visual>(ecm));
+
+  // Delete a model recursively
+  createRemove.RequestRemoveEntity(models.front());
+
+  // Since the model is deleted recursively, the child links, collisions and
+  // visuals should be returned by an EachRemoved call
+  EXPECT_EQ(1u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(1u, removedCount<components::Visual>(ecm));
+
+  this->ecm.ProcessEntityRemovals();
+
+  // Removed should be 0 after requesting removure
+  EXPECT_EQ(0u, removedCount<components::Model>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Link>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Collision>(ecm));
+  EXPECT_EQ(0u, removedCount<components::Visual>(ecm));
+}
+
