@@ -90,7 +90,7 @@ class Relay
 };
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Factory)
+TEST_F(UserCommandsTest, Create)
 {
   // Start server
   ServerConfig serverConfig;
@@ -126,35 +126,35 @@ TEST_F(UserCommandsTest, Factory)
 
   // SDF strings
   auto modelStr = std::string("<?xml version=\"1.0\" ?>") +
-      "<sdf version=\"1.6\">" +
-      "<model name=\"spawned_model\">" +
-      "<link name=\"link\">" +
-      "<visual name=\"visual\">" +
+      "<sdf version='1.6'>" +
+      "<model name='spawned_model'>" +
+      "<link name='link'>" +
+      "<visual name='visual'>" +
       "<geometry><sphere><radius>1.0</radius></sphere></geometry>" +
       "</visual>" +
-      "<collision name=\"visual\">" +
+      "<collision name='visual'>" +
       "<geometry><sphere><radius>1.0</radius></sphere></geometry>" +
       "</collision>" +
       "</link>" +
       "</model>" +
       "</sdf>";
 
-  auto lightStr = std::string("<?xml version=\"1.0\" ?>") +
-      "<sdf version=\"1.6\">" +
-      "<light name=\"spawned_light\" type=\"directional\">" +
+  auto lightStr = std::string("<?xml version='1.0' ?>") +
+      "<sdf version='1.6'>" +
+      "<light name='spawned_light' type='directional'>" +
       "</light>" +
       "</sdf>";
 
-  auto lightsStr = std::string("<?xml version=\"1.0\" ?>") +
-      "<sdf version=\"1.6\">" +
-      "<light name=\"accepted_light\" type=\"directional\">" +
+  auto lightsStr = std::string("<?xml version='1.0' ?>") +
+      "<sdf version='1.6'>" +
+      "<light name='accepted_light' type='directional'>" +
       "</light>" +
-      "<light name=\"ignored_light\" type=\"directional\">" +
+      "<light name='ignored_light' type='directional'>" +
       "</light>" +
       "</sdf>";
 
-  auto badStr = std::string("<?xml version=\"1.0\" ?>") +
-      "<sdf version=\"1.6\">" +
+  auto badStr = std::string("<?xml version='1.0' ?>") +
+      "<sdf version='1.6'>" +
       "</sdfo>";
 
   // Request entity spawn
@@ -168,7 +168,7 @@ TEST_F(UserCommandsTest, Factory)
   msgs::Boolean res;
   bool result;
   unsigned int timeout = 5000;
-  std::string service{"/world/empty/factory"};
+  std::string service{"/world/empty/create"};
 
   transport::Node node;
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
@@ -312,7 +312,8 @@ TEST_F(UserCommandsTest, Factory)
   EXPECT_EQ(entityCount + 1, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
-  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("ignored_light")));
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(
+      components::Name("ignored_light")));
 
   light = ecm->EntityByComponents(components::Name("accepted_light"));
   EXPECT_NE(kNullEntity, light);

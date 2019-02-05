@@ -2,7 +2,7 @@
 <!--
   Try inserting a model:
 
-ign service -s /world/empty/factory \
+ign service -s /world/empty/create \
 --reqtype ignition.msgs.EntityFactory \
 --reptype ignition.msgs.Boolean \
 --timeout 300 \
@@ -26,7 +26,7 @@ ign service -s /world/empty/factory \
 
   Try inserting a light:
 
-ign service -s /world/empty/factory --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: '\
+ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
 '<sdf version=\"1.6\">'\
 '<light name=\"spawned_light\" type=\"directional\">'\
