@@ -339,7 +339,7 @@ void EntityComponentManager::EachNew(typename identity<std::function<
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-void EntityComponentManager::EachErased(typename identity<std::function<
+void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
   // Get the view. This will create a new view if one does not already
@@ -349,7 +349,7 @@ void EntityComponentManager::EachErased(typename identity<std::function<
   // Iterate over the entities in the view and in the newly created
   // entities list, and invoke the callback
   // function.
-  for (const Entity entity : view.toEraseEntities)
+  for (const Entity entity : view.toRemoveEntities)
   {
     if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
     {
@@ -430,9 +430,9 @@ detail::View &EntityComponentManager::FindView() const
         view.AddEntity(entity, this->IsNewEntity(entity));
         // If there is a request to delete this entity, update the view as
         // well
-        if (this->IsMarkedForErasure(entity))
+        if (this->IsMarkedForRemoval(entity))
         {
-          view.AddEntityToErased(entity);
+          view.AddEntityToRemoved(entity);
         }
 
         // Store pointers to all the components. This recursively adds
