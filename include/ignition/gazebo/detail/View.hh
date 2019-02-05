@@ -84,16 +84,16 @@ class IGNITION_GAZEBO_VISIBLE View
   /// \brief Remove an entity from the view.
   /// \param[in] _entity The entity to remove.
   /// \param[in] _key Components that should also be removed.
-  /// \return True if the entity was erased, false if the entity did not
+  /// \return True if the entity was removed, false if the entity did not
   /// exist in the view.
-  public: bool EraseEntity(const Entity _entity,
+  public: bool RemoveEntity(const Entity _entity,
                            const ComponentTypeKey &_key);
 
   /// \brief Add the entity to the list of entities to be removed
   /// \param[in] _entity The entity to add.
   /// \return True if the entity was added to the list, false if the entity
   /// did not exist in the view.
-  public: bool AddEntityToErased(const Entity _entity);
+  public: bool AddEntityToRemoved(const Entity _entity);
 
   /// \brief Add a component to an entity.
   /// \param[in] _entity The entity.
@@ -121,8 +121,8 @@ class IGNITION_GAZEBO_VISIBLE View
   /// \brief List of newly created entities
   public: std::set<Entity> newEntities;
 
-  /// \brief List of entities about to be erased
-  public: std::set<Entity> toEraseEntities;
+  /// \brief List of entities about to be removed
+  public: std::set<Entity> toRemoveEntities;
 
   /// \brief All of the components for each entity.
   public: std::map<std::pair<Entity, ComponentTypeId>,
