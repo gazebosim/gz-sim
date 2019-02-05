@@ -122,9 +122,6 @@ namespace ignition
       /// \brief Update all the systems
       public: void UpdateSystems();
 
-      /// \brief Update all levels
-      public: void UpdateLevels();
-
       /// \brief Publish current world statistics.
       public: void PublishStats();
 

@@ -98,7 +98,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
 
   // Load the active levels
-  this->UpdateLevels();
+  this->levelMgr->UpdateLevelsState();
 
   // World control
   transport::NodeOptions opts;
@@ -266,12 +266,6 @@ void SimulationRunner::UpdateSystems()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::UpdateLevels()
-{
-  this->levelMgr->UpdateLevelsState();
-}
-
-/////////////////////////////////////////////////
 void SimulationRunner::Stop()
 {
   this->running = false;
@@ -341,7 +335,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
-    this->UpdateLevels();
+    this->levelMgr->UpdateLevelsState();
 
     // Update all the systems.
     this->UpdateSystems();

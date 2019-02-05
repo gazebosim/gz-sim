@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
@@ -515,6 +516,17 @@ void LevelManager::UnloadInactiveEntities(
 
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
+          const components::Name *_name) -> bool
+      {
+        if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
+        {
+          this->factory->RequestEraseEntity(_entity, true);
+        }
+        return true;
+      });
+
+  this->runner->entityCompMgr.Each<components::Light, components::Name>(
+      [&](const Entity &_entity, const components::Light *,
           const components::Name *_name) -> bool
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
