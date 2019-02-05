@@ -75,8 +75,8 @@ namespace ignition
       /// update step.
       ///
       /// \detail It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::CreateRemove` class to remove
-      /// entities.
+      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// remove entities.
       ///
       /// \param[in] _entity Entity to be removed.
       /// \param[in] _recursive Whether to recursively delete all child
@@ -105,8 +105,8 @@ namespace ignition
       /// \brief Set the parent of an entity.
       ///
       /// \detail It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::CreateRemove` class to create
-      /// entities that have the correct parent-child relationship.
+      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// create entities that have the correct parent-child relationship.
       ///
       /// \param[in] _entity Entity or kNullEntity to remove current parent.
       /// \return True if successful. Will fail if entities don't exist.

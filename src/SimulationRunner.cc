@@ -19,9 +19,9 @@
 
 #include "ignition/common/Profiler.hh"
 
-#include "ignition/gazebo/Events.hh"
-
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -90,8 +90,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create entities and components
-  auto createRemove = CreateRemove(this->entityCompMgr, this->eventMgr);
-  createRemove.CreateEntities(_world);
+  auto creator = SdfEntityCreator(this->entityCompMgr, this->eventMgr);
+  creator.CreateEntities(_world);
 
   // World control
   transport::NodeOptions opts;
