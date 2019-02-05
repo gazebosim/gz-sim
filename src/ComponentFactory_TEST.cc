@@ -51,10 +51,10 @@ TEST(ComponentFactoryTest, New)
   {
     auto comp = factory->New<components::Pose>("ign_gazebo_components.Pose");
     ASSERT_TRUE(comp != nullptr);
-    // EXPECT_EQ("ign_gazebo_components.Pose", comp->name);
-    // EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::name);
-    // EXPECT_NE(0u, comp->id);
-    // EXPECT_EQ(comp->id, components::Pose::id);
+    EXPECT_EQ("ign_gazebo_components.Pose", comp->name);
+    EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::name);
+    EXPECT_NE(0u, comp->id);
+    EXPECT_EQ(comp->id, components::Pose::id);
   }
 
   {

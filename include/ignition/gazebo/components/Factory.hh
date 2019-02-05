@@ -54,8 +54,8 @@ namespace components
       compsById[id] = f;
 
       // Initialize static member variables.
-      // ComponentTypeT::name = _type;
-      // ComponentTypeT::id = ignition::common::hash64(_type);
+      ComponentTypeT::name = _type;
+      ComponentTypeT::id = ignition::common::hash64(_type);
     }
 
     /// \brief Create a new instance of a component.
