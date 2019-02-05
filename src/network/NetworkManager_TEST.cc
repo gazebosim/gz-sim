@@ -89,6 +89,8 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
   EXPECT_TRUE(nmPrimary->IsPrimary());
   EXPECT_TRUE(nmPrimary->Valid());
+  // Primary namespace is an empty string.
+  EXPECT_TRUE(nmPrimary->Namespace().length() == 0);
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
@@ -98,6 +100,8 @@ TEST(NetworkManager, EstablishComms)
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
   EXPECT_TRUE(nmSecondary1->IsSecondary());
   EXPECT_TRUE(nmSecondary1->Valid());
+  // Secondary namespace is the first 8 digits of the secondary's UUID
+  EXPECT_TRUE(nmSecondary1->Namespace().length() > 0);
 
   NetworkConfig confSecondary2;
   confSecondary1.role = NetworkRole::SimulationSecondary;
@@ -107,6 +111,10 @@ TEST(NetworkManager, EstablishComms)
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
   EXPECT_TRUE(nmSecondary2->IsSecondary());
   EXPECT_TRUE(nmSecondary2->Valid());
+  // Secondary namespace is the first 8 digits of the secondary's UUID
+  EXPECT_TRUE(nmSecondary2->Namespace().length() > 0);
+  // Secondary namespace should be unique.
+  EXPECT_TRUE(nmSecondary1->Namespace() != nmSecondary2->Namespace());
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 

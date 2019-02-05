@@ -36,9 +36,15 @@ namespace ignition
 
     /// \class NetworkManager NetworkManager.hh
     ///   ignition/gazebo/NetworkManager.hh
-    /// \brief The server instantiates and controls simulation.
+    /// \brief The NetworkManager provides a common interface to derived
+    /// objects that control the flow of information in the distributed
+    /// simulation environment.
     class IGNITION_GAZEBO_VISIBLE NetworkManager
     {
+      /// \brief Create a class derived from NetworkManager based on
+      /// a given configuration
+      /// \param[in] _config configuration object to use. If not given,
+      ///   configuration will be populated from environment variables.
       public: static std::unique_ptr<NetworkManager> Create(
                   const NetworkConfig &_config = NetworkConfig::FromEnv());
 
