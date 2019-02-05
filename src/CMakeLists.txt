@@ -55,6 +55,7 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  Util_TEST.cc
   network/PeerTracker_TEST.cc
 )
 
