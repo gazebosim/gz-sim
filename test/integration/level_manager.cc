@@ -176,7 +176,7 @@ class LevelManagerFixture : public ::testing::Test
             return true;
           });
 
-      _ecm.EachErased<components::Model, components::Name>(
+      _ecm.EachRemoved<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
               const components::Name *_name) -> bool
           {
