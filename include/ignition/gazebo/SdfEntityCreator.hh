@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_FACTORY_HH_
-#define IGNITION_GAZEBO_FACTORY_HH_
+#ifndef IGNITION_GAZEBO_CREATEREMOVE_HH_
+#define IGNITION_GAZEBO_CREATEREMOVE_HH_
 
 #include <memory>
 
@@ -41,45 +41,47 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
-    class FactoryPrivate;
+    class SdfEntityCreatorPrivate;
     //
-    /// \class Factory Factory.hh ignition/gazebo/Factory.hh
+    /// \class SdfEntityCreator SdfEntityCreator.hh
+    ///      ignition/gazebo/SdfEntityCreator.hh
     /// \brief Provides convenient functions to spawn entities and load their
-    /// plugins from SDF elements.
+    /// plugins from SDF elements, to remove them, and to change their
+    /// hierarchy.
     ///
     /// This class provides wrappers around entities and components
     /// which are more convenient and straight-forward to use than dealing
     /// with the `EntityComponentManager` directly.
-    class IGNITION_GAZEBO_VISIBLE Factory
+    class IGNITION_GAZEBO_VISIBLE SdfEntityCreator
     {
       /// \brief Constructor
       /// \param[in] _ecm Entity component manager. This class keeps a pointer
       /// to it, but doesn't assume ownership.
       /// \param[in] _eventManager Event manager. This class keeps a pointer
       /// to it, but doesn't assume ownership.
-      public: explicit Factory(EntityComponentManager &_ecm,
+      public: explicit SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager);
 
       /// \brief Copy constructor
-      /// \param[in] _factory Factory to copy.
-      public: Factory(const Factory &_factory);
+      /// \param[in] _creator SdfEntityCreator to copy.
+      public: SdfEntityCreator(const SdfEntityCreator &_creator);
 
       /// \brief Move constructor
-      /// \param[in] _factory Factory to move.
-      public: Factory(Factory &&_factory) noexcept;
+      /// \param[in] _creator SdfEntityCreator to move.
+      public: SdfEntityCreator(SdfEntityCreator &&_creator) noexcept;
 
       /// \brief Move assignment operator.
-      /// \param[in] _factory Factory component to move.
+      /// \param[in] _creator SdfEntityCreator component to move.
       /// \return Reference to this.
-      public: Factory &operator=(Factory &&_factory) noexcept;
+      public: SdfEntityCreator &operator=(SdfEntityCreator &&_creator) noexcept;
 
       /// \brief Copy assignment operator.
-      /// \param[in] _factory Factory to copy.
+      /// \param[in] _creator SdfEntityCreator to copy.
       /// \return Reference to this.
-      public: Factory &operator=(const Factory &_factory);
+      public: SdfEntityCreator &operator=(const SdfEntityCreator &_creator);
 
       /// \brief Destructor.
-      public: ~Factory();
+      public: ~SdfEntityCreator();
 
       /// \brief Create all entities that exist in the sdf::World object and
       /// load their plugins.
@@ -132,10 +134,10 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      /// \param[in] _entity Entity to be erased.
+      /// \param[in] _entity Entity to be removed.
       /// \param[in] _recursive Whether to recursively delete all child
       /// entities. True by default.
-      public: void RequestEraseEntity(const Entity _entity,
+      public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
       /// \brief Set an entity's parent entity. This function takes care of
@@ -145,7 +147,7 @@ namespace ignition
       public: void SetParent(Entity _child, Entity _parent);
 
       /// \brief Pointer to private data.
-      private: std::unique_ptr<FactoryPrivate> dataPtr;
+      private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
     };
     }
   }
