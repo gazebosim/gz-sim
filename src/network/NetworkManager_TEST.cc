@@ -22,6 +22,10 @@
 
 #include "ignition/gazebo/network/NetworkManager.hh"
 
+#include "NetworkManagerPrimary.hh"
+#include "NetworkManagerReadOnly.hh"
+#include "NetworkManagerSecondary.hh"
+
 using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
@@ -34,7 +38,9 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
     auto nm = NetworkManager::Create(conf);
-    ASSERT_FALSE(nm->Valid());
+    ASSERT_NE(nullptr, nm);
+    EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nm.get()));
+    EXPECT_FALSE(nm->Valid());
     // Expect console warning as well
   }
 
@@ -44,7 +50,9 @@ TEST(NetworkManager, ConfigConstructor)
     conf.role = NetworkRole::SimulationPrimary;
     conf.numSecondariesExpected = 5;
     auto nm = NetworkManager::Create(conf);
-    ASSERT_TRUE(nm->Valid());
+    ASSERT_NE(nullptr, nm);
+    EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nm.get()));
+    EXPECT_TRUE(nm->Valid());
   }
 
   {
@@ -52,7 +60,9 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationSecondary;
     auto nm = NetworkManager::Create(conf);
-    ASSERT_TRUE(nm->Valid());
+    ASSERT_NE(nullptr, nm);
+    EXPECT_NE(nullptr, static_cast<NetworkManagerSecondary *>(nm.get()));
+    EXPECT_TRUE(nm->Valid());
   }
 
   {
@@ -60,7 +70,9 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::ReadOnly;
     auto nm = NetworkManager::Create(conf);
-    ASSERT_TRUE(nm->Valid());
+    ASSERT_NE(nullptr, nm);
+    EXPECT_NE(nullptr, static_cast<NetworkManagerReadOnly *>(nm.get()));
+    EXPECT_TRUE(nm->Valid());
   }
 }
 
@@ -73,28 +85,36 @@ TEST(NetworkManager, EstablishComms)
   confPrimary.numSecondariesExpected = 2;
 
   auto nmPrimary = NetworkManager::Create(confPrimary);
-  ASSERT_TRUE(nmPrimary->IsPrimary());
-  ASSERT_TRUE(nmPrimary->Valid());
+  ASSERT_NE(nullptr, nmPrimary);
+  EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
+  EXPECT_TRUE(nmPrimary->IsPrimary());
+  EXPECT_TRUE(nmPrimary->Valid());
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
   auto nmSecondary1 = NetworkManager::Create(confSecondary1);
-  ASSERT_TRUE(nmSecondary1->IsSecondary());
-  ASSERT_TRUE(nmSecondary1->Valid());
+  ASSERT_NE(nullptr, nmSecondary1);
+  EXPECT_NE(nullptr,
+      static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
+  EXPECT_TRUE(nmSecondary1->IsSecondary());
+  EXPECT_TRUE(nmSecondary1->Valid());
 
   NetworkConfig confSecondary2;
   confSecondary1.role = NetworkRole::SimulationSecondary;
   auto nmSecondary2 = NetworkManager::Create(confSecondary1);
-  ASSERT_TRUE(nmSecondary2->IsSecondary());
-  ASSERT_TRUE(nmSecondary2->Valid());
+  ASSERT_NE(nullptr, nmSecondary2);
+  EXPECT_NE(nullptr,
+      static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
+  EXPECT_TRUE(nmSecondary2->IsSecondary());
+  EXPECT_TRUE(nmSecondary2->Valid());
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // All participants should be "ready" in that the correct
   // number of peers are discovered for their respective role.
-  ASSERT_TRUE(nmPrimary->Ready());
-  ASSERT_TRUE(nmSecondary1->Ready());
-  ASSERT_TRUE(nmSecondary2->Ready());
+  EXPECT_TRUE(nmPrimary->Ready());
+  EXPECT_TRUE(nmSecondary1->Ready());
+  EXPECT_TRUE(nmSecondary2->Ready());
 }
 
 

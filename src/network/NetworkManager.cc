@@ -36,7 +36,8 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
     const NetworkConfig &_config)
 {
   std::unique_ptr<NetworkManager> ret;
-  switch (_config.role) {
+  switch (_config.role)
+  {
     case NetworkRole::SimulationPrimary:
       ret = std::make_unique<NetworkManagerPrimary>(_config);
       break;

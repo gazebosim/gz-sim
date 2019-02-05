@@ -44,7 +44,7 @@ bool NetworkManagerPrimary::Valid() const
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::Ready() const
 {
-  bool ready = Valid();
+  bool ready = this->Valid();
   auto secondaries = this->dataPtr->tracker->NumSecondary();
   igndbg << "Found: " << secondaries << " network secondaries."
          << " (Expected: " << this->dataPtr->config.numSecondariesExpected

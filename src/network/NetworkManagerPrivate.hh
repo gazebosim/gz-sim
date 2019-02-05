@@ -17,13 +17,10 @@
 #ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
 #define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
 
-#include <atomic>
 #include <memory>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-
-#include <ignition/transport/Node.hh>
 
 #include "PeerInfo.hh"
 #include "PeerTracker.hh"

@@ -19,8 +19,9 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "ignition/msgs.hh"
-#include "ignition/transport.hh"
+#include "ignition/msgs/world_control.pb.h"
+#include "ignition/msgs/world_stats.pb.h"
+#include "ignition/transport/Node.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
