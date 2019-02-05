@@ -17,8 +17,6 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
 
-#include <string>
-#include <set>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 

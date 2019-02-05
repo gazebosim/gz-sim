@@ -29,7 +29,6 @@
 #include <utility>
 #include <vector>
 
-#include <sdf/Gui.hh>
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
@@ -100,6 +99,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
+      /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
                                         const SystemLoaderPtr &_systemLoader,
                                         const bool _useLevels = false);
