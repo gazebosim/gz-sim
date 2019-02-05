@@ -27,12 +27,12 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 TEST(ComponentFactoryTest, Register)
 {
-  // auto factory = components::Factory::Instance();
+  auto factory = components::Factory::Instance();
 
   // Create a custom component.
   using MyCustom = components::TagWrapper<class MyCustomTag>;
-  components::Factory::Register<MyCustom>("ign_gazebo_components.MyCustom");
-  auto components = components::Factory::Components();
+  factory->Register<MyCustom>("ign_gazebo_components.MyCustom");
+  auto components = factory->Components();
   EXPECT_NE(components.end(),
       std::find(components.begin(), components.end(),
           "ign_gazebo_components.MyCustom"));
@@ -41,16 +41,16 @@ TEST(ComponentFactoryTest, Register)
 /////////////////////////////////////////////////
 TEST(ComponentFactoryTest, New)
 {
-  // auto factory = components::Factory::Instance();
+  auto factory = components::Factory::Instance();
 
   {
-    auto comp = components::Factory::New<components::Pose>(
+    auto comp = factory->New<components::Pose>(
       "__unknown_component__");
     ASSERT_TRUE(comp == nullptr);
   }
 
   {
-    auto comp = components::Factory::New<components::Pose>(
+    auto comp = factory->New<components::Pose>(
       "ign_gazebo_components.Pose");
     ASSERT_TRUE(comp != nullptr);
     EXPECT_EQ("ign_gazebo_components.Pose", comp->name);
@@ -60,13 +60,13 @@ TEST(ComponentFactoryTest, New)
   }
 
   {
-    auto comp = components::Factory::New("ign_gazebo_components.Pose");
+    auto comp = factory->New("ign_gazebo_components.Pose");
     ASSERT_TRUE(comp != nullptr);
   }
 
   {
     auto id = EntityComponentManager::ComponentType<components::Pose>();
-    auto comp = components::Factory::New(id);
+    auto comp = factory->New(id);
     ASSERT_TRUE(comp != nullptr);
   }
 }
@@ -74,9 +74,9 @@ TEST(ComponentFactoryTest, New)
 ///////////////////////////////////////////////
 TEST(ComponentFactoryTest, Components)
 {
-  // auto factory = components::Factory::Instance();
+  auto factory = components::Factory::Instance();
 
-  std::vector<std::string> comps = components::Factory::Components();
+  std::vector<std::string> comps = factory->Components();
   EXPECT_FALSE(comps.empty());
   EXPECT_TRUE(std::find(comps.begin(), comps.end(),
       std::string("ign_gazebo_components.Altimeter")) != comps.end());
