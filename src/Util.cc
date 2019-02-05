@@ -124,5 +124,3 @@ std::string ignition::gazebo::scopedName(const Entity &_entity,
 
   return result;
 }
-
-
