@@ -35,6 +35,8 @@ namespace ignition
       /// \brief Constructor
       public: explicit PeerInfo(const NetworkRole &_role = NetworkRole::None);
 
+      /// \brief Get the namespace for this peer.
+      /// \return The namespace.
       public: std::string Namespace() const;
 
       /// \brief Unique peer ID in the network

@@ -405,6 +405,7 @@ bool SimulationRunner::Running() const
   return this->running;
 }
 
+/////////////////////////////////////////////////
 bool SimulationRunner::Ready() const
 {
   bool ready = true;

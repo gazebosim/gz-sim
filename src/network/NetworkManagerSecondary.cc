@@ -42,7 +42,7 @@ bool NetworkManagerSecondary::Valid() const
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::Ready() const
 {
-  bool ready = Valid();
+  bool ready = this->Valid();
   auto primaries = this->dataPtr->tracker->NumPrimary();
   igndbg << "Found: " << primaries << " network primaries."
          << " (Expected: 1)"  << std::endl;
