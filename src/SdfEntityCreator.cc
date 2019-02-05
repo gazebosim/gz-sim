@@ -19,7 +19,7 @@
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -46,7 +46,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
-class ignition::gazebo::FactoryPrivate
+class ignition::gazebo::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -59,40 +59,42 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-Factory::Factory(EntityComponentManager &_ecm,
+SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager)
-  : dataPtr(std::make_unique<FactoryPrivate>())
+  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>())
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(const Factory &_factory)
-  : dataPtr(std::make_unique<FactoryPrivate>(*_factory.dataPtr))
+SdfEntityCreator::SdfEntityCreator(const SdfEntityCreator &_creator)
+  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>(*_creator.dataPtr))
 {
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(Factory &&_factory) noexcept = default;
+SdfEntityCreator::SdfEntityCreator(SdfEntityCreator &&_creator) noexcept
+    = default;
 
 //////////////////////////////////////////////////
-Factory::~Factory() = default;
+SdfEntityCreator::~SdfEntityCreator() = default;
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(const Factory &_factory)
+SdfEntityCreator &SdfEntityCreator::operator=(const SdfEntityCreator &_creator)
 {
-  *this->dataPtr = (*_factory.dataPtr);
+  *this->dataPtr = (*_creator.dataPtr);
   return *this;
 }
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(Factory &&_factory) noexcept = default;
+SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
+    noexcept = default;
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::World *_world)
+Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::World)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -129,9 +131,9 @@ Entity Factory::CreateEntities(const sdf::World *_world)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Model *_model)
+Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Model)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -181,9 +183,9 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Light *_light)
+Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Light)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -199,9 +201,9 @@ Entity Factory::CreateEntities(const sdf::Light *_light)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Link *_link)
+Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Link)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -259,9 +261,9 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Joint *_joint)
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Joint)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -299,9 +301,9 @@ Entity Factory::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Visual *_visual)
+Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Visual)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -330,9 +332,9 @@ Entity Factory::CreateEntities(const sdf::Visual *_visual)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Collision *_collision)
+Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Collision)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -355,9 +357,9 @@ Entity Factory::CreateEntities(const sdf::Collision *_collision)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
+Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Sensor)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
@@ -400,7 +402,7 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
 }
 
 //////////////////////////////////////////////////
-void Factory::RequestEraseEntity(Entity _entity, bool _recursive)
+void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
 {
   // Leave children parentless
   if (!_recursive)
@@ -414,11 +416,11 @@ void Factory::RequestEraseEntity(Entity _entity, bool _recursive)
     }
   }
 
-  this->dataPtr->ecm->RequestEraseEntity(_entity, _recursive);
+  this->dataPtr->ecm->RequestRemoveEntity(_entity, _recursive);
 }
 
 //////////////////////////////////////////////////
-void Factory::SetParent(Entity _child, Entity _parent)
+void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
 {
   // TODO(louise) Figure out a way to avoid duplication while keeping all
   // state in components and also keeping a convenient graph in the ECM
