@@ -37,7 +37,6 @@ namespace components
 {
   /// \brief A factory that generates a component based on a string type.
   class IGNITION_GAZEBO_VISIBLE Factory
-      : public ignition::common::SingletonT<Factory>
   {
     /// \brief Register a component.
     /// \param[in] _type Type of component to register.
@@ -158,7 +157,7 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
-      ignition::gazebo::components::Factory::Instance()->Register<_classname>(\
+      ignition::gazebo::components::Factory::Register<_classname>(\
         _compType);\
     } \
   }; \
