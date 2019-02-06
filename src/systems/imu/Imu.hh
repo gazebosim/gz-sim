@@ -35,8 +35,9 @@ namespace systems
   class ImuSensor;
 
   /// \class Imu Imu.hh ignition/gazebo/systems/Imu.hh
-  /// \brief An imu sensor that reports vertical position and velocity
-  /// readings over ign transport
+  /// \brief This system manages all IMU sensors in simulation.
+  /// Each IMU sensor eports vertical position, angular velocity
+  /// and lienar acceleration readings over Ignition Transport.
   class IGNITION_GAZEBO_VISIBLE Imu:
     public System,
     public ISystemPreUpdate,
@@ -46,15 +47,15 @@ namespace systems
     public: explicit Imu();
 
     /// \brief Destructor
-    public: virtual ~Imu();
+    public: ~Imu() override;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
-                           EntityComponentManager &_ecm) override final;
+                           EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override final;
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ImuPrivate> dataPtr;

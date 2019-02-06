@@ -212,10 +212,11 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Get all the new worlds
-  _ecm.EachNew<components::World, components::Name>(
+  _ecm.EachNew<components::World, components::Name, components::Gravity>(
       [&](const Entity &_entity,
         const components::World * /* _world */,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Gravity *_gravity)->bool
       {
         // Check if world already exists
         if (this->entityWorldMap.find(_entity) != this->entityWorldMap.end())
@@ -228,6 +229,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         sdf::World world;
         world.SetName(_name->Data());
+        world.SetGravity(_gravity->Data());
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
 
