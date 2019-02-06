@@ -26,8 +26,6 @@
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -40,8 +38,8 @@
 using namespace ignition;
 using namespace gazebo;
 
-/// \brief Test AltimeterTest system
-class AltimeterTest : public ::testing::Test
+/// \brief Test GpuLidarTest system
+class GpuLidarTest : public ::testing::Test
 {
   // Documentation inherited
   protected: void SetUp() override
@@ -102,8 +100,8 @@ void laserCb(const msgs::LaserScan &_msg)
 }
 
 /////////////////////////////////////////////////
-// The test checks the world pose and sensor readings of a falling altimeter
-TEST_F(AltimeterTest, ModelFalling)
+// The test checks the Gpu Lidar readings when it faces a box
+TEST_F(GpuLidarTest, GpuLidarBox)
 {
   const int horzSamples = 640;
 
@@ -119,12 +117,7 @@ TEST_F(AltimeterTest, ModelFalling)
 
   const std::string sensorName = "gpu_lidar_sensor";
 
-  // Create a system that records altimeter data
-  Relay testSystem;
-
-  server.AddSystem(testSystem.systemPtr);
-
-  // subscribe to altimeter topic
+  // subscribe to lidar topic
   transport::Node node;
   node.Subscribe("/lidar", &laserCb);
 
@@ -145,7 +138,8 @@ TEST_F(AltimeterTest, ModelFalling)
 
   int mid = horzSamples / 2;
   int last = (horzSamples - 1);
-  double expectedRangeAtMidPointBox1 = 0.5;
+  // Take into account box of 1 m on each side and 0.05 cm sensor offset
+  double expectedRangeAtMidPointBox1 = 0.45;
 
   // Sensor 1 should see TestBox1
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(0), ignition::math::INF_D);

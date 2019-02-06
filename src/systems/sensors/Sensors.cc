@@ -118,7 +118,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &/*_ecm*/)
 {
   auto time = math::durationToSecNsec(_info.simTime);
-  this->dataPtr->sensorManager.RunOnce(common::Time::Zero, true);
+   this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
 }
 
 //////////////////////////////////////////////////
