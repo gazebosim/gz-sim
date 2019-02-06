@@ -33,6 +33,10 @@ static const char kDefaultWorld[] =
       "<plugin filename='libignition-gazebo-systems.so'"
       "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
       "</plugin>"
+      "<plugin"
+      "  filename='libignition-gazebo-user-commands-system.so'"
+      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "</plugin>"
       "<gui fullscreen='0'>"
       "  <plugin filename='Scene3D' name='3D View'>"
       "    <ignition-gui>"
@@ -47,6 +51,8 @@ static const char kDefaultWorld[] =
       "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
       "    <service>/world/default/scene/info</service>"
       "    <pose_topic>/world/default/pose/info</pose_topic>"
+      "    <scene_topic>/world/default/scene/info</scene_topic>"
+      "    <deletion_topic>/world/default/scene/deletion</deletion_topic>"
       "  </plugin>"
       "  <plugin filename='WorldControl' name='World control'>"
       "    <ignition-gui>"
@@ -293,12 +299,12 @@ std::optional<Entity> Server::EntityByName(const std::string &_name,
 }
 
 //////////////////////////////////////////////////
-bool Server::RequestEraseEntity(const std::string &_name,
+bool Server::RequestRemoveEntity(const std::string &_name,
     bool _recursive, const unsigned int _worldIndex)
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
   {
-    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_name,
+    return this->dataPtr->simRunners[_worldIndex]->RequestRemoveEntity(_name,
         _recursive);
   }
 
@@ -306,12 +312,12 @@ bool Server::RequestEraseEntity(const std::string &_name,
 }
 
 //////////////////////////////////////////////////
-bool Server::RequestEraseEntity(const Entity _entity,
+bool Server::RequestRemoveEntity(const Entity _entity,
     bool _recursive, const unsigned int _worldIndex)
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
   {
-    return this->dataPtr->simRunners[_worldIndex]->RequestEraseEntity(_entity,
+    return this->dataPtr->simRunners[_worldIndex]->RequestRemoveEntity(_entity,
         _recursive);
   }
 

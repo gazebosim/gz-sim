@@ -41,7 +41,7 @@ namespace systems
   ///
   /// # Spawn entity
   ///
-  /// * **Service**: `/world/<world name>/factory`
+  /// * **Service**: `/world/<world name>/create`
   /// * **Request type*: ignition.msgs.EntityFactory
   /// * **Response type*: ignition.msgs.Boolean
   ///

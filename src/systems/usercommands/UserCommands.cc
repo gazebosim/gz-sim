@@ -16,6 +16,9 @@
  */
 
 #include <google/protobuf/message.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/entity_factory.pb.h>
+
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
@@ -32,7 +35,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "UserCommands.hh"
 
@@ -47,15 +50,15 @@ namespace gazebo
 namespace systems
 {
 /// \brief This class is passed to every command and contains interfaces that
-/// can be shared among all commands. For example, all factory and delete
-/// commands can use the `factory` object.
+/// can be shared among all commands. For example, all create and delete
+/// commands can use the `creator` object.
 class UserCommandsInterface
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
 
-  /// \brief Factory interface, shared among all commands that need it.
-  public: std::unique_ptr<Factory> factory{nullptr};
+  /// \brief Creator interface, shared among all commands that need it.
+  public: std::unique_ptr<SdfEntityCreator> creator{nullptr};
 
   /// \brief World entity.
   public: Entity worldEntity{kNullEntity};
@@ -69,7 +72,7 @@ class UserCommand
   /// \param[in] _msg Message containing user command.
   /// \param[in] _iface Pointer to interfaces shared by all commands.
   public: UserCommand(google::protobuf::Message *_msg,
-      const std::shared_ptr<UserCommandsInterface> &_iface);
+      std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -84,16 +87,16 @@ class UserCommand
 };
 
 /// \brief Command to spawn an entity into simulation.
-class FactoryCommand : public UserCommand
+class CreateCommand : public UserCommand
 {
   /// \brief Constructor
   /// \param[in] _msg Factory message.
   /// \param[in] _iface Pointer to user commands interface.
-  public: FactoryCommand(msgs::EntityFactory *_msg,
-      const std::shared_ptr<UserCommandsInterface> &_iface);
+  public: CreateCommand(msgs::EntityFactory *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
-  public: virtual bool Execute() final;
+  public: bool Execute() final;
 };
 
 /// \brief Command to remove an entity from simulation.
@@ -103,10 +106,10 @@ class DeleteCommand : public UserCommand
   /// \param[in] _msg Delete message.
   /// \param[in] _iface Pointer to user commands interface.
   public: DeleteCommand(msgs::Entity *_msg,
-      const std::shared_ptr<UserCommandsInterface> &_iface);
+      std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
-  public: virtual bool Execute() final;
+  public: bool Execute() final;
 };
 }
 }
@@ -115,12 +118,12 @@ class DeleteCommand : public UserCommand
 /// \brief Private UserCommands data class.
 class ignition::gazebo::systems::UserCommandsPrivate
 {
-  /// \brief Callback for factory service
+  /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
-  public: bool FactoryService(const msgs::EntityFactory &_req,
+  public: bool CreateService(const msgs::EntityFactory &_req,
       msgs::Boolean &_res);
 
   /// \brief Callback for delete service
@@ -163,16 +166,17 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->iface = std::make_shared<UserCommandsInterface>();
   this->dataPtr->iface->worldEntity = _entity;
   this->dataPtr->iface->ecm = &_ecm;
-  this->dataPtr->iface->factory = std::make_unique<Factory>(_ecm, _eventManager);
+  this->dataPtr->iface->creator =
+      std::make_unique<SdfEntityCreator>(_ecm, _eventManager);
 
   auto worldName = _ecm.Component<components::Name>(_entity)->Data();
 
-  // Spawn service
-  std::string factoryService{"/world/" + worldName + "/factory"};
-  this->dataPtr->node.Advertise(factoryService, &UserCommandsPrivate::FactoryService,
-      this->dataPtr.get());
+  // Create service
+  std::string createService{"/world/" + worldName + "/create"};
+  this->dataPtr->node.Advertise(createService,
+      &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
-  ignmsg << "Factory service on [" << factoryService << "]" << std::endl;
+  ignmsg << "Create service on [" << createService << "]" << std::endl;
 
   // Delete service
   std::string deleteService{"/world/" + worldName + "/delete"};
@@ -210,13 +214,13 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::FactoryService(const msgs::EntityFactory &_req,
+bool UserCommandsPrivate::CreateService(const msgs::EntityFactory &_req,
     msgs::Boolean &_res)
 {
   // Create command and push it to queue
   auto msg = _req.New();
   msg->CopyFrom(_req);
-  auto cmd = std::make_unique<FactoryCommand>(msg, this->iface);
+  auto cmd = std::make_unique<CreateCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -249,41 +253,41 @@ bool UserCommandsPrivate::DeleteService(const msgs::Entity &_req,
 
 //////////////////////////////////////////////////
 UserCommand::UserCommand(google::protobuf::Message *_msg,
-    const std::shared_ptr<UserCommandsInterface> &_iface)
+    std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
 }
 
 //////////////////////////////////////////////////
-FactoryCommand::FactoryCommand(msgs::EntityFactory *_msg,
-    const std::shared_ptr<UserCommandsInterface> &_iface)
+CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommand(_msg, _iface)
 {
 }
 
 //////////////////////////////////////////////////
-bool FactoryCommand::Execute()
+bool CreateCommand::Execute()
 {
-  auto factoryMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
-  if (nullptr == factoryMsg)
+  auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
+  if (nullptr == createMsg)
   {
-    ignerr << "Internal error, null factory message" << std::endl;
+    ignerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
   // Load SDF
   sdf::Root root;
   sdf::Errors errors;
-  switch (factoryMsg->from_case())
+  switch (createMsg->from_case())
   {
     case msgs::EntityFactory::kSdf:
     {
-      errors = root.LoadSdfString(factoryMsg->sdf());
+      errors = root.LoadSdfString(createMsg->sdf());
       break;
     }
     case msgs::EntityFactory::kSdfFilename:
     {
-      errors = root.Load(factoryMsg->sdf_filename());
+      errors = root.Load(createMsg->sdf_filename());
       break;
     }
     case msgs::EntityFactory::kModel:
@@ -306,7 +310,7 @@ bool FactoryCommand::Execute()
     }
     default:
     {
-      ignerr << "Missing [from] field in factory message." << std::endl;
+      ignerr << "Missing [from] field in create message." << std::endl;
       return false;
     }
   }
@@ -343,9 +347,9 @@ bool FactoryCommand::Execute()
 
   // Check the name of the entity being spawned
   std::string desiredName;
-  if (!factoryMsg->name().empty())
+  if (!createMsg->name().empty())
   {
-    desiredName = factoryMsg->name();
+    desiredName = createMsg->name();
   }
   else if (isModel)
   {
@@ -361,7 +365,7 @@ bool FactoryCommand::Execute()
       components::Name(desiredName),
       components::ParentEntity(this->iface->worldEntity)))
   {
-    if (!factoryMsg->allow_renaming())
+    if (!createMsg->allow_renaming())
     {
       ignwarn << "Entity named [" << desiredName << "] already exists and "
               << "[allow_renaming] is false. Entity not spawned."
@@ -385,20 +389,20 @@ bool FactoryCommand::Execute()
   Entity entity{kNullEntity};
   if (isModel)
   {
-    entity = this->iface->factory->CreateEntities(root.ModelByIndex(0));
+    entity = this->iface->creator->CreateEntities(root.ModelByIndex(0));
   }
   else if (isLight)
   {
-    entity = this->iface->factory->CreateEntities(root.LightByIndex(0));
+    entity = this->iface->creator->CreateEntities(root.LightByIndex(0));
   }
 
-  this->iface->factory->SetParent(entity, this->iface->worldEntity);
+  this->iface->creator->SetParent(entity, this->iface->worldEntity);
 
   // Pose
-  if (factoryMsg->has_pose())
+  if (createMsg->has_pose())
   {
     auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-    *poseComp = components::Pose(msgs::Convert(factoryMsg->pose()));
+    *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
   }
 
   // Update name
@@ -410,7 +414,7 @@ bool FactoryCommand::Execute()
 
 //////////////////////////////////////////////////
 DeleteCommand::DeleteCommand(msgs::Entity *_msg,
-    const std::shared_ptr<UserCommandsInterface> &_iface)
+    std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommand(_msg, _iface)
 {
 }
@@ -468,7 +472,7 @@ bool DeleteCommand::Execute()
     return false;
   }
 
-  this->iface->factory->RequestEraseEntity(entity);
+  this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }
 

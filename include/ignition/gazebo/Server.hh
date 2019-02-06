@@ -208,7 +208,7 @@ namespace ignition
 
       /// \brief Return true if the specified world has an entity with the
       /// provided name and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
@@ -219,13 +219,13 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const std::string &_name,
+      public: bool RequestRemoveEntity(const std::string &_name,
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
       /// \brief Return true if the specified world has an entity with the
       /// provided id and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _entity The entity to delete.
@@ -234,7 +234,7 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const Entity _entity,
+      public: bool RequestRemoveEntity(const Entity _entity,
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
