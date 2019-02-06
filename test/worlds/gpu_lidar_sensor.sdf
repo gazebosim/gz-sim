@@ -189,7 +189,7 @@
         <collision name="collision">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0.1 0.1 0.1</size>
             </box>
           </geometry>
         </collision>
@@ -228,6 +228,7 @@
           <visualize>true</visualize>
         </sensor>
       </link>
+      <static>true</static>
     </model>
   </world>
 </sdf>
