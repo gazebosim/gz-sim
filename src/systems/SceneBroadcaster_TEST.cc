@@ -59,6 +59,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   {
     ASSERT_TRUE(_msg.has_header());
     ASSERT_TRUE(_msg.header().has_stamp());
+    EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
 
     EXPECT_EQ(10, _msg.pose_size());
 
