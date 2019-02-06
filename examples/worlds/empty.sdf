@@ -26,7 +26,7 @@ ign service -s /world/empty/create \
 
   Then try deleting it:
 
-ign service -s /world/empty/delete \
+ign service -s /world/empty/remove \
 --reqtype ignition.msgs.Entity \
 --reptype ignition.msgs.Boolean \
 --timeout 300 \
@@ -44,7 +44,7 @@ ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --repty
 
   Then try deleting it:
 
-ign service -s /world/empty/delete \
+ign service -s /world/empty/remove \
 --reqtype ignition.msgs.Entity \
 --reptype ignition.msgs.Boolean \
 --timeout 300 \

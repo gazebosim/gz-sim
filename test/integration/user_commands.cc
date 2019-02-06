@@ -353,7 +353,7 @@ TEST_F(UserCommandsTest, Create)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Delete)
+TEST_F(UserCommandsTest, Remove)
 {
   // Start server
   ServerConfig serverConfig;
@@ -389,7 +389,7 @@ TEST_F(UserCommandsTest, Delete)
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
   EXPECT_EQ(14u, ecm->EntityCount());
 
-  // Entity delete by name
+  // Entity remove by name
   msgs::Entity req;
   req.set_name("box");
   req.set_type(msgs::Entity::MODEL);
@@ -397,25 +397,25 @@ TEST_F(UserCommandsTest, Delete)
   msgs::Boolean res;
   bool result;
   unsigned int timeout = 5000;
-  std::string service{"/world/default/delete"};
+  std::string service{"/world/default/remove"};
 
   transport::Node node;
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Check entity has not been deleted yet
+  // Check entity has not been removed yet
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
 
-  // Run an iteration and check it was deleted
+  // Run an iteration and check it was removed
   server.Run(true, 1, false);
   EXPECT_EQ(10u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
 
-  // Entity delete by ID
+  // Entity remove by ID
   auto sphereId = ecm->EntityByComponents(components::Model(),
       components::Name("sphere"));
   EXPECT_NE(kNullEntity, sphereId);
@@ -427,18 +427,18 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Check entity has not been deleted yet
+  // Check entity has not been removed yet
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
 
-  // Run an iteration and check it was deleted
+  // Run an iteration and check it was removed
   server.Run(true, 1, false);
   EXPECT_EQ(6u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
 
-  // Can't delete a link
+  // Can't remove a link
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
 
@@ -450,7 +450,7 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check it was not deleted
+  // Run an iteration and check it was not removed
   server.Run(true, 1, false);
   EXPECT_EQ(6u, ecm->EntityCount());
 
@@ -471,7 +471,7 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check cylinder was deleted and light wasn't
+  // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
   EXPECT_EQ(2u, ecm->EntityCount());
 
@@ -479,7 +479,7 @@ TEST_F(UserCommandsTest, Delete)
       components::Name("cylinder")));
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
-  // Only name - fails to delete
+  // Only name - fails to remove
   auto lightId = ecm->EntityByComponents(components::Name("sun"));
   EXPECT_NE(kNullEntity, lightId);
 
@@ -490,13 +490,13 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check nothing was deleted
+  // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
   EXPECT_EQ(2u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
-  // Inexistent entity - fails to delete
+  // Inexistent entity - fails to remove
   req.Clear();
   req.set_id(9999);
 
@@ -504,11 +504,11 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check nothing was deleted
+  // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
   EXPECT_EQ(2u, ecm->EntityCount());
 
-  // Delete light
+  // Remove light
   req.Clear();
   req.set_name("sun");
   req.set_type(msgs::Entity::LIGHT);
@@ -517,7 +517,7 @@ TEST_F(UserCommandsTest, Delete)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check it was deleted
+  // Run an iteration and check it was removed
   server.Run(true, 1, false);
   EXPECT_EQ(1u, ecm->EntityCount());
 
