@@ -88,12 +88,6 @@ class ignition::gazebo::systems::AltimeterPrivate
   /// \brief Update altimeter sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void UpdateAltimeters(const EntityComponentManager &_ecm);
-
-  /// \brief Helper function to generate default topic name for the sensor
-  /// \param[in] _entity Entity to get the world pose for
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: std::string DefaultTopic(const Entity &_entity,
-    const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -171,14 +165,16 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         // Get initial pose of parent link and set the reference z pos
         // The WorldPose component was just created and so it's empty
         // We'll compute the world pose manually here
-        double verticalReference = Util::WorldPose(_entity, _ecm).Pos().Z();
+        double verticalReference = worldPose(_entity, _ecm).Pos().Z();
         auto sensor = std::make_unique<AltimeterSensor>();
         sensor->Load(_altimeter->Data());
         sensor->verticalReference = verticalReference;
 
         // create default topic for sensor if not specified
         if (sensor->topic.empty())
-          sensor->topic = this->DefaultTopic(_entity, _ecm);
+        {
+          sensor->topic = scopedName(_entity, _ecm, "/") + "/altimeter";
+        }
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -215,34 +211,6 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 
         return true;
       });
-}
-
-
-//////////////////////////////////////////////////
-std::string AltimeterPrivate::DefaultTopic(const Entity &_entity,
-    const EntityComponentManager &_ecm)
-{
-  // default topic name:
-  // /model/model_name/link/link_name/sensor/sensor_name/altimeter
-  std::string sensorName = _ecm.Component<components::Name>(_entity)->Data();
-  auto p = _ecm.Component<components::ParentEntity>(_entity);
-  std::string linkName = _ecm.Component<components::Name>(p->Data())->Data();
-  std::string topic =
-      "/link/" + linkName + "/sensor/" + sensorName + "/altimeter";
-  p = _ecm.Component<components::ParentEntity>(p->Data());
-  // also handle nested models
-  while (p)
-  {
-    if (nullptr != _ecm.Component<components::World>(p->Data()))
-      break;
-
-    std::string modelName = _ecm.Component<components::Name>(p->Data())->Data();
-    topic.insert(0, "/model/" + modelName);
-
-    // keep going up the tree
-    p = _ecm.Component<components::ParentEntity>(p->Data());
-  }
-  return topic;
 }
 
 IGNITION_ADD_PLUGIN(Altimeter, System,
