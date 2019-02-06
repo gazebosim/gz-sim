@@ -57,6 +57,9 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   bool received{false};
   std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
+    ASSERT_TRUE(_msg.has_header());
+    ASSERT_TRUE(_msg.header().has_stamp());
+
     EXPECT_EQ(10, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
