@@ -81,6 +81,7 @@ void LevelManager::ReadLevelPerformerInfo()
     if (plugin->Get<std::string>("name") == kPluginName)
     {
       pluginElem = plugin;
+      break;
     }
   }
 
@@ -129,7 +130,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
           this->performerMap[ref]);
 
       ignerr << "Found multiple performers (" << name << " and "
-             << performer2->Data() << ")referring to the same entity\n";
+             << performer2->Data() << ") referring to the same entity\n";
     }
 
     sdf::Geometry geometry;
@@ -140,6 +141,12 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Geometry(geometry));
+  }
+
+  if (this->useLevels && performerMap.empty())
+  {
+    ignwarn << "Asked to use levels but no <performer>s were found - levels "
+               "will not work.\n";
   }
 }
 
@@ -198,13 +205,13 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::Name(name));
     this->runner->entityCompMgr.CreateComponent(
-        levelEntity, components::ParentEntity(this->worldEntity));
-    this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::LevelEntityNames(entityNames));
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::Geometry(geometry));
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::LevelBuffer(buffer));
+
+    this->factory->SetParent(levelEntity, this->worldEntity);
   }
 }
 
@@ -260,9 +267,9 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::DefaultLevel());
   this->runner->entityCompMgr.CreateComponent(
-      defaultLevel, components::ParentEntity(this->worldEntity));
-  this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::LevelEntityNames(entityNamesInDefault));
+
+  this->factory->SetParent(defaultLevel, this->worldEntity);
 }
 
 /////////////////////////////////////////////////

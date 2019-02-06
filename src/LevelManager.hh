@@ -96,7 +96,7 @@ namespace ignition
       private: void ReadLevelPerformerInfo();
 
       /// \brief Create performers
-      /// Assuming that a simulation runner performer-centered
+      /// Assuming that a simulation runner is performer-centered
       private: void CreatePerformers();
 
       /// \brief Read information about performers from the sdf Element and
