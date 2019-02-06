@@ -24,7 +24,6 @@
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Level.hh"
@@ -48,7 +47,7 @@ using namespace gazebo;
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
     : runner(_runner), useLevels(_useLevels)
 {
-  this->creator = std::make_unique<SdfEntityCreator>(
+  this->entityCreator = std::make_unique<SdfEntityCreator>(
       this->runner->entityCompMgr,
       this->runner->eventMgr);
 
@@ -211,7 +210,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::LevelBuffer(buffer));
 
-    this->factory->SetParent(levelEntity, this->worldEntity);
+    this->entityCreator->SetParent(levelEntity, this->worldEntity);
   }
 }
 
@@ -269,7 +268,7 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::LevelEntityNames(entityNamesInDefault));
 
-  this->factory->SetParent(defaultLevel, this->worldEntity);
+  this->entityCreator->SetParent(defaultLevel, this->worldEntity);
 }
 
 /////////////////////////////////////////////////
@@ -289,13 +288,14 @@ void LevelManager::CreatePerformers()
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
-      Entity modelEntity = this->creator->CreateEntities(model);
+      Entity modelEntity = this->entityCreator->CreateEntities(model);
 
       // Make the model a parent of this performer
-      this->creator->SetParent(this->performerMap[model->Name()], modelEntity);
+      this->entityCreator->SetParent(this->performerMap[model->Name()],
+                                     modelEntity);
 
       // Add parent world to the model
-      this->creator->SetParent(modelEntity, this->worldEntity);
+      this->entityCreator->SetParent(modelEntity, this->worldEntity);
     }
   }
 }
@@ -493,9 +493,9 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (_namesToLoad.find(model->Name()) != _namesToLoad.end())
     {
-      Entity modelEntity = this->creator->CreateEntities(model);
+      Entity modelEntity = this->entityCreator->CreateEntities(model);
 
-      this->creator->SetParent(modelEntity, this->worldEntity);
+      this->entityCreator->SetParent(modelEntity, this->worldEntity);
     }
   }
 
@@ -506,9 +506,9 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
     if (_namesToLoad.find(light->Name()) != _namesToLoad.end())
     {
-      Entity lightEntity = this->creator->CreateEntities(light);
+      Entity lightEntity = this->entityCreator->CreateEntities(light);
 
-      this->creator->SetParent(lightEntity, this->worldEntity);
+      this->entityCreator->SetParent(lightEntity, this->worldEntity);
     }
   }
 
@@ -527,7 +527,7 @@ void LevelManager::UnloadInactiveEntities(
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
         {
-          this->creator->RequestRemoveEntity(_entity, true);
+          this->entityCreator->RequestRemoveEntity(_entity, true);
         }
         return true;
       });
@@ -538,7 +538,7 @@ void LevelManager::UnloadInactiveEntities(
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
         {
-          this->creator->RequestRemoveEntity(_entity, true);
+          this->entityCreator->RequestRemoveEntity(_entity, true);
         }
         return true;
       });

@@ -140,8 +140,8 @@ namespace ignition
       /// \brief Flag whether to use levels or not.
       private: bool useLevels{false};
 
-      /// \brief Entity creator API.
-      private: std::unique_ptr<SdfEntityCreator> creator{nullptr};
+      /// \brief Entity Creator API.
+      private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
     };
     }
   }
