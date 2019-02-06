@@ -29,9 +29,6 @@
 
 #include "ignition/gazebo/Util.hh"
 
-//using namespace ignition;
-//using namespace gazebo;
-
 namespace ignition
 {
 namespace gazebo
