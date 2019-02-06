@@ -29,7 +29,6 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -50,11 +49,11 @@ class ignition::gazebo::systems::ImuSensor
   /// \brief Destructor
   public: ~ImuSensor();
 
-  /// \brief Load the imu from an sdf element
-  /// \param[in] _sdf SDF element describing the imu
+  /// \brief Load the IMU from an sdf element
+  /// \param[in] _sdf SDF element describing the IMU
   public: void Load(const sdf::ElementPtr &_sdf);
 
-  /// \brief Publish imu data over ign transport
+  /// \brief Publish IMU data over ign transport
   public: void Publish();
 
   /// \brief Sensors name
@@ -75,13 +74,13 @@ class ignition::gazebo::systems::ImuSensor
   /// \brief transform from Imu frame to Imu reference frame.
   ignition::math::Quaterniond imuReferenceOrientation;
 
-  /// \brief store gravity vector to be added to the imu output.
+  /// \brief store gravity vector to be added to the IMU output.
   public: ignition::math::Vector3d gravity;
 
   /// \brief Ign transport node
   public: transport::Node node;
 
-  /// \brief publisher for imu data
+  /// \brief publisher for IMU data
   public: transport::Node::Publisher pub;
 
   /// \brief common::Time from when the sensor was updated
@@ -91,34 +90,24 @@ class ignition::gazebo::systems::ImuSensor
 /// \brief Private Imu data class.
 class ignition::gazebo::systems::ImuPrivate
 {
-  /// \brief A map of imu entity to its imu sensor.
+  /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity, std::unique_ptr<ImuSensor>>
       entitySensorMap;
 
-  /// \brief Create imu sensor
+  /// \brief Create IMU sensor
   /// \param[in] _ecm Mutable reference to ECM.
   public: void CreateImuEntities(EntityComponentManager &_ecm);
 
-  /// \brief Update imu sensor data based on physics data
+  /// \brief Update IMU sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
-
-  /// \brief Helper function to generate default topic name for the sensor
-  /// \param[in] _entity Entity to get the world pose for
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: std::string DefaultTopic(const Entity &_entity,
-    const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
-ImuSensor::ImuSensor()
-{
-}
+ImuSensor::ImuSensor() = default;
 
 //////////////////////////////////////////////////
-ImuSensor::~ImuSensor()
-{
-}
+ImuSensor::~ImuSensor() = default;
 
 //////////////////////////////////////////////////
 void ImuSensor::Load(const sdf::ElementPtr &_sdf)
@@ -154,9 +143,7 @@ Imu::Imu() : System(), dataPtr(std::make_unique<ImuPrivate>())
 }
 
 //////////////////////////////////////////////////
-Imu::~Imu()
-{
-}
+Imu::~Imu() = default;
 
 //////////////////////////////////////////////////
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
@@ -194,7 +181,7 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
   // Get the world acceleration (defined in world frame)
   auto gravity = _ecm.Component<components::Gravity>(worldEntity);
 
-  // Create imus
+  // Create IMUs
   _ecm.EachNew<components::Imu>(
     [&](const Entity &_entity,
         const components::Imu *_imu)->bool
@@ -238,9 +225,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Pose3d imuWorldPose = _worldPose->Data();
-          math::Vector3d imuLinearAccel = _linearAccel->Data();
-          math::Vector3d imuAngularVel = _angularVel->Data();
+          const auto &imuWorldPose = _worldPose->Data();
 
           // Get the IMU angular velocity (defined in imu's local frame)
           it->second->angularVel = _angularVel->Data();
@@ -260,7 +245,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update imu: " << _entity << ". "
+          ignerr << "Failed to update IMU: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 

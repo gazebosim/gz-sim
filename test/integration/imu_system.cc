@@ -27,7 +27,6 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
@@ -125,7 +124,7 @@ TEST_F(ImuTest, ModelFalling)
 
   // Create a system that records imu data
   Relay testSystem;
-  math::Vector3d worldGravity(0, 0, -9.8);
+  math::Vector3d worldGravity;
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> accelerations;
   std::vector<math::Vector3d> angularVelocities;
@@ -152,6 +151,14 @@ TEST_F(ImuTest, ModelFalling)
 
               return true;
             });
+
+        _ecm.Each<components::Gravity>(
+            [&](const ignition::gazebo::Entity &,
+                const components::Gravity *_gravity) -> bool
+            {
+              worldGravity = _gravity->Data();
+              return false;
+            });
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -167,6 +174,10 @@ TEST_F(ImuTest, ModelFalling)
   size_t iters200 = 200u;
   server.Run(true, iters200, false);
   EXPECT_EQ(iters200, accelerations.size());
+
+  EXPECT_NEAR(worldGravity.X(), 0, TOL);
+  EXPECT_NEAR(worldGravity.Y(), 0, TOL);
+  EXPECT_NEAR(worldGravity.Z(), -5, TOL);
 
   EXPECT_NEAR(accelerations.back().X(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
