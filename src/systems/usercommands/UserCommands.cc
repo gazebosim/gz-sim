@@ -50,7 +50,7 @@ namespace gazebo
 namespace systems
 {
 /// \brief This class is passed to every command and contains interfaces that
-/// can be shared among all commands. For example, all create and delete
+/// can be shared among all commands. For example, all create and remove
 /// commands can use the `creator` object.
 class UserCommandsInterface
 {
@@ -100,12 +100,12 @@ class CreateCommand : public UserCommand
 };
 
 /// \brief Command to remove an entity from simulation.
-class DeleteCommand : public UserCommand
+class RemoveCommand : public UserCommand
 {
   /// \brief Constructor
-  /// \param[in] _msg Delete message.
+  /// \param[in] _msg Message identifying the entity to be removed.
   /// \param[in] _iface Pointer to user commands interface.
-  public: DeleteCommand(msgs::Entity *_msg,
+  public: RemoveCommand(msgs::Entity *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -126,12 +126,12 @@ class ignition::gazebo::systems::UserCommandsPrivate
   public: bool CreateService(const msgs::EntityFactory &_req,
       msgs::Boolean &_res);
 
-  /// \brief Callback for delete service
+  /// \brief Callback for remove service
   /// \param[in] _req Request containing identification of entity to be removed.
   /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully deleted.
+  /// It does not mean that the entity will be successfully removed.
   /// \return True if successful.
-  public: bool DeleteService(const msgs::Entity &_req,
+  public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
@@ -178,12 +178,12 @@ void UserCommands::Configure(const Entity &_entity,
 
   ignmsg << "Create service on [" << createService << "]" << std::endl;
 
-  // Delete service
-  std::string deleteService{"/world/" + worldName + "/delete"};
-  this->dataPtr->node.Advertise(deleteService, &UserCommandsPrivate::DeleteService,
-      this->dataPtr.get());
+  // Remove service
+  std::string removeService{"/world/" + worldName + "/remove"};
+  this->dataPtr->node.Advertise(removeService,
+      &UserCommandsPrivate::RemoveService, this->dataPtr.get());
 
-  ignmsg << "Delete service on [" << deleteService << "]" << std::endl;
+  ignmsg << "Remove service on [" << removeService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -233,13 +233,13 @@ bool UserCommandsPrivate::CreateService(const msgs::EntityFactory &_req,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::DeleteService(const msgs::Entity &_req,
+bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
     msgs::Boolean &_res)
 {
   // Create command and push it to queue
   auto msg = _req.New();
   msg->CopyFrom(_req);
-  auto cmd = std::make_unique<DeleteCommand>(msg, this->iface);
+  auto cmd = std::make_unique<RemoveCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -413,39 +413,39 @@ bool CreateCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-DeleteCommand::DeleteCommand(msgs::Entity *_msg,
+RemoveCommand::RemoveCommand(msgs::Entity *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommand(_msg, _iface)
 {
 }
 
 //////////////////////////////////////////////////
-bool DeleteCommand::Execute()
+bool RemoveCommand::Execute()
 {
-  auto deleteMsg = dynamic_cast<const msgs::Entity *>(this->msg);
-  if (nullptr == deleteMsg)
+  auto removeMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == removeMsg)
   {
-    ignerr << "Internal error, null delete message" << std::endl;
+    ignerr << "Internal error, null remove message" << std::endl;
     return false;
   }
 
   Entity entity{kNullEntity};
-  if (deleteMsg->id() != kNullEntity)
+  if (removeMsg->id() != kNullEntity)
   {
-    entity = deleteMsg->id();
+    entity = removeMsg->id();
   }
-  else if (!deleteMsg->name().empty() &&
-      deleteMsg->type() != msgs::Entity::NONE)
+  else if (!removeMsg->name().empty() &&
+      removeMsg->type() != msgs::Entity::NONE)
   {
-    if (deleteMsg->type() == msgs::Entity::MODEL)
+    if (removeMsg->type() == msgs::Entity::MODEL)
     {
       entity = this->iface->ecm->EntityByComponents(components::Model(),
-        components::Name(deleteMsg->name()));
+        components::Name(removeMsg->name()));
     }
-    else if (deleteMsg->type() == msgs::Entity::LIGHT)
+    else if (removeMsg->type() == msgs::Entity::LIGHT)
     {
       entity = this->iface->ecm->EntityByComponents(
-        components::Name(deleteMsg->name()));
+        components::Name(removeMsg->name()));
 
       auto lightComp = this->iface->ecm->Component<components::Light>(entity);
       if (nullptr == lightComp)
@@ -453,22 +453,22 @@ bool DeleteCommand::Execute()
     }
     else
     {
-      ignerr << "Deleting entities of type [" << deleteMsg->type()
+      ignerr << "Deleting entities of type [" << removeMsg->type()
              << "] is not supported." << std::endl;
       return false;
     }
   }
   else
   {
-    ignerr << "Delete command missing either entity's ID or name + type"
+    ignerr << "Remove command missing either entity's ID or name + type"
            << std::endl;
     return false;
   }
 
   if (entity == kNullEntity)
   {
-    ignerr << "Entity named [" << deleteMsg->name() << "] of type ["
-           << deleteMsg->type() << "] not found, so not deleted." << std::endl;
+    ignerr << "Entity named [" << removeMsg->name() << "] of type ["
+           << removeMsg->type() << "] not found, so not removed." << std::endl;
     return false;
   }
 
