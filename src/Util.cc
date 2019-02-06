@@ -29,11 +29,14 @@
 
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
-
+namespace ignition
+{
+namespace gazebo
+{
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
-math::Pose3d ignition::gazebo::worldPose(const Entity &_entity,
+math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   // work out pose in world frame
@@ -54,7 +57,7 @@ math::Pose3d ignition::gazebo::worldPose(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-std::string ignition::gazebo::scopedName(const Entity &_entity,
+std::string scopedName(const Entity &_entity,
     const EntityComponentManager &_ecm, const std::string &_delim)
 {
   std::string result;
@@ -124,5 +127,7 @@ std::string ignition::gazebo::scopedName(const Entity &_entity,
 
   return result;
 }
-
+}
+}
+}
 
