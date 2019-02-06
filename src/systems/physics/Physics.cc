@@ -125,9 +125,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
 
-  /// \brief Delete physics entities if they are removed from the ECM
+  /// \brief Remove physics entities if they are removed from the ECM
   /// \param[in] _ecm Constant reference to ECM.
-  public: void DeletePhysicsEntities(const EntityComponentManager &_ecm);
+  public: void RemovePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
   /// \param[in] _ecm Constant reference to ECM.
@@ -215,10 +215,10 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->UpdateSim(_ecm);
     }
 
-    // Entities scheduled to be erased should be erased from physics after the
-    // simulation step. Otherwise, since the to-be-erased entity still shows up
+    // Entities scheduled to be removed should be removed from physics after the
+    // simulation step. Otherwise, since the to-be-removed entity still shows up
     // in the ECM::Each the UpdatePhysics and UpdateSim calls will have an error
-    this->dataPtr->DeletePhysicsEntities(_ecm);
+    this->dataPtr->RemovePhysicsEntities(_ecm);
   }
 }
 
@@ -251,10 +251,10 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
-        const components::Model * /* _model */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent)->bool
+          const components::Model * /* _model */,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
         // Check if model already exists
         if (this->entityModelMap.find(_entity) != this->entityModelMap.end())
@@ -341,11 +341,11 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
       [&](const Entity &  _entity,
-        const components::Collision * /* _collision */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::Geometry *_geom,
-        const components::ParentEntity *_parent)->bool
+          const components::Collision * /* _collision */,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::ParentEntity *_parent) -> bool
       {
         if (this->entityCollisionMap.find(_entity) !=
             this->entityCollisionMap.end())
@@ -464,7 +464,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::DeletePhysicsEntities(const EntityComponentManager &_ecm)
+void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Assume the world will not be erased
   // Only removing models is supported by ign-physics right now so we only
