@@ -30,8 +30,9 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
-  SdfEntityCreator.cc
+  LevelManager.cc
   Model.cc
+  SdfEntityCreator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -49,9 +50,9 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
-  SdfEntityCreator_TEST.cc
   ign_TEST.cc
   Model_TEST.cc
+  SdfEntityCreator_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
