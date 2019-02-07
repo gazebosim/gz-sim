@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <cstdint>
 #include <memory>
