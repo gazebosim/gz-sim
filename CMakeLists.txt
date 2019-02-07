@@ -45,6 +45,11 @@ ign_find_package(ignition-transport6 REQUIRED)
 set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-msgs
+ign_find_package(ignition-msgs3 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
 ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
@@ -106,4 +111,13 @@ configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials
 
 ign_create_docs(
   API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md")
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
+  TAGFILES
+  "\"${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}\" \
+   \"${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}\" \
+   \"${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}\" \
+   \"${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}\" \
+   \"${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}\" \
+   \"${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}\" \
+   \"${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}\""
+)

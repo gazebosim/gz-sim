@@ -74,10 +74,26 @@ namespace ignition
     /// ## Services
     ///
     /// The following are services provided by the Server.
-    /// List syntax: *topic_name(request_message) : response_message*
+    /// The <world_name> in the service list is the name of the
+    /// simulated world.
     ///
-    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
-    ///   + Returns the current scene information.
+    /// List syntax: *service_name(request_msg_type) : response_msg_type*
+    ///
+    ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
+    ///     + Returns the current scene information.
+    ///
+    /// ## Topics
+    ///
+    /// The following are topics provided by the Server.
+    /// The <world_name> in the service list is the name of the
+    /// simulated world.
+    ///
+    /// List syntax: *topic_name : published_msg_type*
+    ///
+    /// 1. /world/<world_name>/clock : ignition::msgs::Clock
+    ///
+    /// 2. /world/<world_name>/stats : ignition::msgs::WorldStatistics
+    ///   + This topic is throttled to 5Hz.
     ///
     class IGNITION_GAZEBO_VISIBLE Server
     {
@@ -208,7 +224,7 @@ namespace ignition
 
       /// \brief Return true if the specified world has an entity with the
       /// provided name and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
@@ -219,13 +235,13 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const std::string &_name,
+      public: bool RequestRemoveEntity(const std::string &_name,
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
       /// \brief Return true if the specified world has an entity with the
       /// provided id and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _entity The entity to delete.
@@ -234,7 +250,7 @@ namespace ignition
       /// \param[in] _worldIndex Index of the world.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const Entity _entity,
+      public: bool RequestRemoveEntity(const Entity _entity,
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 

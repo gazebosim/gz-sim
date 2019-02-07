@@ -29,6 +29,8 @@
 #include <utility>
 #include <vector>
 
+#include <sdf/World.hh>
+
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
@@ -39,11 +41,12 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
+
+#include "LevelManager.hh"
 
 using namespace std::chrono_literals;
 
@@ -97,8 +100,10 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
+      /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        const SystemLoaderPtr &_systemLoader);
+                                        const SystemLoaderPtr &_systemLoader,
+                                        const bool _useLevels = false);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -183,7 +188,7 @@ namespace ignition
 
       /// \brief Return true if an entity exists with the
       /// provided name and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _name Name of the entity to delete.
@@ -191,12 +196,12 @@ namespace ignition
       /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const std::string &_name,
+      public: bool RequestRemoveEntity(const std::string &_name,
           bool _recursive = true);
 
       /// \brief Return true if an entity exists with the
       /// provided id and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
@@ -206,7 +211,7 @@ namespace ignition
       /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const Entity _entity,
+      public: bool RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
       /// \brief Get the EventManager
@@ -275,6 +280,9 @@ namespace ignition
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
 
+      /// \brief Manager of all levels.
+      private: std::unique_ptr<LevelManager> levelMgr;
+
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
 
@@ -304,6 +312,9 @@ namespace ignition
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
 
+      /// \brief Clock publisher.
+      private: ignition::transport::Node::Publisher clockPub;
+
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
@@ -318,6 +329,9 @@ namespace ignition
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
+
+      /// \brief Pointer to the sdf::World object of this runner
+      private: const sdf::World *sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
@@ -338,6 +352,8 @@ namespace ignition
 
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
+
+      friend class LevelManager;
     };
     }
   }
