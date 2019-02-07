@@ -177,7 +177,7 @@ void SceneBroadcaster::Configure(
 }
 
 //////////////////////////////////////////////////
-void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
+void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
@@ -186,9 +186,15 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
 
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
-  // TODO(louise) Fill message header
 
   msgs::Pose_V poseMsg;
+
+  // Set the time stamp in the header
+  msgs::Time *stamp = poseMsg.mutable_header()->mutable_stamp();
+  auto simTimeSecNsec =
+    ignition::math::durationToSecNsec(_info.simTime);
+  stamp->set_sec(simTimeSecNsec.first);
+  stamp->set_nsec(simTimeSecNsec.second);
 
     // Models
   _manager.Each<components::Model, components::Name, components::Pose>(
@@ -250,7 +256,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &/*_info*/,
   this->dataPtr->posePub.Publish(poseMsg);
 
   // call SceneGraphRemoveEntities at the end of this update cycle so that
-  // erased entities are removed from the scene graph for the next update cycle
+  // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 }
 
@@ -488,39 +494,39 @@ void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
     const EntityComponentManager &_manager)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
-  // Handle Erased Entities
-  std::vector<Entity> erasedEntities;
+  // Handle Removed Entities
+  std::vector<Entity> removedEntities;
 
   // Scene a deleted model deletes all its child entities, we don't have to
   // handle links. We assume here that links are not deleted by themselves.
   // TODO(anyone) Handle case where other entities can be deleted without the
   // parent model being deleted.
   // Models
-  _manager.EachErased<components::Model>(
+  _manager.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *) -> bool
       {
-        erasedEntities.push_back(_entity);
+        removedEntities.push_back(_entity);
         // Remove from graph
         RemoveFromGraph(_entity, this->sceneGraph);
         return true;
       });
 
   // Lights
-  _manager.EachErased<components::Light>(
+  _manager.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *) -> bool
       {
-        erasedEntities.push_back(_entity);
+        removedEntities.push_back(_entity);
         // Remove from graph
         RemoveFromGraph(_entity, this->sceneGraph);
         return true;
       });
 
-  if (!erasedEntities.empty())
+  if (!removedEntities.empty())
   {
     // Send the list of deleted entities
     msgs::UInt32_V deletionMsg;
 
-    for (const auto &entity : erasedEntities)
+    for (const auto &entity : removedEntities)
     {
       deletionMsg.mutable_data()->Add(entity);
     }

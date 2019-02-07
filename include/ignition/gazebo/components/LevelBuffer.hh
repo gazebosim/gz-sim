@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
+#define IGNITION_GAZEBO_COMPONENTS_LEVELBUFFER_HH_
 
-#include <memory>
-#include <sdf/Joint.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
+#include "ignition/gazebo/components/Factory.hh"
+#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -31,14 +31,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that contains the joint type. This is a simple wrapper
-  /// around sdf::JointType
-  using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointType", JointType)
+  /// \brief A component that holds the buffer setting of a level's geometry
+  using LevelBuffer = SimpleWrapper<double, class LevelBufferTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelBuffer",
+      LevelBuffer)
 }
 }
 }
 }
-
 #endif
+
