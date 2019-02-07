@@ -32,12 +32,8 @@ TEST(ComponentFactoryTest, Register)
   // Create a custom component.
   using MyCustom = components::TagWrapper<class MyCustomTag>;
 
-  std::function<std::unique_ptr<MyCustom>()> f = []()
-  {
-    return std::make_unique<MyCustom>();
-  };
-
-  factory->Register<MyCustom>("ign_gazebo_components.MyCustom", f);
+  factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
+      new components::ComponentDescriptor<MyCustom>());
   auto components = factory->Components();
   EXPECT_NE(components.end(),
       std::find(components.begin(), components.end(),
