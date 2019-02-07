@@ -213,7 +213,7 @@ TEST_F(ImuTest, ModelFalling)
   // This assumes inelastic collisions with the ground.
   double dtHit = tHit + 0.5 - (iters200 + 1) * stepSize;
   double steps = ceil(dtHit / stepSize);
-  EXPECT_GT(steps, 0);
+  ASSERT_GT(steps, 0);
   server.Run(true, steps, false);
 
   // Get the gravity vector for the final position of the box
@@ -234,5 +234,7 @@ TEST_F(ImuTest, ModelFalling)
   mutex.unlock();
 
   // Verify reported name
+  mutex.lock();
   EXPECT_EQ(imuMsgs.back().entity_name(), sensorName);
+  mutex.unlock();
 }
