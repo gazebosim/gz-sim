@@ -19,9 +19,9 @@
 
 #include "ignition/common/Profiler.hh"
 
-#include "ignition/gazebo/Events.hh"
-
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -30,7 +30,12 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const SystemLoaderPtr &_systemLoader)
+                                   const SystemLoaderPtr &_systemLoader,
+                                   const bool _useLevels
+                                   )
+    // \todo(nkoenig) Either copy the world, or add copy constructor to the
+    // World and other elements.
+    : sdfWorld(_world)
 {
   // Keep world name
   this->worldName = _world->Name();
@@ -89,9 +94,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  // Create entities and components
-  auto factory = Factory(this->entityCompMgr, this->eventMgr);
-  factory.CreateEntities(_world);
+  // Create the level manager
+  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
 
   // World control
   transport::NodeOptions opts;
@@ -179,14 +186,6 @@ void SimulationRunner::UpdateCurrentInfo()
 void SimulationRunner::PublishStats()
 {
   IGN_PROFILE("SimulationRunner::PublishStats");
-  // Create the world statistics publisher.
-  if (!this->statsPub.Valid())
-  {
-    transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
-        "stats", advertOpts);
-  }
 
   // Create the world statistics message.
   ignition::msgs::WorldStatistics msg;
@@ -208,8 +207,20 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
-  // Publish the message
+  // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
+
+  // Create and publish the clock message. The clock message is not
+  // throttled.
+  ignition::msgs::Clock clockMsg;
+  clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
+  clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
+  clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
+  clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
+  clockMsg.mutable_system()->set_sec(IGN_SYSTEM_TIME_S());
+  clockMsg.mutable_system()->set_nsec(
+      IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
+  this->clockPub.Publish(clockMsg);
 }
 
 /////////////////////////////////////////////////
@@ -287,6 +298,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   this->running = true;
 
+  // Create the world statistics publisher.
+  if (!this->statsPub.Valid())
+  {
+    transport::AdvertiseMessageOptions advertOpts;
+    advertOpts.SetMsgsPerSec(5);
+    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+        "stats", advertOpts);
+  }
+
+  // Create the clock publisher.
+  if (!this->clockPub.Valid())
+    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   for (uint64_t startingIterations = this->currentInfo.iterations;
@@ -328,6 +352,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
+    this->levelMgr->UpdateLevelsState();
+
     // Update all the systems.
     this->UpdateSystems();
 
@@ -348,8 +374,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Clear all new entities
     this->entityCompMgr.ClearNewlyCreatedEntities();
 
-    // Process entity erasures.
-    this->entityCompMgr.ProcessEraseEntityRequests();
+    // Process entity removals.
+    this->entityCompMgr.ProcessRemoveEntityRequests();
   }
 
   this->running = false;
@@ -535,7 +561,7 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const std::string &_name,
+bool SimulationRunner::RequestRemoveEntity(const std::string &_name,
     bool _recursive)
 {
   bool result = false;
@@ -544,7 +570,7 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name,
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
+        this->entityCompMgr.RequestRemoveEntity(_entity, _recursive);
         result = true;
         return false;
       }
@@ -574,12 +600,12 @@ std::optional<Entity> SimulationRunner::EntityByName(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const Entity _entity,
+bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
     bool _recursive)
 {
   if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
+    this->entityCompMgr.RequestRemoveEntity(_entity, _recursive);
     return true;
   }
 

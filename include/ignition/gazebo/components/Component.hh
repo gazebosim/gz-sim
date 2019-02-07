@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTTYPE_HH_
+*/
+#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
-#include <memory>
-#include <sdf/Joint.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 
 namespace ignition
 {
@@ -31,11 +28,15 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that contains the joint type. This is a simple wrapper
-  /// around sdf::JointType
-  using JointType = SimpleWrapper<sdf::JointType, class JointTypeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointType", JointType)
+  /// A component base class.
+  class IGNITION_GAZEBO_VISIBLE Component
+  {
+    /// \brief Default constructor.
+    public: Component() = default;
+
+    /// \brief Default destructor.
+    public: virtual ~Component() = default;
+  };
 }
 }
 }
