@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EntityComponentManager.hh"
 
 #include <map>
 #include <set>
 #include <vector>
 
 #include "ignition/common/Profiler.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -602,4 +602,3 @@ void EntityComponentManager::RebuildViews()
     }
   }
 }
-

@@ -17,10 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MODEL_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/TagWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/TagWrapper.hh"
 
 namespace ignition
 {
@@ -32,8 +31,10 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a model.
   using Model = TagWrapper<class ModelTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Model", Model)
 }
 }
 }
 }
+
 #endif
