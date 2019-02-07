@@ -45,6 +45,11 @@ ign_find_package(ignition-transport6 REQUIRED)
 set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-msgs
+ign_find_package(ignition-msgs3 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
 ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
