@@ -18,7 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include <array>
+#include <vector>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Box.hh>
@@ -50,6 +50,7 @@ using namespace ignition;
 using namespace gazebo;
 using namespace std::chrono_literals;
 
+//////////////////////////////////////////////////
 class Relay
 {
   public: Relay()
@@ -88,6 +89,7 @@ class Relay
   protected: gazebo::MockSystem *mockSystem;
 };
 
+//////////////////////////////////////////////////
 /// \brief A system to move models to arbitrary poses. Note that this does not
 /// work if the physics system is running.
 class ModelMover: public Relay
@@ -131,6 +133,7 @@ class ModelMover: public Relay
   private: std::optional<math::Pose3d> poseCmd;
 };
 
+//////////////////////////////////////////////////
 class LevelManagerFixture : public ::testing::Test
 {
   // Documentation inherited
@@ -173,7 +176,7 @@ class LevelManagerFixture : public ::testing::Test
             return true;
           });
 
-      _ecm.EachErased<components::Model, components::Name>(
+      _ecm.EachRemoved<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
               const components::Name *_name) -> bool
           {
@@ -212,7 +215,7 @@ TEST_F(LevelManagerFixture, DefaultLevel)
   // Check entities loaded on the default level
   recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
                             const gazebo::EntityComponentManager &_ecm)
-      {
+  {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,
             const components::LevelEntityNames *_levelEntityNames) -> bool
@@ -252,8 +255,8 @@ TEST_F(LevelManagerFixture, LevelLoadUnload)
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
 
-  std::array entitiesNonDefault{"tile_1", "tile_2", "tile_3", "tile_4",
-                                "tile_5"};
+  std::vector<std::string> entitiesNonDefault{"tile_1", "tile_2", "tile_3",
+                                              "tile_4", "tile_5"};
 
   // Run once and check levels
   this->server->Run(true, 1, false);

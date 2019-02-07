@@ -29,7 +29,8 @@
 #include <utility>
 #include <vector>
 
-#include <sdf/Gui.hh>
+#include <sdf/World.hh>
+
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
@@ -40,7 +41,6 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Factory.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
@@ -100,6 +100,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
+      /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
                                         const SystemLoaderPtr &_systemLoader,
                                         const bool _useLevels = false);
@@ -121,9 +122,6 @@ namespace ignition
 
       /// \brief Update all the systems
       public: void UpdateSystems();
-
-      /// \brief Update all levels
-      public: void UpdateLevels();
 
       /// \brief Publish current world statistics.
       public: void PublishStats();
@@ -190,7 +188,7 @@ namespace ignition
 
       /// \brief Return true if an entity exists with the
       /// provided name and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \param[in] _name Name of the entity to delete.
@@ -198,12 +196,12 @@ namespace ignition
       /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const std::string &_name,
+      public: bool RequestRemoveEntity(const std::string &_name,
           bool _recursive = true);
 
       /// \brief Return true if an entity exists with the
       /// provided id and the entity was queued for deletion. Note that
-      /// the entity is not erased immediately. Entity deletion happens at
+      /// the entity is not removed immediately. Entity deletion happens at
       /// the end of the next (or current depending on when this function is
       /// called) simulation step.
       /// \details If multiple entities with the same name exist, only the
@@ -213,7 +211,7 @@ namespace ignition
       /// entities. True by default.
       /// \return True if the entity exists in the world and it was queued
       /// for deletion.
-      public: bool RequestEraseEntity(const Entity _entity,
+      public: bool RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
       /// \brief Get the EventManager
