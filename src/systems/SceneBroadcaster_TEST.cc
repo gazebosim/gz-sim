@@ -57,6 +57,10 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   bool received{false};
   std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
+    ASSERT_TRUE(_msg.has_header());
+    ASSERT_TRUE(_msg.header().has_stamp());
+    EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
+
     EXPECT_EQ(10, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
@@ -252,8 +256,8 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 
   // Delete the cylinder. Deleting the model and the link to avoid physics
   // warnings
-  server.RequestEraseEntity(cylinderModelId.value(), false);
-  server.RequestEraseEntity(cylinderLinkId.value(), false);
+  server.RequestRemoveEntity(cylinderModelId.value(), false);
+  server.RequestRemoveEntity(cylinderLinkId.value(), false);
   server.Run(true, 10, false);
 
   EXPECT_EQ(initEntityCount - 2, server.EntityCount());

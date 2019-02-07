@@ -19,9 +19,9 @@
 
 #include "ignition/common/Profiler.hh"
 
-#include "ignition/gazebo/Events.hh"
-
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -33,6 +33,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const bool _useLevels
                                    )
+    // \todo(nkoenig) Either copy the world, or add copy constructor to the
+    // World and other elements.
     : sdfWorld(_world)
 {
   // Keep world name
@@ -95,9 +97,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
 
-  // Read level info and load the active levels
-  this->levelMgr->Configure();
-  this->UpdateLevels();
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
 
   // World control
   transport::NodeOptions opts;
@@ -265,12 +266,6 @@ void SimulationRunner::UpdateSystems()
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::UpdateLevels()
-{
-  this->levelMgr->UpdateLevelsState();
-}
-
-/////////////////////////////////////////////////
 void SimulationRunner::Stop()
 {
   this->running = false;
@@ -340,7 +335,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
-    this->UpdateLevels();
+    this->levelMgr->UpdateLevelsState();
 
     // Update all the systems.
     this->UpdateSystems();
@@ -362,8 +357,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Clear all new entities
     this->entityCompMgr.ClearNewlyCreatedEntities();
 
-    // Process entity erasures.
-    this->entityCompMgr.ProcessEraseEntityRequests();
+    // Process entity removals.
+    this->entityCompMgr.ProcessRemoveEntityRequests();
   }
 
   this->running = false;
@@ -549,7 +544,7 @@ bool SimulationRunner::HasEntity(const std::string &_name) const
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const std::string &_name,
+bool SimulationRunner::RequestRemoveEntity(const std::string &_name,
     bool _recursive)
 {
   bool result = false;
@@ -558,7 +553,7 @@ bool SimulationRunner::RequestEraseEntity(const std::string &_name,
     {
       if (_entityName->Data() == _name)
       {
-        this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
+        this->entityCompMgr.RequestRemoveEntity(_entity, _recursive);
         result = true;
         return false;
       }
@@ -588,12 +583,12 @@ std::optional<Entity> SimulationRunner::EntityByName(
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::RequestEraseEntity(const Entity _entity,
+bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
     bool _recursive)
 {
   if (this->entityCompMgr.HasEntity(_entity))
   {
-    this->entityCompMgr.RequestEraseEntity(_entity, _recursive);
+    this->entityCompMgr.RequestRemoveEntity(_entity, _recursive);
     return true;
   }
 

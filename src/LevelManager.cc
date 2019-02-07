@@ -15,46 +15,26 @@
  *
  */
 
-#include <sdf/Collision.hh>
-#include <sdf/Joint.hh>
+#include <sdf/Geometry.hh>
 #include <sdf/Light.hh>
-#include <sdf/Link.hh>
 #include <sdf/Model.hh>
-#include <sdf/Physics.hh>
-#include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Factory.hh"
 
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "LevelManager.hh"
@@ -67,14 +47,10 @@ using namespace gazebo;
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
     : runner(_runner), useLevels(_useLevels)
 {
-  this->factory = std::make_unique<Factory>(
+  this->entityCreator = std::make_unique<SdfEntityCreator>(
       this->runner->entityCompMgr,
       this->runner->eventMgr);
-}
 
-/////////////////////////////////////////////////
-void LevelManager::Configure()
-{
   this->ReadLevelPerformerInfo();
   this->CreatePerformers();
 }
@@ -85,14 +61,14 @@ void LevelManager::ReadLevelPerformerInfo()
   this->worldEntity = this->runner->entityCompMgr.CreateEntity();
 
   // World components
-  this->runner->entityCompMgr.CreateComponent(worldEntity,
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
                                                components::World());
   this->runner->entityCompMgr.CreateComponent(
-      worldEntity, components::Name(this->runner->sdfWorld->Name()));
+      this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 
-  // TODO(anyone) This should probaly go somwhere else as it is a global
+  // TODO(anyone) This should probaly go somewhere else as it is a global
   // constant.
   const std::string kPluginName{"ignition::gazebo"};
 
@@ -104,6 +80,7 @@ void LevelManager::ReadLevelPerformerInfo()
     if (plugin->Get<std::string>("name") == kPluginName)
     {
       pluginElem = plugin;
+      break;
     }
   }
 
@@ -111,11 +88,14 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     if (pluginElem == nullptr)
     {
-      ignerr << "Could not find a plugin tag with name " << kPluginName << "\n";
-      return;
+      ignerr << "Could not find a plugin tag with name " << kPluginName
+             << ". Levels will not work.\n";
     }
-    this->ReadPerformers(pluginElem);
-    this->ReadLevels(pluginElem);
+    else
+    {
+      this->ReadPerformers(pluginElem);
+      this->ReadLevels(pluginElem);
+    }
   }
 
   this->ConfigureDefaultLevel();
@@ -124,7 +104,6 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
 }
-
 
 /////////////////////////////////////////////////
 void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
@@ -153,7 +132,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
           this->performerMap[ref]);
 
       ignerr << "Found multiple performers (" << name << " and "
-             << performer2->Data() << ")referring to the same entity\n";
+             << performer2->Data() << ") referring to the same entity\n";
     }
 
     sdf::Geometry geometry;
@@ -165,6 +144,12 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Geometry(geometry));
   }
+
+  if (this->useLevels && performerMap.empty())
+  {
+    ignwarn << "Asked to use levels but no <performer>s were found - levels "
+               "will not work.\n";
+  }
 }
 
 /////////////////////////////////////////////////
@@ -174,53 +159,61 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 
   igndbg << "Reading levels info\n";
 
-  if (_sdf != nullptr)
+  if (_sdf == nullptr)
+    return;
+
+  for (auto level = _sdf->GetElement("level"); level;
+       level = level->GetNextElement("level"))
   {
-    for (auto level = _sdf->GetElement("level"); level;
-         level = level->GetNextElement("level"))
+    auto name = level->Get<std::string>("name");
+    auto pose = level->Get<math::Pose3d>("pose");
+    sdf::Geometry geometry;
+    geometry.Load(level->GetElement("geometry"));
+
+    if (nullptr == geometry.BoxShape())
     {
-      auto name = level->Get<std::string>("name");
-      auto pose = level->Get<math::Pose3d>("pose");
-      sdf::Geometry geometry;
-      geometry.Load(level->GetElement("geometry"));
-
-      double buffer = level->Get<double>("buffer", 0.0).first;
-      if (buffer < 0)
-      {
-        ignwarn << "The buffer parameter for Level [" << name << "]cannot be a "
-                << " negative number. Setting to 0.0\n";
-      }
-
-      std::set<std::string> entityNames;
-
-      for (auto ref = level->GetElement("ref"); ref;
-           ref = ref->GetNextElement("ref"))
-      {
-        std::string entityName = ref->GetValue()->GetAsString();
-        entityNames.insert(entityName);
-
-        this->entityNamesInLevels.insert(entityName);
-      }
-
-      // Entity
-      Entity levelEntity = this->runner->entityCompMgr.CreateEntity();
-
-      // Components
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::Level());
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::Pose(pose));
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::Name(name));
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::ParentEntity(worldEntity));
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::LevelEntityNames(entityNames));
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::Geometry(geometry));
-      this->runner->entityCompMgr.CreateComponent(
-          levelEntity, components::LevelBuffer(buffer));
+      ignerr << "Level [" << name << "]'s geometry is not a box, level won't "
+             << "be created." << std::endl;
+      continue;
     }
+
+    double buffer = level->Get<double>("buffer", 0.0).first;
+    if (buffer < 0)
+    {
+      ignwarn << "The buffer parameter for Level [" << name << "]cannot be a "
+              << " negative number. Setting to 0.0\n";
+      buffer = 0.0;
+    }
+
+    std::set<std::string> entityNames;
+
+    for (auto ref = level->GetElement("ref"); ref;
+         ref = ref->GetNextElement("ref"))
+    {
+      std::string entityName = ref->GetValue()->GetAsString();
+      entityNames.insert(entityName);
+
+      this->entityNamesInLevels.insert(entityName);
+    }
+
+    // Entity
+    Entity levelEntity = this->runner->entityCompMgr.CreateEntity();
+
+    // Components
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Level());
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Pose(pose));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Name(name));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::LevelEntityNames(entityNames));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::Geometry(geometry));
+    this->runner->entityCompMgr.CreateComponent(
+        levelEntity, components::LevelBuffer(buffer));
+
+    this->entityCreator->SetParent(levelEntity, this->worldEntity);
   }
 }
 
@@ -259,6 +252,7 @@ void LevelManager::ConfigureDefaultLevel()
   }
 
   // Lights
+  // We assume no performers are lights
   for (uint64_t lightIndex = 0;
        lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
   {
@@ -275,9 +269,9 @@ void LevelManager::ConfigureDefaultLevel()
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::DefaultLevel());
   this->runner->entityCompMgr.CreateComponent(
-      defaultLevel, components::ParentEntity(this->worldEntity));
-  this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::LevelEntityNames(entityNamesInDefault));
+
+  this->entityCreator->SetParent(defaultLevel, this->worldEntity);
 }
 
 /////////////////////////////////////////////////
@@ -295,15 +289,16 @@ void LevelManager::CreatePerformers()
        modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
   {
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
-    if (this->performerMap.find(model->Name()) != this->performerMap.end() )
+    if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
-      Entity modelEntity = this->factory->CreateEntities(model);
+      Entity modelEntity = this->entityCreator->CreateEntities(model);
 
       // Make the model a parent of this performer
-      this->factory->SetParent(this->performerMap[model->Name()], modelEntity);
+      this->entityCreator->SetParent(this->performerMap[model->Name()],
+                                     modelEntity);
 
       // Add parent world to the model
-      this->factory->SetParent(modelEntity, this->worldEntity);
+      this->entityCreator->SetParent(modelEntity, this->worldEntity);
     }
   }
 }
@@ -342,7 +337,6 @@ void LevelManager::UpdateLevelsState()
         math::AxisAlignedBox performerVolume{
              pose->Data().Pos() - perfBox->Size() / 2,
              pose->Data().Pos() + perfBox->Size() / 2};
-
 
         // loop through levels and check for intersections
         // Add all levels with inersections to the levelsToLoad even if they are
@@ -400,7 +394,6 @@ void LevelManager::UpdateLevelsState()
     auto pendingEnd = std::unique(levelsToUnload.begin(), levelsToUnload.end());
     levelsToUnload.erase(pendingEnd, levelsToUnload.end());
   }
-
 
   // Make a list of entity names from all the levels that have been marked to be
   // loaded
@@ -466,7 +459,8 @@ void LevelManager::UpdateLevelsState()
   }
 
   // Finally, upadte the list of active levels
-  for (const auto &level : levelsToLoad) {
+  for (const auto &level : levelsToLoad)
+  {
     if (!this->IsLevelActive(level))
     {
       this->activeLevels.push_back(level);
@@ -502,9 +496,9 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
     if (_namesToLoad.find(model->Name()) != _namesToLoad.end())
     {
-      Entity modelEntity = this->factory->CreateEntities(model);
+      Entity modelEntity = this->entityCreator->CreateEntities(model);
 
-      this->factory->SetParent(modelEntity, this->worldEntity);
+      this->entityCreator->SetParent(modelEntity, this->worldEntity);
     }
   }
 
@@ -515,9 +509,9 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
     if (_namesToLoad.find(light->Name()) != _namesToLoad.end())
     {
-      Entity lightEntity = this->factory->CreateEntities(light);
+      Entity lightEntity = this->entityCreator->CreateEntities(light);
 
-      this->factory->SetParent(lightEntity, this->worldEntity);
+      this->entityCreator->SetParent(lightEntity, this->worldEntity);
     }
   }
 
@@ -536,7 +530,18 @@ void LevelManager::UnloadInactiveEntities(
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
         {
-          this->factory->RequestEraseEntity(_entity, true);
+          this->entityCreator->RequestRemoveEntity(_entity, true);
+        }
+        return true;
+      });
+
+  this->runner->entityCompMgr.Each<components::Light, components::Name>(
+      [&](const Entity &_entity, const components::Light *,
+          const components::Name *_name) -> bool
+      {
+        if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
+        {
+          this->entityCreator->RequestRemoveEntity(_entity, true);
         }
         return true;
       });
