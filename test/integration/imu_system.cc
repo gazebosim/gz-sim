@@ -93,13 +93,15 @@ class Relay
   private: MockSystem *mockSystem;
 };
 
-
+std::mutex mutex;
 std::vector<msgs::IMU> imuMsgs;
 
 /////////////////////////////////////////////////
 void imuCb(const msgs::IMU &_msg)
 {
+  mutex.lock();
   imuMsgs.push_back(_msg);
+  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -187,18 +189,23 @@ TEST_F(ImuTest, ModelFalling)
   EXPECT_NEAR(accelerations.back().Z(), worldGravity.Z(), TOL);
 
   // Check we received messages
+
   EXPECT_GT(imuMsgs.size(), 0u);
+  mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->z(), 0, TOL);
+  mutex.unlock();
 
   server.Run(true, 1u, false);
   EXPECT_NEAR(accelerations.back().X(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Z(), worldGravity.Z(), TOL);
+  mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->z(), 0, TOL);
+  mutex.unlock();
 
   // Predict time of contact with ground plane.
   double tHit = sqrt((z-0.5) / (-worldGravity.Z()));
@@ -217,12 +224,14 @@ TEST_F(ImuTest, ModelFalling)
   EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
   EXPECT_NEAR(accelerations.back().Z(), 0, TOL);
   // Compare sensed gravity values against the gravity sensed for that position
+  mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(),
       -gravity.X(), TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(),
       -gravity.Y(), TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->z(),
       -gravity.Z(), TOL);
+  mutex.unlock();
 
   // Verify reported name
   EXPECT_EQ(imuMsgs.back().entity_name(), sensorName);
