@@ -103,8 +103,9 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
-  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
-  EXPECT_EQ(14u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
+  // x visual + 1 x light
+  EXPECT_EQ(15u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -487,8 +488,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check entities
-  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
-  EXPECT_EQ(8u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x model + 1 x link + 1 x visual + 4 x
+  // light
+  EXPECT_EQ(9u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
