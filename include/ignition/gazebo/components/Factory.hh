@@ -168,7 +168,7 @@ namespace components
     /// generally ends up in a shared library that will be loaded at runtime.
     ///
     /// Because this and the plugin loader both use static variables, and the
-    /// order of static initialization and construction are not guaranteed, this
+    /// order of static initialization and destruction are not guaranteed, this
     /// can lead to a scenario where the shared library is unloaded (with the
     /// ComponentDescriptor), but the Factory still exists. For this reason,
     /// we just keep a pointer, which will dangle until the program is shutdown.
