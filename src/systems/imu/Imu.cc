@@ -259,7 +259,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           // Set the IMU orientation
           // imu orientation with respect to reference frame
           it->second->imuReferenceOrientation =
-              it->second->worldToReference.Inverse() + imuWorldPose.Rot();
+              it->second->worldToReference.Inverse() * imuWorldPose.Rot();
         }
         else
         {
