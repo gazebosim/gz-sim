@@ -36,7 +36,7 @@
 
 #include "plugins/MockSystem.hh"
 
-#define TOL 1e-2
+#define TOL 1e-4
 
 using namespace ignition;
 using namespace gazebo;
