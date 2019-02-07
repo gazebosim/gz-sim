@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_WORLD_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/TagWrapper.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity as being a world.
-  using World = TagWrapper<class WorldTag>;
+  using World = SimpleWrapper<NoData, class WorldTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.World", World)
 }
 }

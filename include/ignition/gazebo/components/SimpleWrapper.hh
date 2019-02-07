@@ -37,6 +37,11 @@ namespace components
   // Forward declarations.
   template<typename DataType> class SimpleWrapperPrivate;
 
+  /// \brief Convenient type to be used by components that don't wrap any data.
+  /// I.e. they act as tags and their presence is enough to infer something
+  /// about the entity.
+  using NoData = std::add_lvalue_reference<void>;
+
   /// \brief A component type that wraps any data type. The intention is for
   /// this class to be used to create simple components while avoiding a lot of
   /// boilerplate code. The Identifier must be a unique type so that type
@@ -106,6 +111,22 @@ namespace components
     public: inline static uint64_t id = 0;
   };
 
+  template <typename Identifier>
+  class SimpleWrapper<NoData, Identifier> : public Component
+  {
+    // Documentation inherited
+    public: bool operator==(const SimpleWrapper<NoData, Identifier> &) const;
+
+    // Documentation inherited
+    public: bool operator!=(const SimpleWrapper<NoData, Identifier> &) const;
+
+    /// \brief Component name.
+    public: inline static std::string name = "";
+
+    /// \brief Component id.
+    public: inline static uint64_t id = 0;
+  };
+
   template <typename DataType>
   class SimpleWrapperPrivate
   {
@@ -166,6 +187,22 @@ namespace components
   operator!=(const SimpleWrapper<DataType, Identifier> &_simpleWrapper) const
   {
     return this->dataPtr->data != _simpleWrapper.Data();
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  bool SimpleWrapper<NoData, Identifier>::operator==(
+      const SimpleWrapper<NoData, Identifier> &) const
+  {
+    return true;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  bool SimpleWrapper<NoData, Identifier>::operator!=(
+      const SimpleWrapper<NoData, Identifier> &) const
+  {
+    return false;
   }
 }
 }
