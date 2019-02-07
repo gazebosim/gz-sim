@@ -9,6 +9,7 @@ set(tests
   events.cc
   examples_build.cc
   imu_system.cc
+  level_manager.cc
   model.cc
   physics_system.cc
   play_pause.cc

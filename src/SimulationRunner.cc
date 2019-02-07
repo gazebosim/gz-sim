@@ -30,7 +30,12 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const SystemLoaderPtr &_systemLoader)
+                                   const SystemLoaderPtr &_systemLoader,
+                                   const bool _useLevels
+                                   )
+    // \todo(nkoenig) Either copy the world, or add copy constructor to the
+    // World and other elements.
+    : sdfWorld(_world)
 {
   // Keep world name
   this->worldName = _world->Name();
@@ -89,9 +94,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  // Create entities and components
-  auto creator = SdfEntityCreator(this->entityCompMgr, this->eventMgr);
-  creator.CreateEntities(_world);
+  // Create the level manager
+  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
 
   // World control
   transport::NodeOptions opts;
@@ -327,6 +334,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
+
+    this->levelMgr->UpdateLevelsState();
 
     // Update all the systems.
     this->UpdateSystems();
