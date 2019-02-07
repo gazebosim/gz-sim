@@ -425,4 +425,3 @@ void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
   this->dataPtr->ecm->CreateComponent(_child,
       components::ParentEntity(_parent));
 }
-
