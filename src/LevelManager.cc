@@ -68,7 +68,7 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(
       this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
 
-  this->runner->entityCompMgr.CreateComponent(worldEntity,
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Gravity(this->runner->sdfWorld->Gravity()));
 
   auto worldElem = this->runner->sdfWorld->Element();

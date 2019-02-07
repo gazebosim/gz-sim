@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
 
+#include <ignition/math/Vector3.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
