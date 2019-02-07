@@ -46,14 +46,12 @@ TEST(ComponentFactoryTest, New)
   auto factory = components::Factory::Instance();
 
   {
-    auto comp = factory->New<components::Pose>(
-      "__unknown_component__");
+    auto comp = factory->New("__unknown_component__");
     ASSERT_TRUE(comp == nullptr);
   }
 
   {
-    auto comp = factory->New<components::Pose>(
-      "ign_gazebo_components.Pose");
+    auto comp = factory->New<components::Pose>();
     ASSERT_TRUE(comp != nullptr);
     EXPECT_EQ("ign_gazebo_components.Pose", comp->name);
     EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::name);

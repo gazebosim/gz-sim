@@ -69,6 +69,9 @@ namespace components
   {
     /// \brief Register a component.
     /// \param[in] _type Type of component to register.
+    /// \param[in] _desc Object to manage the creation of ComponentTypeT
+    ///   objects.
+    /// \tparam ComponentTypeT Type of component to register.
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_desc)
     {
@@ -82,13 +85,14 @@ namespace components
     }
 
     /// \brief Create a new instance of a component.
-    /// \param[in] _type Component key to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: template<typename T, typename KeyT>
-    std::unique_ptr<T> New(const KeyT &_type)
+    /// \tparam ComponentTypeT component type requested
+    public: template<typename ComponentTypeT>
+    std::unique_ptr<ComponentTypeT> New()
     {
-      return std::unique_ptr<T>(static_cast<T*>(this->New(_type).release()));
+      return std::unique_ptr<ComponentTypeT>(static_cast<ComponentTypeT*>(
+            New(ComponentTypeT::name).release()));
     }
 
     /// \brief Create a new instance of a component.
@@ -99,29 +103,26 @@ namespace components
         const std::string &_type)
     {
       std::string type;
-      const std::string kCompStr  = "ign_gazebo_components.";
-      const std::string kCompStr1 = "ignition.gazebo.components.";
-      const std::string kCompStr2 = ".ignition.gazebo.components.";
       // Convert "ignition.gazebo.components." to "ign_gazebo_components.".
-      if (_type.compare(0, kCompStr1.size(), kCompStr1) == 0)
+      if (_type.compare(0, strlen(kCompStr1), kCompStr1) == 0)
       {
-        type = kCompStr + _type.substr(kCompStr1.size());
+        type = kCompStr + _type.substr(strlen(kCompStr1));
       }
       // Convert ".ignition.gazebo.components" to "ign_gazebo_components.".
-      else if (_type.compare(0, kCompStr2.size(), kCompStr2) == 0)
+      else if (_type.compare(0, strlen(kCompStr2), kCompStr2) == 0)
       {
-        type = kCompStr + _type.substr(kCompStr2.size());
+        type = kCompStr + _type.substr(strlen(kCompStr2));
       }
       else
       {
         // Fix typenames that are missing "ign_gazebo_components."
         // at the beginning.
-        if (_type.compare(0, kCompStr.size(), kCompStr) != 0)
+        if (_type.compare(0, strlen(kCompStr), kCompStr) != 0)
           type = kCompStr;
         type += _type;
       }
 
-      // Create a new component if a FactoryFn has been assigned to this type.
+      // Create a new component if a Descriptor has been assigned to this type.
       std::unique_ptr<components::Component> comp;
       auto it = this->compsByName.find(type);
       if (it != this->compsByName.end())
@@ -176,6 +177,18 @@ namespace components
 
     /// \brief A list of registered components where the key is its id.
     private: std::map<ComponentTypeId, ComponentDescriptorBase*> compsById;
+
+    /// \brief Valid component name prefix
+    private: constexpr static const char *kCompStr {
+               "ign_gazebo_components."};
+
+    /// \brief Component name prefix that should be changed
+    private: constexpr static const char *kCompStr1 {
+               "ignition.gazebo.components."};
+
+    /// \brief Component name prefix that should be changed
+    private: constexpr static const char *kCompStr2 {
+               ".ignition.gazebo.components."};
   };
 
   /// \brief Static component registration macro.
