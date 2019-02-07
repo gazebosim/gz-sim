@@ -51,7 +51,11 @@ class ignition::gazebo::systems::ImuSensor
 
   /// \brief Load the IMU from an sdf element
   /// \param[in] _sdf SDF element describing the IMU
-  public: void Load(const sdf::ElementPtr &_sdf);
+  /// \param[in] _gravity vector describing the world Gravity
+  /// \param[in] _topic string with default topic name
+  /// \param[in] _sensorName string with sensor name
+  public: void Load(const sdf::ElementPtr &_sdf, const math::Vector3d &_gravity,
+              const std::string &_topic, const std::string &_sensorName);
 
   /// \brief Publish IMU data over ign transport
   public: void Publish();
@@ -61,6 +65,9 @@ class ignition::gazebo::systems::ImuSensor
 
   /// \brief Topic to publish data to
   public: std::string topic;
+
+  /// \brief Topic to publish data to
+  public: msgs::IMU imuMsg;
 
   /// \brief Noise free linear acceleration
   public: ignition::math::Vector3d linearAcc;
@@ -94,6 +101,8 @@ class ignition::gazebo::systems::ImuPrivate
   public: std::unordered_map<Entity, std::unique_ptr<ImuSensor>>
       entitySensorMap;
 
+  public: Entity worldEntity = kNullEntity;
+
   /// \brief Create IMU sensor
   /// \param[in] _ecm Mutable reference to ECM.
   public: void CreateImuEntities(EntityComponentManager &_ecm);
@@ -110,31 +119,37 @@ ImuSensor::ImuSensor() = default;
 ImuSensor::~ImuSensor() = default;
 
 //////////////////////////////////////////////////
-void ImuSensor::Load(const sdf::ElementPtr &_sdf)
+void ImuSensor::Load(const sdf::ElementPtr &_sdf,
+    const math::Vector3d &_gravity, const std::string &_topic,
+    const std::string &_sensorName)
 {
   if (_sdf->HasElement("topic"))
     this->topic = _sdf->Get<std::string>("topic");
+  else
+    // create default topic for sensor
+    this->topic = _topic;
+
+  this->pub = this->node.Advertise<ignition::msgs::IMU>(this->topic);
+
+  // Set sensors world gravity
+  this->gravity = _gravity;
+
+  // Set sensor name
+  this->sensorName = _sensorName;
+  this->imuMsg.set_entity_name(this->sensorName);
 }
 
 //////////////////////////////////////////////////
 void ImuSensor::Publish()
 {
-  if (this->topic.empty())
-    return;
-
-  if (!this->pub)
-    this->pub = this->node.Advertise<ignition::msgs::IMU>(this->topic);
-
-  msgs::IMU msg;
-  msg.set_entity_name(this->sensorName);
-  msg.mutable_header()->mutable_stamp()->set_sec(
+  this->imuMsg.mutable_header()->mutable_stamp()->set_sec(
       this->lastMeasurementTime.sec);
-  msg.mutable_header()->mutable_stamp()->set_nsec(
+  this->imuMsg.mutable_header()->mutable_stamp()->set_nsec(
       this->lastMeasurementTime.nsec);
-  msgs::Set(msg.mutable_orientation(), this->imuReferenceOrientation);
-  msgs::Set(msg.mutable_angular_velocity(), this->angularVel);
-  msgs::Set(msg.mutable_linear_acceleration(), this->linearAcc);
-  this->pub.Publish(msg);
+  msgs::Set(this->imuMsg.mutable_orientation(), this->imuReferenceOrientation);
+  msgs::Set(this->imuMsg.mutable_angular_velocity(), this->angularVel);
+  msgs::Set(this->imuMsg.mutable_linear_acceleration(), this->linearAcc);
+  this->pub.Publish(this->imuMsg);
 }
 
 //////////////////////////////////////////////////
@@ -177,8 +192,9 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
   // Get World Entity
-  auto worldEntity = _ecm.EntityByComponents(components::World());
-  if (kNullEntity == worldEntity)
+  if (kNullEntity == this->worldEntity)
+    this->worldEntity = _ecm.EntityByComponents(components::World());
+  if (kNullEntity == this->worldEntity)
   {
     ignerr << "Missing world entity." << std::endl;
     return;
@@ -197,21 +213,12 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
     [&](const Entity &_entity,
         const components::Imu *_imu)->bool
       {
-        auto sensor = std::make_unique<ImuSensor>();
-        sensor->Load(_imu->Data());
-
-        // Set sensors world gravity
-        sensor->gravity = gravity->Data();
-
-        // Set sensor name
-        sensor->sensorName = _ecm.Component<components::Name>(
+        std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/imu";
+        std::string sensorName = _ecm.Component<components::Name>(
             _entity)->Data();
 
-        // create default topic for sensor if not specified
-        if (sensor->topic.empty())
-        {
-          sensor->topic = scopedName(_entity, _ecm, "/") + "/imu";
-        }
+        auto sensor = std::make_unique<ImuSensor>();
+        sensor->Load(_imu->Data(), gravity->Data(), defaultTopic, sensorName);
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -252,7 +259,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           // Set the IMU orientation
           // imu orientation with respect to reference frame
           it->second->imuReferenceOrientation =
-              it->second->worldToReference.Inverse() * imuWorldPose.Rot();
+              it->second->worldToReference.Inverse() + imuWorldPose.Rot();
         }
         else
         {
