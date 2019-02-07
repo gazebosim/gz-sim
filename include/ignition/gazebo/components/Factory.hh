@@ -73,8 +73,8 @@ namespace components
     void Register(const std::string &_type, ComponentDescriptorBase *_desc)
     {
       auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      compsByName[_type] = _desc;
-      compsById[id] = _desc;
+      this->compsByName[_type] = _desc;
+      this->compsById[id] = _desc;
 
       // Initialize static member variables.
       ComponentTypeT::name = _type;
@@ -88,7 +88,7 @@ namespace components
     public: template<typename T, typename KeyT>
     std::unique_ptr<T> New(const KeyT &_type)
     {
-      return std::unique_ptr<T>(static_cast<T*>(New(_type).release()));
+      return std::unique_ptr<T>(static_cast<T*>(this->New(_type).release()));
     }
 
     /// \brief Create a new instance of a component.
@@ -123,12 +123,12 @@ namespace components
 
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      auto it = compsByName.find(type);
-      if (it != compsByName.end())
+      auto it = this->compsByName.find(type);
+      if (it != this->compsByName.end())
         comp = it->second->Create();
 
       return comp;
-}
+    }
 
     /// \brief Create a new instance of a component.
     /// \param[in] _type Component id to create.
@@ -139,8 +139,8 @@ namespace components
     {
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      auto it = compsById.find(_type);
-      if (it != compsById.end())
+      auto it = this->compsById.find(_type);
+      if (it != this->compsById.end())
         comp = it->second->Create();
 
       return comp;
@@ -153,7 +153,7 @@ namespace components
       std::vector<std::string> types;
 
       // Return the list of all known component types.
-      for (const auto & [name, funct] : compsByName)
+      for (const auto & [name, funct] : this->compsByName)
         types.push_back(name);
 
       return types;
