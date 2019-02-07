@@ -46,7 +46,8 @@ namespace components
 
     /// \brief Create an instance of a Component.
     /// \return Pointer to a component.
-    public: virtual std::unique_ptr<components::Component> Create() const = 0;
+    public: virtual std::unique_ptr<components::BaseComponent> Create() const
+        = 0;
   };
 
   /// \brief A class for an object responsible for creating components.
@@ -57,7 +58,7 @@ namespace components
   {
     /// \brief Create an instance of a ComponentTypeT Component.
     /// \return Pointer to a component.
-    public: std::unique_ptr<components::Component> Create() const override
+    public: std::unique_ptr<components::BaseComponent> Create() const override
     {
       return std::make_unique<ComponentTypeT>();
     }
@@ -99,7 +100,7 @@ namespace components
     /// \param[in] _type Type of component to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: std::unique_ptr<components::Component> New(
+    public: std::unique_ptr<components::BaseComponent> New(
         const std::string &_type)
     {
       std::string type;
@@ -123,7 +124,7 @@ namespace components
       }
 
       // Create a new component if a Descriptor has been assigned to this type.
-      std::unique_ptr<components::Component> comp;
+      std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsByName.find(type);
       if (it != this->compsByName.end())
         comp = it->second->Create();
@@ -135,11 +136,11 @@ namespace components
     /// \param[in] _type Component id to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: std::unique_ptr<components::Component> New(
+    public: std::unique_ptr<components::BaseComponent> New(
         const ComponentTypeId &_type)
     {
       // Create a new component if a FactoryFn has been assigned to this type.
-      std::unique_ptr<components::Component> comp;
+      std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsById.find(_type);
       if (it != this->compsById.end())
         comp = it->second->Create();
@@ -198,7 +199,8 @@ namespace components
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
   inline IGNITION_GAZEBO_VISIBLE \
-  std::unique_ptr<ignition::gazebo::components::Component> New##_classname() \
+  std::unique_ptr<ignition::gazebo::components::BaseComponent> \
+      New##_classname() \
   { \
     return std::unique_ptr<ignition::gazebo::components::_classname>(\
         new ignition::gazebo::components::_classname); \

@@ -19,7 +19,7 @@
 
 #include <sdf/Light.hh>
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -33,7 +33,7 @@ namespace components
   /// \brief This component contains light source information. For more
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
-  using Light = SimpleWrapper<sdf::Light, class LightTag>;
+  using Light = Component<sdf::Light, class LightTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
 }
 }

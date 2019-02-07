@@ -19,7 +19,7 @@
 
 #include <string>
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -32,7 +32,7 @@ namespace components
 {
   /// \brief This component holds an entity's name. The component has no concept
   /// of scoped names nor does it care about uniqueness.
-  using Name = SimpleWrapper<std::string, class NameTag>;
+  using Name = Component<std::string, class NameTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Name", Name)
 }
 }

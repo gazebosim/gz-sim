@@ -21,7 +21,7 @@
 #include <ignition/gazebo/Export.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that holds the buffer setting of a level's geometry
-  using LevelBuffer = SimpleWrapper<double, class LevelBufferTag>;
+  using LevelBuffer = Component<double, class LevelBufferTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelBuffer",
       LevelBuffer)
 }

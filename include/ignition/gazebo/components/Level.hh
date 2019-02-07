@@ -21,7 +21,7 @@
 #include <ignition/gazebo/Export.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -32,11 +32,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component identifies an entity as being a level.
-  using Level = SimpleWrapper<NoData, class LevelTag>;
+  using Level = Component<NoData, class LevelTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Level", Level)
 
   /// \brief This component identifies an entity as being a default level.
-  using DefaultLevel = SimpleWrapper<NoData, class DefaultLevelTag>;
+  using DefaultLevel = Component<NoData, class DefaultLevelTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DefaultLevel",
       DefaultLevel)
 }
