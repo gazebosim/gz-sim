@@ -17,9 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 
+#include <cstdint>
 #include <memory>
+#include <string>
 #include <utility>
 
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -48,8 +51,11 @@ namespace components
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
   template <typename DataType, typename Identifier>
-  class SimpleWrapper
+  class SimpleWrapper: public Component
   {
+    /// \brief Default constructor
+    public: explicit SimpleWrapper() = default;
+
     /// \brief Constructor
     /// \param[in] _simpleWrapper SimpleWrapper to copy
     public: explicit SimpleWrapper(const DataType &_data);
@@ -63,7 +69,7 @@ namespace components
     public: SimpleWrapper(SimpleWrapper &&_simpleWrapper) noexcept = default;
 
     /// \brief Destructor.
-    public: virtual ~SimpleWrapper() = default;
+    public: ~SimpleWrapper() override = default;
 
     /// \brief Move assignment operator.
     /// \param[in] _simpleWrapper SimpleWrapper component to move.
@@ -92,6 +98,12 @@ namespace components
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SimpleWrapperPrivate<DataType>> dataPtr;
+
+    /// \brief Component name.
+    public: inline static std::string name = "";
+
+    /// \brief Component id.
+    public: inline static uint64_t id = 0;
   };
 
   template <typename DataType>

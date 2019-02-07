@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
