@@ -160,6 +160,18 @@ namespace components
     }
 
     /// \brief A list of registered components where the key is its name.
+    ///
+    /// Note about compsByName and compsById. The maps store pointers as the
+    /// values, but never cleans them up, which may (at first glance) seem like
+    /// incorrect behavior. This is not a mistake. Since ComponentDescriptors
+    /// are created at the point in the code where components are defined, this
+    /// generally ends up in a shared library that will be loaded at runtime.
+    ///
+    /// Because this and the plugin loader both use static variables, and the
+    /// order of static initialization and construction are not guaranteed, this
+    /// can lead to a scenario where the shared library is unloaded (with the
+    /// ComponentDescriptor), but the Factory still exists. For this reason,
+    /// we just keep a pointer, which will dangle until the program is shutdown.
     private: std::map<std::string, ComponentDescriptorBase*> compsByName;
 
     /// \brief A list of registered components where the key is its id.
