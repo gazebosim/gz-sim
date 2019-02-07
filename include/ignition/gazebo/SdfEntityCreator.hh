@@ -17,11 +17,7 @@
 #ifndef IGNITION_GAZEBO_CREATEREMOVE_HH_
 #define IGNITION_GAZEBO_CREATEREMOVE_HH_
 
-#include <functional>
-#include <map>
 #include <memory>
-#include <string>
-#include <vector>
 
 #include <sdf/Collision.hh>
 #include <sdf/Gui.hh>
