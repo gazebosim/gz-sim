@@ -35,6 +35,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
+  /// \typedef FactoryFn
+  /// \brief Prototype for component factory generation.
+  using FactoryFn = std::function<std::unique_ptr<components::Component>()>;
+
   /// \brief A factory that generates a component based on a string type.
   class IGNITION_GAZEBO_VISIBLE Factory
       : public ignition::common::SingletonT<Factory>
@@ -42,13 +46,8 @@ namespace components
     /// \brief Register a component.
     /// \param[in] _type Type of component to register.
     public: template<typename ComponentTypeT>
-    static void Register(const std::string &_type)
+    static void Register(const std::string &_type, FactoryFn _factoryfn)
     {
-      std::function<std::unique_ptr<ComponentTypeT>()> f = []()
-      {
-        return std::make_unique<ComponentTypeT>();
-      };
-
       if (!compsByName)
         compsByName = new std::map<std::string, FactoryFn>();
 
@@ -56,8 +55,8 @@ namespace components
         compsById = new std::map<ComponentTypeId, FactoryFn>();
 
       auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      (*compsByName)[_type] = f;
-      (*compsById)[id] = f;
+      (*compsByName)[_type] = _factoryfn;
+      (*compsById)[id] = _factoryfn;
 
       // Initialize static member variables.
       ComponentTypeT::name = _type;
@@ -151,11 +150,6 @@ namespace components
       return types;
     }
 
-    /// \typedef FactoryFn
-    /// \brief Prototype for component factory generation.
-    private: using FactoryFn =
-        std::function<std::unique_ptr<components::Component>()>;
-
     /// \brief A list of registered components where the key is its name.
     private: inline static std::map<std::string, FactoryFn> *compsByName;
 
@@ -169,12 +163,18 @@ namespace components
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
+  inline IGNITION_GAZEBO_VISIBLE \
+  std::unique_ptr<ignition::gazebo::components::Component> New##_classname() \
+  { \
+    return std::unique_ptr<ignition::gazebo::components::_classname>(\
+        new ignition::gazebo::components::_classname); \
+  } \
   class IGNITION_GAZEBO_VISIBLE IgnGazeboComponents##_classname \
   { \
     public: IgnGazeboComponents##_classname() \
     { \
       ignition::gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType);\
+        _compType, New##_classname);\
     } \
   }; \
   static IgnGazeboComponents##_classname\
