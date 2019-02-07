@@ -178,8 +178,19 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
 {
   // Get World Entity
   auto worldEntity = _ecm.EntityByComponents(components::World());
+  if (kNullEntity == worldEntity)
+  {
+    ignerr << "Missing world entity." << std::endl;
+    return;
+  }
+
   // Get the world acceleration (defined in world frame)
   auto gravity = _ecm.Component<components::Gravity>(worldEntity);
+  if (nullptr == gravity)
+  {
+    ignerr << "World missing gravity." << std::endl;
+    return;
+  }
 
   // Create IMUs
   _ecm.EachNew<components::Imu>(

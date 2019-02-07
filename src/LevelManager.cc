@@ -26,6 +26,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -58,6 +59,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 /////////////////////////////////////////////////
 void LevelManager::ReadLevelPerformerInfo()
 {
+  // \todo(anyone) Use SdfEntityCreator to avoid duplication
   this->worldEntity = this->runner->entityCompMgr.CreateEntity();
 
   // World components
@@ -65,6 +67,9 @@ void LevelManager::ReadLevelPerformerInfo()
                                                components::World());
   this->runner->entityCompMgr.CreateComponent(
       this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
+
+  this->runner->entityCompMgr.CreateComponent(worldEntity,
+      components::Gravity(this->runner->sdfWorld->Gravity()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 
