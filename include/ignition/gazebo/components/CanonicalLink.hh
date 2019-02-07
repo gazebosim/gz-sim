@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_CANONICALLINK_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity as being a canonical link.
-  using CanonicalLink = SimpleWrapper<NoData, class CanonicalLinkTag>;
+  using CanonicalLink = Component<NoData, class CanonicalLinkTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.CanonicalLink", CanonicalLink)
 }
