@@ -38,17 +38,25 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-
+  /// \brief A base class for an object responsible for creating components.
   class IGNITION_GAZEBO_VISIBLE ComponentDescriptorBase
   {
+    /// \brief Destructor
     public: virtual ~ComponentDescriptorBase() = default;
+
+    /// \brief Create an instance of a Component.
+    /// \return Pointer to a component.
     public: virtual std::unique_ptr<components::Component> Create() const = 0;
   };
 
+  /// \brief A class for an object responsible for creating components.
+  /// \tparam ComponentTypeT type of component to describe.
   template <typename ComponentTypeT>
   class IGNITION_GAZEBO_VISIBLE ComponentDescriptor
     : public ComponentDescriptorBase
   {
+    /// \brief Create an instance of a ComponentTypeT Component.
+    /// \return Pointer to a component.
     public: std::unique_ptr<components::Component> Create() const override
     {
       return std::make_unique<ComponentTypeT>();
