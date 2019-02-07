@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
+*/
+#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/TagWrapper.hh"
 
 namespace ignition
 {
@@ -31,11 +28,18 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component identifies an entity as being a performer.
-  using Performer = TagWrapper<class PerformerTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Performer", Performer)
+  /// A component base class.
+  class IGNITION_GAZEBO_VISIBLE Component
+  {
+    /// \brief Default constructor.
+    public: Component() = default;
+
+    /// \brief Default destructor.
+    public: virtual ~Component() = default;
+  };
 }
 }
 }
 }
+
 #endif
