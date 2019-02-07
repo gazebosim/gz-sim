@@ -156,7 +156,10 @@ TEST_F(ImuTest, ModelFalling)
             [&](const ignition::gazebo::Entity &,
                 const components::Gravity *_gravity) -> bool
             {
-              worldGravity = _gravity->Data();
+              // gtest is having a hard time with ASSERTs inside nested lambdas
+              EXPECT_NE(nullptr, _gravity);
+              if (nullptr != _gravity)
+                worldGravity = _gravity->Data();
               return false;
             });
       });
