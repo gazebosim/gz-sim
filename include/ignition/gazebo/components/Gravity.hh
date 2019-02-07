@@ -22,6 +22,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include <ignition/gazebo/components/Factory.hh>
 #include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
@@ -34,6 +35,7 @@ namespace components
 {
   /// \brief Store the gravity acceleration.
   using Gravity = SimpleWrapper<math::Vector3d, class GravityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Gravity", Gravity)
 }
 }
 }

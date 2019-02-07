@@ -22,6 +22,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include <ignition/gazebo/components/Factory.hh>
 #include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
@@ -36,11 +37,15 @@ namespace components
   /// represented by ignition::math::Vector3d.
   using LinearAcceleration =
     SimpleWrapper<math::Vector3d, class LinearAccelerationTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LinearAcceleration",
+      LinearAcceleration)
 
   /// \brief A component type that contains linear acceleration of an entity
   /// in the world frame represented by ignition::math::Vector3d.
   using WorldLinearAcceleration =
       SimpleWrapper<math::Vector3d, class WorldLinearAccelerationTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldLinearAcceleration",
+      WorldLinearAcceleration)
 }
 }
 }
