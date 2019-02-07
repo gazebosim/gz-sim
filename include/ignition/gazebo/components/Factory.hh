@@ -21,10 +21,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include <ignition/common/SingletonT.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
 namespace ignition
@@ -35,9 +38,22 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \typedef FactoryFn
-  /// \brief Prototype for component factory generation.
-  using FactoryFn = std::function<std::unique_ptr<components::Component>()>;
+
+  class IGNITION_GAZEBO_VISIBLE ComponentDescriptorBase
+  {
+    public: virtual ~ComponentDescriptorBase() = default;
+    public: virtual std::unique_ptr<components::Component> Create() const = 0;
+  };
+
+  template <typename ComponentTypeT>
+  class IGNITION_GAZEBO_VISIBLE ComponentDescriptor
+    : public ComponentDescriptorBase
+  {
+    public: std::unique_ptr<components::Component> Create() const override
+    {
+      return std::make_unique<ComponentTypeT>();
+    }
+  };
 
   /// \brief A factory that generates a component based on a string type.
   class IGNITION_GAZEBO_VISIBLE Factory
@@ -46,17 +62,11 @@ namespace components
     /// \brief Register a component.
     /// \param[in] _type Type of component to register.
     public: template<typename ComponentTypeT>
-    static void Register(const std::string &_type, FactoryFn _factoryfn)
+    void Register(const std::string &_type, ComponentDescriptorBase *_desc)
     {
-      if (!compsByName)
-        compsByName = new std::map<std::string, FactoryFn>();
-
-      if (!compsById)
-        compsById = new std::map<ComponentTypeId, FactoryFn>();
-
       auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      (*compsByName)[_type] = _factoryfn;
-      (*compsById)[id] = _factoryfn;
+      compsByName[_type] = _desc;
+      compsById[id] = _desc;
 
       // Initialize static member variables.
       ComponentTypeT::name = _type;
@@ -68,7 +78,7 @@ namespace components
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
     public: template<typename T, typename KeyT>
-    static std::unique_ptr<T> New(const KeyT &_type)
+    std::unique_ptr<T> New(const KeyT &_type)
     {
       return std::unique_ptr<T>(static_cast<T*>(New(_type).release()));
     }
@@ -77,7 +87,7 @@ namespace components
     /// \param[in] _type Type of component to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: static std::unique_ptr<components::Component> New(
+    public: std::unique_ptr<components::Component> New(
         const std::string &_type)
     {
       std::string type;
@@ -105,12 +115,9 @@ namespace components
 
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      if (compsByName)
-      {
-        auto it = compsByName->find(type);
-        if (it != compsByName->end())
-          comp = it->second();
-      }
+      auto it = compsByName.find(type);
+      if (it != compsByName.end())
+        comp = it->second->Create();
 
       return comp;
 }
@@ -119,42 +126,36 @@ namespace components
     /// \param[in] _type Component id to create.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
-    public: static std::unique_ptr<components::Component> New(
+    public: std::unique_ptr<components::Component> New(
         const ComponentTypeId &_type)
     {
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::Component> comp;
-      if (compsById)
-      {
-        auto it = compsById->find(_type);
-        if (it != compsById->end())
-          comp = it->second();
-      }
+      auto it = compsById.find(_type);
+      if (it != compsById.end())
+        comp = it->second->Create();
 
       return comp;
     }
 
     /// \brief Get all the component types.
     /// return Vector of strings of the component types.
-    public: static std::vector<std::string> Components()
+    public: std::vector<std::string> Components()
     {
       std::vector<std::string> types;
 
-      if (compsByName)
-      {
-        // Return the list of all known component types.
-        for (const auto & [name, funct] : *compsByName)
-          types.push_back(name);
-      }
+      // Return the list of all known component types.
+      for (const auto & [name, funct] : compsByName)
+        types.push_back(name);
 
       return types;
     }
 
     /// \brief A list of registered components where the key is its name.
-    private: inline static std::map<std::string, FactoryFn> *compsByName;
+    private: std::map<std::string, ComponentDescriptorBase*> compsByName;
 
     /// \brief A list of registered components where the key is its id.
-    private: inline static std::map<ComponentTypeId, FactoryFn> *compsById;
+    private: std::map<ComponentTypeId, ComponentDescriptorBase*> compsById;
   };
 
   /// \brief Static component registration macro.
@@ -173,8 +174,10 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
-      ignition::gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, New##_classname);\
+      using namespace ignition;\
+      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
+      gazebo::components::Factory::Instance()->Register<_classname>(\
+        _compType, new Desc());\
     } \
   }; \
   static IgnGazeboComponents##_classname\

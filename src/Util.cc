@@ -115,7 +115,11 @@ std::string scopedName(const Entity &_entity,
 
     if (!prefix.empty())
     {
-      result.insert(0, _delim + prefix + _delim + name);
+      // Doing this on multiple lines cleans up a tidy warning.
+      result += _delim;
+      result += prefix;
+      result += _delim;
+      result += name;
     }
 
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);

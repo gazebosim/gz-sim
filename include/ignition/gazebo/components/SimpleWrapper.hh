@@ -69,7 +69,7 @@ namespace components
     public: SimpleWrapper(SimpleWrapper &&_simpleWrapper) noexcept = default;
 
     /// \brief Destructor.
-    public: virtual ~SimpleWrapper() = default;
+    public: ~SimpleWrapper() override = default;
 
     /// \brief Move assignment operator.
     /// \param[in] _simpleWrapper SimpleWrapper component to move.
