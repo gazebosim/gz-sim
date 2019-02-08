@@ -17,10 +17,13 @@
 #ifndef IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
+#include <cstring>
 #include <map>
 #include <set>
 #include <utility>
+#include <vector>
 
+#include <ignition/common/Util.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
@@ -32,7 +35,8 @@ template<typename ComponentTypeT>
 ComponentTypeId EntityComponentManager::ComponentType()
 {
   // Get a unique identifier to the component type
-  return typeid(ComponentTypeT).hash_code();
+  auto name = typeid(ComponentTypeT).name();
+  return ignition::common::hash64(name);
 }
 
 //////////////////////////////////////////////////
@@ -149,6 +153,50 @@ Entity EntityComponentManager::EntityByComponents(
 }
 
 //////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
+std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
+     const ComponentTypeTs &..._desiredComponents) const
+{
+  // Get all entities which have components of the desired types
+  const auto &view = this->FindView<ComponentTypeTs...>();
+
+  // Get all entities which are immediate children of the given parent
+  auto children = this->Entities().AdjacentsFrom(_parent);
+
+  // Iterate over entities
+  std::vector<Entity> result;
+  for (const Entity entity : view.entities)
+  {
+    if (children.find(entity) == children.end())
+    {
+      continue;
+    }
+
+    // Iterate over desired components, comparing each of them to the
+    // equivalent component in the entity.
+    bool different{false};
+    ForEach([&](const auto &_desiredComponent)
+    {
+      auto entityComponent = this->Component<
+          std::remove_cv_t<std::remove_reference_t<
+              decltype(_desiredComponent)>>>(entity);
+
+      if (*entityComponent != _desiredComponent)
+      {
+        different = true;
+      }
+    }, _desiredComponents...);
+
+    if (!different)
+    {
+      result.push_back(entity);
+    }
+  }
+
+  return result;
+}
+
+//////////////////////////////////////////////////
 template <typename T>
 struct EntityComponentManager::identity  // NOLINT
 {
@@ -160,8 +208,9 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  for (const Entity &entity : this->Entities())
+  for (const auto &vertex : this->Entities().Vertices())
   {
+    Entity entity = vertex.first;
     auto types = std::set<ComponentTypeId>{
         this->ComponentType<ComponentTypeTs>()...};
 
@@ -181,8 +230,9 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  for (const Entity &entity : this->Entities())
+  for (const auto &vertex : this->Entities().Vertices())
   {
+    Entity entity = vertex.first;
     auto types = std::set<ComponentTypeId>{
         this->ComponentType<ComponentTypeTs>()...};
 
@@ -289,7 +339,7 @@ void EntityComponentManager::EachNew(typename identity<std::function<
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-void EntityComponentManager::EachErased(typename identity<std::function<
+void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
   // Get the view. This will create a new view if one does not already
@@ -299,7 +349,7 @@ void EntityComponentManager::EachErased(typename identity<std::function<
   // Iterate over the entities in the view and in the newly created
   // entities list, and invoke the callback
   // function.
-  for (const Entity entity : view.toEraseEntities)
+  for (const Entity entity : view.toRemoveEntities)
   {
     if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
     {
@@ -372,16 +422,17 @@ detail::View &EntityComponentManager::FindView() const
     detail::View view;
     // Add all the entities that match the component types to the
     // view.
-    for (const Entity &entity : this->Entities())
+    for (const auto &vertex : this->Entities().Vertices())
     {
+      Entity entity = vertex.first;
       if (this->EntityMatches(entity, types))
       {
         view.AddEntity(entity, this->IsNewEntity(entity));
         // If there is a request to delete this entity, update the view as
         // well
-        if (this->IsMarkedForErasure(entity))
+        if (this->IsMarkedForRemoval(entity))
         {
-          view.AddEntityToErased(entity);
+          view.AddEntityToRemoved(entity);
         }
 
         // Store pointers to all the components. This recursively adds

@@ -78,6 +78,21 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
   bool result = true;
 
+  // Check for ready (needed for distributed sim)
+  bool ready = false;
+  while (!ready)
+  {
+    ready = true;
+    for (const auto &runner : this->simRunners)
+    {
+      ready &= runner->Ready();
+    }
+    if (!ready)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  }
+
   // Minor performance tweak. In many situations there will only be one
   // simulation runner, and we can avoid using the thread pool.
   if (this->simRunners.size() == 1)
@@ -103,21 +118,21 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::CreateEntities(const sdf::Root &_root)
+void ServerPrivate::CreateEntities()
 {
   // Create a simulation runner for each world.
-  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount(); ++worldIndex)
+  for (uint64_t worldIndex = 0; worldIndex <
+       this->sdfRoot.WorldCount(); ++worldIndex)
   {
-    auto world = _root.WorldByIndex(worldIndex);
+    auto world = this->sdfRoot.WorldByIndex(worldIndex);
 
     {
       std::lock_guard<std::mutex> lock(this->worldsMutex);
       this->worldNames.push_back(world->Name());
     }
 
-    auto element = world->Element();
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-          _root.WorldByIndex(worldIndex), this->systemLoader));
+        world, this->systemLoader, this->useLevels));
   }
 }
 

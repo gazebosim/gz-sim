@@ -4,12 +4,15 @@ set(tests
   altimeter_system.cc
   components.cc
   diff_drive_system.cc
-  each_new_erased.cc
+  each_new_removed.cc
   entity_erase.cc
   events.cc
   examples_build.cc
   gpu_lidar.cc
+  imu_system.cc
+  level_manager.cc
   model.cc
+  network_handshake.cc
   physics_system.cc
   play_pause.cc
 )

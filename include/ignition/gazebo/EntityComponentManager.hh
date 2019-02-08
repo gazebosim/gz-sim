@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
+#include <ignition/math/graph/Graph.hh>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
@@ -41,6 +42,12 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+
+    /// \brief Type alias for the graph that holds entities.
+    /// Each vertex is an entity, and the direction points from the parent to
+    /// its children.
+    /// All edges are positive booleans.
+    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
 
     /** \class EntityComponentManager EntityComponentManager.hh \
      * ignition/gazebo/EntityComponentManager.hh
@@ -66,17 +73,44 @@ namespace ignition
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntity(const Entity _entity);
+      ///
+      /// \detail It is recommended that systems don't call this function
+      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// remove entities.
+      ///
+      /// \param[in] _entity Entity to be removed.
+      /// \param[in] _recursive Whether to recursively delete all child
+      /// entities. True by default.
+      public: void RequestRemoveEntity(const Entity _entity,
+          bool _recursive = true);
 
-      /// \brief Request to erase all entities. This will insert the request
+      /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
-      public: void RequestEraseEntities();
+      public: void RequestRemoveEntities();
 
       /// \brief Get whether an Entity exists.
-      /// \param[in] _entity Entity id to confirm.
+      /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
+
+      /// \brief Get the first parent of the given entity.
+      /// \detail Entities are not expected to have multiple parents.
+      /// TODO(louise) Either prevent multiple parents or provide full support
+      /// for multiple parents.
+      /// \param[in] _entity Entity.
+      /// \return The parent entity or kNullEntity if there's none.
+      public: Entity ParentEntity(const Entity _entity) const;
+
+      /// \brief Set the parent of an entity.
+      ///
+      /// \detail It is recommended that systems don't call this function
+      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// create entities that have the correct parent-child relationship.
+      ///
+      /// \param[in] _entity Entity or kNullEntity to remove current parent.
+      /// \return True if successful. Will fail if entities don't exist.
+      public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
@@ -133,8 +167,7 @@ namespace ignition
       /// operation.
       public: void RebuildViews();
 
-      /// \brief Get the type id of a component type. This is a convenience
-      /// function that is equivalent to typeid(ComponentTypeT).hash_code().
+      /// \brief Get the type id of a component type.
       /// \return The ComponentTypeId associated with the provided
       /// ComponentTypeT.
       public: template<typename ComponentTypeT>
@@ -202,10 +235,28 @@ namespace ignition
       /// \detail Component type must have inequality operator.
       ///
       /// \param[in] _desiredComponents All the components which must match.
-      /// \return Entity Id or kNullEntity if no entity has the exact
-      /// components.
+      /// \return Entity or kNullEntity if no entity has the exact components.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
+                   const ComponentTypeTs &..._desiredComponents) const;
+
+      /// \brief Get all entities which match the value of all the given
+      /// components and are immediate children of a given parent entity.
+      /// For example, the following will return a child of entity `parent`
+      /// which has an int component equal to 123, and a string component
+      /// equal to "name":
+      ///
+      ///  auto entity = ChildrenByComponents(parent, 123, std::string("name"));
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _parent Entity which should be an immediate parent of the
+      /// returned entity.
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return All matching entities, or an empty vector if no child entity
+      /// has the exact components.
+      public: template<typename ...ComponentTypeTs>
+              std::vector<Entity> ChildrenByComponents(Entity _parent,
                    const ComponentTypeTs &..._desiredComponents) const;
 
       /// why is this required?
@@ -247,7 +298,7 @@ namespace ignition
                        ComponentTypeTs *...)>>::type _f);
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the components. Note that an entity marked for erasure (but not
+      /// as the components. Note that an entity marked for removal (but not
       /// processed yet) will be included in the list of entities iterated by
       /// this call.
       /// \param[in] _f Callback function to be called for each matching entity.
@@ -264,7 +315,7 @@ namespace ignition
                        const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types, as well
-      /// as the mutable components. Note that an entity marked for erasure (but
+      /// as the mutable components. Note that an entity marked for removal (but
       /// not processed yet) will be included in the list of entities iterated
       /// by this call.
       /// \param[in] _f Callback function to be called for each matching entity.
@@ -320,7 +371,7 @@ namespace ignition
                                 const ComponentTypeTs *...)>>::type _f) const;
 
       /// \brief Get all entities which contain given component types and are
-      /// about to be erased, as well as the components.
+      /// about to be removed, as well as the components.
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -330,19 +381,24 @@ namespace ignition
       /// \warning This function should not be called outside of System's
       /// PreUpdate, callback. The result of call after PreUpdate is invalid
       public: template<typename ...ComponentTypeTs>
-              void EachErased(typename identity<std::function<
+              void EachRemoved(typename identity<std::function<
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const;
+
+      /// \brief Get a graph with all the entities. Entities are vertices and
+      /// edges point from parent to children.
+      /// \return Entity graph.
+      public: const EntityGraph &Entities() const;
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
       protected: void ClearNewlyCreatedEntities();
 
-      /// \brief Process all entity erase requests. This will remove
+      /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
-      protected: void ProcessEraseEntityRequests();
+      protected: void ProcessRemoveEntityRequests();
 
       /// \brief Get whether an Entity exists and is new.
       ///
@@ -352,15 +408,15 @@ namespace ignition
       /// \return True if the Entity is new.
       private: bool IsNewEntity(const Entity _entity) const;
 
-      /// \brief Get whether an Entity has been marked to be erased.
+      /// \brief Get whether an Entity has been marked to be removed.
       /// \param[in] _entity Entity id to check.
-      /// \return True if the Entity has been marked to be erased.
-      private: bool IsMarkedForErasure(const Entity _entity) const;
+      /// \return True if the Entity has been marked to be removed.
+      private: bool IsMarkedForRemoval(const Entity _entity) const;
 
       /// \brief Delete an existing Entity.
-      /// \param[in] _entity The entity to erase.
+      /// \param[in] _entity The entity to remove.
       /// \returns True if the Entity existed and was deleted.
-      private: bool EraseEntity(const Entity _entity);
+      private: bool RemoveEntity(const Entity _entity);
 
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
@@ -414,10 +470,6 @@ namespace ignition
       private: void RegisterComponentType(
                    const ComponentTypeId _typeId,
                    ComponentStorageBase *_type);
-
-      /// \brief Get all the entities.
-      /// \return All the entities.
-      private: std::vector<Entity> &Entities() const;
 
       /// \brief End of the AddComponentToView recursion. This function is
       /// called when Rest is empty.
@@ -480,7 +532,7 @@ namespace ignition
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
       /// Make simulation runner a friend so that it can trigger entity
-      /// erasures. This should be safe since SimulationRunner is internal
+      /// removals. This should be safe since SimulationRunner is internal
       /// to Gazebo.
       friend class SimulationRunner;
 

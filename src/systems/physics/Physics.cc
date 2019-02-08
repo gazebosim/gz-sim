@@ -34,6 +34,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -56,15 +57,18 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -90,6 +94,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::RemoveEntities,
           ignition::physics::mesh::AttachMeshShapeFeature,
           ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
@@ -113,11 +118,19 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using LinkPtrType = ignition::physics::LinkPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  public: using ShapePtrType = ignition::physics::ShapePtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
   public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
+  /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Remove physics entities if they are removed from the ECM
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void RemovePhysicsEntities(const EntityComponentManager &_ecm);
 
   /// \brief Update physics from components
   /// \param[in] _ecm Constant reference to ECM.
@@ -142,6 +155,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
+
+  /// \brief A map between collision entity ids in the ECM to Link Entities in
+  /// ign-physics.
+  public: std::unordered_map<Entity, ShapePtrType> entityCollisionMap;
 
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
@@ -192,12 +209,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   IGN_PROFILE("Physics::Update");
   if (this->dataPtr->engine)
   {
-    if (!this->dataPtr->initialized)
-    {
-      this->dataPtr->CreatePhysicsEntities(_ecm);
-      this->dataPtr->initialized = true;
-    }
-
+    this->dataPtr->CreatePhysicsEntities(_ecm);
     // Only step if not paused.
     if (!_info.paused)
     {
@@ -205,60 +217,86 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
       this->dataPtr->Step(_info.dt);
       this->dataPtr->UpdateSim(_ecm);
     }
-  }
-}
 
-//////////////////////////////////////////////////
-void Physics::PostUpdate(const UpdateInfo &_info,
-                         const EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("Physics::PostUpdate");
-  (void)_info;
-  (void)_ecm;
+    // Entities scheduled to be removed should be removed from physics after the
+    // simulation step. Otherwise, since the to-be-removed entity still shows up
+    // in the ECM::Each the UpdatePhysics and UpdateSim calls will have an error
+    this->dataPtr->RemovePhysicsEntities(_ecm);
+  }
 }
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
-  // Get all the worlds
-  _ecm.Each<components::World, components::Name>(
+  // Get all the new worlds
+  _ecm.EachNew<components::World, components::Name, components::Gravity>(
       [&](const Entity &_entity,
         const components::World * /* _world */,
-        const components::Name *_name)->bool
-      {
-        if (this->entityWorldMap.find(_entity) == this->entityWorldMap.end())
-        {
-          sdf::World world;
-          world.SetName(_name->Data());
-          auto worldPtrPhys = this->engine->ConstructWorld(world);
-          this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
-        }
-        return true;
-      });
-
-  _ecm.Each<components::Model, components::Name, components::Pose,
-            components::ParentEntity, components::Static>(
-      [&](const Entity &_entity,
-        const components::Model * /* _model */,
         const components::Name *_name,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent,
-        const components::Static *_static)->bool
+        const components::Gravity *_gravity)->bool
       {
-        if (this->entityModelMap.find(_entity) == this->entityModelMap.end())
+        // Check if world already exists
+        if (this->entityWorldMap.find(_entity) != this->entityWorldMap.end())
         {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
-          model.SetStatic(_static->Data());
-          auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
-          auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-          this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+          ignwarn << "World entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
+          return true;
         }
+
+        sdf::World world;
+        world.SetName(_name->Data());
+        world.SetGravity(_gravity->Data());
+        auto worldPtrPhys = this->engine->ConstructWorld(world);
+        this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
+
         return true;
       });
 
-  _ecm.Each<components::Link, components::Name, components::Pose,
+  _ecm.EachNew<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model * /* _model */,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        // Check if model already exists
+        if (this->entityModelMap.find(_entity) != this->entityModelMap.end())
+        {
+          ignwarn << "Model entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
+          return true;
+        }
+
+        // Check if parent world exists
+        // TODO(louise): Support nested models, see
+        // https://bitbucket.org/ignitionrobotics/ign-physics/issues/10
+        if (this->entityWorldMap.find(_parent->Data())
+            == this->entityWorldMap.end())
+        {
+          ignwarn << "Model's parent entity [" << _parent->Data()
+                  << "] not found on world map." << std::endl;
+          return true;
+        }
+        auto worldPtrPhys = this->entityWorldMap.at(_parent->Data());
+
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetPose(_pose->Data());
+
+        auto staticComp = _ecm.Component<components::Static>(_entity);
+        if (staticComp && staticComp->Data())
+          model.SetStatic(staticComp->Data());
+
+        auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+        this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));
+
+        return true;
+      });
+
+  _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
         const components::Link * /* _link */,
@@ -266,43 +304,77 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
-        if (this->entityLinkMap.find(_entity) == this->entityLinkMap.end())
+        // Check if link already exists
+        if (this->entityLinkMap.find(_entity) != this->entityLinkMap.end())
         {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
-
-          // get link inertial
-          auto inertial = _ecm.Component<components::Inertial>(_entity);
-          if (inertial)
-          {
-            link.SetInertial(inertial->Data());
-          }
-
-          auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
-          auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
-          this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+          ignwarn << "Link entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
+          return true;
         }
+
+        // Check if parent model exists
+        if (this->entityModelMap.find(_parent->Data())
+            == this->entityModelMap.end())
+        {
+          ignwarn << "Link's parent entity [" << _parent->Data()
+                  << "] not found on model map." << std::endl;
+          return true;
+        }
+        auto modelPtrPhys = this->entityModelMap.at(_parent->Data());
+
+        sdf::Link link;
+        link.SetName(_name->Data());
+        link.SetPose(_pose->Data());
+
+        // get link inertial
+        auto inertial = _ecm.Component<components::Inertial>(_entity);
+        if (inertial)
+        {
+          link.SetInertial(inertial->Data());
+        }
+
+        auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
+        this->entityLinkMap.insert(std::make_pair(_entity, linkPtrPhys));
+
         return true;
       });
 
   // We don't need to add visuals to the physics engine.
 
   // collisions
-  _ecm.Each<components::Collision, components::Name, components::Pose,
+  _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
-      [&](const Entity & /* _entity */,
-        const components::Collision * /* _collision */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::Geometry *_geom,
-        const components::ParentEntity *_parent)->bool
+      [&](const Entity &  _entity,
+          const components::Collision * /* _collision */,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::ParentEntity *_parent) -> bool
       {
+        if (this->entityCollisionMap.find(_entity) !=
+            this->entityCollisionMap.end())
+        {
+           ignwarn << "Collision entity [" << _entity
+                   << "] marked as new, but it's already on the map."
+                   << std::endl;
+          return true;
+        }
+
+        // Check if parent link exists
+        if (this->entityLinkMap.find(_parent->Data())
+            == this->entityLinkMap.end())
+        {
+          ignwarn << "Collision's parent entity [" << _parent->Data()
+                  << "] not found on link map." << std::endl;
+          return true;
+        }
+        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
+
         sdf::Collision collision;
         collision.SetName(_name->Data());
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
         {
@@ -333,28 +405,43 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         }
 
         // for now, we won't have a map to the collision once it's added
+        this->entityCollisionMap.insert(std::make_pair(_entity, nullptr));
         return true;
       });
 
   // joints
-  _ecm.Each<components::Joint, components::Name, components::JointType,
-            components::Pose, components::ThreadPitch, components::ParentEntity,
-            components::ParentLinkName,
-            components::ChildLinkName>(
-      [&](const Entity &  _entity,
-        const components::Joint * /* _joint */,
-        const components::Name *_name,
-        const components::JointType *_jointType,
-        const components::Pose *_pose,
-        const components::ThreadPitch *_threadPitch,
-        const components::ParentEntity *_parentModel,
-        const components::ParentLinkName *_parentLinkName,
-        const components::ChildLinkName *_childLinkName)->bool
+  _ecm.EachNew<components::Joint, components::Name, components::JointType,
+               components::Pose, components::ThreadPitch,
+               components::ParentEntity, components::ParentLinkName,
+               components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint * /* _joint */,
+          const components::Name *_name,
+          const components::JointType *_jointType,
+          const components::Pose *_pose,
+          const components::ThreadPitch *_threadPitch,
+          const components::ParentEntity *_parentModel,
+          const components::ParentLinkName *_parentLinkName,
+          const components::ChildLinkName *_childLinkName) -> bool
       {
+        // Check if joint already exists
         if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
         {
+          ignwarn << "Joint entity [" << _entity
+                  << "] marked as new, but it's already on the map."
+                  << std::endl;
           return true;
         }
+
+        // Check if parent model exists
+        if (this->entityModelMap.find(_parentModel->Data())
+            == this->entityModelMap.end())
+        {
+          ignwarn << "Joint's parent entity [" << _parentModel->Data()
+                  << "] not found on model map." << std::endl;
+          return true;
+        }
+        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
 
         sdf::Joint joint;
         joint.SetName(_name->Data());
@@ -369,16 +456,58 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
         if (jointAxis)
-            joint.SetAxis(0, jointAxis->Data());
+          joint.SetAxis(0, jointAxis->Data());
         if (jointAxis2)
-            joint.SetAxis(1, jointAxis2->Data());
+          joint.SetAxis(1, jointAxis2->Data());
 
         // Use the parent link's parent model as the model of this joint
-        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
         auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
         this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+        return true;
+      });
+}
 
+//////////////////////////////////////////////////
+void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
+{
+  // Assume the world will not be erased
+  // Only removing models is supported by ign-physics right now so we only
+  // remove links, joints and collisions if they are children of the removed
+  // model.
+  // We assume the links, joints and collisions will be removed from the
+  // physics engine when the containing model gets removed so, here, we only
+  // remove the entities from the gazebo entity->physics entity map.
+  _ecm.EachRemoved<components::Model>(
+      [&](const Entity &_entity, const components::Model *
+          /* _model */) -> bool
+      {
+        // Remove model if found
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt != this->entityModelMap.end())
+        {
+          // Remove child links, collisions and joints first
+          for (const auto &childLink :
+               _ecm.ChildrenByComponents(_entity, components::Link()))
+          {
+            for (const auto &childCollision :
+                 _ecm.ChildrenByComponents(childLink, components::Collision()))
+            {
+              this->entityCollisionMap.erase(childCollision);
+            }
+            this->entityLinkMap.erase(childLink);
+          }
+
+          for (const auto &childJoint :
+               _ecm.ChildrenByComponents(_entity, components::Joint()))
+          {
+            this->entityJointMap.erase(childJoint);
+          }
+
+          // Remove the model from the physics engine
+          modelIt->second->Remove();
+          this->entityModelMap.erase(_entity);
+        }
         return true;
       });
 }
@@ -550,6 +679,113 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               math::eigen3::convert(entityFrameData.linearVelocity));
 
           return true;
+        }
+
+        return true;
+      });
+
+  // body angular velocity
+  _ecm.Each<components::Pose, components::AngularVelocity,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::AngularVelocity *_angularVel,
+          components::ParentEntity *_parent)->bool
+      {
+        physics::FrameData3d entityFrameData;
+        ignition::math::Pose3d entityWorldPose;
+
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          entityFrameData = linkIt->second->FrameDataRelativeToWorld();
+          entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+        }
+        else
+        {
+          // check if parent entity is a link, e.g. entity is sensor / collision
+          linkIt = this->entityLinkMap.find(_parent->Data());
+          if (linkIt != this->entityLinkMap.end())
+          {
+            // offset is entity pos relative to parent link
+            physics::FrameData3d entityFromLink;
+            math::Vector3d offset = _pose->Data().Pos();
+            entityFromLink.pose.translation() = math::eigen3::convert(offset);
+            entityFromLink.pose.linear() =
+                math::eigen3::convert(math::Matrix3d::Identity);
+
+            physics::RelativeFrameData3d relFrameData(
+                linkIt->second->GetFrameID(), entityFromLink);
+            entityFrameData =
+                this->engine->Resolve(relFrameData, physics::FrameID::World());
+            entityWorldPose = _pose->Data() +
+                math::eigen3::convert(entityFrameData.pose);
+          }
+        }
+
+        if (linkIt != this->entityLinkMap.end())
+        {
+          ignition::math::Vector3d entityWorldAngularVel =
+            math::eigen3::convert(entityFrameData.angularVelocity);
+
+          auto entityBodyAngularVel =
+            _pose->Data().Rot().Inverse().RotateVector(
+              entityWorldAngularVel);
+          *_angularVel = components::AngularVelocity(entityBodyAngularVel);
+        }
+
+        return true;
+      });
+
+  // body linear acceleration
+  _ecm.Each<components::Pose, components::LinearAcceleration,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          components::Pose *_pose,
+          components::LinearAcceleration *_linearAcc,
+          components::ParentEntity *_parent)->bool
+      {
+        physics::FrameData3d entityFrameData;
+        ignition::math::Pose3d entityWorldPose;
+
+        // check if entity is a link
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt != this->entityLinkMap.end())
+        {
+          entityFrameData = linkIt->second->FrameDataRelativeToWorld();
+          entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+        }
+        else
+        {
+          // check if parent entity is a link, e.g. entity is sensor / collision
+          linkIt = this->entityLinkMap.find(_parent->Data());
+          if (linkIt != this->entityLinkMap.end())
+          {
+            // offset is entity pos relative to parent link
+            physics::FrameData3d entityFromLink;
+            math::Vector3d offset = _pose->Data().Pos();
+            entityFromLink.pose.translation() = math::eigen3::convert(offset);
+            entityFromLink.pose.linear() =
+                math::eigen3::convert(math::Matrix3d::Identity);
+
+            physics::RelativeFrameData3d relFrameData(
+                linkIt->second->GetFrameID(), entityFromLink);
+            entityFrameData =
+                this->engine->Resolve(relFrameData, physics::FrameID::World());
+            entityWorldPose = _pose->Data() +
+                math::eigen3::convert(entityFrameData.pose);
+          }
+        }
+
+        if (linkIt != this->entityLinkMap.end())
+        {
+          ignition::math::Vector3d entityWorldLinearAcc = math::eigen3::convert(
+              entityFrameData.linearAcceleration);
+
+          auto entityBodyLinearAcc = _pose->Data().Rot().Inverse().RotateVector(
+              entityWorldLinearAcc);
+          *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
         }
 
         return true;

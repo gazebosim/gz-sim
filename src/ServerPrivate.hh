@@ -66,12 +66,7 @@ namespace ignition
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
       /// \brief Create all entities that exist in the sdf::Root object.
-      /// \param[in] _root SDF root object.
-      public: void CreateEntities(const sdf::Root &_root);
-
-      /// \brief Load the GUI for each world.
-      /// \param[in] _root SDF root object.
-      public: void LoadGui(const sdf::Root &_root);
+      public: void CreateEntities();
 
       /// \brief Stop server.
       public: void Stop();
@@ -111,6 +106,14 @@ namespace ignition
 
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
+
+      /// \brief The SDF root object.
+      /// This keeps the SDF object in memory so that other classes can keep a
+      /// pointer to child nodes of the root
+      public: sdf::Root sdfRoot;
+
+      /// \brief Whether to use the level system
+      public: bool useLevels{false};
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
