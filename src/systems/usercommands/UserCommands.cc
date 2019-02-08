@@ -66,13 +66,16 @@ class UserCommandsInterface
 
 /// \brief All user commands should inherit from this class so they can be
 /// undone / redone.
-class UserCommand
+class UserCommandBase
 {
   /// \brief Constructor
   /// \param[in] _msg Message containing user command.
   /// \param[in] _iface Pointer to interfaces shared by all commands.
-  public: UserCommand(google::protobuf::Message *_msg,
+  public: UserCommandBase(google::protobuf::Message *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
+
+  /// \brief Destructor.
+  public: virtual ~UserCommandBase() = default;
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -87,7 +90,7 @@ class UserCommand
 };
 
 /// \brief Command to spawn an entity into simulation.
-class CreateCommand : public UserCommand
+class CreateCommand : public UserCommandBase
 {
   /// \brief Constructor
   /// \param[in] _msg Factory message.
@@ -100,7 +103,7 @@ class CreateCommand : public UserCommand
 };
 
 /// \brief Command to remove an entity from simulation.
-class RemoveCommand : public UserCommand
+class RemoveCommand : public UserCommandBase
 {
   /// \brief Constructor
   /// \param[in] _msg Message identifying the entity to be removed.
@@ -135,7 +138,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
       msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
-  public: std::vector<std::unique_ptr<UserCommand>> pendingCmds;
+  public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -252,7 +255,7 @@ bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
 }
 
 //////////////////////////////////////////////////
-UserCommand::UserCommand(google::protobuf::Message *_msg,
+UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
@@ -261,7 +264,7 @@ UserCommand::UserCommand(google::protobuf::Message *_msg,
 //////////////////////////////////////////////////
 CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
-    : UserCommand(_msg, _iface)
+    : UserCommandBase(_msg, _iface)
 {
 }
 
@@ -415,7 +418,7 @@ bool CreateCommand::Execute()
 //////////////////////////////////////////////////
 RemoveCommand::RemoveCommand(msgs::Entity *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
-    : UserCommand(_msg, _iface)
+    : UserCommandBase(_msg, _iface)
 {
 }
 

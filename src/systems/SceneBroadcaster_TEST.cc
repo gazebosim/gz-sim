@@ -49,7 +49,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -57,6 +57,10 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   bool received{false};
   std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
+    ASSERT_TRUE(_msg.has_header());
+    ASSERT_TRUE(_msg.header().has_stamp());
+    EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
+
     EXPECT_EQ(10, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
@@ -93,7 +97,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -139,7 +143,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -179,7 +183,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -224,7 +228,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 14;
+  const std::size_t initEntityCount = 15;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions

@@ -167,8 +167,7 @@ namespace ignition
       /// operation.
       public: void RebuildViews();
 
-      /// \brief Get the type id of a component type. This is a convenience
-      /// function that is equivalent to typeid(ComponentTypeT).hash_code().
+      /// \brief Get the type id of a component type.
       /// \return The ComponentTypeId associated with the provided
       /// ComponentTypeT.
       public: template<typename ComponentTypeT>
