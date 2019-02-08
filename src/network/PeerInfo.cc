@@ -17,6 +17,7 @@
 #include "PeerInfo.hh"
 
 #include "ignition/common/Uuid.hh"
+#include "ignition/transport/NetUtils.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -24,8 +25,20 @@ using namespace gazebo;
 /////////////////////////////////////////////////
 PeerInfo::PeerInfo(const NetworkRole &_role):
   id(ignition::common::Uuid().String()),
+  hostname(ignition::transport::hostname()),
   role(_role)
 {
+}
+
+/////////////////////////////////////////////////
+std::string PeerInfo::Namespace() const
+{
+  std::string ns = "";
+  if (this->role == NetworkRole::SimulationSecondary)
+  {
+    ns = "/" + this->id.substr(0, 8);
+  }
+  return ns;
 }
 
 /////////////////////////////////////////////////
