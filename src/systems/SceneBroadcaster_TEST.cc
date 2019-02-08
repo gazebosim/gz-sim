@@ -49,7 +49,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -57,6 +57,10 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   bool received{false};
   std::function<void(const msgs::Pose_V &)> cb = [&](const msgs::Pose_V &_msg)
   {
+    ASSERT_TRUE(_msg.has_header());
+    ASSERT_TRUE(_msg.header().has_stamp());
+    EXPECT_LT(0, _msg.header().stamp().sec() +  _msg.header().stamp().nsec());
+
     EXPECT_EQ(10, _msg.pose_size());
 
     std::map<int, std::string> entityMap;
@@ -93,7 +97,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -139,7 +143,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -156,15 +160,15 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (0)"), std::string::npos);
-  EXPECT_NE(res.data().find("box (1)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_link (2)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_visual (3)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder (5)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_link (6)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_visual (7)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere (9)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_link (10)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_visual (11)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (2)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (3)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (4)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (7)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (8)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (11)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (12)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -179,7 +183,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(14u, *server.EntityCount());
+  EXPECT_EQ(15u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -224,7 +228,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 14;
+  const std::size_t initEntityCount = 15;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -252,8 +256,8 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 
   // Delete the cylinder. Deleting the model and the link to avoid physics
   // warnings
-  server.RequestEraseEntity(cylinderModelId.value(), false);
-  server.RequestEraseEntity(cylinderLinkId.value(), false);
+  server.RequestRemoveEntity(cylinderModelId.value(), false);
+  server.RequestRemoveEntity(cylinderLinkId.value(), false);
   server.Run(true, 10, false);
 
   EXPECT_EQ(initEntityCount - 2, server.EntityCount());

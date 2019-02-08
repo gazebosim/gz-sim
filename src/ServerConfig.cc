@@ -27,6 +27,9 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
 
+  /// \brief Use the level system
+  public: bool useLevels{false};
+
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
@@ -79,6 +82,18 @@ std::optional<std::chrono::steady_clock::duration>
   }
 
   return std::nullopt;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::UseLevels() const
+{
+  return this->dataPtr->useLevels;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetUseLevels(const bool _levels)
+{
+  this->dataPtr->useLevels = _levels;
 }
 
 /////////////////////////////////////////////////
