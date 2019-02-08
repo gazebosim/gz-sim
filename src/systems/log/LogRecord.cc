@@ -16,6 +16,7 @@
 */
 
 #include <fstream>
+#include <filesystem>
 
 #include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/Utility.hh>
@@ -59,6 +60,18 @@ void LogRecord::Configure(const Entity &_entity,
   // Get params from SDF
   this->logPath = _sdf->Get<std::string>("log_path",
       this->logPath).first;
+  this->sdfPath = _sdf->Get<std::string>("sdf_path",
+      this->sdfPath).first;
+
+  // Check if files already exist, don't overwrite
+  if (std::filesystem::exists (this->logPath) ||
+      std::filesystem::exists (this->sdfPath))
+  {
+    ignerr << "log_path and/or sdf_path already exist on disk! Not overwriting. Will not record." << std::endl;
+    return;
+  }
+
+  ignerr << "Recording to log file " << this->logPath << std::endl;
 
 
   // Use ign-transport directly
@@ -75,12 +88,20 @@ void LogRecord::Configure(const Entity &_entity,
   // Entity is just an int
   ignerr << _ecm.EntityCount () << " entities" << std::endl;
 
-  // TODO: Dump the _sdf to log file as a big string.
+  // Record SDF as a string.
+  // TODO: For now, just dumping a big string to a text file, until we have a
+  //   custom SQL field for the SDF.
+  std::ofstream ofs(this->sdfPath);
+  // Go up to root of SDF, to output entire SDF file
+  sdf::ElementPtr sdf_root = _sdf->GetParent ();
+  while (sdf_root->GetParent () != NULL)
+  {
+    sdf_root = sdf_root->GetParent ();
+  }
+  ofs << sdf_root->ToString ("");
+  ignerr << "Outputted SDF to " << this->sdfPath << std::endl;
 
 
-
-
-  ignerr << "Recording to log file " << this->logPath << std::endl;
 }
 
 /*
@@ -132,10 +153,6 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
      return true;
   });
 
-
-  // This worked!
-  //std::ofstream ofs(this->logPath);
-  //ofs << "test";
 
 
   /*

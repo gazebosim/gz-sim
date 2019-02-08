@@ -10,14 +10,6 @@ set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
 set (log_system_sources
   LogRecord.cc
   LogPlayback.cc
-  # Not copy-pasting these anymore, just using them directly from ign-transport
-  # From ign-transport/log
-  #SqlStatement.cc
-  #raii-sqlite3.cc
-  #Recorder.cc
-  #Log.cc
-  #Descriptor.cc
-  #Batch.cc
 )
 
 ign_add_component(log-system
@@ -34,6 +26,7 @@ target_link_libraries(${log_system_target}
   ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
+  stdc++fs
 )
 
 install(TARGETS ${log_system_target}

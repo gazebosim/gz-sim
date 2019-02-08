@@ -70,6 +70,9 @@ namespace systems
     // If use ign-transport Log, must end in .tlog
     /// \brief Name of log file to record
     public: std::string logPath = "file.tlog";
+    // Temporary for recording sdf string, before have custom SQL field for
+    //   a big SDF string.
+    public: std::string sdfPath = "file.sdf";
 
 
     // Use ign-transport directly
