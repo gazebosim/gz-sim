@@ -11,6 +11,7 @@ set(tests
   imu_system.cc
   level_manager.cc
   model.cc
+  network_handshake.cc
   physics_system.cc
   play_pause.cc
 )
