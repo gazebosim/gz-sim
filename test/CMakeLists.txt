@@ -18,6 +18,90 @@ execute_process(COMMAND cmake -E remove_directory ${CMAKE_BINARY_DIR}/test_resul
 execute_process(COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/test_results)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+################################# FindDRI support #############################
+# Check for existance of glxinfo application
+# Check for existance of support for pyopengl
+message(STATUS "Looking for display capabilities")
+
+if((DEFINED FORCE_GRAPHIC_TESTS_COMPILATION)
+  AND (${FORCE_GRAPHIC_TESTS_COMPILATION}))
+  set(VALID_DISPLAY TRUE)
+  set(VALID_DRI_DISPLAY TRUE)
+  message(STATUS " + Force requested. All capabilities on without checking")
+  return()
+endif()
+
+set(VALID_DISPLAY FALSE)
+set(VALID_DRI_DISPLAY FALSE)
+set(CHECKER_ERROR "(no glxinfo or pyopengl)")
+
+if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
+  execute_process(
+    COMMAND xwininfo -root
+    RESULT_VARIABLE DISPLAY_FAIL_RESULT
+    ERROR_QUIET OUTPUT_QUIET
+  )
+  if(NOT DISPLAY_FAIL_RESULT)
+    message(STATUS " + found a display available ($DISPLAY is set)")
+    set(VALID_DISPLAY TRUE)
+
+    # Continue check for DRI support in the display Try to run glxinfo. If not
+    # found, variable will be empty
+    find_program(GLXINFO glxinfo)
+
+    # If not display found, it will throw an error
+    # Another grep pattern: "direct rendering:[[:space:]]*Yes[[:space:]]*"
+    if(GLXINFO)
+      execute_process(
+        COMMAND glxinfo
+        COMMAND grep "direct rendering:[[:space:]]*Yes[[:space:]]*"
+        ERROR_QUIET
+        OUTPUT_VARIABLE GLX
+      )
+
+      if(GLX)
+        message(STATUS " + found a valid dri display (glxinfo)")
+        set(VALID_DRI_DISPLAY TRUE)
+      else()
+        set(CHECKER_ERROR "using glxinfo")
+      endif()
+    else()
+      execute_process(
+        # RESULT_VARIABLE is store in a FAIL variable since the command
+        # returns 0 if ok and 1 if error (inverse than cmake IF)
+        COMMAND ${PROJECT_SOURCE_DIR}/tools/gl-test.py
+        RESULT_VARIABLE GL_FAIL_RESULT
+        ERROR_VARIABLE GL_ERROR
+        OUTPUT_QUIET
+      )
+
+      if(NOT GL_FAIL_RESULT)
+        message(STATUS " + found a valid dri display (pyopengl)")
+        set(VALID_DRI_DISPLAY TRUE)
+      else()
+        # Check error string: no python module means no pyopengl
+        string(
+          FIND ${GL_ERROR} "ImportError: No module named OpenGL.GLUT" ERROR_POS
+        )
+        # -1 will imply pyopengl is present but real DRI test fails
+        if("${ERROR_POS}" STREQUAL "-1")
+          set(CHECKER_ERROR "using pyopengl")
+        endif()
+      endif()
+    endif()
+  endif()
+endif()
+
+if(NOT VALID_DISPLAY)
+  message(STATUS " ! valid display not found")
+endif()
+
+if(NOT VALID_DRI_DISPLAY)
+  message(STATUS " ! valid dri display not found ${CHECKER_ERROR}")
+endif()
+
+############################## End FindDRI support #############################
+
 add_subdirectory(integration)
 add_subdirectory(performance)
 add_subdirectory(plugins)
