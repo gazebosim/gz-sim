@@ -21,6 +21,9 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
+// Use ign-transport directly
+#include <ignition/transport/log/Playback.hh>
+
 namespace ignition
 {
 namespace gazebo
@@ -53,7 +56,9 @@ namespace systems
                         EntityComponentManager &_ecm) final;
 
     /// \brief Name of log file to play back
-    public: std::string logPath = "file.log";
+    public: std::string logPath = "file.tlog";
+
+    private: std::unique_ptr <ignition::transport::log::Playback> player;
   };
   }
 }

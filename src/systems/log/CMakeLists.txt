@@ -1,6 +1,14 @@
 set (log_system_sources
   LogRecord.cc
   LogPlayback.cc
+  # Not copy-pasting these anymore, just using them directly from ign-transport
+  # From ign-transport/log
+  #SqlStatement.cc
+  #raii-sqlite3.cc
+  #Recorder.cc
+  #Log.cc
+  #Descriptor.cc
+  #Batch.cc
 )
 
 ign_add_component(log-system
@@ -11,6 +19,8 @@ ign_add_component(log-system
 target_link_libraries(${log_system_target}
   PUBLIC
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  # Use ign-transport directly
+  ignition-transport${IGN_TRANSPORT_VER}::log
   ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register

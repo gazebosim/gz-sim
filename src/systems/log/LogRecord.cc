@@ -28,8 +28,11 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
-#include "Log.hh"
 #include "LogRecord.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include "ignition/gazebo/components/Joint.hh"
+
 
 using namespace ignition::gazebo::systems;
 
@@ -42,32 +45,110 @@ LogRecord::LogRecord()
 //////////////////////////////////////////////////
 LogRecord::~LogRecord()
 {
+  // Use ign-transport directly
+  this->recorder.Stop();
+
+  ignerr << "Stopping recording" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const Entity &/*_id*/,
+void LogRecord::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
+    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   // Get params from SDF
   this->logPath = _sdf->Get<std::string>("log_path",
       this->logPath).first;
-  ignmsg << "Recording to log file " << this->logPath << std::endl;
+
+
+  // Use ign-transport directly
+
+  this->recorder.AddTopic("/world/default/pose/info");
+  //this->recorder.AddTopic(std::regex(".*"));
+
+  // This calls Log::Open() and loads 0.1.0.sql
+  this->recorder.Start(this->logPath);
+
+
+  // Use ECM
+
+  // Entity is just an int
+  ignerr << _ecm.EntityCount () << " entities" << std::endl;
+
+  // TODO: Dump the _sdf to log file as a big string.
+
+
+
+
+  ignerr << "Recording to log file " << this->logPath << std::endl;
 }
+
+/*
+void LogRecord::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+
+}
+*/
 
 //////////////////////////////////////////////////
 void LogRecord::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &_manager)
+    EntityComponentManager &_ecm)
 {
+  // Use ECM
+
+  //ignerr << "Update()" << std::endl;
+
+  //for (auto ent : _ecm.Entities ())
+  /*
+  // Models
+  _ecm.EachNew<components::Model, components::Name,
+               components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+  {
+    ignerr << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
+    ignerr << "Pose: " << _poseComp->Data() << std::endl;
+
+    //_ecm.Component (ent)
+
+    return true;
+  });
+  */
+
+  // Joints
+  _ecm.EachNew<components::Joint, components::Name, components::ParentEntity,
+               components::Pose>(
+      [&](const Entity &_entity, const components::Joint *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+  {
+    ignerr << "Joint " << _nameComp->Data() << std::endl;
+    ignerr << "Pose: " << _poseComp->Data() << std::endl;
+
+     return true;
+  });
+
+
+  // This worked!
+  //std::ofstream ofs(this->logPath);
+  //ofs << "test";
+
+
+  /*
   {
     std::ofstream ofs(this->logPath);
-    ofs << _manager;
+    ofs << _ecm;
   }
   {
     // Read the object back in.
     std::ifstream ifs(this->logPath);
-    ifs >> _manager;
+    ifs >> _ecm;
   }
+  */
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
