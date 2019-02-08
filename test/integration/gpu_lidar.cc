@@ -90,13 +90,15 @@ class Relay
   private: MockSystem *mockSystem;
 };
 
-
+std::mutex mutex;
 std::vector<msgs::LaserScan> laserMsgs;
 
 /////////////////////////////////////////////////
 void laserCb(const msgs::LaserScan &_msg)
 {
+  mutex.lock();
   laserMsgs.push_back(_msg);
+  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -142,7 +144,9 @@ TEST_F(GpuLidarTest, GpuLidarBox)
   double expectedRangeAtMidPointBox1 = 0.45;
 
   // Sensor 1 should see TestBox1
+  mutex.lock();
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(0), ignition::math::INF_D);
   EXPECT_NEAR(laserMsgs.back().ranges(mid), expectedRangeAtMidPointBox1, LASER_TOL);
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(last), ignition::math::INF_D);
+  mutex.unlock();
 }

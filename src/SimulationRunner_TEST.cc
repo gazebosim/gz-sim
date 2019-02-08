@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Joint.hh>
@@ -62,6 +63,14 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
   }
 };
 
+std::vector<msgs::Clock> clockMsgs;
+
+/////////////////////////////////////////////////
+void clockCb(const msgs::Clock &_msg)
+{
+  clockMsgs.push_back(_msg);
+}
+
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, CreateEntities)
 {
@@ -103,8 +112,9 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EntityComponentManager::ComponentType<components::Inertial>()));
 
   // Check entities
-  // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
-  EXPECT_EQ(14u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
+  // x visual + 1 x light
+  EXPECT_EQ(15u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -487,8 +497,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check entities
-  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
-  EXPECT_EQ(8u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x model + 1 x link + 1 x visual + 4 x
+  // light
+  EXPECT_EQ(9u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -892,6 +903,9 @@ TEST_P(SimulationRunnerTest, Time)
 
   ASSERT_EQ(1u, root.WorldCount());
 
+  transport::Node node;
+  node.Subscribe("/world/default/clock", &clockCb);
+
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
@@ -917,6 +931,11 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
+  // Verify info published to /clock topic
+  auto simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
+
   // Change step size and run
   runner.SetStepSize(2ms);
   EXPECT_TRUE(runner.Run(100));
@@ -929,6 +948,11 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
+  // Verify info published to /clock topic
+  simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
+
   // Set paused
   runner.SetPaused(true);
   EXPECT_TRUE(runner.Paused());
@@ -939,6 +963,11 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
+
+  // Verify info published to /clock topic
+  simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
 
   // Unpause and run
   runner.SetPaused(false);
@@ -952,6 +981,11 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
+
+  // Verify info published to /clock topic
+  simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
+  EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
 }
 
 /////////////////////////////////////////////////

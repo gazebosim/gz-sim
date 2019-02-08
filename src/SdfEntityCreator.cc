@@ -19,20 +19,24 @@
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Material.hh"
@@ -47,7 +51,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
-class ignition::gazebo::FactoryPrivate
+class ignition::gazebo::SdfEntityCreatorPrivate
 {
   public: EntityComponentManager *ecm{nullptr};
   public: EventManager *eventManager{nullptr};
@@ -57,40 +61,42 @@ using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-Factory::Factory(EntityComponentManager &_ecm,
+SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager)
-  : dataPtr(std::make_unique<FactoryPrivate>())
+  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>())
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(const Factory &_factory)
-  : dataPtr(std::make_unique<FactoryPrivate>(*_factory.dataPtr))
+SdfEntityCreator::SdfEntityCreator(const SdfEntityCreator &_creator)
+  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>(*_creator.dataPtr))
 {
 }
 
 /////////////////////////////////////////////////
-Factory::Factory(Factory &&_factory) noexcept = default;
+SdfEntityCreator::SdfEntityCreator(SdfEntityCreator &&_creator) noexcept
+    = default;
 
 //////////////////////////////////////////////////
-Factory::~Factory() = default;
+SdfEntityCreator::~SdfEntityCreator() = default;
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(const Factory &_factory)
+SdfEntityCreator &SdfEntityCreator::operator=(const SdfEntityCreator &_creator)
 {
-  *this->dataPtr = (*_factory.dataPtr);
+  *this->dataPtr = (*_creator.dataPtr);
   return *this;
 }
 
 /////////////////////////////////////////////////
-Factory &Factory::operator=(Factory &&_factory) noexcept = default;
+SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
+    noexcept = default;
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::World *_world)
+Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::World)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -107,8 +113,7 @@ Entity Factory::CreateEntities(const sdf::World *_world)
     auto model = _world->ModelByIndex(modelIndex);
     auto modelEntity = this->CreateEntities(model);
 
-    this->dataPtr->ecm->CreateComponent(modelEntity,
-        components::ParentEntity(worldEntity));
+    this->SetParent(modelEntity, worldEntity);
   }
 
   // Lights
@@ -118,9 +123,12 @@ Entity Factory::CreateEntities(const sdf::World *_world)
     auto light = _world->LightByIndex(lightIndex);
     auto lightEntity = this->CreateEntities(light);
 
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::ParentEntity(worldEntity));
+    this->SetParent(lightEntity, worldEntity);
   }
+
+  // Gravity
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::Gravity(_world->Gravity()));
 
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
@@ -129,9 +137,9 @@ Entity Factory::CreateEntities(const sdf::World *_world)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Model *_model)
+Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Model)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
   // Entity
   Entity modelEntity = this->dataPtr->ecm->CreateEntity();
@@ -155,8 +163,7 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
     auto link = _model->LinkByIndex(linkIndex);
     auto linkEntity = this->CreateEntities(link);
 
-    this->dataPtr->ecm->CreateComponent(linkEntity,
-        components::ParentEntity(modelEntity));
+    this->SetParent(linkEntity, modelEntity);
     if (linkIndex == 0)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
@@ -169,10 +176,9 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
       ++jointIndex)
   {
     auto joint = _model->JointByIndex(jointIndex);
-    auto linkEntity = this->CreateEntities(joint);
+    auto jointEntity = this->CreateEntities(joint);
 
-    this->dataPtr->ecm->CreateComponent(linkEntity,
-        components::ParentEntity(modelEntity));
+    this->SetParent(jointEntity, modelEntity);
   }
 
   // Model plugins
@@ -183,9 +189,9 @@ Entity Factory::CreateEntities(const sdf::Model *_model)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Light *_light)
+Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Light)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -201,9 +207,9 @@ Entity Factory::CreateEntities(const sdf::Light *_light)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Link *_link)
+Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Link)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -224,8 +230,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto visual = _link->VisualByIndex(visualIndex);
     auto visualEntity = this->CreateEntities(visual);
 
-    this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(visualEntity, linkEntity);
   }
 
   // Collisions
@@ -235,8 +240,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto collision = _link->CollisionByIndex(collisionIndex);
     auto collisionEntity = this->CreateEntities(collision);
 
-    this->dataPtr->ecm->CreateComponent(collisionEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(collisionEntity, linkEntity);
   }
 
   // Lights
@@ -246,8 +250,7 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto light = _link->LightByIndex(lightIndex);
     auto lightEntity = this->CreateEntities(light);
 
-    this->dataPtr->ecm->CreateComponent(lightEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(lightEntity, linkEntity);
   }
 
   // Sensors
@@ -257,17 +260,16 @@ Entity Factory::CreateEntities(const sdf::Link *_link)
     auto sensor = _link->SensorByIndex(sensorIndex);
     auto sensorEntity = this->CreateEntities(sensor);
 
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::ParentEntity(linkEntity));
+    this->SetParent(sensorEntity, linkEntity);
   }
 
   return linkEntity;
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Joint *_joint)
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Joint)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -305,9 +307,9 @@ Entity Factory::CreateEntities(const sdf::Joint *_joint)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Visual *_visual)
+Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Visual)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -336,9 +338,9 @@ Entity Factory::CreateEntities(const sdf::Visual *_visual)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Collision *_collision)
+Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Collision)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -361,9 +363,9 @@ Entity Factory::CreateEntities(const sdf::Collision *_collision)
 }
 
 //////////////////////////////////////////////////
-Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
+Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("Factory::CreateEntities(sdf::Sensor)");
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
@@ -403,6 +405,21 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }
+  else if (_sensor->Type() == sdf::SensorType::IMU)
+  {
+    auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::Imu(elem));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::AngularVelocity(math::Vector3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::LinearAcceleration(math::Vector3d::Zero));
+  }
   else
   {
     ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
@@ -412,3 +429,30 @@ Entity Factory::CreateEntities(const sdf::Sensor *_sensor)
   return sensorEntity;
 }
 
+//////////////////////////////////////////////////
+void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
+{
+  // Leave children parentless
+  if (!_recursive)
+  {
+    auto childEntities = this->dataPtr->ecm->ChildrenByComponents(_entity,
+        components::ParentEntity(_entity));
+    for (const auto childEntity : childEntities)
+    {
+      this->dataPtr->ecm->RemoveComponent<components::ParentEntity>(
+          childEntity);
+    }
+  }
+
+  this->dataPtr->ecm->RequestRemoveEntity(_entity, _recursive);
+}
+
+//////////////////////////////////////////////////
+void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
+{
+  // TODO(louise) Figure out a way to avoid duplication while keeping all
+  // state in components and also keeping a convenient graph in the ECM
+  this->dataPtr->ecm->SetParentEntity(_child, _parent);
+  this->dataPtr->ecm->CreateComponent(_child,
+      components::ParentEntity(_parent));
+}
