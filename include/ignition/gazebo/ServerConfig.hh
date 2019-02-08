@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SERVERCONFIG_HH_
 
 #include <chrono>
+#include <list>
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
@@ -41,6 +42,8 @@ namespace ignition
     {
       /// \brief Constructor
       public: ServerConfig();
+
+      public: ServerConfig(const ServerConfig &_config);
 
       /// \brief Destructor
       public: ~ServerConfig();
@@ -97,6 +100,14 @@ namespace ignition
       /// indicates that the default value will be used, which is currently
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
+
+      public: void AddPlugin(const std::string &_name,
+                             const std::string &_filename);
+
+      public: const std::list<std::pair<std::string, std::string>> &
+              Plugins() const;
+
+      public: ServerConfig &operator=(const ServerConfig &_cfg);
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;

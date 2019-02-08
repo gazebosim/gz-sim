@@ -31,16 +31,17 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const bool _useLevels
-                                   )
+                                   const ServerConfig &_config)
     // \todo(nkoenig) Either copy the world, or add copy constructor to the
     // World and other elements.
     : sdfWorld(_world)
 {
+  this->serverConfig = _config;
+
   // Keep world name
   this->worldName = _world->Name();
 
-  // Keep system loader to plugins can be loaded at runtime
+  // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
   // Get the first physics profile
@@ -95,7 +96,26 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
+
+  // Load the plugins in the server config
+  for (const std::pair<std::string, std::string> &plugin :
+       this->serverConfig.Plugins())
+  {
+    std::optional<SystemPluginPtr> system =
+      this->systemLoader->LoadPlugin(plugin.first, plugin.second, nullptr);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(this->levelMgr->WorldEntity(), nullptr,
+                                this->entityCompMgr,
+                                this->eventMgr);
+      }
+      this->AddSystem(system.value());
+    }
+  }
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -386,23 +406,25 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  if (!_sdf->HasElement("plugin"))
-    return;
-
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
-    auto system = this->systemLoader->LoadPlugin(pluginElem);
-    if (system)
+    if (pluginElem->Get<std::string>("filename") != "__default__" &&
+        pluginElem->Get<std::string>("name") != "__default__")
     {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
+      std::optional<SystemPluginPtr> system =
+        this->systemLoader->LoadPlugin(pluginElem);
+      if (system)
       {
-        systemConfig->Configure(_entity, pluginElem,
-                                this->entityCompMgr,
-                                this->eventMgr);
+        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+        if (systemConfig != nullptr)
+        {
+          systemConfig->Configure(_entity, pluginElem,
+              this->entityCompMgr,
+              this->eventMgr);
+        }
+        this->AddSystem(system.value());
       }
-      this->AddSystem(system.value());
     }
     pluginElem = pluginElem->GetNextElement("plugin");
   }
