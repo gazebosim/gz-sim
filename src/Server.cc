@@ -102,19 +102,18 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
-  sdf::Root root;
   sdf::Errors errors;
 
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    errors = root.Load(_config.SdfFile());
+    errors = this->dataPtr->sdfRoot.Load(_config.SdfFile());
   }
   else
   {
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = root.LoadSdfString(kDefaultWorld);
+    errors = this->dataPtr->sdfRoot.LoadSdfString(kDefaultWorld);
   }
 
   if (!errors.empty())
@@ -124,7 +123,9 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
-  this->dataPtr->CreateEntities(root);
+  this->dataPtr->useLevels = _config.UseLevels();
+
+  this->dataPtr->CreateEntities();
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.

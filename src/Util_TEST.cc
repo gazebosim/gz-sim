@@ -131,32 +131,31 @@ TEST(UtilTest, ScopedName)
   ecm.CreateComponent(linkCCEntity, components::ParentEntity(modelCCEntity));
 
   // Check names
-  EXPECT_EQ(ignition::gazebo::scopedName(worldEntity, ecm),
-    "/world/world_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(lightAEntity, ecm, "::"),
+  EXPECT_EQ(scopedName(worldEntity, ecm), "/world/world_name");
+  EXPECT_EQ(scopedName(lightAEntity, ecm, "::"),
     "::world::world_name::light::lightA_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(modelBEntity, ecm, "/"),
+  EXPECT_EQ(scopedName(modelBEntity, ecm, "/"),
     "/world/world_name/model/modelB_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(linkBEntity, ecm, " "),
+  EXPECT_EQ(scopedName(linkBEntity, ecm, " "),
     " world world_name model modelB_name link linkB_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(lightBEntity, ecm),
+  EXPECT_EQ(scopedName(lightBEntity, ecm),
     "/world/world_name/model/modelB_name/link/linkB_name/light/lightB_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(sensorBEntity, ecm),
+  EXPECT_EQ(scopedName(sensorBEntity, ecm),
     "/world/world_name/model/modelB_name/link/linkB_name/sensor/sensorB_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(modelCEntity, ecm),
+  EXPECT_EQ(scopedName(modelCEntity, ecm),
     "/world/world_name/model/modelC_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(linkCEntity, ecm),
+  EXPECT_EQ(scopedName(linkCEntity, ecm),
     "/world/world_name/model/modelC_name/link/linkC_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(collisionCEntity, ecm),
+  EXPECT_EQ(scopedName(collisionCEntity, ecm),
     "/world/world_name/model/modelC_name/link/linkC_name/collision/" +
     std::string("collisionC_name"));
-  EXPECT_EQ(ignition::gazebo::scopedName(visualCEntity, ecm),
+  EXPECT_EQ(scopedName(visualCEntity, ecm),
     "/world/world_name/model/modelC_name/link/linkC_name/visual/" +
     std::string("visualC_name"));
-  EXPECT_EQ(ignition::gazebo::scopedName(jointCEntity, ecm),
+  EXPECT_EQ(scopedName(jointCEntity, ecm),
     "/world/world_name/model/modelC_name/joint/jointC_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(modelCCEntity, ecm),
+  EXPECT_EQ(scopedName(modelCCEntity, ecm),
     "/world/world_name/model/modelC_name/model/modelCC_name");
-  EXPECT_EQ(ignition::gazebo::scopedName(linkCCEntity, ecm),
+  EXPECT_EQ(scopedName(linkCCEntity, ecm),
     "/world/world_name/model/modelC_name/model/modelCC_name/link/linkCC_name");
 }

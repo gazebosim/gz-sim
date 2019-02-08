@@ -30,13 +30,27 @@ using StringSet = std::unordered_set<std::string>;
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
-                                   const SystemLoaderPtr &_systemLoader)
+                                   const SystemLoaderPtr &_systemLoader,
+                                   const bool _useLevels
+                                   )
+    // \todo(nkoenig) Either copy the world, or add copy constructor to the
+    // World and other elements.
+    : sdfWorld(_world)
 {
   // Keep world name
   this->worldName = _world->Name();
 
   // Keep system loader to plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
+
+  // Check if this is going to be a distributed runner
+  // Attempt to create the manager based on environment variables.
+  this->networkMgr = NetworkManager::Create();
+  if (this->networkMgr && !this->networkMgr->Valid())
+  {
+    // If not, release the networkMgr, it's not needed.
+    this->networkMgr.reset();
+  }
 
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
@@ -89,13 +103,24 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  // Create entities and components
-  auto creator = SdfEntityCreator(this->entityCompMgr, this->eventMgr);
-  creator.CreateEntities(_world);
+  // Create the level manager
+  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
 
   // World control
   transport::NodeOptions opts;
-  opts.SetNameSpace("/world/" + this->worldName);
+  if (this->networkMgr)
+  {
+    opts.SetNameSpace(this->networkMgr->Namespace() +
+                      "/world/" + this->worldName);
+  }
+  else
+  {
+    opts.SetNameSpace("/world/" + this->worldName);
+  }
+
   this->node = std::make_unique<transport::Node>(opts);
 
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -179,14 +204,6 @@ void SimulationRunner::UpdateCurrentInfo()
 void SimulationRunner::PublishStats()
 {
   IGN_PROFILE("SimulationRunner::PublishStats");
-  // Create the world statistics publisher.
-  if (!this->statsPub.Valid())
-  {
-    transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
-        "stats", advertOpts);
-  }
 
   // Create the world statistics message.
   ignition::msgs::WorldStatistics msg;
@@ -208,8 +225,20 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
-  // Publish the message
+  // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
+
+  // Create and publish the clock message. The clock message is not
+  // throttled.
+  ignition::msgs::Clock clockMsg;
+  clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
+  clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
+  clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
+  clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
+  clockMsg.mutable_system()->set_sec(IGN_SYSTEM_TIME_S());
+  clockMsg.mutable_system()->set_nsec(
+      IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
+  this->clockPub.Publish(clockMsg);
 }
 
 /////////////////////////////////////////////////
@@ -272,7 +301,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
-
   IGN_PROFILE_THREAD_NAME("SimulationRunner");
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
@@ -286,6 +314,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   std::chrono::steady_clock::duration actualSleep;
 
   this->running = true;
+
+  // Create the world statistics publisher.
+  if (!this->statsPub.Valid())
+  {
+    transport::AdvertiseMessageOptions advertOpts;
+    advertOpts.SetMsgsPerSec(5);
+    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+        "stats", advertOpts);
+  }
+
+  // Create the clock publisher.
+  if (!this->clockPub.Valid())
+    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
@@ -327,6 +368,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Record when the update step starts.
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
+
+    this->levelMgr->UpdateLevelsState();
 
     // Update all the systems.
     this->UpdateSystems();
@@ -386,6 +429,17 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Ready() const
+{
+  bool ready = true;
+  if (this->networkMgr && !this->networkMgr->Ready())
+  {
+    ready = false;
+  }
+  return ready;
 }
 
 /////////////////////////////////////////////////
