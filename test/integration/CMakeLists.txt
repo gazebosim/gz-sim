@@ -14,6 +14,7 @@ set(tests
   network_handshake.cc
   physics_system.cc
   play_pause.cc
+  user_commands.cc
 )
 
 # Tests that require a valid display
