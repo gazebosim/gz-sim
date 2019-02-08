@@ -40,11 +40,11 @@ namespace ignition
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
     /// \return Conversion result.
-    /// \tparam OUT Output type.
-    template<class OUT>
-    OUT IGNITION_GAZEBO_VISIBLE convert(const sdf::Geometry &_in)
+    /// \tparam T Output type.
+    template<class T>
+    T IGNITION_GAZEBO_VISIBLE convert(const sdf::Geometry &/*_in*/)
     {
-      OUT::ConversionNotImplemented;
+      T::ConversionNotImplemented;
     }
 
     /// \brief Specialized conversion from an SDF geometry to a geometry
@@ -57,11 +57,11 @@ namespace ignition
     /// \brief Generic conversion from an SDF material to another type.
     /// \param[in] _in SDF material.
     /// \return Conversion result.
-    /// \tparam OUT Output type.
-    template<class OUT>
-    OUT IGNITION_GAZEBO_VISIBLE convert(const sdf::Material &_in)
+    /// \tparam T Output type.
+    template<class T>
+    T IGNITION_GAZEBO_VISIBLE convert(const sdf::Material &/*_in*/)
     {
-      OUT::ConversionNotImplemented;
+      T::ConversionNotImplemented;
     }
 
     /// \brief Specialized conversion from an SDF material to a material
@@ -74,11 +74,11 @@ namespace ignition
     /// \brief Generic conversion from an SDF light to another type.
     /// \param[in] _in SDF light.
     /// \return Conversion result.
-    /// \tparam OUT Output type.
-    template<class OUT>
-    OUT IGNITION_GAZEBO_VISIBLE convert(const sdf::Light &_in)
+    /// \tparam T Output type.
+    template<class T>
+    T IGNITION_GAZEBO_VISIBLE convert(const sdf::Light &/*_in*/)
     {
-      OUT::ConversionNotImplemented;
+      T::ConversionNotImplemented;
     }
 
     /// \brief Specialized conversion from an SDF light to a light
@@ -91,11 +91,11 @@ namespace ignition
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
     /// \return Conversion result.
-    /// \tparam OUT Output type.
-    template<class OUT>
-    OUT IGNITION_GAZEBO_VISIBLE convert(const sdf::Gui &_in)
+    /// \tparam T Output type.
+    template<class T>
+    T IGNITION_GAZEBO_VISIBLE convert(const sdf::Gui &/*_in*/)
     {
-      OUT::ConversionNotImplemented;
+      T::ConversionNotImplemented;
     }
 
     /// \brief Specialized conversion from an SDF gui to a gui message.
