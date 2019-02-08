@@ -69,6 +69,9 @@ class UserCommand
   public: UserCommand(google::protobuf::Message *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Destructor.
+  public: virtual ~UserCommand() = default;
+
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
   /// \return True if command was properly executed.
