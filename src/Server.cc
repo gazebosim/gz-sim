@@ -141,7 +141,6 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
-
   this->dataPtr->CreateEntities();
 
   // Set the desired update period, this will override the desired RTF given in

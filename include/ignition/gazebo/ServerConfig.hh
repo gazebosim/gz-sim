@@ -22,6 +22,7 @@
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -40,6 +41,40 @@ namespace ignition
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      public: class PluginInfo
+      {
+        public: PluginInfo() = default;
+
+        public: PluginInfo(const std::string &_entityName,
+                           const std::string &_entityType,
+                           const std::string &_filename,
+                           const std::string &_name,
+                           const sdf::ElementPtr &_sdf)
+                : entityName(_entityName),
+                  entityType(_entityType),
+                  filename(_filename),
+                  name(_name),
+                  sdf(_sdf->Clone()) { }
+
+        public: PluginInfo(const PluginInfo &_info)
+                : entityName(_info.entityName),
+                  entityType(_info.entityType),
+                  filename(_info.filename),
+                  name(_info.name),
+                  sdf(_info.sdf->Clone()) { }
+
+        /// \brief The name of the entity.
+        public: std::string entityName = "";
+        /// \brief The type of entity.
+        public: std::string entityType = "";
+        /// \brief _filename The plugin library.
+        public: std::string filename = "";
+        /// \brief Name of the plugin implementation.
+        public: std::string name = "";
+        /// \brief XML elements associated with this plugin
+        public: sdf::ElementPtr sdf = nullptr;
+      };
+
       /// \brief Constructor
       public: ServerConfig();
 
@@ -101,11 +136,15 @@ namespace ignition
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
 
-      public: void AddPlugin(const std::string &_name,
-                             const std::string &_filename);
+      /// \brief Instruct simulation to attach a plugin to a specific
+      /// entity when simulation starts.
+      /// \param[in] _info Information about the plugin to load.
+      public: void AddPlugin(const PluginInfo &_info);
 
-      public: const std::list<std::pair<std::string, std::string>> &
-              Plugins() const;
+      /// \brief Get all the plugins that should be loaded.
+      /// \return A list of all the plugins specified via
+      /// AddPlugin(const PluginInfo &).
+      public: const std::list<PluginInfo> &Plugins() const;
 
       public: ServerConfig &operator=(const ServerConfig &_cfg);
 

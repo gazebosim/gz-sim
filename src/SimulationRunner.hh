@@ -256,6 +256,9 @@ namespace ignition
       /// \brief Process world control service messages.
       private: void ProcessWorldControl();
 
+      /// \brief Load the plugins specified in the ServerConfig
+      private: void LoadConfigurationPlugins();
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       private: std::atomic<bool> running{false};

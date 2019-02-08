@@ -28,14 +28,7 @@ class ignition::gazebo::ServerConfigPrivate
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             resourceCache(_cfg->resourceCache),
-            plugins(_cfg->plugins)
-  {
-    std::cout << "Copy Constructor\n";
-
-    for (const auto &p : this->plugins)
-     std::cout << p.first << " : " << p.second << std::endl;
-    std::cout << "Copy Constructor End\n";
-  }
+            plugins(_cfg->plugins) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -50,7 +43,7 @@ class ignition::gazebo::ServerConfigPrivate
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
 
-  public: std::list<std::pair<std::string, std::string>> plugins;
+  public: std::list<ServerConfig::PluginInfo> plugins;
 };
 
 //////////////////////////////////////////////////
@@ -133,15 +126,13 @@ void ServerConfig::SetResourceCache(const std::string &_path)
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::AddPlugin(const std::string &_name,
-                             const std::string &_filename)
+void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 {
-  this->dataPtr->plugins.push_back({_name, _filename});
+  this->dataPtr->plugins.push_back(_info);
 }
 
 /////////////////////////////////////////////////
-const std::list<std::pair<std::string, std::string>> &
-ServerConfig::Plugins() const
+const std::list<ServerConfig::PluginInfo> &ServerConfig::Plugins() const
 {
   return this->dataPtr->plugins;
 }

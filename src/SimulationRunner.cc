@@ -21,7 +21,6 @@
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -98,24 +97,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
-  // Load the plugins in the server config
-  for (const std::pair<std::string, std::string> &plugin :
-       this->serverConfig.Plugins())
-  {
-    std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.first, plugin.second, nullptr);
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(this->levelMgr->WorldEntity(), nullptr,
-                                this->entityCompMgr,
-                                this->eventMgr);
-      }
-      this->AddSystem(system.value());
-    }
-  }
+  // Load the plugins specified in the ServerConfig
+  // this->LoadConfigurationPlugins();
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -428,6 +411,29 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     }
     pluginElem = pluginElem->GetNextElement("plugin");
   }
+
+  // Check plugins from the ServerConfig for matching entities.
+  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+  {
+    Entity entity = this->entityCompMgr.EntityByComponents(
+        components::Name(plugin.entityName));
+    // Skip plugins that do not match the provided entity
+    if (entity != _entity)
+      continue;
+
+    std::optional<SystemPluginPtr> system =
+      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(entity, plugin.sdf, this->entityCompMgr,
+                                this->eventMgr);
+      }
+      this->AddSystem(system.value());
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -642,4 +648,36 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
   _res.CopyFrom(this->guiMsg);
 
   return true;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadConfigurationPlugins()
+{
+  // Load the plugins in the server config
+  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+  {
+    Entity entity = this->entityCompMgr.EntityByComponents(
+        components::Name(plugin.entityName));
+    if (entity == kNullEntity)
+    {
+      ignerr << "Unable to find entity with name [" << plugin.entityName
+        << "]. The plugin with name[" << plugin.name << "] and filename["
+        << plugin.filename << "] will not be loaded.\n";
+      continue;
+    }
+
+    std::optional<SystemPluginPtr> system =
+      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
+    if (system)
+    {
+      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+      if (systemConfig != nullptr)
+      {
+        systemConfig->Configure(entity, nullptr,
+            this->entityCompMgr,
+            this->eventMgr);
+      }
+      this->AddSystem(system.value());
+    }
+  }
 }
