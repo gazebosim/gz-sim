@@ -18,11 +18,9 @@
 #define IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 
 #include <sdf/JointAxis.hh>
-
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -35,13 +33,17 @@ namespace components
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
   using JointAxis = SimpleWrapper<sdf::JointAxis, class JointAxisTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = SimpleWrapper<sdf::JointAxis, class JointAxis2Tag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointAxis2", JointAxis2)
 }
 }
 }
 }
-#endif
 
+#endif

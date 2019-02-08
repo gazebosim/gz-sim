@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMER_HH_
+*/
+#ifndef IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
+#define IGNITION_GAZEBO_COMPONENTS_GRAVITY_HH_
+
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/TagWrapper.hh"
+#include <ignition/gazebo/components/Factory.hh>
+#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -31,9 +33,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component identifies an entity as being a performer.
-  using Performer = TagWrapper<class PerformerTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Performer", Performer)
+  /// \brief Store the gravity acceleration.
+  using Gravity = SimpleWrapper<math::Vector3d, class GravityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Gravity", Gravity)
 }
 }
 }

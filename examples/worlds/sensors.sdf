@@ -1,13 +1,14 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo altimeter sensor demo
+  Ignition Gazebo sensor demo
 
   Listen to sensor readings:
 
-    ign topic -e -t /altimeter
+    Altimeter: ign topic -e -t /altimeter
+    Imu: ign topic -e -t /imu
 -->
 <sdf version="1.6">
-  <world name="altimeter_sensor">
+  <world name="sensors">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -19,6 +20,10 @@
     <plugin
       filename="libignition-gazebo-altimeter-system.so"
       name="ignition::gazebo::systems::v0::Altimeter">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-imu-system.so"
+      name="ignition::gazebo::systems::v0::Imu">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
@@ -40,8 +45,10 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/altimeter_sensor/scene/info</service>
-        <pose_topic>/world/altimeter_sensor/pose/info</pose_topic>
+        <service>/world/sensors/scene/info</service>
+        <pose_topic>/world/sensors/pose/info</pose_topic>
+        <scene_topic>/world/sensors/scene/info</scene_topic>
+        <deletion_topic>/world/sensors/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -64,8 +71,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/altimeter_sensor/control</service>
-        <stats_topic>/world/altimeter_sensor/stats</stats_topic>
+        <service>/world/sensors/control</service>
+        <stats_topic>/world/sensors/stats</stats_topic>
 
       </plugin>
 
@@ -90,7 +97,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/altimeter_sensor/stats</topic>
+        <topic>/world/sensors/stats</topic>
       </plugin>
     </gui>
 
@@ -135,7 +142,7 @@
       </link>
     </model>
 
-    <model name="altimeter">
+    <model name="sensors_box">
       <pose>4 0 3.0 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
@@ -166,6 +173,12 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>altimeter</topic>
+        </sensor>
+        <sensor name="imu" type="imu">
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <visualize>true</visualize>
+          <topic>imu</topic>
         </sensor>
       </link>
     </model>
