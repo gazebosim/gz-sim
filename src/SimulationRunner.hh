@@ -312,6 +312,9 @@ namespace ignition
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
 
+      /// \brief Clock publisher.
+      private: ignition::transport::Node::Publisher clockPub;
+
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
