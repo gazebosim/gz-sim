@@ -19,6 +19,10 @@
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::v0::UserCommands">
+    </plugin>
+    <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
