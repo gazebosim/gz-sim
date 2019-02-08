@@ -42,6 +42,7 @@ CREATE TABLE messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   /* Timestamp the message was received (utc nanoseconds) */
   time_recv INTEGER NOT NULL,
+  /* TODO: Replace this with a blob type */
   /* A value used for testing */
   value INTEGER NOT NULL
 );
