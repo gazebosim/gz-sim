@@ -74,10 +74,26 @@ namespace ignition
     /// ## Services
     ///
     /// The following are services provided by the Server.
-    /// List syntax: *topic_name(request_message) : response_message*
+    /// The <world_name> in the service list is the name of the
+    /// simulated world.
     ///
-    /// 1. /ign/gazebo/scene(none) : ignition::msgs::Scene
-    ///   + Returns the current scene information.
+    /// List syntax: *service_name(request_msg_type) : response_msg_type*
+    ///
+    ///   1. /world/<world_name>/scene/info(none) : ignition::msgs::Scene
+    ///     + Returns the current scene information.
+    ///
+    /// ## Topics
+    ///
+    /// The following are topics provided by the Server.
+    /// The <world_name> in the service list is the name of the
+    /// simulated world.
+    ///
+    /// List syntax: *topic_name : published_msg_type*
+    ///
+    /// 1. /world/<world_name>/clock : ignition::msgs::Clock
+    ///
+    /// 2. /world/<world_name>/stats : ignition::msgs::WorldStatistics
+    ///   + This topic is throttled to 5Hz.
     ///
     class IGNITION_GAZEBO_VISIBLE Server
     {

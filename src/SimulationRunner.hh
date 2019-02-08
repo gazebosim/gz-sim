@@ -46,6 +46,8 @@
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
+#include "LevelManager.hh"
+
 using namespace std::chrono_literals;
 
 namespace ignition
@@ -98,8 +100,10 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
+      /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        const SystemLoaderPtr &_systemLoader);
+                                        const SystemLoaderPtr &_systemLoader,
+                                        const bool _useLevels = false);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -276,6 +280,9 @@ namespace ignition
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
 
+      /// \brief Manager of all levels.
+      private: std::unique_ptr<LevelManager> levelMgr;
+
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
 
@@ -305,6 +312,9 @@ namespace ignition
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
 
+      /// \brief Clock publisher.
+      private: ignition::transport::Node::Publisher clockPub;
+
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
@@ -319,6 +329,9 @@ namespace ignition
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
+
+      /// \brief Pointer to the sdf::World object of this runner
+      private: const sdf::World *sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
@@ -339,6 +352,8 @@ namespace ignition
 
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
+
+      friend class LevelManager;
     };
     }
   }
