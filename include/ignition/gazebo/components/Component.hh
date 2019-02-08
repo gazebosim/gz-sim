@@ -71,43 +71,43 @@ namespace components
     public: explicit Component() = default;
 
     /// \brief Constructor
-    /// \param[in] _simpleWrapper Component to copy
+    /// \param[in] _component Component to copy
     public: explicit Component(const DataType &_data);
 
     /// \brief Copy Constructor
-    /// \param[in] _simpleWrapper Component component to copy.
-    public: Component(const Component &_simpleWrapper);
+    /// \param[in] _component Component component to copy.
+    public: Component(const Component &_component);
 
     /// \brief Move Constructor
-    /// \param[in] _simpleWrapper Component component to move.
-    public: Component(Component &&_simpleWrapper) noexcept = default;
+    /// \param[in] _component Component component to move.
+    public: Component(Component &&_component) noexcept = default;
 
     /// \brief Destructor.
     public: ~Component() override = default;
 
     /// \brief Move assignment operator.
-    /// \param[in] _simpleWrapper Component component to move.
+    /// \param[in] _component Component component to move.
     /// \return Reference to this.
     public: Component &operator=(
-                Component &&_simpleWrapper) noexcept = default;
+                Component &&_component) noexcept = default;
 
     /// \brief Copy assignment operator.
-    /// \param[in] _simpleWrapper Component component to copy.
+    /// \param[in] _component Component component to copy.
     /// \return Reference to this.
-    public: Component &operator=(const Component &_simpleWrapper);
+    public: Component &operator=(const Component &_component);
 
     /// \brief Equality operator.
-    /// \param[in] _simpleWrapper Component to compare to.
+    /// \param[in] _component Component to compare to.
     /// \return True if equal.
-    public: bool operator==(const Component &_simpleWrapper) const;
+    public: bool operator==(const Component &_component) const;
 
     /// \brief Inequality operator.
-    /// \param[in] _simpleWrapper Component to compare to.
+    /// \param[in] _component Component to compare to.
     /// \return True if different.
-    public: bool operator!=(const Component &_simpleWrapper) const;
+    public: bool operator!=(const Component &_component) const;
 
-    /// \brief Get the simpleWrapper data.
-    /// \return The actual simpleWrapper information.
+    /// \brief Get the component data.
+    /// \return The actual component information.
     public: const DataType &Data() const;
 
     /// \brief Private data pointer.
@@ -148,7 +148,7 @@ namespace components
   class ComponentPrivate
   {
     /// \brief Constructor.
-    /// \param[in] _simpleWrapper Component data.
+    /// \param[in] _component Component data.
     public: explicit ComponentPrivate(DataType _data)
             : data(std::move(_data))
     {
@@ -168,9 +168,9 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(
-      const Component<DataType, Identifier> &_simpleWrapper)
+      const Component<DataType, Identifier> &_component)
       : dataPtr(std::make_unique<ComponentPrivate<DataType>>(
-            _simpleWrapper.Data()))
+            _component.Data()))
   {
   }
 
@@ -184,26 +184,26 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier> &Component<DataType, Identifier>::
-  operator=(const Component<DataType, Identifier> &_simpleWrapper)
+  operator=(const Component<DataType, Identifier> &_component)
   {
-    this->dataPtr->data = _simpleWrapper.Data();
+    this->dataPtr->data = _component.Data();
     return *this;
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool Component<DataType, Identifier>::
-  operator==(const Component<DataType, Identifier> &_simpleWrapper) const
+  operator==(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data == _simpleWrapper.Data();
+    return this->dataPtr->data == _component.Data();
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool Component<DataType, Identifier>::
-  operator!=(const Component<DataType, Identifier> &_simpleWrapper) const
+  operator!=(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data != _simpleWrapper.Data();
+    return this->dataPtr->data != _component.Data();
   }
 
   //////////////////////////////////////////////////
