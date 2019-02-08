@@ -1294,10 +1294,9 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
       return false;
     }
   };
-  manager.CreateComponent<Even>(e1, {});
-  manager.CreateComponent<Even>(e3, {});
-  manager.CreateComponent<Even>(e5, {});
-  manager.CreateComponent<Even>(e7, {});
+  manager.CreateComponent<Even>(e2, {});
+  manager.CreateComponent<Even>(e4, {});
+  manager.CreateComponent<Even>(e6, {});
 
   struct Odd
   {
@@ -1306,39 +1305,40 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
       return false;
     }
   };
-  manager.CreateComponent<Odd>(e2, {});
-  manager.CreateComponent<Odd>(e4, {});
-  manager.CreateComponent<Odd>(e6, {});
+  manager.CreateComponent<Odd>(e1, {});
+  manager.CreateComponent<Odd>(e3, {});
+  manager.CreateComponent<Odd>(e5, {});
+  manager.CreateComponent<Odd>(e7, {});
 
   // Get children by components
   {
     auto result = manager.ChildrenByComponents(e1, Even());
     ASSERT_EQ(1u, result.size());
-    EXPECT_EQ(e3, result.front());
+    EXPECT_EQ(e2, result.front());
   }
   {
     auto result = manager.ChildrenByComponents(e1, Odd());
     ASSERT_EQ(1u, result.size());
-    EXPECT_EQ(e2, result.front());
+    EXPECT_EQ(e3, result.front());
   }
   {
     auto result = manager.ChildrenByComponents(e2, Even());
-    ASSERT_TRUE(result.empty());
-  }
-  {
-    auto result = manager.ChildrenByComponents(e2, Odd());
     ASSERT_EQ(2u, result.size());
     EXPECT_TRUE(std::find(result.begin(), result.end(), e4) != result.end());
     EXPECT_TRUE(std::find(result.begin(), result.end(), e6) != result.end());
   }
   {
+    auto result = manager.ChildrenByComponents(e2, Odd());
+    ASSERT_TRUE(result.empty());
+  }
+  {
     auto result = manager.ChildrenByComponents(e3, Even());
-    ASSERT_EQ(1u, result.size());
-    EXPECT_EQ(e5, result.front());
+    ASSERT_TRUE(result.empty());
   }
   {
     auto result = manager.ChildrenByComponents(e3, Odd());
-    ASSERT_TRUE(result.empty());
+    ASSERT_EQ(1u, result.size());
+    EXPECT_EQ(e5, result.front());
   }
   {
     auto result = manager.ChildrenByComponents(e4, Even());
