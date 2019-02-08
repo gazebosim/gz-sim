@@ -23,7 +23,7 @@
 #include <ignition/gazebo/Export.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -36,14 +36,14 @@ namespace components
   /// \brief A component type that contains angular velocity of an entity
   /// represented by ignition::math::Vector3d.
   using AngularVelocity =
-    SimpleWrapper<math::Vector3d, class AngularVelocityTag>;
+    Component<math::Vector3d, class AngularVelocityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AngularVelocity",
       AngularVelocity)
 
   /// \brief A component type that contains angular velocity of an entity in the
   /// world frame represented by ignition::math::Vector3d.
   using WorldAngularVelocity =
-      SimpleWrapper<math::Vector3d, class WorldAngularVelocityTag>;
+      Component<math::Vector3d, class WorldAngularVelocityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldAngularVelocity",
       WorldAngularVelocity)
 }
