@@ -96,8 +96,6 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   this->log.reset (new Log ());
   this->log->Open (this->logPath);
 
-  // TODO find out how to access the objects in the file, e.g. models, joints
-
   // Don't need
   //const Descriptor * desc = this->log->Descriptor ();
   /*
@@ -110,7 +108,7 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   //  "ignition.msgs.Pose_V");
   //ignerr << "row " << row_i << std::endl;
 
-
+  // Access messages in .tlog file
   TopicList opts = TopicList ("/world/default/pose/info");
   Batch batch = this->log->QueryMessages (opts);
   MsgIter iter = batch.begin ();
@@ -120,9 +118,7 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   //{
     ignerr << iter->TimeReceived ().count () << std::endl;
     ignerr << iter->Type () << std::endl;
-    // This appears to be in binary bytes. Can reconstruct it based on Type(),
-    //   which is a ign-msgs type... Look at ign-msgs for how to construct it.
-    //   Once have the message type e.g. pose, can talk to ECM to move things.
+    // Once have the message type e.g. pose, can talk to ECM to move things.
     //   But a pose message doesn't tell me what an object looks like! Need the
     //   original SDF string - which needs to be recorded, to know object
     //   geometry. TODO add that to LogRecorder.cc.
