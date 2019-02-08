@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+#include <iostream>
 #include "ignition/gazebo/ServerConfig.hh"
 
 using namespace ignition;
@@ -21,6 +22,21 @@ using namespace gazebo;
 
 class ignition::gazebo::ServerConfigPrivate
 {
+  public: ServerConfigPrivate() = default;
+  public: ServerConfigPrivate(const std::unique_ptr<ServerConfigPrivate> &_cfg)
+          : sdfFile(_cfg->sdfFile),
+            updateRate(_cfg->updateRate),
+            useLevels(_cfg->useLevels),
+            resourceCache(_cfg->resourceCache),
+            plugins(_cfg->plugins)
+  {
+    std::cout << "Copy Constructor\n";
+
+    for (const auto &p : this->plugins)
+     std::cout << p.first << " : " << p.second << std::endl;
+    std::cout << "Copy Constructor End\n";
+  }
+
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
 
@@ -33,11 +49,19 @@ class ignition::gazebo::ServerConfigPrivate
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
+
+  public: std::list<std::pair<std::string, std::string>> plugins;
 };
 
 //////////////////////////////////////////////////
 ServerConfig::ServerConfig()
   : dataPtr(new ServerConfigPrivate)
+{
+}
+
+//////////////////////////////////////////////////
+ServerConfig::ServerConfig(const ServerConfig &_config)
+  : dataPtr(new ServerConfigPrivate(_config.dataPtr))
 {
 }
 
@@ -106,4 +130,25 @@ const std::string &ServerConfig::ResourceCache() const
 void ServerConfig::SetResourceCache(const std::string &_path)
 {
   this->dataPtr->resourceCache = _path;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::AddPlugin(const std::string &_name,
+                             const std::string &_filename)
+{
+  this->dataPtr->plugins.push_back({_name, _filename});
+}
+
+/////////////////////////////////////////////////
+const std::list<std::pair<std::string, std::string>> &
+ServerConfig::Plugins() const
+{
+  return this->dataPtr->plugins;
+}
+
+/////////////////////////////////////////////////
+ServerConfig &ServerConfig::operator=(const ServerConfig &_cfg)
+{
+  this->dataPtr.reset(new ServerConfigPrivate(_cfg.dataPtr));
+  return *this;
 }
