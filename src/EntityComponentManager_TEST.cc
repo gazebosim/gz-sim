@@ -30,9 +30,9 @@ class EntityCompMgrTest : public gazebo::EntityComponentManager
   {
     this->ClearNewlyCreatedEntities();
   }
-  public: void ProcessEntityErasures()
+  public: void ProcessEntityRemovals()
   {
-    this->ProcessEraseEntityRequests();
+    this->ProcessRemoveEntityRequests();
   }
 };
 
@@ -344,10 +344,10 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_FALSE(manager.EntityHasComponentType(entity2,
         gazebo::EntityComponentManager::ComponentType<int>()));
 
-  // Erase all entities
-  manager.RequestEraseEntities();
+  // Remove all entities
+  manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
 
   EXPECT_EQ(0u, manager.EntityCount());
   EXPECT_FALSE(manager.HasEntity(entity));
@@ -696,7 +696,7 @@ TEST_P(EntityComponentManagerFixture, ViewsAddEntity)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
+TEST_P(EntityComponentManagerFixture, ViewsRemoveEntities)
 {
   // Create some entities
   gazebo::Entity eInt = manager.CreateEntity();
@@ -758,13 +758,13 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntities)
     else
       EXPECT_EQ(0, count);
 
-    manager.RequestEraseEntities();
-    manager.ProcessEntityErasures();
+    manager.RequestRemoveEntities();
+    manager.ProcessEntityRemovals();
   }
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EraseEntity)
+TEST_P(EntityComponentManagerFixture, RemoveEntity)
 {
   // Create some entities
   auto e0 = manager.CreateEntity();
@@ -782,9 +782,9 @@ TEST_P(EntityComponentManagerFixture, EraseEntity)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete an Entity
-  manager.RequestEraseEntity(e1);
+  manager.RequestRemoveEntity(e1);
   EXPECT_EQ(3u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
   EXPECT_FALSE(manager.HasEntity(e1));
 
@@ -794,32 +794,32 @@ TEST_P(EntityComponentManagerFixture, EraseEntity)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Can not delete an invalid entity.
-  manager.RequestEraseEntity(5);
+  manager.RequestRemoveEntity(5);
   EXPECT_EQ(3u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete another
-  manager.RequestEraseEntity(0);
+  manager.RequestRemoveEntity(0);
   EXPECT_EQ(3u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Delete another
-  manager.RequestEraseEntity(2);
+  manager.RequestRemoveEntity(2);
   EXPECT_EQ(2u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Delete last
-  manager.RequestEraseEntity(3);
+  manager.RequestRemoveEntity(3);
   EXPECT_EQ(1u, manager.EntityCount());
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(0u, manager.EntityCount());
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
+TEST_P(EntityComponentManagerFixture, ViewsRemoveEntity)
 {
   // Create some entities
   gazebo::Entity eInt = manager.CreateEntity();
@@ -851,9 +851,9 @@ TEST_P(EntityComponentManagerFixture, ViewsEraseEntity)
       });
   EXPECT_EQ(2, count);
 
-  // Erase an entity.
-  manager.RequestEraseEntity(eIntDouble);
-  manager.ProcessEntityErasures();
+  // Remove an entity.
+  manager.RequestRemoveEntity(eIntDouble);
+  manager.ProcessEntityRemovals();
 
   count = 0;
   manager.Each<int> ([&](const ignition::gazebo::Entity &_entity,
@@ -907,12 +907,12 @@ int newCount(EntityCompMgrTest &_manager)
 }
 
 //////////////////////////////////////////////////
-/// \brief Helper function to count the number of "erased" entities
+/// \brief Helper function to count the number of "removed" entities
 template<typename ...Ts>
-int erasedCount(EntityCompMgrTest &_manager)
+int removedCount(EntityCompMgrTest &_manager)
 {
   int count = 0;
-  _manager.EachErased<Ts ...>(
+  _manager.EachRemoved<Ts ...>(
       [&](const ignition::gazebo::Entity &, const Ts *... _values) -> bool
       {
         ++count;
@@ -981,7 +981,7 @@ TEST_P(EntityComponentManagerFixture, EachNewAfterRemoveComponent)
 }
 
 //////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromErasedEntity)
+TEST_P(EntityComponentManagerFixture, EachNewRemoveComponentFromRemoveEntity)
 {
   // Create entities
   gazebo::Entity e1 = manager.CreateEntity();
@@ -1025,7 +1025,7 @@ TEST_P(EntityComponentManagerFixture, EachNewAddComponentToExistingEntity)
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachErasedBasic)
+TEST_P(EntityComponentManagerFixture, EachRemoveBasic)
 {
   // Create an entities
   gazebo::Entity e1 = manager.CreateEntity();
@@ -1036,24 +1036,24 @@ TEST_P(EntityComponentManagerFixture, EachErasedBasic)
   manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<int>(e2, 456);
 
-  // Erase an entity.
-  manager.RequestEraseEntity(e1);
-  EXPECT_EQ(1, erasedCount<int>(manager));
-  manager.RequestEraseEntity(e2);
-  EXPECT_EQ(2, erasedCount<int>(manager));
+  // Remove an entity.
+  manager.RequestRemoveEntity(e1);
+  EXPECT_EQ(1, removedCount<int>(manager));
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(2, removedCount<int>(manager));
 
   // This would normally be done after each simulation step after systems are
   // updated
   manager.RunClearNewlyCreatedEntities();
-  // But it shouldn't affect erased entities
-  EXPECT_EQ(2, erasedCount<int>(manager));
+  // But it shouldn't affect removed entities
+  EXPECT_EQ(2, removedCount<int>(manager));
 
-  manager.ProcessEntityErasures();
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(0, removedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachErasedAlreadyErased)
+TEST_P(EntityComponentManagerFixture, EachRemoveAlreadyRemove)
 {
   // Create an entities
   gazebo::Entity e1 = manager.CreateEntity();
@@ -1063,17 +1063,17 @@ TEST_P(EntityComponentManagerFixture, EachErasedAlreadyErased)
   // Add components to each entity
   manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<int>(e2, 456);
-  manager.RequestEraseEntity(e2);
+  manager.RequestRemoveEntity(e2);
 
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
 
-  // try erasing an already erased entity
-  manager.RequestEraseEntity(e2);
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  // try erasing an already removed entity
+  manager.RequestRemoveEntity(e2);
+  EXPECT_EQ(0, removedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachErasedAfterRebuild)
+TEST_P(EntityComponentManagerFixture, EachRemoveAfterRebuild)
 {
   // Test after rebuild
   gazebo::Entity e1 = manager.CreateEntity();
@@ -1083,49 +1083,49 @@ TEST_P(EntityComponentManagerFixture, EachErasedAfterRebuild)
   EXPECT_EQ(1, newCount<int>(manager));
   manager.RunClearNewlyCreatedEntities();
 
-  manager.RequestEraseEntity(e1);
-  EXPECT_EQ(1, erasedCount<int>(manager));
+  manager.RequestRemoveEntity(e1);
+  EXPECT_EQ(1, removedCount<int>(manager));
 
   manager.RebuildViews();
-  EXPECT_EQ(1, erasedCount<int>(manager));
+  EXPECT_EQ(1, removedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachErasedAddComponentToErasedEntity)
+TEST_P(EntityComponentManagerFixture, EachRemoveAddComponentToRemoveEntity)
 {
   gazebo::Entity e1 = manager.CreateEntity();
   manager.CreateComponent<int>(e1, 123);
   manager.RunClearNewlyCreatedEntities();
-  manager.RequestEraseEntity(e1);
+  manager.RequestRemoveEntity(e1);
 
-  // Add a new component to an erased entity. This should be possible since the
-  // entity is only scheduled to be erased.
+  // Add a new component to an removed entity. This should be possible since the
+  // entity is only scheduled to be removed.
   manager.CreateComponent<double>(e1, 0.0);
-  EXPECT_EQ(1, erasedCount<int>(manager));
-  EXPECT_EQ(1, (erasedCount<int, double>(manager)));
+  EXPECT_EQ(1, removedCount<int>(manager));
+  EXPECT_EQ(1, (removedCount<int, double>(manager)));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachErasedAllErased)
+TEST_P(EntityComponentManagerFixture, EachRemoveAllRemove)
 {
-  // Test when all entities are erased
+  // Test when all entities are removed
   gazebo::Entity e1 = manager.CreateEntity();
   gazebo::Entity e2 = manager.CreateEntity();
   manager.CreateComponent<int>(e1, 123);
   manager.CreateComponent<int>(e2, 456);
   EXPECT_EQ(2u, manager.EntityCount());
 
-  manager.RequestEraseEntities();
-  EXPECT_EQ(2, erasedCount<int>(manager));
+  manager.RequestRemoveEntities();
+  EXPECT_EQ(2, removedCount<int>(manager));
 
-  manager.ProcessEntityErasures();
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  manager.ProcessEntityRemovals();
+  EXPECT_EQ(0, removedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachNewEachErased)
+TEST_P(EntityComponentManagerFixture, EachNewEachRemove)
 {
-  // Test EachNew and EachErased together
+  // Test EachNew and EachRemove together
   gazebo::Entity e1 = manager.CreateEntity();
   gazebo::Entity e2 = manager.CreateEntity();
   manager.CreateComponent<int>(e1, 123);
@@ -1133,27 +1133,27 @@ TEST_P(EntityComponentManagerFixture, EachNewEachErased)
   EXPECT_EQ(2u, manager.EntityCount());
 
   EXPECT_EQ(2, newCount<int>(manager));
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  EXPECT_EQ(0, removedCount<int>(manager));
 
-  // Erase an entity.
-  manager.RequestEraseEntity(e1);
-  // An entity can be considered new even if there is a request to erase it.
+  // Remove an entity.
+  manager.RequestRemoveEntity(e1);
+  // An entity can be considered new even if there is a request to remove it.
   EXPECT_EQ(2, newCount<int>(manager));
-  EXPECT_EQ(1, erasedCount<int>(manager));
+  EXPECT_EQ(1, removedCount<int>(manager));
 
-  // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
+  // ProcessEntityRemovals and ClearNewlyCreatedEntities would be called
   // together after a simulation step
   manager.RunClearNewlyCreatedEntities();
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
 
   EXPECT_EQ(0, newCount<int>(manager));
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  EXPECT_EQ(0, removedCount<int>(manager));
 }
 
 ////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, EachGetsNewOldErased)
+TEST_P(EntityComponentManagerFixture, EachGetsNewOldRemove)
 {
-  // Test that an Each call gets new, old, and erased entities
+  // Test that an Each call gets new, old, and removed entities
   gazebo::Entity e1 = manager.CreateEntity();
   gazebo::Entity e2 = manager.CreateEntity();
   manager.CreateComponent<int>(e1, 123);
@@ -1162,25 +1162,25 @@ TEST_P(EntityComponentManagerFixture, EachGetsNewOldErased)
 
   EXPECT_EQ(2, eachCount<int>(manager));
   EXPECT_EQ(2, newCount<int>(manager));
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  EXPECT_EQ(0, removedCount<int>(manager));
 
-  // Erase an entity.
-  manager.RequestEraseEntity(e1);
-  // Each gets entities that erased
+  // Remove an entity.
+  manager.RequestRemoveEntity(e1);
+  // Each gets entities that removed
   EXPECT_EQ(2, eachCount<int>(manager));
-  // An entity can be considered new even if there is a request to erase it.
+  // An entity can be considered new even if there is a request to remove it.
   EXPECT_EQ(2, newCount<int>(manager));
-  EXPECT_EQ(1, erasedCount<int>(manager));
+  EXPECT_EQ(1, removedCount<int>(manager));
 
-  // ProcessEntityErasures and ClearNewlyCreatedEntities would be called
+  // ProcessEntityRemovals and ClearNewlyCreatedEntities would be called
   // together after a simulation step
   manager.RunClearNewlyCreatedEntities();
-  manager.ProcessEntityErasures();
+  manager.ProcessEntityRemovals();
 
-  // One entity is erased, one left
+  // One entity is removed, one left
   EXPECT_EQ(1, eachCount<int>(manager));
   EXPECT_EQ(0, newCount<int>(manager));
-  EXPECT_EQ(0, erasedCount<int>(manager));
+  EXPECT_EQ(0, removedCount<int>(manager));
 }
 
 //////////////////////////////////////////////////
@@ -1365,9 +1365,9 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
     ASSERT_TRUE(result.empty());
   }
 
-  // Erase recursively (e1, e3, e5)
-  manager.RequestEraseEntity(e1);
-  manager.ProcessEntityErasures();
+  // Remove recursively (e1, e3, e5)
+  manager.RequestRemoveEntity(e1);
+  manager.ProcessEntityRemovals();
   EXPECT_EQ(4u, manager.EntityCount());
   EXPECT_FALSE(manager.HasEntity(e1));
   EXPECT_FALSE(manager.HasEntity(e3));

@@ -16,6 +16,11 @@ set_source_files_properties(${PROTO_SRC} ${PROTO_HEADER}
 set_source_files_properties(${PROTO_SRC} COMPILE_FLAGS -Wno-unused-parameter)
 
 set(network_sources
+  network/NetworkConfig.cc
+  network/NetworkManager.cc
+  network/NetworkManagerPrimary.cc
+  network/NetworkManagerSecondary.cc
+  network/NetworkManagerReadOnly.cc
   network/PeerInfo.cc
   network/PeerTracker.cc
   ${PROTO_SRC}
@@ -30,8 +35,9 @@ set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
-  Factory.cc
+  LevelManager.cc
   Model.cc
+  SdfEntityCreator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -45,17 +51,21 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  ComponentFactory_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
-  Factory_TEST.cc
   ign_TEST.cc
   Model_TEST.cc
+  SdfEntityCreator_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   System_TEST.cc
   SystemLoader_TEST.cc
+  Util_TEST.cc
+  network/NetworkConfig_TEST.cc
   network/PeerTracker_TEST.cc
+  network/NetworkManager_TEST.cc
 )
 
 # Create the library target
