@@ -56,9 +56,6 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
-    //public: void PreUpdate(const UpdateInfo &_info,
-    //                       EntityComponentManager &_ecm);
-
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;

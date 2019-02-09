@@ -104,14 +104,6 @@ void LogRecord::Configure(const Entity &_entity,
 
 }
 
-/*
-void LogRecord::PreUpdate(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
-{
-
-}
-*/
-
 //////////////////////////////////////////////////
 void LogRecord::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
@@ -137,7 +129,6 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
 
     return true;
   });
-  */
 
   // Joints
   _ecm.EachNew<components::Joint, components::Name, components::ParentEntity,
@@ -152,6 +143,7 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
 
      return true;
   });
+  */
 
 
 

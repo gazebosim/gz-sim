@@ -24,6 +24,8 @@
 // Use ign-transport directly
 //#include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Log.hh>
+#include <ignition/transport/log/Batch.hh>
+#include <ignition/transport/log/MsgIter.hh>
 
 namespace ignition
 {
@@ -58,9 +60,14 @@ namespace systems
 
     /// \brief Name of log file to play back
     public: std::string logPath = "file.tlog";
+    public: std::string sdfPath = "file.sdf";
 
     //private: std::unique_ptr <ignition::transport::log::Playback> player;
     private: std::unique_ptr <ignition::transport::log::Log> log;
+
+    private: ignition::transport::log::Batch poseBatch;
+    private: ignition::transport::log::MsgIter iter;
+    private: bool printedEnd;
   };
   }
 }
