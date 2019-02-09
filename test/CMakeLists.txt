@@ -21,12 +21,14 @@ include_directories(${GTEST_INCLUDE_DIRS})
 ################################# FindDRI support #############################
 # Check for existance of glxinfo application
 # Check for existance of support for pyopengl
+function(FindDRI)
+
 message(STATUS "Looking for display capabilities")
 
 if((DEFINED FORCE_GRAPHIC_TESTS_COMPILATION)
   AND (${FORCE_GRAPHIC_TESTS_COMPILATION}))
-  set(VALID_DISPLAY TRUE)
-  set(VALID_DRI_DISPLAY TRUE)
+  set(VALID_DISPLAY TRUE PARENT_SCOPE)
+  set(VALID_DRI_DISPLAY TRUE PARENT_SCOPE)
   message(STATUS " + Force requested. All capabilities on without checking")
   return()
 endif()
@@ -36,11 +38,18 @@ set(VALID_DRI_DISPLAY FALSE)
 set(CHECKER_ERROR "(no glxinfo or pyopengl)")
 
 if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
-  execute_process(
-    COMMAND xwininfo -root
-    RESULT_VARIABLE DISPLAY_FAIL_RESULT
-    ERROR_QUIET OUTPUT_QUIET
-  )
+  find_program(XWININFO xwininfo)
+  if (XWININFO)
+    execute_process(
+      COMMAND xwininfo -root
+      RESULT_VARIABLE DISPLAY_FAIL_RESULT
+      ERROR_QUIET OUTPUT_QUIET
+    )
+  else()
+    message(STATUS "Could not find 'xwininfo', which is needed for FindDRI. Please install the package 'x11-utils'")
+    return()
+  endif()
+
   if(NOT DISPLAY_FAIL_RESULT)
     message(STATUS " + found a display available ($DISPLAY is set)")
     set(VALID_DISPLAY TRUE)
@@ -66,6 +75,10 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
         set(CHECKER_ERROR "using glxinfo")
       endif()
     else()
+      message(STATUS
+        "Could not find glxinfo. Trying with 'gl-test.py' which may not work."
+        "If 'gl-test.py' fails to find DRI, try installng the package "
+        "'mesa-utils' for glxinfo")
       execute_process(
         # RESULT_VARIABLE is store in a FAIL variable since the command
         # returns 0 if ok and 1 if error (inverse than cmake IF)
@@ -78,7 +91,7 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
       if(NOT GL_FAIL_RESULT)
         message(STATUS " + found a valid dri display (pyopengl)")
         set(VALID_DRI_DISPLAY TRUE)
-      else()
+      elseif(${GL_ERROR})
         # Check error string: no python module means no pyopengl
         string(
           FIND ${GL_ERROR} "ImportError: No module named OpenGL.GLUT" ERROR_POS
@@ -100,7 +113,15 @@ if(NOT VALID_DRI_DISPLAY)
   message(STATUS " ! valid dri display not found ${CHECKER_ERROR}")
 endif()
 
+# Set variables to parent scope
+set(VALID_DISPLAY ${VALID_DISPLAY} PARENT_SCOPE)
+set(VALID_DRI_DISPLAY ${VALID_DRI_DISPLAY} PARENT_SCOPE)
+
+endfunction()
+
 ############################## End FindDRI support #############################
+
+FindDRI()
 
 add_subdirectory(integration)
 add_subdirectory(performance)
