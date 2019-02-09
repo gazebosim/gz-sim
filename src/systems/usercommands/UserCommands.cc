@@ -22,9 +22,6 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
