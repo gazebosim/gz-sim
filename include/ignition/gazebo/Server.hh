@@ -254,7 +254,6 @@ namespace ignition
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
-
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
