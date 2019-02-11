@@ -1,13 +1,42 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo altimeter sensor demo
+  Try inserting a model:
 
-  Listen to sensor readings:
+ign service -s /world/empty/create \
+--reqtype ignition.msgs.EntityFactory \
+--reptype ignition.msgs.Boolean \
+--timeout 300 \
+--req 'sdf: '\
+'"<?xml version=\"1.0\" ?>'\
+'<sdf version=\"1.6\">'\
+'<model name=\"spawned_model\">'\
+'<link name=\"link\">'\
+'<visual name=\"visual\">'\
+'<geometry><sphere><radius>1.0</radius></sphere></geometry>'\
+'</visual>'\
+'<collision name=\"visual\">'\
+'<geometry><sphere><radius>1.0</radius></sphere></geometry>'\
+'</collision>'\
+'</link>'\
+'</model>'\
+'</sdf>" '\
+'pose: {position: {z: 10}} '\
+'name: "new_name" '\
+'allow_renaming: true'
 
-    ign topic -e -t /altimeter
+  Try inserting a light:
+
+ign service -s /world/empty/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 300 --req 'sdf: '\
+'"<?xml version=\"1.0\" ?>'\
+'<sdf version=\"1.6\">'\
+'<light name=\"spawned_light\" type=\"directional\">'\
+'<pose>0 0 10 0.1 1.0 0</pose>'\
+'</light>'\
+'</sdf>"'
+
 -->
 <sdf version="1.6">
-  <world name="altimeter_sensor">
+  <world name="empty">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -17,8 +46,8 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
-      name="ignition::gazebo::systems::v0::Altimeter">
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::v0::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
@@ -35,13 +64,15 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/altimeter_sensor/scene/info</service>
-        <pose_topic>/world/altimeter_sensor/pose/info</pose_topic>
+        <service>/world/empty/scene/info</service>
+        <pose_topic>/world/empty/pose/info</pose_topic>
+        <scene_topic>/world/empty/scene/info</scene_topic>
+        <deletion_topic>/world/empty/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -64,8 +95,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/altimeter_sensor/control</service>
-        <stats_topic>/world/altimeter_sensor/stats</stats_topic>
+        <service>/world/empty/control</service>
+        <stats_topic>/world/empty/stats</stats_topic>
 
       </plugin>
 
@@ -90,8 +121,10 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/altimeter_sensor/stats</topic>
+        <topic>/world/empty/stats</topic>
+
       </plugin>
+
     </gui>
 
     <light type="directional" name="sun">
@@ -132,41 +165,6 @@
             <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
-      </link>
-    </model>
-
-    <model name="altimeter">
-      <pose>4 0 3.0 0 0.0 3.14</pose>
-      <link name="link">
-        <pose>0.05 0.05 0.05 0 0 0</pose>
-        <inertial>
-          <mass>0.1</mass>
-          <inertia>
-            <ixx>0.000166667</ixx>
-            <iyy>0.000166667</iyy>
-            <izz>0.000166667</izz>
-          </inertia>
-        </inertial>
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
-        <sensor name="altimeter" type="altimeter">
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>true</visualize>
-          <topic>altimeter</topic>
-        </sensor>
       </link>
     </model>
 

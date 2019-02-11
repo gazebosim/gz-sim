@@ -1,6 +1,14 @@
 <?xml version="1.0" ?>
+<!--
+  Ignition Gazebo sensor demo
+
+  Listen to sensor readings:
+
+    Altimeter: ign topic -e -t /altimeter
+    Imu: ign topic -e -t /imu
+-->
 <sdf version="1.6">
-  <world name="shapes">
+  <world name="sensors">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -10,8 +18,12 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::v0::UserCommands">
+      filename="libignition-gazebo-altimeter-system.so"
+      name="ignition::gazebo::systems::v0::Altimeter">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-imu-system.so"
+      name="ignition::gazebo::systems::v0::Imu">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
@@ -28,15 +40,15 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
-        <scene_topic>/world/shapes/scene/info</scene_topic>
-        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
+        <service>/world/sensors/scene/info</service>
+        <pose_topic>/world/sensors/pose/info</pose_topic>
+        <scene_topic>/world/sensors/scene/info</scene_topic>
+        <deletion_topic>/world/sensors/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -59,8 +71,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes/control</service>
-        <stats_topic>/world/shapes/stats</stats_topic>
+        <service>/world/sensors/control</service>
+        <stats_topic>/world/sensors/stats</stats_topic>
 
       </plugin>
 
@@ -85,10 +97,8 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes/stats</topic>
-
+        <topic>/world/sensors/stats</topic>
       </plugin>
-
     </gui>
 
     <light type="directional" name="sun">
@@ -132,120 +142,46 @@
       </link>
     </model>
 
-    <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
-      <link name="box_link">
+    <model name="sensors_box">
+      <pose>4 0 3.0 0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
+          <mass>0.1</mass>
           <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
           </inertia>
-          <mass>1.0</mass>
         </inertial>
-        <collision name="box_collision">
+        <collision name="collision">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0.1 0.1 0.1</size>
             </box>
           </geometry>
         </collision>
-
-        <visual name="box_visual">
+        <visual name="visual">
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0.1 0.1 0.1</size>
             </box>
           </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
-            <emissive>1 0 0 1</emissive>
-          </material>
         </visual>
+        <sensor name="altimeter" type="altimeter">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>altimeter</topic>
+        </sensor>
+        <sensor name="imu" type="imu">
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <visualize>true</visualize>
+          <topic>imu</topic>
+        </sensor>
       </link>
     </model>
 
-    <model name="cylinder">
-      <pose>0 -1.5 0.5 0 0 0</pose>
-      <link name="cylinder_link">
-        <inertial>
-          <inertia>
-            <ixx>2</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2</iyy>
-            <iyz>0</iyz>
-            <izz>2</izz>
-          </inertia>
-          <mass>2.0</mass>
-        </inertial>
-        <collision name="cylinder_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-        </collision>
-
-        <visual name="cylinder_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1.0</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-            <emissive>0 1 0 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="sphere">
-      <pose>0 1.5 0.5 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>3</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>3</iyy>
-            <iyz>0</iyz>
-            <izz>3</izz>
-          </inertia>
-          <mass>3.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-        </collision>
-
-        <visual name="sphere_visual">
-          <geometry>
-            <sphere>
-              <radius>0.5</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 0 1 1</ambient>
-            <diffuse>0 0 1 1</diffuse>
-            <specular>0 0 1 1</specular>
-            <emissive>0 0 1 1</emissive>
-          </material>
-        </visual>
-      </link>
-    </model>
   </world>
 </sdf>

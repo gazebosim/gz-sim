@@ -43,6 +43,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
+  // Check if this is going to be a distributed runner
+  // Attempt to create the manager based on environment variables.
+  this->networkMgr = NetworkManager::Create();
+  if (this->networkMgr && !this->networkMgr->Valid())
+  {
+    // If not, release the networkMgr, it's not needed.
+    this->networkMgr.reset();
+  }
+
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
   auto physics = _world->PhysicsByIndex(0);
@@ -105,7 +114,16 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // World control
   transport::NodeOptions opts;
-  opts.SetNameSpace("/world/" + this->worldName);
+  if (this->networkMgr)
+  {
+    opts.SetNameSpace(this->networkMgr->Namespace() +
+                      "/world/" + this->worldName);
+  }
+  else
+  {
+    opts.SetNameSpace("/world/" + this->worldName);
+  }
+
   this->node = std::make_unique<transport::Node>(opts);
 
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -286,7 +304,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
-
   IGN_PROFILE_THREAD_NAME("SimulationRunner");
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
@@ -440,6 +457,17 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::Ready() const
+{
+  bool ready = true;
+  if (this->networkMgr && !this->networkMgr->Ready())
+  {
+    ready = false;
+  }
+  return ready;
 }
 
 /////////////////////////////////////////////////
