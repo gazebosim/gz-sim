@@ -15,6 +15,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   sdf_include.cc
+  user_commands.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)
