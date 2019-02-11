@@ -16,6 +16,7 @@
 */
 #include "ignition/gazebo/Server.hh"
 
+#include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
@@ -113,12 +114,16 @@ Server::Server(const ServerConfig &_config)
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
+    common::SystemPaths systemPaths;
+    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    std::string filePath = systemPaths.FindFile(_config.SdfFile());
+
     // \todo(nkoenig) Async resource download.
     // This call can block for a long period of time while
     // resources are downloaded. Blocking here causes the GUI to block with
     // a black screen (search for "Async resource download" in
     // 'src/gui_main.cc'.
-    errors = this->dataPtr->sdfRoot.Load(_config.SdfFile());
+    errors = this->dataPtr->sdfRoot.Load(filePath);
   }
   else
   {

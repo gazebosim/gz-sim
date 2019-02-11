@@ -68,6 +68,22 @@ TEST(CmdLine, Server)
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+
+  // Use IGN_GAZEBO_RESOURCE_PATH instead of specifying the complete path
+  // through the -f argument
+  cmd = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
+    PROJECT_SOURCE_PATH + "/test/worlds " + kIgnCommand +
+    "ign-gazebo-server -r -v 4 --iterations 5 -f plugins.sdf";
+
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
+  output = customExecStr(cmd);
+
+  for (auto i : {1, 2, 3, 4, 5})
+  {
+    EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
+        << output;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -105,4 +121,3 @@ TEST(CmdLine, Gazebo)
         << output;
   }
 }
-
