@@ -55,7 +55,7 @@ void help()
   << std::endl
   << "  --iterations arg       Number of iterations to execute."
   << std::endl
-  << "  -f                     Load an SDF file on start. "
+  << "  -f arg                 Load an SDF file on start. "
   << std::endl
   << "  -z arg                 Update rate in Hertz."
   << std::endl
@@ -65,6 +65,9 @@ void help()
   << "  --levels               Use the level system."
   << " The default is false, which loads all models."
   << std::endl
+  << "Environment variables:" << std::endl
+  << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
+  << " resources. Can be useful with the -f option to find an SDF file."
   << std::endl;
 }
 
