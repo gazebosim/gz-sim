@@ -8,8 +8,10 @@ set(tests
   entity_erase.cc
   events.cc
   examples_build.cc
+  imu_system.cc
   level_manager.cc
   model.cc
+  network_handshake.cc
   physics_system.cc
   play_pause.cc
   sdf_include.cc
