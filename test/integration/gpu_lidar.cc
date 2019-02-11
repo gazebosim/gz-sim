@@ -127,16 +127,20 @@ TEST_F(GpuLidarTest, GpuLidarBox)
   // from the lidar
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
+  mutex.lock();
   EXPECT_GT(laserMsgs.size(), 0u);
+  mutex.unlock();
 
   ignition::common::Time waitTime = ignition::common::Time(0.01);
   int i = 0;
-  while (laserMsgs.size() < 1 && i < 300)
+  while (i < 300)
   {
     ignition::common::Time::Sleep(waitTime);
     i++;
   }
-  EXPECT_LT(i, 300);
+  mutex.lock();
+  EXPECT_GT(laserMsgs.size(), 0u);
+  mutex.unlock();
 
   int mid = horzSamples / 2;
   int last = (horzSamples - 1);
