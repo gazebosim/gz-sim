@@ -106,6 +106,24 @@ namespace ignition
       /// \return Number of peers with the given role.
       public: size_t NumPeers(const NetworkRole &_role) const;
 
+      /// \brief Retrieve number of detected primaries
+      public: inline size_t NumPrimary() const
+              {
+                return NumPeers(NetworkRole::SimulationPrimary);
+              }
+
+      /// \brief Retrieve number of detected primaries
+      public: inline size_t NumSecondary() const
+              {
+                return NumPeers(NetworkRole::SimulationSecondary);
+              }
+
+      /// \brief Retrieve number of detected primaries
+      public: inline size_t NumReadOnly() const
+              {
+                return NumPeers(NetworkRole::ReadOnly);
+              }
+
       /// \brief Internal loop to announce and check stale peers.
       private: void HeartbeatLoop();
 
