@@ -245,6 +245,7 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         data->GetAttribute("type")->Set("gpu_lidar");
         auto sensor =
             this->sensorManager.CreateSensor<sensors::GpuLidarSensor>(data);
+        sensor->SetParent(parent->Name());
         return this->sceneManager.AddSensor(
             _entity, sensor->Name(), _parent->Data());
       });
