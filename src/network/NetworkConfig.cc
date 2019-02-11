@@ -55,8 +55,8 @@ NetworkConfig NetworkConfig::FromEnv()
   }
   else
   {
-      ignwarn << "IGN_GAZEBO_NETWORK_ROLE not set"
-              << ", distributed sim disabled" << std::endl;
+      igndbg << "IGN_GAZEBO_NETWORK_ROLE not set"
+             << ", distributed sim disabled" << std::endl;
   }
 
   // If this is configured as a primary, we need to know number of secondaries

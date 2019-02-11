@@ -48,6 +48,7 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
       ret = std::make_unique<NetworkManagerReadOnly>(_config);
       break;
     case NetworkRole::None:
+      break;
     default:
       ignwarn << "Cannot create NetworkManager, unrecognized role"
         << std::endl;
