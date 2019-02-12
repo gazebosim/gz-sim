@@ -68,6 +68,9 @@ namespace systems
 
     private: ignition::transport::log::Batch poseBatch;
     private: ignition::transport::log::MsgIter iter;
+
+    private: std::chrono::nanoseconds logStartTime;
+    private: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
     private: bool printedEnd;
 
     private: void parsePose (EntityComponentManager &_ecm);
