@@ -17,10 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
 
-#include <iostream>
+#include <cstdint>
 #include <memory>
+#include <string>
 #include <utility>
 
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
