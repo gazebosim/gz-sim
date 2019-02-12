@@ -31,6 +31,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -409,6 +410,9 @@ bool CreateCommand::Execute()
   auto nameComp = this->iface->ecm->Component<components::Name>(entity);
   *nameComp = components::Name(desiredName);
 
+  igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
+         << std::endl;
+
   return true;
 }
 
@@ -472,6 +476,26 @@ bool RemoveCommand::Execute()
     return false;
   }
 
+  // Check that we support removing this entity
+  auto parent = this->iface->ecm->ParentEntity(entity);
+  if (nullptr == this->iface->ecm->Component<components::World>(parent))
+  {
+    ignerr << "Entity [" << entity
+           << "] is not a direct child of the world, so it can't be removed."
+           << std::endl;
+    return false;
+  }
+
+  if (nullptr == this->iface->ecm->Component<components::Model>(entity) &&
+      nullptr == this->iface->ecm->Component<components::Light>(entity))
+  {
+    ignerr << "Entity [" << entity
+           << "] is not a model or a light, so it can't be removed."
+           << std::endl;
+    return false;
+  }
+
+  igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
   this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }

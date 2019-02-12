@@ -60,32 +60,37 @@ namespace systems
     /// \brief Destructor
     public: ~SceneManager();
 
-    /// \brief Set the scene to manager
+    /// \brief Set the scene to manage
+    /// \param[in] _scene Scene pointer.
     public: void SetScene(rendering::ScenePtr _scene);
+
+    /// \brief Set the world's ID.
+    /// \param[in] _id World ID.
+    public: void SetWorldId(uint64_t _id);
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
     /// \param[in] _model Model sdf dom
     /// \param[in] _parentId Parent id
     /// \return Model visual created from the sdf dom
-    public: rendering::VisualPtr CreateModel(int _id, const sdf::Model &_model,
-        int _parentId = -1);
+    public: rendering::VisualPtr CreateModel(uint64_t _id,
+        const sdf::Model &_model, uint64_t _parentId = 0);
 
     /// \brief Create a link
     /// \param[in] _id Unique link id
     /// \param[in] _link Link sdf dom
     /// \param[in] _parentId Parent id
     /// \return Link visual created from the sdf dom
-    public: rendering::VisualPtr CreateLink(int _id, const sdf::Link &_link,
-        int _parentId = -1);
+    public: rendering::VisualPtr CreateLink(uint64_t _id,
+        const sdf::Link &_link, uint64_t _parentId = 0);
 
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom
     /// \param[in] _parentId Parent id
     /// \return Visual object created from the sdf dom
-    public: rendering::VisualPtr CreateVisual(int _id,
-        const sdf::Visual &_visual, int _parentId = -1);
+    public: rendering::VisualPtr CreateVisual(uint64_t _id,
+        const sdf::Visual &_visual, uint64_t _parentId = 0);
 
     /// \brief Load a geometry
     /// \param[in] __geom Geometry sdf dom
@@ -107,29 +112,32 @@ namespace systems
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
-    public: rendering::LightPtr CreateLight(int _id, const sdf::Light &_light,
-        int _parentId);
+    public: rendering::LightPtr CreateLight(uint64_t _id,
+        const sdf::Light &_light, uint64_t _parentId);
 
-    /// \brief Add an existing sensor to the scene
-    /// \param[in] _name Name of sensor
+    /// \brief Ignition sensors is the one responsible for adding sensors
+    /// to the scene. Here we just keep track of it and make sure it has
+    /// the correct parent.
+    /// \param[in] _gazeboId Entity in Gazebo
+    /// \param[in] _renderingId ID of sensor node in Ignition Rendering.
     /// \param[in] _parentId Parent Id
-    /// \return True if sensor is successfully added
-    public: bool AddSensor(int _id, const std::string &_name,
-        int _parentId = -1);
+    /// \return True if sensor is successfully handled
+    public: bool AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
+        uint64_t _parentId = 0);
 
     /// \brief Check if entity exists
     /// \param[in] _id Unique entity id
     /// \return true if exists, false otherwise
-    public: bool HasEntity(int _id) const;
+    public: bool HasEntity(uint64_t _id) const;
 
-    /// \brief Get an entity by id
+    /// \brief Get a rendering node given an id
     /// \param[in] _id Entity's unique id
-    /// \return Pointer to requested entity
-    public: rendering::NodePtr EntityById(int _id) const;
+    /// \return Pointer to requested entity's node
+    public: rendering::NodePtr NodeById(uint64_t _id) const;
 
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
-    public: void RemoveEntity(int _id);
+    public: void RemoveEntity(uint64_t _id);
 
     /// \internal
     /// \brief Pointer to private data class
