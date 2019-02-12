@@ -377,8 +377,7 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
         auto entity = this->sceneManager.EntityById(_entity);
         if (entity)
         {
-          auto sensorID = this->sensorManager.SensorId(entity->Name());
-          this->sensorManager.Remove(sensorID);
+          this->sensorManager.Remove(_entity);
         }
         this->sceneManager.RemoveEntity(_entity);
         return true;
@@ -391,8 +390,7 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
         auto entity = this->sceneManager.EntityById(_entity);
         if (entity)
         {
-          auto sensorID = this->sensorManager.SensorId(entity->Name());
-          this->sensorManager.Remove(sensorID);
+          this->sensorManager.Remove(_entity);
         }
         this->sceneManager.RemoveEntity(_entity);
         return true;
