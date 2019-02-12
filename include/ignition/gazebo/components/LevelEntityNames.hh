@@ -23,7 +23,7 @@
 #include <ignition/gazebo/Export.hh>
 
 #include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -36,7 +36,7 @@ namespace components
   /// \brief A component that holds a list of names of entities to be loaded in
   /// a level
   using LevelEntityNames =
-      SimpleWrapper<std::set<std::string>, class LevelEntityNamesTag>;
+      Component<std::set<std::string>, class LevelEntityNamesTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelEntityNames",
       LevelEntityNames)
 }
