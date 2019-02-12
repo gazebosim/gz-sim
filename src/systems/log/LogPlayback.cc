@@ -28,6 +28,7 @@
 #include <sdf/Root.hh>
 #include "ignition/gazebo/Factory.hh"
 //#include <ignition/common/Time.hh>
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -83,8 +84,51 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
   }
 
 
+  // Loop through actual models in world
+  _ecm.Each<components::Model, components::Name, components::ParentEntity,
+               components::Pose>(
+      [&](const Entity &_entity, components::Model *,
+          components::Name *_nameComp,
+          components::ParentEntity *_parentComp,
+          components::Pose *_poseComp) -> bool
+  {
+    igndbg << "Model " << _nameComp->Data() << std::endl;
+    // This prints a 6-tuple. components::Pose is a
+    //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
+    //   math::Quaternion, whose operator<<() prints rpy.
+    //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
+    // Explicitly print 7-tuple
+    igndbg << "Actual pose: \n";
+    igndbg << _poseComp->Data().Pos() << std::endl;
+    igndbg << _poseComp->Data().Rot().X() << _poseComp->Data().Rot().Y()
+      << _poseComp->Data().Rot().Z() << _poseComp->Data().Rot().W()
+      << std::endl;
+
+
+    // Look for model pose in log entry loaded
+    ignition::msgs::Pose pose = this->name_to_pose.at (_nameComp->Data());
+
+    igndbg << "Recorded pose: " << std::endl;
+    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
+      << pose.position().z() << std::endl;
+    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
+      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
+      << std::endl;
+
+
+    // Set current pose to recorded pose
+    // Use copy assignment operator
+    *_poseComp = components::Pose (ignition::math::Pose3d (
+      ignition::math::Vector3(pose.position().x(), pose.position().y(),
+                              pose.position().z()),
+      ignition::math::Quaternion(pose.orientation().x(), pose.orientation().y(),
+                 pose.orientation().z(), pose.orientation().w())));
+
+    return true;
+  });
+
+
   // Loop through actual links in world
-  //igndbg << "Actual link positions:\n";
   _ecm.Each<components::Link, components::Name, components::ParentEntity,
                components::Pose>(
       [&](const Entity &_entity, components::Link *,
@@ -97,6 +141,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
     //   quaternion.
     //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
+    // Print 7-tuple
     igndbg << "Actual pose: \n";
     igndbg << _poseComp->Data().Pos() << std::endl;
     igndbg << _poseComp->Data().Rot() << std::endl;
@@ -198,7 +243,9 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   this->poseBatch = this->log->QueryMessages (opts);
   this->iter = this->poseBatch.begin ();
 
-  igndbg << this->iter->TimeReceived ().count () << std::endl;
+  // Record first timestamp
+  this->logStartTime = this->iter->TimeReceived ();
+  igndbg << this->logStartTime.count () << std::endl;
   igndbg << this->iter->Type () << std::endl;
 
   parsePose (_ecm);
@@ -234,6 +281,16 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   factory.CreateEntities (sdf_world);
 
 
+  // TODO: Check for whether world is running, start when it starts running!
+  /* Too long.
+  std::chrono::time_point<std::chrono::system_clock> now =
+    std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  this->worldStartTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+    duration);
+  */
+  this->worldStartTime = std::chrono::high_resolution_clock::now();
+
   // Advance one entry in batch for Update()
   ++(this->iter);
   this->printedEnd = false;
@@ -265,14 +322,32 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     return;
   }
 
-  // Print timestamp of this log entry
-  igndbg << this->iter->TimeReceived ().count () << std::endl;
 
-  parsePose (_ecm);
+  // If timestamp since start of program has exceeded next logged timestamp,
+  //   play the joint positions at next logged timestamp.
+
+  auto now = std::chrono::high_resolution_clock::now ();
+  auto diff_time = std::chrono::duration_cast <std::chrono::nanoseconds> (
+    now - this->worldStartTime);
+
+  if (diff_time.count () >=
+      (this->iter->TimeReceived ().count () - this->logStartTime.count ()))
+  {
+    // Print timestamp of this log entry
+    igndbg << this->iter->TimeReceived ().count () << std::endl;
+
+    // Parse pose and move link
+    parsePose (_ecm);
+ 
+    // Advance one entry in batch for next Update() iteration
+    // Process one log entry per Update() step.
+    ++(this->iter);
+  }
+  // Else nothing to play
+  else
+    return;
 
 
-
-  // TODO: Look into how to actually move the joints etc
 
   /*
   // Models
@@ -307,9 +382,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   */
 
 
-  // Advance one entry in batch for next Update() iteration
-  // Process one log entry per Update() step.
-  ++(this->iter);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
