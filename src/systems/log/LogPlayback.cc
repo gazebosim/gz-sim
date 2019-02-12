@@ -71,6 +71,9 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     igndbg << pose.name () << std::endl;
     //igndbg << pose.id () << std::endl;
 
+    // TODO: Need to distinguish between Links with same name for
+    //   different Models!
+
     // Update link pose in map
     this->name_to_pose.insert_or_assign (pose.name (), pose);
 
@@ -100,9 +103,10 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     // Explicitly print 7-tuple
     igndbg << "Actual pose: \n";
     igndbg << _poseComp->Data().Pos() << std::endl;
-    igndbg << _poseComp->Data().Rot().X() << _poseComp->Data().Rot().Y()
-      << _poseComp->Data().Rot().Z() << _poseComp->Data().Rot().W()
-      << std::endl;
+    igndbg << _poseComp->Data().Rot().X() << " "
+           << _poseComp->Data().Rot().Y() << " "
+           << _poseComp->Data().Rot().Z() << " "
+           << _poseComp->Data().Rot().W() << std::endl;
 
 
     // Look for model pose in log entry loaded
@@ -121,14 +125,17 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     *_poseComp = components::Pose (ignition::math::Pose3d (
       ignition::math::Vector3(pose.position().x(), pose.position().y(),
                               pose.position().z()),
-      ignition::math::Quaternion(pose.orientation().x(), pose.orientation().y(),
-                 pose.orientation().z(), pose.orientation().w())));
+      ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
+                 pose.orientation().y(), pose.orientation().z())));
 
     return true;
   });
 
 
+  /*
   // Loop through actual links in world
+  // TODO: Use parentComp to distinguish between Links with same name for
+  //   different Models!
   _ecm.Each<components::Link, components::Name, components::ParentEntity,
                components::Pose>(
       [&](const Entity &_entity, components::Link *,
@@ -163,11 +170,12 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     *_poseComp = components::Pose (ignition::math::Pose3d (
       ignition::math::Vector3(pose.position().x(), pose.position().y(),
                               pose.position().z()),
-      ignition::math::Quaternion(pose.orientation().x(), pose.orientation().y(),
-                 pose.orientation().z(), pose.orientation().w())));
+      ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
+                 pose.orientation().y(), pose.orientation().z())));
 
     return true;
   });
+  */
 }
 
 //////////////////////////////////////////////////
