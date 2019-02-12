@@ -251,8 +251,10 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           ignerr << "Failed to create sensor [" << scopedName << "]"
                  << std::endl;
         }
-
-        this->entityToSensorId[_entity] = sensor->Id();
+        else
+        {
+          this->entityToSensorId[_entity] = sensor->Id();
+        }
 
         return true;
       });
@@ -380,6 +382,8 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
 
         // Stop keeping track of it in this system.
         this->sceneManager.RemoveEntity(_entity);
+        this->entityToSensorId.erase(sensorId);
+
         return true;
       });
 }

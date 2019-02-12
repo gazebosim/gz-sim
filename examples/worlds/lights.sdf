@@ -40,6 +40,8 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <service>/world/lights/scene/info</service>
         <pose_topic>/world/lights/pose/info</pose_topic>
+        <scene_topic>/world/lights/scene/info</scene_topic>
+        <deletion_topic>/world/lights/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
