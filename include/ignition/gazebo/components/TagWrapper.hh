@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-//#include <iostream>
+#include <iostream>
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -61,7 +61,6 @@ namespace components
     /// \brief Component id.
     public: inline static uint64_t id = 0;
 
-    /*
     /// \brief Stream insertion operator
     /// \param _out output stream
     /// \param _tw TagWrapper to output
@@ -83,7 +82,6 @@ namespace components
     {
       return _in;
     }
-    */
   };
 
   //////////////////////////////////////////////////

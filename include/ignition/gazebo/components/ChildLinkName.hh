@@ -32,11 +32,12 @@ namespace components
 {
   /// \brief A component used to indicate that a model is childlinkname (i.e.
   /// not moveable).
-  using ChildLinkName = SimpleWrapper<std::string, class ChildLinkNameTag>;
+  using ChildLinkName = Component<std::string, class ChildLinkNameTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
     "ign_gazebo_components.ChildLinkName", ChildLinkName)
 }
 }
 }
 }
+
 #endif
