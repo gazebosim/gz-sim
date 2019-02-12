@@ -25,9 +25,15 @@
 //#include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Message.hh>
-#include <ignition/msgs/pose_v.pb.h>
 #include <sdf/Root.hh>
-#include <ignition/gazebo/Factory.hh>
+#include "ignition/gazebo/Factory.hh"
+//#include <ignition/common/Time.hh>
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include <ignition/math/Quaternion.hh>
+#include <ignition/math/Vector3.hh>
 
 
 using namespace ignition::gazebo::systems;
@@ -44,6 +50,81 @@ LogPlayback::~LogPlayback()
 {
 }
 
+void LogPlayback::parsePose (EntityComponentManager &_ecm)
+{
+  // TODO: Parse iter->Type () to get substring after last ".", to know what
+  //   message type to create!
+  //   For now just assuming Pose_V
+
+  // Protobuf message
+  ignition::msgs::Pose_V posev_msg;
+  // Convert binary bytes in string into a ign-msgs msg
+  posev_msg.ParseFromString (this->iter->Data());
+
+  igndbg << "Pose_V size: " << posev_msg.pose_size () << std::endl;
+
+  for (int i = 0; i < posev_msg.pose_size (); i ++)
+  {
+    ignition::msgs::Pose pose = posev_msg.pose (i);
+
+    igndbg << pose.name () << std::endl;
+    //igndbg << pose.id () << std::endl;
+
+    // Update link pose in map
+    this->name_to_pose.insert_or_assign (pose.name (), pose);
+
+    /*
+    igndbg << pose.position ().x () << ", " << pose.position ().y () << ", "
+      << pose.position ().z () << std::endl;
+    igndbg << pose.orientation ().x () << ", " << pose.orientation ().y ()
+      << ", " << pose.orientation ().z () << ", " << pose.orientation ().w ()
+      << std::endl;
+    */
+  }
+
+
+  // Loop through actual links in world
+  //igndbg << "Actual link positions:\n";
+  _ecm.Each<components::Link, components::Name, components::ParentEntity,
+               components::Pose>(
+      [&](const Entity &_entity, components::Link *,
+          components::Name *_nameComp,
+          components::ParentEntity *_parentComp,
+          components::Pose *_poseComp) -> bool
+  {
+    igndbg << "Link " << _nameComp->Data() << std::endl;
+    // This prints a 6-tuple. Not sure why not 7. components::Pose is a
+    //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
+    //   quaternion.
+    //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
+    igndbg << "Actual pose: \n";
+    igndbg << _poseComp->Data().Pos() << std::endl;
+    igndbg << _poseComp->Data().Rot() << std::endl;
+
+
+    // Look for the link poses in log entry loaded
+    ignition::msgs::Pose pose = this->name_to_pose.at (_nameComp->Data());
+
+    igndbg << "Recorded pose: " << std::endl;
+    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
+      << pose.position().z() << std::endl;
+    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
+      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
+      << std::endl;
+
+
+    // Set current pose to recorded pose
+    // Use copy assignment operator
+    *_poseComp = components::Pose (ignition::math::Pose3d (
+      ignition::math::Vector3(pose.position().x(), pose.position().y(),
+                              pose.position().z()),
+      ignition::math::Quaternion(pose.orientation().x(), pose.orientation().y(),
+                 pose.orientation().z(), pose.orientation().w())));
+
+    return true;
+  });
+}
+
 //////////////////////////////////////////////////
 void LogPlayback::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -54,7 +135,7 @@ void LogPlayback::Configure(const Entity &/*_id*/,
     this->logPath).first;
   this->sdfPath = _sdf->Get<std::string>("sdf_path",
     this->sdfPath).first;
-  ignerr << "Playing back log file " << this->logPath << std::endl;
+  ignmsg << "Playing back log file " << this->logPath << std::endl;
 
 
   // Use ign-transport playback directly
@@ -87,11 +168,13 @@ void LogPlayback::Configure(const Entity &/*_id*/,
     }
     else
     {
-      ignerr << "Starting playback\n";
+      ignmsg << "Starting playback\n";
     }
   }
   */
 
+
+  // Use ECM
 
   // Call Log.hh directly to load a .tlog file
 
@@ -108,121 +191,125 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   // Above 3 lines can be replaced by this convenience function:
   //int64_t row_i = desc->TopicId ("/world/default/pose/info",
   //  "ignition.msgs.Pose_V");
-  //ignerr << "row " << row_i << std::endl;
+  //igndbg << "row " << row_i << std::endl;
 
   // Access messages in .tlog file
   TopicList opts = TopicList ("/world/default/pose/info");
   this->poseBatch = this->log->QueryMessages (opts);
   this->iter = this->poseBatch.begin ();
 
-  ignerr << this->iter->TimeReceived ().count () << std::endl;
-  ignerr << this->iter->Type () << std::endl;
-  // Once have the message type e.g. pose, can talk to ECM to move things.
-  //   But a pose message doesn't tell me what an object looks like! Need the
-  //   original SDF string - which needs to be recorded, to know object
-  //   geometry. TODO add that to LogRecorder.cc.
-  ignerr << this->iter->Data() << std::endl;
+  igndbg << this->iter->TimeReceived ().count () << std::endl;
+  igndbg << this->iter->Type () << std::endl;
 
-  // TODO: Parse iter->Type () to get substring after last ".", to know what
-  //   message type to create!
+  parsePose (_ecm);
 
-  // Protobuf message
-  // For now, just hardcode Pose_V
-  // Convert binary bytes in string into a ign-msgs msg
-  ignition::msgs::Pose_V posev_msg;
-  posev_msg.ParseFromString (this->iter->Data());
-  ignerr << "Pose_V size: " << posev_msg.pose_size () << std::endl;
-  for (int i = 0; i < posev_msg.pose_size (); i ++)
-  {
-    ignition::msgs::Pose pose = posev_msg.pose (i);
-    ignerr << pose.name () << std::endl;
-    //ignerr << pose.id () << std::endl;
-    ignerr << pose.position ().x () << ", " << pose.position ().y () << ", " << pose.position ().z () << std::endl;
-    ignerr << pose.orientation ().x () << ", " << pose.orientation ().y () << ", " << pose.orientation ().z () << ", " << pose.orientation ().w () << std::endl;
-  }
-
-
-  // Use ECM
 
   // Load recorded SDF file
+
+  // TODO: Not sure if this fixes the problem that sometimes the SDF objects
+  //   get loaded into the world, sometimes not.
+  //   If move this block to start of function, then mostly it doesn't load.
+  //   Look into why.
+  // Wait a little, else SDF objects don't load
+  ignition::common::Time::Sleep(ignition::common::Time(1));
+
   sdf::Root root;
   if (root.Load (this->sdfPath).size () != 0)
   {
     ignerr << "Error loading SDF file " << this->sdfPath << std::endl;
     return;
   }
-  ignerr << "World count: " << root.WorldCount () << std::endl;
-  ignerr << "Model count: " << root.ModelCount () << std::endl;
+  igndbg << "World count: " << root.WorldCount () << std::endl;
+  igndbg << "Model count: " << root.ModelCount () << std::endl;
   const sdf::World * sdf_world = root.WorldByIndex (0);
 
+  // TODO: Look for LogRecord plugin in the SDF, and remove that <plugin>,
+  //   so that recorder isn't also loaded! It necessarily is in the SDF,
+  //   because it was loaded in the original SDF to record the log file.
+
+  // TODO: Use latest version, Factory is renamed
+  // Create all Entities in SDF <world> tag
   ignition::gazebo::Factory factory = ignition::gazebo::Factory (_ecm,
     _eventMgr);
   factory.CreateEntities (sdf_world);
 
 
-  // TODO Load all models in SDF into the world. How? Talk to ECM? Does ECM have
-  //   a function to just take an SDF and spawn everything??
-  //   Factory.cc? SceneManager.cc? SimulationRunnher.hh? Server.hh includes sdf/Root
-  // Loop through models in SDF. Add models and light
-  /*
-  for ()
-  {
-    Entity eid = _ecm.CreateEntity ();
-    if (eid == kNullEntity)
-    {
-      ignerr << "Error in creating entity" << std::endl;
-    }
-    else
-    {
-      ignerr << "Created an entity" << std::endl;
-    }
-
-    //ignition::gazebo::components::Light
-    // From Factory.cc
-    //Entity Factory::CreateEntities(const sdf::Light *_light)
-    //ignition::gazebo::components::Model
-
-    ComponentType data = ?
-    ComponentKey ck = _ecm.CreateComponent (eid, data);
-  }
-  */
-  ignerr << _ecm.EntityCount () << " entities" << std::endl;
-
-
+  // Advance one entry in batch for Update()
   ++(this->iter);
   this->printedEnd = false;
 }
 
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &_manager)
+    EntityComponentManager &_ecm)
 {
   //std::ifstream ifs(this->logPath);
-  //ifs >> _manager;
+  //ifs >> _ecm;
+
+
+  // Use ign-transport playback - probably won't.
+  // Subscribe to a topic, then call ECM to override states - no idea what that means.
 
 
   // Use ECM
 
-  // TODO: Look into how to actually move the joints etc
-
-  // Subscribe to a topic, then call ECM to override states - no idea what that means.
-
-  // Process one timestamp per Update() step
+  // Sanity check. If reached the end, done.
   if (this->iter == this->poseBatch.end ())
   {
     // Print only once
     if (! this->printedEnd)
     {
-      ignerr << "Finished playing all recorded data\n";
+      ignmsg << "Finished playing all recorded data\n";
       this->printedEnd = true;
     }
     return;
   }
 
-  // Print timestamp
-  //ignerr << this->iter->TimeReceived ().count () << std::endl;
-  ++(this->iter);
+  // Print timestamp of this log entry
+  igndbg << this->iter->TimeReceived ().count () << std::endl;
 
+  parsePose (_ecm);
+
+
+
+  // TODO: Look into how to actually move the joints etc
+
+  /*
+  // Models
+  _ecm.Each<components::Model, components::Name,
+               components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+  {
+    igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
+    igndbg << "Pose: " << _poseComp->Data() << std::endl;
+
+    //_ecm.Component (_entity)
+
+    return true;
+  });
+
+  // Joints
+  _ecm.Each<components::Joint, components::Name, components::ParentEntity,
+               components::Pose>(
+      [&](const Entity &_entity, const components::Joint *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+  {
+    igndbg << "Joint " << _nameComp->Data() << std::endl;
+    igndbg << "Pose: " << _poseComp->Data() << std::endl;
+
+     return true;
+  });
+  */
+
+
+  // Advance one entry in batch for next Update() iteration
+  // Process one log entry per Update() step.
+  ++(this->iter);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,

@@ -26,6 +26,7 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/MsgIter.hh>
+#include <ignition/msgs/pose_v.pb.h>
 
 namespace ignition
 {
@@ -68,6 +69,10 @@ namespace systems
     private: ignition::transport::log::Batch poseBatch;
     private: ignition::transport::log::MsgIter iter;
     private: bool printedEnd;
+
+    private: void parsePose (EntityComponentManager &_ecm);
+    // Key: link name. Value: link pose
+    private: std::map <std::string, ignition::msgs::Pose> name_to_pose;
   };
   }
 }
