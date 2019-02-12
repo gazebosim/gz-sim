@@ -339,8 +339,9 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
         auto entity = this->sceneManager.EntityById(_entity);
         if (entity)
         {
-          auto sensorID = this->sensorManager.SensorId(entity->Name());
-          this->sensorManager.Remove(sensorID);
+          // FISME(louise) SensorId not implemented in ign-sensors
+          // auto sensorID = this->sensorManager.SensorId(entity->Name());
+          // this->sensorManager.Remove(sensorID);
         }
         this->sceneManager.RemoveEntity(_entity);
         return true;
