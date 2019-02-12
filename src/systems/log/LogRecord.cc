@@ -49,7 +49,7 @@ LogRecord::~LogRecord()
   // Use ign-transport directly
   this->recorder.Stop();
 
-  ignerr << "Stopping recording" << std::endl;
+  ignmsg << "Stopping recording" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -71,7 +71,7 @@ void LogRecord::Configure(const Entity &_entity,
     return;
   }
 
-  ignerr << "Recording to log file " << this->logPath << std::endl;
+  ignmsg << "Recording to log file " << this->logPath << std::endl;
 
 
   // Use ign-transport directly
@@ -86,7 +86,7 @@ void LogRecord::Configure(const Entity &_entity,
   // Use ECM
 
   // Entity is just an int
-  ignerr << _ecm.EntityCount () << " entities" << std::endl;
+  igndbg << _ecm.EntityCount () << " entities" << std::endl;
 
   // Record SDF as a string.
   // TODO: For now, just dumping a big string to a text file, until we have a
@@ -99,7 +99,7 @@ void LogRecord::Configure(const Entity &_entity,
     sdf_root = sdf_root->GetParent ();
   }
   ofs << sdf_root->ToString ("");
-  ignerr << "Outputted SDF to " << this->sdfPath << std::endl;
+  ignmsg << "Outputted SDF to " << this->sdfPath << std::endl;
 
 
 }
@@ -110,7 +110,7 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
 {
   // Use ECM
 
-  //ignerr << "Update()" << std::endl;
+  //igndbg << "Update()" << std::endl;
 
   //for (auto ent : _ecm.Entities ())
   /*
@@ -122,8 +122,8 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
   {
-    ignerr << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
-    ignerr << "Pose: " << _poseComp->Data() << std::endl;
+    igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
+    igndbg << "Pose: " << _poseComp->Data() << std::endl;
 
     //_ecm.Component (ent)
 
@@ -138,8 +138,8 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
   {
-    ignerr << "Joint " << _nameComp->Data() << std::endl;
-    ignerr << "Pose: " << _poseComp->Data() << std::endl;
+    igndbg << "Joint " << _nameComp->Data() << std::endl;
+    igndbg << "Pose: " << _poseComp->Data() << std::endl;
 
      return true;
   });
