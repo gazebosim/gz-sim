@@ -25,11 +25,6 @@
       <log_path>test.tlog</log_path>
       <sdf_path>test.sdf</sdf_path>
     </plugin>
-    <!--plugin
-      filename="libignition-gazebo-log-system.so"
-      name="ignition::gazebo::systems::v0::LogPlayback">
-      <log_path>mz.log</log_path>
-    </plugin-->
 
   <gui fullscreen="0">
 
@@ -156,7 +151,7 @@
   
   <model name='vehicle_red'>
     <pose>0 0 0.325 0 0 0</pose>
-    <link name='chassis'>
+    <link name='chassis_red'>
       <pose>-0.151427 -0 0.175 0 -0 0</pose>
       <inertial>
         <mass>1.14395</mass>
@@ -191,7 +186,7 @@
       </collision>
     </link>
 
-    <link name='left_wheel'>
+    <link name='left_wheel_red'>
       <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -226,7 +221,7 @@
       </collision>
     </link>
 
-    <link name='right_wheel'>
+    <link name='right_wheel_red'>
       <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -261,7 +256,7 @@
       </collision>
     </link>
 
-    <link name='caster'>
+    <link name='caster_red'>
       <pose>-0.957138 -0 -0.125 0 -0 0</pose>
       <inertial>
         <mass>1</mass>
@@ -296,9 +291,9 @@
       </collision>
     </link>
 
-    <joint name='left_wheel_joint' type='revolute'>
-      <parent>chassis</parent>
-      <child>left_wheel</child>
+    <joint name='left_wheel_joint_red' type='revolute'>
+      <parent>chassis_red</parent>
+      <child>left_wheel_red</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -308,9 +303,9 @@
       </axis>
     </joint>
 
-    <joint name='right_wheel_joint' type='revolute'>
-      <parent>chassis</parent>
-      <child>right_wheel</child>
+    <joint name='right_wheel_joint_red' type='revolute'>
+      <parent>chassis_red</parent>
+      <child>right_wheel_red</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -320,16 +315,16 @@
       </axis>
     </joint>
 
-    <joint name='caster_wheel' type='ball'>
-      <parent>chassis</parent>
-      <child>caster</child>
+    <joint name='caster_wheel_red' type='ball'>
+      <parent>chassis_red</parent>
+      <child>caster_red</child>
     </joint>
 
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::DiffDrive">
-      <left_joint>left_wheel_joint</left_joint>
-      <right_joint>right_wheel_joint</right_joint>
+      <left_joint>left_wheel_joint_red</left_joint>
+      <right_joint>right_wheel_joint_red</right_joint>
       <wheel_separation>1.25</wheel_separation>
       <wheel_radius>0.3</wheel_radius>
     </plugin>
@@ -338,7 +333,7 @@
   
   <model name='vehicle_blue'>
     <pose>0 2 0.325 0 0 0</pose>
-    <link name='chassis'>
+    <link name='chassis_blue'>
       <pose>-0.151427 -0 0.175 0 -0 0</pose>
       <inertial>
         <mass>1.14395</mass>
@@ -373,7 +368,7 @@
       </collision>
     </link>
 
-    <link name='left_wheel'>
+    <link name='left_wheel_blue'>
       <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -408,7 +403,7 @@
       </collision>
     </link>
 
-    <link name='right_wheel'>
+    <link name='right_wheel_blue'>
       <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -443,7 +438,7 @@
       </collision>
     </link>
 
-    <link name='caster'>
+    <link name='caster_blue'>
       <pose>-0.957138 -0 -0.125 0 -0 0</pose>
       <inertial>
         <mass>1</mass>
@@ -478,9 +473,9 @@
       </collision>
     </link>
 
-    <joint name='left_wheel_joint' type='revolute'>
-      <parent>chassis</parent>
-      <child>left_wheel</child>
+    <joint name='left_wheel_joint_blue' type='revolute'>
+      <parent>chassis_blue</parent>
+      <child>left_wheel_blue</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -490,9 +485,9 @@
       </axis>
     </joint>
 
-    <joint name='right_wheel_joint' type='revolute'>
-      <parent>chassis</parent>
-      <child>right_wheel</child>
+    <joint name='right_wheel_joint_blue' type='revolute'>
+      <parent>chassis_blue</parent>
+      <child>right_wheel_blue</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -502,16 +497,16 @@
       </axis>
     </joint>
 
-    <joint name='caster_wheel' type='ball'>
-      <parent>chassis</parent>
-      <child>caster</child>
+    <joint name='caster_wheel_blue' type='ball'>
+      <parent>chassis_blue</parent>
+      <child>caster_blue</child>
     </joint>
 
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::DiffDrive">
-      <left_joint>left_wheel_joint</left_joint>
-      <right_joint>right_wheel_joint</right_joint>
+      <left_joint>left_wheel_joint_blue</left_joint>
+      <right_joint>right_wheel_joint_blue</right_joint>
       <wheel_separation>1.25</wheel_separation>
       <wheel_radius>0.3</wheel_radius>
     </plugin>

@@ -71,8 +71,9 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     igndbg << pose.name () << std::endl;
     //igndbg << pose.id () << std::endl;
 
-    // TODO: Need to distinguish between Links with same name for
-    //   different Models!
+    // TODO: Links do not have parent information, so if two links of different
+    //   models are of same name, there is no way to distinguish between them.
+    //   Therefore link names in SDF must be different.
 
     // Update link pose in map
     this->name_to_pose.insert_or_assign (pose.name (), pose);
@@ -281,6 +282,17 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   // TODO: Look for LogRecord plugin in the SDF, and remove that <plugin>,
   //   so that recorder isn't also loaded! It necessarily is in the SDF,
   //   because it was loaded in the original SDF to record the log file.
+  // TODO Hardcoding name for now. Ideally can do regex *LogRecord
+  /*
+  sdf::ElementPtr recordPlugin = sdf_world->Element()->GetElement (
+    "ignition::gazebo::systems::v0::LogRecord");
+  if (recordPlugin != NULL)
+  {
+    recordPlugin->RemoveFromParent ();
+    ignerr << "Removing LogRecord plugin from loaded SDF\n";
+  }
+  */
+  
 
   // TODO: Use latest version, Factory is renamed
   // Create all Entities in SDF <world> tag
