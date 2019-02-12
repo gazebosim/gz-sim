@@ -509,6 +509,21 @@ TEST_F(UserCommandsTest, Remove)
   server.Run(true, 1, false);
   EXPECT_EQ(3u, ecm->EntityCount());
 
+  // Unsupported type - fails to remove
+  req.Clear();
+  req.set_name("sun");
+  req.set_type(msgs::Entity::LINK);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check nothing was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(3u, ecm->EntityCount());
+
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
+
   // Remove light
   req.Clear();
   req.set_name("sun");
