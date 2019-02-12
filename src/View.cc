@@ -14,10 +14,12 @@
  * limitations under the License.
  *
 */
+#include "ignition/gazebo/detail/View.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
+using namespace detail;
 
 //////////////////////////////////////////////////
 void View::AddEntity(const Entity _entity, const bool _new)
@@ -39,7 +41,7 @@ void View::AddComponent(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool View::EraseEntity(const Entity _entity, const ComponentTypeKey &_key)
+bool View::RemoveEntity(const Entity _entity, const ComponentTypeKey &_key)
 {
   if (this->entities.find(_entity) == this->entities.end())
     return false;
@@ -47,7 +49,7 @@ bool View::EraseEntity(const Entity _entity, const ComponentTypeKey &_key)
   // Otherwise, remove the entity from the view
   this->entities.erase(_entity);
   this->newEntities.erase(_entity);
-  this->toEraseEntities.erase(_entity);
+  this->toRemoveEntities.erase(_entity);
 
   // Remove the entity from the components map
   for (const ComponentTypeId &compTypeId : _key)
@@ -72,10 +74,10 @@ void View::ClearNewEntities()
 }
 
 //////////////////////////////////////////////////
-bool View::AddEntityToErased(const Entity _entity)
+bool View::AddEntityToRemoved(const Entity _entity)
 {
   if (this->entities.find(_entity) == this->entities.end())
     return false;
-  this->toEraseEntities.insert(_entity);
+  this->toRemoveEntities.insert(_entity);
   return true;
 }

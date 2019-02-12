@@ -18,11 +18,9 @@
 #define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITY_HH_
 
 #include <ignition/math/Vector3.hh>
-
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -35,13 +33,18 @@ namespace components
   /// \brief A component type that contains linear velocity of an entity
   /// represented by ignition::math::Vector3d.
   using LinearVelocity = SimpleWrapper<math::Vector3d, class LinearVelocityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.LinearVelocity", LinearVelocity)
 
   /// \brief A component type that contains linear velocity of an entity in the
   /// world frame represented by ignition::math::Vector3d.
   using WorldLinearVelocity =
       SimpleWrapper<math::Vector3d, class WorldLinearVelocityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.WorldLinearVelocity", WorldLinearVelocity)
 }
 }
 }
 }
+
 #endif

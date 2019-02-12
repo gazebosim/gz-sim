@@ -70,6 +70,14 @@ namespace ignition
       /// an UpdateRate has not been set.
       public: std::optional<double> UpdateRate() const;
 
+      /// \brief Get whether the server is using the level system
+      /// \return True if the server is set to use the level system
+      public: bool UseLevels() const;
+
+      /// \brief Get whether the server is using the level system.
+      /// \param[in] _levels Value to set.
+      public: void SetUseLevels(const bool _levels);
+
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
       /// an UpdateRate has not been set.

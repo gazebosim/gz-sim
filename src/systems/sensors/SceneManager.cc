@@ -290,7 +290,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
         ignition::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
-    _scale = _geom.MeshShape()->Scale();
+    scale = _geom.MeshShape()->Scale();
   }
   else
   {
@@ -461,4 +461,38 @@ rendering::NodePtr SceneManager::EntityById(int _id) const
     }
   }
   return rendering::NodePtr();
+}
+
+/////////////////////////////////////////////////
+void SceneManager::RemoveEntity(int _id)
+{
+  {
+    auto it = this->dataPtr->visuals.find(_id);
+    if (it != this->dataPtr->visuals.end())
+    {
+      this->dataPtr->scene->DestroyVisual(it->second);
+      this->dataPtr->visuals.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->lights.find(_id);
+    if (it != this->dataPtr->lights.end())
+    {
+      this->dataPtr->scene->DestroyLight(it->second);
+      this->dataPtr->lights.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->sensors.find(_id);
+    if (it != this->dataPtr->sensors.end())
+    {
+      this->dataPtr->scene->DestroySensor(it->second);
+      this->dataPtr->sensors.erase(it);
+      return;
+    }
+  }
 }

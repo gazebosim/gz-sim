@@ -10,6 +10,9 @@ cmake .. \
   -DCMAKE_C_COMPILER=/usr/bin/gcc-8 \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
+# Build enough to get generated msg headers
+make protobuf_compilation
+
 cd ..
 
 run-clang-tidy-6.0.py \

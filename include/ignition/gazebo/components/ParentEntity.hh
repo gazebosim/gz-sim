@@ -17,11 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PARENTENTITY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PARENTENTITY_HH_
 
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/SimpleWrapper.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/SimpleWrapper.hh"
 
 namespace ignition
 {
@@ -31,10 +30,20 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds the ID of an entity's parent entity.
+  /// \brief This component holds an entity's parent entity.
+  ///
+  /// Note that the EntityComponentManager also keeps the parent-child
+  /// relationship stored in a graph, and that information should be
+  /// kept in sync with the parent entity components. Therefore,
+  /// it is recommended that the `ParentEntity` component is never
+  /// edited by hand, and instead, entities should be created using
+  /// the `gazebo::SdfEntityCreator` class.
   using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.ParentEntity", ParentEntity)
 }
 }
 }
 }
+
 #endif

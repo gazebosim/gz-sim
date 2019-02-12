@@ -143,8 +143,8 @@ TEST_F(AltimeterTest, ModelFalling)
 
   // subscribe to altimeter topic
   transport::Node node;
-  node.Subscribe(
-      "/model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter",
+  node.Subscribe(std::string("/world/altimeter_sensor/") +
+      "model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter",
       &altimeterCb);
 
   // Run server
