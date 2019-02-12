@@ -39,7 +39,6 @@ namespace systems
   class IGNITION_GAZEBO_VISIBLE Sensors:
     public System,
     public ISystemConfigure,
-    public ISystemUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -49,10 +48,6 @@ namespace systems
     public: ~Sensors() override;
 
     // Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
-
-    // Documentation inherited
     public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
@@ -60,7 +55,7 @@ namespace systems
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                const EntityComponentManager &_ecm) final;
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SensorsPrivate> dataPtr;

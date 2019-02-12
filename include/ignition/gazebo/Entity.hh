@@ -55,7 +55,7 @@ namespace ignition
     ///
     /// An Entity that needs to be identified and used by Systems should be
     /// created through the EntityComponentManager.
-    using Entity = int;
+    using Entity = int64_t;
 
     /// \brief Indicates a non-existant or invalid Entity.
     const Entity kNullEntity{-1};

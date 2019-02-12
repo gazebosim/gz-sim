@@ -48,25 +48,25 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   EXPECT_TRUE(server.HasEntity("sphere"));
   server.SetUpdatePeriod(1ns);
 
-  // Erase the entity.
-  EXPECT_TRUE(server.RequestEraseEntity("box"));
+  // Remove the entity.
+  EXPECT_TRUE(server.RequestRemoveEntity("box"));
   // Nothing changes because the server has not been stepped.
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_TRUE(server.HasEntity("sphere"));
-  // Take one step and the entity should be erased.
+  // Take one step and the entity should be removed.
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("box"));
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_TRUE(server.HasEntity("sphere"));
 
-  EXPECT_TRUE(server.RequestEraseEntity("cylinder"));
+  EXPECT_TRUE(server.RequestRemoveEntity("cylinder"));
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("box"));
   EXPECT_FALSE(server.HasEntity("cylinder"));
   std::optional<Entity> entity = server.EntityByName("sphere");
   EXPECT_NE(std::nullopt, entity);
-  EXPECT_TRUE(server.RequestEraseEntity(*entity));
+  EXPECT_TRUE(server.RequestRemoveEntity(*entity));
 
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("box"));
