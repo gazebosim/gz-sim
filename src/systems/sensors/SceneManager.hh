@@ -120,10 +120,10 @@ namespace systems
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
     /// \param[in] _renderingId ID of sensor node in Ignition Rendering.
-    /// \param[in] _parentId Parent Id
+    /// \param[in] _parentId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
-        uint64_t _parentId = 0);
+        uint64_t _parentGazeboId = 0);
 
     /// \brief Check if entity exists
     /// \param[in] _id Unique entity id
