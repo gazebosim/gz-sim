@@ -14,7 +14,9 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 
-add_subdirectory(log)
+add_subdirectory(altimeter)
+add_subdirectory(imu)
 add_subdirectory(physics)
 add_subdirectory(sensors)
-add_subdirectory(altimeter)
+add_subdirectory(usercommands)
+add_subdirectory(log)
