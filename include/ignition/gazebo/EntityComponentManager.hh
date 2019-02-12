@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -391,28 +390,6 @@ namespace ignition
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
 
-      /// \brief Stream insertion operator
-      /// \param _out output stream
-      /// \param _ecm EntityComponentManager to output
-      /// \return the stream
-      public: friend std::ostream &operator<<(
-          std::ostream &_out,
-          const EntityComponentManager &_ecm)
-      {
-        //_out << "serialized_component";
-        return _ecm.Serialize(_out);
-      }
-
-      /// \brief Stream extraction operator
-      /// \param _in input stream
-      /// \param _ecm EntityComponentManager to read values into
-      /// \return the stream
-      public: friend std::istream &operator>>(
-                  std::istream &_in, EntityComponentManager &/*_ecm*/)
-      {
-        return _in;
-      }
-
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
@@ -553,9 +530,6 @@ namespace ignition
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
-
-      /// \brief ToDo.
-      private: std::ostream &Serialize(std::ostream &_out) const;
 
       /// Make simulation runner a friend so that it can trigger entity
       /// removals. This should be safe since SimulationRunner is internal
