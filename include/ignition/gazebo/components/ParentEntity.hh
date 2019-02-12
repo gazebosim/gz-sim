@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_PARENTENTITY_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Entity.hh>
 
@@ -38,7 +38,7 @@ namespace components
   /// it is recommended that the `ParentEntity` component is never
   /// edited by hand, and instead, entities should be created using
   /// the `gazebo::SdfEntityCreator` class.
-  using ParentEntity = SimpleWrapper<Entity, class ParentEntityTag>;
+  using ParentEntity = Component<Entity, class ParentEntityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.ParentEntity", ParentEntity)
 }
