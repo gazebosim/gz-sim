@@ -602,19 +602,3 @@ void EntityComponentManager::RebuildViews()
     }
   }
 }
-
-//////////////////////////////////////////////////
-std::ostream &EntityComponentManager::Serialize(std::ostream &_out) const
-{
-  _out << this->dataPtr->entityComponents.size();
-  for (const auto &entityComp : this->dataPtr->entityComponents)
-  {
-    _out << entityComp.first;
-    for (const auto &componentKey : entityComp.second)
-    {
-      ComponentTypeId compTypeId = std::get<0>(componentKey);
-    }
-  }
-
-  return _out;
-}

@@ -31,7 +31,7 @@
 
 #include "LogRecord.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+//#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Joint.hh"
 
 

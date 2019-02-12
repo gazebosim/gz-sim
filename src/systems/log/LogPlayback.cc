@@ -26,7 +26,7 @@
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Message.hh>
 #include <sdf/Root.hh>
-#include "ignition/gazebo/Factory.hh"
+#include "ignition/gazebo/SdfEntityCreator.hh"
 //#include <ignition/common/Time.hh>
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -294,19 +294,18 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   */
   
 
-  size_t nEntities = _ecm.EntityCount ();
+  //size_t nEntities = _ecm.EntityCount ();
   ignerr << _ecm.EntityCount () << " entities" << std::endl;
-  while (nEntities < 2)
-  {
-    // TODO: Use latest version, Factory has been renamed
+  //while (nEntities < 2)
+  //{
     // Create all Entities in SDF <world> tag
-    ignition::gazebo::Factory factory = ignition::gazebo::Factory (_ecm,
-      _eventMgr);
-    factory.CreateEntities (sdf_world);
+    ignition::gazebo::SdfEntityCreator creator =
+      ignition::gazebo::SdfEntityCreator (_ecm, _eventMgr);
+    creator.CreateEntities (sdf_world);
 
-    nEntities = _ecm.EntityCount ();
-    ignerr << _ecm.EntityCount () << " entities" << std::endl;
-  }
+    //nEntities = _ecm.EntityCount ();
+    //ignerr << _ecm.EntityCount () << " entities" << std::endl;
+  //}
 
 
   // TODO: Check for whether world is running, start when it starts running!
