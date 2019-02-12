@@ -127,6 +127,10 @@ namespace systems
     /// \return Pointer to requested entity
     public: rendering::NodePtr EntityById(int _id) const;
 
+    /// \brief Remove an entity by id
+    /// \param[in] _id Entity's unique id
+    public: void RemoveEntity(int _id);
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
