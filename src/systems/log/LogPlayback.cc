@@ -294,11 +294,19 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   */
   
 
-  // TODO: Use latest version, Factory is renamed
-  // Create all Entities in SDF <world> tag
-  ignition::gazebo::Factory factory = ignition::gazebo::Factory (_ecm,
-    _eventMgr);
-  factory.CreateEntities (sdf_world);
+  size_t nEntities = _ecm.EntityCount ();
+  ignerr << _ecm.EntityCount () << " entities" << std::endl;
+  while (nEntities < 2)
+  {
+    // TODO: Use latest version, Factory has been renamed
+    // Create all Entities in SDF <world> tag
+    ignition::gazebo::Factory factory = ignition::gazebo::Factory (_ecm,
+      _eventMgr);
+    factory.CreateEntities (sdf_world);
+
+    nEntities = _ecm.EntityCount ();
+    ignerr << _ecm.EntityCount () << " entities" << std::endl;
+  }
 
 
   // TODO: Check for whether world is running, start when it starts running!
