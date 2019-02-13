@@ -83,7 +83,7 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Map of Gazebo entities to their respective IDs within ign-sensors.
   /// Note that both of these are different from node's ID in ign-rendering.
-  public: std::map<uint64_t, uint64_t> entityToSensorId;
+  public: std::map<Entity, uint64_t> entityToSensorId;
 };
 
 //////////////////////////////////////////////////
