@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -106,9 +107,31 @@ namespace components
     /// \return True if different.
     public: bool operator!=(const Component &_component) const;
 
+    /// \brief Stream insertion operator
+    /// \param[in] _out output stream
+    /// \param[in] _pose pose to output
+    /// \return the stream
+    public: friend std::ostream &operator<<(
+                std::ostream &_out, const Component &_component)
+    {
+      _out << _component.Data();
+      return _out;
+    }
+
+    /// \brief Stream extraction operator
+    /// \param[in] _in the input stream
+    /// \param[in] _pose the pose
+    /// \return the stream
+    public: friend std::istream &operator>>(
+                std::istream &_in, Component &_component)
+    {
+      _in >> _component.Data();
+      return _in;
+    }
+
     /// \brief Get the component data.
     /// \return The actual component information.
-    public: const DataType &Data() const;
+    public: DataType &Data() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
@@ -176,7 +199,7 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  const DataType &Component<DataType, Identifier>::Data() const
+  DataType &Component<DataType, Identifier>::Data() const
   {
     return this->dataPtr->data;
   }
