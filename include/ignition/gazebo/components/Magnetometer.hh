@@ -22,7 +22,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include <ignition/gazebo/components/Factory.hh>
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -34,7 +35,8 @@ namespace components
 {
   /// \brief TODO(anyone) Substitute with sdf::Magnetometer once that exists?
   /// This is currently the whole <sensor> element.
-  using Magnetometer = SimpleWrapper<sdf::ElementPtr, class MagnetometerTag>;
+  using Magnetometer = Component<sdf::ElementPtr, class MagnetometerTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Magnetometer", Magnetometer)
 }
 }
 }
