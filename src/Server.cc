@@ -122,6 +122,7 @@ Server::Server(const ServerConfig &_config)
   {
     common::SystemPaths systemPaths;
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
 
     // \todo(nkoenig) Async resource download.
