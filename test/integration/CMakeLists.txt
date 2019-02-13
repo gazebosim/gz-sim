@@ -18,6 +18,24 @@ set(tests
   user_commands.cc
 )
 
+# Tests that require a valid display
+set(tests_needing_display
+  sensors_system.cc
+)
+
+# Add systems that need a valid display here.
+# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+# or Xdummy instead of skipping them
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND tests ${tests_needing_display})
+else()
+  message(STATUS
+    "Skipping these INTEGRATION tests because a valid display was not found:")
+  foreach(test ${tests_needing_display})
+    message(STATUS " ${test}")
+  endforeach(test)
+endif()
+
 link_directories(${PROJECT_BINARY_DIR}/test)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 

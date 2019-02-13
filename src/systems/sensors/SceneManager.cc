@@ -24,17 +24,22 @@ using namespace systems;
 /// \brief Private data class.
 class ignition::gazebo::systems::SceneManagerPrivate
 {
+  /// \brief Keep track of world ID, which is equivalent to the scene's
+  /// root visual.
+  /// Defaults to zero, which is considered invalid by Ignition Gazebo.
+  public: uint64_t worldId{0};
+
   //// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene;
 
-  /// \brief Map of visual id to visual pointers.
-  public: std::map<unsigned int, rendering::VisualPtr> visuals;
+  /// \brief Map of visual entity in Gazebo to visual pointers.
+  public: std::map<uint64_t, rendering::VisualPtr> visuals;
 
-  /// \brief Map of light id to light pointers.
-  public: std::map<unsigned int, rendering::LightPtr> lights;
+  /// \brief Map of light entity in Gazebo to light pointers.
+  public: std::map<uint64_t, rendering::LightPtr> lights;
 
-  /// \brief Map of sensor id to sensors
-  public: std::map<unsigned int, rendering::SensorPtr> sensors;
+  /// \brief Map of sensor entity in Gazebo to sensor pointers.
+  public: std::map<uint64_t, rendering::SensorPtr> sensors;
 };
 
 
@@ -54,8 +59,14 @@ void SceneManager::SetScene(rendering::ScenePtr _scene)
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateModel(int _id,
-    const sdf::Model &_model, int _parentId)
+void SceneManager::SetWorldId(uint64_t _id)
+{
+  this->dataPtr->worldId = _id;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::CreateModel(uint64_t _id,
+    const sdf::Model &_model, uint64_t _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -65,13 +76,13 @@ rendering::VisualPtr SceneManager::CreateModel(int _id,
   }
 
   rendering::VisualPtr parent;
-  if (_parentId > 0)
+  if (_parentId != this->dataPtr->worldId)
   {
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding entity: [" << _id << "]" << std::endl;
+             << "Not adding model: [" << _id << "]" << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
@@ -94,8 +105,8 @@ rendering::VisualPtr SceneManager::CreateModel(int _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateLink(int _id, const sdf::Link &_link,
-    int _parentId)
+rendering::VisualPtr SceneManager::CreateLink(uint64_t _id,
+    const sdf::Link &_link, uint64_t _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -105,13 +116,13 @@ rendering::VisualPtr SceneManager::CreateLink(int _id, const sdf::Link &_link,
   }
 
   rendering::VisualPtr parent;
-  if (_parentId > 0)
+  if (_parentId != this->dataPtr->worldId)
   {
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding entity: [" << _id << "]" << std::endl;
+             << "Not adding link: [" << _id << "]" << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
@@ -132,8 +143,8 @@ rendering::VisualPtr SceneManager::CreateLink(int _id, const sdf::Link &_link,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateVisual(int _id,
-    const sdf::Visual &_visual, int _parentId)
+rendering::VisualPtr SceneManager::CreateVisual(uint64_t _id,
+    const sdf::Visual &_visual, uint64_t _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -143,13 +154,13 @@ rendering::VisualPtr SceneManager::CreateVisual(int _id,
   }
 
   rendering::VisualPtr parent;
-  if (_parentId > 0)
+  if (_parentId != this->dataPtr->worldId)
   {
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {
       ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding entity: [" << _id << "]" << std::endl;
+             << "Not adding visual: [" << _id << "]" << std::endl;
       return rendering::VisualPtr();
     }
     parent = it->second;
@@ -314,8 +325,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
 }
 
 /////////////////////////////////////////////////
-rendering::LightPtr SceneManager::CreateLight(int _id, const sdf::Light &_light,
-    int _parentId)
+rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
+    const sdf::Light &_light, uint64_t _parentId)
 {
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
@@ -325,7 +336,7 @@ rendering::LightPtr SceneManager::CreateLight(int _id, const sdf::Light &_light,
   }
 
   rendering::VisualPtr parent;
-  if (_parentId > 0)
+  if (_parentId != this->dataPtr->worldId)
   {
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
@@ -387,33 +398,33 @@ rendering::LightPtr SceneManager::CreateLight(int _id, const sdf::Light &_light,
 }
 
 /////////////////////////////////////////////////
-bool SceneManager::AddSensor(int _id, const std::string &_name,
-    int _parentId)
+bool SceneManager::AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
+    uint64_t _parentGazeboId)
 {
-  if (this->dataPtr->sensors.find(_id) != this->dataPtr->sensors.end())
+  if (this->dataPtr->sensors.find(_gazeboId) != this->dataPtr->sensors.end())
   {
-    ignerr << "Sensor with Id: [" << _id << "] already exists in the scene"
-           << std::endl;
+    ignerr << "Sensor for entity [" << _gazeboId
+           << "] already exists in the scene" << std::endl;
     return false;
   }
 
   rendering::VisualPtr parent;
-  if (_parentId > 0)
+  if (_parentGazeboId != this->dataPtr->worldId)
   {
-    auto it = this->dataPtr->visuals.find(_parentId);
+    auto it = this->dataPtr->visuals.find(_parentGazeboId);
     if (it == this->dataPtr->visuals.end())
     {
-      ignerr << "Parent entity with Id: [" << _parentId << "] not found. "
-             << "Not adding sensor: [" << _id << "]" << std::endl;
+      ignerr << "Parent entity with Id [" << _parentGazeboId << "] not found. "
+             << "Not adding sensor entity [" << _gazeboId << "]" << std::endl;
       return false;
     }
     parent = it->second;
   }
 
-  rendering::SensorPtr sensor = this->dataPtr->scene->SensorByName(_name);
+  rendering::SensorPtr sensor = this->dataPtr->scene->SensorById(_renderingId);
   if (!sensor)
   {
-    ignerr << "Unable to find sensor: [" << _name << "]" << std::endl;
+    ignerr << "Unable to find sensor [" << _renderingId << "]" << std::endl;
     return false;
   }
 
@@ -423,13 +434,12 @@ bool SceneManager::AddSensor(int _id, const std::string &_name,
     parent->AddChild(sensor);
   }
 
-
-  this->dataPtr->sensors[_id] = sensor;
+  this->dataPtr->sensors[_gazeboId] = sensor;
   return true;
 }
 
 /////////////////////////////////////////////////
-bool SceneManager::HasEntity(int _id) const
+bool SceneManager::HasEntity(uint64_t _id) const
 {
   return this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end() ||
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
@@ -437,7 +447,7 @@ bool SceneManager::HasEntity(int _id) const
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr SceneManager::EntityById(int _id) const
+rendering::NodePtr SceneManager::NodeById(uint64_t _id) const
 {
   auto vIt = this->dataPtr->visuals.find(_id);
   if (vIt != this->dataPtr->visuals.end())
@@ -461,4 +471,39 @@ rendering::NodePtr SceneManager::EntityById(int _id) const
     }
   }
   return rendering::NodePtr();
+}
+
+/////////////////////////////////////////////////
+void SceneManager::RemoveEntity(uint64_t _id)
+{
+  {
+    auto it = this->dataPtr->visuals.find(_id);
+    if (it != this->dataPtr->visuals.end())
+    {
+      this->dataPtr->scene->DestroyVisual(it->second);
+      this->dataPtr->visuals.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->lights.find(_id);
+    if (it != this->dataPtr->lights.end())
+    {
+      this->dataPtr->scene->DestroyLight(it->second);
+      this->dataPtr->lights.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->sensors.find(_id);
+    if (it != this->dataPtr->sensors.end())
+    {
+      // Stop keeping track of it but don't destroy it;
+      // ign-sensors is the one responsible for that.
+      this->dataPtr->sensors.erase(it);
+      return;
+    }
+  }
 }
