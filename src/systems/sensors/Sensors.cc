@@ -58,7 +58,15 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief used to store whether rendering objects have been created.
   public: bool initialized = false;
 
-  /// \brief Create / update rendering entities
+  /// \brief Create rendering entities
+  /// \param[in] _ecm The entity-component manager
+  public: void CreateRenderingEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Remove rendering entities
+  /// \param[in] _ecm The entity-component manager
+  public: void RemoveRenderingEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
 
@@ -67,6 +75,8 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
+
+  public: ignition::rendering::RenderEngine *engine;
 };
 
 //////////////////////////////////////////////////
@@ -96,14 +106,15 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (!this->dataPtr->initialized &&
       _ecm.HasComponentType(_ecm.ComponentType<components::Camera>()))
   {
-    auto engine = ignition::rendering::engine(this->dataPtr->engineName);
-    if (!engine)
+    this->dataPtr->engine =
+        ignition::rendering::engine(this->dataPtr->engineName);
+    if (!this->dataPtr->engine)
     {
       ignerr << "Failed to load engine ["
              << this->dataPtr->engineName << "]" << std::endl;
       return;
     }
-    auto scene = engine->CreateScene("scene");
+    auto scene = this->dataPtr->engine->CreateScene("scene");
 
     // Create simulation runner sensor manager
     this->dataPtr->sensorManager.SetRenderingScene(scene);
@@ -112,162 +123,227 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->initialized = true;
   }
 
-  this->dataPtr->UpdateRenderingEntities(_ecm);
+  if (this->dataPtr->engine != nullptr)
+  {
+    this->dataPtr->CreateRenderingEntities(_ecm);
+    this->dataPtr->UpdateRenderingEntities(_ecm);
+    this->dataPtr->RemoveRenderingEntities(_ecm);
+  }
 
   auto time = math::durationToSecNsec(_info.simTime);
   this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
 }
 
 //////////////////////////////////////////////////
-void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
+void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
 {
-  // TODO(anyone) support multiple scenes?
-  // Get all the worlds
-  // _ecm.Each<components::World, components::Name>(
-  //     [&](const Entity &_entity,
-  //       const components::World * /* _world */,
-  //       const components::Name *_name)->bool
-  //     {
-  //       return true;
-  //     });
-
-  _ecm.Each<components::Model, components::Name, components::Pose,
+  _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
-        const components::Model * /* _model */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent)->bool
+          const components::Model *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (!entity)
-        {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetPose(_pose->Data());
-          this->sceneManager.CreateModel(_entity, model,
-              _parent->Data());
-        }
-        else
-        {
-          entity->SetLocalPose(_pose->Data());
-        }
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetPose(_pose->Data());
+        this->sceneManager.CreateModel(_entity, model, _parent->Data());
         return true;
       });
 
-  _ecm.Each<components::Link, components::Name, components::Pose,
+  _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
-        const components::Link * /* _link */,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent)->bool
+          const components::Link *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (!entity)
-        {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetPose(_pose->Data());
-
-          this->sceneManager.CreateLink(_entity, link,
-              _parent->Data());
-        }
-        else
-        {
-          entity->SetLocalPose(_pose->Data());
-        }
-
+        sdf::Link link;
+        link.SetName(_name->Data());
+        link.SetPose(_pose->Data());
+        this->sceneManager.CreateLink(_entity, link, _parent->Data());
         return true;
       });
 
   // visuals
-  _ecm.Each<components::Visual, components::Name, components::Pose,
+  _ecm.EachNew<components::Visual, components::Name, components::Pose,
             components::Geometry, components::ParentEntity>(
       [&](const Entity &_entity,
-        const components::Visual * /*_visual*/,
-        const components::Name *_name,
-        const components::Pose *_pose,
-        const components::Geometry *_geom,
-        const components::ParentEntity *_parent)->bool
+          const components::Visual *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::ParentEntity *_parent)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (!entity)
-        {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetPose(_pose->Data());
-          visual.SetGeom(_geom->Data());
+        sdf::Visual visual;
+        visual.SetName(_name->Data());
+        visual.SetPose(_pose->Data());
+        visual.SetGeom(_geom->Data());
 
-          // Optional components
-          auto material = _ecm.Component<components::Material>(_entity);
-          if (material)
-          {
-            visual.SetMaterial(material->Data());
-          }
-
-          this->sceneManager.CreateVisual(_entity, visual,
-              _parent->Data());
-        }
-        else
+        // Optional components
+        auto material = _ecm.Component<components::Material>(_entity);
+        if (material != nullptr)
         {
-          entity->SetLocalPose(_pose->Data());
+          visual.SetMaterial(material->Data());
         }
 
+        this->sceneManager.CreateVisual(_entity, visual, _parent->Data());
         return true;
       });
 
   // lights
-  _ecm.Each<components::Light, components::Pose, components::ParentEntity>(
+  _ecm.EachNew<components::Light, components::ParentEntity>(
       [&](const Entity &_entity,
-        const components::Light*  _light,
-        const components::Pose *_pose,
-        const components::ParentEntity *_parent)->bool
+          const components::Light *_light,
+          const components::ParentEntity *_parent) -> bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (!entity)
-        {
-          this->sceneManager.CreateLight(_entity, _light->Data(),
-              _parent->Data());
-        }
-        else
-        {
-          entity->SetLocalPose(_pose->Data());
-        }
-
+        this->sceneManager.CreateLight(_entity, _light->Data(),
+                                       _parent->Data());
         return true;
       });
 
   // Create cameras
-  _ecm.Each<components::Camera, components::Pose, components::ParentEntity>(
+  _ecm.EachNew<components::Camera, components::ParentEntity>(
     [&](const Entity &_entity,
         const components::Camera *_camera,
-        const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
+        // two camera models with the same camera sensor name
+        // causes name conflicts. We'll need to use scoped names
+        // TODO(anyone) do this in ign-sensors?
+        auto parent = sceneManager.EntityById(_parent->Data());
+        if (!parent)
+          return false;
+        auto data = _camera->Data()->Clone();
+        std::string scopedName = parent->Name() + "::"
+            + data->Get<std::string>("name");
+        data->GetAttribute("name")->Set(scopedName);
+        auto sensor =
+            this->sensorManager.CreateSensor<sensors::CameraSensor>(data);
+        return this->sceneManager.AddSensor(
+            _entity, sensor->Name(), _parent->Data());
+      });
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
+{
+  _ecm.Each<components::Model, components::Pose>(
+      [&](const Entity &_entity,
+        const components::Model *,
+        const components::Pose *_pose)->bool
+      {
         auto entity = this->sceneManager.EntityById(_entity);
-        if (!entity)
-        {
-          // two camera models with the same camera sensor name
-          // causes name conflicts. We'll need to use scoped names
-          // TODO(anyone) do this in ign-sensors?
-          auto parent = sceneManager.EntityById(_parent->Data());
-          if (!parent)
-            return false;
-          auto data = _camera->Data()->Clone();
-          std::string scopedName = parent->Name() + "::"
-              + data->Get<std::string>("name");
-          data->GetAttribute("name")->Set(scopedName);
-          auto sensor =
-              this->sensorManager.CreateSensor<sensors::CameraSensor>(data);
-          return this->sceneManager.AddSensor(
-              _entity, sensor->Name(), _parent->Data());
-        }
-        else
+        if (entity)
         {
           entity->SetLocalPose(_pose->Data());
         }
+        return true;
+      });
 
+  _ecm.Each<components::Link, components::Pose>(
+      [&](const Entity &_entity,
+        const components::Link *,
+        const components::Pose *_pose)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (entity)
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
+
+  // visuals
+  _ecm.Each<components::Visual, components::Pose >(
+      [&](const Entity &_entity,
+        const components::Visual *,
+        const components::Pose *_pose)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (entity)
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
+
+  // lights
+  _ecm.Each<components::Light, components::Pose>(
+      [&](const Entity &_entity,
+        const components::Light *,
+        const components::Pose *_pose)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (entity)
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
+
+  // Create cameras
+  _ecm.Each<components::Camera, components::Pose>(
+    [&](const Entity &_entity,
+        const components::Camera *,
+        const components::Pose *_pose)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (entity)
+        {
+          entity->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
+{
+  _ecm.EachRemoved<components::Model>(
+      [&](const Entity &_entity, const components::Model *)->bool
+      {
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
+
+  _ecm.EachRemoved<components::Link>(
+      [&](const Entity &_entity, const components::Link *)->bool
+      {
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
+
+  // visuals
+  _ecm.EachRemoved<components::Visual>(
+      [&](const Entity &_entity, const components::Visual *)->bool
+      {
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
+
+  // lights
+  _ecm.EachRemoved<components::Light>(
+      [&](const Entity &_entity, const components::Light *)->bool
+      {
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
+
+  // Create cameras
+  _ecm.EachRemoved<components::Camera>(
+    [&](const Entity &_entity, const components::Camera *)->bool
+      {
+        auto entity = this->sceneManager.EntityById(_entity);
+        if (entity)
+        {
+          // FISME(louise) SensorId not implemented in ign-sensors
+          // auto sensorID = this->sensorManager.SensorId(entity->Name());
+          // this->sensorManager.Remove(sensorID);
+        }
+        this->sceneManager.RemoveEntity(_entity);
         return true;
       });
 }
