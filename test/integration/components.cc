@@ -203,8 +203,8 @@ TEST_F(ComponentsTest, ParentLinkName)
 TEST_F(ComponentsTest, Pose)
 {
   // Create components
-  auto comp11 = components::Pose(math::Pose3d(1, 0, 0, 0, 0, 0));
-  auto comp12 = components::Pose(math::Pose3d(1, 0, 0, 0, 0, 0));
+  auto comp11 = components::Pose(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3));
+  auto comp12 = components::Pose(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3));
   auto comp2 = components::Pose(math::Pose3d(2, 0, 0, 0, 0, 0));
 
   // Equality operators
@@ -214,6 +214,16 @@ TEST_F(ComponentsTest, Pose)
   EXPECT_TRUE(comp11 != comp2);
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ("1 2 3 0.1 0.2 0.3", ostr.str());
+
+  std::istringstream istr("3 2 1 0.3 0.2 0.1");
+  components::Pose comp3(math::Pose3d::Zero);
+  istr >> comp3;
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0.3, 0.2, 0.1), comp3.Data());
 }
 
 /////////////////////////////////////////////////
