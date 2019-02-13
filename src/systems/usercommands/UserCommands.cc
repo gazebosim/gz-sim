@@ -26,9 +26,12 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
@@ -45,7 +48,7 @@ namespace gazebo
 namespace systems
 {
 /// \brief This class is passed to every command and contains interfaces that
-/// can be shared among all commands. For example, all create and delete
+/// can be shared among all commands. For example, all create and remove
 /// commands can use the `creator` object.
 class UserCommandsInterface
 {
@@ -96,6 +99,19 @@ class CreateCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 };
+
+/// \brief Command to remove an entity from simulation.
+class RemoveCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Message identifying the entity to be removed.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: RemoveCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
 }
 }
 }
@@ -104,11 +120,19 @@ class CreateCommand : public UserCommandBase
 class ignition::gazebo::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
-  /// \param[in] _req Request
+  /// \param[in] _req Request containing entity description.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
   public: bool CreateService(const msgs::EntityFactory &_req,
+      msgs::Boolean &_res);
+
+  /// \brief Callback for remove service
+  /// \param[in] _req Request containing identification of entity to be removed.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully removed.
+  /// \return True if successful.
+  public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
@@ -146,14 +170,21 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->iface->creator =
       std::make_unique<SdfEntityCreator>(_ecm, _eventManager);
 
-  // Spawn service
   auto worldName = _ecm.Component<components::Name>(_entity)->Data();
 
+  // Create service
   std::string createService{"/world/" + worldName + "/create"};
   this->dataPtr->node.Advertise(createService,
       &UserCommandsPrivate::CreateService, this->dataPtr.get());
 
   ignmsg << "Create service on [" << createService << "]" << std::endl;
+
+  // Remove service
+  std::string removeService{"/world/" + worldName + "/remove"};
+  this->dataPtr->node.Advertise(removeService,
+      &UserCommandsPrivate::RemoveService, this->dataPtr.get());
+
+  ignmsg << "Remove service on [" << removeService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -191,6 +222,25 @@ bool UserCommandsPrivate::CreateService(const msgs::EntityFactory &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<CreateCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<RemoveCommand>(msg, this->iface);
 
   // Push to pending
   {
@@ -360,6 +410,93 @@ bool CreateCommand::Execute()
   auto nameComp = this->iface->ecm->Component<components::Name>(entity);
   *nameComp = components::Name(desiredName);
 
+  igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
+         << std::endl;
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+RemoveCommand::RemoveCommand(msgs::Entity *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool RemoveCommand::Execute()
+{
+  auto removeMsg = dynamic_cast<const msgs::Entity *>(this->msg);
+  if (nullptr == removeMsg)
+  {
+    ignerr << "Internal error, null remove message" << std::endl;
+    return false;
+  }
+
+  Entity entity{kNullEntity};
+  if (removeMsg->id() != kNullEntity)
+  {
+    entity = removeMsg->id();
+  }
+  else if (!removeMsg->name().empty() &&
+      removeMsg->type() != msgs::Entity::NONE)
+  {
+    if (removeMsg->type() == msgs::Entity::MODEL)
+    {
+      entity = this->iface->ecm->EntityByComponents(components::Model(),
+        components::Name(removeMsg->name()));
+    }
+    else if (removeMsg->type() == msgs::Entity::LIGHT)
+    {
+      entity = this->iface->ecm->EntityByComponents(
+        components::Name(removeMsg->name()));
+
+      auto lightComp = this->iface->ecm->Component<components::Light>(entity);
+      if (nullptr == lightComp)
+        entity = kNullEntity;
+    }
+    else
+    {
+      ignerr << "Deleting entities of type [" << removeMsg->type()
+             << "] is not supported." << std::endl;
+      return false;
+    }
+  }
+  else
+  {
+    ignerr << "Remove command missing either entity's ID or name + type"
+           << std::endl;
+    return false;
+  }
+
+  if (entity == kNullEntity)
+  {
+    ignerr << "Entity named [" << removeMsg->name() << "] of type ["
+           << removeMsg->type() << "] not found, so not removed." << std::endl;
+    return false;
+  }
+
+  // Check that we support removing this entity
+  auto parent = this->iface->ecm->ParentEntity(entity);
+  if (nullptr == this->iface->ecm->Component<components::World>(parent))
+  {
+    ignerr << "Entity [" << entity
+           << "] is not a direct child of the world, so it can't be removed."
+           << std::endl;
+    return false;
+  }
+
+  if (nullptr == this->iface->ecm->Component<components::Model>(entity) &&
+      nullptr == this->iface->ecm->Component<components::Light>(entity))
+  {
+    ignerr << "Entity [" << entity
+           << "] is not a model or a light, so it can't be removed."
+           << std::endl;
+    return false;
+  }
+
+  igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
+  this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }
 
