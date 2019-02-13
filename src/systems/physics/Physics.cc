@@ -165,9 +165,6 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics
   public: std::unordered_map<Entity, JointPtrType> entityJointMap;
 
-  /// \brief store magnetic field vector
-  public: math::Vector3d magneticField;
-
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
@@ -233,10 +230,12 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Get all the new worlds
-  _ecm.EachNew<components::World, components::Name, components::Gravity>(
+  _ecm.EachNew<components::World, components::Name, components::MagneticField,
+    components::Gravity>(
       [&](const Entity &_entity,
         const components::World * /* _world */,
         const components::Name *_name,
+        const components::MagneticField *_magneticField,
         const components::Gravity *_gravity)->bool
       {
         // Check if world already exists
@@ -251,19 +250,10 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        world.SetMagneticField(_magneticField->Data());
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.insert(std::make_pair(_entity, worldPtrPhys));
 
-        return true;
-      });
-
-  _ecm.EachNew<components::MagneticField,
-            components::ParentEntity>(
-      [&](const Entity & /*_entity*/,
-        const components::MagneticField *_magneticField,
-        const components::ParentEntity * /* _parent */)->bool
-      {
-        this->magneticField = _magneticField->Data();
         return true;
       });
 

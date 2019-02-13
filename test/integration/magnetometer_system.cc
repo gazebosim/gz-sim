@@ -91,13 +91,15 @@ class Relay
   private: MockSystem *mockSystem;
 };
 
-
+std::mutex mutex;
 std::vector<msgs::Magnetometer> magnetometerMsgs;
 
 /////////////////////////////////////////////////
 void magnetometerCb(const msgs::Magnetometer &_msg)
 {
+  mutex.lock();
   magnetometerMsgs.push_back(_msg);
+  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -125,19 +127,27 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
       {
         _ecm.Each<components::Magnetometer,
                   components::Name,
-                  components::WorldPose,
-                  components::MagneticField>(
+                  components::WorldPose>(
             [&](const ignition::gazebo::Entity &,
                 const components::Magnetometer *,
                 const components::Name *_name,
-                const components::WorldPose *_worldPose,
-                const components::MagneticField *_magneticField) -> bool
+                const components::WorldPose *_worldPose) -> bool
             {
               EXPECT_EQ(_name->Data(), sensorName);
-              worldMagneticField = _magneticField->Data();
               poses.push_back(_worldPose->Data());
 
               return true;
+            });
+
+        _ecm.Each<components::MagneticField>(
+            [&](const ignition::gazebo::Entity &,
+                const components::MagneticField *_magneticField) -> bool
+            {
+              // gtest is having a hard time with ASSERTs inside nested lambdas
+              EXPECT_NE(nullptr, _magneticField);
+              if (nullptr != _magneticField)
+                worldMagneticField = _magneticField->Data();
+              return false;
             });
       });
 
@@ -146,22 +156,23 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   // subscribe to magnetometer topic
   transport::Node node;
   node.Subscribe(
-      "/model/magnetometer_sensor/model/magnetometer_model/"
-      "link/link/sensor/magnetometer_sensor/magnetometer",
+      "/world/magnetometer_sensor/model/magnetometer_model/link/link/sensor/imu_sensor/magnetometer",
       &magnetometerCb);
 
   // step world and verify magnetometer's detected field
   // Run server
-  size_t iters = 10u;
+  size_t iters = 200u;
   server.Run(true, iters, false);
   EXPECT_EQ(iters, poses.size());
 
   ignition::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
         worldMagneticField);
+  mutex.lock();
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),
       field.X(), TOL);
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->y(),
       field.Y(), TOL);
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->z(),
       field.Z(), TOL);
+  mutex.unlock();
 }

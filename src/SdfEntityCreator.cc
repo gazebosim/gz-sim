@@ -120,13 +120,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
     this->SetParent(modelEntity, worldEntity);
   }
 
-  // Magnetic field
-  auto magneticFieldEntity = this->dataPtr->ecm->CreateEntity();
-  this->dataPtr->ecm->CreateComponent(magneticFieldEntity,
-      components::MagneticField(_world->MagneticField()));
-  this->dataPtr->ecm->CreateComponent(magneticFieldEntity,
-      components::ParentEntity(worldEntity));
-
   // Lights
   for (uint64_t lightIndex = 0; lightIndex < _world->LightCount();
       ++lightIndex)
@@ -140,6 +133,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // Gravity
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Gravity(_world->Gravity()));
+
+  // MagneticField
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::MagneticField(_world->MagneticField()));
 
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
@@ -434,8 +431,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::MagneticField(math::Vector3d::Zero));
   }
   else
   {
