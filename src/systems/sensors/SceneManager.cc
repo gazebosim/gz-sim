@@ -33,13 +33,13 @@ class ignition::gazebo::systems::SceneManagerPrivate
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<unsigned int, rendering::VisualPtr> visuals;
+  public: std::map<uint64_t, rendering::VisualPtr> visuals;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<unsigned int, rendering::LightPtr> lights;
+  public: std::map<uint64_t, rendering::LightPtr> lights;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<unsigned int, rendering::SensorPtr> sensors;
+  public: std::map<uint64_t, rendering::SensorPtr> sensors;
 };
 
 
