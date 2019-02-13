@@ -72,6 +72,9 @@ class ignition::gazebo::systems::AltimeterSensor
 
   /// \brief publisher for altimeter data
   public: transport::Node::Publisher pub;
+
+  /// \brief common::Time from when the sensor was updated
+  public: common::Time lastMeasurementTime;
 };
 
 /// \brief Private Altimeter data class.
@@ -88,6 +91,11 @@ class ignition::gazebo::systems::AltimeterPrivate
   /// \brief Update altimeter sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void UpdateAltimeters(const EntityComponentManager &_ecm);
+
+  /// \brief Remove altimeter sensors if their entities have been removed from
+  /// simulation.
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void RemoveAltimeterEntities(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -117,6 +125,10 @@ void AltimeterSensor::Publish()
   }
 
   msgs::Altimeter msg;
+  msg.mutable_header()->mutable_stamp()->set_sec(
+      this->lastMeasurementTime.sec);
+  msg.mutable_header()->mutable_stamp()->set_nsec(
+      this->lastMeasurementTime.nsec);
   msg.set_vertical_position(this->verticalPosition);
   msg.set_vertical_velocity(this->verticalVelocity);
   msg.set_vertical_reference(this->verticalReference);
@@ -143,15 +155,21 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
-  if (_info.paused)
-    return;
-
-  this->dataPtr->UpdateAltimeters(_ecm);
-
-  for (auto &it : this->dataPtr->entitySensorMap)
+  if (!_info.paused)
   {
-    it.second->Publish();
+    this->dataPtr->UpdateAltimeters(_ecm);
+
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      // Update measurement time
+      auto time = math::durationToSecNsec(_info.simTime);
+      it.second->lastMeasurementTime = common::Time(time.first, time.second);
+
+      it.second->Publish();
+    }
   }
+
+  this->dataPtr->RemoveAltimeterEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -208,6 +226,28 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
           ignerr << "Failed to update altimeter: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
+
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void AltimeterPrivate::RemoveAltimeterEntities(
+    const EntityComponentManager &_ecm)
+{
+  _ecm.EachRemoved<components::Altimeter>(
+    [&](const Entity &_entity,
+        const components::Altimeter *)->bool
+      {
+        auto sensorId = this->entitySensorMap.find(_entity);
+        if (sensorId == this->entitySensorMap.end())
+        {
+          ignerr << "Internal error, missing altimeter sensor for entity ["
+                 << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->entitySensorMap.erase(sensorId);
 
         return true;
       });

@@ -24,6 +24,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -349,4 +350,192 @@ TEST_F(UserCommandsTest, Create)
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("test_model")));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, Remove)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/shapes.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  // TODO(louise) It would be much more convenient if the Server just returned
+  // the ECM for us. This would save all the trouble which is causing us to
+  // create `Relay` systems in the first place. Consider keeping the ECM in a
+  // shared pointer owned by the SimulationRunner.
+  EntityComponentManager *ecm{nullptr};
+  Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check entities
+  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
+  // x visual + 1 x light
+  EXPECT_EQ(15u, ecm->EntityCount());
+
+  // Entity remove by name
+  msgs::Entity req;
+  req.set_name("box");
+  req.set_type(msgs::Entity::MODEL);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/default/remove"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Check entity has not been removed yet
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("box")));
+
+  // Run an iteration and check it was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(11u, ecm->EntityCount());
+
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("box")));
+
+  // Entity remove by ID
+  auto sphereId = ecm->EntityByComponents(components::Model(),
+      components::Name("sphere"));
+  EXPECT_NE(kNullEntity, sphereId);
+
+  req.Clear();
+  req.set_id(sphereId);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Check entity has not been removed yet
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("sphere")));
+
+  // Run an iteration and check it was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(7u, ecm->EntityCount());
+
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("sphere")));
+
+  // Can't remove a link
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
+      components::Name("cylinder_link")));
+
+  req.Clear();
+  req.set_name("cylinder_link");
+  req.set_type(msgs::Entity::LINK);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was not removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(7u, ecm->EntityCount());
+
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
+      components::Name("cylinder_link")));
+
+  // All fields present - ID is used
+  auto cylinderId = ecm->EntityByComponents(components::Model(),
+      components::Name("cylinder"));
+  EXPECT_NE(kNullEntity, cylinderId);
+
+  req.Clear();
+  req.set_id(cylinderId);
+  req.set_name("sun");
+  req.set_type(msgs::Entity::LIGHT);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check cylinder was removed and light wasn't
+  server.Run(true, 1, false);
+  EXPECT_EQ(3u, ecm->EntityCount());
+
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+      components::Name("cylinder")));
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
+
+  // Only name - fails to remove
+  auto lightId = ecm->EntityByComponents(components::Name("sun"));
+  EXPECT_NE(kNullEntity, lightId);
+
+  req.Clear();
+  req.set_name("sun");
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check nothing was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(3u, ecm->EntityCount());
+
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
+
+  // Inexistent entity - fails to remove
+  req.Clear();
+  req.set_id(9999);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check nothing was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(3u, ecm->EntityCount());
+
+  // Unsupported type - fails to remove
+  req.Clear();
+  req.set_name("sun");
+  req.set_type(msgs::Entity::LINK);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check nothing was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(3u, ecm->EntityCount());
+
+  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
+
+  // Remove light
+  req.Clear();
+  req.set_name("sun");
+  req.set_type(msgs::Entity::LIGHT);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run an iteration and check it was removed
+  server.Run(true, 1, false);
+  EXPECT_EQ(2u, ecm->EntityCount());
+
+  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 }
