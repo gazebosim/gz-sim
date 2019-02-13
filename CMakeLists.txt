@@ -93,6 +93,8 @@ set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 #============================================================================
 ign_configure_build(QUIT_IF_BUILD_ERRORS)
 
+add_subdirectory(examples)
+
 #============================================================================
 # Create package information
 #============================================================================
