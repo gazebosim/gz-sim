@@ -46,37 +46,43 @@
 
 
 ignition::transport::Node::Publisher cmdVelPub;
+ignition::transport::Node::Publisher cmdVelPub2;
 
-/*
-ignition::math::Vector3d axisLinear;
+//ignition::math::Vector3d axisLinear;
 ignition::math::Vector3d scaleLinear;
 
-ignition::math::Vector3d axisAngular;
+//ignition::math::Vector3d axisAngular;
 ignition::math::Vector3d scaleAngular;
-*/
 
 
-class TeleopTurtle
+class KeyboardTeleop
 {
 public:
 
-  TeleopTurtle();
+  KeyboardTeleop();
+  KeyboardTeleop(double, double);
   void keyLoop();
 
 private:
 
-  double linear_, angular_, l_scale_, a_scale_;
+  double l_scale_, a_scale_;
 };
 
 
-TeleopTurtle::TeleopTurtle():
-  linear_(0),
-  angular_(0),
+KeyboardTeleop::KeyboardTeleop():
   l_scale_(1.0),
   a_scale_(1.0)
 {
 
 }
+
+KeyboardTeleop::KeyboardTeleop(double sl, double sa):
+  l_scale_(sl),
+  a_scale_(sa)
+{
+
+}
+
 
 int kfd = 0;
 struct termios cooked, raw;
@@ -89,10 +95,10 @@ void quit(int sig)
 }
 
 
-void TeleopTurtle::keyLoop()
+void KeyboardTeleop::keyLoop()
 {
   char c;
-  bool dirty=false;
+  bool dirty = false, dirty2 = false;
 
 
   // get the console in raw mode                                                              
@@ -109,46 +115,72 @@ void TeleopTurtle::keyLoop()
   puts("Use arrow keys to move the robot.");
 
 
-  for(;;)
+  for (;;)
   {
     // get the next event from the keyboard  
-    if(read(kfd, &c, 1) < 0)
+    if (read(kfd, &c, 1) < 0)
     {
       perror("read():");
       exit(-1);
     }
 
-    double linear_ = 0;
-    double angular_ = 0;
+    double linear = 0, linear2 = 0;
+    double angular = 0, angular2 = 0;
     fprintf (stderr, "value: 0x%02X\n", c);
   
-    switch(c)
+    switch (c)
     {
+      // robot 1
       case KEYCODE_ARR_L:
         std::cerr << "LEFT" << std::endl;
-        angular_ = 1.0;
+        angular = 1.0;
         dirty = true;
         break;
       case KEYCODE_ARR_R:
         std::cerr << "RIGHT" << std::endl;
-        angular_ = -1.0;
+        angular = -1.0;
         dirty = true;
         break;
       case KEYCODE_ARR_U:
         std::cerr << "UP" << std::endl;
-        linear_ = 1.0;
+        linear = 1.0;
         dirty = true;
         break;
       case KEYCODE_ARR_D:
         std::cerr << "DOWN" << std::endl;
-        linear_ = -1.0;
+        linear = -1.0;
         dirty = true;
+        break;
+      // robot 2
+      case KEYCODE_A:
+        std::cerr << "A" << std::endl;
+        angular2 = 1.0;
+        dirty2 = true;
+        break;
+      case KEYCODE_D:
+        std::cerr << "D" << std::endl;
+        angular2 = -1.0;
+        dirty2 = true;
+        break;
+      case KEYCODE_W:
+        std::cerr << "W" << std::endl;
+        linear2 = 1.0;
+        dirty2 = true;
+        break;
+      case KEYCODE_S:
+        std::cerr << "S" << std::endl;
+        linear2 = -1.0;
+        dirty2 = true;
         break;
     }
    
     ignition::msgs::Twist cmdVelMsg;
-    cmdVelMsg.mutable_linear()->set_x(l_scale_ * linear_);
-    cmdVelMsg.mutable_angular()->set_z(a_scale_ * angular_);
+    cmdVelMsg.mutable_linear()->set_x(l_scale_ * linear);
+    cmdVelMsg.mutable_angular()->set_z(a_scale_ * angular);
+
+    ignition::msgs::Twist cmdVelMsg2;
+    cmdVelMsg2.mutable_linear()->set_x(l_scale_ * linear2);
+    cmdVelMsg2.mutable_angular()->set_z(a_scale_ * angular2);
 
     /*
     cmdVelMsg.mutable_linear()->set_x(axisLinear.X() * scaleLinear.X());
@@ -160,10 +192,15 @@ void TeleopTurtle::keyLoop()
     cmdVelMsg.mutable_angular()->set_z(axisAngular.Z() * scaleAngular.Z());
     */
 
-    if(dirty ==true)
+    if (dirty)
     {
       cmdVelPub.Publish(cmdVelMsg);
-      dirty=false;
+      dirty = false;
+    }
+    if (dirty2)
+    {
+      cmdVelPub2.Publish(cmdVelMsg2);
+      dirty2 = false;
     }
   }
 
@@ -198,20 +235,22 @@ int main(int argc, char** argv)
   auto twistTopic = plugin->Get<std::string>("twist_topic", "/cmd_vel").first;
   cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
 
-  /*
-  axisLinear = plugin->Get<ignition::math::Vector3d>("axis_linear",
-      ignition::math::Vector3d::UnitX).first;
+  auto twistTopic2 = plugin->Get<std::string>("twist_topic2", "/cmd_vel").first;
+  cmdVelPub2 = node.Advertise<ignition::msgs::Twist>(twistTopic2);
+
+  //axisLinear = plugin->Get<ignition::math::Vector3d>("axis_linear",
+  //    ignition::math::Vector3d::UnitX).first;
   scaleLinear = plugin->Get<ignition::math::Vector3d>("scale_linear",
       ignition::math::Vector3d(0.5, 0, 0)).first;
 
-  axisAngular = plugin->Get<ignition::math::Vector3d>("axis_angular",
-      ignition::math::Vector3d::Zero).first;
+  //axisAngular = plugin->Get<ignition::math::Vector3d>("axis_angular",
+  //    ignition::math::Vector3d::Zero).first;
   scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
       ignition::math::Vector3d(0, 0, 0.5)).first;
-  */
 
 
-  TeleopTurtle teleop_turtle;
+  KeyboardTeleop teleop_turtle = KeyboardTeleop (scaleLinear.X(),
+    scaleAngular.Z());
   signal(SIGINT, quit);
   teleop_turtle.keyLoop();
   
