@@ -22,7 +22,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-#include "ignition/gazebo/components/SimpleWrapper.hh"
+#include <ignition/gazebo/components/Factory.hh>
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -33,7 +34,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Stores the 3D magnetic field in teslas.
-  using MagneticField = SimpleWrapper<math::Vector3d, class MagneticFieldTag>;
+  using MagneticField = Component<math::Vector3d, class MagneticFieldTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.MagneticField", MagneticField)
 }
 }
 }
