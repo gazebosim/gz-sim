@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,25 @@ namespace ignition
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      /// \brief Information about a plugin that should be loaded by the
+      /// server.
+      /// \sa const std::list<PluginInfo> &Plugins() const
       public: class PluginInfo
       {
+        /// \brief Default constructor.
         public: PluginInfo() = default;
 
+        /// \brief Constructor with plugin information specified.
+        /// \param[in] _entityName Name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type which should receive  this
+        /// plugin. The type is used in conjuction with _entityName to
+        /// uniquely identify an entity.
+        /// \param[in] _filename Plugin library filename.
+        /// \param[in] _name Name of the interface within the plugin library
+        /// to load.
+        /// \param[in] _sdf Plugin XML elements associated with this plugin.
         public: PluginInfo(const std::string &_entityName,
                            const std::string &_entityType,
                            const std::string &_filename,
@@ -56,6 +71,8 @@ namespace ignition
                   name(_name),
                   sdf(_sdf->Clone()) { }
 
+        /// \brief Copy constructor.
+        /// \param[in] _info Plugin to copy.
         public: PluginInfo(const PluginInfo &_info)
                 : entityName(_info.entityName),
                   entityType(_info.entityType),
@@ -65,12 +82,16 @@ namespace ignition
 
         /// \brief The name of the entity.
         public: std::string entityName = "";
+
         /// \brief The type of entity.
         public: std::string entityType = "";
+
         /// \brief _filename The plugin library.
         public: std::string filename = "";
+
         /// \brief Name of the plugin implementation.
         public: std::string name = "";
+
         /// \brief XML elements associated with this plugin
         public: sdf::ElementPtr sdf = nullptr;
       };
@@ -78,6 +99,8 @@ namespace ignition
       /// \brief Constructor
       public: ServerConfig();
 
+      /// \brief Copy constructor.
+      /// \param[in] _config ServerConfig to copy.
       public: ServerConfig(const ServerConfig &_config);
 
       /// \brief Destructor

@@ -365,6 +365,7 @@ namespace ignition
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
 
+      /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;
 
       friend class LevelManager;
