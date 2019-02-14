@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -415,6 +416,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
   }
+  else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
+  {
+     auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::LogicalCamera(elem));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
+  }
+
   else
   {
     ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
