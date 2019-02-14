@@ -36,7 +36,8 @@ namespace components
   /// \brief TODO(anyone) Substitute with sdf::Magnetometer once that exists?
   /// This is currently the whole <sensor> element.
   using Magnetometer = Component<sdf::ElementPtr, class MagnetometerTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Magnetometer", Magnetometer)
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.Magnetometer", Magnetometer)
 }
 }
 }

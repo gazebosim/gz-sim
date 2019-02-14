@@ -116,7 +116,7 @@ void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
   else
     // create default topic for sensor
     this->topic = _topic;
-  
+
   this->pub = this->node.Advertise<ignition::msgs::Magnetometer>(this->topic);
 
   // Set sensors world magnetic field

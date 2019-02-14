@@ -156,7 +156,8 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   // subscribe to magnetometer topic
   transport::Node node;
   node.Subscribe(
-      "/world/magnetometer_sensor/model/magnetometer_model/link/link/sensor/imu_sensor/magnetometer",
+      "/world/magnetometer_sensor/model/magnetometer_model/link/link/"
+      "sensor/magnetometer_sensor/magnetometer",
       &magnetometerCb);
 
   // step world and verify magnetometer's detected field
