@@ -50,6 +50,26 @@ namespace components
 
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
+
+    /// \brief Stream insertion operator
+    /// \param[in] _out output stream
+    /// \param[in] _pose pose to output
+    /// \return the stream
+    public: friend std::ostream &operator<<(
+                std::ostream &_out, const BaseComponent &)
+    {
+      return _out;
+    }
+
+    /// \brief Stream extraction operator
+    /// \param[in] _in the input stream
+    /// \param[in] _pose the pose
+    /// \return the stream
+    public: friend std::istream &operator>>(
+                std::istream &_in, BaseComponent &)
+    {
+      return _in;
+    }
   };
 
   /// \brief A component type that wraps any data type. The intention is for
