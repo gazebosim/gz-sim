@@ -563,11 +563,3 @@ bool LevelManager::IsLevelActive(const Entity _entity) const
   return std::find(this->activeLevels.begin(), this->activeLevels.end(),
                    _entity) != this->activeLevels.end();
 }
-
-/////////////////////////////////////////////////
-Entity LevelManager::WorldEntity() const
-{
-  return this->worldEntity;
-}
-
-

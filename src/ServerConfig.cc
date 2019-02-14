@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  *
 */
-#include <iostream>
 #include "ignition/gazebo/ServerConfig.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Private data for ServerConfig.
 class ignition::gazebo::ServerConfigPrivate
 {
+  /// \brief Default constructor.
   public: ServerConfigPrivate() = default;
+
+  /// \brief Copy constructor.
+  /// \param[in] _cfg Configuration to copy.
   public: ServerConfigPrivate(const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
             updateRate(_cfg->updateRate),
@@ -43,6 +47,7 @@ class ignition::gazebo::ServerConfigPrivate
   /// from fuel.ignitionrobotics.org, should be stored.
   public: std::string resourceCache = "";
 
+  /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
 };
 

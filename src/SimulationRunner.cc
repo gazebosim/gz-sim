@@ -106,9 +106,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
-  // Load the plugins specified in the ServerConfig
-  // this->LoadConfigurationPlugins();
-
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
@@ -406,6 +403,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
+  if (!_sdf->HasElement("plugin"))
+    return;
+
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
