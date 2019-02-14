@@ -16,7 +16,7 @@
 */
 #include "ignition/gazebo/Server.hh"
 
-#include "ignition/common/SystemPaths.hh"
+#include <ignition/common/SystemPaths.hh>
 #include <ignition/fuel_tools/Interface.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
@@ -124,6 +124,7 @@ Server::Server(const ServerConfig &_config)
   {
     common::SystemPaths systemPaths;
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
 
     // \todo(nkoenig) Async resource download.
