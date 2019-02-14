@@ -133,9 +133,9 @@ TEST(Matrix4dTest, ConstructFromPose3d)
     // ensure rotations are not commutative
     EXPECT_NE(m1 * m2 * m3, m3 * m2 * m1);
 
-    // apparently the pose multiplication order is different than matrix order
-    EXPECT_EQ(m1 * m2 * m3, math::Matrix4d(pose3 * pose2 * pose1));
-    EXPECT_EQ(m3 * m2 * m1, math::Matrix4d(pose1 * pose2 * pose3));
+    // ensure pose multiplication order matches matrix order
+    EXPECT_EQ(m1 * m2 * m3, math::Matrix4d(pose1 * pose2 * pose3));
+    EXPECT_EQ(m3 * m2 * m1, math::Matrix4d(pose3 * pose2 * pose1));
   }
 }
 

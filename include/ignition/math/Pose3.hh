@@ -218,7 +218,7 @@ namespace ignition
       /// \return itself
       public: Pose3<T> operator*(const Pose3<T> &_pose) const
       {
-        return Pose3<T>(this->CoordPositionAdd(_pose),  _pose.q * this->q);
+        return Pose3<T>(_pose.CoordPositionAdd(*this),  this->q * _pose.q);
       }
 
       /// \brief Equal operator
