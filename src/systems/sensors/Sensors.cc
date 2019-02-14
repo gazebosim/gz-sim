@@ -15,6 +15,8 @@
  *
  */
 
+#include <map>
+
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -78,7 +80,12 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Scene manager
   public: SceneManager sceneManager;
 
+  /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine;
+
+  /// \brief Map of Gazebo entities to their respective IDs within ign-sensors.
+  /// Note that both of these are different from node's ID in ign-rendering.
+  public: std::map<Entity, uint64_t> entityToSensorId;
 };
 
 //////////////////////////////////////////////////
@@ -90,7 +97,7 @@ Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 Sensors::~Sensors() = default;
 
 //////////////////////////////////////////////////
-void Sensors::Configure(const Entity &/*_id*/,
+void Sensors::Configure(const Entity &_id,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
@@ -98,6 +105,8 @@ void Sensors::Configure(const Entity &/*_id*/,
   // Setup rendering
   this->dataPtr->engineName =
       _sdf->Get<std::string>("render_engine", "ogre").first;
+
+  this->dataPtr->sceneManager.SetWorldId(_id);
 }
 
 //////////////////////////////////////////////////
@@ -216,17 +225,41 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         // two camera models with the same camera sensor name
         // causes name conflicts. We'll need to use scoped names
         // TODO(anyone) do this in ign-sensors?
-        auto parent = sceneManager.EntityById(_parent->Data());
+        auto parent = sceneManager.NodeById(_parent->Data());
         if (!parent)
-          return false;
+        {
+          ignerr << "Failed to create sensor for entity [" << _entity
+                 << "]. Parent not found." << std::endl;
+          return true;
+        }
+
         auto data = _camera->Data()->Clone();
         std::string scopedName = parent->Name() + "::"
             + data->Get<std::string>("name");
         data->GetAttribute("name")->Set(scopedName);
+
+        // Create within ign-sensors
         auto sensor =
             this->sensorManager.CreateSensor<sensors::CameraSensor>(data);
-        return this->sceneManager.AddSensor(
-            _entity, sensor->Name(), _parent->Data());
+
+        if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+        {
+          ignerr << "Failed to create sensor [" << scopedName << "]"
+                 << std::endl;
+        }
+        // Add to the system's scene manager
+        else if (!this->sceneManager.AddSensor(
+            _entity, sensor->RenderingCamera()->Id(), _parent->Data()))
+        {
+          ignerr << "Failed to create sensor [" << scopedName << "]"
+                 << std::endl;
+        }
+        else
+        {
+          this->entityToSensorId[_entity] = sensor->Id();
+        }
+
+        return true;
       });
 
   // Create gpu lidar
@@ -259,10 +292,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         const components::Model *,
         const components::Pose *_pose)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
         {
-          entity->SetLocalPose(_pose->Data());
+          node->SetLocalPose(_pose->Data());
         }
         return true;
       });
@@ -272,10 +305,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         const components::Link *,
         const components::Pose *_pose)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
         {
-          entity->SetLocalPose(_pose->Data());
+          node->SetLocalPose(_pose->Data());
         }
         return true;
       });
@@ -286,10 +319,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         const components::Visual *,
         const components::Pose *_pose)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
         {
-          entity->SetLocalPose(_pose->Data());
+          node->SetLocalPose(_pose->Data());
         }
         return true;
       });
@@ -300,10 +333,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         const components::Light *,
         const components::Pose *_pose)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
         {
-          entity->SetLocalPose(_pose->Data());
+          node->SetLocalPose(_pose->Data());
         }
         return true;
       });
@@ -314,10 +347,10 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         const components::Camera *,
         const components::Pose *_pose)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
         {
-          entity->SetLocalPose(_pose->Data());
+          node->SetLocalPose(_pose->Data());
         }
         return true;
       });
@@ -374,8 +407,8 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
       {
-        auto entity = this->sceneManager.EntityById(_entity);
-        if (entity)
+        auto sensorId = this->entityToSensorId.find(_entity);
+        if (sensorId == this->entityToSensorId.end())
         {
           this->sensorManager.Remove(_entity);
           // FISME(louise) SensorId not implemented in ign-sensors
@@ -398,6 +431,7 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
           // auto sensorID = this->sensorManager.SensorId(entity->Name());
           // this->sensorManager.Remove(sensorID);
         }
+        // Stop keeping track of it in this system.
         this->sceneManager.RemoveEntity(_entity);
         return true;
       });
