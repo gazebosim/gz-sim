@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -389,6 +390,20 @@ namespace ignition
       /// edges point from parent to children.
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
+
+      /// \brief Stream insertion operator
+      /// \param[in] _out output stream
+      /// \param[in] _ecm
+      /// \return the stream
+      public: friend std::ostream &operator<<(std::ostream &_out,
+          const EntityComponentManager &_ecm);
+
+      /// \brief Stream extraction operator
+      /// \param[in] _in the input stream
+      /// \param[in] _ecm
+      /// \return the stream
+      public: friend std::istream &operator>>(std::istream &_in,
+          EntityComponentManager &_ecm);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function

@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include "msgs/serialized.pb.h"
+
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
@@ -1372,6 +1374,46 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   EXPECT_FALSE(manager.HasEntity(e1));
   EXPECT_FALSE(manager.HasEntity(e3));
   EXPECT_FALSE(manager.HasEntity(e5));
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, StreamOperators)
+{
+  EXPECT_EQ(0u, manager.EntityCount());
+
+  // Entities
+  auto entity = manager.CreateEntity();
+  auto entity2 = manager.CreateEntity();
+  manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Components
+  manager.CreateComponent<int>(entity, 123);
+  manager.CreateComponent<double>(entity2, 0.123);
+  manager.CreateComponent<float>(entity2, 0.456);
+
+  // Serialize
+  std::ostringstream ostr;
+  ostr << manager;
+  EXPECT_FALSE(ostr.str().empty());
+
+  // Deserialize into a message
+  std::istringstream istr(ostr.str());
+
+  gazebo::msgs::SerializedState stateMsg;
+  stateMsg.ParseFromIstream(&istr);
+
+  // Check message
+  ASSERT_EQ(2, stateMsg.entities_size());
+
+  auto e0 = stateMsg.entities(0);
+  EXPECT_EQ(0u, e0.id());
+  ASSERT_EQ(1, e0.components().size());
+
+  auto e0c0 = e0.components(0);
+  EXPECT_EQ(gazebo::EntityComponentManager::ComponentType<int>(), e0c0.type());
+  EXPECT_EQ("", e0c0.component());
+
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

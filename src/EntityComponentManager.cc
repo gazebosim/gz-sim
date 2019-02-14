@@ -19,8 +19,11 @@
 #include <set>
 #include <vector>
 
+#include "msgs/serialized.pb.h"
+
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/components/Component.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -601,4 +604,63 @@ void EntityComponentManager::RebuildViews()
       }
     }
   }
+}
+
+namespace ignition
+{
+namespace gazebo
+{
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+{
+
+//////////////////////////////////////////////////
+std::ostream &operator<<(std::ostream &_out,
+    const EntityComponentManager &_ecm)
+{
+  gazebo::msgs::SerializedState stateMsg;
+  for (const auto &entity: _ecm.dataPtr->entityComponents)
+  {
+    auto entityMsg = stateMsg.add_entities();
+    entityMsg->set_id(entity.first);
+
+    for (const auto &compKey : entity.second)
+    {
+      auto compMsg = entityMsg->add_components();
+      compMsg->set_type(compKey.first);
+
+      auto compVoid = _ecm.ComponentImplementation(entity.first, compKey.first);
+      if (nullptr == compVoid)
+      {
+        ignerr << "Internal error" << std::endl;
+        continue;
+      }
+
+      const auto *compBase = static_cast<const components::BaseComponent *>(compVoid);
+      if (nullptr == compBase)
+      {
+        ignwarn << "Can't stream component which doesn't inherit from BaseComponent"
+                << std::endl;
+        continue;
+      }
+
+      std::ostringstream ostr;
+      ostr << *compBase;
+
+      compMsg->set_component(ostr.str());
+    }
+  }
+
+  stateMsg.SerializeToOstream(&_out);
+  return _out;
+}
+
+//////////////////////////////////////////////////
+std::istream &operator>>(std::istream &_in,
+    EntityComponentManager &)
+{
+  return _in;
+}
+
+}
+}
 }

@@ -88,6 +88,16 @@ ign_find_package(gflags
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
+#--------------------------------------
+# Find protobuf
+set(REQ_PROTOBUF_VER 3)
+ign_find_package(IgnProtobuf
+                 VERSION ${REQ_PROTOBUF_VER}
+                 REQUIRED
+                 COMPONENTS all
+                 PRETTY Protobuf)
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+
 #============================================================================
 # Configure the build
 #============================================================================
