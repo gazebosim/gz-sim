@@ -88,6 +88,10 @@ TEST(Matrix4dTest, ConstructFromPose3d)
     EXPECT_EQ(trans, mat.Translation());
     EXPECT_EQ(qt, mat.Rotation());
     EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+    EXPECT_EQ(mat.Inverse() * mat, math::Matrix4d::Identity);
+    EXPECT_EQ(mat * mat.Inverse(), math::Matrix4d::Identity);
+    EXPECT_EQ(pose.Inverse() * pose, math::Pose3d::Zero);
+    EXPECT_EQ(pose * pose.Inverse(), math::Pose3d::Zero);
   }
 
   // Zero values
@@ -114,6 +118,24 @@ TEST(Matrix4dTest, ConstructFromPose3d)
     EXPECT_EQ(trans, mat.Translation());
     EXPECT_EQ(qt, mat.Rotation());
     EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+  }
+
+  {
+    // setup a ZXZ rotation to ensure non-commutative rotations
+    math::Pose3d pose1(1, -2, 3, 0, 0, IGN_PI/4);
+    math::Pose3d pose2(0, 1, -1, -IGN_PI/4, 0, 0);
+    math::Pose3d pose3(-1, 0, 0, 0, 0, -IGN_PI/4);
+
+    math::Matrix4d m1(pose1);
+    math::Matrix4d m2(pose2);
+    math::Matrix4d m3(pose3);
+
+    // ensure rotations are not commutative
+    EXPECT_NE(m1 * m2 * m3, m3 * m2 * m1);
+
+    // apparently the pose multiplication order is different than matrix order
+    EXPECT_EQ(m1 * m2 * m3, math::Matrix4d(pose3 * pose2 * pose1));
+    EXPECT_EQ(m3 * m2 * m1, math::Matrix4d(pose1 * pose2 * pose3));
   }
 }
 
