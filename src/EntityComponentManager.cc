@@ -86,7 +86,7 @@ size_t EntityComponentManager::EntityCount() const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity entity = this->dataPtr->entityCount++;
+  Entity entity = ++this->dataPtr->entityCount;
 
   if (entity == std::numeric_limits<int64_t>::max())
   {
