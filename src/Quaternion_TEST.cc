@@ -473,6 +473,26 @@ TEST(QuaternionTest, Math)
 }
 
 /////////////////////////////////////////////////
+TEST(QuaternionTest, MultiplicationOrder)
+{
+  math::Quaterniond q1(0, 0, 1.0);
+  math::Quaterniond q2(0.1, 0, 0);
+  math::Quaterniond q3(0, 0, -1.0);
+  math::Vector3d v(1, 2, 3);
+  math::Matrix3d m1(q1), m2(q2), m3(q3);
+  EXPECT_EQ(q1*v, m1*v);
+  EXPECT_EQ(q2*v, m2*v);
+  EXPECT_EQ(q3*v, m3*v);
+  EXPECT_EQ(q1*q2*v, m1*m2*v);
+  EXPECT_EQ(q2*q3*v, m2*m3*v);
+  EXPECT_EQ(q1*q2*q3*v, m1*m2*m3*v);
+  EXPECT_EQ(math::Matrix3d(q1*q2*q3), m1*m2*m3);
+  EXPECT_EQ(math::Matrix3d(q3*q2*q1), m3*m2*m1);
+  // ensure that it's not commutative
+  EXPECT_NE(math::Matrix3d(q1*q2*q3), m3*m2*m1);
+}
+
+/////////////////////////////////////////////////
 TEST(QuaternionTest, OperatorStreamOut)
 {
   math::Quaterniond q(0.1, 1.2, 2.3);
