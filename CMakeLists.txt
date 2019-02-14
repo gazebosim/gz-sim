@@ -56,6 +56,11 @@ ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-fuel_tools3
+ign_find_package(ignition-fuel_tools3 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ignition-gui
 ign_find_package(ignition-gui1 REQUIRED)
 set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
