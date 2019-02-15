@@ -71,8 +71,12 @@ namespace components
     public: Component();
 
     /// \brief Constructor
-    /// \param[in] _component Component to copy
+    /// \param[in] _data Data to copy
     public: explicit Component(const DataType &_data);
+
+    /// \brief Constructor data to be moved
+    /// \param[in] _data Data to moved
+    public: explicit Component(DataType &&_data);
 
     /// \brief Copy Constructor
     /// \param[in] _component Component component to copy.
@@ -172,6 +176,13 @@ namespace components
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(const DataType &_data)
     : dataPtr(std::make_unique<ComponentPrivate<DataType>>(_data))
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component(DataType &&_data)
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>(std::move(_data)))
   {
   }
 
