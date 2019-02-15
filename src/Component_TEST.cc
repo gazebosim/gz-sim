@@ -33,7 +33,7 @@ void ComponentDefaultConstructor()
   // Use a default a components constructor
   ecm.CreateComponent(entity, components::Name());
 
-  //Get the existing component and assign it a new value
+  // Get the existing component and assign it a new value
   auto *comp = ecm.Component<components::Name>(entity);
   ASSERT_NE(nullptr, comp);
 
