@@ -25,28 +25,20 @@
 
 using namespace ignition::gazebo;
 
-void ComponentDefaultConstructor()
-{
-  EntityComponentManager ecm;
-  Entity entity = ecm.CreateEntity();
-
-  // Use a default a components constructor
-  ecm.CreateComponent(entity, components::Name());
-
-  // Get the existing component and assign it a new value
-  auto *comp = ecm.Component<components::Name>(entity);
-  ASSERT_NE(nullptr, comp);
-
-  *comp = components::Name("test");
-
-  // Exit with exit code 0 so the test passes
-  exit(0);
-}
 /////////////////////////////////////////////////
-TEST(ComponentDeathTest, ComponentDefaultConstructor)
+/// Test that using the default constructor of Component doesn't cause
+/// problems when copying
+TEST(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 {
-  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-  EXPECT_EXIT(ComponentDefaultConstructor(), ::testing::ExitedWithCode(0), "");
+  // Use Component's default constructor
+  auto comp = components::Name();
+
+  // Test copy constructor and assignment
+  components::Name compCopy(comp);
+  comp = components::Name("test");
+
+  // If it got here we have succeeded
+  SUCCEED();
 }
 
 TEST(ComponentTest, DataByMove)
