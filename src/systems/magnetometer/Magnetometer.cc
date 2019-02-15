@@ -51,14 +51,10 @@ class ignition::gazebo::systems::MagnetometerSensor
   /// \brief Load the magnetometer from an sdf element
   /// \param[in] _sdf SDF element describing the magnetometer
   public: void Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_magneticField, const std::string &_topic,
-    const std::string &_sensorName);
+    const math::Vector3d &_magneticField, const std::string &_topic);
 
   /// \brief Publish magnetometer data over ign transport
   public: void Publish();
-
-  /// \brief Sensors name
-  public: std::string sensorName;
 
   /// \brief Topic to publish data to
   public: std::string topic;
@@ -108,8 +104,7 @@ MagnetometerSensor::~MagnetometerSensor() = default;
 
 //////////////////////////////////////////////////
 void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_magneticField, const std::string &_topic,
-    const std::string &_sensorName)
+    const math::Vector3d &_magneticField, const std::string &_topic)
 {
   if (_sdf->HasElement("topic"))
     this->topic = _sdf->Get<std::string>("topic");
@@ -121,9 +116,6 @@ void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
 
   // Set sensors world magnetic field
   this->magneticField = _magneticField;
-
-  // Set sensor name
-  this->sensorName = _sensorName;
 }
 
 //////////////////////////////////////////////////
@@ -205,12 +197,10 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
       {
         std::string defaultTopic = scopedName(_entity, _ecm, "/") +
           "/magnetometer";
-        std::string sensorName = _ecm.Component<components::Name>(
-            _entity)->Data();
 
         auto sensor = std::make_unique<MagnetometerSensor>();
         sensor->Load(_magnetometer->Data(), magneticField->Data(),
-            defaultTopic, sensorName);
+            defaultTopic);
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
