@@ -433,19 +433,19 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
   for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
   {
     Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.entityName));
+        components::Name(plugin.EntityName()));
     // Skip plugins that do not match the provided entity
     if (entity != _entity)
       continue;
 
     std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
+      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(entity, plugin.sdf, this->entityCompMgr,
+        systemConfig->Configure(entity, plugin.Sdf(), this->entityCompMgr,
                                 this->eventMgr);
       }
       this->AddSystem(system.value());
@@ -685,17 +685,17 @@ void SimulationRunner::LoadConfigurationPlugins()
   for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
   {
     Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.entityName));
+        components::Name(plugin.EntityName()));
     if (entity == kNullEntity)
     {
-      ignerr << "Unable to find entity with name [" << plugin.entityName
-        << "]. The plugin with name[" << plugin.name << "] and filename["
-        << plugin.filename << "] will not be loaded.\n";
+      ignerr << "Unable to find entity with name [" << plugin.EntityName()
+        << "]. The plugin with name[" << plugin.Name() << "] and filename["
+        << plugin.Filename() << "] will not be loaded.\n";
       continue;
     }
 
     std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
+      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
