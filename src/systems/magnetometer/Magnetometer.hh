@@ -35,8 +35,8 @@ namespace systems
   class MagnetometerSensor;
 
   /// \class Magnetometer Magnetometer.hh
-  /// \brief An magnetometer sensor that reports vertical position and velocity
-  /// readings over ign transport
+  /// \brief An magnetometer sensor that reports the magnetic field in its
+  /// current location.
   class IGNITION_GAZEBO_VISIBLE Magnetometer:
     public System,
     public ISystemPreUpdate,
@@ -50,22 +50,11 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
-                           EntityComponentManager &_ecm) override final;
+                           EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override final;
-
-    /// \brief Sets the rotation transform from world frame to IMU's
-    /// reference frame.
-    /// For example, if this IMU works with respect to NED frame, then
-    /// call this function with the transform that transforms world frame
-    /// to NED frame. Subsequently, MagnetometerSensor::Orientation will return
-    /// identity transform if the IMU is aligned with the NED frame.
-    /// \param _orientation rotation from world frame to magnetometer reference
-    /// frame.
-    public: void SetWorldToReferenceOrientation(
-      const ignition::math::Quaterniond &_orientation);
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<MagnetometerPrivate> dataPtr;
