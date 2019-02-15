@@ -109,7 +109,7 @@ Server::Server(const ServerConfig &_config)
   fuel_tools::ClientConfig config;
   if (!_config.ResourceCache().empty())
     config.SetCacheLocation(_config.ResourceCache());
-  this->dataPtr->fuelClient.reset(new fuel_tools::FuelClient(config));
+  this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
   // Configure SDF to fetch assets from ignition fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
