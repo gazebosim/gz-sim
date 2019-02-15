@@ -28,7 +28,6 @@
 #include <ignition/sensors/LogicalCameraSensor.hh>
 
 #include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
