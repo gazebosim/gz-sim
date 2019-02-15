@@ -58,6 +58,6 @@ TEST(ComponentTest, DataByMove)
 
   ecm.CreateComponent(entity, CustomComponent(std::move(data)));
 
-  // If "data" was moved, the use cound should still be 2.
+  // If "data" was moved, the use count should still be 2.
   EXPECT_EQ(2u, dataCopy.use_count());
 }
