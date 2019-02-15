@@ -124,6 +124,7 @@ Server::Server(const ServerConfig &_config)
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
+    ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
     // \todo(nkoenig) Async resource download.
     // This call can block for a long period of time while
