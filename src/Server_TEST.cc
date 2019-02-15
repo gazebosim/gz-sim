@@ -33,6 +33,7 @@
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
@@ -54,6 +55,111 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(std::nullopt, server.Running(1));
   EXPECT_TRUE(*server.Paused());
+  EXPECT_TRUE(serverConfig.Plugins().empty());
+
+  serverConfig.SetUpdateRate(1000.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  serverConfig.SetUpdateRate(-1000.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  serverConfig.SetUpdateRate(0.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  EXPECT_EQ(1ms, serverConfig.UpdatePeriod());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigPluginInfo)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.AddPlugin(
+      {"an_entity", "model", "filename", "interface", nullptr});
+
+  const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
+  ASSERT_FALSE(plugins.empty());
+
+  EXPECT_EQ("an_entity", plugins.front().EntityName());
+  EXPECT_EQ("model", plugins.front().EntityType());
+  EXPECT_EQ("filename", plugins.front().Filename());
+  EXPECT_EQ("interface", plugins.front().Name());
+  EXPECT_EQ(nullptr, plugins.front().Sdf());
+
+  // Test operator=
+  {
+    ServerConfig::PluginInfo info;
+    info = plugins.front();
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Filename(), plugins.front().Filename());
+    EXPECT_EQ(info.Name(), plugins.front().Name());
+    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+  }
+
+  // Test copy constructor
+  {
+    ServerConfig::PluginInfo info(plugins.front());
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Filename(), plugins.front().Filename());
+    EXPECT_EQ(info.Name(), plugins.front().Name());
+    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+  }
+
+  // Test server config copy constructor
+  {
+    ServerConfig cfg(serverConfig);
+    const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
+    ASSERT_FALSE(cfgPlugins.empty());
+
+    EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(cfgPlugins.front().Filename(), plugins.front().Filename());
+    EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
+    EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigRealPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  sdf::ElementPtr sdf(new sdf::Element);
+  sdf->SetName("plugin");
+  sdf->AddAttribute("name", "string",
+      "ignition::gazebo::TestModelSystem", 1);
+  sdf->AddAttribute("filename", "string", "libTestModelSystem.so", 1);
+
+  sdf::ElementPtr child(new sdf::Element);
+  child->SetParent(sdf);
+  child->SetName("model_key");
+  child->AddValue("string", "987", "1");
+
+  serverConfig.AddPlugin({"box", "model",
+      "libTestModelSystem.so", "ignition::gazebo::TestModelSystem", sdf});
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run the server
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_FALSE(*server.Paused());
+
+  // The TestModelSystem should have created a service. Call the service to
+  // make sure the TestModelSystem was successfully loaded.
+  transport::Node node;
+  msgs::StringMsg rep;
+  bool result;
+  bool executed = node.Request("/test/service", 5000, rep, result);
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_EQ("TestModelSystem", rep.data());
 }
 
 /////////////////////////////////////////////////

@@ -403,9 +403,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  if (!_sdf->HasElement("plugin"))
-    return;
-
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
@@ -676,36 +673,4 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
   _res.CopyFrom(this->guiMsg);
 
   return true;
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadConfigurationPlugins()
-{
-  // Load the plugins in the server config
-  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
-  {
-    Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.EntityName()));
-    if (entity == kNullEntity)
-    {
-      ignerr << "Unable to find entity with name [" << plugin.EntityName()
-        << "]. The plugin with name[" << plugin.Name() << "] and filename["
-        << plugin.Filename() << "] will not be loaded.\n";
-      continue;
-    }
-
-    std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(entity, nullptr,
-            this->entityCompMgr,
-            this->eventMgr);
-      }
-      this->AddSystem(system.value());
-    }
-  }
 }

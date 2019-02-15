@@ -19,6 +19,7 @@
 
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
+#include <ignition/transport/Node.hh>
 
 namespace ignition
 {
@@ -30,6 +31,12 @@ class TestModelSystem :
 {
   public: TestModelSystem() = default;
 
+  private: bool Service(msgs::StringMsg &_msg)
+           {
+             _msg.set_data("TestModelSystem");
+             return true;
+           }
+
   public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
                          EntityComponentManager &_ecm,
@@ -38,6 +45,10 @@ class TestModelSystem :
           this->model = Model(_entity);
 
           auto link = this->model.LinkByName(_ecm, "link_1");
+          // This plugin might have been attached to the box model in
+          // test/world/shapes.world.
+          if (link == kNullEntity)
+            link = this->model.LinkByName(_ecm, "box_link");
 
           // Fail to create component if link is not found
           if (link == kNullEntity)
@@ -46,11 +57,16 @@ class TestModelSystem :
             return;
           }
 
+          // Create a test service
+          this->node.Advertise("/test/service",
+              &TestModelSystem::Service, this);
+
           auto value = _sdf->Get<int>("model_key");
           _ecm.CreateComponent<int>(_entity, value);
         }
 
   private: Model model;
+  private: transport::Node node;
 };
 }
 }
