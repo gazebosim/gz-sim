@@ -59,6 +59,7 @@ TEST(ComponentTest, DataByMove)
   Entity entity = ecm.CreateEntity();
 
   auto data = std::make_shared<int>(1);
+  // Copy data so we can check the use count after it has been moved
   auto dataCopy = data;
 
   EXPECT_EQ(2u, dataCopy.use_count());
