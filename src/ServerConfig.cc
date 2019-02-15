@@ -28,12 +28,15 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \brief Copy constructor
   /// \param[in] _info Plugin to copy.
   public: explicit PluginInfoPrivate(
-              const std::unique_ptr<PluginInfoPrivate> &_info)
+              const std::unique_ptr<ServerConfig::PluginInfoPrivate> &_info)
           : entityName(_info->entityName),
             entityType(_info->entityType),
             filename(_info->filename),
-            name(_info->name),
-            sdf(_info->sdf->Clone()) {}
+            name(_info->name)
+  {
+    if (_info->sdf)
+      this->sdf = _info->sdf->Clone();
+  }
 
   /// \brief Constructor based on values.
   /// \param[in] _entityName Name of the entity which should receive
@@ -49,13 +52,11 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   public: PluginInfoPrivate(const std::string &_entityName,
                             const std::string &_entityType,
                             const std::string &_filename,
-                            const std::string &_name,
-                            const sdf::ElementPtr &_sdf)
+                            const std::string &_name)
           : entityName(_entityName),
             entityType(_entityType),
             filename(_filename),
-            name(_name),
-            sdf(_sdf->Clone()) {}
+            name(_name) {}
 
   /// \brief The name of the entity.
   public: std::string entityName = "";
@@ -74,6 +75,12 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 };
 
 //////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo()
+: dataPtr(new ServerConfig::PluginInfoPrivate)
+{
+}
+
+//////////////////////////////////////////////////
 ServerConfig::PluginInfo::~PluginInfo() = default;
 
 //////////////////////////////////////////////////
@@ -83,13 +90,15 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_name,
                        const sdf::ElementPtr &_sdf)
   : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
-                                  _filename, _name, _sdf->Clone()))
+                                  _filename, _name))
 {
+  if (_sdf)
+    this->dataPtr->sdf = _sdf->Clone();
 }
 
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo(const ServerConfig::PluginInfo &_info)
-  : dataPtr(new PluginInfoPrivate(_info.dataPtr))
+  : dataPtr(new ServerConfig::PluginInfoPrivate(_info.dataPtr))
 {
 }
 
@@ -97,7 +106,7 @@ ServerConfig::PluginInfo::PluginInfo(const ServerConfig::PluginInfo &_info)
 ServerConfig::PluginInfo &ServerConfig::PluginInfo::operator=(
     const ServerConfig::PluginInfo &_info)
 {
-  this->dataPtr.reset(new PluginInfoPrivate(_info.dataPtr));
+  this->dataPtr.reset(new ServerConfig::PluginInfoPrivate(_info.dataPtr));
   return *this;
 }
 

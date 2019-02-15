@@ -42,14 +42,13 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
       class PluginInfoPrivate;
-
       /// \brief Information about a plugin that should be loaded by the
       /// server.
       /// \sa const std::list<PluginInfo> &Plugins() const
       public: class PluginInfo
       {
         /// \brief Default constructor.
-        public: PluginInfo() = default;
+        public: PluginInfo();
 
         /// \brief Destructor.
         public: ~PluginInfo();
@@ -106,7 +105,7 @@ namespace ignition
         public: const sdf::ElementPtr &Sdf() const;
 
         /// \brief Private data pointer
-        private: std::unique_ptr<PluginInfoPrivate> dataPtr;
+        private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;
       };
 
       /// \brief Constructor
