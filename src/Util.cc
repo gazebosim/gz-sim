@@ -58,8 +58,7 @@ math::Pose3d worldPose(const Entity &_entity,
 
 //////////////////////////////////////////////////
 std::string scopedName(const Entity &_entity,
-    const EntityComponentManager &_ecm, const std::string &_delim,
-    bool _includePrefix)
+    const EntityComponentManager &_ecm, const std::string &_delim)
 {
   std::string result;
 
@@ -114,15 +113,12 @@ std::string scopedName(const Entity &_entity,
               << std::endl;
     }
 
-    if (!_includePrefix || !prefix.empty())
+    if (!prefix.empty())
     {
       result.insert(0, name);
       result.insert(0, _delim);
-      if (!prefix.empty())
-      {
-        result.insert(0, prefix);
-        result.insert(0, _delim);
-      }
+      result.insert(0, prefix);
+      result.insert(0, _delim);
     }
 
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
