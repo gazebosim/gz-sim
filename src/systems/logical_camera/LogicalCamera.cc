@@ -113,15 +113,17 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         const components::LogicalCamera *_logicalCamera,
         const components::ParentEntity *_parent)->bool
       {
+        // create sensor
         auto data = _logicalCamera->Data()->Clone();
-
-        data->GetAttribute("name")->Set(scopedName(_entity, _ecm, "::", false));
+        std::string parentName = _ecm.Component<components::Name>(
+            _parent->Data())->Data();
+        std::string sensorScopedName = parentName + "::"
+            + data->Get<std::string>("name");
+        data->GetAttribute("name")->Set(sensorScopedName);
         auto sensor = this->sensorFactory.CreateSensor<
             sensors::LogicalCameraSensor>(data);
 
         // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
         sensor->SetParent(parentName);
 
         // set sensor world pose
