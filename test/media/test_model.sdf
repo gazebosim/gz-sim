@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="test_model">
+    <link name="box">
+      <pose>0 0 0.5 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

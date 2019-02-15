@@ -19,7 +19,7 @@
 
 #include <ignition/math/Inertial.hh>
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/SimpleWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -32,7 +32,7 @@ namespace components
 {
   /// \brief A component type that contains inertial, ignition::math::Inertiald,
   /// information.
-  using Inertial = SimpleWrapper<ignition::math::Inertiald, class InertialTag>;
+  using Inertial = Component<ignition::math::Inertiald, class InertialTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Inertial", Inertial)
 }

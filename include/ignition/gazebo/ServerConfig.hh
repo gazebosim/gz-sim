@@ -84,6 +84,20 @@ namespace ignition
       public: std::optional<std::chrono::steady_clock::duration>
               UpdatePeriod() const;
 
+      /// \brief Path to where simulation resources, such as models downloaded
+      /// from fuel.ignitionrobotics.org, should be stored.
+      /// \return Path to a location on disk. An empty string indicates that
+      /// the default value will be used, which is currently
+      /// ~/.ignition/fuel.
+      public: const std::string &ResourceCache() const;
+
+      /// \brief Set the path to where simulation resources, such as models
+      /// downloaded from fuel.ignitionrobotics.org, should be stored.
+      /// \param[in] _path Path to a location on disk. An empty string
+      /// indicates that the default value will be used, which is currently
+      /// ~/.ignition/fuel.
+      public: void SetResourceCache(const std::string &_path);
+
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };
