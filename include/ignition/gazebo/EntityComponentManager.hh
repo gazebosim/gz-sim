@@ -55,6 +55,8 @@ namespace ignition
     **/
     /// \brief The EntityComponentManager constructs, deletes, and returns
     /// components and entities.
+    /// A component can be of any class which inherits from
+    /// `components::BaseComponent`.
     class IGNITION_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
