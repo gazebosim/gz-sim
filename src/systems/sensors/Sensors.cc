@@ -257,8 +257,8 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         else
         {
           this->entityToSensorId[_entity] = sensor->Id();
+          sensor->SetParent(parent->Name());
         }
-        sensor->SetParent(parent->Name());
 
         return true;
       });
@@ -301,6 +301,7 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         else
         {
           this->entityToSensorId[_entity] = sensor->Id();
+          sensor->SetParent(parent->Name());
         }
 
         return true;
