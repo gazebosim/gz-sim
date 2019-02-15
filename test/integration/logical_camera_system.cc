@@ -112,7 +112,7 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // subscribe to lidar topic
+  // subscribe to logical camera topic
   transport::Node node;
   node.Subscribe("/logical_camera",
       &logicalCameraCb);
@@ -124,7 +124,7 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   EXPECT_GT(logicalCameraMsgs.size(), 0u);
   mutex.unlock();
 
-  // Sensor 1 should see TestBox1
+  // Sensor should see box
   std::string boxName = "box";
   math::Pose3d boxPose(1, 0, 0.5, 0, 0, 0);
   math::Pose3d sensorPose(0.05, 0.05, 0.55, 0, 0, 0);
