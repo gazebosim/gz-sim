@@ -16,6 +16,9 @@
 */
 #include "ignition/gazebo/Server.hh"
 
+#include <ignition/common/SystemPaths.hh>
+#include <ignition/fuel_tools/Interface.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include "ServerPrivate.hh"
@@ -33,6 +36,10 @@ static const char kDefaultWorld[] =
       "<plugin filename='libignition-gazebo-systems.so'"
       "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
       "</plugin>"
+      "<plugin"
+      "  filename='libignition-gazebo-user-commands-system.so'"
+      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "</plugin>"
       "<gui fullscreen='0'>"
       "  <plugin filename='Scene3D' name='3D View'>"
       "    <ignition-gui>"
@@ -47,6 +54,8 @@ static const char kDefaultWorld[] =
       "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
       "    <service>/world/default/scene/info</service>"
       "    <pose_topic>/world/default/pose/info</pose_topic>"
+      "    <scene_topic>/world/default/scene/info</scene_topic>"
+      "    <deletion_topic>/world/default/scene/deletion</deletion_topic>"
       "  </plugin>"
       "  <plugin filename='WorldControl' name='World control'>"
       "    <ignition-gui>"
@@ -96,12 +105,31 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Configure the fuel client
+  fuel_tools::ClientConfig config;
+  if (!_config.ResourceCache().empty())
+    config.SetCacheLocation(_config.ResourceCache());
+  this->dataPtr->fuelClient.reset(new fuel_tools::FuelClient(config));
+
+  // Configure SDF to fetch assets from ignition fuel.
+  sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
+        this->dataPtr.get(), std::placeholders::_1));
+
   sdf::Errors errors;
 
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    errors = this->dataPtr->sdfRoot.Load(_config.SdfFile());
+    common::SystemPaths systemPaths;
+    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    std::string filePath = systemPaths.FindFile(_config.SdfFile());
+
+    // \todo(nkoenig) Async resource download.
+    // This call can block for a long period of time while
+    // resources are downloaded. Blocking here causes the GUI to block with
+    // a black screen (search for "Async resource download" in
+    // 'src/gui_main.cc'.
+    errors = this->dataPtr->sdfRoot.Load(filePath);
   }
   else
   {

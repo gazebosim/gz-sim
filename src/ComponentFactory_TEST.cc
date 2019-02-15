@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/TagWrapper.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -30,7 +30,8 @@ TEST(ComponentFactoryTest, Register)
   auto factory = components::Factory::Instance();
 
   // Create a custom component.
-  using MyCustom = components::TagWrapper<class MyCustomTag>;
+  using MyCustom = components::Component<components::NoData,
+      class MyCustomTag>;
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
