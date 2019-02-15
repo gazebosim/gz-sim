@@ -24,7 +24,6 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Pose.hh"
