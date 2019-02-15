@@ -15,7 +15,7 @@
  *
  */
 
-#include <ignition/msgs/logicalCamera.pb.h>
+#include <ignition/msgs/logical_camera_image.pb.h>
 
 #include <ignition/plugin/Register.hh>
 
@@ -25,10 +25,12 @@
 #include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
+#include <ignition/sensors/LogicalCameraSensor.hh>
 
 #include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -46,7 +48,10 @@ class ignition::gazebo::systems::LogicalCameraPrivate
 {
   /// \brief A map of logicalCamera entities
   public: std::unordered_map<Entity,
-      std::unique_ptr<sensors::LogicalCameraSensor>> entitySensorMap;
+      sensors::LogicalCameraSensor *> entitySensorMap;
+
+  /// \brief Ign-sensors sensor factory for creating sensors
+  public: sensors::SensorFactory sensorFactory;
 
   /// \brief Create logicalCamera sensor
   /// \param[in] _ecm Mutable reference to ECM.
@@ -80,7 +85,7 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
 
 //////////////////////////////////////////////////
 void LogicalCamera::PostUpdate(const UpdateInfo &_info,
-                           const EntityComponentManager &_ecm)
+                               const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -91,7 +96,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
     {
       // Update sensor
       auto time = math::durationToSecNsec(_info.simTime);
-      it.second->Update(time);
+      it.second->Update(common::Time(time.first, time.second));
     }
   }
 
@@ -99,7 +104,8 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void LogicalCameraPrivate::CreateLogicalCameraEntities(EntityComponentManager &_ecm)
+void LogicalCameraPrivate::CreateLogicalCameraEntities(
+    EntityComponentManager &_ecm)
 {
   // Create logicalCameras
   _ecm.EachNew<components::LogicalCamera, components::ParentEntity>(
@@ -109,31 +115,34 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(EntityComponentManager &_
       {
         auto data = _logicalCamera->Data()->Clone();
 
-        data->GetAttribute("name")->Set(scopedName(_entity, ecm, "::", false));
-        auto sensor =
-            sensors::SensorFactory::CreateSensor<LogicalCameraSensor>(data);
+        data->GetAttribute("name")->Set(scopedName(_entity, _ecm, "::", false));
+        auto sensor = this->sensorFactory.CreateSensor<
+            sensors::LogicalCameraSensor>(data);
 
-        math::Pose3d worldPose = worldPose(_entity, _ecm);
-        sensor->SetPose(worldPose);
+        // set sensor parent
+        std::string parentName = _ecm.Component<components::Name>(
+            _parent->Data())->Data();
+        sensor->SetParent(parentName);
 
-        // create default topic for sensor if not specified
-        if (sensor->Topic().empty())
-          sensor->SetTopic(scopedName(_entity, _ecm, "/") + "/logicalCamera");
+        // set sensor world pose
+        math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
+        sensor->SetPose(sensorWorldPose);
 
         this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(std::make_unique<Sensor>(sensor))));
+            std::make_pair(_entity, sensor));
 
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void LogicalCameraPrivate::UpdateLogicalCameras(const EntityComponentManager &_ecm)
+void LogicalCameraPrivate::UpdateLogicalCameras(
+    const EntityComponentManager &_ecm)
 {
   std::map<std::string, math::Pose3d> modelPoses;
 
   _ecm.Each<components::Model, components::Name, components::Pose>(
-      [&](const Entity &_entity,
+      [&](const Entity &,
         const components::Model *,
         const components::Name *_name,
         const components::Pose *_pose)->bool

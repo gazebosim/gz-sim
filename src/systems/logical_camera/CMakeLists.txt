@@ -10,6 +10,8 @@ ign_add_component(logical-camera-system
 target_link_libraries(${logical_camera_system_target}
   PUBLIC
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
+    ignition-sensors${IGN_SENSORS_VER}::logical_camera
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register

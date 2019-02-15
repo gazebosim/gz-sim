@@ -11,8 +11,8 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::v0::Sensors">
+      filename="libignition-gazebo-logical-camera-system.so"
+      name="ignition::gazebo::systems::v0::LogicalCamera">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
@@ -191,7 +191,6 @@
           </geometry>
         </visual>
         <sensor name='logical_camera' type='logical_camera'>"
-          <topic>logical_camera</topic>
           <updateRate>10</updateRate>
           <logical_camera>
             <near>0.55</near>
@@ -201,6 +200,7 @@
           </logical_camera>
           <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
+          <topic>/logical_camera</topic>
         </sensor>
       </link>
     </model>
