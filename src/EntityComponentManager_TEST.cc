@@ -31,7 +31,8 @@ using namespace gazebo;
 using IntComponent = components::Component<int, class IntComponentTag>;
 using UIntComponent = components::Component<int, class IntComponentTag>;
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-using StringComponent = components::Component<std::string, class StringComponentTag>;
+using StringComponent =
+    components::Component<std::string, class StringComponentTag>;
 using BoolComponent = components::Component<bool, class BoolComponentTag>;
 
 class EntityCompMgrTest : public EntityComponentManager
@@ -64,7 +65,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   int count = 10;
 
   Entity entity = manager.CreateEntity();
-  EXPECT_EQ(0u, entity);
+  EXPECT_EQ(1u, entity);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -115,7 +116,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   int count = 100000;
 
   Entity entity = manager.CreateEntity();
-  EXPECT_EQ(0u, entity);
+  EXPECT_EQ(1u, entity);
 
   // Create the components.
   for (int i = 0; i < count; ++i)
@@ -168,14 +169,14 @@ TEST_P(EntityComponentManagerFixture, InvalidComponentType)
   ComponentKey key{999, 0};
 
   // Can't remove component from an nonexistent entity
-  EXPECT_FALSE(manager.HasEntity(1));
-  EXPECT_FALSE(manager.RemoveComponent(1, key));
+  EXPECT_FALSE(manager.HasEntity(2));
+  EXPECT_FALSE(manager.RemoveComponent(2, key));
 
   // Can't remove a component that doesn't exist.
-  EXPECT_EQ(0u, manager.CreateEntity());
   EXPECT_EQ(1u, manager.CreateEntity());
-  EXPECT_TRUE(manager.HasEntity(1));
-  EXPECT_FALSE(manager.RemoveComponent(1, key));
+  EXPECT_EQ(2u, manager.CreateEntity());
+  EXPECT_TRUE(manager.HasEntity(2));
+  EXPECT_FALSE(manager.RemoveComponent(2, key));
 
   // We should get a nullptr if the component type doesn't exist.
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(key));
@@ -191,10 +192,14 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add components and keep their unique ComponentKeys
-  auto cIntEInt = manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
-  auto cDoubleEDouble = manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
-  auto cIntEIntDouble = manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  auto cDoubleEIntDouble = manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto cIntEInt = manager.CreateComponent<IntComponent>(eInt,
+      IntComponent(123));
+  auto cDoubleEDouble = manager.CreateComponent<DoubleComponent>(eDouble,
+      DoubleComponent(0.123));
+  auto cIntEIntDouble = manager.CreateComponent<IntComponent>(eIntDouble,
+      IntComponent(456));
+  auto cDoubleEIntDouble = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
 
   // Check entities have the components
   EXPECT_TRUE(manager.EntityHasComponent(eInt, cIntEInt));
@@ -342,7 +347,8 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Add a component to an entity
-  ComponentKey cKey =  manager.CreateComponent<IntComponent>(entity, IntComponent(123));
+  ComponentKey cKey =  manager.CreateComponent<IntComponent>(entity,
+      IntComponent(123));
 
   EXPECT_TRUE(manager.HasComponentType(
         EntityComponentManager::ComponentType<IntComponent>()));
@@ -572,7 +578,8 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveComponents)
   manager.CreateComponent<IntComponent>(eInt, IntComponent(123));
   manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
   manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
-  auto compToRemove = manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
+  auto compToRemove = manager.CreateComponent<DoubleComponent>(eIntDouble,
+      DoubleComponent(0.456));
 
   for (int i = 0; i < 2; ++i)
   {
@@ -777,10 +784,6 @@ TEST_P(EntityComponentManagerFixture, ViewsRemoveEntities)
 TEST_P(EntityComponentManagerFixture, RemoveEntity)
 {
   // Create some entities
-  auto e0 = manager.CreateEntity();
-  EXPECT_EQ(0u, e0);
-  EXPECT_TRUE(manager.HasEntity(e0));
-
   auto e1 = manager.CreateEntity();
   EXPECT_EQ(1u, e1);
   EXPECT_TRUE(manager.HasEntity(e1));
@@ -789,40 +792,44 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
   EXPECT_EQ(2u, e2);
   EXPECT_TRUE(manager.HasEntity(e2));
 
+  auto e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, e3);
+  EXPECT_TRUE(manager.HasEntity(e3));
+
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete an Entity
-  manager.RequestRemoveEntity(e1);
+  manager.RequestRemoveEntity(e2);
   EXPECT_EQ(3u, manager.EntityCount());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
-  EXPECT_FALSE(manager.HasEntity(e1));
+  EXPECT_FALSE(manager.HasEntity(e2));
 
   // Creating an new entity shouldn't reuse the previously deleted entity.
-  auto e3 = manager.CreateEntity();
-  EXPECT_EQ(3u, e3);
+  auto e4 = manager.CreateEntity();
+  EXPECT_EQ(4u, e4);
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Can not delete an invalid entity.
-  manager.RequestRemoveEntity(5);
+  manager.RequestRemoveEntity(6);
   EXPECT_EQ(3u, manager.EntityCount());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete another
-  manager.RequestRemoveEntity(0);
+  manager.RequestRemoveEntity(1);
   EXPECT_EQ(3u, manager.EntityCount());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Delete another
-  manager.RequestRemoveEntity(2);
+  manager.RequestRemoveEntity(3);
   EXPECT_EQ(2u, manager.EntityCount());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Delete last
-  manager.RequestRemoveEntity(3);
+  manager.RequestRemoveEntity(4);
   EXPECT_EQ(1u, manager.EntityCount());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(0u, manager.EntityCount());
@@ -1211,21 +1218,25 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
 
   manager.CreateComponent<IntComponent>(eIntUint, IntComponent(789));
   manager.CreateComponent<UIntComponent>(eIntUint, UIntComponent(789u));
-  manager.CreateComponent<StringComponent>(eIntUint, StringComponent("int-uint"));
+  manager.CreateComponent<StringComponent>(eIntUint,
+      StringComponent("int-uint"));
 
   // Get entities by the value of their components
   EXPECT_EQ(eInt, manager.EntityByComponents(IntComponent(-123)));
   EXPECT_EQ(eInt, manager.EntityByComponents(StringComponent("int")));
-  EXPECT_EQ(eInt, manager.EntityByComponents(StringComponent("int"), IntComponent(-123)));
+  EXPECT_EQ(eInt, manager.EntityByComponents(StringComponent("int"),
+      IntComponent(-123)));
 
   EXPECT_EQ(eUint, manager.EntityByComponents(UIntComponent(456u)));
   EXPECT_EQ(eUint, manager.EntityByComponents(StringComponent("uint")));
-  EXPECT_EQ(eUint, manager.EntityByComponents(StringComponent("uint"), UIntComponent(456u)));
+  EXPECT_EQ(eUint, manager.EntityByComponents(StringComponent("uint"),
+      UIntComponent(456u)));
 
   EXPECT_EQ(eIntUint, manager.EntityByComponents(IntComponent(789)));
   EXPECT_EQ(eIntUint, manager.EntityByComponents(UIntComponent(789u)));
   EXPECT_EQ(eIntUint, manager.EntityByComponents(StringComponent("int-uint")));
-  EXPECT_EQ(eIntUint, manager.EntityByComponents(IntComponent(789), UIntComponent(789u)));
+  EXPECT_EQ(eIntUint, manager.EntityByComponents(IntComponent(789),
+      UIntComponent(789u)));
   EXPECT_EQ(eIntUint, manager.EntityByComponents(StringComponent("int-uint"),
       IntComponent(789), UIntComponent(789u)));
 
@@ -1233,9 +1244,12 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(123u)));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(BoolComponent(true)));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("123456")));
-  EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("int"), UIntComponent(456u)));
-  EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(456u), UIntComponent(789u)));
-  EXPECT_EQ(kNullEntity, manager.EntityByComponents(IntComponent(-123), UIntComponent(456u)));
+  EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("int"),
+      UIntComponent(456u)));
+  EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(456u),
+      UIntComponent(789u)));
+  EXPECT_EQ(kNullEntity, manager.EntityByComponents(IntComponent(-123),
+      UIntComponent(456u)));
 }
 
 /////////////////////////////////////////////////
@@ -1244,62 +1258,61 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   EXPECT_EQ(0u, manager.EntityCount());
 
   /*
-   *        0
+   *        1
    *      /   \
-   *     1     2
+   *     2     3
    *  / / \ \
-   * 3 4   5 6
+   * 4 5   6 7
    */
 
   // Create a few entities
-  auto e0 = manager.CreateEntity();
   auto e1 = manager.CreateEntity();
   auto e2 = manager.CreateEntity();
   auto e3 = manager.CreateEntity();
   auto e4 = manager.CreateEntity();
   auto e5 = manager.CreateEntity();
   auto e6 = manager.CreateEntity();
+  auto e7 = manager.CreateEntity();
   EXPECT_EQ(7u, manager.EntityCount());
 
   // Set parents
-  EXPECT_TRUE(manager.SetParentEntity(e1, e0));
-  EXPECT_TRUE(manager.SetParentEntity(e2, e0));
+  EXPECT_TRUE(manager.SetParentEntity(e2, e1));
   EXPECT_TRUE(manager.SetParentEntity(e3, e1));
-  EXPECT_TRUE(manager.SetParentEntity(e4, e1));
-  EXPECT_TRUE(manager.SetParentEntity(e5, e1));
-  EXPECT_TRUE(manager.SetParentEntity(e6, e1));
+  EXPECT_TRUE(manager.SetParentEntity(e4, e2));
+  EXPECT_TRUE(manager.SetParentEntity(e5, e2));
+  EXPECT_TRUE(manager.SetParentEntity(e6, e2));
+  EXPECT_TRUE(manager.SetParentEntity(e7, e2));
 
-  EXPECT_FALSE(manager.SetParentEntity(e0, Entity(1000)));
-  EXPECT_FALSE(manager.SetParentEntity(Entity(1000), e0));
+  EXPECT_FALSE(manager.SetParentEntity(e1, gazebo::Entity(1000)));
+  EXPECT_FALSE(manager.SetParentEntity(gazebo::Entity(1000), e1));
 
   // Check their parents
-  EXPECT_EQ(kNullEntity, manager.ParentEntity(e0));
-  EXPECT_EQ(e0, manager.ParentEntity(e1));
-  EXPECT_EQ(e0, manager.ParentEntity(e2));
+  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e1));
+  EXPECT_EQ(e1, manager.ParentEntity(e2));
   EXPECT_EQ(e1, manager.ParentEntity(e3));
-  EXPECT_EQ(e1, manager.ParentEntity(e4));
-  EXPECT_EQ(e1, manager.ParentEntity(e5));
-  EXPECT_EQ(e1, manager.ParentEntity(e6));
+  EXPECT_EQ(e2, manager.ParentEntity(e4));
+  EXPECT_EQ(e2, manager.ParentEntity(e5));
+  EXPECT_EQ(e2, manager.ParentEntity(e6));
+  EXPECT_EQ(e2, manager.ParentEntity(e7));
 
   // Detach from graph
-  EXPECT_TRUE(manager.SetParentEntity(e6, kNullEntity));
-  EXPECT_EQ(kNullEntity, manager.ParentEntity(e6));
+  EXPECT_TRUE(manager.SetParentEntity(e7, gazebo::kNullEntity));
+  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e7));
 
   // Reparent
-  EXPECT_TRUE(manager.SetParentEntity(e4, e2));
-  EXPECT_EQ(e2, manager.ParentEntity(e4));
+  EXPECT_TRUE(manager.SetParentEntity(e5, e3));
+  EXPECT_EQ(e3, manager.ParentEntity(e5));
 
-  /*        0       6
+  /*        1       7
    *      /   \
-   *     1     2
+   *     2     3
    *    / \     \
-   *   3   5     4
+   *   4   6     5
    */
 
   // Add components
   using Even = components::Component<components::NoData, class EvenTag>;
 
-  manager.CreateComponent<Even>(e0, {});
   manager.CreateComponent<Even>(e2, {});
   manager.CreateComponent<Even>(e4, {});
   manager.CreateComponent<Even>(e6, {});
@@ -1309,32 +1322,24 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   manager.CreateComponent<Odd>(e1, {});
   manager.CreateComponent<Odd>(e3, {});
   manager.CreateComponent<Odd>(e5, {});
+  manager.CreateComponent<Odd>(e7, {});
 
   // Get children by components
   {
-    auto result = manager.ChildrenByComponents(e0, Even());
+    auto result = manager.ChildrenByComponents(e1, Even());
     ASSERT_EQ(1u, result.size());
     EXPECT_EQ(e2, result.front());
   }
   {
-    auto result = manager.ChildrenByComponents(e0, Odd());
-    ASSERT_EQ(1u, result.size());
-    EXPECT_EQ(e1, result.front());
-  }
-  {
-    auto result = manager.ChildrenByComponents(e1, Even());
-    ASSERT_TRUE(result.empty());
-  }
-  {
     auto result = manager.ChildrenByComponents(e1, Odd());
-    ASSERT_EQ(2u, result.size());
-    EXPECT_TRUE(std::find(result.begin(), result.end(), e3) != result.end());
-    EXPECT_TRUE(std::find(result.begin(), result.end(), e5) != result.end());
+    ASSERT_EQ(1u, result.size());
+    EXPECT_EQ(e3, result.front());
   }
   {
     auto result = manager.ChildrenByComponents(e2, Even());
-    ASSERT_EQ(1u, result.size());
-    EXPECT_EQ(e4, result.front());
+    ASSERT_EQ(2u, result.size());
+    EXPECT_TRUE(std::find(result.begin(), result.end(), e4) != result.end());
+    EXPECT_TRUE(std::find(result.begin(), result.end(), e6) != result.end());
   }
   {
     auto result = manager.ChildrenByComponents(e2, Odd());
@@ -1346,7 +1351,8 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   }
   {
     auto result = manager.ChildrenByComponents(e3, Odd());
-    ASSERT_TRUE(result.empty());
+    ASSERT_EQ(1u, result.size());
+    EXPECT_EQ(e5, result.front());
   }
   {
     auto result = manager.ChildrenByComponents(e4, Even());
@@ -1364,14 +1370,22 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
     auto result = manager.ChildrenByComponents(e5, Odd());
     ASSERT_TRUE(result.empty());
   }
+  {
+    auto result = manager.ChildrenByComponents(e6, Even());
+    ASSERT_TRUE(result.empty());
+  }
+  {
+    auto result = manager.ChildrenByComponents(e6, Odd());
+    ASSERT_TRUE(result.empty());
+  }
 
-  // Remove recursively (e1, e3, e5)
-  manager.RequestRemoveEntity(e1);
+  // Remove recursively (e2, e4, e6)
+  manager.RequestRemoveEntity(e2);
   manager.ProcessEntityRemovals();
   EXPECT_EQ(4u, manager.EntityCount());
-  EXPECT_FALSE(manager.HasEntity(e1));
-  EXPECT_FALSE(manager.HasEntity(e3));
-  EXPECT_FALSE(manager.HasEntity(e5));
+  EXPECT_FALSE(manager.HasEntity(e2));
+  EXPECT_FALSE(manager.HasEntity(e4));
+  EXPECT_FALSE(manager.HasEntity(e6));
 }
 
 /////////////////////////////////////////////////
@@ -1380,13 +1394,13 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
   EXPECT_EQ(0u, manager.EntityCount());
 
   // Entities
-  auto entity = manager.CreateEntity();
+  auto entity1 = manager.CreateEntity();
   auto entity2 = manager.CreateEntity();
   manager.CreateEntity();
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Components
-  manager.CreateComponent<IntComponent>(entity, IntComponent(123));
+  manager.CreateComponent<IntComponent>(entity1, IntComponent(123));
   manager.CreateComponent<DoubleComponent>(entity2, DoubleComponent(0.123));
   manager.CreateComponent<StringComponent>(entity2, StringComponent("string"));
 
@@ -1404,25 +1418,25 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
   // Check message
   ASSERT_EQ(2, stateMsg.entities_size());
 
-  auto e0 = stateMsg.entities(0);
-  EXPECT_EQ(0u, e0.id());
-  ASSERT_EQ(1, e0.components().size());
-
-  auto e0c0 = e0.components(0);
-  EXPECT_EQ(EntityComponentManager::ComponentType<IntComponent>(), e0c0.type());
-  EXPECT_EQ("123", e0c0.component());
-
-  auto e1 = stateMsg.entities(1);
-  EXPECT_EQ(1u, e1.id());
-  ASSERT_EQ(2, e1.components().size());
+  auto e1 = stateMsg.entities(0);
+  EXPECT_EQ(entity1, e1.id());
+  ASSERT_EQ(1, e1.components().size());
 
   auto e1c0 = e1.components(0);
-  EXPECT_EQ(EntityComponentManager::ComponentType<DoubleComponent>(), e1c0.type());
-  EXPECT_EQ("0.123", e1c0.component());
+  EXPECT_EQ(EntityComponentManager::ComponentType<IntComponent>(), e1c0.type());
+  EXPECT_EQ("123", e1c0.component());
 
-  auto e1c1 = e1.components(1);
-  EXPECT_EQ(EntityComponentManager::ComponentType<StringComponent>(), e1c1.type());
-  EXPECT_EQ("string", e1c1.component());
+  auto e2 = stateMsg.entities(1);
+  EXPECT_EQ(entity2, e2.id());
+  ASSERT_EQ(2, e2.components().size());
+
+  auto e2c0 = e2.components(0);
+  EXPECT_EQ(EntityComponentManager::ComponentType<DoubleComponent>(), e2c0.type());
+  EXPECT_EQ("0.123", e2c0.component());
+
+  auto e2c1 = e2.components(1);
+  EXPECT_EQ(EntityComponentManager::ComponentType<StringComponent>(), e2c1.type());
+  EXPECT_EQ("string", e2c1.component());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

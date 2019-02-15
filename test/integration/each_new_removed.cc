@@ -144,12 +144,14 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
     auto counterImpl = [&](const gazebo::UpdateInfo &,
                            const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.EachNew<IntComponent>([&](const gazebo::Entity &, const IntComponent *) -> bool
+      _ecm.EachNew<IntComponent>([&](const gazebo::Entity &,
+                                     const IntComponent *) -> bool
       {
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachRemoved<IntComponent>([&](const gazebo::Entity &, const IntComponent *) -> bool
+      _ecm.EachRemoved<IntComponent>([&](const gazebo::Entity &,
+                                         const IntComponent *) -> bool
       {
         ++_count.removedEntities;
         return true;

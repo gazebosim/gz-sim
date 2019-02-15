@@ -29,6 +29,7 @@ pipelines:
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
+            # libignition-fuel-tools3-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
           #   libxml2-utils
@@ -65,6 +66,16 @@ pipelines:
           # - cmake .. -DBUILD_TESTING=false
           # - make -j4 install
           # - cd ../..
+          # Ignition fuel-tools (uncomment if a specific branch is needed)
+          - apt install -y
+            libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b default
+          - cd ign-fuel-tools
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
           # Ignition gui (uncomment if a specific branch is needed)
           # - apt install -y
           #   qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
