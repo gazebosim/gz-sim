@@ -33,6 +33,8 @@
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/WorkerPool.hh>
 
+#include <ignition/fuel_tools/FuelClient.hh>
+
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -76,6 +78,11 @@ namespace ignition
       /// this function.
       public: void SetupTransport();
 
+      /// \brief Fetch a resource from Fuel using fuel-tools.
+      /// \param[in] _uri The resource URI to fetch.
+      /// \return Path to the downloaded resource, empty on error.
+      public: std::string FetchResource(const std::string &_uri);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -114,6 +121,9 @@ namespace ignition
 
       /// \brief Whether to use the level system
       public: bool useLevels{false};
+
+      /// \brief Client used to download resources from Ignition Fuel.
+      public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

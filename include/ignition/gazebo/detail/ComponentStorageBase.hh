@@ -62,13 +62,15 @@ namespace ignition
       /// \param[in] _id Id of the component to get.
       /// \return A pointer to the component, or nullptr if the component
       /// could not be found.
-      public: virtual const components::BaseComponent *Component(const ComponentId _id) const = 0;
+      public: virtual const components::BaseComponent *Component(
+                  const ComponentId _id) const = 0;
 
       /// \brief Get a mutable component based on an id.
       /// \param[in] _id Id of the component to get.
       /// \return A pointer to the component, or nullptr if the component
       /// could not be found.
-      public: virtual components::BaseComponent *Component(const ComponentId _id) = 0;
+      public: virtual components::BaseComponent *Component(
+                  const ComponentId _id) = 0;
 
       /// \brief Get the first component.
       /// \return First component or nullptr if there are no components.
@@ -172,7 +174,8 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: const components::BaseComponent *Component(const ComponentId _id) const final
+      public: const components::BaseComponent *Component(
+                  const ComponentId _id) const final
       {
         return static_cast<const components::BaseComponent *>(
             const_cast<ComponentStorage<ComponentTypeT> *>(
@@ -187,7 +190,8 @@ namespace ignition
 
         if (iter != this->idMap.end())
         {
-          return static_cast<components::BaseComponent *>(&this->components.at(iter->second));
+          return static_cast<components::BaseComponent *>(
+              &this->components.at(iter->second));
         }
         return nullptr;
       }

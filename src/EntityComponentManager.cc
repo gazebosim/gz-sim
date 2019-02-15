@@ -27,8 +27,8 @@
 #include "msgs/serialized.pb.h"
 
 #include "ignition/common/Profiler.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Component.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -94,7 +94,7 @@ size_t EntityComponentManager::EntityCount() const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity entity = this->dataPtr->entityCount++;
+  Entity entity = ++this->dataPtr->entityCount;
 
   if (entity == std::numeric_limits<int64_t>::max())
   {
@@ -429,7 +429,8 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 }
 
 /////////////////////////////////////////////////
-const components::BaseComponent *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent
+    *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
@@ -472,7 +473,8 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-const components::BaseComponent *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent
+    *EntityComponentManager::ComponentImplementation(
     const ComponentKey &_key) const
 {
   if (this->dataPtr->components.find(_key.first) !=
@@ -484,7 +486,8 @@ const components::BaseComponent *EntityComponentManager::ComponentImplementation
 }
 
 /////////////////////////////////////////////////
-components::BaseComponent *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
+components::BaseComponent *EntityComponentManager::ComponentImplementation(
+    const ComponentKey &_key)
 {
   if (this->dataPtr->components.find(_key.first) !=
       this->dataPtr->components.end())
@@ -512,7 +515,8 @@ void EntityComponentManager::RegisterComponentType(
 }
 
 /////////////////////////////////////////////////
-components::BaseComponent *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
+components::BaseComponent *EntityComponentManager::First(
+    const ComponentTypeId _componentTypeId)
 {
   auto iter = this->dataPtr->components.find(_componentTypeId);
   if (iter != this->dataPtr->components.end())

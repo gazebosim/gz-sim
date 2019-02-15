@@ -52,8 +52,8 @@ namespace ignition
 {
 namespace gazebo
 {
-  using IntComponent = components::Component<int, class IntComponentTag>;
-  using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+using IntComponent = components::Component<int, class IntComponentTag>;
+using DoubleComponent = components::Component<double, class DoubleComponentTag>;
 }
 }
 
@@ -1038,14 +1038,18 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
         gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<DoubleComponent>(worldId));
-  EXPECT_DOUBLE_EQ(runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(), 0.123);
+  ASSERT_NE(nullptr,
+      runner.EntityCompMgr().Component<DoubleComponent>(worldId));
+  EXPECT_DOUBLE_EQ(
+      runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(),
+      0.123);
 
   // Check component registered by model plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
         gazebo::EntityComponentManager::ComponentType<IntComponent>()));
   ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
-  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(), 987);
+  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(),
+      987);
 }
 
 /////////////////////////////////////////////////
@@ -1090,7 +1094,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
         gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
-  EXPECT_DOUBLE_EQ(runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
+  EXPECT_DOUBLE_EQ(
+      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
       0.123);
 }
 
