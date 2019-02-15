@@ -32,9 +32,6 @@
 
 #include "plugins/MockSystem.hh"
 
-#define LASER_TOL 1e-4
-#define DOUBLE_TOL 1e-6
-
 using namespace ignition;
 using namespace gazebo;
 
@@ -91,10 +88,10 @@ class Relay
 };
 
 std::mutex mutex;
-std::vector<msgs::LaserScan> logicalCameraMsgs;
+std::vector<msgs::LogicalCameraImage> logicalCameraMsgs;
 
 /////////////////////////////////////////////////
-void logicalCameraCb(const msgs::LaserScan &_msg)
+void logicalCameraCb(const msgs::LogicalCameraImage &_msg)
 {
   mutex.lock();
   logicalCameraMsgs.push_back(_msg);
@@ -115,36 +112,28 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string sensorName = "logical_camera_sensor";
-
   // subscribe to lidar topic
   transport::Node node;
-  node.Subscribe("/logical_camera", &logicalCameraCb);
+  node.Subscribe("/logical_camera",
+      &logicalCameraCb);
 
-  // Run server and verify that we are receiving a message
-  // from the lidar
+  // Run server and verify that we are receiving messages
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
   mutex.lock();
   EXPECT_GT(logicalCameraMsgs.size(), 0u);
   mutex.unlock();
 
-  ignition::common::Time waitTime = ignition::common::Time(0.01);
-  int i = 0;
-  while (i < 300)
-  {
-    ignition::common::Time::Sleep(waitTime);
-    i++;
-  }
-  mutex.lock();
-  EXPECT_GT(logicalCameraMsgs.size(), 0u);
-  mutex.unlock();
-
   // Sensor 1 should see TestBox1
-//  mutex.lock();
-//  EXPECT_DOUBLE_EQ(logicalCameraMsgs.back().ranges(0), ignition::math::INF_D);
-//  EXPECT_NEAR(logicalCameraMsgs.back().ranges(mid), expectedRangeAtMidPointBox1, LASER_TOL);
-//  EXPECT_DOUBLE_EQ(logicalCameraMsgs.back().ranges(last), ignition::math::INF_D);
-//  EXPECT_EQ(logicalCameraMsgs.back().frame(), "gpu_lidar::gpu_lidar_link");
-//  mutex.unlock();
+  std::string boxName = "box";
+  math::Pose3d boxPose(1, 0, 0.5, 0, 0, 0);
+  math::Pose3d sensorPose(0.05, 0.05, 0.55, 0, 0, 0);
+  mutex.lock();
+  ignition::msgs::LogicalCameraImage img = logicalCameraMsgs.back();
+  EXPECT_EQ(sensorPose, ignition::msgs::Convert(img.pose()));
+  EXPECT_EQ(1, img.model().size());
+  EXPECT_EQ(boxName, img.model(0).name());
+  ignition::math::Pose3d boxPoseCameraFrame = boxPose - sensorPose;
+  EXPECT_EQ(boxPoseCameraFrame, ignition::msgs::Convert(img.model(0).pose()));
+  mutex.unlock();
 }

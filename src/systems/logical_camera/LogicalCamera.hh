@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ALTIMETER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ALTIMETER_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_LOGICALCAMERA_HH_
+#define IGNITION_GAZEBO_SYSTEMS_LOGICALCAMERA_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
@@ -31,22 +31,23 @@ namespace systems
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declarations.
-  class AltimeterPrivate;
-  class AltimeterSensor;
+  class LogicalCameraPrivate;
 
-  /// \class Altimeter Altimeter.hh ignition/gazebo/systems/Altimeter.hh
-  /// \brief An altimeter sensor that reports vertical position and velocity
-  /// readings over ign transport
-  class IGNITION_GAZEBO_VISIBLE Altimeter:
+  /** \class LogicalCamera LogicalCamera.hh \
+   *  ignition/gazebo/systems/LogicalCamera.hh
+  **/
+  /// \brief A logical camera sensor that reports objects detected within its
+  /// frustum readings over ign transport
+  class IGNITION_GAZEBO_VISIBLE LogicalCamera:
     public System,
     public ISystemPreUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit Altimeter();
+    public: explicit LogicalCamera();
 
     /// \brief Destructor
-    public: ~Altimeter() override;
+    public: ~LogicalCamera() override;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
@@ -58,7 +59,7 @@ namespace systems
                             const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<AltimeterPrivate> dataPtr;
+    private: std::unique_ptr<LogicalCameraPrivate> dataPtr;
   };
   }
 }
