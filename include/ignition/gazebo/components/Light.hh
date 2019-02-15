@@ -35,6 +35,8 @@ namespace components
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light = Component<sdf::Light, class LightTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
+
+  std::ostream &operator<<(std::ostream &_out, sdf::Light const &);
 }
 }
 }

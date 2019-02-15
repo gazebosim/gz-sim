@@ -41,6 +41,8 @@ namespace components
   using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis2", JointAxis2)
+
+  std::ostream &operator<<(std::ostream &_out, sdf::JointAxis const &);
 }
 }
 }

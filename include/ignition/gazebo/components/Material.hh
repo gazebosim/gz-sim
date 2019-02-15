@@ -34,6 +34,8 @@ namespace components
   using Material = Component<sdf::Material, class MaterialTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Material", Material)
+
+  std::ostream &operator<<(std::ostream &_out, sdf::Material const &);
 }
 }
 }

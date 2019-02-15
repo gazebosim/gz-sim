@@ -36,6 +36,8 @@ namespace components
   using JointType = Component<sdf::JointType, class JointTypeTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointType", JointType)
+
+  std::ostream &operator<<(std::ostream &_out, sdf::JointType const &);
 }
 }
 }
