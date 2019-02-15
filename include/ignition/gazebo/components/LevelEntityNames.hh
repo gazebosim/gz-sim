@@ -39,6 +39,8 @@ namespace components
       Component<std::set<std::string>, class LevelEntityNamesTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelEntityNames",
       LevelEntityNames)
+
+  std::ostream &operator<<(std::ostream &_out, std::set<std::string> const &);
 }
 }
 }

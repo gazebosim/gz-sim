@@ -32,6 +32,8 @@
 using namespace ignition;
 using namespace std::chrono_literals;
 
+using IntComponent = gazebo::components::Component<int, class IntComponentTag>;
+
 class EachNewRemovedFixture : public ::testing::Test
 {
   protected: void SetUp() override
@@ -107,8 +109,8 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
         // Create entities only once
         e1 = _ecm.CreateEntity();
         e2 = _ecm.CreateEntity();
-        _ecm.CreateComponent<int>(e1, 1);
-        _ecm.CreateComponent<int>(e2, 2);
+        _ecm.CreateComponent<IntComponent>(e1, IntComponent(1));
+        _ecm.CreateComponent<IntComponent>(e2, IntComponent(2));
         shouldCreateEntities = false;
       }
   });
@@ -142,12 +144,12 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
     auto counterImpl = [&](const gazebo::UpdateInfo &,
                            const gazebo::EntityComponentManager &_ecm)
     {
-      _ecm.EachNew<int>([&](const gazebo::Entity &, const int *) -> bool
+      _ecm.EachNew<IntComponent>([&](const gazebo::Entity &, const IntComponent *) -> bool
       {
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachRemoved<int>([&](const gazebo::Entity &, const int *) -> bool
+      _ecm.EachRemoved<IntComponent>([&](const gazebo::Entity &, const IntComponent *) -> bool
       {
         ++_count.removedEntities;
         return true;

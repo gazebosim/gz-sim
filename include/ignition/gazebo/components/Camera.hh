@@ -34,6 +34,9 @@ namespace components
   /// This is currently the whole <sensor> element.
   using Camera = Component<sdf::ElementPtr, class CameraTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
+
+  // TODO(louise) Substitute witg type that has stream operators
+  std::ostream &operator<<(std::ostream &_out, sdf::ElementPtr const &);
 }
 }
 }

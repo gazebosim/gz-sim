@@ -51,13 +51,19 @@ namespace components
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
 
+    /// \brief Fills a stream with a serialized version of the component.
+    /// By default, it will leave the stream empty.
+    /// \param[in] _out Out stream.
+    public: virtual void Serialize(std::ostream &/*_out*/) const {};
+
     /// \brief Stream insertion operator
     /// \param[in] _out output stream
     /// \param[in] _pose pose to output
     /// \return the stream
     public: friend std::ostream &operator<<(
-                std::ostream &_out, const BaseComponent &)
+                std::ostream &_out, const BaseComponent &_component)
     {
+      _component.Serialize(_out);
       return _out;
     }
 
@@ -126,6 +132,9 @@ namespace components
     /// \param[in] _component Component to compare to.
     /// \return True if different.
     public: bool operator!=(const Component &_component) const;
+
+    // Documentation inherited
+    public: virtual void Serialize(std::ostream &_out) const override;
 
     /// \brief Stream insertion operator
     /// \param[in] _out output stream
@@ -247,6 +256,13 @@ namespace components
   operator!=(const Component<DataType, Identifier> &_component) const
   {
     return this->dataPtr->data != _component.Data();
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  void Component<DataType, Identifier>::Serialize(std::ostream &_out) const
+  {
+    _out << this->Data();
   }
 
   //////////////////////////////////////////////////

@@ -32,6 +32,7 @@
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
 
@@ -436,7 +437,7 @@ namespace ignition
       /// \brief The first component instance of the specified type.
       /// \return First component instance of the specified type, or nullptr
       /// if the type does not exist.
-      private: void *First(const ComponentTypeId _componentTypeId);
+      private: components::BaseComponent *First(const ComponentTypeId _componentTypeId);
 
       /// \brief Implmentation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
@@ -447,14 +448,14 @@ namespace ignition
       private: ComponentKey CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   const void *_data);
+                   const components::BaseComponent *_data);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      private: const void *ComponentImplementation(const Entity _entity,
+      private: const components::BaseComponent *ComponentImplementation(const Entity _entity,
                    const ComponentTypeId _type) const;
 
       /// \brief Get a mutable component based on a component type.
@@ -462,21 +463,21 @@ namespace ignition
       /// \param[in] _type Id of the component type.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
-      private: void *ComponentImplementation(const Entity _entity,
+      private: components::BaseComponent *ComponentImplementation(const Entity _entity,
                    const ComponentTypeId _type);
 
       /// \brief Get a component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
-      private: const void *ComponentImplementation(
+      private: const components::BaseComponent *ComponentImplementation(
                    const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
-      private: void *ComponentImplementation(const ComponentKey &_key);
+      private: components::BaseComponent *ComponentImplementation(const ComponentKey &_key);
 
       /// \brief Register a new component type.
       /// \param[in] _typeId Type if of the new component.

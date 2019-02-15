@@ -48,6 +48,15 @@
 #include "ignition/gazebo/Events.hh"
 #include "SimulationRunner.hh"
 
+namespace ignition
+{
+namespace gazebo
+{
+  using IntComponent = components::Component<int, class IntComponentTag>;
+  using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+}
+}
+
 using namespace ignition;
 using namespace gazebo;
 
@@ -1028,15 +1037,15 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<double>(worldId));
-  EXPECT_DOUBLE_EQ(*runner.EntityCompMgr().Component<double>(worldId), 0.123);
+        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
+  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<DoubleComponent>(worldId));
+  EXPECT_DOUBLE_EQ(runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(), 0.123);
 
   // Check component registered by model plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<int>()));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<int>(modelId));
-  EXPECT_EQ(*runner.EntityCompMgr().Component<int>(modelId), 987);
+        gazebo::EntityComponentManager::ComponentType<IntComponent>()));
+  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
+  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(), 987);
 }
 
 /////////////////////////////////////////////////
@@ -1066,7 +1075,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 
   // Check there's no double component
   EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
+        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
@@ -1080,8 +1089,8 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<double>()));
-  EXPECT_DOUBLE_EQ(*runner.EntityCompMgr().Component<double>(worldEntity),
+        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
+  EXPECT_DOUBLE_EQ(runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
       0.123);
 }
 

@@ -14,6 +14,11 @@
  * limitations under the License.
  *
 */
+#include <sdf/Light.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Material.hh>
+#include <sdf/Joint.hh>
+#include <ignition/math/Inertial.hh>
 
 #include <map>
 #include <set>
@@ -351,7 +356,7 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 /////////////////////////////////////////////////
 ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
-    const void *_data)
+    const components::BaseComponent *_data)
 {
   // Instantiate the new component.
   std::pair<ComponentId, bool> componentIdPair =
@@ -424,7 +429,7 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 }
 
 /////////////////////////////////////////////////
-const void *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
@@ -445,7 +450,7 @@ const void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::ComponentImplementation(
+components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
@@ -467,7 +472,7 @@ void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-const void *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const ComponentKey &_key) const
 {
   if (this->dataPtr->components.find(_key.first) !=
@@ -479,7 +484,7 @@ const void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
+components::BaseComponent *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
 {
   if (this->dataPtr->components.find(_key.first) !=
       this->dataPtr->components.end())
@@ -507,7 +512,7 @@ void EntityComponentManager::RegisterComponentType(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
+components::BaseComponent *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
 {
   auto iter = this->dataPtr->components.find(_componentTypeId);
   if (iter != this->dataPtr->components.end())
@@ -628,20 +633,7 @@ std::ostream &operator<<(std::ostream &_out,
       auto compMsg = entityMsg->add_components();
       compMsg->set_type(compKey.first);
 
-      auto compVoid = _ecm.ComponentImplementation(entity.first, compKey.first);
-      if (nullptr == compVoid)
-      {
-        ignerr << "Internal error" << std::endl;
-        continue;
-      }
-
-      const auto *compBase = static_cast<const components::BaseComponent *>(compVoid);
-      if (nullptr == compBase)
-      {
-        ignwarn << "Can't stream component which doesn't inherit from BaseComponent"
-                << std::endl;
-        continue;
-      }
+      auto compBase = _ecm.ComponentImplementation(entity.first, compKey.first);
 
       std::ostringstream ostr;
       ostr << *compBase;
@@ -661,6 +653,51 @@ std::istream &operator>>(std::istream &_in,
   return _in;
 }
 
+
+namespace components
+{
+
+std::ostream &operator<<(std::ostream &_out, sdf::Geometry const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, sdf::ElementPtr const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, sdf::Material const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, sdf::JointType const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, math::Inertiald const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, std::set<std::string> const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, sdf::Light const &)
+{
+  return _out;
+}
+
+std::ostream &operator<<(std::ostream &_out, sdf::JointAxis const &)
+{
+  return _out;
+}
+
+}
 }
 }
 }
