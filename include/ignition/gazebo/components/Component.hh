@@ -68,7 +68,7 @@ namespace components
   class Component: public BaseComponent
   {
     /// \brief Default constructor
-    public: explicit Component() = default;
+    public: Component();
 
     /// \brief Constructor
     /// \param[in] _component Component to copy
@@ -147,6 +147,9 @@ namespace components
   template <typename DataType>
   class ComponentPrivate
   {
+    /// \brief Default constructor
+    public: ComponentPrivate() = default;
+
     /// \brief Constructor.
     /// \param[in] _component Component data.
     public: explicit ComponentPrivate(DataType _data)
@@ -157,6 +160,13 @@ namespace components
     /// \brief The data being wrapped.
     public: DataType data;
   };
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component()
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>())
+  {
+  }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
