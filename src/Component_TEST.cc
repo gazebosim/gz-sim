@@ -16,6 +16,9 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <memory>
+
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -44,4 +47,24 @@ TEST(ComponentDeathTest, ComponentDefaultConstructor)
 {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_EXIT(ComponentDefaultConstructor(), ::testing::ExitedWithCode(0), "");
+}
+
+TEST(ComponentTest, DataByMove)
+{
+  // Create a custom component with shared_ptr data
+  using CustomComponent =
+      components::Component<std::shared_ptr<int>, class CustomComponentTag>;
+
+  EntityComponentManager ecm;
+  Entity entity = ecm.CreateEntity();
+
+  auto data = std::make_shared<int>(1);
+  auto dataCopy = data;
+
+  EXPECT_EQ(2u, dataCopy.use_count());
+
+  ecm.CreateComponent(entity, CustomComponent(std::move(data)));
+
+  // If "data" was moved, the use cound should still be 2.
+  EXPECT_EQ(2u, dataCopy.use_count());
 }
