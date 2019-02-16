@@ -165,7 +165,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
         {
           math::Pose3d worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
-          it->second->SetModelPoses(modelPoses);
+          it->second->SetModelPoses(std::move(modelPoses));
         }
         else
         {
