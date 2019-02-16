@@ -34,8 +34,6 @@ namespace components
   using Geometry = Component<sdf::Geometry, class GeometryTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Geometry", Geometry)
-
-  std::ostream &operator<<(std::ostream &_out, sdf::Geometry const &);
 }
 }
 }

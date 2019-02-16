@@ -21,10 +21,37 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <sstream>
 #include <utility>
 
+#include <ignition/common/Console.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that have operator<<
+template<typename DataType, typename Identifier,
+  typename OStream =
+  decltype(std::declval<std::ostream &>() << std::declval<DataType const &>()),
+  typename std::enable_if<std::is_convertible<OStream, std::ostream &>::value,
+  int>::type = 0>
+std::string serializeToString(DataType const &_data)
+{
+  std::ostringstream out;
+  out << _data;
+  return out.str();
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that don't have operator<<
+template<typename DataType, typename Identifier, typename... Ignored>
+std::string serializeToString(DataType const &, Ignored const &..., ...)
+{
+  ignwarn << "Type doesn't suport serialization" << std::endl;
+  return "";
+}
 
 namespace ignition
 {
@@ -143,7 +170,7 @@ namespace components
     public: friend std::ostream &operator<<(
                 std::ostream &_out, const Component &_component)
     {
-      _out << _component.Data();
+      _out << serializeToString<DataType, Identifier>(_component.Data());
       return _out;
     }
 
@@ -262,7 +289,7 @@ namespace components
   template <typename DataType, typename Identifier>
   void Component<DataType, Identifier>::Serialize(std::ostream &_out) const
   {
-    _out << this->Data();
+    _out << serializeToString<DataType, Identifier>(this->Data());
   }
 
   //////////////////////////////////////////////////

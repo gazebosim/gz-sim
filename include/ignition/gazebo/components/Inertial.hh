@@ -35,8 +35,6 @@ namespace components
   using Inertial = Component<ignition::math::Inertiald, class InertialTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Inertial", Inertial)
-
-  std::ostream &operator<<(std::ostream &_out, math::Inertiald const &);
 }
 }
 }
