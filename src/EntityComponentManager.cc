@@ -656,52 +656,6 @@ std::istream &operator>>(std::istream &_in,
 {
   return _in;
 }
-
-
-namespace components
-{
-
-std::ostream &operator<<(std::ostream &_out, sdf::Geometry const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, sdf::ElementPtr const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, sdf::Material const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, sdf::JointType const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, math::Inertiald const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, std::set<std::string> const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, sdf::Light const &)
-{
-  return _out;
-}
-
-std::ostream &operator<<(std::ostream &_out, sdf::JointAxis const &)
-{
-  return _out;
-}
-
-}
 }
 }
 }
