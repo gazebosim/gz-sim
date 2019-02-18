@@ -120,7 +120,7 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
 
   // Create a system that records magnetometer data
   Relay testSystem;
-  math::Vector3d worldMagneticField;
+
   std::vector<math::Pose3d> poses;
   testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
                               const gazebo::EntityComponentManager &_ecm)
@@ -138,17 +138,6 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
 
               return true;
             });
-
-        _ecm.Each<components::MagneticField>(
-            [&](const ignition::gazebo::Entity &,
-                const components::MagneticField *_magneticField) -> bool
-            {
-              // gtest is having a hard time with ASSERTs inside nested lambdas
-              EXPECT_NE(nullptr, _magneticField);
-              if (nullptr != _magneticField)
-                worldMagneticField = _magneticField->Data();
-              return false;
-            });
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -165,6 +154,9 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   size_t iters = 200u;
   server.Run(true, iters, false);
   EXPECT_EQ(iters, poses.size());
+
+  // Hardcoded SDF values
+  math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
   ignition::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
         worldMagneticField);
