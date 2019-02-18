@@ -51,7 +51,7 @@ class ignition::gazebo::systems::MagnetometerSensor
   /// \brief Load the magnetometer from an sdf element
   /// \param[in] _sdf SDF element describing the magnetometer
   public: void Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_magneticField, const std::string &_topic);
+    const math::Vector3d &_worldMagneticField, const std::string &_topic);
 
   /// \brief Publish magnetometer data over ign transport
   public: void Publish();
@@ -66,7 +66,7 @@ class ignition::gazebo::systems::MagnetometerSensor
   public: ignition::math::Vector3d field;
 
   /// \brief store world magnetic field vector.
-  public: ignition::math::Vector3d magneticField;
+  public: ignition::math::Vector3d worldMagneticField;
 
   /// \brief Ign transport node
   public: transport::Node node;
@@ -104,7 +104,7 @@ MagnetometerSensor::~MagnetometerSensor() = default;
 
 //////////////////////////////////////////////////
 void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_magneticField, const std::string &_topic)
+    const math::Vector3d &_worldMagneticField, const std::string &_topic)
 {
   if (_sdf->HasElement("topic"))
     this->topic = _sdf->Get<std::string>("topic");
@@ -115,7 +115,7 @@ void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
   this->pub = this->node.Advertise<ignition::msgs::Magnetometer>(this->topic);
 
   // Set sensors world magnetic field
-  this->magneticField = _magneticField;
+  this->worldMagneticField = _worldMagneticField;
 }
 
 //////////////////////////////////////////////////
@@ -183,8 +183,9 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
   }
 
   // Get the world magnetic field (defined in world frame)
-  auto magneticField = _ecm.Component<components::MagneticField>(worldEntity);
-  if (nullptr == magneticField)
+  auto worldMagneticField =
+    _ecm.Component<components::MagneticField>(worldEntity);
+  if (nullptr == worldMagneticField)
   {
     ignerr << "World missing magnetic field." << std::endl;
     return;
@@ -199,7 +200,7 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
           "/magnetometer";
 
         auto sensor = std::make_unique<MagnetometerSensor>();
-        sensor->Load(_magnetometer->Data(), magneticField->Data(),
+        sensor->Load(_magnetometer->Data(), worldMagneticField->Data(),
             defaultTopic);
 
         this->entitySensorMap.insert(
@@ -228,7 +229,7 @@ void MagnetometerPrivate::Update(
           // Rotate the magnetic field into the body frame
           it->second->field =
             magnetometerWorldPose.Rot().Inverse().RotateVector(
-                it->second->magneticField);
+                it->second->worldMagneticField);
         }
         else
         {
