@@ -35,6 +35,11 @@ template<typename ComponentTypeT>
 ComponentTypeId EntityComponentManager::ComponentType()
 {
   // Get a unique identifier to the component type
+  // TODO(anyone) Factory fills ComponentTypeT::id with similar info for us
+  // (the hash of a registered name that is guaranteed to remain the same
+  // across compilers and runs, as opposed to typeid().name()).
+  // It would be nice to reuse that here, but we must make sure all components
+  // are registered with the factory.
   auto name = typeid(ComponentTypeT).name();
   return ignition::common::hash64(name);
 }
