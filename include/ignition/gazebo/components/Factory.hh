@@ -174,10 +174,10 @@ namespace components
     /// can lead to a scenario where the shared library is unloaded (with the
     /// ComponentDescriptor), but the Factory still exists. For this reason,
     /// we just keep a pointer, which will dangle until the program is shutdown.
-    private: std::map<std::string, ComponentDescriptorBase*> compsByName;
+    private: std::map<std::string, ComponentDescriptorBase *> compsByName;
 
     /// \brief A list of registered components where the key is its id.
-    private: std::map<ComponentTypeId, ComponentDescriptorBase*> compsById;
+    private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
 
     /// \brief Valid component name prefix
     private: constexpr static const char *kCompStr {
