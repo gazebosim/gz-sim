@@ -403,9 +403,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  if (!_sdf->HasElement("plugin"))
-    return;
-
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
@@ -433,19 +430,19 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
   for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
   {
     Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.entityName));
+        components::Name(plugin.EntityName()));
     // Skip plugins that do not match the provided entity
     if (entity != _entity)
       continue;
 
     std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
+      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(entity, plugin.sdf, this->entityCompMgr,
+        systemConfig->Configure(entity, plugin.Sdf(), this->entityCompMgr,
                                 this->eventMgr);
       }
       this->AddSystem(system.value());
@@ -676,36 +673,4 @@ bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
   _res.CopyFrom(this->guiMsg);
 
   return true;
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadConfigurationPlugins()
-{
-  // Load the plugins in the server config
-  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
-  {
-    Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.entityName));
-    if (entity == kNullEntity)
-    {
-      ignerr << "Unable to find entity with name [" << plugin.entityName
-        << "]. The plugin with name[" << plugin.name << "] and filename["
-        << plugin.filename << "] will not be loaded.\n";
-      continue;
-    }
-
-    std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.filename, plugin.name, nullptr);
-    if (system)
-    {
-      auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-      if (systemConfig != nullptr)
-      {
-        systemConfig->Configure(entity, nullptr,
-            this->entityCompMgr,
-            this->eventMgr);
-      }
-      this->AddSystem(system.value());
-    }
-  }
 }
