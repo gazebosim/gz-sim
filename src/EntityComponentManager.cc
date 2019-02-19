@@ -14,11 +14,6 @@
  * limitations under the License.
  *
 */
-#include <sdf/Light.hh>
-#include <sdf/Geometry.hh>
-#include <sdf/Material.hh>
-#include <sdf/Joint.hh>
-#include <ignition/math/Inertial.hh>
 
 #include <map>
 #include <set>
@@ -28,6 +23,7 @@
 
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Component.hh"
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -35,6 +31,12 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
+  /// \brief Implementation of the CreateEntity function, which takes a specific
+  /// entity as input.
+  /// \param[in] _entity Entity to be created.
+  /// \return Created entity, which should match the input.
+  public: Entity CreateEntityImplementation(Entity _entity);
+
   /// \brief Recursively insert an entity and all its descendants into a given
   /// set.
   /// \param[in] _entity Entity to be inserted.
@@ -103,15 +105,21 @@ Entity EntityComponentManager::CreateEntity()
     return entity;
   }
 
-  this->dataPtr->entities.AddVertex(std::to_string(entity), entity, entity);
+  return this->dataPtr->CreateEntityImplementation(entity);
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
+{
+  this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
 
   // Add entity to the list of newly created entities
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-    this->dataPtr->newlyCreatedEntities.insert(entity);
+    std::lock_guard<std::mutex> lock(this->entityCreatedMutex);
+    this->newlyCreatedEntities.insert(_entity);
   }
 
-  return entity;
+  return _entity;
 }
 
 /////////////////////////////////////////////////
@@ -623,8 +631,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
 
 //////////////////////////////////////////////////
-std::ostream &operator<<(std::ostream &_out,
-    const EntityComponentManager &_ecm)
+std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
 {
   gazebo::msgs::SerializedState stateMsg;
   for (const auto &entity: _ecm.dataPtr->entityComponents)
@@ -635,6 +642,7 @@ std::ostream &operator<<(std::ostream &_out,
     for (const auto &compKey : entity.second)
     {
       auto compMsg = entityMsg->add_components();
+      // TODO this is using the ECM ID instead of the factory ID, so deserialization doesn't work
       compMsg->set_type(compKey.first);
 
       auto compBase = _ecm.ComponentImplementation(entity.first, compKey.first);
@@ -651,9 +659,62 @@ std::ostream &operator<<(std::ostream &_out,
 }
 
 //////////////////////////////////////////////////
-std::istream &operator>>(std::istream &_in,
-    EntityComponentManager &)
+std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
 {
+  gazebo::msgs::SerializedState stateMsg;
+  stateMsg.ParseFromIstream(&_in);
+igndbg << stateMsg.DebugString() << std::endl;
+
+  for (int e = 0; e < stateMsg.entities_size(); ++e)
+  {
+    Entity entity{stateMsg.entities(e).id()};
+
+    // Create entity if it doesn't exist
+    if (!_ecm.HasEntity(entity))
+    {
+      _ecm.dataPtr->CreateEntityImplementation(entity);
+    }
+
+    // Update / add / remove components
+    for (int c = 0; c < stateMsg.entities(e).components_size(); ++c)
+    {
+      auto compMsg = stateMsg.entities(e).components(c);
+
+      // Create component
+      auto newComp = components::Factory::Instance()->New(compMsg.type());
+
+      if (nullptr == newComp)
+      {
+        ignwarn << "Failed to deserialized component of type [" << compMsg.type()
+                << "]" << std::endl;
+        continue;
+      }
+
+      std::istringstream istr(compMsg.component());
+      istr >> *newComp.get();
+
+      // Get type id within ECM
+      auto typeName = typeid(newComp).name();
+      auto typeId = common::hash64(typeName);
+
+      // Get Component
+      auto comp = _ecm.ComponentImplementation(entity, typeId);
+
+      // Create if new
+      if (nullptr == comp)
+      {
+        _ecm.CreateComponentImplementation(entity, typeId, newComp.get());
+      }
+      // Update component value
+      else
+      {
+        *comp = *newComp.get();
+      }
+    }
+  }
+
+  // Remove entities and components which don't exist in new state
+
   return _in;
 }
 }

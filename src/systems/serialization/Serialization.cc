@@ -76,37 +76,15 @@ void Serialization::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   // Handle outgoing components
+  std::ostringstream ostr;
+  ostr << _ecm;
+
+  std::istringstream istr(ostr.str());
 
   msgs::SerializedState stateMsg;
+  stateMsg.ParseFromIstream(&istr);
 
-
-  // Iterate over all registered components
-//  auto factory = components::Factory::Instance();
-//  for (auto compStr : factory->Components())
-//  {
-//    auto baseComp = factory->New(compStr);
-//    if (nullptr == baseComp)
-//    {
-//      ignerr << "Failed to create component of type [" << compStr << "]"
-//             << std::endl;
-//    }
-//
-//    auto comp = static_cast<decltype()>(baseCom);
-//
-//    auto compTypeMsg = stateMsg.add_component_types();
-//    compTypeMsg->set_type(compStr);
-//
-//    components::BaseComponent c = *comp.get();
-//
-//    _ecm.Each<decltype(comp)>(
-//        [&](const Entity &_entity, const decltype(comp) _component) -> bool
-//        {
-//
-//          return true;
-//        });
-//  }
-
-  //this->dataPtr->statePub.Publish(stateMsg);
+  this->dataPtr->statePub.Publish(stateMsg);
 }
 
 IGNITION_ADD_PLUGIN(Serialization, System,
