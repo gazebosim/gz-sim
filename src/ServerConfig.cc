@@ -19,6 +19,127 @@
 using namespace ignition;
 using namespace gazebo;
 
+/// \brief Private data for PluginInfoConfig.
+class ignition::gazebo::ServerConfig::PluginInfoPrivate
+{
+  /// \brief Default constructor.
+  public: PluginInfoPrivate() = default;
+
+  /// \brief Copy constructor
+  /// \param[in] _info Plugin to copy.
+  public: explicit PluginInfoPrivate(
+              const std::unique_ptr<ServerConfig::PluginInfoPrivate> &_info)
+          : entityName(_info->entityName),
+            entityType(_info->entityType),
+            filename(_info->filename),
+            name(_info->name)
+  {
+    if (_info->sdf)
+      this->sdf = _info->sdf->Clone();
+  }
+
+  /// \brief Constructor based on values.
+  /// \param[in] _entityName Name of the entity which should receive
+  /// this plugin. The name is used in conjuction with _entityType to
+  /// uniquely identify an entity.
+  /// \param[in] _entityType Entity type which should receive  this
+  /// plugin. The type is used in conjuction with _entityName to
+  /// uniquely identify an entity.
+  /// \param[in] _filename Plugin library filename.
+  /// \param[in] _name Name of the interface within the plugin library
+  /// to load.
+  /// \param[in] _sdf Plugin XML elements associated with this plugin.
+  public: PluginInfoPrivate(const std::string &_entityName,
+                            const std::string &_entityType,
+                            const std::string &_filename,
+                            const std::string &_name)
+          : entityName(_entityName),
+            entityType(_entityType),
+            filename(_filename),
+            name(_name) {}
+
+  /// \brief The name of the entity.
+  public: std::string entityName = "";
+
+  /// \brief The type of entity.
+  public: std::string entityType = "";
+
+  /// \brief _filename The plugin library.
+  public: std::string filename = "";
+
+  /// \brief Name of the plugin implementation.
+  public: std::string name = "";
+
+  /// \brief XML elements associated with this plugin
+  public: sdf::ElementPtr sdf = nullptr;
+};
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo()
+: dataPtr(new ServerConfig::PluginInfoPrivate)
+{
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::~PluginInfo() = default;
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
+                       const std::string &_entityType,
+                       const std::string &_filename,
+                       const std::string &_name,
+                       const sdf::ElementPtr &_sdf)
+  : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
+                                  _filename, _name))
+{
+  if (_sdf)
+    this->dataPtr->sdf = _sdf->Clone();
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo(const ServerConfig::PluginInfo &_info)
+  : dataPtr(new ServerConfig::PluginInfoPrivate(_info.dataPtr))
+{
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo &ServerConfig::PluginInfo::operator=(
+    const ServerConfig::PluginInfo &_info)
+{
+  this->dataPtr.reset(new ServerConfig::PluginInfoPrivate(_info.dataPtr));
+  return *this;
+}
+
+//////////////////////////////////////////////////
+const std::string &ServerConfig::PluginInfo::EntityName() const
+{
+  return this->dataPtr->entityName;
+}
+
+//////////////////////////////////////////////////
+const std::string &ServerConfig::PluginInfo::EntityType() const
+{
+  return this->dataPtr->entityType;
+}
+
+//////////////////////////////////////////////////
+const std::string &ServerConfig::PluginInfo::Filename() const
+{
+  return this->dataPtr->filename;
+}
+
+//////////////////////////////////////////////////
+const std::string &ServerConfig::PluginInfo::Name() const
+{
+  return this->dataPtr->name;
+}
+
+//////////////////////////////////////////////////
+const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
+{
+  return this->dataPtr->sdf;
+}
+
 /// \brief Private data for ServerConfig.
 class ignition::gazebo::ServerConfigPrivate
 {
@@ -27,7 +148,8 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Copy constructor.
   /// \param[in] _cfg Configuration to copy.
-  public: ServerConfigPrivate(const std::unique_ptr<ServerConfigPrivate> &_cfg)
+  public: explicit ServerConfigPrivate(
+              const std::unique_ptr<ServerConfigPrivate> &_cfg)
           : sdfFile(_cfg->sdfFile),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),

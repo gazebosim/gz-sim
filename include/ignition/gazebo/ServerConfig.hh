@@ -41,13 +41,17 @@ namespace ignition
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
       /// server.
       /// \sa const std::list<PluginInfo> &Plugins() const
       public: class PluginInfo
       {
         /// \brief Default constructor.
-        public: PluginInfo() = default;
+        public: PluginInfo();
+
+        /// \brief Destructor.
+        public: ~PluginInfo();
 
         /// \brief Constructor with plugin information specified.
         /// \param[in] _entityName Name of the entity which should receive
@@ -64,36 +68,44 @@ namespace ignition
                            const std::string &_entityType,
                            const std::string &_filename,
                            const std::string &_name,
-                           const sdf::ElementPtr &_sdf)
-                : entityName(_entityName),
-                  entityType(_entityType),
-                  filename(_filename),
-                  name(_name),
-                  sdf(_sdf->Clone()) { }
+                           const sdf::ElementPtr &_sdf);
 
         /// \brief Copy constructor.
         /// \param[in] _info Plugin to copy.
-        public: PluginInfo(const PluginInfo &_info)
-                : entityName(_info.entityName),
-                  entityType(_info.entityType),
-                  filename(_info.filename),
-                  name(_info.name),
-                  sdf(_info.sdf->Clone()) { }
+        public: PluginInfo(const PluginInfo &_info);
 
-        /// \brief The name of the entity.
-        public: std::string entityName = "";
+        /// \brief Equal operator.
+        /// \param[in] _info PluginInfo to copy.
+        /// \return Reference to this class.
+        public: PluginInfo &operator=(const PluginInfo &_info);
 
-        /// \brief The type of entity.
-        public: std::string entityType = "";
+        /// \brief Get the name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \return Entity name.
+        public: const std::string &EntityName() const;
 
-        /// \brief _filename The plugin library.
-        public: std::string filename = "";
+        /// \brief Get the entity type which should receive  this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \return Entity type string.
+        public: const std::string &EntityType() const;
 
-        /// \brief Name of the plugin implementation.
-        public: std::string name = "";
+        /// \brief Get the plugin library filename.
+        /// \return Plugin library filename.
+        public: const std::string &Filename() const;
 
-        /// \brief XML elements associated with this plugin
-        public: sdf::ElementPtr sdf = nullptr;
+        /// \brief Name of the interface within the plugin library
+        /// to load.
+        /// \return Interface name.
+        public: const std::string &Name() const;
+
+        /// \brief Plugin XML elements associated with this plugin.
+        /// \return SDF pointer.
+        public: const sdf::ElementPtr &Sdf() const;
+
+        /// \brief Private data pointer
+        private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;
       };
 
       /// \brief Constructor
@@ -169,6 +181,9 @@ namespace ignition
       /// AddPlugin(const PluginInfo &).
       public: const std::list<PluginInfo> &Plugins() const;
 
+      /// \brief Equal operator.
+      /// \param[in] _cfg ServerConfig to copy.
+      /// \return Reference to this class.
       public: ServerConfig &operator=(const ServerConfig &_cfg);
 
       /// \brief Private data pointer
