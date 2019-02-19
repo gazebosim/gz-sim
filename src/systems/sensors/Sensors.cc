@@ -295,8 +295,8 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         else if (!this->sceneManager.AddSensor(
             _entity, sensor->GpuRays()->Id(), _parent->Data()))
         {
-          ignerr << "Failed to create sensor [" << scopedName << "]"
-                 << std::endl;
+          ignerr << "Failed to add the sensor [" << scopedName << "] to "
+                 << "simulation" << std::endl;
         }
         else
         {
@@ -432,7 +432,7 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
     [&](const Entity &_entity, const components::Camera *)->bool
       {
         this->sensorManager.Remove(_entity);
-          // FISME(louise) SensorId not implemented in ign-sensors
+          // \todo(louise) FixMe: SensorId not implemented in ign-sensors
           // auto sensorID = this->sensorManager.SensorId(entity->Name());
           // this->sensorManager.Remove(sensorID);
         this->sceneManager.RemoveEntity(_entity);
@@ -444,7 +444,7 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
     [&](const Entity &_entity, const components::GpuLidar *)->bool
       {
         this->sensorManager.Remove(_entity);
-          // FISME(louise) SensorId not implemented in ign-sensors
+          // \todo(louise) Fixme: SensorId not implemented in ign-sensors
           // auto sensorID = this->sensorManager.SensorId(entity->Name());
           // this->sensorManager.Remove(sensorID);
         // Stop keeping track of it in this system.
