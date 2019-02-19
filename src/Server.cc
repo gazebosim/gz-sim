@@ -111,7 +111,7 @@ Server::Server(const ServerConfig &_config)
   fuel_tools::ClientConfig config;
   if (!_config.ResourceCache().empty())
     config.SetCacheLocation(_config.ResourceCache());
-  this->dataPtr->fuelClient.reset(new fuel_tools::FuelClient(config));
+  this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
   // Configure SDF to fetch assets from ignition fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
@@ -126,6 +126,7 @@ Server::Server(const ServerConfig &_config)
     systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
     std::string filePath = systemPaths.FindFile(_config.SdfFile());
+    ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
     // \todo(nkoenig) Async resource download.
     // This call can block for a long period of time while
