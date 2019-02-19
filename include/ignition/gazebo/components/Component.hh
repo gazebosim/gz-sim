@@ -18,7 +18,6 @@
 #define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <cstdint>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <sstream>
@@ -31,26 +30,67 @@
 /// \brief Helper template to call stream operators only on types that support
 /// them.
 /// This version is called for types that have operator<<
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Stream Type used to check if component has operator<<
+/// \param[in] _data Data to be serialized.
 template<typename DataType, typename Identifier,
-  typename OStream =
+  typename Stream =
   decltype(std::declval<std::ostream &>() << std::declval<DataType const &>()),
-  typename std::enable_if<std::is_convertible<OStream, std::ostream &>::value,
+  typename std::enable_if<std::is_convertible<Stream, std::ostream &>::value,
   int>::type = 0>
-std::string serializeToString(DataType const &_data)
+std::ostream &serializeToStream(std::ostream &_out, DataType const &_data)
 {
-  std::ostringstream out;
-  out << _data;
-  return out.str();
+  _out << _data;
+  return _out;
 }
 
 /// \brief Helper template to call stream operators only on types that support
 /// them.
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Ignored All other template parameters are ignored.
 /// This version is called for types that don't have operator<<
 template<typename DataType, typename Identifier, typename... Ignored>
-std::string serializeToString(DataType const &, Ignored const &..., ...)
+std::ostream &serializeToStream(std::ostream &_out, DataType const &,
+    Ignored const &..., ...)
 {
-  ignwarn << "Type doesn't suport serialization" << std::endl;
-  return "";
+  ignwarn << "Trying to stream component whose data doesn't have `operator<<`. "
+          << "Component will not be serialized." << std::endl;
+  return _out;
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that have operator>>
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Stream Type used to check if component has operator>>
+/// \param[in] _data Data to be serialized.
+template<typename DataType, typename Identifier,
+  typename Stream =
+  decltype(std::declval<std::istream &>() >> std::declval<DataType const &>()),
+  typename std::enable_if<std::is_convertible<Stream, std::istream &>::value,
+  int>::type = 0>
+std::istream &serializeFromStream(std::istream &_out, DataType const &_data)
+{
+  _out >> _data;
+  return _out;
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Ignored All other template parameters are ignored.
+/// This version is called for types that don't have operator>>
+template<typename DataType, typename Identifier, typename... Ignored>
+std::istream &serializeFromStream(std::istream &_out, DataType const &,
+    Ignored const &..., ...)
+{
+  ignwarn << "Trying to stream component whose data doesn't have `operator<<`. "
+          << "Component will not be serialized." << std::endl;
+  return _out;
 }
 
 namespace ignition
@@ -78,15 +118,15 @@ namespace components
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
 
-    /// \brief Fills a stream with a serialized version of the component.
-    /// By default, it will leave the stream empty.
-    /// \param[in] _out Out stream.
-    public: virtual void Serialize(std::ostream &/*_out*/) const {};
-
-    /// \brief Stream insertion operator
-    /// \param[in] _out output stream
-    /// \param[in] _pose pose to output
-    /// \return the stream
+    /// \brief Stream insertion operator. It exposes the component's serialized
+    /// state which can be recreated by `operator>>`.
+    ///
+    /// \internal This function is called when using the base class, even if
+    /// the component can be casted to a derived class.
+    ///
+    /// \param[in] _out Output stream.
+    /// \param[in] _component The component to be streamed.
+    /// \return The stream.
     public: friend std::ostream &operator<<(
                 std::ostream &_out, const BaseComponent &_component)
     {
@@ -94,15 +134,51 @@ namespace components
       return _out;
     }
 
-    /// \brief Stream extraction operator
-    /// \param[in] _in the input stream
-    /// \param[in] _pose the pose
-    /// \return the stream
+    /// \brief Stream extraction operator. It parses the component's serialized
+    /// state which is created by `operator<<`.
+    ///
+    /// \internal This function is called when using the base class, even if
+    /// the component can be casted to a derived class.
+    ///
+    /// \param[in] _in Input stream.
+    /// \param[in] _component The component to be populated.
+    /// \return The stream.
     public: friend std::istream &operator>>(
-                std::istream &_in, BaseComponent &)
+                std::istream &_in, BaseComponent &_component)
     {
+      _component.Deserialize(_in);
       return _in;
     }
+
+    /// \brief Fills a stream with a serialized version of the component.
+    /// By default, it will leave the stream empty. Derived classes should
+    /// override this function to support serialization.
+    ///
+    /// \internal This function is used by `operator<<`, which can't be
+    /// overridden by derived classes.
+    ///
+    /// \param[in] _out Out stream.
+    protected: virtual void Serialize(std::ostream &/*_out*/) const
+    {
+      ignwarn << "Trying to serialize copmponent which haven't implemented "
+              << "the `Serialize` function. Component will not be serialized."
+              << std::endl;
+    };
+
+    /// \brief Fills a component based on a stream with a serialized data.
+    /// By default, it will do nothing. Derived classes should
+    /// override this function to support deserialization.
+    ///
+    /// \internal This function is used by `operator>>`, which can't be
+    /// overridden by derived classes.
+    ///
+    /// \param[in] _in In stream.
+    protected: virtual void Deserialize(std::istream &/*_in*/) const
+    {
+      ignwarn << "Trying to deserialize copmponent which haven't implemented "
+              << "the `Deserialize` function. Component will not be "
+              << "deserialized." << std::endl;
+    };
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -118,6 +194,10 @@ namespace components
   ///     using AnotherComp = Component<bool, class StaticTag>;
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
+  ///
+  /// \tparam DataType Type of the data being wrapped by this component.
+  /// \tparam Identifier Unique identifier for the component class, to avoid
+  /// collision.
   template <typename DataType, typename Identifier>
   class Component: public BaseComponent
   {
@@ -163,30 +243,11 @@ namespace components
     // Documentation inherited
     public: virtual void Serialize(std::ostream &_out) const override;
 
-    /// \brief Stream insertion operator
-    /// \param[in] _out output stream
-    /// \param[in] _pose pose to output
-    /// \return the stream
-    public: friend std::ostream &operator<<(
-                std::ostream &_out, const Component &_component)
-    {
-      _out << serializeToString<DataType, Identifier>(_component.Data());
-      return _out;
-    }
-
-    /// \brief Stream extraction operator
-    /// \param[in] _in the input stream
-    /// \param[in] _pose the pose
-    /// \return the stream
-    public: friend std::istream &operator>>(
-                std::istream &_in, Component &_component)
-    {
-      _in >> _component.Data();
-      return _in;
-    }
+    // Documentation inherited
+    public: virtual void Deserialize(std::istream &_in) const override;
 
     /// \brief Get the component data.
-    /// \return The actual component information.
+    /// \return Mutable reference to the actual component information.
     public: DataType &Data() const;
 
     /// \brief Private data pointer.
@@ -289,7 +350,14 @@ namespace components
   template <typename DataType, typename Identifier>
   void Component<DataType, Identifier>::Serialize(std::ostream &_out) const
   {
-    _out << serializeToString<DataType, Identifier>(this->Data());
+    serializeToStream<DataType, Identifier>(_out, this->Data());
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  void Component<DataType, Identifier>::Deserialize(std::istream &_in) const
+  {
+    serializeFromStream<DataType, Identifier>(_in, this->Data());
   }
 
   //////////////////////////////////////////////////

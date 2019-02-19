@@ -1396,8 +1396,7 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
   // Entities
   auto entity1 = manager.CreateEntity();
   auto entity2 = manager.CreateEntity();
-  manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_EQ(2u, manager.EntityCount());
 
   // Components
   manager.CreateComponent<IntComponent>(entity1, IntComponent(123));
@@ -1437,6 +1436,36 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
   auto e2c1 = e2.components(1);
   EXPECT_EQ(EntityComponentManager::ComponentType<StringComponent>(), e2c1.type());
   EXPECT_EQ("string", e2c1.component());
+
+  // Deserialize into a new ECM
+  std::istringstream newIstr(ostr.str());
+  EntityComponentManager newEcm;
+  newIstr >> newEcm;
+
+  // Check ECM
+  EXPECT_EQ(2u, newEcm.EntityCount());
+
+  EXPECT_TRUE(newEcm.HasEntity(entity1));
+
+  EXPECT_TRUE(newEcm.HasComponentType(
+        EntityComponentManager::ComponentType<IntComponent>()));
+  auto newE1C0 = newEcm.Component<IntComponent>(entity1);
+  ASSERT_NE(nullptr, newE1C0);
+  EXPECT_EQ(123, newE1C0->Data());
+
+  EXPECT_TRUE(newEcm.HasEntity(entity2));
+
+  EXPECT_TRUE(newEcm.HasComponentType(
+        EntityComponentManager::ComponentType<DoubleComponent>()));
+  auto newE2C0 = newEcm.Component<DoubleComponent>(entity2);
+  ASSERT_NE(nullptr, newE2C0);
+  EXPECT_DOUBLE_EQ(0.123, newE2C0->Data());
+
+  EXPECT_TRUE(newEcm.HasComponentType(
+        EntityComponentManager::ComponentType<StringComponent>()));
+  auto newE2C1 = newEcm.Component<StringComponent>(entity2);
+  ASSERT_NE(nullptr, newE2C1);
+  EXPECT_EQ("string", newE2C1->Data());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

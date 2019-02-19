@@ -17,10 +17,10 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
@@ -394,17 +394,19 @@ namespace ignition
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
 
-      /// \brief Stream insertion operator
-      /// \param[in] _out output stream
-      /// \param[in] _ecm
-      /// \return the stream
+      /// \brief Stream insertion operator. This serializes the ECM's state
+      /// to a string.
+      /// \param[in] _out Output stream.
+      /// \param[in] _ecm The ECM to be streamed.
+      /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
           const EntityComponentManager &_ecm);
 
-      /// \brief Stream extraction operator
-      /// \param[in] _in the input stream
-      /// \param[in] _ecm
-      /// \return the stream
+      /// \brief Stream extraction operator. This updates the ECM's state
+      /// from a string.
+      /// \param[in] _in The input stream
+      /// \param[in] _ecm The ECM which will extract the stream.
+      /// \return The stream
       public: friend std::istream &operator>>(std::istream &_in,
           EntityComponentManager &_ecm);
 
