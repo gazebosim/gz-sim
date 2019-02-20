@@ -93,8 +93,8 @@ class ignition::gazebo::systems::MagnetometerPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
 
-  /// \brief Remove magnetometer sensors if their entities have been removed from
-  /// simulation.
+  /// \brief Remove magnetometer sensors if their entities have been removed
+  /// from simulation.
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveMagnetometerEntities(const EntityComponentManager &_ecm);
 };
