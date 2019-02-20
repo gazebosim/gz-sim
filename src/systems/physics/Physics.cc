@@ -15,13 +15,14 @@
  *
  */
 
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
+#include <ignition/msgs/entity.pb.h>
+
 #include <iostream>
 #include <deque>
 #include <unordered_map>
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/msgs/entity.pb.h>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/eigen3/Conversions.hh>
@@ -415,7 +416,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          collisionPtrPhys =linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
+          collisionPtrPhys = linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
               ignition::math::eigen3::convert(_pose->Data()),
               ignition::math::eigen3::convert(meshSdf->Scale()));
         }
@@ -518,8 +519,8 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
               auto collIt = this->entityCollisionMap.find(childCollision);
               if (collIt != this->entityCollisionMap.end())
               {
-                this->entityCollisionMap.erase(collIt);
                 this->collisionEntityMap.erase(collIt->second);
+                this->entityCollisionMap.erase(collIt);
               }
             }
             this->entityLinkMap.erase(childLink);
