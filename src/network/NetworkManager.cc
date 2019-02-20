@@ -25,28 +25,29 @@
 #include "NetworkManagerPrivate.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
-#include "NetworkManagerReadOnly.hh"
-
 
 using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
 std::unique_ptr<NetworkManager> NetworkManager::Create(
-    const NetworkConfig &_config)
+    EventManager *_eventMgr, const NetworkConfig &_config,
+    const NodeOptions &_options)
 {
   std::unique_ptr<NetworkManager> ret;
   switch (_config.role)
   {
     case NetworkRole::SimulationPrimary:
-      ret = std::make_unique<NetworkManagerPrimary>(_config);
+      ret = std::make_unique<NetworkManagerPrimary>(
+          _eventMgr, _config, _options);
       break;
     case NetworkRole::SimulationSecondary:
-      ret = std::make_unique<NetworkManagerSecondary>(_config);
+      ret = std::make_unique<NetworkManagerSecondary>(
+          _eventMgr, _config, _options);
       break;
     case NetworkRole::ReadOnly:
-      ret = std::make_unique<NetworkManagerReadOnly>(_config);
-      break;
+      // \todo(mjcarroll): Enable ReadOnly
+      ignwarn << "ReadOnly role not currently supported" << std::endl;
     case NetworkRole::None:
       break;
     default:
@@ -58,14 +59,42 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
 }
 
 //////////////////////////////////////////////////
-NetworkManager::NetworkManager(const NetworkConfig &_config):
+NetworkManager::NetworkManager(
+    EventManager *_eventMgr, const NetworkConfig &_config,
+    const NodeOptions &_options):
   dataPtr(new NetworkManagerPrivate)
 {
   this->dataPtr->config = _config;
   this->dataPtr->peerInfo = PeerInfo(this->dataPtr->config.role);
+  this->dataPtr->eventMgr = _eventMgr;
   this->dataPtr->tracker = std::make_unique<PeerTracker>(
-      this->dataPtr->peerInfo);
+      this->dataPtr->peerInfo, _eventMgr, _options);
 }
 
 //////////////////////////////////////////////////
 NetworkManager::~NetworkManager() = default;
+
+
+//////////////////////////////////////////////////
+NetworkRole NetworkManager::Role() const
+{
+  return this->dataPtr->config.role;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManager::IsPrimary() const
+{
+  return this->dataPtr->config.role == NetworkRole::SimulationPrimary;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManager::IsSecondary() const
+{
+  return this->dataPtr->config.role == NetworkRole::SimulationSecondary;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManager::IsReadOnly() const
+{
+  return this->dataPtr->config.role == NetworkRole::ReadOnly;
+}

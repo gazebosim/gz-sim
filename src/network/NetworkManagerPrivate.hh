@@ -41,8 +41,17 @@ namespace ignition
       /// \brief Information about this peer
       public: PeerInfo peerInfo;
 
+      /// \brief EventManager to emit/connect to
+      public: EventManager *eventMgr;
+
       /// \brief Object to manage information about discovered peers.
       public: std::unique_ptr<PeerTracker> tracker;
+
+      /// \brief Track connection to "PeerRemoved" Event
+      public: ignition::common::ConnectionPtr peerRemovedConn;
+
+      /// \brief Traack connection to "PeerStale" Event
+      public: ignition::common::ConnectionPtr peerStaleConn;
     };
     }
   }  // namespace gazebo
