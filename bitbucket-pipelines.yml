@@ -28,7 +28,7 @@ pipelines:
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
-            # libignition-sensors-dev
+            libignition-sensors-dev
             # libignition-fuel-tools3-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
