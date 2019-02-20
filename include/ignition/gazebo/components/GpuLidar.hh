@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_GPU_LIDAR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_GPU_LIDAR_HH_
 
 #include <sdf/Element.hh>
 #include <ignition/gazebo/components/Factory.hh>
@@ -30,14 +30,12 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
+  /// \brief TODO(louise) Substitute with sdf::GpuLidar once that exists?
   /// This is currently the whole <sensor> element.
-  /// TODO(anyone) Fix serialization: pointer is being wrongly serialized.
-  using Altimeter = Component<sdf::ElementPtr, class AltimeterTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
+  using GpuLidar = Component<sdf::ElementPtr, class GpuLidarTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.GpuLidar", GpuLidar)
 }
 }
 }
 }
-
 #endif
