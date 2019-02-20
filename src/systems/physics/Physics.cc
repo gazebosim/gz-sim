@@ -878,11 +878,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
     }
   }
 
-  if (entityContactMap.empty())
-  {
-    return;
-  }
-
   // Go through each collision entity that has a ContactData component and
   // set the component value to the list of contacts that correspond to
   // the collision entity
@@ -891,7 +886,11 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
           components::ContactData *_contacts) -> bool
       {
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        {
+          // Clear the last contact data
+          *_contacts = components::ContactData();
           return true;
+        }
 
         const auto &contactMap = entityContactMap[_collEntity1];
 
