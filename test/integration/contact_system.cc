@@ -95,9 +95,9 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
   for (const auto &contact : lastContacts.contact())
   {
     ASSERT_EQ(1, contact.position_size());
-    EXPECT_NEAR(0.25, std::abs(contact.position(0).x()), 1e-6);
-    EXPECT_NEAR(1, std::abs(contact.position(0).y()), 1e-6);
-    EXPECT_NEAR(1, contact.position(0).z(), 1e-6);
+    EXPECT_NEAR(0.25, std::abs(contact.position(0).x()), 5e-2);
+    EXPECT_NEAR(1, std::abs(contact.position(0).y()), 5e-2);
+    EXPECT_NEAR(1, contact.position(0).z(), 5e-2);
   }
 
   // Remove the colliding boxes and check that contacts are no longer generated.
@@ -105,6 +105,46 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
   server.RequestRemoveEntity("box2");
   // Run once to remove entities
   server.Run(true, 1, false);
+
+  contactMsgs.clear();
+  server.Run(true, 10, false);
+  EXPECT_EQ(0u, contactMsgs.size());
+}
+
+TEST_F(ContactSystemTest, RemoveContactSensor)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  std::vector<msgs::Contacts> contactMsgs;
+
+  auto contactCb = [&contactMsgs](const msgs::Contacts &_msg) -> void
+  {
+    contactMsgs.push_back(_msg);
+  };
+
+  // subscribe to contacts topic
+  transport::Node node;
+  // Have to create an lvalue here for Node::Subscribe to work.
+  auto callbackFunc = std::function(contactCb);
+  node.Subscribe("/test_multiple_collisions", callbackFunc);
+
+  // Run server for a few iterations before removing sensor
+  server.Run(true, 1000, false);
+  EXPECT_GE(contactMsgs.size(), 1u);
+
+  // Remove the contact sensor and check that contacts are no longer generated.
+  server.RequestRemoveEntity("sensor_contact");
+  // Run once to remove entities
+  server.Run(true, 1, false);
+
+  auto sensorEntity = server.EntityByName("sensor_contact");
+  EXPECT_EQ(std::nullopt, sensorEntity);
 
   contactMsgs.clear();
   server.Run(true, 10, false);
