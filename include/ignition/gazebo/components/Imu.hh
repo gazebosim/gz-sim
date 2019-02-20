@@ -35,6 +35,7 @@ namespace components
 {
   /// \brief TODO(anyone) Substitute with sdf::Imu once that exists?
   /// This is currently the whole <sensor> element.
+  /// TODO(anyone) Fix serialization: pointer is being wrongly serialized.
   using Imu = Component<sdf::ElementPtr, class ImuTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Imu", Imu)
 }
