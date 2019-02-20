@@ -20,6 +20,7 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
@@ -47,7 +48,7 @@ namespace ignition
       /// was expanded. kComponentIdInvalid is returned
       /// if the component could not be created.
       public: virtual std::pair<ComponentId, bool> Create(
-                  const void *_data) = 0;
+                  const components::BaseComponent *_data) = 0;
 
       /// \brief Remove a component based on an id.
       /// \param[in] _id Id of the component to remove.
@@ -61,17 +62,19 @@ namespace ignition
       /// \param[in] _id Id of the component to get.
       /// \return A pointer to the component, or nullptr if the component
       /// could not be found.
-      public: virtual const void *Component(const ComponentId _id) const = 0;
+      public: virtual const components::BaseComponent *Component(
+                  const ComponentId _id) const = 0;
 
       /// \brief Get a mutable component based on an id.
       /// \param[in] _id Id of the component to get.
       /// \return A pointer to the component, or nullptr if the component
       /// could not be found.
-      public: virtual void *Component(const ComponentId _id) = 0;
+      public: virtual components::BaseComponent *Component(
+                  const ComponentId _id) = 0;
 
       /// \brief Get the first component.
       /// \return First component or nullptr if there are no components.
-      public: virtual void *First() = 0;
+      public: virtual components::BaseComponent *First() = 0;
 
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
@@ -150,7 +153,7 @@ namespace ignition
 
       // Documentation inherited.
       public: std::pair<ComponentId, bool> Create(
-                  const void *_data) final
+                  const components::BaseComponent *_data) final
       {
         ComponentId result;  // = kComponentIdInvalid;
         bool expanded = false;
@@ -171,14 +174,15 @@ namespace ignition
       }
 
       // Documentation inherited.
-      public: const void *Component(const ComponentId _id) const final
+      public: const components::BaseComponent *Component(
+                  const ComponentId _id) const final
       {
-        return static_cast<const void*>(
-            const_cast<ComponentStorage<ComponentTypeT>*>(
+        return static_cast<const components::BaseComponent *>(
+            const_cast<ComponentStorage<ComponentTypeT> *>(
               this)->Component(_id));
       }
 
-      public: void *Component(const ComponentId _id) final
+      public: components::BaseComponent *Component(const ComponentId _id) final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -186,17 +190,18 @@ namespace ignition
 
         if (iter != this->idMap.end())
         {
-          return static_cast<void *>(&this->components.at(iter->second));
+          return static_cast<components::BaseComponent *>(
+              &this->components.at(iter->second));
         }
         return nullptr;
       }
 
       // Documentation inherited.
-      public: void *First() final
+      public: components::BaseComponent *First() final
       {
         std::lock_guard<std::mutex> lock(this->mutex);
         if (!this->components.empty())
-          return static_cast<void *>(&this->components[0]);
+          return static_cast<components::BaseComponent *>(&this->components[0]);
         return nullptr;
       }
 
