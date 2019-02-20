@@ -28,9 +28,11 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -113,7 +115,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 {
   // Only initialize if there are rendering sensors
   if (!this->dataPtr->initialized &&
-      _ecm.HasComponentType(_ecm.ComponentType<components::Camera>()))
+      (_ecm.HasComponentType(_ecm.ComponentType<components::Camera>()) ||
+        _ecm.HasComponentType(_ecm.ComponentType<components::GpuLidar>())))
   {
     this->dataPtr->engine =
         ignition::rendering::engine(this->dataPtr->engineName);
@@ -254,6 +257,51 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         else
         {
           this->entityToSensorId[_entity] = sensor->Id();
+          sensor->SetParent(parent->Name());
+        }
+
+        return true;
+      });
+
+  // Create gpu lidar
+  _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+    [&](const Entity &_entity,
+        const components::GpuLidar *_gpuLidar,
+        const components::ParentEntity *_parent)->bool
+      {
+        auto parent = sceneManager.NodeById(_parent->Data());
+        if (!parent)
+        {
+          ignerr << "Failed to create sensor for entity [" << _entity
+                 << "]. Parent not found." << std::endl;
+          return true;
+        }
+
+        auto data = _gpuLidar->Data()->Clone();
+        std::string scopedName = parent->Name() + "::"
+            + data->Get<std::string>("name");
+        data->GetAttribute("name")->Set(scopedName);
+
+        // Create within ign-sensors
+        auto sensor =
+            this->sensorManager.CreateSensor<sensors::GpuLidarSensor>(data);
+
+        if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+        {
+          ignerr << "Failed to create sensor [" << scopedName << "]"
+                 << std::endl;
+        }
+        // Add to the system's scene manager
+        else if (!this->sceneManager.AddSensor(
+            _entity, sensor->GpuRays()->Id(), _parent->Data()))
+        {
+          ignerr << "Failed to add the sensor [" << scopedName << "] to "
+                 << "simulation" << std::endl;
+        }
+        else
+        {
+          this->entityToSensorId[_entity] = sensor->Id();
+          sensor->SetParent(parent->Name());
         }
 
         return true;
@@ -330,6 +378,20 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         }
         return true;
       });
+
+  // Update gpu_lidar
+  _ecm.Each<components::GpuLidar, components::Pose>(
+    [&](const Entity &_entity,
+        const components::GpuLidar *,
+        const components::Pose *_pose)->bool
+      {
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
+        {
+          node->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -369,21 +431,24 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
       {
-        auto sensorId = this->entityToSensorId.find(_entity);
-        if (sensorId == this->entityToSensorId.end())
-        {
-          ignerr << "Internal error, missing sensor for entity [" << _entity
-                 << "]" << std::endl;
-          return true;
-        }
+        this->sensorManager.Remove(_entity);
+          // \todo(louise) FixMe: SensorId not implemented in ign-sensors
+          // auto sensorID = this->sensorManager.SensorId(entity->Name());
+          // this->sensorManager.Remove(sensorID);
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
 
-        // Remove from sensors (ign-sensors will also remove it from rendering)
-        this->sensorManager.Remove(sensorId->second);
-
+  // gpu_lidars
+  _ecm.EachRemoved<components::GpuLidar>(
+    [&](const Entity &_entity, const components::GpuLidar *)->bool
+      {
+        this->sensorManager.Remove(_entity);
+          // \todo(louise) Fixme: SensorId not implemented in ign-sensors
+          // auto sensorID = this->sensorManager.SensorId(entity->Name());
+          // this->sensorManager.Remove(sensorID);
         // Stop keeping track of it in this system.
         this->sceneManager.RemoveEntity(_entity);
-        this->entityToSensorId.erase(sensorId);
-
         return true;
       });
 }

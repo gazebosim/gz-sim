@@ -28,6 +28,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
@@ -386,6 +387,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::Camera(elem));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::GpuLidar(elem));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
