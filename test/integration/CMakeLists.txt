@@ -8,7 +8,6 @@ set(tests
   entity_erase.cc
   events.cc
   examples_build.cc
-  gpu_lidar.cc
   imu_system.cc
   level_manager.cc
   model.cc
@@ -21,6 +20,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  gpu_lidar.cc
   sensors_system.cc
 )
 
