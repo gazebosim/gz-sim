@@ -403,10 +403,33 @@ TEST_F(ComponentsTest, LevelBuffer)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, LevelEntityNames)
 {
-  // Create components
-  components::LevelEntityNames({"level1", "level2"});
+  std::set<std::string> data1({"level1", "level2"});
+  std::set<std::string> data2({"level1"});
 
-  // TODO(anyone) Stream operator
+  // Create components
+  auto comp11 = components::LevelEntityNames(data1);
+  auto comp12 = components::LevelEntityNames(data1);
+  auto comp2 = components::LevelEntityNames(data2);
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ("level1 level2 ", ostr.str());
+
+  std::istringstream istr("level3 level4");
+  components::LevelEntityNames comp3;
+  istr >> comp3;
+
+  std::set<std::string> data3({"level3", "level4"});
+  EXPECT_EQ(data3, comp3.Data());
 }
 
 /////////////////////////////////////////////////
