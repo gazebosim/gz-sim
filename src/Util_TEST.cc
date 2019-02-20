@@ -131,31 +131,58 @@ TEST(UtilTest, ScopedName)
   ecm.CreateComponent(linkCCEntity, components::ParentEntity(modelCCEntity));
 
   // Check names
-  EXPECT_EQ(scopedName(worldEntity, ecm), "/world/world_name");
+  EXPECT_EQ(scopedName(worldEntity, ecm), "world/world_name");
   EXPECT_EQ(scopedName(lightAEntity, ecm, "::"),
-    "::world::world_name::light::lightA_name");
+    "world::world_name::light::lightA_name");
   EXPECT_EQ(scopedName(modelBEntity, ecm, "/"),
-    "/world/world_name/model/modelB_name");
+    "world/world_name/model/modelB_name");
   EXPECT_EQ(scopedName(linkBEntity, ecm, " "),
-    " world world_name model modelB_name link linkB_name");
+    "world world_name model modelB_name link linkB_name");
   EXPECT_EQ(scopedName(lightBEntity, ecm),
-    "/world/world_name/model/modelB_name/link/linkB_name/light/lightB_name");
+    "world/world_name/model/modelB_name/link/linkB_name/light/lightB_name");
   EXPECT_EQ(scopedName(sensorBEntity, ecm),
-    "/world/world_name/model/modelB_name/link/linkB_name/sensor/sensorB_name");
+    "world/world_name/model/modelB_name/link/linkB_name/sensor/sensorB_name");
   EXPECT_EQ(scopedName(modelCEntity, ecm),
-    "/world/world_name/model/modelC_name");
+    "world/world_name/model/modelC_name");
   EXPECT_EQ(scopedName(linkCEntity, ecm),
-    "/world/world_name/model/modelC_name/link/linkC_name");
+    "world/world_name/model/modelC_name/link/linkC_name");
   EXPECT_EQ(scopedName(collisionCEntity, ecm),
-    "/world/world_name/model/modelC_name/link/linkC_name/collision/" +
+    "world/world_name/model/modelC_name/link/linkC_name/collision/" +
     std::string("collisionC_name"));
   EXPECT_EQ(scopedName(visualCEntity, ecm),
-    "/world/world_name/model/modelC_name/link/linkC_name/visual/" +
+    "world/world_name/model/modelC_name/link/linkC_name/visual/" +
     std::string("visualC_name"));
   EXPECT_EQ(scopedName(jointCEntity, ecm),
-    "/world/world_name/model/modelC_name/joint/jointC_name");
+    "world/world_name/model/modelC_name/joint/jointC_name");
   EXPECT_EQ(scopedName(modelCCEntity, ecm),
-    "/world/world_name/model/modelC_name/model/modelCC_name");
+    "world/world_name/model/modelC_name/model/modelCC_name");
   EXPECT_EQ(scopedName(linkCCEntity, ecm),
-    "/world/world_name/model/modelC_name/model/modelCC_name/link/linkCC_name");
+    "world/world_name/model/modelC_name/model/modelCC_name/link/linkCC_name");
+
+  // check name without prefix
+  EXPECT_EQ(scopedName(worldEntity, ecm, "/", false), "world_name");
+  EXPECT_EQ(scopedName(lightAEntity, ecm, "::", false),
+    "world_name::lightA_name");
+  EXPECT_EQ(scopedName(modelBEntity, ecm, "/", false),
+    "world_name/modelB_name");
+  EXPECT_EQ(scopedName(linkBEntity, ecm, " ", false),
+    "world_name modelB_name linkB_name");
+  EXPECT_EQ(scopedName(lightBEntity, ecm, "/", false),
+    "world_name/modelB_name/linkB_name/lightB_name");
+  EXPECT_EQ(scopedName(sensorBEntity, ecm, "/", false),
+    "world_name/modelB_name/linkB_name/sensorB_name");
+  EXPECT_EQ(scopedName(modelCEntity, ecm, "/", false),
+    "world_name/modelC_name");
+  EXPECT_EQ(scopedName(linkCEntity, ecm, "/", false),
+    "world_name/modelC_name/linkC_name");
+  EXPECT_EQ(scopedName(collisionCEntity, ecm, "/", false),
+    "world_name/modelC_name/linkC_name/" + std::string("collisionC_name"));
+  EXPECT_EQ(scopedName(visualCEntity, ecm, "/", false),
+    "world_name/modelC_name/linkC_name/" + std::string("visualC_name"));
+  EXPECT_EQ(scopedName(jointCEntity, ecm, "/", false),
+    "world_name/modelC_name/jointC_name");
+  EXPECT_EQ(scopedName(modelCCEntity, ecm, "/", false),
+    "world_name/modelC_name/modelCC_name");
+  EXPECT_EQ(scopedName(linkCCEntity, ecm, "/", false),
+    "world_name/modelC_name/modelCC_name/linkCC_name");
 }

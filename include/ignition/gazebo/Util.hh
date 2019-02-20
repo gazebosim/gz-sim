@@ -45,7 +45,8 @@ namespace ignition
     /// \param[in] _ecm Immutable reference to ECM.
     /// \param[in] _delim Delimiter to put between names, defaults to "/".
     std::string IGNITION_GAZEBO_VISIBLE scopedName(const Entity &_entity,
-      const EntityComponentManager &_ecm, const std::string &_delim = "/");
+      const EntityComponentManager &_ecm, const std::string &_delim = "/",
+      bool _includePrefix = true);
     }
   }
 }
