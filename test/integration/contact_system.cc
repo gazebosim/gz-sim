@@ -99,8 +99,8 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
 
     // It is easy to determine the contact points because the sphere falls and
     // rests on the edges of the boxes. The position of the boxes is symmetric
-    // about the centers of the spheres, thus, the points of contact in each axis
-    // only differ by their signs
+    // about the centers of the spheres, thus, the points of contact in each
+    // axis only differ by their signs
     for (const auto &contact : lastContacts.contact())
     {
       ASSERT_EQ(1, contact.position_size());
