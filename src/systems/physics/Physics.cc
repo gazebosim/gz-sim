@@ -849,18 +849,21 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
   // available
   auto worldPhys = this->entityWorldMap.at(worldEntity);
 
+  // Each contact object we get from ign-physics contains the EntityPtrs of the
+  // two colliding entities and other data about the contact such as the
+  // position. This map groups contacts so that it is easy to query all the
+  // contacts of one entity.
   using EntityContactMap =
       std::unordered_map<Entity, std::deque<const WorldType::Contact *>>;
 
-  // Create a map between each collision entity and its corresponding contact
-  // object. Each contact object contains the EntityPtrs of the two colliding
-  // entities and other data about the contact such as the position. This map
-  // groups contacts so that it is easy to query all the contacts of one entity.
-  EntityContactMap entityContactMap;
+  // This data structure is essentially a mapping between a pair of entities and
+  // a list of pointers to their contact object. We use a map inside a map to
+  // create msgs::Contact objects conveniently later on.
+  std::unordered_map<Entity, EntityContactMap> entityContactMap;
 
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
-  // until the end of this funciton.
+  // until the end of this function.
   auto allContacts = worldPhys->GetContactsFromLastStep();
   for (const auto &contact : allContacts)
   {
@@ -870,8 +873,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
     if ((coll1It != this->collisionEntityMap.end()) &&
         (coll2It != this->collisionEntityMap.end()))
     {
-      entityContactMap[coll1It->second].push_back(&contact);
-      entityContactMap[coll2It->second].push_back(&contact);
+      entityContactMap[coll1It->second][coll2It->second].push_back(&contact);
+      entityContactMap[coll2It->second][coll1It->second].push_back(&contact);
     }
   }
 
@@ -887,38 +890,28 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactData *_contacts) -> bool
       {
-        if (entityContactMap.find(_collEntity1) != entityContactMap.end())
+        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+          return true;
+
+        const auto &contactMap = entityContactMap[_collEntity1];
+
+        msgs::Contacts contactsComp;
+
+        for (const auto &[collEntity2, contactData] : contactMap)
         {
-          const auto &contactList = entityContactMap[_collEntity1];
-
-          // Create another map to group the contacts of a pair of entities.
-          // i.e, this allows us to query for all the contacts points between a
-          // given pair of entities. This format is what's used by
-          // msg::Contacts messages
-          EntityContactMap pairingMap;
-          for (const auto &contact : contactList)
+          msgs::Contact *contactMsg = contactsComp.add_contact();
+          contactMsg->mutable_collision1()->set_id(_collEntity1);
+          contactMsg->mutable_collision2()->set_id(collEntity2);
+          for (const auto &contact : contactData)
           {
-            pairingMap[this->collisionEntityMap.at(contact->collision2)]
-                .push_back(contact);
+            auto *position = contactMsg->add_position();
+            position->set_x(contact->point.x());
+            position->set_y(contact->point.y());
+            position->set_z(contact->point.z());
           }
-
-          msgs::Contacts contactsComp;
-
-          for (const auto &[collEntity2, contactData] : pairingMap)
-          {
-            msgs::Contact *contactMsg = contactsComp.add_contact();
-            contactMsg->mutable_collision1()->set_id(_collEntity1);
-            contactMsg->mutable_collision2()->set_id(collEntity2);
-            for (const auto &contact : contactData)
-            {
-              auto *position = contactMsg->add_position();
-              position->set_x(contact->point.x());
-              position->set_y(contact->point.y());
-              position->set_z(contact->point.z());
-            }
-          }
-          *_contacts = components::ContactData(std::move(contactsComp));
         }
+        *_contacts = components::ContactData(std::move(contactsComp));
+
         return true;
       });
 }
