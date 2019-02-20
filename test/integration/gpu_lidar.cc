@@ -117,8 +117,6 @@ TEST_F(GpuLidarTest, GpuLidarBox)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string sensorName = "gpu_lidar_sensor";
-
   // subscribe to lidar topic
   transport::Node node;
   node.Subscribe("/lidar", &laserCb);
@@ -150,7 +148,8 @@ TEST_F(GpuLidarTest, GpuLidarBox)
   // Sensor 1 should see TestBox1
   mutex.lock();
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(0), ignition::math::INF_D);
-  EXPECT_NEAR(laserMsgs.back().ranges(mid), expectedRangeAtMidPointBox1, LASER_TOL);
+  EXPECT_NEAR(laserMsgs.back().ranges(mid), expectedRangeAtMidPointBox1,
+              LASER_TOL);
   EXPECT_DOUBLE_EQ(laserMsgs.back().ranges(last), ignition::math::INF_D);
   EXPECT_EQ(laserMsgs.back().frame(), "gpu_lidar::gpu_lidar_link");
   mutex.unlock();
