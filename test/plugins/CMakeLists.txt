@@ -22,13 +22,15 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 )
 
 # Plugin shared libraries
-foreach (src ${test_plugins})
-  add_library(${src} SHARED ${src}.cc)
-  set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
-  target_link_libraries(${src}
-    PRIVATE
-      ignition-plugin${IGN_PLUGIN_VER}::register
-      ignition-gazebo
-  )
-  install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
-endforeach (src)
+if(BUILD_TESTING)
+  foreach (src ${test_plugins})
+    add_library(${src} SHARED ${src}.cc)
+    set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
+    target_link_libraries(${src}
+      PRIVATE
+        ignition-plugin${IGN_PLUGIN_VER}::register
+        ignition-gazebo
+    )
+    install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+  endforeach (src)
+endif()

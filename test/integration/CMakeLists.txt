@@ -20,6 +20,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  gpu_lidar.cc
   sensors_system.cc
 )
 
