@@ -99,4 +99,14 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
     EXPECT_NEAR(1, std::abs(contact.position(0).y()), 1e-6);
     EXPECT_NEAR(1, contact.position(0).z(), 1e-6);
   }
+
+  // Remove the colliding boxes and check that contacts are no longer generated.
+  server.RequestRemoveEntity("box1");
+  server.RequestRemoveEntity("box2");
+  // Run once to remove entities
+  server.Run(true, 1, false);
+
+  contactMsgs.clear();
+  server.Run(true, 10, false);
+  EXPECT_EQ(0u, contactMsgs.size());
 }
