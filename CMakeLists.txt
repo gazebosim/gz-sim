@@ -108,6 +108,8 @@ set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
 #============================================================================
 ign_configure_build(QUIT_IF_BUILD_ERRORS)
 
+add_subdirectory(examples)
+
 #============================================================================
 # Create package information
 #============================================================================
