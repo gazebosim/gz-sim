@@ -45,7 +45,7 @@ pipelines:
           - cd ign-msgs
           - mkdir build
           - cd build
-          - cmake .. -DBUILD_TESTING=false
+          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition cmake (uncomment if a specific branch is needed)
@@ -100,7 +100,7 @@ pipelines:
           - cd ign-physics
           - mkdir build
           - cd build
-          - cmake .. -DBUILD_TESTING=false
+          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
           - make -j4 install
           - cd ../..
           # Ignition Gazebo
