@@ -51,6 +51,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Component_TEST.cc
   ComponentFactory_TEST.cc
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
