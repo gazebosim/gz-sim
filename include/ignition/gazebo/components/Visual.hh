@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_COMPONENTS_VISUAL_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/TagWrapper.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -30,7 +30,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity as being a visual.
-  using Visual = TagWrapper<class VisualTag>;
+  using Visual = Component<NoData, class VisualTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Visual", Visual)
 }
 }

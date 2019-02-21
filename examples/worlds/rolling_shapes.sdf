@@ -10,6 +10,10 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::v0::UserCommands">
+    </plugin>
+    <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
@@ -36,6 +40,8 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <service>/world/shapes/scene/info</service>
         <pose_topic>/world/shapes/pose/info</pose_topic>
+        <scene_topic>/world/shapes/scene/info</scene_topic>
+        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
