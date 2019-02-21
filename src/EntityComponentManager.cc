@@ -366,6 +366,14 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  // Create the component storage if one does not exist for
+  // the component type.
+  if (!this->HasComponentType(_componentTypeId))
+  {
+//    this->RegisterComponentType(_componentTypeId,
+//          new ComponentStorage<ComponentTypeT>());
+  }
+
   // Instantiate the new component.
   std::pair<ComponentId, bool> componentIdPair =
     this->dataPtr->components[_componentTypeId]->Create(_data);
@@ -642,10 +650,9 @@ std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
     for (const auto &compKey : entity.second)
     {
       auto compMsg = entityMsg->add_components();
-      // TODO this is using the ECM ID instead of the factory ID, so deserialization doesn't work
-      compMsg->set_type(compKey.first);
 
       auto compBase = _ecm.ComponentImplementation(entity.first, compKey.first);
+      compMsg->set_type(compBase->TypeId());
 
       std::ostringstream ostr;
       ostr << *compBase;
@@ -685,7 +692,7 @@ igndbg << stateMsg.DebugString() << std::endl;
 
       if (nullptr == newComp)
       {
-        ignwarn << "Failed to deserialized component of type [" << compMsg.type()
+        ignwarn << "Failed to deserialize component of type [" << compMsg.type()
                 << "]" << std::endl;
         continue;
       }
@@ -693,9 +700,8 @@ igndbg << stateMsg.DebugString() << std::endl;
       std::istringstream istr(compMsg.component());
       istr >> *newComp.get();
 
-      // Get type id within ECM
-      auto typeName = typeid(newComp).name();
-      auto typeId = common::hash64(typeName);
+      // Get type id
+      auto typeId = newComp->TypeId();
 
       // Get Component
       auto comp = _ecm.ComponentImplementation(entity, typeId);
