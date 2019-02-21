@@ -81,8 +81,6 @@ namespace ignition
       /// every update cycle
       public: void UpdateLevelsState();
 
-      public: Entity WorldEntity() const;
-
       /// \brief Load entities that have been marked for loading.
       /// \param[in] _namesToLoad List of of entity names to load
       private: void LoadActiveEntities(
