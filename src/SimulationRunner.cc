@@ -406,6 +406,11 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console. \todo(nkoenig) Fix SDF should so that elements are not
+    // automatically added.
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
     {
@@ -423,6 +428,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
         this->AddSystem(system.value());
       }
     }
+
     pluginElem = pluginElem->GetNextElement("plugin");
   }
 
