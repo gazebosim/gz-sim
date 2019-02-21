@@ -48,17 +48,26 @@
 #include "ignition/gazebo/Events.hh"
 #include "SimulationRunner.hh"
 
+using namespace ignition;
+using namespace gazebo;
+using namespace components;
+
 namespace ignition
 {
 namespace gazebo
 {
+namespace components
+{
 using IntComponent = components::Component<int, class IntComponentTag>;
-using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-}
-}
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+    IntComponent)
 
-using namespace ignition;
-using namespace gazebo;
+using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+    DoubleComponent)
+}
+}
+}
 
 class SimulationRunnerTest : public ::testing::TestWithParam<int>
 {
@@ -96,29 +105,29 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::World>()));
+      components::World::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Model>()));
+      components::Model::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::CanonicalLink>()));
+      components::CanonicalLink::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Link>()));
+      components::Link::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Collision>()));
+      components::Collision::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Visual>()));
+      components::Visual::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Light>()));
+      components::Light::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Name>()));
+      components::Name::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::ParentEntity>()));
+      components::ParentEntity::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Geometry>()));
+      components::Geometry::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Material>()));
+      components::Material::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Inertial>()));
+      components::Inertial::typeId));
 
   // Check entities
   // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
@@ -777,27 +786,27 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::World>()));
+      components::World::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::CanonicalLink>()));
+      components::CanonicalLink::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Link>()));
+      components::Link::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Joint>()));
+      components::Joint::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::JointAxis>()));
+      components::JointAxis::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::JointType>()));
+      components::JointType::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::ChildLinkName>()));
+      components::ChildLinkName::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::ParentLinkName>()));
+      components::ParentLinkName::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::ParentEntity>()));
+      components::ParentEntity::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Pose>()));
+      components::Pose::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      EntityComponentManager::ComponentType<components::Name>()));
+      components::Name::typeId));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 
@@ -1037,7 +1046,7 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
+        DoubleComponent::typeId));
   ASSERT_NE(nullptr,
       runner.EntityCompMgr().Component<DoubleComponent>(worldId));
   EXPECT_DOUBLE_EQ(
@@ -1046,7 +1055,7 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
 
   // Check component registered by model plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<IntComponent>()));
+        IntComponent::typeId));
   ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
   EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(),
       987);
@@ -1079,7 +1088,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 
   // Check there's no double component
   EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
+        DoubleComponent::typeId));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
@@ -1093,7 +1102,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
 
   // Check component registered by world plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        gazebo::EntityComponentManager::ComponentType<DoubleComponent>()));
+        DoubleComponent::typeId));
   EXPECT_DOUBLE_EQ(
       runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
       0.123);

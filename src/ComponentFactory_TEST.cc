@@ -35,7 +35,7 @@ TEST(ComponentFactoryTest, Register)
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
-  auto components = factory->Components();
+  auto components = factory->TypeNames();
   EXPECT_NE(components.end(),
       std::find(components.begin(), components.end(),
           "ign_gazebo_components.MyCustom"));
@@ -54,10 +54,10 @@ TEST(ComponentFactoryTest, New)
   {
     auto comp = factory->New<components::Pose>();
     ASSERT_TRUE(comp != nullptr);
-    EXPECT_EQ("ign_gazebo_components.Pose", comp->name);
-    EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::name);
-    EXPECT_NE(0u, comp->id);
-    EXPECT_EQ(comp->id, components::Pose::id);
+    EXPECT_EQ("ign_gazebo_components.Pose", comp->typeName);
+    EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::typeName);
+    EXPECT_NE(0u, comp->typeId);
+    EXPECT_EQ(comp->typeId, components::Pose::typeId);
   }
 
   {
@@ -66,8 +66,8 @@ TEST(ComponentFactoryTest, New)
   }
 
   {
-    auto id = EntityComponentManager::ComponentType<components::Pose>();
-    auto comp = factory->New(id);
+    auto typeId = components::Pose::typeId;
+    auto comp = factory->New(typeId);
     ASSERT_TRUE(comp != nullptr);
   }
 }
@@ -77,7 +77,7 @@ TEST(ComponentFactoryTest, Components)
 {
   auto factory = components::Factory::Instance();
 
-  std::vector<std::string> comps = factory->Components();
+  std::vector<std::string> comps = factory->TypeNames();
   EXPECT_FALSE(comps.empty());
   EXPECT_TRUE(std::find(comps.begin(), comps.end(),
       std::string("ign_gazebo_components.Altimeter")) != comps.end());

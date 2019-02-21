@@ -125,6 +125,22 @@ namespace components
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
 
+    /// \brief
+    public: virtual std::string TypeName() const
+    {
+      ignwarn << "Requesting name of BaseComponent class. Will receive empty "
+              << "string." << std::endl;
+      return std::string();
+    };
+
+    /// \brief
+    public: virtual uint64_t TypeId() const
+    {
+      ignwarn << "Requesting ID of BaseComponent class. Will receive zero."
+              << std::endl;
+      return 0u;
+    };
+
     /// \brief Stream insertion operator. It exposes the component's serialized
     /// state which can be recreated by `operator>>`.
     ///
@@ -252,6 +268,12 @@ namespace components
     public: bool operator!=(const Component &_component) const;
 
     // Documentation inherited
+    public: std::string TypeName() const override;
+
+    // Documentation inherited
+    public: uint64_t TypeId() const override;
+
+    // Documentation inherited
     public: void Serialize(std::ostream &_out) const override;
 
     // Documentation inherited
@@ -264,11 +286,13 @@ namespace components
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static uint64_t typeId{0};
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -314,11 +338,13 @@ namespace components
       return _in;
     }
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static uint64_t typeId{0};
   };
 
   template <typename DataType>
@@ -412,6 +438,20 @@ namespace components
   void Component<DataType, Identifier>::Deserialize(std::istream &_in) const
   {
     fromStream<DataType, Identifier>(_in, this->Data());
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  std::string Component<DataType, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  uint64_t Component<DataType, Identifier>::TypeId() const
+  {
+    return typeId;
   }
 
   //////////////////////////////////////////////////
