@@ -96,6 +96,8 @@ TEST_F(ComponentsTest, Altimeter)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
+  // Note: this is testing the custom operator added in the test, the component
+  // by itself is not yet serializable
   std::ostringstream ostr;
   comp11.Serialize(ostr);
   EXPECT_EQ("< test='foo'>val</>\n", ostr.str());
