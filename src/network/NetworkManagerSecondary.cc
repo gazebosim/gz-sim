@@ -89,10 +89,6 @@ bool NetworkManagerSecondary::Ready() const
 {
   bool ready = this->Valid();
   auto primaries = this->dataPtr->tracker->NumPrimary();
-  /*
-  igndbg << "Found: " << primaries << " network primaries."
-         << " (Expected: 1)"  << std::endl;
-  */
   ready &= (primaries == 1);
   return ready;
 }
@@ -152,7 +148,7 @@ std::string NetworkManagerSecondary::Namespace() const
 
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
-                                        msgs::PeerControl& /*_rep*/)
+                                        ignition::msgs::Empty &/*_resp*/)
 {
   this->enableSim = _req.enable_sim();
   this->pauseSim = _req.pause_sim();

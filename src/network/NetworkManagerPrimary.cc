@@ -39,28 +39,35 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_eventMgr, _config, _options),
   node(_options)
 {
-  this->simStepPub = node.Advertise<msgs::SimulationStep>("step");
+  this->simStepPub = this->node.Advertise<msgs::SimulationStep>("step");
 
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
   {
     this->dataPtr->peerRemovedConn = eventMgr->Connect<PeerRemoved>(
-        [this](PeerInfo _info){
+        [this](PeerInfo _info)
+        {
           if (_info.role == NetworkRole::SimulationSecondary)
           {
             ignerr << "Secondary removed, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
-    });
+        });
 
     this->dataPtr->peerStaleConn = eventMgr->Connect<PeerStale>(
-        [this](PeerInfo _info){
+        [this](PeerInfo _info)
+        {
           if (_info.role == NetworkRole::SimulationSecondary)
           {
             ignerr << "Secondary went stale, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
-    });
+        });
+  }
+  else
+  {
+    ignwarn << "NetworkManager started without EventManager. "
+      << "Distributed environment may not terminate correctly" << std::endl;
   }
 }
 
@@ -78,7 +85,8 @@ void NetworkManagerPrimary::Initialize()
   auto peers = this->dataPtr->tracker->SecondaryPeers();
   for (const auto& peer : peers)
   {
-    msgs::PeerControl req, resp;
+    msgs::PeerControl req;
+    ignition::msgs::Empty resp;
     req.set_enable_sim(true);
 
     auto sc = std::make_unique<SecondaryControl>();
@@ -123,11 +131,6 @@ bool NetworkManagerPrimary::Ready() const
 {
   bool ready = this->Valid();
   auto nSecondary = this->dataPtr->tracker->NumSecondary();
-  /*
-  igndbg << "Found: " << nSecondary << " network secondaries."
-         << " (Expected: " << this->dataPtr->config.numSecondariesExpected
-         << ")" << std::endl;
-         */
   ready &= (nSecondary == this->dataPtr->config.numSecondariesExpected);
   return ready;
 }
@@ -197,7 +200,6 @@ void NetworkManagerPrimary::OnStepAck(const std::string &_secondary,
 {
   this->secondaries[_secondary]->recvStepAck = true;
   this->secondaries[_secondary]->recvIter = _msg.iteration();
-  (void)_msg;
 }
 
 //////////////////////////////////////////////////
