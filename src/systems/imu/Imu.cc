@@ -110,6 +110,11 @@ class ignition::gazebo::systems::ImuPrivate
   /// \brief Update IMU sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
   public: void Update(const EntityComponentManager &_ecm);
+
+  /// \brief Remove IMU sensors if their entities have been removed from
+  /// simulation.
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void RemoveImuEntities(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -172,20 +177,22 @@ void Imu::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
-  if (_info.paused)
-    return;
-
-  this->dataPtr->Update(_ecm);
-
-  for (auto &it : this->dataPtr->entitySensorMap)
+  if (!_info.paused)
   {
-    // Update measurement time
-    auto time = math::durationToSecNsec(_info.simTime);
-    it.second->lastMeasurementTime = common::Time(time.first, time.second);
+    this->dataPtr->Update(_ecm);
 
-    // Publish sensor data
-    it.second->Publish();
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      // Update measurement time
+      auto time = math::durationToSecNsec(_info.simTime);
+      it.second->lastMeasurementTime = common::Time(time.first, time.second);
+
+      // Publish sensor data
+      it.second->Publish();
+    }
   }
+
+  this->dataPtr->RemoveImuEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -266,6 +273,28 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           ignerr << "Failed to update IMU: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
+
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void ImuPrivate::RemoveImuEntities(
+    const EntityComponentManager &_ecm)
+{
+  _ecm.EachRemoved<components::Imu>(
+    [&](const Entity &_entity,
+        const components::Imu *)->bool
+      {
+        auto sensorId = this->entitySensorMap.find(_entity);
+        if (sensorId == this->entitySensorMap.end())
+        {
+          ignerr << "Internal error, missing IMU sensor for entity ["
+                 << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->entitySensorMap.erase(sensorId);
 
         return true;
       });

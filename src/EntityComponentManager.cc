@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "ignition/common/Profiler.hh"
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -86,7 +87,7 @@ size_t EntityComponentManager::EntityCount() const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
-  Entity entity = this->dataPtr->entityCount++;
+  Entity entity = ++this->dataPtr->entityCount;
 
   if (entity == std::numeric_limits<int64_t>::max())
   {
@@ -348,7 +349,7 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 /////////////////////////////////////////////////
 ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
-    const void *_data)
+    const components::BaseComponent *_data)
 {
   // Instantiate the new component.
   std::pair<ComponentId, bool> componentIdPair =
@@ -421,7 +422,8 @@ ComponentId EntityComponentManager::EntityComponentIdFromType(
 }
 
 /////////////////////////////////////////////////
-const void *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent
+    *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
@@ -442,7 +444,7 @@ const void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::ComponentImplementation(
+components::BaseComponent *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type)
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
@@ -464,7 +466,8 @@ void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-const void *EntityComponentManager::ComponentImplementation(
+const components::BaseComponent
+    *EntityComponentManager::ComponentImplementation(
     const ComponentKey &_key) const
 {
   if (this->dataPtr->components.find(_key.first) !=
@@ -476,7 +479,8 @@ const void *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::ComponentImplementation(const ComponentKey &_key)
+components::BaseComponent *EntityComponentManager::ComponentImplementation(
+    const ComponentKey &_key)
 {
   if (this->dataPtr->components.find(_key.first) !=
       this->dataPtr->components.end())
@@ -504,7 +508,8 @@ void EntityComponentManager::RegisterComponentType(
 }
 
 /////////////////////////////////////////////////
-void *EntityComponentManager::First(const ComponentTypeId _componentTypeId)
+components::BaseComponent *EntityComponentManager::First(
+    const ComponentTypeId _componentTypeId)
 {
   auto iter = this->dataPtr->components.find(_componentTypeId);
   if (iter != this->dataPtr->components.end())

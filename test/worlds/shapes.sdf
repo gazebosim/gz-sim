@@ -13,6 +13,10 @@
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::v0::UserCommands">
+    </plugin>
 
     <gui fullscreen="0">
 
