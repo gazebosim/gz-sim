@@ -33,6 +33,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Test DiffDrive system
 class DiffDriveTest : public ::testing::TestWithParam<int>
