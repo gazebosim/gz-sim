@@ -93,7 +93,7 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
   return static_cast<const ComponentTypeT *>(
-      this->First(this->ComponentTypeT::typeId));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////
@@ -101,7 +101,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
   return static_cast<ComponentTypeT *>(
-      this->First(this->ComponentTypeT::typeId));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////

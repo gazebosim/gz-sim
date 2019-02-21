@@ -79,11 +79,15 @@ TEST(ComponentFactoryTest, New)
 
   {
     auto comp = factory->New("ign_gazebo_components.Pose");
+    EXPECT_EQ("ign_gazebo_components.Pose", comp->TypeName());
+    EXPECT_NE(0u, comp->TypeId());
     ASSERT_TRUE(comp != nullptr);
   }
 
   {
     auto comp = factory->New(components::Pose::typeId);
+    EXPECT_EQ("ign_gazebo_components.Pose", comp->TypeName());
+    EXPECT_NE(0u, comp->TypeId());
     ASSERT_TRUE(comp != nullptr);
   }
 }
