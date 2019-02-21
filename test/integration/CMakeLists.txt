@@ -20,6 +20,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  depth_camera.cc
   gpu_lidar.cc
   sensors_system.cc
 )
