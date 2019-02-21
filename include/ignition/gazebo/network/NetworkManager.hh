@@ -84,7 +84,8 @@ namespace ignition
       /// their appropriate values for the simuation iteration.
       /// \param[inout] _iteration current simulation iteration
       /// \param[inout] _stepSize current simulation step size
-      /// \param[inout] _stepSize current simulation time
+      /// \param[inout] _simTime current simulation time
+      /// \return True if simulation step was successfully synced.
       public: virtual bool Step(
                   uint64_t &_iteration,
                   std::chrono::steady_clock::duration &_stepSize,
@@ -94,6 +95,8 @@ namespace ignition
       /// This method is called at the end of a simulation iteration to provide
       /// a syncronization point for all distributed simulation runner
       /// instances.
+      /// \param[in] _iteration simulation iteration to ack.
+      /// \return True if iteration was successfully acknowledged
       public: virtual bool StepAck(uint64_t _iteration) = 0;
 
       /// \brief Get a unique namespace for this runner
