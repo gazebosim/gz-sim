@@ -10,6 +10,7 @@ set(tests
   examples_build.cc
   imu_system.cc
   level_manager.cc
+  magnetometer_system.cc
   model.cc
   network_handshake.cc
   physics_system.cc
