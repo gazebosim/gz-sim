@@ -65,7 +65,7 @@ namespace components
     }
 
     // Documentation inherited
-    public: void Deserialize(std::istream &_in) const override
+    public: void Deserialize(std::istream &_in) override
     {
       _in.setf(std::ios_base::skipws);
 
