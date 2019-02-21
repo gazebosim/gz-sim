@@ -59,8 +59,14 @@ template<typename DataType, typename Identifier, typename... Ignored>
 std::ostream &toStream(std::ostream &_out, DataType const &,
     Ignored const &..., ...)
 {
-  ignwarn << "Trying to serialize component whose data doesn't have "
-          << "`operator<<`. Component will not be serialized." << std::endl;
+  static bool warned{false};
+  if (!warned)
+  {
+    ignwarn << "Trying to serialize component with data type ["
+            << typeid(DataType).name() << "], which doesn't have "
+            << "`operator<<`. Component will not be serialized." << std::endl;
+    warned = true;
+  }
   return _out;
 }
 
@@ -95,8 +101,14 @@ template<typename DataType, typename Identifier, typename... Ignored>
 std::istream &fromStream(std::istream &_in, DataType const &,
     Ignored const &..., ...)
 {
-  ignwarn << "Trying to deserialize component whose data doesn't have "
-          << "`operator>>`. Component will not be serialized." << std::endl;
+  static bool warned{false};
+  if (!warned)
+  {
+    ignwarn << "Trying to deserialize component with data type ["
+            << typeid(DataType).name() << "], which doesn't have "
+            << "`operator<<`. Component will not be deserialized." << std::endl;
+    warned = true;
+  }
   return _in;
 }
 
@@ -180,7 +192,7 @@ namespace components
     /// overridden by derived classes.
     ///
     /// \param[in] _in In stream.
-    protected: virtual void Deserialize(std::istream &/*_in*/) const
+    protected: virtual void Deserialize(std::istream &/*_in*/)
     {
       ignwarn << "Trying to deserialize copmponent which haven't implemented "
               << "the `Deserialize` function. Component will not be "
@@ -255,11 +267,15 @@ namespace components
     public: void Serialize(std::ostream &_out) const override;
 
     // Documentation inherited
-    public: void Deserialize(std::istream &_in) const override;
+    public: void Deserialize(std::istream &_in) override;
 
-    /// \brief Get the component data.
+    /// \brief Get the mutable component data.
     /// \return Mutable reference to the actual component information.
-    public: DataType &Data() const;
+    public: DataType &Data();
+
+    /// \brief Get the immutable component data.
+    /// \return Immutable reference to the actual component information.
+    public: const DataType &Data() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
@@ -370,7 +386,14 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  DataType &Component<DataType, Identifier>::Data() const
+  DataType &Component<DataType, Identifier>::Data()
+  {
+    return this->dataPtr->data;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  const DataType &Component<DataType, Identifier>::Data() const
   {
     return this->dataPtr->data;
   }
@@ -409,7 +432,7 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  void Component<DataType, Identifier>::Deserialize(std::istream &_in) const
+  void Component<DataType, Identifier>::Deserialize(std::istream &_in)
   {
     fromStream<DataType, Identifier>(_in, this->Data());
   }
