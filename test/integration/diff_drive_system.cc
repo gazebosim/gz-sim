@@ -161,6 +161,8 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  server.SetUpdatePeriod(0ns);
+
   // Create a system that records the vehicle poses
   Relay testSystem;
 

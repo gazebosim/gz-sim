@@ -48,6 +48,8 @@
 #include "ignition/gazebo/Events.hh"
 #include "SimulationRunner.hh"
 
+using namespace std::chrono_literals;
+
 namespace ignition
 {
 namespace gazebo
