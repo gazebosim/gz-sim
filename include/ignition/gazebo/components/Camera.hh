@@ -32,7 +32,6 @@ namespace components
 {
   /// \brief TODO(louise) Substitute with sdf::Camera once that exists?
   /// This is currently the whole <sensor> element.
-  /// TODO(anyone) Fix serialization: pointer is being wrongly serialized.
   using Camera = Component<sdf::ElementPtr, class CameraTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
 }
