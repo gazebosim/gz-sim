@@ -76,13 +76,12 @@ namespace components
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_desc)
     {
-      auto id = EntityComponentManager::ComponentType<ComponentTypeT>();
-      this->compsByName[_type] = _desc;
-      this->compsById[id] = _desc;
-
       // Initialize static member variables.
-      ComponentTypeT::name = _type;
-      ComponentTypeT::id = ignition::common::hash64(_type);
+      ComponentTypeT::typeName = _type;
+      ComponentTypeT::typeId = ignition::common::hash64(_type);
+
+      this->compsByName[ComponentTypeT::typeName] = _desc;
+      this->compsById[ComponentTypeT::typeId] = _desc;
     }
 
     /// \brief Create a new instance of a component.
@@ -93,7 +92,7 @@ namespace components
     std::unique_ptr<ComponentTypeT> New()
     {
       return std::unique_ptr<ComponentTypeT>(static_cast<ComponentTypeT*>(
-            New(ComponentTypeT::name).release()));
+            New(ComponentTypeT::typeName).release()));
     }
 
     /// \brief Create a new instance of a component.
@@ -148,15 +147,28 @@ namespace components
       return comp;
     }
 
-    /// \brief Get all the component types.
-    /// return Vector of strings of the component types.
-    public: std::vector<std::string> Components()
+    /// \brief Get all the registered component types by type name.
+    /// return Vector of strings with the component type names.
+    public: std::vector<std::string> TypeNames() const
     {
       std::vector<std::string> types;
 
       // Return the list of all known component types.
-      for (const auto & [name, funct] : this->compsByName)
+      for (const auto &[name, funct] : this->compsByName)
         types.push_back(name);
+
+      return types;
+    }
+
+    /// \brief Get all the registered component types by ID.
+    /// return Vector of component IDs.
+    public: std::vector<uint64_t> TypeIds() const
+    {
+      std::vector<ComponentTypeId> types;
+
+      // Return the list of all known component types.
+      for (const auto &[id, funct] : this->compsById)
+        types.push_back(id);
 
       return types;
     }
