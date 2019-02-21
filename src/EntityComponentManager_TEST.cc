@@ -60,7 +60,6 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
 
 using Odd = components::Component<components::NoData, class OddTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
-
 }
 }
 }
