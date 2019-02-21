@@ -170,12 +170,6 @@ namespace ignition
       /// operation.
       public: void RebuildViews();
 
-      /// \brief Get the type id of a component type.
-      /// \return The ComponentTypeId associated with the provided
-      /// ComponentTypeT.
-      public: template<typename ComponentTypeT>
-              static ComponentTypeId ComponentType();
-
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
       /// \param[in] _entity The entity that will be associated with
