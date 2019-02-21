@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <sdf/Element.hh>
+
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -52,7 +54,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
-#include <sdf/Element.hh>
 
 using namespace ignition;
 using namespace gazebo;
@@ -66,7 +67,8 @@ class ComponentsTest : public ::testing::Test
 };
 
 // ostream operator for sdf::Element (not defined elsewhere)
-inline std::ostream& operator<<(std::ostream &_stream, const sdf::Element &_element)
+inline std::ostream& operator<<(std::ostream &_stream,
+    const sdf::Element &_element)
 {
   _stream << _element.ToString("");
   return _stream;
@@ -97,7 +99,6 @@ TEST_F(ComponentsTest, Altimeter)
   std::ostringstream ostr;
   comp11.Serialize(ostr);
   EXPECT_EQ("< test='foo'>val</>\n", ostr.str());
-
 }
 
 /////////////////////////////////////////////////
