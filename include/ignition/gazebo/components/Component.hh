@@ -28,6 +28,12 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+/// \brief Helper trait to determine if a type is shared_ptr or not
+template<typename T> struct is_shared_ptr: std::false_type{};
+
+/// \brief Helper trait to determine if a type is shared_ptr or not
+template<typename T> struct is_shared_ptr<std::shared_ptr<T>>: std::true_type {};
+
 /// \brief Helper template to call stream operators only on types that support
 /// them.
 /// This version is called for types that have operator<<
@@ -39,11 +45,34 @@
 template<typename DataType, typename Identifier,
   typename Stream =
   decltype(std::declval<std::ostream &>() << std::declval<DataType const &>()),
-  typename std::enable_if<std::is_convertible<Stream, std::ostream &>::value,
-  int>::type = 0>
+  typename std::enable_if<
+      !is_shared_ptr<DataType>::value &&
+      std::is_convertible<Stream, std::ostream &>::value,
+      int>::type = 0>
 std::ostream &toStream(std::ostream &_out, DataType const &_data)
 {
   _out << _data;
+  return _out;
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that are pointers to types that have operator<<
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Stream Type used to check if component has operator<<
+/// \param[in] _out Out stream.
+/// \param[in] _data Data to be serialized.
+template<typename DataType, typename Identifier,
+  typename Stream =
+  decltype(std::declval<std::ostream &>() << std::declval<typename DataType::element_type const &>()),
+  typename std::enable_if<
+    is_shared_ptr<DataType>::value &&
+    std::is_convertible<Stream, std::ostream &>::value,
+    int>::type = 0>
+std::ostream &toStream(std::ostream &_out, DataType const &_data)
+{
+  _out << *_data;
   return _out;
 }
 
