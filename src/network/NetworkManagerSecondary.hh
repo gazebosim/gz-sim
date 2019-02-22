@@ -50,9 +50,6 @@ namespace ignition
                   const NodeOptions &_options);
 
       // Documentation inherited
-      public: bool Valid() const override;
-
-      // Documentation inherited
       public: bool Ready() const override;
 
       // Documentation inherited

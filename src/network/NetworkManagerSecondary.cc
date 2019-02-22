@@ -79,18 +79,11 @@ NetworkManagerSecondary::NetworkManagerSecondary(
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::Valid() const
-{
-  return this->dataPtr->config.role == NetworkRole::SimulationSecondary;
-}
-
-//////////////////////////////////////////////////
 bool NetworkManagerSecondary::Ready() const
 {
-  bool ready = this->Valid();
+  // The detected number of peers in the "Primary" role must be 1
   auto primaries = this->dataPtr->tracker->NumPrimary();
-  ready &= (primaries == 1);
-  return ready;
+  return (primaries == 1);
 }
 
 //////////////////////////////////////////////////

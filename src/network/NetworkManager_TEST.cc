@@ -37,12 +37,7 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
     auto nm = NetworkManager::Create(nullptr, conf);
-    ASSERT_NE(nullptr, nm);
-    EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nm.get()));
-    EXPECT_FALSE(nm->Valid());
-    EXPECT_TRUE(nm->IsPrimary());
-    EXPECT_FALSE(nm->IsSecondary());
-    EXPECT_FALSE(nm->IsReadOnly());
+    ASSERT_EQ(nullptr, nm);
     // Expect console warning as well
   }
 
@@ -54,7 +49,6 @@ TEST(NetworkManager, ConfigConstructor)
     auto nm = NetworkManager::Create(nullptr, conf);
     ASSERT_NE(nullptr, nm);
     EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nm.get()));
-    EXPECT_TRUE(nm->Valid());
     EXPECT_TRUE(nm->IsPrimary());
     EXPECT_FALSE(nm->IsSecondary());
     EXPECT_FALSE(nm->IsReadOnly());
@@ -67,16 +61,23 @@ TEST(NetworkManager, ConfigConstructor)
     auto nm = NetworkManager::Create(nullptr, conf);
     ASSERT_NE(nullptr, nm);
     EXPECT_NE(nullptr, static_cast<NetworkManagerSecondary *>(nm.get()));
-    EXPECT_TRUE(nm->Valid());
     EXPECT_FALSE(nm->IsPrimary());
     EXPECT_TRUE(nm->IsSecondary());
     EXPECT_FALSE(nm->IsReadOnly());
   }
 
   {
-    // Readonly is always valid
+    // Readonly is always invalid
     NetworkConfig conf;
     conf.role = NetworkRole::ReadOnly;
+    auto nm = NetworkManager::Create(nullptr, conf);
+    ASSERT_EQ(nullptr, nm);
+  }
+
+  {
+    // None is always invalid
+    NetworkConfig conf;
+    conf.role = NetworkRole::None;
     auto nm = NetworkManager::Create(nullptr, conf);
     ASSERT_EQ(nullptr, nm);
   }
@@ -94,7 +95,6 @@ TEST(NetworkManager, EstablishComms)
   ASSERT_NE(nullptr, nmPrimary);
   EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
   EXPECT_TRUE(nmPrimary->IsPrimary());
-  EXPECT_TRUE(nmPrimary->Valid());
   // Primary namespace is an empty string.
   EXPECT_EQ(0u, nmPrimary->Namespace().length());
 
@@ -105,7 +105,6 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
   EXPECT_TRUE(nmSecondary1->IsSecondary());
-  EXPECT_TRUE(nmSecondary1->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
   EXPECT_LT(0u, nmSecondary1->Namespace().length());
 
@@ -116,7 +115,6 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
   EXPECT_TRUE(nmSecondary2->IsSecondary());
-  EXPECT_TRUE(nmSecondary2->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
   EXPECT_LT(0u, nmSecondary2->Namespace().length());
   // Secondary namespace should be unique.
@@ -143,7 +141,6 @@ TEST(NetworkManager, Step)
   ASSERT_NE(nullptr, nmPrimary);
   EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
   EXPECT_TRUE(nmPrimary->IsPrimary());
-  EXPECT_TRUE(nmPrimary->Valid());
   // Primary namespace is an empty string.
   EXPECT_EQ(0u, nmPrimary->Namespace().length());
 
@@ -154,7 +151,6 @@ TEST(NetworkManager, Step)
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
   EXPECT_TRUE(nmSecondary1->IsSecondary());
-  EXPECT_TRUE(nmSecondary1->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
   EXPECT_LT(0u, nmSecondary1->Namespace().length());
 
@@ -165,7 +161,6 @@ TEST(NetworkManager, Step)
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
   EXPECT_TRUE(nmSecondary2->IsSecondary());
-  EXPECT_TRUE(nmSecondary2->Valid());
   // Secondary namespace is the first 8 digits of the secondary's UUID
   EXPECT_LT(0u, nmSecondary2->Namespace().length());
   // Secondary namespace should be unique.
