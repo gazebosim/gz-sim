@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -70,6 +71,9 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Gravity(this->runner->sdfWorld->Gravity()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::MagneticField(this->runner->sdfWorld->MagneticField()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 

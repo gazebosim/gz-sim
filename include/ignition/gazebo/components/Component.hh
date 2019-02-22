@@ -27,6 +27,7 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
 
 /// \brief Helper template to call stream operators only on types that support
 /// them.
@@ -125,21 +126,15 @@ namespace components
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
 
-    /// \brief
-    public: virtual std::string TypeName() const
-    {
-      ignwarn << "Requesting name of BaseComponent class. Will receive empty "
-              << "string." << std::endl;
-      return std::string();
-    };
+    /// \brief Returns the unique name for the component's type.
+    /// The name is manually chosen during the Factory registration.
+    public: virtual std::string TypeName() const = 0;
 
-    /// \brief
-    public: virtual uint64_t TypeId() const
-    {
-      ignwarn << "Requesting ID of BaseComponent class. Will receive zero."
-              << std::endl;
-      return 0u;
-    };
+    /// \brief Returns the unique ID for the component's type.
+    /// The ID is derived from the name that is manually chosen during the
+    /// Factory registration and is guaranteed to be the same across compilers
+    /// and runs.
+    public: virtual ComponentTypeId TypeId() const = 0;
 
     /// \brief Stream insertion operator. It exposes the component's serialized
     /// state which can be recreated by `operator>>`.
@@ -271,7 +266,7 @@ namespace components
     public: std::string TypeName() const override;
 
     // Documentation inherited
-    public: uint64_t TypeId() const override;
+    public: ComponentTypeId TypeId() const override;
 
     // Documentation inherited
     public: void Serialize(std::ostream &_out) const override;
@@ -292,7 +287,7 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static uint64_t typeId{0};
+    public: inline static ComponentTypeId typeId{0};
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -338,13 +333,19 @@ namespace components
       return _in;
     }
 
+    // Documentation inherited
+    public: std::string TypeName() const override;
+
+    // Documentation inherited
+    public: uint64_t TypeId() const override;
+
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
     public: inline static std::string typeName{""};
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static uint64_t typeId{0};
+    public: inline static ComponentTypeId typeId{0};
   };
 
   template <typename DataType>
@@ -449,7 +450,7 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  uint64_t Component<DataType, Identifier>::TypeId() const
+  ComponentTypeId Component<DataType, Identifier>::TypeId() const
   {
     return typeId;
   }
@@ -468,6 +469,20 @@ namespace components
       const Component<NoData, Identifier> &) const
   {
     return false;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  std::string Component<NoData, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  ComponentTypeId Component<NoData, Identifier>::TypeId() const
+  {
+    return typeId;
   }
 }
 }

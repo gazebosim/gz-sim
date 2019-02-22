@@ -21,7 +21,7 @@
 #include <set>
 #include <string>
 #include <utility>
-#include <ignition/common/Util.hh>
+#include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
@@ -55,8 +55,7 @@ class IGNITION_GAZEBO_VISIBLE View
           const ComponentTypeT *Component(const Entity _entity,
               const EntityComponentManager *_ecm) const
   {
-    auto name = typeid(ComponentTypeT).name();
-    ComponentTypeId typeId = ignition::common::hash64(name);
+    ComponentTypeId typeId = ComponentTypeT::typeId;
     return static_cast<const ComponentTypeT *>(
         this->ComponentImplementation(_entity, typeId, _ecm));
   }
@@ -69,10 +68,9 @@ class IGNITION_GAZEBO_VISIBLE View
           ComponentTypeT *Component(const Entity _entity,
               const EntityComponentManager *_ecm)
   {
-    auto name = typeid(ComponentTypeT).name();
-    ComponentTypeId typeId = ignition::common::hash64(name);
+    ComponentTypeId typeId = ComponentTypeT::typeId;
     return static_cast<ComponentTypeT *>(
-        const_cast<void *>(
+        const_cast<components::BaseComponent *>(
           this->ComponentImplementation(_entity, typeId, _ecm)));
   }
 
@@ -111,7 +109,8 @@ class IGNITION_GAZEBO_VISIBLE View
   /// \param[in] _typeId Type id of the component.
   /// \param[in] _ecm Pointer to the EntityComponentManager.
   /// \return Pointer to the component, or nullptr if not found.
-  private: const void *ComponentImplementation(const Entity _entity,
+  private: const components::BaseComponent *ComponentImplementation(
+               const Entity _entity,
                ComponentTypeId _typeId,
                const EntityComponentManager *_ecm) const;
 

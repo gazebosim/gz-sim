@@ -87,30 +87,18 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::World::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Model::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::CanonicalLink::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Link::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Collision::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Visual::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Light::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Name::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::ParentEntity::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Geometry::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Material::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Inertial::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::World::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Model::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Collision::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Visual::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Light::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Material::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Inertial::typeId));
 
   // Check entities
   // 1 x world + 3 x model + 3 x link + 3 x collision + 3 x visual + 1 x light
@@ -807,28 +795,17 @@ TEST_F(SdfEntityCreatorTest, CreateJointEntities)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::World::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::CanonicalLink::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Link::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Joint::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::JointAxis::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::JointType::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::ChildLinkName::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::ParentLinkName::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::ParentEntity::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Pose::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(
-      components::Name::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::World::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Joint::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::JointAxis::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::JointType::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::ChildLinkName::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentLinkName::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Pose::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 

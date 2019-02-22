@@ -1101,8 +1101,9 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
       rootWith.WorldByIndex(0)->Element());
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(DoubleComponent::typeId));
+  ASSERT_NE(nullptr,
+      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity));
   EXPECT_DOUBLE_EQ(
       runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
       0.123);
