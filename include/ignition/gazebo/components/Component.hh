@@ -29,6 +29,18 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
+/// \brief Helper trait to determine if a type is shared_ptr or not
+template<typename T> struct IsSharedPtr:
+  std::false_type
+{
+};
+
+/// \brief Helper trait to determine if a type is shared_ptr or not
+template<typename T> struct IsSharedPtr<std::shared_ptr<T>>:
+  std::true_type
+{
+};
+
 /// \brief Helper template to call stream operators only on types that support
 /// them.
 /// This version is called for types that have operator<<
@@ -40,11 +52,36 @@
 template<typename DataType, typename Identifier,
   typename Stream =
   decltype(std::declval<std::ostream &>() << std::declval<DataType const &>()),
-  typename std::enable_if<std::is_convertible<Stream, std::ostream &>::value,
-  int>::type = 0>
+  typename std::enable_if<
+      !IsSharedPtr<DataType>::value &&
+      std::is_convertible<Stream, std::ostream &>::value,
+      int>::type = 0>
 std::ostream &toStream(std::ostream &_out, DataType const &_data)
 {
   _out << _data;
+  return _out;
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that are pointers to types that have
+/// operator<<
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Stream Type used to check if component has operator<<
+/// \param[in] _out Out stream.
+/// \param[in] _data Data to be serialized.
+template<typename DataType, typename Identifier,
+  typename Stream =
+  decltype(std::declval<std::ostream &>() << std::declval<
+      typename DataType::element_type const &>()),
+  typename std::enable_if<
+    IsSharedPtr<DataType>::value &&
+    std::is_convertible<Stream, std::ostream &>::value,
+    int>::type = 0>
+std::ostream &toStream(std::ostream &_out, DataType const &_data)
+{
+  _out << *_data;
   return _out;
 }
 
@@ -60,8 +97,14 @@ template<typename DataType, typename Identifier, typename... Ignored>
 std::ostream &toStream(std::ostream &_out, DataType const &,
     Ignored const &..., ...)
 {
-  ignwarn << "Trying to serialize component whose data doesn't have "
-          << "`operator<<`. Component will not be serialized." << std::endl;
+  static bool warned{false};
+  if (!warned)
+  {
+    ignwarn << "Trying to serialize component with data type ["
+            << typeid(DataType).name() << "], which doesn't have "
+            << "`operator<<`. Component will not be serialized." << std::endl;
+    warned = true;
+  }
   return _out;
 }
 
@@ -96,8 +139,14 @@ template<typename DataType, typename Identifier, typename... Ignored>
 std::istream &fromStream(std::istream &_in, DataType const &,
     Ignored const &..., ...)
 {
-  ignwarn << "Trying to deserialize component whose data doesn't have "
-          << "`operator>>`. Component will not be serialized." << std::endl;
+  static bool warned{false};
+  if (!warned)
+  {
+    ignwarn << "Trying to deserialize component with data type ["
+            << typeid(DataType).name() << "], which doesn't have "
+            << "`operator<<`. Component will not be deserialized." << std::endl;
+    warned = true;
+  }
   return _in;
 }
 
@@ -191,7 +240,7 @@ namespace components
     /// overridden by derived classes.
     ///
     /// \param[in] _in In stream.
-    protected: virtual void Deserialize(std::istream &/*_in*/) const
+    protected: virtual void Deserialize(std::istream &/*_in*/)
     {
       ignwarn << "Trying to deserialize copmponent which haven't implemented "
               << "the `Deserialize` function. Component will not be "
@@ -272,11 +321,15 @@ namespace components
     public: void Serialize(std::ostream &_out) const override;
 
     // Documentation inherited
-    public: void Deserialize(std::istream &_in) const override;
+    public: void Deserialize(std::istream &_in) override;
 
-    /// \brief Get the component data.
+    /// \brief Get the mutable component data.
     /// \return Mutable reference to the actual component information.
-    public: DataType &Data() const;
+    public: DataType &Data();
+
+    /// \brief Get the immutable component data.
+    /// \return Immutable reference to the actual component information.
+    public: const DataType &Data() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
@@ -397,7 +450,14 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  DataType &Component<DataType, Identifier>::Data() const
+  DataType &Component<DataType, Identifier>::Data()
+  {
+    return this->dataPtr->data;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  const DataType &Component<DataType, Identifier>::Data() const
   {
     return this->dataPtr->data;
   }
@@ -436,7 +496,7 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  void Component<DataType, Identifier>::Deserialize(std::istream &_in) const
+  void Component<DataType, Identifier>::Deserialize(std::istream &_in)
   {
     fromStream<DataType, Identifier>(_in, this->Data());
   }
