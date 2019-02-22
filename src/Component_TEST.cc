@@ -88,21 +88,29 @@ inline std::ostream &operator<<(std::ostream &_out, const SimpleOperator &)
 }
 
 // ostream operator for sdf::Element (not defined elsewhere)
-// TODO(anyone) clang is not picking this up
+// Note: Must be defined in the correct namespace or clang refuses to find it.
+namespace sdf
+{
 inline std::ostream &operator<<(std::ostream &_out,
     const sdf::Element &_element)
 {
   _out << _element.ToString("");
   return _out;
 }
+}
 
 // ostream operator for math::Inertiald (not defined elsewhere)
-// TODO(anyone) clang is not picking this up
-inline std::ostream &operator<<(std::ostream &_out,
-    const math::Inertiald &_inertial)
+// Note: Must be defined in the correct namespace or clang refuses to find it.
+namespace ignition
+{
+namespace math
+{
+inline std::ostream &operator<<(std::ostream &_out, const Inertiald &_inertial)
 {
   _out << "Mass: " << _inertial.MassMatrix().Mass();
   return _out;
+}
+}
 }
 
 // Wrap existing class and give it a Serialize function
@@ -171,15 +179,9 @@ TEST_F(ComponentTest, OStream)
     auto data = math::Inertiald();
     Custom comp(data);
 
-    // TODO(anyone) Check why this passes with gcc but not with clang
     std::ostringstream ostr;
     ostr << comp;
-    #if not defined (__clang__)
-      EXPECT_EQ("Mass: 0", ostr.str());
-    #else
-      // clang is printing a warning and saying the operator<< is missing
-      EXPECT_EQ("", ostr.str());
-    #endif
+    EXPECT_EQ("Mass: 0", ostr.str());
   }
 
   // Component with data which has custom Serialize function
@@ -187,7 +189,6 @@ TEST_F(ComponentTest, OStream)
     auto data = math::Inertiald();
     InertialWrapper comp(data);
 
-    // TODO(anyone) Check why this passes with gcc but not with clang
     std::ostringstream ostr;
     ostr << comp;
     EXPECT_EQ("Wrapper mass: 0", ostr.str());
@@ -248,15 +249,9 @@ TEST_F(ComponentTest, OStream)
 
     Custom comp(data);
 
-    // TODO(anyone) Check why this passes with gcc but not with clang
     std::ostringstream ostr;
     ostr << comp;
-    #if not defined (__clang__)
-      EXPECT_EQ("<element test='foo'>val</element>\n", ostr.str());
-    #else
-      // clang is printing a warning and saying the operator<< is missing
-      EXPECT_EQ("", ostr.str());
-    #endif
+    EXPECT_EQ("<element test='foo'>val</element>\n", ostr.str());
   }
 
   // Component with shared_ptr math::Inertiald, which has custom stream operator
@@ -267,14 +262,8 @@ TEST_F(ComponentTest, OStream)
     auto data = std::make_shared<math::Inertiald>();
     Custom comp(data);
 
-    // TODO(anyone) Check why this passes with gcc but not with clang
     std::ostringstream ostr;
     ostr << comp;
-    #if not defined (__clang__)
-      EXPECT_EQ("Mass: 0", ostr.str());
-    #else
-      // clang is printing a warning and saying the operator<< is missing
-      EXPECT_EQ("", ostr.str());
-    #endif
+    EXPECT_EQ("Mass: 0", ostr.str());
   }
 }
