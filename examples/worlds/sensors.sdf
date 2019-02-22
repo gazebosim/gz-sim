@@ -6,6 +6,7 @@
 
     Altimeter: ign topic -e -t /altimeter
     Imu: ign topic -e -t /imu
+    Magnetometer: ign topic -e -t /magnetometer
 -->
 <sdf version="1.6">
   <world name="sensors">
@@ -24,6 +25,10 @@
     <plugin
       filename="libignition-gazebo-imu-system.so"
       name="ignition::gazebo::systems::v0::Imu">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-magnetometer-system.so"
+      name="ignition::gazebo::systems::v0::Magnetometer">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
@@ -183,6 +188,12 @@
           <update_rate>100</update_rate>
           <visualize>true</visualize>
           <topic>imu</topic>
+        </sensor>
+        <sensor name="magnetometer" type="magnetometer">
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+          <visualize>true</visualize>
+          <topic>magnetometer</topic>
         </sensor>
       </link>
     </model>

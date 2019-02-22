@@ -82,7 +82,6 @@ namespace components
 
       this->compsByName[ComponentTypeT::typeName] = _desc;
       this->compsById[ComponentTypeT::typeId] = _desc;
-
     }
 
     /// \brief Create a new instance of a component.
@@ -165,7 +164,7 @@ namespace components
     /// return Vector of component IDs.
     public: std::vector<uint64_t> TypeIds() const
     {
-      std::vector<uint64_t> types;
+      std::vector<ComponentTypeId> types;
 
       // Return the list of all known component types.
       for (const auto &[id, funct] : this->compsById)

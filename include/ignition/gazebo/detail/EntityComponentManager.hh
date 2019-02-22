@@ -23,7 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Util.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
@@ -98,7 +97,7 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
   return static_cast<const ComponentTypeT *>(
-      this->First(this->ComponentTypeT::typeId));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////
@@ -106,7 +105,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
   return static_cast<ComponentTypeT *>(
-      this->First(this->ComponentTypeT::typeId));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////
@@ -360,6 +359,7 @@ void EntityComponentManager::AddComponentsToView(detail::View &_view,
     const Entity _entity) const
 {
   const ComponentTypeId typeId = FirstComponent::typeId;
+
   const ComponentId compId =
       this->EntityComponentIdFromType(_entity, typeId);
   if (compId >= 0)
