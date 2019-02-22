@@ -21,6 +21,7 @@
 
 #include <sdf/Element.hh>
 #include <ignition/common/Console.hh>
+#include <ignition/math/Inertial.hh>
 
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -76,6 +77,7 @@ TEST_F(ComponentTest, DataByMove)
   EXPECT_EQ(2u, dataCopy.use_count());
 }
 
+// Class with externally defined stream operator
 struct SimpleOperator {};
 using CustomOperator = components::Component<SimpleOperator, class CustomTag>;
 
@@ -86,12 +88,42 @@ inline std::ostream &operator<<(std::ostream &_out, const SimpleOperator &)
 }
 
 // ostream operator for sdf::Element (not defined elsewhere)
+// TODO(anyone) clang is not picking this up
 inline std::ostream &operator<<(std::ostream &_out,
     const sdf::Element &_element)
 {
   _out << _element.ToString("");
   return _out;
 }
+
+// ostream operator for math::Inertiald (not defined elsewhere)
+// TODO(anyone) clang is not picking this up
+inline std::ostream &operator<<(std::ostream &_out,
+    const math::Inertiald &_inertial)
+{
+  _out << "Mass: " << _inertial.MassMatrix().Mass();
+  return _out;
+}
+
+// Wrap existing class and give it a Serialize function
+using InertialBase =
+    components::Component<math::Inertiald, class InertialBaseTag>;
+class InertialWrapper : public InertialBase
+{
+  public: InertialWrapper() : InertialBase()
+  {
+  }
+
+  public: explicit InertialWrapper(const math::Inertiald &_data)
+    : InertialBase(_data)
+  {
+  }
+
+  public: void Serialize(std::ostream &_out) const override
+  {
+    _out << "Wrapper mass: " << this->Data().MassMatrix().Mass();
+  }
+};
 
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, OStream)
@@ -130,6 +162,35 @@ TEST_F(ComponentTest, OStream)
     std::ostringstream ostr;
     ostr << comp;
     EXPECT_EQ("simple_operator", ostr.str());
+  }
+
+  // Component with data which has custom stream operator
+  {
+    using Custom = components::Component<math::Inertiald, class CustomTag>;
+
+    auto data = math::Inertiald();
+    Custom comp(data);
+
+    // TODO(anyone) Check why this passes with gcc but not with clang
+    std::ostringstream ostr;
+    ostr << comp;
+    #if not defined (__clang__)
+      EXPECT_EQ("Mass: 0", ostr.str());
+    #else
+      // clang is printing a warning and saying the operator<< is missing
+      EXPECT_EQ("", ostr.str());
+    #endif
+  }
+
+  // Component with data which has custom Serialize function
+  {
+    auto data = math::Inertiald();
+    InertialWrapper comp(data);
+
+    // TODO(anyone) Check why this passes with gcc but not with clang
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("Wrapper mass: 0", ostr.str());
   }
 
   // Component with shared_ptr data which has stream operator
@@ -192,6 +253,28 @@ TEST_F(ComponentTest, OStream)
     ostr << comp;
     #if not defined (__clang__)
       EXPECT_EQ("<element test='foo'>val</element>\n", ostr.str());
+    #else
+      // clang is printing a warning and saying the operator<< is missing
+      EXPECT_EQ("", ostr.str());
+    #endif
+  }
+
+  // Component with shared_ptr math::Inertiald, which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<math::Inertiald>,
+        class CustomTag>;
+
+    auto data = std::make_shared<math::Inertiald>();
+    Custom comp(data);
+
+    // TODO(anyone) Check why this passes with gcc but not with clang
+    std::ostringstream ostr;
+    ostr << comp;
+    #if not defined (__clang__)
+      EXPECT_EQ("Mass: 0", ostr.str());
+    #else
+      // clang is printing a warning and saying the operator<< is missing
+      EXPECT_EQ("", ostr.str());
     #endif
   }
 }
