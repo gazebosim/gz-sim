@@ -87,10 +87,10 @@ std::ostream &toStream(std::ostream &_out, DataType const &_data)
 
 /// \brief Helper template to call stream operators only on types that support
 /// them.
+/// This version is called for types that don't have operator<<
 /// \tparam DataType Type on which the operator will be called.
 /// \tparam Identifier Unique identifier for the component class.
 /// \tparam Ignored All other template parameters are ignored.
-/// This version is called for types that don't have operator<<
 /// \param[in] _out Out stream.
 /// \param[in] _data Data to be serialized.
 template<typename DataType, typename Identifier, typename... Ignored>
