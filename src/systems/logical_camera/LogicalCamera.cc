@@ -127,10 +127,9 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         // set sensor world pose
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
-        auto s = std::unique_ptr<sensors::LogicalCameraSensor>(sensor);
 
         this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(s)));
+            std::make_pair(_entity, std::move(sensor)));
 
         return true;
       });
