@@ -155,9 +155,9 @@ TEST(PeerTracker, PeerTrackerStale)
   auto tracker2 = std::make_shared<PeerTracker>(info2);
   tracker2->SetHeartbeatPeriod(std::chrono::milliseconds(100));
 
-  for (int sleep = 0; sleep < 30 && tracker2->NumPeers() == 0; ++sleep)
+  for (int sleep = 0; sleep < 50 && tracker2->NumPeers() == 0; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 
   EXPECT_EQ(1, stalePeers);
