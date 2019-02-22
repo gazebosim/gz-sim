@@ -55,23 +55,13 @@ namespace components
 
     /// \brief Returns the unique name for the component's type.
     /// The name is manually chosen during the Factory registration.
-    public: virtual std::string TypeName() const
-    {
-      ignwarn << "Requesting name of BaseComponent class. Will receive empty "
-              << "string." << std::endl;
-      return std::string();
-    };
+    public: virtual std::string TypeName() const = 0;
 
     /// \brief Returns the unique ID for the component's type.
     /// The ID is derived from the name that is manually chosen during the
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
-    public: virtual ComponentTypeId TypeId() const
-    {
-      ignwarn << "Requesting ID of BaseComponent class. Will receive zero."
-              << std::endl;
-      return 0u;
-    };
+    public: virtual ComponentTypeId TypeId() const = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
