@@ -76,6 +76,15 @@ TEST_F(ComponentTest, DataByMove)
   EXPECT_EQ(2u, dataCopy.use_count());
 }
 
+struct SimpleOperator {};
+using CustomOperator = components::Component<SimpleOperator, class CustomTag>;
+
+inline std::ostream &operator<<(std::ostream &_out, const SimpleOperator &)
+{
+  _out << "simple_operator";
+  return _out;
+}
+
 // ostream operator for sdf::Element (not defined elsewhere)
 inline std::ostream &operator<<(std::ostream &_out,
     const sdf::Element &_element)
@@ -113,6 +122,16 @@ TEST_F(ComponentTest, OStream)
     EXPECT_EQ("", ostr.str());
   }
 
+  // Component with data which has custom stream operator
+  {
+    auto data = SimpleOperator();
+    CustomOperator comp(data);
+
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("simple_operator", ostr.str());
+  }
+
   // Component with shared_ptr data which has stream operator
   {
     using Custom =
@@ -143,6 +162,20 @@ TEST_F(ComponentTest, OStream)
   }
 
   // Component with shared_ptr data which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<SimpleOperator>,
+        class CustomTag>;
+
+    auto data = std::make_shared<SimpleOperator>();
+    Custom comp(data);
+
+    // Check the value is streamed, not the pointer address
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("simple_operator", ostr.str());
+  }
+
+  // Component with shared_ptr sdf::Element, which has custom stream operator
   {
     using Custom = components::Component<std::shared_ptr<sdf::Element>,
         class CustomTag>;
