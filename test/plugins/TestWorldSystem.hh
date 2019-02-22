@@ -18,13 +18,19 @@
 #define IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
 
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
 namespace gazebo
 {
+namespace components
+{
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+    DoubleComponent)
+}
 
 class TestWorldSystem :
   public System,
@@ -39,7 +45,7 @@ class TestWorldSystem :
                          EventManager &/*_eventManager*/) override
         {
           auto value = _sdf->Get<double>("world_key");
-          _ecm.CreateComponent(_entity, DoubleComponent(value));
+          _ecm.CreateComponent(_entity, components::DoubleComponent(value));
         }
 
   public: void Update(const gazebo::UpdateInfo &_info,

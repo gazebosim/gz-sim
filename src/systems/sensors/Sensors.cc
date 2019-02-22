@@ -115,8 +115,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 {
   // Only initialize if there are rendering sensors
   if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(_ecm.ComponentType<components::Camera>()) ||
-        _ecm.HasComponentType(_ecm.ComponentType<components::GpuLidar>())))
+      (_ecm.HasComponentType(components::Camera::typeId) ||
+        _ecm.HasComponentType(components::GpuLidar::typeId)))
   {
     this->dataPtr->engine =
         ignition::rendering::engine(this->dataPtr->engineName);
