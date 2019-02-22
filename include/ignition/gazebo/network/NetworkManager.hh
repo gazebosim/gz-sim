@@ -70,13 +70,21 @@ namespace ignition
       /// \brief Destructor.
       public: virtual ~NetworkManager() = 0;
 
-      /// \brief Indicate if NetworkManager configuration is in a valid state.
-      public: virtual bool Valid() const = 0;
-
-      public: virtual void Initialize() = 0;
-
-      /// \brief Indicate if NetworkManager is ready to execute.
+      /// \brief Indicate if NetworkManager is ready to initialize.
+      /// \return True when NetworkManager is ready to be initialized and
+      /// execute
       public: virtual bool Ready() const = 0;
+
+      /// \brief Initialize communications with peers.
+      /// The NetworkManager goes through two phases of initialization. The
+      /// constructor creates the peer tracker and begins to discover peers
+      /// in the network. Once the appropriate number of peers is discovered
+      /// (based on participant role), then the NetworkManager will indicate
+      /// that it is ready to initialize and execute via the `Ready`.
+      ///
+      /// The `Initialize` call will then set up any additional communications
+      /// infrastructure required for distributed simulation to proceed.
+      public: virtual void Initialize() = 0;
 
       /// \brief Populate simulation step data
       /// This method is called at the beginning of a simulation iteration.

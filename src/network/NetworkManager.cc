@@ -29,12 +29,41 @@
 using namespace ignition;
 using namespace gazebo;
 
+
+bool validateConfig(const NetworkConfig &_config)
+{
+  bool valid = true;
+  switch(_config.role)
+  {
+    case NetworkRole::SimulationPrimary:
+      if (_config.numSecondariesExpected <= 0)
+      {
+        valid = false;
+      }
+      break;
+    case NetworkRole::SimulationSecondary:
+      break;
+    case NetworkRole::ReadOnly:
+    case NetworkRole::None:
+    default:
+      valid = false;
+  }
+
+  return valid;
+}
+
 //////////////////////////////////////////////////
 std::unique_ptr<NetworkManager> NetworkManager::Create(
     EventManager *_eventMgr, const NetworkConfig &_config,
     const NodeOptions &_options)
 {
   std::unique_ptr<NetworkManager> ret;
+
+  if (!validateConfig(_config))
+  {
+    return nullptr;
+  }
+
   switch (_config.role)
   {
     case NetworkRole::SimulationPrimary:
