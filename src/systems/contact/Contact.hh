@@ -39,7 +39,6 @@ namespace systems
   /// simulation
   class IGNITION_GAZEBO_VISIBLE Contact :
     public System,
-    public ISystemConfigure,
     public ISystemPreUpdate,
     public ISystemPostUpdate
   {
@@ -48,12 +47,6 @@ namespace systems
 
     /// \brief Destructor
     public: ~Contact() final = default;
-
-    /// Documentation inherited
-    public: void Configure(const Entity &_entity,
-                           const std::shared_ptr<const sdf::Element> &_sdf,
-                           EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) final;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,

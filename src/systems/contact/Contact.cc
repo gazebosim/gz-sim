@@ -32,15 +32,14 @@
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Contact.hh"
-#include "ignition/gazebo/components/ContactData.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
 
 #include "Contact.hh"
 
@@ -102,9 +101,6 @@ class ignition::gazebo::systems::ContactPrivate
   /// \brief A map of Contact entity to its Contact sensor.
   public: std::unordered_map<Entity,
       std::unique_ptr<ContactSensor>> entitySensorMap;
-
-  /// \brief The world entity this system is attached to
-  public: Entity worldEntity = kNullEntity;
 };
 
 //////////////////////////////////////////////////
@@ -160,8 +156,9 @@ void ContactSensor::Publish()
 //////////////////////////////////////////////////
 void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<components::Contact>(
-      [&](const Entity &_entity, const components::Contact *_contact) -> bool
+  _ecm.EachNew<components::ContactSensor>(
+      [&](const Entity &_entity,
+          const components::ContactSensor *_contact) -> bool
       {
         // Check if the parent entity is a link
         auto *parentEntity = _ecm.Component<components::ParentEntity>(_entity);
@@ -198,7 +195,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 
             // Create component to be filled by physics.
             _ecm.CreateComponent(childEntities.front(),
-                                 components::ContactData());
+                                 components::ContactSensorData());
           }
         }
 
@@ -221,7 +218,7 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
   {
     for (const Entity &entity : item.second->collisionEntities)
     {
-      auto contacts = _ecm.Component<components::ContactData>(entity);
+      auto contacts = _ecm.Component<components::ContactSensorData>(entity);
 
       // We will assume that the ContactData component will have been created if
       // this entity is in the collisionEntities list
@@ -237,9 +234,9 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
 void ContactPrivate::RemoveSensors(
     const EntityComponentManager &_ecm)
 {
-  _ecm.EachRemoved<components::Contact>(
+  _ecm.EachRemoved<components::ContactSensor>(
     [&](const Entity &_entity,
-        const components::Contact *)->bool
+        const components::ContactSensor *)->bool
       {
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
@@ -257,13 +254,6 @@ void ContactPrivate::RemoveSensors(
 //////////////////////////////////////////////////
 Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 {
-}
-
-void Contact::Configure(const Entity &_entity,
-                        const std::shared_ptr<const sdf::Element> &,
-                        EntityComponentManager &, EventManager &)
-{
-  this->dataPtr->worldEntity = _entity;
 }
 
 //////////////////////////////////////////////////
@@ -291,7 +281,6 @@ void Contact::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(Contact, System,
-  Contact::ISystemConfigure,
   Contact::ISystemPreUpdate,
   Contact::ISystemPostUpdate
 )
