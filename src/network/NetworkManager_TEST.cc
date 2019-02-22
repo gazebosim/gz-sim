@@ -117,11 +117,11 @@ TEST(NetworkManager, EstablishComms)
   EXPECT_TRUE(nmSecondary1->Namespace() != nmSecondary2->Namespace());
 
   // Give time for messages to propagate
-  for (int sleep = 0; sleep < 30 &&
+  for (int sleep = 0; sleep < 50 &&
       (!nmPrimary->Ready() || !nmSecondary1->Ready() || !nmSecondary2->Ready());
       ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 
   // All participants should be "ready" in that the correct
