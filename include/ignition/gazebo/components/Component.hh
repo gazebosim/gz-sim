@@ -87,10 +87,10 @@ std::ostream &toStream(std::ostream &_out, DataType const &_data)
 
 /// \brief Helper template to call stream operators only on types that support
 /// them.
+/// This version is called for types that don't have operator<<
 /// \tparam DataType Type on which the operator will be called.
 /// \tparam Identifier Unique identifier for the component class.
 /// \tparam Ignored All other template parameters are ignored.
-/// This version is called for types that don't have operator<<
 /// \param[in] _out Out stream.
 /// \param[in] _data Data to be serialized.
 template<typename DataType, typename Identifier, typename... Ignored>
@@ -175,16 +175,6 @@ namespace components
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
 
-    /// \brief Returns the unique name for the component's type.
-    /// The name is manually chosen during the Factory registration.
-    public: virtual std::string TypeName() const = 0;
-
-    /// \brief Returns the unique ID for the component's type.
-    /// The ID is derived from the name that is manually chosen during the
-    /// Factory registration and is guaranteed to be the same across compilers
-    /// and runs.
-    public: virtual ComponentTypeId TypeId() const = 0;
-
     /// \brief Stream insertion operator. It exposes the component's serialized
     /// state which can be recreated by `operator>>`.
     ///
@@ -246,6 +236,16 @@ namespace components
               << "the `Deserialize` function. Component will not be "
               << "deserialized." << std::endl;
     };
+
+    /// \brief Returns the unique name for the component's type.
+    /// The name is manually chosen during the Factory registration.
+    public: virtual std::string TypeName() const = 0;
+
+    /// \brief Returns the unique ID for the component's type.
+    /// The ID is derived from the name that is manually chosen during the
+    /// Factory registration and is guaranteed to be the same across compilers
+    /// and runs.
+    public: virtual ComponentTypeId TypeId() const = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
