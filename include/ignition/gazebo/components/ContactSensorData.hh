@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTDATA_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CONTACTDATA_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
 
 #include <ignition/msgs/contacts.pb.h>
 #include <ignition/gazebo/components/Component.hh>
@@ -31,11 +31,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains a list of Contacts.
-  using ContactData = Component<msgs::Contacts, class ContactDataTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.ContactData", ContactData)
-
+  /// \brief A component type that contains a list of contacts.
+  using ContactSensorData =
+      Component<msgs::Contacts, class ContactSensorDataTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensorData",
+                                ContactSensorData)
 }
 }
 }

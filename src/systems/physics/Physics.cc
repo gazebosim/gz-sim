@@ -68,7 +68,7 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactData.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
@@ -827,18 +827,13 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
 {
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
-  if (!_ecm.HasComponentType(_ecm.ComponentType<components::ContactData>()))
+  if (!_ecm.HasComponentType(
+          _ecm.ComponentType<components::ContactSensorData>()))
     return;
 
   // TODO(addisu) If systems are assumed to only have one world, we should
   // capture the world Entity in a Configure call
-  Entity worldEntity = kNullEntity;
-  _ecm.Each<components::World>(
-      [&](const Entity &_entity, const components::World *) -> bool
-      {
-        worldEntity = _entity;
-        return false;
-      });
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
 
   if (worldEntity == kNullEntity)
   {
@@ -882,14 +877,14 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
   // Go through each collision entity that has a ContactData component and
   // set the component value to the list of contacts that correspond to
   // the collision entity
-  _ecm.Each<components::Collision, components::ContactData>(
+  _ecm.Each<components::Collision, components::ContactSensorData>(
       [&](const Entity &_collEntity1, components::Collision *,
-          components::ContactData *_contacts) -> bool
+          components::ContactSensorData *_contacts) -> bool
       {
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
         {
           // Clear the last contact data
-          *_contacts = components::ContactData();
+          *_contacts = components::ContactSensorData();
           return true;
         }
 
@@ -910,7 +905,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
             position->set_z(contact->point.z());
           }
         }
-        *_contacts = components::ContactData(std::move(contactsComp));
+        *_contacts = components::ContactSensorData(std::move(contactsComp));
 
         return true;
       });

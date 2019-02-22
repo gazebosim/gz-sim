@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACT_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CONTACT_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_CONTACTSENSOR_HH_
+#define IGNITION_GAZEBO_COMPONENTS_CONTACTSENSOR_HH_
 
 #include <sdf/Element.hh>
 #include <ignition/gazebo/components/Factory.hh>
@@ -32,8 +32,9 @@ namespace components
 {
   /// \brief TODO(anyone) Substitute with sdf::Contact once that exists?
   /// This is currently the whole <sensor> element.
-  using Contact = Component<sdf::ElementPtr, class ContactTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Contact", Contact)
+  using ContactSensor = Component<sdf::ElementPtr, class ContactSensorTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensor",
+                                ContactSensor)
 }
 }
 }
