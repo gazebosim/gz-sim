@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_TEST_TESTMODELSYSTEM_HH_
 
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
 #include <ignition/transport/Node.hh>
@@ -26,7 +27,12 @@ namespace ignition
 {
 namespace gazebo
 {
+namespace components
+{
 using IntComponent = components::Component<int, class IntComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+    IntComponent)
+}
 
 class TestModelSystem :
   public System,
@@ -65,7 +71,7 @@ class TestModelSystem :
               &TestModelSystem::Service, this);
 
           auto value = _sdf->Get<int>("model_key");
-          _ecm.CreateComponent(_entity, IntComponent(value));
+          _ecm.CreateComponent(_entity, components::IntComponent(value));
         }
 
   private: Model model;
