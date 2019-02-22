@@ -33,11 +33,11 @@ void View::AddEntity(const Entity _entity, const bool _new)
 
 //////////////////////////////////////////////////
 void View::AddComponent(const Entity _entity,
-    const ComponentTypeId _compId,
+    const ComponentTypeId _typeId,
     const ComponentId _componentId)
 {
   this->components.insert(
-      std::make_pair(std::make_pair(_entity, _compId), _componentId));
+      std::make_pair(std::make_pair(_entity, _typeId), _componentId));
 }
 
 //////////////////////////////////////////////////
@@ -59,7 +59,8 @@ bool View::RemoveEntity(const Entity _entity, const ComponentTypeKey &_key)
 }
 
 /////////////////////////////////////////////////
-const void *View::ComponentImplementation(const Entity _entity,
+const components::BaseComponent *View::ComponentImplementation(
+    const Entity _entity,
     ComponentTypeId _typeId,
     const EntityComponentManager *_ecm) const
 {
