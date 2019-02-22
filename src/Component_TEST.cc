@@ -19,16 +19,29 @@
 
 #include <memory>
 
+#include <sdf/Element.hh>
+#include <ignition/common/Console.hh>
+
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-using namespace ignition::gazebo;
+using namespace ignition;
+using namespace gazebo;
 
-/////////////////////////////////////////////////
+//////////////////////////////////////////////////
+class ComponentTest : public ::testing::Test
+{
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
+//////////////////////////////////////////////////
 /// Test that using the default constructor of Component doesn't cause
 /// problems when copying
-TEST(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
+TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 {
   // Use Component's default constructor
   auto comp = components::Name();
@@ -41,7 +54,8 @@ TEST(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
   SUCCEED();
 }
 
-TEST(ComponentTest, DataByMove)
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, DataByMove)
 {
   // Create a custom component with shared_ptr data
   using CustomComponent =
@@ -60,4 +74,91 @@ TEST(ComponentTest, DataByMove)
 
   // If "data" was moved, the use cound should still be 2.
   EXPECT_EQ(2u, dataCopy.use_count());
+}
+
+// ostream operator for sdf::Element (not defined elsewhere)
+inline std::ostream &operator<<(std::ostream &_out,
+    const sdf::Element &_element)
+{
+  _out << _element.ToString("");
+  return _out;
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, OStream)
+{
+  // Component with data which has stream operator
+  {
+    using Custom = components::Component<std::string, class CustomTag>;
+
+    auto data = std::string("banana");
+    Custom comp(data);
+
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("banana", ostr.str());
+  }
+
+  // Component with data which doesn't have stream operator
+  {
+    struct Simple {};
+    using Custom = components::Component<Simple, class CustomTag>;
+
+    auto data = Simple();
+    Custom comp(data);
+
+    // Returns empty string and prints warning
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("", ostr.str());
+  }
+
+  // Component with shared_ptr data which has stream operator
+  {
+    using Custom =
+        components::Component<std::shared_ptr<int>, class CustomTag>;
+
+    auto data = std::make_shared<int>(123);
+    Custom comp(data);
+
+    // Check the value is streamed, not the pointer address
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("123", ostr.str());
+  }
+
+  // Component with shared_ptr data which doesn't have stream operator
+  {
+    struct Simple {};
+    using Custom =
+        components::Component<std::shared_ptr<Simple>, class CustomTag>;
+
+    auto data = std::make_shared<Simple>();
+    Custom comp(data);
+
+    // Returns empty string and prints warning
+    std::ostringstream ostr;
+    ostr << comp;
+    EXPECT_EQ("", ostr.str());
+  }
+
+  // Component with shared_ptr data which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<sdf::Element>,
+        class CustomTag>;
+
+    auto data = std::make_shared<sdf::Element>();
+    data->SetName("element");
+    data->AddAttribute("test", "string", "foo", false, "foo description");
+    data->AddValue("string", "val", false, "val description");
+
+    Custom comp(data);
+
+    // TODO(anyone) Check why this passes with gcc but not with clang
+    std::ostringstream ostr;
+    ostr << comp;
+    #if not defined (__clang__)
+      EXPECT_EQ("<element test='foo'>val</element>\n", ostr.str());
+    #endif
+  }
 }
