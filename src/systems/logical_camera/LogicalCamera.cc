@@ -47,7 +47,7 @@ class ignition::gazebo::systems::LogicalCameraPrivate
 {
   /// \brief A map of logicalCamera entities
   public: std::unordered_map<Entity,
-      sensors::LogicalCameraSensor *> entitySensorMap;
+      std::unique_ptr<sensors::LogicalCameraSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -127,9 +127,10 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         // set sensor world pose
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
+        auto s = std::unique_ptr<sensors::LogicalCameraSensor>(sensor);
 
         this->entitySensorMap.insert(
-            std::make_pair(_entity, sensor));
+            std::make_pair(_entity, std::move(s)));
 
         return true;
       });
