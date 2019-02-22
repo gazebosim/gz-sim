@@ -66,21 +66,10 @@ class ComponentsTest : public ::testing::Test
   }
 };
 
-// ostream operator for sdf::Element (not defined elsewhere)
-inline std::ostream &operator<<(std::ostream &_stream,
-    const sdf::Element &_element)
-{
-  _stream << _element.ToString("");
-  return _stream;
-}
-
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Altimeter)
 {
   auto data1 = std::make_shared<sdf::Element>();
-  data1->AddAttribute("test", "string", "foo", false, "foo description");
-  data1->AddValue("string", "val", false, "val description");
-
   auto data2 = std::make_shared<sdf::Element>();
 
   // Create components
@@ -96,11 +85,7 @@ TEST_F(ComponentsTest, Altimeter)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // Note: this is testing the custom operator added in the test, the component
-  // by itself is not yet serializable
-  std::ostringstream ostr;
-  comp11.Serialize(ostr);
-  EXPECT_EQ("< test='foo'>val</>\n", ostr.str());
+  // TODO(anyone) Stream operator
 }
 
 /////////////////////////////////////////////////
