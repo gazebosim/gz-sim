@@ -65,8 +65,8 @@ namespace ignition
     using ComponentId = int;
 
     /// \brief A unique identifier for a component type. A component type
-    /// can be plain data type or something more complex like
-    /// ignition::math::Pose3d.
+    /// must be derived from `components::BaseComponent` and can contain plain
+    /// data or something more complex like `ignition::math::Pose3d`.
     using ComponentTypeId = uint64_t;
 
     /// \brief A key that uniquely identifies, at the global scope, a component

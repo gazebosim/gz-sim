@@ -23,7 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Util.hh>
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 namespace ignition
@@ -32,25 +31,11 @@ namespace gazebo
 {
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
-ComponentTypeId EntityComponentManager::ComponentType()
-{
-  // Get a unique identifier to the component type
-  // TODO(anyone) Factory fills ComponentTypeT::id with similar info for us
-  // (the hash of a registered name that is guaranteed to remain the same
-  // across compilers and runs, as opposed to typeid().name()).
-  // It would be nice to reuse that here, but we must make sure all components
-  // are registered with the factory.
-  auto name = typeid(ComponentTypeT).name();
-  return ignition::common::hash64(name);
-}
-
-//////////////////////////////////////////////////
-template<typename ComponentTypeT>
 ComponentKey EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
   // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
+  const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   // Create the component storage if one does not exist for
   // the component type.
@@ -69,7 +54,7 @@ const ComponentTypeT *EntityComponentManager::Component(
     const Entity _entity) const
 {
   // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
+  const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<const ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
@@ -80,7 +65,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 {
   // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentType<ComponentTypeT>();
+  const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
@@ -108,7 +93,7 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
   return static_cast<const ComponentTypeT *>(
-      this->First(this->ComponentType<ComponentTypeT>()));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////
@@ -116,7 +101,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
   return static_cast<ComponentTypeT *>(
-      this->First(this->ComponentType<ComponentTypeT>()));
+      this->First(ComponentTypeT::typeId));
 }
 
 //////////////////////////////////////////////////
@@ -216,8 +201,7 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
   for (const auto &vertex : this->Entities().Vertices())
   {
     Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{
-        this->ComponentType<ComponentTypeTs>()...};
+    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
 
     if (this->EntityMatches(entity, types))
     {
@@ -238,8 +222,7 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
   for (const auto &vertex : this->Entities().Vertices())
   {
     Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{
-        this->ComponentType<ComponentTypeTs>()...};
+    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
 
     if (this->EntityMatches(entity, types))
     {
@@ -371,7 +354,8 @@ template<typename FirstComponent,
 void EntityComponentManager::AddComponentsToView(detail::View &_view,
     const Entity _entity) const
 {
-  const ComponentTypeId typeId = ComponentType<FirstComponent>();
+  const ComponentTypeId typeId = FirstComponent::typeId;
+
   const ComponentId compId =
       this->EntityComponentIdFromType(_entity, typeId);
   if (compId >= 0)
@@ -394,7 +378,7 @@ template<typename FirstComponent,
 void EntityComponentManager::AddComponentsToView(detail::View &_view,
     const Entity _entity) const
 {
-  const ComponentTypeId typeId = ComponentType<FirstComponent>();
+  const ComponentTypeId typeId = FirstComponent::typeId;
   const ComponentId compId =
       this->EntityComponentIdFromType(_entity, typeId);
   if (compId >= 0)
@@ -416,8 +400,7 @@ void EntityComponentManager::AddComponentsToView(detail::View &_view,
 template<typename ...ComponentTypeTs>
 detail::View &EntityComponentManager::FindView() const
 {
-  auto types = std::set<ComponentTypeId>{
-      this->ComponentType<ComponentTypeTs>()...};
+  auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
 
   std::map<detail::ComponentTypeKey, detail::View>::iterator viewIter;
 
@@ -457,7 +440,7 @@ detail::View &EntityComponentManager::FindView() const
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
-  const auto typeId = ComponentType<ComponentTypeT>();
+  const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
 }
 }
