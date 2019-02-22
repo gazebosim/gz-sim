@@ -116,7 +116,13 @@ TEST(NetworkManager, EstablishComms)
   // Secondary namespace should be unique.
   EXPECT_TRUE(nmSecondary1->Namespace() != nmSecondary2->Namespace());
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Give time for messages to propagate
+  for (int sleep = 0; sleep < 30 &&
+      (!nmPrimary->Ready() || !nmSecondary1->Ready() || !nmSecondary2->Ready());
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
 
   // All participants should be "ready" in that the correct
   // number of peers are discovered for their respective role.
