@@ -18,6 +18,7 @@
 #include "LogPlayback.hh"
 
 #include <fstream>
+#include <string>
 
 #include <ignition/plugin/RegisterMore.hh>
 
@@ -54,8 +55,7 @@ LogPlayback::~LogPlayback()
 void LogPlayback::parsePose(EntityComponentManager &_ecm)
 {
   // TODO(mabelmzhang): Parse iter->Type() to get substring after last ".",
-  //   to know what message type to create!
-  //   For now just assuming Pose_V
+  //   to know what message type to create! For now just assuming Pose_V.
 
   // Protobuf message
   ignition::msgs::Pose_V posev_msg;
@@ -71,9 +71,10 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
     igndbg << pose.name() << std::endl;
     // igndbg << pose.id() << std::endl;
 
-    // TODO(mabelmzhang): Links do not have parent information, so if two links
-    //   of different models are of same name, there is no way to distinguish
-    //   between them. Therefore link names in SDF must be different.
+    // TODO(mabelmzhang): Pose ign-msgs do not have parent information, so if
+    //   two links of different models are of same name, there is no way to
+    //   distinguish between them. Therefore link names in SDF must be
+    //   different. Or, save a custom tree of model-link-pose information.
 
     // Update link pose in map
     this->name_to_pose.insert_or_assign(pose.name(), pose);
@@ -135,8 +136,8 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
 
   /*
   // Loop through actual links in world
-  // TODO: Use parentComp to distinguish between Links with same name for
-  //   different Models!
+  // TODO(mabelmzhang): Use parentComp to distinguish between Links with same
+  //   name for different Models!
   _ecm.Each<components::Link, components::Name, components::ParentEntity,
                components::Pose>(
       [&](const Entity &_entity, components::Link *,
@@ -192,61 +193,10 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   ignmsg << "Playing back log file " << this->logPath << std::endl;
 
 
-  // Use ign-transport playback directly
-  // TODO(mabelmzhang):
-  //   This only plays the messages on ign topic, but doesn't create or
-  //   change any objects in the world! Still need to pull out all the
-  //   objects from the .tlog file through SQL, and talk to ECM to create those
-  //   objects in the world!
-  //   So maybe don't need to use playback at all. Just call Log.hh to load
-  //   the .tlog file, and then we do stuff with objects in it.
-  /*
-  this->player.reset(new Playback(this->logPath));
-
-  const int64_t addTopicResult = this->player->AddTopic(std::regex(".*"));
-  if (addTopicResult == 0)
-  {
-    ignerr << "No topics to play back\n";
-  }
-  else if (addTopicResult < 0)
-  {
-    ignerr << "Failed to advertise topics: " << addTopicResult << std::endl;
-    this->player.reset();
-  }
-  else
-  {
-    const auto handle = player->Start();
-    if (!handle)
-    {
-      ignerr << "Failed to start playback\n";
-      this->player.reset();
-    }
-    else
-    {
-      ignmsg << "Starting playback\n";
-    }
-  }
-  */
-
-
-  // Use ECM
-
   // Call Log.hh directly to load a .tlog file
 
   this->log.reset(new Log());
   this->log->Open(this->logPath);
-
-  // Don't need
-  // const Descriptor * desc = this->log->Descriptor();
-  /*
-  Descriptor::NameToMap name_to_map = desc->TopicsToMsgTypesToId();
-  Descriptor::NameToId name_to_id = name_to_map.at("/world/default/pose/info");
-  int64_t row_i = name_to_id.at("ignition.msgs.Pose_V");
-  */
-  // Above 3 lines can be replaced by this convenience function:
-  // int64_t row_i = desc->TopicId("/world/default/pose/info",
-  //   "ignition.msgs.Pose_V");
-  // igndbg << "row " << row_i << std::endl;
 
   // Access messages in .tlog file
   TopicList opts = TopicList("/world/default/pose/info");
@@ -263,14 +213,6 @@ void LogPlayback::Configure(const Entity &/*_id*/,
 
   // Load recorded SDF file
 
-  // TODO(mabelmzhang):
-  //   Not sure if this fixes the problem that sometimes the SDF objects
-  //   get loaded into the world, sometimes not.
-  //   If move this block to start of function, then mostly it doesn't load.
-  //   Look into why.
-  // Wait a little, else SDF objects don't load
-  ignition::common::Time::Sleep(ignition::common::Time(1));
-
   sdf::Root root;
   if (root.Load(this->sdfPath).size() != 0)
   {
@@ -281,44 +223,47 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   igndbg << "Model count: " << root.ModelCount() << std::endl;
   const sdf::World * sdf_world = root.WorldByIndex(0);
 
-  // TODO(mabelmzhang):
-  //   Look for LogRecord plugin in the SDF, and remove that <plugin>,
-  //   so that recorder isn't also loaded! It necessarily is in the SDF,
-  //   because it was loaded in the original SDF to record the log file.
-  // TODO(mabelmzhang) Hardcoding name for now. Ideally can do regex *LogRecord
-  /*
-  sdf::ElementPtr recordPlugin = sdf_world->Element()->GetElement(
-    "ignition::gazebo::systems::v0::LogRecord");
-  if (recordPlugin != NULL)
+  // Look for LogRecord plugin in the SDF and remove it, so that the playback
+  //   isn't re-recorded. The SDF necessarily contains the recorder, which
+  //   produced the log file this plugin is playing back.
+  if (sdf_world->Element()->HasElement("plugin"))
   {
-    recordPlugin->RemoveFromParent();
-    ignerr << "Removing LogRecord plugin from loaded SDF\n";
+    sdf::ElementPtr pluginElt = sdf_world->Element()->GetElement("plugin");
+    // If never found, nothing to remove
+    while (pluginElt != sdf::ElementPtr(nullptr))
+    {
+      if (pluginElt->HasAttribute("name"))
+      {
+        if (pluginElt->GetAttribute("name")->GetAsString().find ("LogRecord")
+          == std::string::npos)
+        {
+          // Go to next plugin
+          pluginElt = pluginElt->GetNextElement("plugin");
+        }
+        // If found it, remove it
+        else
+        {
+          ignerr << "Found LogRecord plugin\n";
+          pluginElt->RemoveFromParent();
+          ignerr << "Removed LogRecord plugin from loaded SDF\n";
+          break;
+        }
+      }
+    }
   }
-  */
+
+
+  //sdf_world->Element()->RemoveChild(recordPlugin);
  
 
   // size_t nEntities = _ecm.EntityCount();
   ignerr << _ecm.EntityCount() << " entities" << std::endl;
-  // while (nEntities < 2)
-  // {
-    // Create all Entities in SDF <world> tag
-    ignition::gazebo::SdfEntityCreator creator =
-      ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-    creator.CreateEntities(sdf_world);
-
-    // nEntities = _ecm.EntityCount();
-    // ignerr << _ecm.EntityCount() << " entities" << std::endl;
-  // }
+  // Create all Entities in SDF <world> tag
+  ignition::gazebo::SdfEntityCreator creator =
+    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
+  creator.CreateEntities(sdf_world);
 
 
-  // TODO: Check for whether world is running, start when it starts running!
-  /* Too long.
-  std::chrono::time_point<std::chrono::system_clock> now =
-    std::chrono::system_clock::now();
-  auto duration = now.time_since_epoch();
-  this->worldStartTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-    duration);
-  */
   this->worldStartTime = std::chrono::high_resolution_clock::now();
 
   // Advance one entry in batch for Update()
@@ -330,8 +275,6 @@ void LogPlayback::Configure(const Entity &/*_id*/,
 void LogPlayback::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  // Use ECM
-
   // Sanity check. If reached the end, done.
   if (this->iter == this->poseBatch.end())
   {
@@ -371,22 +314,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
 
 
   /*
-  // Models
-  _ecm.Each<components::Model, components::Name,
-               components::ParentEntity, components::Pose>(
-      [&](const Entity &_entity, const components::Model *,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp) -> bool
-  {
-    igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
-    igndbg << "Pose: " << _poseComp->Data() << std::endl;
-
-    //_ecm.Component(_entity)
-
-    return true;
-  });
-
   // Joints
   _ecm.Each<components::Joint, components::Name, components::ParentEntity,
                components::Pose>(
