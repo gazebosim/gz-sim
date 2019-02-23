@@ -22,18 +22,25 @@
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Gravity.hh"
+#include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -48,7 +55,10 @@
 
 class ignition::gazebo::SdfEntityCreatorPrivate
 {
+  /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
+
+  /// \brief Pointer to event manager. We don't assume ownership.
   public: EventManager *eventManager{nullptr};
 };
 
@@ -120,6 +130,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
     this->SetParent(lightEntity, worldEntity);
   }
+
+  // Gravity
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::Gravity(_world->Gravity()));
+
+  // MagneticField
+  this->dataPtr->ecm->CreateComponent(worldEntity,
+      components::MagneticField(_world->MagneticField()));
 
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
       _world->Element());
@@ -376,6 +394,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::Camera(elem));
   }
+  else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::GpuLidar(elem));
+  }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
      auto elem = _sensor->Element();
@@ -388,6 +413,32 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
         components::WorldPose(math::Pose3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::IMU)
+  {
+    auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::Imu(elem));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::AngularVelocity(math::Vector3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::LinearAcceleration(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::MAGNETOMETER)
+  {
+     auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::Magnetometer(elem));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
   }
   else
   {

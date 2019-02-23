@@ -14,16 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SIMPLEWRAPPER_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
+#define IGNITION_GAZEBO_COMPONENTS_COMPONENT_HH_
 
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include <ignition/common/Console.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
@@ -49,6 +52,16 @@ namespace components
 
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
+
+    /// \brief Returns the unique name for the component's type.
+    /// The name is manually chosen during the Factory registration.
+    public: virtual std::string TypeName() const = 0;
+
+    /// \brief Returns the unique ID for the component's type.
+    /// The ID is derived from the name that is manually chosen during the
+    /// Factory registration and is guaranteed to be the same across compilers
+    /// and runs.
+    public: virtual ComponentTypeId TypeId() const = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -64,60 +77,76 @@ namespace components
   ///     using AnotherComp = Component<bool, class StaticTag>;
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
+  ///
+  /// \tparam DataType Type of the data being wrapped by this component.
+  /// \tparam Identifier Unique identifier for the component class, to avoid
+  /// collision.
   template <typename DataType, typename Identifier>
   class Component: public BaseComponent
   {
     /// \brief Default constructor
-    public: explicit Component() = default;
+    public: Component();
 
     /// \brief Constructor
-    /// \param[in] _simpleWrapper Component to copy
+    /// \param[in] _data Data to copy
     public: explicit Component(const DataType &_data);
 
+    /// \brief Constructor data to be moved
+    /// \param[in] _data Data to moved
+    public: explicit Component(DataType &&_data);
+
     /// \brief Copy Constructor
-    /// \param[in] _simpleWrapper Component component to copy.
-    public: Component(const Component &_simpleWrapper);
+    /// \param[in] _component Component component to copy.
+    public: Component(const Component &_component);
 
     /// \brief Move Constructor
-    /// \param[in] _simpleWrapper Component component to move.
-    public: Component(Component &&_simpleWrapper) noexcept = default;
+    /// \param[in] _component Component component to move.
+    public: Component(Component &&_component) noexcept = default;
 
     /// \brief Destructor.
     public: ~Component() override = default;
 
     /// \brief Move assignment operator.
-    /// \param[in] _simpleWrapper Component component to move.
+    /// \param[in] _component Component component to move.
     /// \return Reference to this.
     public: Component &operator=(
-                Component &&_simpleWrapper) noexcept = default;
+                Component &&_component) noexcept = default;
 
     /// \brief Copy assignment operator.
-    /// \param[in] _simpleWrapper Component component to copy.
+    /// \param[in] _component Component component to copy.
     /// \return Reference to this.
-    public: Component &operator=(const Component &_simpleWrapper);
+    public: Component &operator=(const Component &_component);
 
     /// \brief Equality operator.
-    /// \param[in] _simpleWrapper Component to compare to.
+    /// \param[in] _component Component to compare to.
     /// \return True if equal.
-    public: bool operator==(const Component &_simpleWrapper) const;
+    public: bool operator==(const Component &_component) const;
 
     /// \brief Inequality operator.
-    /// \param[in] _simpleWrapper Component to compare to.
+    /// \param[in] _component Component to compare to.
     /// \return True if different.
-    public: bool operator!=(const Component &_simpleWrapper) const;
+    public: bool operator!=(const Component &_component) const;
 
-    /// \brief Get the simpleWrapper data.
-    /// \return The actual simpleWrapper information.
+    // Documentation inherited
+    public: std::string TypeName() const override;
+
+    // Documentation inherited
+    public: ComponentTypeId TypeId() const override;
+
+    /// \brief Get the component data.
+    /// \return The actual component information.
     public: const DataType &Data() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static ComponentTypeId typeId{0};
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -137,18 +166,29 @@ namespace components
     // Documentation inherited
     public: bool operator!=(const Component<NoData, Identifier> &) const;
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    // Documentation inherited
+    public: std::string TypeName() const override;
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    // Documentation inherited
+    public: uint64_t TypeId() const override;
+
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
+
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static ComponentTypeId typeId{0};
   };
 
   template <typename DataType>
   class ComponentPrivate
   {
+    /// \brief Default constructor
+    public: ComponentPrivate() = default;
+
     /// \brief Constructor.
-    /// \param[in] _simpleWrapper Component data.
+    /// \param[in] _component Component data.
     public: explicit ComponentPrivate(DataType _data)
             : data(std::move(_data))
     {
@@ -160,6 +200,13 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component()
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>())
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(const DataType &_data)
     : dataPtr(std::make_unique<ComponentPrivate<DataType>>(_data))
   {
@@ -167,10 +214,17 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component(DataType &&_data)
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>(std::move(_data)))
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(
-      const Component<DataType, Identifier> &_simpleWrapper)
+      const Component<DataType, Identifier> &_component)
       : dataPtr(std::make_unique<ComponentPrivate<DataType>>(
-            _simpleWrapper.Data()))
+            _component.Data()))
   {
   }
 
@@ -184,26 +238,40 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier> &Component<DataType, Identifier>::
-  operator=(const Component<DataType, Identifier> &_simpleWrapper)
+  operator=(const Component<DataType, Identifier> &_component)
   {
-    this->dataPtr->data = _simpleWrapper.Data();
+    this->dataPtr->data = _component.Data();
     return *this;
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool Component<DataType, Identifier>::
-  operator==(const Component<DataType, Identifier> &_simpleWrapper) const
+  operator==(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data == _simpleWrapper.Data();
+    return this->dataPtr->data == _component.Data();
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   bool Component<DataType, Identifier>::
-  operator!=(const Component<DataType, Identifier> &_simpleWrapper) const
+  operator!=(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data != _simpleWrapper.Data();
+    return this->dataPtr->data != _component.Data();
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  std::string Component<DataType, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  ComponentTypeId Component<DataType, Identifier>::TypeId() const
+  {
+    return typeId;
   }
 
   //////////////////////////////////////////////////
@@ -220,6 +288,20 @@ namespace components
       const Component<NoData, Identifier> &) const
   {
     return false;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  std::string Component<NoData, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  ComponentTypeId Component<NoData, Identifier>::TypeId() const
+  {
+    return typeId;
   }
 }
 }
