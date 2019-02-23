@@ -17,16 +17,21 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 #define IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 
+#include <memory>
+#include <string>
+#include <map>
+
+#include <ignition/msgs/pose_v.pb.h>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
 // Use ign-transport directly
-//#include <ignition/transport/log/Playback.hh>
+// #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/MsgIter.hh>
-#include <ignition/msgs/pose_v.pb.h>
 
 namespace ignition
 {
@@ -36,7 +41,8 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \class LogPlayback LogPlayback.hh ignition/gazebo/systems/log/LogPlayback.hh
+  /// \class LogPlayback LogPlayback.hh
+  ///   ignition/gazebo/systems/log/LogPlayback.hh
   /// \brief Log state playback
   class IGNITION_GAZEBO_VISIBLE LogPlayback:
     public System,
@@ -63,7 +69,7 @@ namespace systems
     public: std::string logPath = "file.tlog";
     public: std::string sdfPath = "file.sdf";
 
-    //private: std::unique_ptr <ignition::transport::log::Playback> player;
+    // private: std::unique_ptr <ignition::transport::log::Playback> player;
     private: std::unique_ptr <ignition::transport::log::Log> log;
 
     private: ignition::transport::log::Batch poseBatch;
@@ -73,7 +79,7 @@ namespace systems
     private: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
     private: bool printedEnd;
 
-    private: void parsePose (EntityComponentManager &_ecm);
+    private: void parsePose(EntityComponentManager &_ecm);
     // Key: link name. Value: link pose
     private: std::map <std::string, ignition::msgs::Pose> name_to_pose;
   };

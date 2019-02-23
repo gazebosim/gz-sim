@@ -15,26 +15,26 @@
  *
 */
 
+#include "LogPlayback.hh"
+
 #include <fstream>
 
 #include <ignition/plugin/RegisterMore.hh>
 
-#include "LogPlayback.hh"
-
 // To read contents in a .tlog database file
-//#include <ignition/transport/log/Descriptor.hh>
+// #include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Message.hh>
 #include <sdf/Root.hh>
+#include <ignition/math/Quaternion.hh>
+#include <ignition/math/Vector3.hh>
+// #include <ignition/common/Time.hh>
 #include "ignition/gazebo/SdfEntityCreator.hh"
-//#include <ignition/common/Time.hh>
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
 
 
 using namespace ignition::gazebo::systems;
@@ -51,38 +51,38 @@ LogPlayback::~LogPlayback()
 {
 }
 
-void LogPlayback::parsePose (EntityComponentManager &_ecm)
+void LogPlayback::parsePose(EntityComponentManager &_ecm)
 {
-  // TODO: Parse iter->Type () to get substring after last ".", to know what
-  //   message type to create!
+  // TODO(mabelmzhang): Parse iter->Type() to get substring after last ".",
+  //   to know what message type to create!
   //   For now just assuming Pose_V
 
   // Protobuf message
   ignition::msgs::Pose_V posev_msg;
   // Convert binary bytes in string into a ign-msgs msg
-  posev_msg.ParseFromString (this->iter->Data());
+  posev_msg.ParseFromString(this->iter->Data());
 
-  igndbg << "Pose_V size: " << posev_msg.pose_size () << std::endl;
+  igndbg << "Pose_V size: " << posev_msg.pose_size() << std::endl;
 
-  for (int i = 0; i < posev_msg.pose_size (); i ++)
+  for (int i = 0; i < posev_msg.pose_size(); i ++)
   {
-    ignition::msgs::Pose pose = posev_msg.pose (i);
+    ignition::msgs::Pose pose = posev_msg.pose(i);
 
-    igndbg << pose.name () << std::endl;
-    //igndbg << pose.id () << std::endl;
+    igndbg << pose.name() << std::endl;
+    // igndbg << pose.id() << std::endl;
 
-    // TODO: Links do not have parent information, so if two links of different
-    //   models are of same name, there is no way to distinguish between them.
-    //   Therefore link names in SDF must be different.
+    // TODO(mabelmzhang): Links do not have parent information, so if two links
+    //   of different models are of same name, there is no way to distinguish
+    //   between them. Therefore link names in SDF must be different.
 
     // Update link pose in map
-    this->name_to_pose.insert_or_assign (pose.name (), pose);
+    this->name_to_pose.insert_or_assign(pose.name(), pose);
 
     /*
-    igndbg << pose.position ().x () << ", " << pose.position ().y () << ", "
-      << pose.position ().z () << std::endl;
-    igndbg << pose.orientation ().x () << ", " << pose.orientation ().y ()
-      << ", " << pose.orientation ().z () << ", " << pose.orientation ().w ()
+    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
+      << pose.position().z() << std::endl;
+    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
+      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
       << std::endl;
     */
   }
@@ -100,7 +100,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
     // This prints a 6-tuple. components::Pose is a
     //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
     //   math::Quaternion, whose operator<<() prints rpy.
-    //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
+    // igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
     // Explicitly print 7-tuple
     igndbg << "Actual pose: \n";
     igndbg << _poseComp->Data().Pos() << std::endl;
@@ -111,7 +111,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
 
 
     // Look for model pose in log entry loaded
-    ignition::msgs::Pose pose = this->name_to_pose.at (_nameComp->Data());
+    ignition::msgs::Pose pose = this->name_to_pose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
@@ -123,7 +123,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
 
     // Set current pose to recorded pose
     // Use copy assignment operator
-    *_poseComp = components::Pose (ignition::math::Pose3d (
+    *_poseComp = components::Pose(ignition::math::Pose3d(
       ignition::math::Vector3(pose.position().x(), pose.position().y(),
                               pose.position().z()),
       ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
@@ -156,7 +156,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
 
 
     // Look for the link poses in log entry loaded
-    ignition::msgs::Pose pose = this->name_to_pose.at (_nameComp->Data());
+    ignition::msgs::Pose pose = this->name_to_pose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
@@ -168,7 +168,7 @@ void LogPlayback::parsePose (EntityComponentManager &_ecm)
 
     // Set current pose to recorded pose
     // Use copy assignment operator
-    *_poseComp = components::Pose (ignition::math::Pose3d (
+    *_poseComp = components::Pose(ignition::math::Pose3d(
       ignition::math::Vector3(pose.position().x(), pose.position().y(),
                               pose.position().z()),
       ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
@@ -193,16 +193,17 @@ void LogPlayback::Configure(const Entity &/*_id*/,
 
 
   // Use ign-transport playback directly
-  // TODO: This only plays the messages on ign topic, but doesn't create or
+  // TODO(mabelmzhang):
+  //   This only plays the messages on ign topic, but doesn't create or
   //   change any objects in the world! Still need to pull out all the
   //   objects from the .tlog file through SQL, and talk to ECM to create those
   //   objects in the world!
   //   So maybe don't need to use playback at all. Just call Log.hh to load
   //   the .tlog file, and then we do stuff with objects in it.
   /*
-  this->player.reset (new Playback (this->logPath));
+  this->player.reset(new Playback(this->logPath));
 
-  const int64_t addTopicResult = this->player->AddTopic (std::regex (".*"));
+  const int64_t addTopicResult = this->player->AddTopic(std::regex(".*"));
   if (addTopicResult == 0)
   {
     ignerr << "No topics to play back\n";
@@ -210,15 +211,15 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   else if (addTopicResult < 0)
   {
     ignerr << "Failed to advertise topics: " << addTopicResult << std::endl;
-    this->player.reset ();
+    this->player.reset();
   }
   else
   {
-    const auto handle = player->Start ();
+    const auto handle = player->Start();
     if (!handle)
     {
       ignerr << "Failed to start playback\n";
-      this->player.reset ();
+      this->player.reset();
     }
     else
     {
@@ -232,37 +233,38 @@ void LogPlayback::Configure(const Entity &/*_id*/,
 
   // Call Log.hh directly to load a .tlog file
 
-  this->log.reset (new Log ());
-  this->log->Open (this->logPath);
+  this->log.reset(new Log());
+  this->log->Open(this->logPath);
 
   // Don't need
-  //const Descriptor * desc = this->log->Descriptor ();
+  // const Descriptor * desc = this->log->Descriptor();
   /*
-  Descriptor::NameToMap name_to_map = desc->TopicsToMsgTypesToId ();
-  Descriptor::NameToId name_to_id = name_to_map.at ("/world/default/pose/info");
-  int64_t row_i = name_to_id.at ("ignition.msgs.Pose_V");
+  Descriptor::NameToMap name_to_map = desc->TopicsToMsgTypesToId();
+  Descriptor::NameToId name_to_id = name_to_map.at("/world/default/pose/info");
+  int64_t row_i = name_to_id.at("ignition.msgs.Pose_V");
   */
   // Above 3 lines can be replaced by this convenience function:
-  //int64_t row_i = desc->TopicId ("/world/default/pose/info",
-  //  "ignition.msgs.Pose_V");
-  //igndbg << "row " << row_i << std::endl;
+  // int64_t row_i = desc->TopicId("/world/default/pose/info",
+  //   "ignition.msgs.Pose_V");
+  // igndbg << "row " << row_i << std::endl;
 
   // Access messages in .tlog file
-  TopicList opts = TopicList ("/world/default/pose/info");
-  this->poseBatch = this->log->QueryMessages (opts);
-  this->iter = this->poseBatch.begin ();
+  TopicList opts = TopicList("/world/default/pose/info");
+  this->poseBatch = this->log->QueryMessages(opts);
+  this->iter = this->poseBatch.begin();
 
   // Record first timestamp
-  this->logStartTime = this->iter->TimeReceived ();
-  igndbg << this->logStartTime.count () << std::endl;
-  igndbg << this->iter->Type () << std::endl;
+  this->logStartTime = this->iter->TimeReceived();
+  igndbg << this->logStartTime.count() << std::endl;
+  igndbg << this->iter->Type() << std::endl;
 
-  parsePose (_ecm);
+  parsePose(_ecm);
 
 
   // Load recorded SDF file
 
-  // TODO: Not sure if this fixes the problem that sometimes the SDF objects
+  // TODO(mabelmzhang):
+  //   Not sure if this fixes the problem that sometimes the SDF objects
   //   get loaded into the world, sometimes not.
   //   If move this block to start of function, then mostly it doesn't load.
   //   Look into why.
@@ -270,42 +272,43 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   ignition::common::Time::Sleep(ignition::common::Time(1));
 
   sdf::Root root;
-  if (root.Load (this->sdfPath).size () != 0)
+  if (root.Load(this->sdfPath).size() != 0)
   {
     ignerr << "Error loading SDF file " << this->sdfPath << std::endl;
     return;
   }
-  igndbg << "World count: " << root.WorldCount () << std::endl;
-  igndbg << "Model count: " << root.ModelCount () << std::endl;
-  const sdf::World * sdf_world = root.WorldByIndex (0);
+  igndbg << "World count: " << root.WorldCount() << std::endl;
+  igndbg << "Model count: " << root.ModelCount() << std::endl;
+  const sdf::World * sdf_world = root.WorldByIndex(0);
 
-  // TODO: Look for LogRecord plugin in the SDF, and remove that <plugin>,
+  // TODO(mabelmzhang):
+  //   Look for LogRecord plugin in the SDF, and remove that <plugin>,
   //   so that recorder isn't also loaded! It necessarily is in the SDF,
   //   because it was loaded in the original SDF to record the log file.
-  // TODO Hardcoding name for now. Ideally can do regex *LogRecord
+  // TODO(mabelmzhang) Hardcoding name for now. Ideally can do regex *LogRecord
   /*
-  sdf::ElementPtr recordPlugin = sdf_world->Element()->GetElement (
+  sdf::ElementPtr recordPlugin = sdf_world->Element()->GetElement(
     "ignition::gazebo::systems::v0::LogRecord");
   if (recordPlugin != NULL)
   {
-    recordPlugin->RemoveFromParent ();
+    recordPlugin->RemoveFromParent();
     ignerr << "Removing LogRecord plugin from loaded SDF\n";
   }
   */
-  
+ 
 
-  //size_t nEntities = _ecm.EntityCount ();
-  ignerr << _ecm.EntityCount () << " entities" << std::endl;
-  //while (nEntities < 2)
-  //{
+  // size_t nEntities = _ecm.EntityCount();
+  ignerr << _ecm.EntityCount() << " entities" << std::endl;
+  // while (nEntities < 2)
+  // {
     // Create all Entities in SDF <world> tag
     ignition::gazebo::SdfEntityCreator creator =
-      ignition::gazebo::SdfEntityCreator (_ecm, _eventMgr);
-    creator.CreateEntities (sdf_world);
+      ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
+    creator.CreateEntities(sdf_world);
 
-    //nEntities = _ecm.EntityCount ();
-    //ignerr << _ecm.EntityCount () << " entities" << std::endl;
-  //}
+    // nEntities = _ecm.EntityCount();
+    // ignerr << _ecm.EntityCount() << " entities" << std::endl;
+  // }
 
 
   // TODO: Check for whether world is running, start when it starts running!
@@ -327,21 +330,13 @@ void LogPlayback::Configure(const Entity &/*_id*/,
 void LogPlayback::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  //std::ifstream ifs(this->logPath);
-  //ifs >> _ecm;
-
-
-  // Use ign-transport playback - probably won't.
-  // Subscribe to a topic, then call ECM to override states - no idea what that means.
-
-
   // Use ECM
 
   // Sanity check. If reached the end, done.
-  if (this->iter == this->poseBatch.end ())
+  if (this->iter == this->poseBatch.end())
   {
     // Print only once
-    if (! this->printedEnd)
+    if (!this->printedEnd)
     {
       ignmsg << "Finished playing all recorded data\n";
       this->printedEnd = true;
@@ -353,18 +348,18 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
-  auto now = std::chrono::high_resolution_clock::now ();
-  auto diff_time = std::chrono::duration_cast <std::chrono::nanoseconds> (
+  auto now = std::chrono::high_resolution_clock::now();
+  auto diff_time = std::chrono::duration_cast <std::chrono::nanoseconds>(
     now - this->worldStartTime);
 
-  if (diff_time.count () >=
-      (this->iter->TimeReceived ().count () - this->logStartTime.count ()))
+  if (diff_time.count() >=
+      (this->iter->TimeReceived().count() - this->logStartTime.count()))
   {
     // Print timestamp of this log entry
-    igndbg << this->iter->TimeReceived ().count () << std::endl;
+    igndbg << this->iter->TimeReceived().count() << std::endl;
 
     // Parse pose and move link
-    parsePose (_ecm);
+    parsePose(_ecm);
  
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
@@ -373,7 +368,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // Else nothing to play
   else
     return;
-
 
 
   /*
@@ -388,7 +382,7 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
     igndbg << "Pose: " << _poseComp->Data() << std::endl;
 
-    //_ecm.Component (_entity)
+    //_ecm.Component(_entity)
 
     return true;
   });
@@ -404,10 +398,9 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     igndbg << "Joint " << _nameComp->Data() << std::endl;
     igndbg << "Pose: " << _poseComp->Data() << std::endl;
 
-     return true;
+    return true;
   });
   */
-
 
 }
 

@@ -15,10 +15,14 @@
  *
 */
 
+#include "LogRecord.hh"
+
+#include <ignition/msgs/pose_v.pb.h>
+
+#include <string>
 #include <fstream>
 #include <filesystem>
 
-#include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -29,9 +33,8 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
-#include "LogRecord.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-//#include "ignition/gazebo/components/Component.hh"
+// #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Joint.hh"
 
 
@@ -64,10 +67,11 @@ void LogRecord::Configure(const Entity &_entity,
       this->sdfPath).first;
 
   // Check if files already exist, don't overwrite
-  if (std::filesystem::exists (this->logPath) ||
-      std::filesystem::exists (this->sdfPath))
+  if (std::filesystem::exists(this->logPath) ||
+      std::filesystem::exists(this->sdfPath))
   {
-    ignerr << "log_path and/or sdf_path already exist on disk! Not overwriting. Will not record." << std::endl;
+    ignerr << "log_path and/or sdf_path already exist on disk! "
+      << "Not overwriting. Will not record." << std::endl;
     return;
   }
 
@@ -77,7 +81,7 @@ void LogRecord::Configure(const Entity &_entity,
   // Use ign-transport directly
 
   this->recorder.AddTopic("/world/default/pose/info");
-  //this->recorder.AddTopic(std::regex(".*"));
+  // this->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads 0.1.0.sql
   this->recorder.Start(this->logPath);
@@ -86,21 +90,20 @@ void LogRecord::Configure(const Entity &_entity,
   // Use ECM
 
   // Entity is just an int
-  igndbg << _ecm.EntityCount () << " entities" << std::endl;
+  igndbg << _ecm.EntityCount() << " entities" << std::endl;
 
   // Record SDF as a string.
-  // TODO: For now, just dumping a big string to a text file, until we have a
-  //   custom SQL field for the SDF.
+  // TODO(mabelmzhang): For now, just dumping a big string to a text file,
+  //   until we have a custom SQL field for the SDF.
   std::ofstream ofs(this->sdfPath);
   // Go up to root of SDF, to output entire SDF file
-  sdf::ElementPtr sdf_root = _sdf->GetParent ();
-  while (sdf_root->GetParent () != NULL)
+  sdf::ElementPtr sdf_root = _sdf->GetParent();
+  while (sdf_root->GetParent() != NULL)
   {
-    sdf_root = sdf_root->GetParent ();
+    sdf_root = sdf_root->GetParent();
   }
-  ofs << sdf_root->ToString ("");
+  ofs << sdf_root->ToString("");
   ignmsg << "Outputted SDF to " << this->sdfPath << std::endl;
-
 
 }
 
@@ -110,9 +113,9 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
 {
   // Use ECM
 
-  //igndbg << "Update()" << std::endl;
+  // igndbg << "Update()" << std::endl;
 
-  //for (auto ent : _ecm.Entities ())
+  // for (auto ent : _ecm.Entities())
   /*
   // Models
   _ecm.EachNew<components::Model, components::Name,
@@ -125,7 +128,7 @@ void LogRecord::Update(const UpdateInfo &/*_info*/,
     igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
     igndbg << "Pose: " << _poseComp->Data() << std::endl;
 
-    //_ecm.Component (ent)
+    // _ecm.Component(ent)
 
     return true;
   });
