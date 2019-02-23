@@ -111,8 +111,11 @@ namespace ignition
       inline ignition::math::AxisAlignedBox convert(
           const Eigen::AlignedBox3d &_b)
       {
-        return ignition::math::AxisAlignedBox(convert(_b.min()),
-                                              convert(_b.max()));
+        ignition::math::AxisAlignedBox box;
+        box.Min() = convert(_b.min());
+        box.Max() = convert(_b.max());
+
+        return box;
       }
 
       /// \brief Convert Eigen::Matrix3d to ignition::math::Matrix3d.
