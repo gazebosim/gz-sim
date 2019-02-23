@@ -25,7 +25,17 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-TEST(ComponentFactoryTest, Register)
+class ComponentFactoryTest : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
+/////////////////////////////////////////////////
+TEST_F(ComponentFactoryTest, Register)
 {
   auto factory = components::Factory::Instance();
 
@@ -42,6 +52,7 @@ TEST(ComponentFactoryTest, Register)
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
+//      new components::StorageDescriptor<MyCustom>());
 
   // Check now it has type name and id
   EXPECT_NE(0u, MyCustom::typeId);
@@ -59,7 +70,7 @@ TEST(ComponentFactoryTest, Register)
 }
 
 /////////////////////////////////////////////////
-TEST(ComponentFactoryTest, New)
+TEST_F(ComponentFactoryTest, New)
 {
   auto factory = components::Factory::Instance();
 
@@ -71,6 +82,7 @@ TEST(ComponentFactoryTest, New)
   {
     auto comp = factory->New<components::Pose>();
     ASSERT_TRUE(comp != nullptr);
+
     EXPECT_EQ("ign_gazebo_components.Pose", comp->typeName);
     EXPECT_EQ("ign_gazebo_components.Pose", components::Pose::typeName);
     EXPECT_NE(0u, comp->typeId);
@@ -79,21 +91,34 @@ TEST(ComponentFactoryTest, New)
 
   {
     auto comp = factory->New("ign_gazebo_components.Pose");
+    ASSERT_TRUE(comp != nullptr);
+
     EXPECT_EQ("ign_gazebo_components.Pose", comp->TypeName());
     EXPECT_NE(0u, comp->TypeId());
-    ASSERT_TRUE(comp != nullptr);
+
+    EXPECT_TRUE(nullptr != static_cast<components::Pose *>(comp.get()));
   }
 
   {
     auto comp = factory->New(components::Pose::typeId);
+    ASSERT_TRUE(comp != nullptr);
+
     EXPECT_EQ("ign_gazebo_components.Pose", comp->TypeName());
     EXPECT_NE(0u, comp->TypeId());
-    ASSERT_TRUE(comp != nullptr);
+
+    EXPECT_TRUE(nullptr != static_cast<components::Pose *>(comp.get()));
+  }
+
+  {
+//    auto storage = factory->NewStorage(components::Pose::typeId);
+//    ASSERT_TRUE(storage != nullptr);
+//
+//    EXPECT_NE(nullptr, static_cast<ComponentStorage<components::Pose> *>(storage));
   }
 }
 
 ///////////////////////////////////////////////
-TEST(ComponentFactoryTest, TypeNames)
+TEST_F(ComponentFactoryTest, TypeNames)
 {
   auto factory = components::Factory::Instance();
 
