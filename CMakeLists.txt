@@ -56,6 +56,11 @@ ign_find_package(ignition-common3 REQUIRED COMPONENTS profiler events)
 set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-fuel_tools3
+ign_find_package(ignition-fuel_tools3 REQUIRED)
+set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
+
+#--------------------------------------
 # Find ignition-gui
 ign_find_package(ignition-gui1 REQUIRED)
 set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
@@ -74,7 +79,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors0 REQUIRED COMPONENTS camera)
+ign_find_package(ignition-sensors0 REQUIRED COMPONENTS camera gpu_lidar)
 set(IGN_SENSORS_VER ${ignition-sensors0_VERSION_MAJOR})
 
 #--------------------------------------
@@ -88,10 +93,22 @@ ign_find_package(gflags
 ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
+#--------------------------------------
+# Find protobuf
+set(REQ_PROTOBUF_VER 3)
+ign_find_package(IgnProtobuf
+                 VERSION ${REQ_PROTOBUF_VER}
+                 REQUIRED
+                 COMPONENTS all
+                 PRETTY Protobuf)
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+
 #============================================================================
 # Configure the build
 #============================================================================
 ign_configure_build(QUIT_IF_BUILD_ERRORS)
+
+add_subdirectory(examples)
 
 #============================================================================
 # Create package information

@@ -26,12 +26,14 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
+#include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -58,6 +60,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 /////////////////////////////////////////////////
 void LevelManager::ReadLevelPerformerInfo()
 {
+  // \todo(anyone) Use SdfEntityCreator to avoid duplication
   this->worldEntity = this->runner->entityCompMgr.CreateEntity();
 
   // World components
@@ -65,6 +68,12 @@ void LevelManager::ReadLevelPerformerInfo()
                                                components::World());
   this->runner->entityCompMgr.CreateComponent(
       this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::Gravity(this->runner->sdfWorld->Gravity()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::MagneticField(this->runner->sdfWorld->MagneticField()));
 
   auto worldElem = this->runner->sdfWorld->Element();
 

@@ -16,6 +16,9 @@
 */
 #include "ignition/gazebo/Server.hh"
 
+#include <ignition/common/SystemPaths.hh>
+#include <ignition/fuel_tools/Interface.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include "ServerPrivate.hh"
@@ -102,12 +105,33 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  // Configure the fuel client
+  fuel_tools::ClientConfig config;
+  if (!_config.ResourceCache().empty())
+    config.SetCacheLocation(_config.ResourceCache());
+  this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
+
+  // Configure SDF to fetch assets from ignition fuel.
+  sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
+        this->dataPtr.get(), std::placeholders::_1));
+
   sdf::Errors errors;
 
   // Load a world if specified.
   if (!_config.SdfFile().empty())
   {
-    errors = this->dataPtr->sdfRoot.Load(_config.SdfFile());
+    common::SystemPaths systemPaths;
+    systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    std::string filePath = systemPaths.FindFile(_config.SdfFile());
+    ignmsg << "Loading SDF world file[" << filePath << "].\n";
+
+    // \todo(nkoenig) Async resource download.
+    // This call can block for a long period of time while
+    // resources are downloaded. Blocking here causes the GUI to block with
+    // a black screen (search for "Async resource download" in
+    // 'src/gui_main.cc'.
+    errors = this->dataPtr->sdfRoot.Load(filePath);
   }
   else
   {
