@@ -366,12 +366,12 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
-  // Create the component storage if one does not exist for
-  // the component type.
+  //
   if (!this->HasComponentType(_componentTypeId))
   {
-//    this->RegisterComponentType(_componentTypeId,
-//          new ComponentStorage<ComponentTypeT>());
+//    auto storage = components::Factory::Instance()->Storages()[_componentTypeId].get();
+
+//    this->RegisterComponentType(_componentTypeId, storage
   }
 
   // Instantiate the new component.
@@ -389,7 +389,6 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 
   return componentKey;
 }
-
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::EntityMatches(Entity _entity,
