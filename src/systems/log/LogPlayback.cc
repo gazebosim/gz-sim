@@ -92,9 +92,9 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
   // Loop through actual models in world
   _ecm.Each<components::Model, components::Name, components::ParentEntity,
                components::Pose>(
-      [&](const Entity &_entity, components::Model *,
+      [&](const Entity &/*_entity*/, components::Model *,
           components::Name *_nameComp,
-          components::ParentEntity *_parentComp,
+          components::ParentEntity * /*_parentComp*/,
           components::Pose *_poseComp) -> bool
   {
     igndbg << "Model " << _nameComp->Data() << std::endl;
