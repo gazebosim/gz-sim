@@ -53,9 +53,9 @@ template<typename DataType, typename Identifier,
   typename Stream =
   decltype(std::declval<std::ostream &>() << std::declval<DataType const &>()),
   typename std::enable_if<
-      !IsSharedPtr<DataType>::value &&
-      std::is_convertible<Stream, std::ostream &>::value,
-      int>::type = 0>
+    !IsSharedPtr<DataType>::value &&
+    std::is_convertible<Stream, std::ostream &>::value,
+    int>::type = 0>
 std::ostream &toStream(std::ostream &_out, DataType const &_data)
 {
   _out << _data;
@@ -74,7 +74,7 @@ std::ostream &toStream(std::ostream &_out, DataType const &_data)
 template<typename DataType, typename Identifier,
   typename Stream =
   decltype(std::declval<std::ostream &>() << std::declval<
-      typename DataType::element_type const &>()),
+    typename DataType::element_type const &>()),
   typename std::enable_if<
     IsSharedPtr<DataType>::value &&
     std::is_convertible<Stream, std::ostream &>::value,
@@ -119,11 +119,36 @@ std::ostream &toStream(std::ostream &_out, DataType const &,
 template<typename DataType, typename Identifier,
   typename Stream =
   decltype(std::declval<std::istream &>() >> std::declval<DataType &>()),
-  typename std::enable_if<std::is_convertible<Stream, std::istream &>::value,
-  int>::type = 0>
+  typename std::enable_if<
+      !IsSharedPtr<DataType>::value &&
+      std::is_convertible<Stream, std::istream &>::value,
+      int>::type = 0>
 std::istream &fromStream(std::istream &_in, DataType &_data)
 {
   _in >> _data;
+  return _in;
+}
+
+/// \brief Helper template to call stream operators only on types that support
+/// them.
+/// This version is called for types that are pointers to types that have
+/// operator>>
+/// \tparam DataType Type on which the operator will be called.
+/// \tparam Identifier Unique identifier for the component class.
+/// \tparam Stream Type used to check if component has operator<<
+/// \param[in] _out Out stream.
+/// \param[in] _data Data to be serialized.
+template<typename DataType, typename Identifier,
+  typename Stream =
+  decltype(std::declval<std::istream &>() >> std::declval<
+    typename DataType::element_type &>()),
+  typename std::enable_if<
+    IsSharedPtr<DataType>::value &&
+    std::is_convertible<Stream, std::istream &>::value,
+    int>::type = 0>
+std::istream &fromStream(std::istream &_in, DataType &_data)
+{
+  _in >> *_data;
   return _in;
 }
 
@@ -144,7 +169,7 @@ std::istream &fromStream(std::istream &_in, DataType const &,
   {
     ignwarn << "Trying to deserialize component with data type ["
             << typeid(DataType).name() << "], which doesn't have "
-            << "`operator<<`. Component will not be deserialized." << std::endl;
+            << "`operator>>`. Component will not be deserialized." << std::endl;
     warned = true;
   }
   return _in;
@@ -217,7 +242,7 @@ namespace components
     /// \param[in] _out Out stream.
     protected: virtual void Serialize(std::ostream &/*_out*/) const
     {
-      ignwarn << "Trying to serialize copmponent which haven't implemented "
+      ignwarn << "Trying to serialize copmponent which hasn't implemented "
               << "the `Serialize` function. Component will not be serialized."
               << std::endl;
     };
@@ -232,7 +257,7 @@ namespace components
     /// \param[in] _in In stream.
     protected: virtual void Deserialize(std::istream &/*_in*/)
     {
-      ignwarn << "Trying to deserialize copmponent which haven't implemented "
+      ignwarn << "Trying to deserialize copmponent which hasn't implemented "
               << "the `Deserialize` function. Component will not be "
               << "deserialized." << std::endl;
     };
