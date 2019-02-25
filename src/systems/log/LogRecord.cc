@@ -25,6 +25,7 @@
 
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/log/Log.hh>
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -35,8 +36,6 @@
 
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Joint.hh"
-
-#include <ignition/transport/log/Log.hh>
 
 
 using namespace ignition::gazebo::systems;
@@ -107,7 +106,6 @@ void LogRecord::Configure(const Entity &/*_entity*/,
 void LogRecord::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &/*_ecm*/)
 {
-
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,

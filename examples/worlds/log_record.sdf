@@ -1,12 +1,5 @@
 <?xml version="1.0" ?>
 
-<!--
-  Generated from tile.world.erb
-  Seed: 2764119
-  Type: tunnel
-  N_x: 4
-  N_y: 4
--->
 <sdf version="1.6">
   <world name="default">
     <plugin

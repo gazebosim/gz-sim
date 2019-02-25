@@ -210,8 +210,7 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   const sdf::World * sdf_world = root.WorldByIndex(0);
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
-  //   is not re-recorded. The SDF necessarily contains the recorder, which
-  //   produced the log file this plugin is playing back.
+  //   is not re-recorded.
   if (sdf_world->Element()->HasElement("plugin"))
   {
     sdf::ElementPtr pluginElt = sdf_world->Element()->GetElement("plugin");
@@ -286,7 +285,7 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
 
     // Parse pose and move link
     parsePose(_ecm);
- 
+
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
     ++(this->iter);
