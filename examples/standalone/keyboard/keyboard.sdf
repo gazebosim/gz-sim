@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <world name="placeholder">
     <plugin name="keyboard" filename="libKeyboardPlugin.so">
-      <twist_topic>/model/vehicle_red/cmd_vel</twist_topic>
+      <twist_topic>/model/vehicle_green/cmd_vel</twist_topic>
 
       <twist_topic2>/model/vehicle_blue/cmd_vel</twist_topic2>
 
