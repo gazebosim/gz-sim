@@ -257,21 +257,16 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
-  inline IGNITION_GAZEBO_VISIBLE \
-  std::unique_ptr<ignition::gazebo::components::BaseComponent> \
-      New##_classname() \
-  { \
-    return std::unique_ptr<ignition::gazebo::components::_classname>(\
-        new ignition::gazebo::components::_classname); \
-  } \
   class IGNITION_GAZEBO_VISIBLE IgnGazeboComponents##_classname \
   { \
     public: IgnGazeboComponents##_classname() \
     { \
+      std::cout << #_classname << std::endl; \
       using namespace ignition;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
+      using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
       gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc());\
+        _compType, new Desc(), nullptr);\
     } \
   }; \
   static IgnGazeboComponents##_classname\
