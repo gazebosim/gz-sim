@@ -55,7 +55,7 @@ LogPlayback::~LogPlayback()
 void LogPlayback::parsePose(EntityComponentManager &_ecm)
 {
   // TODO(mabelmzhang): Parse iter->Type() to get substring after last ".",
-  //   to know what message type to create! For now just assuming Pose_V.
+  //   to know what message type to create. For now just assuming Pose_V.
 
   // Protobuf message
   ignition::msgs::Pose_V posev_msg;
@@ -68,24 +68,15 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
   {
     ignition::msgs::Pose pose = posev_msg.pose(i);
 
-    igndbg << pose.name() << std::endl;
-    // igndbg << pose.id() << std::endl;
+    // igndbg << pose.name() << std::endl;
 
     // TODO(mabelmzhang): Pose ign-msgs do not have parent information, so if
     //   two links of different models are of same name, there is no way to
     //   distinguish between them. Therefore link names in SDF must be
-    //   different. Or, save a custom tree of model-link-pose information.
+    //   different, until ECM is serialized.
 
     // Update link pose in map
     this->name_to_pose.insert_or_assign(pose.name(), pose);
-
-    /*
-    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
-      << pose.position().z() << std::endl;
-    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
-      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
-      << std::endl;
-    */
   }
 
 
@@ -98,11 +89,6 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
           components::Pose *_poseComp) -> bool
   {
     igndbg << "Model " << _nameComp->Data() << std::endl;
-    // This prints a 6-tuple. components::Pose is a
-    //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
-    //   math::Quaternion, whose operator<<() prints rpy.
-    // igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
-    // Explicitly print 7-tuple
     igndbg << "Actual pose: \n";
     igndbg << _poseComp->Data().Pos() << std::endl;
     igndbg << _poseComp->Data().Rot().X() << " "
@@ -137,7 +123,7 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
   /*
   // Loop through actual links in world
   // TODO(mabelmzhang): Use parentComp to distinguish between Links with same
-  //   name for different Models!
+  //   name for different Models.
   _ecm.Each<components::Link, components::Name, components::ParentEntity,
                components::Pose>(
       [&](const Entity &_entity, components::Link *,
@@ -223,8 +209,8 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   igndbg << "Model count: " << root.ModelCount() << std::endl;
   const sdf::World * sdf_world = root.WorldByIndex(0);
 
-  // Look for LogRecord plugin in the SDF and remove it, so that the playback
-  //   isn't re-recorded. The SDF necessarily contains the recorder, which
+  // Look for LogRecord plugin in the SDF and remove it, so that playback
+  //   is not re-recorded. The SDF necessarily contains the recorder, which
   //   produced the log file this plugin is playing back.
   if (sdf_world->Element()->HasElement("plugin"))
   {
@@ -252,9 +238,6 @@ void LogPlayback::Configure(const Entity &/*_id*/,
     }
   }
 
-
-  //sdf_world->Element()->RemoveChild(recordPlugin);
- 
 
   // size_t nEntities = _ecm.EntityCount();
   ignerr << _ecm.EntityCount() << " entities" << std::endl;
@@ -296,7 +279,7 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     now - this->worldStartTime);
 
   if (diff_time.count() >=
-      (this->iter->TimeReceived().count() - this->logStartTime.count()))
+    (this->iter->TimeReceived().count() - this->logStartTime.count()))
   {
     // Print timestamp of this log entry
     igndbg << this->iter->TimeReceived().count() << std::endl;
@@ -311,24 +294,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // Else nothing to play
   else
     return;
-
-
-  /*
-  // Joints
-  _ecm.Each<components::Joint, components::Name, components::ParentEntity,
-               components::Pose>(
-      [&](const Entity &_entity, const components::Joint *,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp) -> bool
-  {
-    igndbg << "Joint " << _nameComp->Data() << std::endl;
-    igndbg << "Pose: " << _poseComp->Data() << std::endl;
-
-    return true;
-  });
-  */
-
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,

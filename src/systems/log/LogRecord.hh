@@ -18,12 +18,11 @@
 #define IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
 
 #include <memory>
+#include <string>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
-
-//#include "ignition/gazebo/Model.hh"
 
 // Use ign-transport directly
 #include <ignition/transport/log/Recorder.hh>
@@ -60,10 +59,6 @@ namespace systems
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 
-    /// \brief A private entity component manager to store a copy of all
-    /// entities and components (just for fun).
-    //private: EntityComponentManager entityCompMgr;
-
     // If use ign-transport Log, must end in .tlog
     /// \brief Name of log file to record
     public: std::string logPath = "file.tlog";
@@ -71,14 +66,9 @@ namespace systems
     //   a big SDF string.
     public: std::string sdfPath = "file.sdf";
 
-
     // Use ign-transport directly
     /// \brief log file or nullptr if not recording
     private: ignition::transport::log::Recorder recorder;
-
-    // Just for testing
-    /// \brief Model interface
-    //private: Model model{kNullEntity};
   };
   }
 }
