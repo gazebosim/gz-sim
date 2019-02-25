@@ -148,6 +148,7 @@ Server::Server(const ServerConfig &_config)
   }
 
   this->dataPtr->useLevels = _config.UseLevels();
+  this->dataPtr->useDistSim = _config.UseDistSim();
 
   this->dataPtr->CreateEntities();
 

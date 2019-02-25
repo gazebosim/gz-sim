@@ -46,8 +46,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
-    : runner(_runner), useLevels(_useLevels)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels, const bool _useDistSim)
+    : runner(_runner), useLevels(_useLevels), useDistSim(_useDistSim)
 {
   this->entityCreator = std::make_unique<SdfEntityCreator>(
       this->runner->entityCompMgr,
@@ -93,7 +93,7 @@ void LevelManager::ReadLevelPerformerInfo()
     }
   }
 
-  if (this->useLevels)
+  if (this->useLevels || this->useDistSim)
   {
     if (pluginElem == nullptr)
     {
@@ -103,6 +103,19 @@ void LevelManager::ReadLevelPerformerInfo()
     else
     {
       this->ReadPerformers(pluginElem);
+    }
+  }
+
+
+  if (this->useLevels)
+  {
+    if (pluginElem == nullptr)
+    {
+      ignerr << "Could not find a plugin tag with name " << kPluginName
+             << ". Levels will not work.\n";
+    }
+    else
+    {
       this->ReadLevels(pluginElem);
     }
   }
