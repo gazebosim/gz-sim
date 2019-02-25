@@ -33,7 +33,7 @@ using namespace gazebo;
 bool validateConfig(const NetworkConfig &_config)
 {
   bool valid = true;
-  switch(_config.role)
+  switch (_config.role)
   {
     case NetworkRole::SimulationPrimary:
       if (_config.numSecondariesExpected <= 0)
