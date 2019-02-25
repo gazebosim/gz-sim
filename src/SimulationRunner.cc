@@ -31,7 +31,8 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const bool _useLevels
+                                   const bool _useLevels,
+                                   const bool _useDistSim
                                    )
     // \todo(nkoenig) Either copy the world, or add copy constructor to the
     // World and other elements.
@@ -46,7 +47,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
   // If the configuration is invalid, then networkMgr will be `nullptr`.
-  this->networkMgr = NetworkManager::Create();
+  this->networkMgr = NetworkManager::Create(&this->eventMgr);
 
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
@@ -95,12 +96,18 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
+  this->stopConn = this->eventMgr.Connect<events::Stop>(
+      std::bind(&SimulationRunner::Stop, this));
+
   this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels, _useDistSim);
+
+  // Create the sync manager
+  this->syncMgr = std::make_unique<SyncManager>(this, _useLevels, _useDistSim);
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();

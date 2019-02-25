@@ -122,6 +122,9 @@ namespace ignition
       /// \brief Whether to use the level system
       public: bool useLevels{false};
 
+      /// \brief Whether to use the distributed simulation system
+      public: bool useDistSim{false};
+
       /// \brief Client used to download resources from Ignition Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 

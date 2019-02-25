@@ -35,6 +35,7 @@ DEFINE_string(f, "", "Load an SDF file on start.");
 DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
+DEFINE_bool(distributed, false, "Use distributed simulation.");
 
 //////////////////////////////////////////////////
 void help()
@@ -65,9 +66,18 @@ void help()
   << "  --levels               Use the level system."
   << " The default is false, which loads all models."
   << std::endl
+  << "  --distributed          Use the distributed simulation system."
+  << " The default is false, which disables all distributed simulation."
+  << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
   << " resources. Can be useful with the -f option to find an SDF file."
+  << std::endl
+  << "  IGN_GAZEBO_NETWORK_ROLE     Partipant role to be used in a distributed "
+  << " simulation environment. Role is one of [PRIMARY, SECONDARY]."
+  << std::endl
+  << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl;
 }
 
@@ -159,6 +169,12 @@ int main(int _argc, char **_argv)
   {
     igndbg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
+  }
+
+  if (FLAGS_distributed)
+  {
+    igndbg << "Using the distributed simulation system\n";
+    serverConfig.SetUseDistSim(true);
   }
 
   // Create the Gazebo server

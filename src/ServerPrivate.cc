@@ -80,19 +80,25 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
   bool result = true;
 
-  // Check for ready (needed for distributed sim)
-  bool ready = false;
-  while (!ready)
+  // Check for network ready (needed for distributed sim)
+  bool networkReady = false;
+  while (this->useDistSim && this->running && !networkReady)
   {
-    ready = true;
+    networkReady = true;
     for (const auto &runner : this->simRunners)
     {
-      ready &= runner->Ready();
+      networkReady &= runner->Ready();
     }
-    if (!ready)
+    if (!networkReady)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+  }
+
+  if (this->useDistSim && !networkReady)
+  {
+    ignerr << "Failed to start network, simulation terminating" << std::endl;
+    return false;
   }
 
   // Minor performance tweak. In many situations there will only be one
@@ -134,7 +140,7 @@ void ServerPrivate::CreateEntities()
     }
 
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->useLevels));
+        world, this->systemLoader, this->useLevels, this->useDistSim));
   }
 }
 
