@@ -78,13 +78,22 @@ TEST_F(ComponentTest, DataByMove)
 }
 
 // Class with externally defined stream operator
-struct SimpleOperator {};
+struct SimpleOperator
+{
+  int data{100};
+};
 using CustomOperator = components::Component<SimpleOperator, class CustomTag>;
 
 inline std::ostream &operator<<(std::ostream &_out, const SimpleOperator &)
 {
   _out << "simple_operator";
   return _out;
+}
+
+inline std::istream &operator>>(std::istream &_in, SimpleOperator &_op)
+{
+  _op.data = 456;
+  return _in;
 }
 
 // ostream operator for sdf::Element (not defined elsewhere)
@@ -96,6 +105,11 @@ inline std::ostream &operator<<(std::ostream &_out,
 {
   _out << _element.ToString("");
   return _out;
+}
+inline std::istream &operator>>(std::istream &_in, sdf::Element &_element)
+{
+  _element.SetName("new_name");
+  return _in;
 }
 }
 
@@ -109,6 +123,13 @@ inline std::ostream &operator<<(std::ostream &_out, const Inertiald &_inertial)
 {
   _out << "Mass: " << _inertial.MassMatrix().Mass();
   return _out;
+}
+inline std::istream &operator>>(std::istream &_in, Inertiald &_inertial)
+{
+  auto mat = _inertial.MassMatrix();
+  mat.SetMass(200);
+  _inertial.SetMassMatrix(mat);
+  return _in;
 }
 }
 }
@@ -130,6 +151,13 @@ class InertialWrapper : public InertialBase
   public: void Serialize(std::ostream &_out) const override
   {
     _out << "Wrapper mass: " << this->Data().MassMatrix().Mass();
+  }
+
+  public: void Deserialize(std::istream &) override
+  {
+    auto mat = this->Data().MassMatrix();
+    mat.SetMass(2000);
+    this->Data().SetMassMatrix(mat);
   }
 };
 
@@ -265,5 +293,130 @@ TEST_F(ComponentTest, OStream)
     std::ostringstream ostr;
     ostr << comp;
     EXPECT_EQ("Mass: 0", ostr.str());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, IStream)
+{
+  // Component with data which has stream operator
+  {
+    using Custom = components::Component<std::string, class CustomTag>;
+
+    std::istringstream istr("banana");
+    Custom comp;
+    istr >> comp;
+    EXPECT_EQ("banana", comp.Data());
+  }
+
+  // Component with data which doesn't have stream operator
+  {
+    struct Simple {};
+    using Custom = components::Component<Simple, class CustomTag>;
+
+    // Prints warning and doesn't modify the component
+    std::istringstream istr("banana");
+    Custom comp;
+    istr >> comp;
+  }
+
+  // Component with data which has custom stream operator
+  {
+    auto data = SimpleOperator();
+    CustomOperator comp(data);
+
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_EQ(456, comp.Data().data);
+  }
+
+  // Component with data which has custom stream operator
+  {
+    using Custom = components::Component<math::Inertiald, class CustomTag>;
+
+    auto data = math::Inertiald();
+    Custom comp(data);
+
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_DOUBLE_EQ(200, comp.Data().MassMatrix().Mass());
+  }
+
+  // Component with data which has custom Deserialize function
+  {
+    auto data = math::Inertiald();
+    InertialWrapper comp(data);
+
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_DOUBLE_EQ(2000, comp.Data().MassMatrix().Mass());
+  }
+
+  // Component with shared_ptr data which has stream operator
+  {
+    using Custom =
+        components::Component<std::shared_ptr<int>, class CustomTag>;
+
+    auto data = std::make_shared<int>(123);
+    Custom comp(data);
+
+    // Check the value is streamed, not the pointer address
+    std::istringstream istr("456");
+    istr >> comp;
+    EXPECT_EQ(456, *comp.Data());
+  }
+
+  // Component with shared_ptr data which doesn't have stream operator
+  {
+    struct Simple {};
+    using Custom =
+        components::Component<std::shared_ptr<Simple>, class CustomTag>;
+
+    auto data = std::make_shared<Simple>();
+    Custom comp(data);
+
+    // Prints warning and doesn't modify the component
+    std::istringstream istr("ignored");
+    istr >> comp;
+  }
+
+  // Component with shared_ptr data which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<SimpleOperator>,
+        class CustomTag>;
+
+    auto data = std::make_shared<SimpleOperator>();
+    Custom comp(data);
+
+    // Check the value is changed, not the pointer address
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_EQ(456, comp.Data()->data);
+  }
+
+  // Component with shared_ptr sdf::Element, which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<sdf::Element>,
+        class CustomTag>;
+
+    auto data = std::make_shared<sdf::Element>();
+    Custom comp(data);
+
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_EQ("<new_name/>\n", comp.Data()->ToString(""));
+  }
+
+  // Component with shared_ptr math::Inertiald, which has custom stream operator
+  {
+    using Custom = components::Component<std::shared_ptr<math::Inertiald>,
+        class CustomTag>;
+
+    auto data = std::make_shared<math::Inertiald>();
+    Custom comp(data);
+
+    std::istringstream istr("not used");
+    istr >> comp;
+    EXPECT_DOUBLE_EQ(200, comp.Data()->MassMatrix().Mass());
   }
 }
