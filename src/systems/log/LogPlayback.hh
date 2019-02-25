@@ -17,11 +17,11 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 #define IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 
+#include <ignition/msgs/pose_v.pb.h>
+
 #include <memory>
 #include <string>
 #include <map>
-
-#include <ignition/msgs/pose_v.pb.h>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -69,7 +69,6 @@ namespace systems
     public: std::string logPath = "file.tlog";
     public: std::string sdfPath = "file.sdf";
 
-    // private: std::unique_ptr <ignition::transport::log::Playback> player;
     private: std::unique_ptr <ignition::transport::log::Log> log;
 
     private: ignition::transport::log::Batch poseBatch;

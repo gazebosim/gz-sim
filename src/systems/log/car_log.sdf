@@ -20,8 +20,6 @@
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::v0::LogRecord">
-      <!--log_path>test.log</log_path-->
-      <!-- Using ign-transport directly -->
       <log_path>test.tlog</log_path>
       <sdf_path>test.sdf</sdf_path>
     </plugin>

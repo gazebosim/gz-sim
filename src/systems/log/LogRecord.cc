@@ -34,8 +34,9 @@
 #include "ignition/gazebo/components/Visual.hh"
 
 #include "ignition/gazebo/components/ParentEntity.hh"
-// #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Joint.hh"
+
+#include <ignition/transport/log/Log.hh>
 
 
 using namespace ignition::gazebo::systems;
@@ -56,9 +57,9 @@ LogRecord::~LogRecord()
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const Entity &_entity,
+void LogRecord::Configure(const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
+    EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
   // Get params from SDF
   this->logPath = _sdf->Get<std::string>("log_path",
@@ -83,18 +84,14 @@ void LogRecord::Configure(const Entity &_entity,
   this->recorder.AddTopic("/world/default/pose/info");
   // this->recorder.AddTopic(std::regex(".*"));
 
-  // This calls Log::Open() and loads 0.1.0.sql
+  // This calls Log::Open() and loads sql schema
   this->recorder.Start(this->logPath);
 
 
-  // Use ECM
-
-  // Entity is just an int
-  igndbg << _ecm.EntityCount() << " entities" << std::endl;
-
   // Record SDF as a string.
+
   // TODO(mabelmzhang): For now, just dumping a big string to a text file,
-  //   until we have a custom SQL field for the SDF.
+  //   until we have a message for the SDF.
   std::ofstream ofs(this->sdfPath);
   // Go up to root of SDF, to output entire SDF file
   sdf::ElementPtr sdf_root = _sdf->GetParent();
@@ -104,63 +101,13 @@ void LogRecord::Configure(const Entity &_entity,
   }
   ofs << sdf_root->ToString("");
   ignmsg << "Outputted SDF to " << this->sdfPath << std::endl;
-
 }
 
 //////////////////////////////////////////////////
 void LogRecord::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &_ecm)
+    EntityComponentManager &/*_ecm*/)
 {
-  // Use ECM
 
-  // igndbg << "Update()" << std::endl;
-
-  // for (auto ent : _ecm.Entities())
-  /*
-  // Models
-  _ecm.EachNew<components::Model, components::Name,
-               components::ParentEntity, components::Pose>(
-      [&](const Entity &_entity, const components::Model *,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp) -> bool
-  {
-    igndbg << "Entity " << _entity << ": " << _nameComp->Data() << std::endl;
-    igndbg << "Pose: " << _poseComp->Data() << std::endl;
-
-    // _ecm.Component(ent)
-
-    return true;
-  });
-
-  // Joints
-  _ecm.EachNew<components::Joint, components::Name, components::ParentEntity,
-               components::Pose>(
-      [&](const Entity &_entity, const components::Joint *,
-          const components::Name *_nameComp,
-          const components::ParentEntity *_parentComp,
-          const components::Pose *_poseComp) -> bool
-  {
-    igndbg << "Joint " << _nameComp->Data() << std::endl;
-    igndbg << "Pose: " << _poseComp->Data() << std::endl;
-
-     return true;
-  });
-  */
-
-
-
-  /*
-  {
-    std::ofstream ofs(this->logPath);
-    ofs << _ecm;
-  }
-  {
-    // Read the object back in.
-    std::ifstream ifs(this->logPath);
-    ifs >> _ecm;
-  }
-  */
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
