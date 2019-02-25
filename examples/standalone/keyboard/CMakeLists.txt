@@ -14,7 +14,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(IGN_COMMON_VER ${ignition-common3_VERSION_MAJOR})
 
   add_executable(keyboard keyboard.cc)
-  #set_target_properties(keyboard PROPERTIES CXX_STANDARD 17)
   target_link_libraries(keyboard
     ignition-transport${IGN_TRANSPORT_VER}::core
     sdformat${SDF_VER}::sdformat${SDF_VER}
