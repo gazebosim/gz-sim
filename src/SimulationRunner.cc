@@ -44,10 +44,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader to plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-  // Check if this is going to be a distributed runner
-  // Attempt to create the manager based on environment variables.
-  // If the configuration is invalid, then networkMgr will be `nullptr`.
-  this->networkMgr = NetworkManager::Create(&this->eventMgr);
 
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
@@ -102,6 +98,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
+
+  // Check if this is going to be a distributed runner
+  // Attempt to create the manager based on environment variables.
+  // If the configuration is invalid, then networkMgr will be `nullptr`.
+  this->networkMgr = NetworkManager::Create(&this->eventMgr);
 
   // Create the level manager
   this->levelMgr = std::make_unique<LevelManager>(this, _useLevels, _useDistSim);
@@ -191,15 +192,21 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
-  if (!this->currentInfo.paused)
+
+  // In the case that networking is not running, or this is a primary.
+  // If this is a network secondary, this data is populated via the network.
+  if (!this->networkMgr || (this->networkMgr && this->networkMgr->IsPrimary()))
   {
-    this->currentInfo.simTime += this->stepSize;
-    ++this->currentInfo.iterations;
-    this->currentInfo.dt = this->stepSize;
-  }
-  else
-  {
-    this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
+    if (!this->currentInfo.paused)
+    {
+      this->currentInfo.simTime += this->stepSize;
+      ++this->currentInfo.iterations;
+      this->currentInfo.dt = this->stepSize;
+    }
+    else
+    {
+      this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
+    }
   }
 }
 
@@ -293,6 +300,7 @@ void SimulationRunner::UpdateSystems()
 /////////////////////////////////////////////////
 void SimulationRunner::Stop()
 {
+  igndbg << "SimulationRunner::Stop" << std::endl;
   this->running = false;
 }
 
@@ -305,6 +313,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
   IGN_PROFILE_THREAD_NAME("SimulationRunner");
+
+  // Initialize network communications.
+  if (this->networkMgr)
+  {
+    igndbg << "Initializing network configuration" << std::endl;
+    this->networkMgr->Initialize();
+  }
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
@@ -340,10 +355,16 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     IGN_PROFILE("SimulationRunner::Run - Iteration");
     // Compute the time to sleep in order to match, as closely as possible,
     // the update period.
-    sleepTime = std::max(0ns, this->prevUpdateRealTime +
-        this->updatePeriod - std::chrono::steady_clock::now() -
-        this->sleepOffset);
+    sleepTime = 0ns;
     actualSleep = 0ns;
+
+    if(!this->networkMgr ||
+        (this->networkMgr && this->networkMgr->IsPrimary()))
+    {
+      sleepTime = std::max(0ns, this->prevUpdateRealTime +
+          this->updatePeriod - std::chrono::steady_clock::now() -
+          this->sleepOffset);
+    }
 
     // Only sleep if needed.
     if (sleepTime > 0ns)
@@ -365,6 +386,17 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Update time information. This will update the iteration count, RTF,
     // and other values.
     this->UpdateCurrentInfo();
+
+    if (this->networkMgr)
+    {
+      IGN_PROFILE("SyncA");
+      while (this->running && !this->networkMgr->Step(
+              this->currentInfo.iterations,
+              this->currentInfo.dt,
+              this->currentInfo.simTime))
+      {
+      }
+    }
 
     // Publish info
     this->PublishStats();
@@ -396,6 +428,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Process entity removals.
     this->entityCompMgr.ProcessRemoveEntityRequests();
+
+    if (this->networkMgr) {
+      IGN_PROFILE("SyncB");
+      while (this->running && !this->networkMgr->StepAck(
+            this->currentInfo.iterations))
+      {
+      }
+    }
   }
 
   this->running = false;

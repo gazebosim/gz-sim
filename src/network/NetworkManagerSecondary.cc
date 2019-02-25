@@ -50,7 +50,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
       << std::endl;
   }
 
-  this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
+  this->node.Subscribe("/step", &NetworkManagerSecondary::OnStep, this);
 
   std::string ackTopic { this->Namespace() + "/stepAck" };
   this->stepAckPub = this->node.Advertise<msgs::SimulationStep>(ackTopic);
@@ -71,7 +71,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
           {
-            ignerr << "Secondary went stale, stopping simulation" << std::endl;
+            ignerr << "Primary went stale, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
     });
@@ -89,6 +89,10 @@ bool NetworkManagerSecondary::Ready() const
 //////////////////////////////////////////////////
 void NetworkManagerSecondary::Initialize()
 {
+  while (!this->enableSim)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 }
 
 //////////////////////////////////////////////////
@@ -104,11 +108,11 @@ bool NetworkManagerSecondary::Step(
 
   std::unique_lock<std::mutex> lock(this->stepMutex);
   auto status = this->stepCv.wait_for(lock,
-      std::chrono::nanoseconds(500),
+      std::chrono::nanoseconds(100),
       [this](){return this->currentStep != nullptr;});
 
   if (status) {
-    if (_iteration != 0 && _iteration % 1000 == 0)
+    if (_iteration % 1000 == 0)
     {
       igndbg << "NetworkStep: " << _iteration << std::endl;
     }
@@ -141,10 +145,11 @@ std::string NetworkManagerSecondary::Namespace() const
 
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
-                                        ignition::msgs::Empty &/*_resp*/)
+                                        msgs::PeerControl& _resp)
 {
+  igndbg << "NetworkManagerSecondary::OnControl" << std::endl;
   this->enableSim = _req.enable_sim();
-  this->pauseSim = _req.pause_sim();
+  _resp.set_enable_sim(this->enableSim);
   return true;
 }
 

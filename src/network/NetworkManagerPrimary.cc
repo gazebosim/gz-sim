@@ -77,8 +77,7 @@ void NetworkManagerPrimary::Initialize()
   auto peers = this->dataPtr->tracker->SecondaryPeers();
   for (const auto& peer : peers)
   {
-    msgs::PeerControl req;
-    ignition::msgs::Empty resp;
+    msgs::PeerControl req, resp;
     req.set_enable_sim(true);
 
     auto sc = std::make_unique<SecondaryControl>();
@@ -87,7 +86,10 @@ void NetworkManagerPrimary::Initialize()
 
     bool result;
     std::string topic {sc->prefix + "/control"};
-    bool executed = this->node.Request(topic, req, 5000, resp, result);
+    unsigned int timeout = 5000;
+
+    igndbg << "Attemping to register secondary [" << topic << "]" << std::endl;
+    bool executed = this->node.Request(topic, req, timeout, resp, result);
 
     if (executed)
     {
@@ -141,6 +143,11 @@ bool NetworkManagerPrimary::Step(
 
   if (ready)
   {
+    if (_iteration % 1000 == 0)
+    {
+      igndbg << "NetworkStep: " << _iteration << std::endl;
+    }
+
     auto step = msgs::SimulationStep();
     step.set_iteration(_iteration);
 
