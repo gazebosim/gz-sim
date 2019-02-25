@@ -27,7 +27,6 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/gazebo/network/NetworkManager.hh>
 
-#include "ignition/msgs/empty.pb.h"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
 
@@ -69,7 +68,7 @@ namespace ignition
 
       /// \brief Callback for when PeerControl service request is received.
       public: bool OnControl(const msgs::PeerControl &_req,
-                             ignition::msgs::Empty &_resp);
+                             msgs::PeerControl &_resp);
 
       /// \brief Callback for when SimulationStep message is received.
       public: void OnStep(const msgs::SimulationStep &_msg);
@@ -84,10 +83,10 @@ namespace ignition
       private: std::condition_variable stepCv;
 
       /// \brief Flag to control enabling/disabling simulation secondary.
-      private: std::atomic<bool> enableSim;
+      private: std::atomic<bool> enableSim {false};
 
       /// \brief Flag to control pausing/unpausing simulation secondary.
-      private: std::atomic<bool> pauseSim;
+      private: std::atomic<bool> pauseSim {true};
 
       /// \brief Transport node used for communication with simulation graph.
       private: ignition::transport::Node node;
