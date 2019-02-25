@@ -22,14 +22,11 @@
 
 #include <ignition/plugin/RegisterMore.hh>
 
-// To read contents in a .tlog database file
-// #include <ignition/transport/log/Descriptor.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Message.hh>
 #include <sdf/Root.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
-// #include <ignition/common/Time.hh>
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"

@@ -27,8 +27,6 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
 
-// Use ign-transport directly
-// #include <ignition/transport/log/Playback.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/MsgIter.hh>
