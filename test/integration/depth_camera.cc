@@ -51,13 +51,19 @@ class DepthCameraTest : public ::testing::Test
 };
 
 std::mutex mutex;
-std::vector<msgs::Image> depthMsgs;
+msgs::Image depthMsg;
+float * depthBuffer = nullptr;
 
 /////////////////////////////////////////////////
 void depthCb(const msgs::Image &_msg)
 {
   mutex.lock();
-  depthMsgs.push_back(_msg);
+  unsigned int depthSamples = _msg.width() * _msg.height();
+  unsigned int depthBufferSize = depthSamples * sizeof(float);
+
+  if (!depthBuffer)
+    depthBuffer = new float[depthSamples];
+  memcpy(depthBuffer, _msg.data().c_str(), depthBufferSize);
   mutex.unlock();
 }
 
@@ -83,33 +89,31 @@ TEST_F(DepthCameraTest, DepthCameraBox)
   // from the depth camera
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
-  mutex.lock();
-  EXPECT_GT(depthMsgs.size(), 0u);
-  mutex.unlock();
 
-  ignition::common::Time waitTime = ignition::common::Time(0.01);
+  ignition::common::Time waitTime = ignition::common::Time(0.001);
   int i = 0;
   while (i < 300)
   {
     ignition::common::Time::Sleep(waitTime);
     i++;
   }
+  EXPECT_NE(depthBuffer, nullptr);
+
+  // Take into account box of 1 m on each side and 0.05 cm sensor offset
+  double expectedRangeAtMidPointBox1 = 0.45;
+  unsigned int height = 320;
+  unsigned int width = 320;
+
+  // Sensor should see TestBox1
+  unsigned int first = width * height / 2;
+  unsigned int mid = width / 2 + width * height / 2;
+  unsigned int last = width - 1 + width * height / 2;
+
+  // Lock access to buffer and don't release it
   mutex.lock();
-  EXPECT_GT(depthMsgs.size(), 0u);
-  mutex.unlock();
+  EXPECT_DOUBLE_EQ(depthBuffer[first], ignition::math::INF_D);
+  EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, LASER_TOL);
+  EXPECT_DOUBLE_EQ(depthBuffer[last], ignition::math::INF_D);
 
-  // const int horzSamples = 320;
-  // int mid = horzSamples / 2;
-  // int last = (horzSamples - 1);
-  // // Take into account box of 1 m on each side and 0.05 cm sensor offset
-  // double expectedRangeAtMidPointBox1 = 0.45;
-
-  // // Sensor 1 should see TestBox1
-  // mutex.lock();
-  // EXPECT_DOUBLE_EQ(depthMsgs.back().ranges(0), ignition::math::INF_D);
-  // EXPECT_NEAR(depthMsgs.back().ranges(mid), expectedRangeAtMidPointBox1,
-  //    LASER_TOL);
-  // EXPECT_DOUBLE_EQ(depthMsgs.back().ranges(last), ignition::math::INF_D);
-  // EXPECT_EQ(depthMsgs.back().frame(), "depth_camera::depth_camera_link");
-  // mutex.unlock();
+  delete[] depthBuffer;
 }
