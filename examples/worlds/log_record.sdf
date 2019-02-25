@@ -140,9 +140,9 @@
       </link>
     </model>
   
-  <model name='vehicle_red'>
+  <model name='vehicle_green'>
     <pose>0 -2 0.325 0 0 0</pose>
-    <link name='chassis_red'>
+    <link name='chassis_green'>
       <pose>-0.151427 -0 0.175 0 -0 0</pose>
       <inertial>
         <mass>1.14395</mass>
@@ -162,10 +162,10 @@
           </box>
         </geometry>
         <material>
-          <ambient>1.0 0.5 0.5 1</ambient>
-          <diffuse>1.0 0.5 0.5 1</diffuse>
-          <specular>1.0 0.5 0.5 1</specular>
-          <emissive>1.0 0.5 0.5 1</emissive>
+          <ambient>0.5 1.0 0.5 1</ambient>
+          <diffuse>0.5 1.0 0.5 1</diffuse>
+          <specular>0.5 1.0 0.5 1</specular>
+          <emissive>0.5 0.5 1.0 1</emissive>
         </material>
       </visual>
       <collision name='collision'>
@@ -177,7 +177,7 @@
       </collision>
     </link>
 
-    <link name='left_wheel_red'>
+    <link name='left_wheel_green'>
       <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -212,7 +212,7 @@
       </collision>
     </link>
 
-    <link name='right_wheel_red'>
+    <link name='right_wheel_green'>
       <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
       <inertial>
         <mass>2</mass>
@@ -247,7 +247,7 @@
       </collision>
     </link>
 
-    <link name='caster_red'>
+    <link name='caster_green'>
       <pose>-0.957138 -0 -0.125 0 -0 0</pose>
       <inertial>
         <mass>1</mass>
@@ -282,9 +282,9 @@
       </collision>
     </link>
 
-    <joint name='left_wheel_joint_red' type='revolute'>
-      <parent>chassis_red</parent>
-      <child>left_wheel_red</child>
+    <joint name='left_wheel_joint_green' type='revolute'>
+      <parent>chassis_green</parent>
+      <child>left_wheel_green</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -294,9 +294,9 @@
       </axis>
     </joint>
 
-    <joint name='right_wheel_joint_red' type='revolute'>
-      <parent>chassis_red</parent>
-      <child>right_wheel_red</child>
+    <joint name='right_wheel_joint_green' type='revolute'>
+      <parent>chassis_green</parent>
+      <child>right_wheel_green</child>
       <axis>
         <xyz>0 0 1</xyz>
         <limit>
@@ -306,16 +306,16 @@
       </axis>
     </joint>
 
-    <joint name='caster_wheel_red' type='ball'>
-      <parent>chassis_red</parent>
-      <child>caster_red</child>
+    <joint name='caster_wheel_green' type='ball'>
+      <parent>chassis_green</parent>
+      <child>caster_green</child>
     </joint>
 
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::DiffDrive">
-      <left_joint>left_wheel_joint_red</left_joint>
-      <right_joint>right_wheel_joint_red</right_joint>
+      <left_joint>left_wheel_joint_green</left_joint>
+      <right_joint>right_wheel_joint_green</right_joint>
       <wheel_separation>1.25</wheel_separation>
       <wheel_radius>0.3</wheel_radius>
     </plugin>
