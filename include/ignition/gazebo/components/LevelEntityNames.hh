@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LEVELENTITYNAMES_HH_
 
+#include <iterator>
 #include <string>
 #include <set>
 #include <ignition/gazebo/config.hh>
@@ -33,10 +34,50 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that holds a list of names of entities to be loaded in
-  /// a level
-  using LevelEntityNames =
+  /// \brief A derived class `LevelEntityNames` is used below so that the
+  /// `*Serialize` functions can be overridden. An alternative would be to
+  /// create custom stream operators.
+  using LevelEntityNamesBase =
       Component<std::set<std::string>, class LevelEntityNamesTag>;
+
+  /// \brief A component that holds a list of names of entities to be loaded in
+  /// a level.
+  class LevelEntityNames : public LevelEntityNamesBase
+  {
+    // Documentation inherited
+    public: LevelEntityNames() : LevelEntityNamesBase()
+    {
+    }
+
+    // Documentation inherited
+    public: explicit LevelEntityNames(const std::set<std::string> &_data)
+      : LevelEntityNamesBase(_data)
+    {
+    }
+
+    // Documentation inherited
+    public: void Serialize(std::ostream &_out) const override
+    {
+      for (const auto &level : this->Data())
+      {
+        _out << level << " ";
+      }
+    }
+
+    // Documentation inherited
+    public: void Deserialize(std::istream &_in) override
+    {
+      _in.setf(std::ios_base::skipws);
+
+      this->Data().clear();
+
+      for (auto it = std::istream_iterator<std::string>(_in);
+          it != std::istream_iterator<std::string>(); ++it)
+      {
+        this->Data().insert(*it);
+      }
+    }
+  };
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelEntityNames",
       LevelEntityNames)
 }
