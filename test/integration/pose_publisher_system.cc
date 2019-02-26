@@ -126,10 +126,11 @@ TEST_F(PosePublisherTest, PublishCmd)
   std::list<math::Pose3d> basePoses;
   std::list<math::Pose3d> lowerLinkPoses;
   std::list<math::Pose3d> upperLinkPoses;
+  std::list<common::Time> timestamps;
   testSystem.OnPostUpdate(
       [&modelName, &baseName, &lowerLinkName, &upperLinkName,
-      &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses](
-      const gazebo::UpdateInfo &,
+      &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &timestamps](
+      const gazebo::UpdateInfo &_info,
       const gazebo::EntityComponentManager &_ecm)
     {
       // get our double pendulum model
@@ -164,6 +165,13 @@ TEST_F(PosePublisherTest, PublishCmd)
       auto upperLinkPoseComp = _ecm.Component<components::Pose>(upperLink);
       ASSERT_NE(nullptr, upperLinkPoseComp);
       upperLinkPoses.push_back(upperLinkPoseComp->Data());
+
+      // timestamps
+      auto simTimeSecNsec =
+          ignition::math::durationToSecNsec(_info.simTime);
+       timestamps.push_back(
+           common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
+
     });
   server.AddSystem(testSystem.systemPtr);
 
@@ -173,15 +181,17 @@ TEST_F(PosePublisherTest, PublishCmd)
       &poseCb);
 
   // Run server
-  server.Run(true, 1000, false);
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
 
   // check that entity poses are generated and recorded
-  EXPECT_EQ(1000u, poses.size());
-  EXPECT_EQ(1000u, basePoses.size());
-  EXPECT_EQ(1000u, lowerLinkPoses.size());
-  EXPECT_EQ(1000u, upperLinkPoses.size());
+  EXPECT_EQ(iters, poses.size());
+  EXPECT_EQ(iters, basePoses.size());
+  EXPECT_EQ(iters, lowerLinkPoses.size());
+  EXPECT_EQ(iters, upperLinkPoses.size());
+  EXPECT_EQ(iters, timestamps.size());
 
-  // Wait for a message to be received
+  // Wait for all message to be received
   bool received = false;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
@@ -195,11 +205,22 @@ TEST_F(PosePublisherTest, PublishCmd)
     if (received)
       break;
   }
-
   EXPECT_TRUE(received);
 
-  // verify the pose msgs against the recorded ones
+  int tCounter = 0;
+  int numLinks = 3;
   mutex.lock();
+
+  // sort the pose msgs according to timestamp
+  std::sort(poseMsgs.begin(), poseMsgs.end(), [](
+      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+  {
+    common::Time lt(_l.header().stamp().sec(), _l.header().stamp().nsec());
+    common::Time rt(_r.header().stamp().sec(), _r.header().stamp().nsec());
+    return lt < rt;
+  });
+
+  // verify pose msgs against recorded ones
   for (auto msg : poseMsgs)
   {
     EXPECT_TRUE(!msg.name().empty());
@@ -216,6 +237,15 @@ TEST_F(PosePublisherTest, PublishCmd)
 
     std::string childFrame = msg.header().data(1).value(0);
     EXPECT_EQ(childFrame, msg.name());
+
+    // verify timestamp
+    common::Time time(msg.header().stamp().sec(), msg.header().stamp().nsec());
+    EXPECT_EQ(timestamps.front(), time);
+    // assume msgs arrive in order and there is a pose msg for every link
+    // so we only remove a timestamp from list after checking against all links
+    // for that iteration
+    if (++tCounter % numLinks == 0)
+      timestamps.pop_front();
 
     // verify pose
     math::Pose3d expectedPose;
