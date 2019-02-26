@@ -10,6 +10,7 @@ set(tests
   examples_build.cc
   imu_system.cc
   level_manager.cc
+  magnetometer_system.cc
   model.cc
   network_handshake.cc
   physics_system.cc
@@ -21,6 +22,7 @@ set(tests
 
 # Tests that require a valid display
 set(tests_needing_display
+  gpu_lidar.cc
   sensors_system.cc
 )
 

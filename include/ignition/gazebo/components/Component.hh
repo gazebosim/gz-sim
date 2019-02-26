@@ -22,8 +22,11 @@
 #include <string>
 #include <utility>
 
+#include <ignition/common/Console.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
@@ -49,6 +52,16 @@ namespace components
 
     /// \brief Default destructor.
     public: virtual ~BaseComponent() = default;
+
+    /// \brief Returns the unique name for the component's type.
+    /// The name is manually chosen during the Factory registration.
+    public: virtual std::string TypeName() const = 0;
+
+    /// \brief Returns the unique ID for the component's type.
+    /// The ID is derived from the name that is manually chosen during the
+    /// Factory registration and is guaranteed to be the same across compilers
+    /// and runs.
+    public: virtual ComponentTypeId TypeId() const = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -64,15 +77,23 @@ namespace components
   ///     using AnotherComp = Component<bool, class StaticTag>;
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
+  ///
+  /// \tparam DataType Type of the data being wrapped by this component.
+  /// \tparam Identifier Unique identifier for the component class, to avoid
+  /// collision.
   template <typename DataType, typename Identifier>
   class Component: public BaseComponent
   {
     /// \brief Default constructor
-    public: explicit Component() = default;
+    public: Component();
 
     /// \brief Constructor
-    /// \param[in] _component Component to copy
+    /// \param[in] _data Data to copy
     public: explicit Component(const DataType &_data);
+
+    /// \brief Constructor data to be moved
+    /// \param[in] _data Data to moved
+    public: explicit Component(DataType &&_data);
 
     /// \brief Copy Constructor
     /// \param[in] _component Component component to copy.
@@ -106,6 +127,12 @@ namespace components
     /// \return True if different.
     public: bool operator!=(const Component &_component) const;
 
+    // Documentation inherited
+    public: std::string TypeName() const override;
+
+    // Documentation inherited
+    public: ComponentTypeId TypeId() const override;
+
     /// \brief Get the component data.
     /// \return The actual component information.
     public: const DataType &Data() const;
@@ -113,11 +140,13 @@ namespace components
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static ComponentTypeId typeId{0};
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -137,16 +166,27 @@ namespace components
     // Documentation inherited
     public: bool operator!=(const Component<NoData, Identifier> &) const;
 
-    /// \brief Component name.
-    public: inline static std::string name{""};
+    // Documentation inherited
+    public: std::string TypeName() const override;
 
-    /// \brief Component id.
-    public: inline static uint64_t id{0};
+    // Documentation inherited
+    public: uint64_t TypeId() const override;
+
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName{""};
+
+    /// \brief Unique ID for this component type. This is set through the
+    /// Factory registration.
+    public: inline static ComponentTypeId typeId{0};
   };
 
   template <typename DataType>
   class ComponentPrivate
   {
+    /// \brief Default constructor
+    public: ComponentPrivate() = default;
+
     /// \brief Constructor.
     /// \param[in] _component Component data.
     public: explicit ComponentPrivate(DataType _data)
@@ -160,8 +200,22 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component()
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>())
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(const DataType &_data)
     : dataPtr(std::make_unique<ComponentPrivate<DataType>>(_data))
+  {
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  Component<DataType, Identifier>::Component(DataType &&_data)
+    : dataPtr(std::make_unique<ComponentPrivate<DataType>>(std::move(_data)))
   {
   }
 
@@ -207,6 +261,20 @@ namespace components
   }
 
   //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  std::string Component<DataType, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  ComponentTypeId Component<DataType, Identifier>::TypeId() const
+  {
+    return typeId;
+  }
+
+  //////////////////////////////////////////////////
   template <typename Identifier>
   bool Component<NoData, Identifier>::operator==(
       const Component<NoData, Identifier> &) const
@@ -220,6 +288,20 @@ namespace components
       const Component<NoData, Identifier> &) const
   {
     return false;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  std::string Component<NoData, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  ComponentTypeId Component<NoData, Identifier>::TypeId() const
+  {
+    return typeId;
   }
 }
 }
