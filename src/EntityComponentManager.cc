@@ -638,21 +638,20 @@ namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
-
 //////////////////////////////////////////////////
 std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
 {
   gazebo::msgs::SerializedState stateMsg;
-  for (const auto &entity: _ecm.dataPtr->entityComponents)
+  for (const auto &[entity, components] : _ecm.dataPtr->entityComponents)
   {
     auto entityMsg = stateMsg.add_entities();
-    entityMsg->set_id(entity.first);
+    entityMsg->set_id(entity);
 
-    for (const auto &compKey : entity.second)
+    for (const auto &[typeId, compId] : components)
     {
       auto compMsg = entityMsg->add_components();
 
-      auto compBase = _ecm.ComponentImplementation(entity.first, compKey.first);
+      auto compBase = _ecm.ComponentImplementation(entity, typeId);
       compMsg->set_type(compBase->TypeId());
 
       std::ostringstream ostr;
@@ -669,10 +668,51 @@ std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
 {
+  // Parse stream into a message
   gazebo::msgs::SerializedState stateMsg;
   stateMsg.ParseFromIstream(&_in);
-igndbg << stateMsg.DebugString() << std::endl;
 
+  // Remove entities and components which don't exist in new state
+  for (const auto &[entity, components] : _ecm.dataPtr->entityComponents)
+  {
+    bool hasEntity{false};
+    for (int e = 0; e < stateMsg.entities_size(); ++e)
+    {
+      if (entity != stateMsg.entities(e).id())
+      {
+        continue;
+      }
+      hasEntity = true;
+
+      for (const auto &[typeId, compId] : components)
+      {
+        bool hasComponent{false};
+        for (int c = 0; c < stateMsg.entities(e).components_size(); ++c)
+        {
+          if (typeId == stateMsg.entities(e).components(c).type())
+          {
+            hasComponent = true;
+            break;
+          }
+        }
+
+        // Remove component
+        if (!hasComponent)
+        {
+          _ecm.RemoveComponent(entity, typeId);
+        }
+      }
+    }
+
+    // Remove entity
+    if (!hasEntity)
+    {
+      _ecm.RequestRemoveEntity(entity, false);
+      continue;
+    }
+  }
+
+  // Create / update entities and components
   for (int e = 0; e < stateMsg.entities_size(); ++e)
   {
     Entity entity{stateMsg.entities(e).id()};
@@ -719,8 +759,6 @@ igndbg << stateMsg.DebugString() << std::endl;
       }
     }
   }
-
-  // Remove entities and components which don't exist in new state
 
   return _in;
 }
