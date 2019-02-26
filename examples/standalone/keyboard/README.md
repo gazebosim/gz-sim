@@ -30,7 +30,7 @@ that can be controlled using a keyboard. You can run it as follows:
 
 1. In a terminal, run the keyboard executable as described above:
 
-        cd ign-gazebo/examples/standalone/keyboard
+        cd ign-gazebo/examples/standalone/keyboard/build
         ./keyboard ../keyboard.sdf
 
 1. On another terminal, run `ign-gazebo` with the vehicle that will
