@@ -102,13 +102,10 @@ namespace components
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
       StorageDescriptorBase *_storageDesc = nullptr)
     {
-      // Initialize static member variables.
-      ComponentTypeT::typeName = _type;
+      // Initialize static member variable
       ComponentTypeT::typeId = ignition::common::hash64(_type);
-std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std::endl;
 
       // Keep track of all types
-      this->compsByName[ComponentTypeT::typeName] = _compDesc;
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
     }
@@ -121,43 +118,7 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
     std::unique_ptr<ComponentTypeT> New()
     {
       return std::unique_ptr<ComponentTypeT>(static_cast<ComponentTypeT *>(
-            this->New(ComponentTypeT::typeName).release()));
-    }
-
-    /// \brief Create a new instance of a component.
-    /// \param[in] _type Type of component to create.
-    /// \return Pointer to a component. Null if the component
-    /// type could not be handled.
-    public: std::unique_ptr<components::BaseComponent> New(
-        const std::string &_type)
-    {
-      std::string type;
-      // Convert "ignition.gazebo.components." to "ign_gazebo_components.".
-      if (_type.compare(0, strlen(kCompStr1), kCompStr1) == 0)
-      {
-        type = kCompStr + _type.substr(strlen(kCompStr1));
-      }
-      // Convert ".ignition.gazebo.components" to "ign_gazebo_components.".
-      else if (_type.compare(0, strlen(kCompStr2), kCompStr2) == 0)
-      {
-        type = kCompStr + _type.substr(strlen(kCompStr2));
-      }
-      else
-      {
-        // Fix typenames that are missing "ign_gazebo_components."
-        // at the beginning.
-        if (_type.compare(0, strlen(kCompStr), kCompStr) != 0)
-          type = kCompStr;
-        type += _type;
-      }
-
-      // Create a new component if a Descriptor has been assigned to this type.
-      std::unique_ptr<components::BaseComponent> comp;
-      auto it = this->compsByName.find(type);
-      if (it != this->compsByName.end())
-        comp = it->second->Create();
-
-      return comp;
+            this->New(ComponentTypeT::typeId).release()));
     }
 
     /// \brief Create a new instance of a component.
@@ -191,19 +152,6 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
       return storage;
     }
 
-    /// \brief Get all the registered component types by type name.
-    /// return Vector of strings with the component type names.
-    public: std::vector<std::string> TypeNames() const
-    {
-      std::vector<std::string> types;
-
-      // Return the list of all known component types.
-      for (const auto &[name, funct] : this->compsByName)
-        types.push_back(name);
-
-      return types;
-    }
-
     /// \brief Get all the registered component types by ID.
     /// return Vector of component IDs.
     public: std::vector<uint64_t> TypeIds() const
@@ -217,7 +165,7 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
       return types;
     }
 
-    /// \brief A list of registered components where the key is its name.
+    /// \brief A list of registered components where the key is its id.
     ///
     /// Note about compsByName and compsById. The maps store pointers as the
     /// values, but never cleans them up, which may (at first glance) seem like
@@ -230,9 +178,6 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
     /// can lead to a scenario where the shared library is unloaded (with the
     /// ComponentDescriptor), but the Factory still exists. For this reason,
     /// we just keep a pointer, which will dangle until the program is shutdown.
-    private: std::map<std::string, ComponentDescriptorBase *> compsByName;
-
-    /// \brief A list of registered components where the key is its id.
     private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
 
     /// \brief A list of registered storages where the key is its component's id.
@@ -266,7 +211,7 @@ std::cout << _type << "  " << ComponentTypeT::typeId << "  " << _compDesc << std
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
       using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
       gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc(), nullptr);\
+        _compType, new Desc(), new StorageDesc());\
     } \
   }; \
   static IgnGazeboComponents##_classname\
