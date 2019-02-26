@@ -15,23 +15,31 @@
  *
 */
 #include <cmath>
-#include <ignition/math/Box.hh>
-
-#include "BoxPrivate.hh"
+#include <ignition/math/AxisAlignedBox.hh>
 
 using namespace ignition;
 using namespace math;
 
+// Private data for AxisAlignedBox class
+class ignition::math::AxisAlignedBoxPrivate
+{
+  /// \brief Minimum corner of the box
+  public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
+
+  /// \brief Maximum corner of the box
+  public: Vector3d max = Vector3d(LOW_D, LOW_D, LOW_D);
+};
+
 //////////////////////////////////////////////////
-Box::Box()
-: dataPtr(new BoxPrivate)
+AxisAlignedBox::AxisAlignedBox()
+: dataPtr(new AxisAlignedBoxPrivate)
 {
 }
 
 //////////////////////////////////////////////////
-Box::Box(double _vec1X, double _vec1Y, double _vec1Z,
+AxisAlignedBox::AxisAlignedBox(double _vec1X, double _vec1Y, double _vec1Z,
          double _vec2X, double _vec2Y, double _vec2Z)
-: dataPtr(new BoxPrivate)
+: dataPtr(new AxisAlignedBoxPrivate)
 {
   this->dataPtr->min.Set(_vec1X, _vec1Y, _vec1Z);
   this->dataPtr->max.Set(_vec2X, _vec2Y, _vec2Z);
@@ -41,8 +49,8 @@ Box::Box(double _vec1X, double _vec1Y, double _vec1Z,
 }
 
 //////////////////////////////////////////////////
-Box::Box(const Vector3d &_vec1, const Vector3d &_vec2)
-: dataPtr(new BoxPrivate)
+AxisAlignedBox::AxisAlignedBox(const Vector3d &_vec1, const Vector3d &_vec2)
+: dataPtr(new AxisAlignedBoxPrivate)
 {
   this->dataPtr->min = _vec1;
   this->dataPtr->min.Min(_vec2);
@@ -52,40 +60,40 @@ Box::Box(const Vector3d &_vec1, const Vector3d &_vec2)
 }
 
 //////////////////////////////////////////////////
-Box::Box(const Box &_b)
-: dataPtr(new BoxPrivate)
+AxisAlignedBox::AxisAlignedBox(const AxisAlignedBox &_b)
+: dataPtr(new AxisAlignedBoxPrivate)
 {
   this->dataPtr->min = _b.dataPtr->min;
   this->dataPtr->max = _b.dataPtr->max;
 }
 
 //////////////////////////////////////////////////
-Box::~Box()
+AxisAlignedBox::~AxisAlignedBox()
 {
   delete this->dataPtr;
   this->dataPtr = NULL;
 }
 
 //////////////////////////////////////////////////
-double Box::XLength() const
+double AxisAlignedBox::XLength() const
 {
   return std::max(0.0, this->dataPtr->max.X() - this->dataPtr->min.X());
 }
 
 //////////////////////////////////////////////////
-double Box::YLength() const
+double AxisAlignedBox::YLength() const
 {
   return std::max(0.0, this->dataPtr->max.Y() - this->dataPtr->min.Y());
 }
 
 //////////////////////////////////////////////////
-double Box::ZLength() const
+double AxisAlignedBox::ZLength() const
 {
   return std::max(0.0, this->dataPtr->max.Z() - this->dataPtr->min.Z());
 }
 
 //////////////////////////////////////////////////
-math::Vector3d Box::Size() const
+math::Vector3d AxisAlignedBox::Size() const
 {
   return math::Vector3d(this->XLength(),
                         this->YLength(),
@@ -93,21 +101,21 @@ math::Vector3d Box::Size() const
 }
 
 //////////////////////////////////////////////////
-math::Vector3d Box::Center() const
+math::Vector3d AxisAlignedBox::Center() const
 {
   return 0.5 * this->dataPtr->min + 0.5 * this->dataPtr->max;
 }
 
 
 //////////////////////////////////////////////////
-void Box::Merge(const Box &_box)
+void AxisAlignedBox::Merge(const AxisAlignedBox &_box)
 {
   this->dataPtr->min.Min(_box.dataPtr->min);
   this->dataPtr->max.Max(_box.dataPtr->max);
 }
 
 //////////////////////////////////////////////////
-Box &Box::operator =(const Box &_b)
+AxisAlignedBox &AxisAlignedBox::operator =(const AxisAlignedBox &_b)
 {
   this->dataPtr->max = _b.dataPtr->max;
   this->dataPtr->min = _b.dataPtr->min;
@@ -116,15 +124,15 @@ Box &Box::operator =(const Box &_b)
 }
 
 //////////////////////////////////////////////////
-Box Box::operator+(const Box &_b) const
+AxisAlignedBox AxisAlignedBox::operator+(const AxisAlignedBox &_b) const
 {
-  Box result(*this);
+  AxisAlignedBox result(*this);
   result += _b;
   return result;
 }
 
 //////////////////////////////////////////////////
-const Box &Box::operator+=(const Box &_b)
+const AxisAlignedBox &AxisAlignedBox::operator+=(const AxisAlignedBox &_b)
 {
   this->dataPtr->min.Min(_b.dataPtr->min);
   this->dataPtr->max.Max(_b.dataPtr->max);
@@ -132,26 +140,26 @@ const Box &Box::operator+=(const Box &_b)
 }
 
 //////////////////////////////////////////////////
-bool Box::operator==(const Box &_b) const
+bool AxisAlignedBox::operator==(const AxisAlignedBox &_b) const
 {
   return this->dataPtr->min == _b.dataPtr->min &&
          this->dataPtr->max == _b.dataPtr->max;
 }
 
 //////////////////////////////////////////////////
-bool Box::operator!=(const Box &_b) const
+bool AxisAlignedBox::operator!=(const AxisAlignedBox &_b) const
 {
   return !(*this == _b);
 }
 
 //////////////////////////////////////////////////
-Box Box::operator-(const Vector3d &_v)
+AxisAlignedBox AxisAlignedBox::operator-(const Vector3d &_v)
 {
-  return Box(this->dataPtr->min - _v, this->dataPtr->max - _v);
+  return AxisAlignedBox(this->dataPtr->min - _v, this->dataPtr->max - _v);
 }
 
 //////////////////////////////////////////////////
-bool Box::Intersects(const Box &_box) const
+bool AxisAlignedBox::Intersects(const AxisAlignedBox &_box) const
 {
   // Check the six separating planes.
   if (this->Max().X() < _box.Min().X())
@@ -173,31 +181,31 @@ bool Box::Intersects(const Box &_box) const
 }
 
 //////////////////////////////////////////////////
-const Vector3d &Box::Min() const
+const Vector3d &AxisAlignedBox::Min() const
 {
   return this->dataPtr->min;
 }
 
 //////////////////////////////////////////////////
-const Vector3d &Box::Max() const
+const Vector3d &AxisAlignedBox::Max() const
 {
   return this->dataPtr->max;
 }
 
 //////////////////////////////////////////////////
-Vector3d &Box::Min()
+Vector3d &AxisAlignedBox::Min()
 {
   return this->dataPtr->min;
 }
 
 //////////////////////////////////////////////////
-Vector3d &Box::Max()
+Vector3d &AxisAlignedBox::Max()
 {
   return this->dataPtr->max;
 }
 
 //////////////////////////////////////////////////
-bool Box::Contains(const Vector3d &_p) const
+bool AxisAlignedBox::Contains(const Vector3d &_p) const
 {
   return _p.X() >= this->dataPtr->min.X() && _p.X() <= this->dataPtr->max.X() &&
          _p.Y() >= this->dataPtr->min.Y() && _p.Y() <= this->dataPtr->max.Y() &&
@@ -205,7 +213,7 @@ bool Box::Contains(const Vector3d &_p) const
 }
 
 //////////////////////////////////////////////////
-bool Box::ClipLine(const int _d, const Line3d &_line,
+bool AxisAlignedBox::ClipLine(const int _d, const Line3d &_line,
                    double &_low, double &_high) const
 {
   // dimLow and dimHigh are the results we're calculating for this
@@ -245,14 +253,15 @@ bool Box::ClipLine(const int _d, const Line3d &_line,
 }
 
 /////////////////////////////////////////////////
-bool Box::IntersectCheck(const Vector3d &_origin, const Vector3d &_dir,
+bool AxisAlignedBox::IntersectCheck(
+    const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
   return std::get<0>(this->Intersect(_origin, _dir, _min, _max));
 }
 
 /////////////////////////////////////////////////
-std::tuple<bool, double> Box::IntersectDist(const Vector3d &_origin,
+std::tuple<bool, double> AxisAlignedBox::IntersectDist(const Vector3d &_origin,
     const Vector3d &_dir, const double _min, const double _max) const
 {
   return std::make_tuple(
@@ -261,7 +270,7 @@ std::tuple<bool, double> Box::IntersectDist(const Vector3d &_origin,
 }
 
 /////////////////////////////////////////////////
-std::tuple<bool, double, Vector3d>  Box::Intersect(
+std::tuple<bool, double, Vector3d>  AxisAlignedBox::Intersect(
     const Vector3d &_origin, const Vector3d &_dir,
     const double _min, const double _max) const
 {
@@ -273,7 +282,8 @@ std::tuple<bool, double, Vector3d>  Box::Intersect(
 /////////////////////////////////////////////////
 // Find the intersection of a line from v0 to v1 and an
 // axis-aligned bounding box http://www.youtube.com/watch?v=USjbg5QXk3g
-std::tuple<bool, double, Vector3d> Box::Intersect(const Line3d &_line) const
+std::tuple<bool, double, Vector3d> AxisAlignedBox::Intersect(
+    const Line3d &_line) const
 {
   // low and high are the results from all clipping so far.
   // We'll write our results back out to those parameters.

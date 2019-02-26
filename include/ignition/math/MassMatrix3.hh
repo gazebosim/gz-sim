@@ -18,11 +18,13 @@
 #define IGNITION_MATH_MASSMATRIX3_HH_
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <vector>
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Helpers.hh"
+#include "ignition/math/Material.hh"
 #include "ignition/math/Quaternion.hh"
 #include "ignition/math/Vector2.hh"
 #include "ignition/math/Vector3.hh"
@@ -42,7 +44,8 @@ namespace ignition
     template<typename T>
     class MassMatrix3
     {
-      /// \brief Default Constructor
+      /// \brief Default Constructor, which inializes the mass and moments
+      /// to zero.
       public: MassMatrix3() : mass(0)
       {}
 
@@ -69,7 +72,16 @@ namespace ignition
       /// \brief Set the mass.
       /// \param[in] _m New mass value.
       /// \return True if the MassMatrix3 is valid.
-      public: bool Mass(const T &_m)
+      /// \deprecated bool SetMass(const T &_m)
+      public: bool IGN_DEPRECATED(5.0) Mass(const T &_m)
+      {
+        return this->SetMass(_m);
+      }
+
+      /// \brief Set the mass.
+      /// \param[in] _m New mass value.
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetMass(const T &_m)
       {
         this->mass = _m;
         return this->IsValid();
@@ -90,8 +102,26 @@ namespace ignition
       /// \param[in] _ixz XZ inertia.
       /// \param[in] _iyz YZ inertia.
       /// \return True if the MassMatrix3 is valid.
-      public: bool InertiaMatrix(const T &_ixx, const T &_iyy, const T &_izz,
-                                 const T &_ixy, const T &_ixz, const T &_iyz)
+      /// \deprecated see bool SetInertiaMatrix(const T &, const T &, const T &,
+      /// const T &, const T &, const T &)
+      public: bool IGN_DEPRECATED(5.0) InertiaMatrix(
+                  const T &_ixx, const T &_iyy, const T &_izz,
+                  const T &_ixy, const T &_ixz, const T &_iyz)
+      {
+        return this->SetInertiaMatrix(_ixx, _iyy, _izz, _ixy, _ixz, _iyz);
+      }
+
+      /// \brief Set the moment of inertia matrix.
+      /// \param[in] _ixx X second moment of inertia (MOI) about x axis.
+      /// \param[in] _iyy Y second moment of inertia about y axis.
+      /// \param[in] _izz Z second moment of inertia about z axis.
+      /// \param[in] _ixy XY inertia.
+      /// \param[in] _ixz XZ inertia.
+      /// \param[in] _iyz YZ inertia.
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetInertiaMatrix(
+                  const T &_ixx, const T &_iyy, const T &_izz,
+                  const T &_ixy, const T &_ixz, const T &_iyz)
       {
         this->Ixxyyzz.Set(_ixx, _iyy, _izz);
         this->Ixyxzyz.Set(_ixy, _ixz, _iyz);
@@ -115,7 +145,17 @@ namespace ignition
       /// \brief Set the diagonal moments of inertia (Ixx, Iyy, Izz).
       /// \param[in] _ixxyyzz diagonal moments of inertia
       /// \return True if the MassMatrix3 is valid.
-      public: bool DiagonalMoments(const Vector3<T> &_ixxyyzz)
+      /// \deprecated See bool SetDiagonalMoments(const Vector3<T> &_ixxyyzz)
+      public: bool IGN_DEPRECATED(5.0) DiagonalMoments(
+                  const Vector3<T> &_ixxyyzz)
+      {
+        return this->SetDiagonalMoments(_ixxyyzz);
+      }
+
+      /// \brief Set the diagonal moments of inertia (Ixx, Iyy, Izz).
+      /// \param[in] _ixxyyzz diagonal moments of inertia
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetDiagonalMoments(const Vector3<T> &_ixxyyzz)
       {
         this->Ixxyyzz = _ixxyyzz;
         return this->IsValid();
@@ -124,7 +164,18 @@ namespace ignition
       /// \brief Set the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
       /// \param[in] _ixyxzyz off-diagonal moments of inertia
       /// \return True if the MassMatrix3 is valid.
-      public: bool OffDiagonalMoments(const Vector3<T> &_ixyxzyz)
+      /// \deprecated See bool SetOffDiagonalMoments(const Vector3<T> &_ixyxzyz)
+      public: bool IGN_DEPRECATED(5.0) OffDiagonalMoments(
+                  const Vector3<T> &_ixyxzyz)
+      {
+        return this->SetOffDiagonalMoments(_ixyxzyz);
+      }
+
+      /// \brief Set the off-diagonal moments of inertia (Ixy, Ixz, Iyz).
+      /// \param[in] _ixyxzyz off-diagonal moments of inertia
+      /// \return True if the MassMatrix3 is valid.
+      /// \deprecated See bool SetOffDiagonalMoments(const Vector3<T> &_ixyxzyz)
+      public: bool SetOffDiagonalMoments(const Vector3<T> &_ixyxzyz)
       {
         this->Ixyxzyz = _ixyxzyz;
         return this->IsValid();
@@ -132,42 +183,90 @@ namespace ignition
 
       /// \brief Get IXX
       /// \return IXX value
-      public: T IXX() const
+      /// \deprecated See T Ixx() const
+      public: T IGN_DEPRECATED(5.0) IXX() const
+      {
+        return this->Ixx();
+      }
+
+      /// \brief Get IXX
+      /// \return IXX value
+      public: T Ixx() const
       {
         return this->Ixxyyzz[0];
       }
 
       /// \brief Get IYY
       /// \return IYY value
-      public: T IYY() const
+      /// \deprecated See T Iyy() const
+      public: T IGN_DEPRECATED(5.0) IYY() const
+      {
+        return this->Iyy();
+      }
+
+      /// \brief Get IYY
+      /// \return IYY value
+      public: T Iyy() const
       {
         return this->Ixxyyzz[1];
       }
 
       /// \brief Get IZZ
       /// \return IZZ value
-      public: T IZZ() const
+      /// \deprecated See T Izz() const
+      public: T IGN_DEPRECATED(5.0) IZZ() const
+      {
+        return this->Izz();
+      }
+
+      /// \brief Get IZZ
+      /// \return IZZ value
+      public: T Izz() const
       {
         return this->Ixxyyzz[2];
       }
 
       /// \brief Get IXY
       /// \return IXY value
-      public: T IXY() const
+      /// \deprecated See T Ixy() const
+      public: T IGN_DEPRECATED(5.0) IXY() const
+      {
+        return this->Ixy();
+      }
+
+      /// \brief Get IXY
+      /// \return IXY value
+      public: T Ixy() const
       {
         return this->Ixyxzyz[0];
       }
 
       /// \brief Get IXZ
       /// \return IXZ value
-      public: T IXZ() const
+      /// \deprecated See T Ixz() const
+      public: T IGN_DEPRECATED(5.0) IXZ() const
+      {
+        return this->Ixz();
+      }
+
+      /// \brief Get IXZ
+      /// \return IXZ value
+      public: T Ixz() const
       {
         return this->Ixyxzyz[1];
       }
 
       /// \brief Get IYZ
       /// \return IYZ value
-      public: T IYZ() const
+      /// \deprecated See T Iyz() const
+      public: T IGN_DEPRECATED(5.0) IYZ() const
+      {
+        return this->Iyz();
+      }
+
+      /// \brief Get IYZ
+      /// \return IYZ value
+      public: T Iyz() const
       {
         return this->Ixyxzyz[2];
       }
@@ -175,7 +274,16 @@ namespace ignition
       /// \brief Set IXX
       /// \param[in] _v IXX value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IXX(const T &_v)
+      /// \deprecated See bool SetIxx(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IXX(const T &_v)
+      {
+        return this->SetIxx(_v);
+      }
+
+      /// \brief Set IXX
+      /// \param[in] _v IXX value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIxx(const T &_v)
       {
         this->Ixxyyzz.X(_v);
         return this->IsValid();
@@ -184,7 +292,16 @@ namespace ignition
       /// \brief Set IYY
       /// \param[in] _v IYY value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IYY(const T &_v)
+      /// \deprecated see bool SetIyy(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IYY(const T &_v)
+      {
+        return this->SetIyy(_v);
+      }
+
+      /// \brief Set IYY
+      /// \param[in] _v IYY value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIyy(const T &_v)
       {
         this->Ixxyyzz.Y(_v);
         return this->IsValid();
@@ -193,7 +310,16 @@ namespace ignition
       /// \brief Set IZZ
       /// \param[in] _v IZZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IZZ(const T &_v)
+      /// \deprecated See bool SetIzz(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IZZ(const T &_v)
+      {
+        return this->SetIzz(_v);
+      }
+
+      /// \brief Set IZZ
+      /// \param[in] _v IZZ value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIzz(const T &_v)
       {
         this->Ixxyyzz.Z(_v);
         return this->IsValid();
@@ -202,7 +328,16 @@ namespace ignition
       /// \brief Set IXY
       /// \param[in] _v IXY value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IXY(const T &_v)
+      /// \deprecated See bool SetIxy(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IXY(const T &_v)
+      {
+        return this->SetIxy(_v);
+      }
+
+      /// \brief Set IXY
+      /// \param[in] _v IXY value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIxy(const T &_v)
       {
         this->Ixyxzyz.X(_v);
         return this->IsValid();
@@ -211,7 +346,16 @@ namespace ignition
       /// \brief Set IXZ
       /// \param[in] _v IXZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IXZ(const T &_v)
+      /// \deprecated See bool SetIxz(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IXZ(const T &_v)
+      {
+        return this->SetIxz(_v);
+      }
+
+      /// \brief Set IXZ
+      /// \param[in] _v IXZ value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIxz(const T &_v)
       {
         this->Ixyxzyz.Y(_v);
         return this->IsValid();
@@ -220,7 +364,16 @@ namespace ignition
       /// \brief Set IYZ
       /// \param[in] _v IYZ value
       /// \return True if the MassMatrix3 is valid.
-      public: bool IYZ(const T &_v)
+      /// \deprecated See bool SetIyz(const T &_v)
+      public: bool IGN_DEPRECATED(5.0) IYZ(const T &_v)
+      {
+        return this->SetIyz(_v);
+      }
+
+      /// \brief Set IYZ
+      /// \param[in] _v IYZ value
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetIyz(const T &_v)
       {
         this->Ixyxzyz.Z(_v);
         return this->IsValid();
@@ -228,7 +381,15 @@ namespace ignition
 
       /// \brief returns Moments of Inertia as a Matrix3
       /// \return Moments of Inertia as a Matrix3
-      public: Matrix3<T> MOI() const
+      /// \deprecated See Matrix3<T> Moi() const
+      public: Matrix3<T> IGN_DEPRECATED(5.0) MOI() const
+      {
+        return this->Moi();
+      }
+
+      /// \brief returns Moments of Inertia as a Matrix3
+      /// \return Moments of Inertia as a Matrix3
+      public: Matrix3<T> Moi() const
       {
         return Matrix3<T>(
           this->Ixxyyzz[0], this->Ixyxzyz[0], this->Ixyxzyz[1],
@@ -241,7 +402,18 @@ namespace ignition
       /// off-axis terms.
       /// \param[in] Moments of Inertia as a Matrix3
       /// \return True if the MassMatrix3 is valid.
-      public: bool MOI(const Matrix3<T> &_moi)
+      /// \deprecated See SetMoi(const Matrix3<T> &_moi)
+      public: bool IGN_DEPRECATED(5.0) MOI(const Matrix3<T> &_moi)
+      {
+        return this->SetMoi(_moi);
+      }
+
+      /// \brief Sets Moments of Inertia (MOI) from a Matrix3.
+      /// Symmetric component of input matrix is used by averaging
+      /// off-axis terms.
+      /// \param[in] Moments of Inertia as a Matrix3
+      /// \return True if the MassMatrix3 is valid.
+      public: bool SetMoi(const Matrix3<T> &_moi)
       {
         this->Ixxyyzz.Set(_moi(0, 0), _moi(1, 1), _moi(2, 2));
         this->Ixyxzyz.Set(
@@ -282,42 +454,184 @@ namespace ignition
         return !(*this == _m);
       }
 
-      /// \brief Verify that inertia values are positive definite
-      /// \return True if mass is positive and moment of inertia matrix
-      /// is positive definite.
-      public: bool IsPositive() const
+      /// \brief Verify that inertia values are positive semidefinite
+      ///
+      /// \param[in] _tolerance The amount of relative error to accept when
+      /// checking whether this MassMatrix3 has a valid mass and moment
+      /// of inertia. Refer to Epsilon() for a description of _tolerance.
+      ///
+      /// \return True if mass is nonnegative and moment of inertia matrix
+      /// is positive semidefinite. The following is how the return value is
+      /// calculated
+      ///
+      /// \code
+      /// const T epsilon = this->Epsilon(_tolerance);
+      /// return (this->mass + epsilon >= 0) &&
+      ///         (this->IXX() + epsilon  >= 0) &&
+      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+      ///          epsilon >= 0) &&
+      ///         (this->Moi().Determinant() + epsilon >= 0);
+      /// \endcode
+      ///
+      public: bool IsNearPositive(const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
+        const T epsilon = this->Epsilon(_tolerance);
+
         // Check if mass and determinants of all upper left submatrices
         // of moment of inertia matrix are positive
-        return (this->mass > 0) &&
-               (this->IXX() > 0) &&
-               (this->IXX()*this->IYY() - std::pow(this->IXY(), 2) > 0) &&
-               (this->MOI().Determinant() > 0);
+        return (this->mass >= 0) &&
+               (this->Ixx() + epsilon >= 0) &&
+               (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
+                epsilon >= 0) &&
+               (this->Moi().Determinant() + epsilon >= 0);
       }
 
       /// \brief Verify that inertia values are positive definite
-      /// and satisfy the triangle inequality.
-      /// \return True if IsPositive and moment of inertia satisfies
-      /// the triangle inequality.
-      public: bool IsValid() const
+      ///
+      /// \param[in] _tolerance The amount of error to accept when
+      /// checking whether this MassMatrix3 has a valid mass and moment
+      /// of inertia. Refer to Epsilon() for a description of _tolerance.
+      ///
+      /// \return True if mass is positive and moment of inertia matrix
+      /// is positive definite. The following is how the return value is
+      /// calculated
+      ///
+      /// \code
+      /// const T epsilon = this->Epsilon(_tolerance);
+      /// return (this->mass + epsilon > 0) &&
+      ///         (this->IXX() + epsilon  > 0) &&
+      ///         (this->IXX() * this->IYY() - std::pow(this->IXY(), 2) +
+      ///          epsilon > 0) &&
+      ///         (this->Moi().Determinant() + epsilon > 0);
+      /// \endcode
+      ///
+      public: bool IsPositive(const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
-        return this->IsPositive() && ValidMoments(this->PrincipalMoments());
+        const T epsilon = this->Epsilon(_tolerance);
+
+        // Check if mass and determinants of all upper left submatrices
+        // of moment of inertia matrix are positive
+        return (this->mass > 0) &&
+               (this->Ixx() + epsilon > 0) &&
+               (this->Ixx() * this->Iyy() - std::pow(this->Ixy(), 2) +
+                epsilon > 0) &&
+               (this->Moi().Determinant() + epsilon > 0);
+      }
+
+      ///
+      /// \brief \copybrief Epsilon(const Vector3<T>&,const T)
+      ///
+      /// \param[in] _tolerance A factor that is used to adjust the return
+      /// value. A value of zero will cause the return value to be zero.
+      /// A good value is 10, which is also the
+      /// MASSMATRIX3_DEFAULT_TOLERANCE.
+      public: T Epsilon(const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+      {
+        return Epsilon(this->DiagonalMoments(), _tolerance);
+      }
+
+      /// \brief Get an epsilon value that represents the amount of
+      /// acceptable error in a MassMatrix3. The epsilon value
+      /// is related to machine precision multiplied by the largest possible
+      /// moment of inertia.
+      ///
+      /// This function is used by IsValid(), IsNearPositive(), IsPositive(),
+      /// and ValidMoments().
+      ///
+      /// \param[in] _moments Principal moments of inertia.
+      /// \param[in] _tolerance A factor that is used to adjust the return
+      /// value. A value of zero will cause the return value to be zero.
+      /// A good value is 10, which is also the
+      /// MASSMATRIX3_DEFAULT_TOLERANCE.
+      ///
+      /// \return The epsilon value computed using:
+      ///
+      /// \code
+      /// T maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+      /// return _tolerance *
+      ///   std::numeric_limits<T>::epsilon() * maxPossibleMoI;
+      /// \endcode
+      public: static T Epsilon(const Vector3<T> &_moments,
+                  const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
+      {
+        // The following was borrowed heavily from:
+        // https://github.com/RobotLocomotion/drake/blob/master/multibody/multibody_tree/rotational_inertia.h
+
+        // Compute the maximum possible moment of inertia, which will be
+        // used to compute whether the moments are valid.
+        //
+        // The maximum moment of inertia is bounded by:
+        // trace / 3 <= maxPossibleMoi <= trace / 2.
+        //
+        // The trace of a matrix is the sum of the coefficients on the
+        // main diagonal. For a mass matrix, this is equal to
+        // ixx + iyy + izz, or _moments.Sum() for this function's
+        // implementation.
+        //
+        // It is okay if maxPossibleMoi == zero.
+        T maxPossibleMoI = 0.5 * std::abs(_moments.Sum());
+
+        // In order to check validity of the moments we need to use an
+        // epsilon value that is related to machine precision
+        // multiplied by the largest possible moment of inertia.
+        return _tolerance *
+          std::numeric_limits<T>::epsilon() * maxPossibleMoI;
+      }
+
+      /// \brief Verify that inertia values are positive semi-definite
+      /// and satisfy the triangle inequality.
+      ///
+      /// \param[in] _tolerance The amount of error to accept when
+      /// checking whether the MassMatrix3 has a valid mass and moment
+      /// of inertia. This value is passed on to IsNearPositive() and
+      /// ValidMoments(), which in turn pass the tolerance value to
+      /// Epsilon(). Refer to Epsilon() for a description of _tolerance.
+      ///
+      /// \return True if IsNearPositive(_tolerance) and
+      /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
+      public: bool IsValid(const T _tolerance =
+                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+      {
+        return this->IsNearPositive(_tolerance) &&
+               ValidMoments(this->PrincipalMoments(), _tolerance);
       }
 
       /// \brief Verify that principal moments are positive
       /// and satisfy the triangle inequality.
       /// \param[in] _moments Principal moments of inertia.
+      /// \param[in] _tolerance The amount of error to accept when
+      /// checking whether the moments are positive and satisfy the triangle
+      /// inequality. Refer to Epsilon() for a description of _tolerance.
       /// \return True if moments of inertia are positive
-      /// and satisfy the triangle inequality.
-      public: static bool ValidMoments(const Vector3<T> &_moments)
-      {
-        return _moments[0] > 0 &&
-               _moments[1] > 0 &&
-               _moments[2] > 0 &&
-               _moments[0] + _moments[1] > _moments[2] &&
-               _moments[1] + _moments[2] > _moments[0] &&
-               _moments[2] + _moments[0] > _moments[1];
-      }
+      /// and satisfy the triangle inequality. The following is how the
+      /// return value is calculated.
+      ///
+      /// \code
+      /// T epsilon = this->Epsilon(_tolerance);
+      ///
+      /// return _moments[0] + epsilon >= 0 &&
+      ///   _moments[1] + epsilon >= 0 &&
+      ///   _moments[2] + epsilon >= 0 &&
+      ///   _moments[0] + _moments[1] + epsilon >= _moments[2] &&
+      ///   _moments[1] + _moments[2] + epsilon >= _moments[0] &&
+      ///   _moments[2] + _moments[0] + epsilon >= _moments[1];
+      /// \endcode
+      public: static bool ValidMoments(const Vector3<T> &_moments,
+                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
+              {
+                T epsilon = Epsilon(_moments, _tolerance);
+
+                return _moments[0] + epsilon >= 0 &&
+                       _moments[1] + epsilon >= 0 &&
+                       _moments[2] + epsilon >= 0 &&
+                       _moments[0] + _moments[1] + epsilon >= _moments[2] &&
+                       _moments[1] + _moments[2] + epsilon >= _moments[0] &&
+                       _moments[2] + _moments[0] + epsilon >= _moments[1];
+              }
 
       /// \brief Compute principal moments of inertia,
       /// which are the eigenvalues of the moment of inertia matrix.
@@ -699,7 +1013,7 @@ namespace ignition
                                  Quaternion<T> &_rot,
                                  const T _tol = 1e-6) const
       {
-        if (!this->IsPositive())
+        if (!this->IsPositive(0))
         {
           // inertia is not positive, cannot compute equivalent box
           return false;
@@ -733,6 +1047,20 @@ namespace ignition
         return true;
       }
 
+      /// \brief Set inertial properties based on a Material and equivalent box.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _size Size of equivalent box.
+      /// \param[in] _rot Rotational offset of equivalent box.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromBox(const Material &_mat,
+                              const Vector3<T> &_size,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+     {
+        T volume = _size.X() * _size.Y() * _size.Z();
+        return this->SetFromBox(_mat.Density() * volume, _size, _rot);
+     }
+
       /// \brief Set inertial properties based on mass and equivalent box.
       /// \param[in] _mass Mass to set.
       /// \param[in] _size Size of equivalent box.
@@ -748,7 +1076,7 @@ namespace ignition
         {
           return false;
         }
-        this->Mass(_mass);
+        this->SetMass(_mass);
         return this->SetFromBox(_size, _rot);
       }
 
@@ -777,7 +1105,32 @@ namespace ignition
         L(1, 1) = this->mass / 12.0 * (z2 + x2);
         L(2, 2) = this->mass / 12.0 * (x2 + y2);
         Matrix3<T> R(_rot);
-        return this->MOI(R * L * R.Transposed());
+        return this->SetMoi(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on a Material and equivalent
+      /// cylinder aligned with Z axis.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _length Length of cylinder along Z axis.
+      /// \param[in] _radius Radius of cylinder.
+      /// \param[in] _rot Rotational offset of equivalent cylinder.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromCylinderZ(const Material &_mat,
+                                    const T _length,
+                                    const T _radius,
+                            const Quaternion<T> &_rot = Quaternion<T>::Identity)
+      {
+        // Check that density, _radius and _length are strictly positive
+        // and that quatenion is valid
+        if (_mat.Density() <= 0 || _length <= 0 || _radius <= 0 ||
+            _rot == Quaternion<T>::Zero)
+        {
+          return false;
+        }
+        T volume = IGN_PI * _radius * _radius * _length;
+        return this->SetFromCylinderZ(_mat.Density() * volume,
+                                      _length, _radius, _rot);
       }
 
       /// \brief Set inertial properties based on mass and equivalent cylinder
@@ -799,7 +1152,7 @@ namespace ignition
         {
           return false;
         }
-        this->Mass(_mass);
+        this->SetMass(_mass);
         return this->SetFromCylinderZ(_length, _radius, _rot);
       }
 
@@ -828,7 +1181,25 @@ namespace ignition
         L(1, 1) = L(0, 0);
         L(2, 2) = this->mass / 2.0 * radius2;
         Matrix3<T> R(_rot);
-        return this->MOI(R * L * R.Transposed());
+        return this->SetMoi(R * L * R.Transposed());
+      }
+
+      /// \brief Set inertial properties based on a material and
+      /// equivalent sphere.
+      /// \param[in] _mat Material that specifies a density. Uniform density
+      /// is used.
+      /// \param[in] _radius Radius of equivalent, uniform sphere.
+      /// \return True if inertial properties were set successfully.
+      public: bool SetFromSphere(const Material &_mat, const T _radius)
+      {
+        // Check that the density and _radius are strictly positive
+        if (_mat.Density() <= 0 || _radius <= 0)
+        {
+          return false;
+        }
+
+        T volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 
       /// \brief Set inertial properties based on mass and equivalent sphere.
@@ -842,7 +1213,7 @@ namespace ignition
         {
           return false;
         }
-        this->Mass(_mass);
+        this->SetMass(_mass);
         return this->SetFromSphere(_radius);
       }
 
@@ -864,7 +1235,7 @@ namespace ignition
         L(0, 0) = 0.4 * this->mass * radius2;
         L(1, 1) = 0.4 * this->mass * radius2;
         L(2, 2) = 0.4 * this->mass * radius2;
-        return this->MOI(L);
+        return this->SetMoi(L);
       }
 
       /// \brief Square root of positive numbers, otherwise zero.

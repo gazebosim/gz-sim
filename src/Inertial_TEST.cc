@@ -41,7 +41,7 @@ TEST(Inertiald_Test, Constructor)
   math::Inertiald inertial;
   EXPECT_EQ(inertial.Pose(), math::Pose3d::Zero);
   EXPECT_EQ(inertial.MassMatrix(), math::MassMatrix3d());
-  EXPECT_EQ(inertial.MOI(), math::Matrix3d::Zero);
+  EXPECT_EQ(inertial.Moi(), math::Matrix3d::Zero);
 }
 
 /////////////////////////////////////////////////
@@ -96,6 +96,19 @@ TEST(Inertiald_Test, CoverageExtra)
 }
 
 /////////////////////////////////////////////////
+TEST(Inertiald_Test, SetMassMatrix)
+{
+  math::Inertiald inertial;
+  math::MassMatrix3d m;
+
+  // This will be true because the default mass of zero is considered valid
+  EXPECT_TRUE(inertial.SetMassMatrix(m, 0));
+  // Set the mass to a negative value, and SetMassMatrix should complain.
+  m.SetMass(-1);
+  EXPECT_FALSE(inertial.SetMassMatrix(m, 0));
+}
+
+/////////////////////////////////////////////////
 TEST(Inertiald_Test, Setters)
 {
   const double mass = 5.0;
@@ -107,8 +120,8 @@ TEST(Inertiald_Test, Setters)
   const math::Pose3d pose(1, 2, 3, IGN_PI/6, 0, 0);
   math::Inertiald inertial;
 
-  // Initially invalid
-  EXPECT_FALSE(inertial.SetPose(pose));
+  // Initially valid
+  EXPECT_TRUE(inertial.SetPose(pose));
 
   // Valid once valid mass matrix is set
   EXPECT_TRUE(inertial.SetMassMatrix(m));
@@ -136,7 +149,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
   {
     const math::Pose3d pose(0, 0, 0, 0, 0, 0);
     math::Inertiald inertial(m, pose);
-    EXPECT_EQ(inertial.MOI(), m.MOI());
+    EXPECT_EQ(inertial.Moi(), m.Moi());
   }
 
   // 90 deg rotation about X axis, expect different MOI
@@ -144,8 +157,8 @@ TEST(Inertiald_Test, MOI_Diagonal)
     const math::Pose3d pose(0, 0, 0, IGN_PI_2, 0, 0);
     const math::Matrix3d expectedMOI(2, 0, 0, 0, 4, 0, 0, 0, 3);
     math::Inertiald inertial(m, pose);
-    EXPECT_NE(inertial.MOI(), m.MOI());
-    EXPECT_EQ(inertial.MOI(), expectedMOI);
+    EXPECT_NE(inertial.Moi(), m.Moi());
+    EXPECT_EQ(inertial.Moi(), expectedMOI);
   }
 
   // 90 deg rotation about Y axis, expect different MOI
@@ -153,8 +166,8 @@ TEST(Inertiald_Test, MOI_Diagonal)
     const math::Pose3d pose(0, 0, 0, 0, IGN_PI_2, 0);
     const math::Matrix3d expectedMOI(4, 0, 0, 0, 3, 0, 0, 0, 2);
     math::Inertiald inertial(m, pose);
-    EXPECT_NE(inertial.MOI(), m.MOI());
-    EXPECT_EQ(inertial.MOI(), expectedMOI);
+    EXPECT_NE(inertial.Moi(), m.Moi());
+    EXPECT_EQ(inertial.Moi(), expectedMOI);
   }
 
   // 90 deg rotation about Z axis, expect different MOI
@@ -162,8 +175,8 @@ TEST(Inertiald_Test, MOI_Diagonal)
     const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_2);
     const math::Matrix3d expectedMOI(3, 0, 0, 0, 2, 0, 0, 0, 4);
     math::Inertiald inertial(m, pose);
-    EXPECT_NE(inertial.MOI(), m.MOI());
-    EXPECT_EQ(inertial.MOI(), expectedMOI);
+    EXPECT_NE(inertial.Moi(), m.Moi());
+    EXPECT_EQ(inertial.Moi(), expectedMOI);
   }
 
   // 45 deg rotation about Z axis, expect different MOI
@@ -171,15 +184,15 @@ TEST(Inertiald_Test, MOI_Diagonal)
     const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_4);
     const math::Matrix3d expectedMOI(2.5, -0.5, 0, -0.5, 2.5, 0, 0, 0, 4);
     math::Inertiald inertial(m, pose);
-    EXPECT_NE(inertial.MOI(), m.MOI());
-    EXPECT_EQ(inertial.MOI(), expectedMOI);
+    EXPECT_NE(inertial.Moi(), m.Moi());
+    EXPECT_EQ(inertial.Moi(), expectedMOI);
 
     // double check with a second MassMatrix3 instance
     // that has the same base frame MOI but no pose rotation
     math::MassMatrix3d m2;
-    EXPECT_FALSE(m2.Mass(mass));
-    EXPECT_TRUE(m2.MOI(expectedMOI));
-    EXPECT_EQ(inertial.MOI(), m2.MOI());
+    EXPECT_TRUE(m2.SetMass(mass));
+    EXPECT_TRUE(m2.SetMoi(expectedMOI));
+    EXPECT_EQ(inertial.Moi(), m2.Moi());
     // There are multiple correct rotations due to symmetry
     CompareModuloPi(m2.PrincipalAxesOffset(), pose.Rot());
   }
@@ -198,7 +211,7 @@ void SetRotation(const double _mass,
 
   math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
   const math::Inertiald inertialRef(m, pose);
-  const auto moi = inertialRef.MOI();
+  const auto moi = inertialRef.Moi();
 
   const std::vector<math::Quaterniond> rotations = {
     math::Quaterniond::Identity,
@@ -225,7 +238,7 @@ void SetRotation(const double _mass,
 
       const double tol  = -1e-6;
       EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
-      EXPECT_EQ(moi, inertial.MOI());
+      EXPECT_EQ(moi, inertial.Moi());
       if (_unique)
       {
         CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
@@ -233,7 +246,7 @@ void SetRotation(const double _mass,
 
       EXPECT_TRUE(inertial.SetInertialRotation(rot));
       EXPECT_EQ(rot, inertial.Pose().Rot());
-      EXPECT_EQ(moi, inertial.MOI());
+      EXPECT_EQ(moi, inertial.Moi());
     }
 
     {
@@ -241,11 +254,11 @@ void SetRotation(const double _mass,
 
       EXPECT_TRUE(inertial.SetInertialRotation(rot));
       EXPECT_EQ(rot, inertial.Pose().Rot());
-      EXPECT_EQ(moi, inertial.MOI());
+      EXPECT_EQ(moi, inertial.Moi());
 
       const double tol = -1e-6;
       EXPECT_TRUE(inertial.SetMassMatrixRotation(rot, tol));
-      EXPECT_EQ(moi, inertial.MOI());
+      EXPECT_EQ(moi, inertial.Moi());
       if (_unique)
       {
         CompareModuloPi(rot, inertial.MassMatrix().PrincipalAxesOffset(tol));
@@ -312,16 +325,16 @@ void Diagonalize(
 
   math::Pose3d pose(math::Vector3d::Zero, math::Quaterniond::Identity);
   math::Inertiald inertial(m, pose);
-  const auto moi = inertial.MOI();
+  const auto moi = inertial.Moi();
 
   EXPECT_TRUE(inertial.SetMassMatrixRotation(math::Quaterniond::Identity));
-  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(moi, inertial.Moi());
   EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
 
   // try again with negative tolerance
   EXPECT_TRUE(
     inertial.SetMassMatrixRotation(math::Quaterniond::Identity, -1e-6));
-  EXPECT_EQ(moi, inertial.MOI());
+  EXPECT_EQ(moi, inertial.Moi());
   EXPECT_EQ(inertial.MassMatrix().OffDiagonalMoments(), math::Vector3d::Zero);
 }
 
@@ -418,8 +431,8 @@ TEST(Inertiald_Test, Addition)
     EXPECT_DOUBLE_EQ(cubeMM3.Mass(), (right + left).MassMatrix().Mass());
     EXPECT_EQ(cube.Pose().Pos(), (left + right).Pose().Pos());
     EXPECT_EQ(cube.Pose().Pos(), (right + left).Pose().Pos());
-    EXPECT_EQ(cube.MOI(), (left + right).MOI());
-    EXPECT_EQ(cube.MOI(), (right + left).MOI());
+    EXPECT_EQ(cube.Moi(), (left + right).Moi());
+    EXPECT_EQ(cube.Moi(), (right + left).Moi());
   }
 
   // Add eight cubes together into larger cube
@@ -472,7 +485,8 @@ TEST(Inertiald_Test, AdditionInvalid)
   // inertias all zero
   const math::MassMatrix3d m0(0.0, math::Vector3d::Zero, math::Vector3d::Zero);
   EXPECT_FALSE(m0.IsPositive());
-  EXPECT_FALSE(m0.IsValid());
+  EXPECT_TRUE(m0.IsNearPositive());
+  EXPECT_TRUE(m0.IsValid());
 
   // both inertials with zero mass
   {

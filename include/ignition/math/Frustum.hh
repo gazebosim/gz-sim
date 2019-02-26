@@ -17,8 +17,9 @@
 #ifndef IGNITION_MATH_FRUSTUM_HH_
 #define IGNITION_MATH_FRUSTUM_HH_
 
-#include <ignition/math/Plane.hh>
 #include <ignition/math/Angle.hh>
+#include <ignition/math/AxisAlignedBox.hh>
+#include <ignition/math/Plane.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/config.hh>
 
@@ -150,7 +151,7 @@ namespace ignition
       /// \brief Check if a box lies inside the pyramid frustum.
       /// \param[in] _b Box to check.
       /// \return True if the box is inside the pyramid frustum.
-      public: bool Contains(const Box &_b) const;
+      public: bool Contains(const AxisAlignedBox &_b) const;
 
       /// \brief Check if a point lies inside the pyramid frustum.
       /// \param[in] _p Point to check.

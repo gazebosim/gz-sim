@@ -723,7 +723,7 @@ namespace ignition
       /// \brief Do the reverse rotation of a vector by this quaternion
       /// \param[in] _vec the vector
       /// \return the reversed vector
-      public: Vector3<T> RotateVectorReverse(Vector3<T> _vec) const
+      public: Vector3<T> RotateVectorReverse(const Vector3<T> &_vec) const
       {
         Quaternion<T> tmp(0.0, _vec.X(), _vec.Y(), _vec.Z());
 

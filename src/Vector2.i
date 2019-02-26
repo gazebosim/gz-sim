@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+
 #ifdef SWIGRUBY
 %begin %{
 #define HAVE_ISFINITE 1

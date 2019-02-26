@@ -24,10 +24,16 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <utility>
 #include <cstdint>
 
 #include <ignition/math/config.hh>
 #include "ignition/math/Export.hh"
+
+/// \brief The default tolerance value used by MassMatrix3::IsValid(),
+/// MassMatrix3::IsPositive(), and MassMatrix3::ValidMoments()
+template <typename T>
+constexpr T IGN_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
 
 /// \brief Double maximum value. This value will be similar to 1.79769e+308
 /// \deprecated Use static const value instead.

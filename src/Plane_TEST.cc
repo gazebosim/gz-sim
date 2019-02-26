@@ -122,31 +122,31 @@ TEST(PlaneTest, SidePoint)
 }
 
 /////////////////////////////////////////////////
-TEST(PlaneTest, SideBox)
+TEST(PlaneTest, SideAxisAlignedBox)
 {
   Planed plane(Vector3d(0, 0, 1), 1);
 
   // On the negative side of the plane (below the plane)
   {
-    Box box(Vector3d(-.5, -.5, -.5), Vector3d(.5, .5, .5));
+    AxisAlignedBox box(Vector3d(-.5, -.5, -.5), Vector3d(.5, .5, .5));
     EXPECT_EQ(plane.Side(box), Planed::NEGATIVE_SIDE);
   }
 
   // Still on the negative side of the plane (below the plane)
   {
-    Box box(Vector3d(-10, -10, -10), Vector3d(.9, .9, .9));
+    AxisAlignedBox box(Vector3d(-10, -10, -10), Vector3d(.9, .9, .9));
     EXPECT_EQ(plane.Side(box), Planed::NEGATIVE_SIDE);
   }
 
   // Above the plane (positive side)
   {
-    Box box(Vector3d(2, 2, 2), Vector3d(3, 3, 3));
+    AxisAlignedBox box(Vector3d(2, 2, 2), Vector3d(3, 3, 3));
     EXPECT_EQ(plane.Side(box), Planed::POSITIVE_SIDE);
   }
 
   // On both sides the plane
   {
-    Box box(Vector3d(0, 0, 0), Vector3d(3, 3, 3));
+    AxisAlignedBox box(Vector3d(0, 0, 0), Vector3d(3, 3, 3));
     EXPECT_EQ(plane.Side(box), Planed::BOTH_SIDE);
   }
 }

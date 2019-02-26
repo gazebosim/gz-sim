@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-math4 VERSION 4.0.0)
+project(ignition-math5 VERSION 5.0.0)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake0 0.3.0 REQUIRED)
+find_package(ignition-cmake1 1.0.0 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -27,6 +27,14 @@ ign_configure_project()
 #============================================================================
 # Search for project-specific dependencies
 #============================================================================
+
+#--------------------------------------
+# Find eigen3
+ign_find_package(
+  EIGEN3
+  REQUIRED_BY eigen3
+  PRETTY eigen3
+  PURPOSE "Provide conversions to eigen3 types")
 
 ########################################
 # Include swig
@@ -54,10 +62,16 @@ endif()
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+ign_configure_build(QUIT_IF_BUILD_ERRORS
+  COMPONENTS eigen3)
 
 
 #============================================================================
 # Create package information
 #============================================================================
 ign_create_packages()
+
+#============================================================================
+# Configure documentation
+#============================================================================
+ign_create_docs()

@@ -4,14 +4,7 @@
 ign_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
-ign_add_library(${PROJECT_LIBRARY_TARGET_NAME} ${sources})
-
-# Set CXX standard
-ign_set_project_public_cxx_standard(${c++standard})
-
-# Create installation instructions for the library target. This must be called
-# in the same scope that the target is created.
-ign_install_library()
+ign_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
 
 # Build the unit tests
 ign_build_tests(TYPE UNIT SOURCES ${gtest_sources})
@@ -58,12 +51,13 @@ if (RUBY_FOUND)
   set_source_files_properties(${swig_i_files} PROPERTIES CPLUSPLUS ON)
 
   # Create the ruby library
+
   if(CMAKE_VERSION VERSION_GREATER 3.8.0)
     SWIG_ADD_LIBRARY(math LANGUAGE ruby SOURCES ruby.i ${swig_i_files} ${sources})
   else()
     SWIG_ADD_MODULE(math ruby ruby.i ${swig_i_files} ${sources})
-  endif() 
-  
+  endif()
+
   SWIG_LINK_LIBRARIES(math ${RUBY_LIBRARY})
   target_compile_features(math PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
   install(TARGETS math DESTINATION ${IGN_LIB_INSTALL_DIR}/ruby/ignition)
@@ -71,7 +65,7 @@ if (RUBY_FOUND)
   # Add the ruby tests
   foreach (test ${ruby_tests})
     add_test(NAME ${test}.rb COMMAND
-      ruby -I${CMAKE_BINARY_DIR}/src ${CMAKE_SOURCE_DIR}/src/${test}.rb
+      ruby -I${CMAKE_BINARY_DIR}/lib ${CMAKE_SOURCE_DIR}/src/${test}.rb
    	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
   endforeach()
 endif()

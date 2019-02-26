@@ -108,7 +108,7 @@ double IntervalCubicSpline::ArcLength(const double _t) const
     return INF_D;
 
   // 5 Point Gauss-Legendre quadrature rule for numerical path integration
-  // TODO: generalize into a numerical integration toolkit ?
+  // TODO(anyone): generalize into a numerical integration toolkit ?
   double w1 = 0.28444444444444444 * _t;
   double w23 = 0.23931433524968326 * _t;
   double w45 = 0.11846344252809456 * _t;
