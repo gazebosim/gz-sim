@@ -44,6 +44,10 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: void InsertEntityRecursive(Entity _entity,
       std::set<Entity> &_set);
 
+  /// \brief Register a new component type.
+  /// \param[in] _typeId Type if of the new component.
+  public: void CreateComponentStorage(const ComponentTypeId _typeId);
+
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
   public: std::map<ComponentTypeId,
@@ -366,12 +370,10 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
-  //
+  // If type hasn't been instantiated yet, create a storage for it
   if (!this->HasComponentType(_componentTypeId))
   {
-//    auto storage = components::Factory::Instance()->Storages()[_componentTypeId].get();
-
-//    this->RegisterComponentType(_componentTypeId, storage
+    this->dataPtr->CreateComponentStorage(_componentTypeId);
   }
 
   // Instantiate the new component.
@@ -521,12 +523,12 @@ bool EntityComponentManager::HasComponentType(
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::RegisterComponentType(
-    const ComponentTypeId _typeId,
-    ComponentStorageBase *_type)
+void EntityComponentManagerPrivate::CreateComponentStorage(
+    const ComponentTypeId _typeId)
 {
-  igndbg << "Register new component type " << _typeId << ".\n";
-  this->dataPtr->components[_typeId].reset(_type);
+  igndbg << "Created storage for component type [" << _typeId << "].\n";
+  this->components[_typeId] = std::move(
+     components::Factory::Instance()->NewStorage(_typeId));
 }
 
 /////////////////////////////////////////////////

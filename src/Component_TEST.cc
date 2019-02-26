@@ -58,9 +58,14 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, DataByMove)
 {
+  auto factory = components::Factory::Instance();
+
   // Create a custom component with shared_ptr data
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
+  factory->Register<CustomComponent>("ign_gazebo_components.MyCustom",
+     new components::ComponentDescriptor<CustomComponent>(),
+     new components::StorageDescriptor<CustomComponent>());
 
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();
