@@ -66,10 +66,6 @@ ign service -s /world/empty/remove \
       name="ignition::gazebo::systems::v0::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-serialization-system.so"
-      name="ignition::gazebo::systems::v0::Serialization">
-    </plugin>
-    <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>

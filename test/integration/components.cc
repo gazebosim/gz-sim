@@ -66,14 +66,6 @@ class ComponentsTest : public ::testing::Test
   }
 };
 
-// ostream operator for sdf::Element (not defined elsewhere)
-inline std::ostream &operator<<(std::ostream &_stream,
-    const sdf::Element &_element)
-{
-  _stream << _element.ToString("");
-  return _stream;
-}
-
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Altimeter)
 {

@@ -64,7 +64,7 @@ namespace components
     }
   };
 
-  /// \brief
+  /// \brief A base class for an object responsible for creating storages.
   class IGNITION_GAZEBO_VISIBLE StorageDescriptorBase
   {
     /// \brief Destructor
@@ -75,13 +75,14 @@ namespace components
     public: virtual std::unique_ptr<ComponentStorageBase> Create() const  = 0;
   };
 
-  /// \brief
-  /// \tparam ComponentTypeT type of component to describe.
+  /// \brief A class for an object responsible for creating storages.
+  /// \tparam ComponentTypeT type of component that the storage will hold.
   template <typename ComponentTypeT>
   class IGNITION_GAZEBO_VISIBLE StorageDescriptor
     : public StorageDescriptorBase
   {
-    /// \brief
+    /// \brief Create an instance of a storage that holds ComponentTypeT
+    /// components.
     /// \return Pointer to a component.
     public: std::unique_ptr<ComponentStorageBase> Create() const override
     {
@@ -93,10 +94,13 @@ namespace components
   class IGNITION_GAZEBO_VISIBLE Factory
       : public ignition::common::SingletonT<Factory>
   {
-    /// \brief Register a component.
+    /// \brief Register a component so that the factory can create instances
+    /// of the component and its storage based on an ID.
     /// \param[in] _type Type of component to register.
     /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
-    ///   objects.
+    ///  objects.
+    /// \param[in] _storageDesc Object to manage the creation of storages for
+    /// objects of type ComponentTypeT.
     /// \tparam ComponentTypeT Type of component to register.
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
@@ -180,20 +184,9 @@ namespace components
     /// we just keep a pointer, which will dangle until the program is shutdown.
     private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
 
-    /// \brief A list of registered storages where the key is its component's id.
+    /// \brief A list of registered storages where the key is its component's
+    /// type id.
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
-
-    /// \brief Valid component name prefix
-    private: constexpr static const char *kCompStr {
-               "ign_gazebo_components."};
-
-    /// \brief Component name prefix that should be changed
-    private: constexpr static const char *kCompStr1 {
-               "ignition.gazebo.components."};
-
-    /// \brief Component name prefix that should be changed
-    private: constexpr static const char *kCompStr2 {
-               ".ignition.gazebo.components."};
   };
 
   /// \brief Static component registration macro.
@@ -206,7 +199,6 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
-      std::cout << #_classname << std::endl; \
       using namespace ignition;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
       using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
