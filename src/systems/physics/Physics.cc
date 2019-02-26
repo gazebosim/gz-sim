@@ -288,7 +288,14 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
+        {
+          igndbg << "Setting: (" << _entity << ") static";
           model.SetStatic(staticComp->Data());
+        }
+        else
+        {
+          igndbg << "Setting: (" << _entity << ") dynamic";
+        }
 
         auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
         this->entityModelMap.insert(std::make_pair(_entity, modelPtrPhys));

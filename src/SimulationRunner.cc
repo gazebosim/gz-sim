@@ -44,7 +44,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep system loader to plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
-
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
   auto physics = _world->PhysicsByIndex(0);
@@ -102,13 +101,22 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
   // If the configuration is invalid, then networkMgr will be `nullptr`.
-  this->networkMgr = NetworkManager::Create(&this->eventMgr);
+  if (_useDistSim)
+  {
+    this->networkMgr = NetworkManager::Create(&this->eventMgr);
+  }
+  else
+  {
+    this->networkMgr = nullptr;
+  }
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels, _useDistSim);
+  this->levelMgr = std::make_unique<LevelManager>(
+      this, _useLevels, _useDistSim);
 
   // Create the sync manager
-  this->syncMgr = std::make_unique<SyncManager>(this, _useLevels, _useDistSim);
+  this->syncMgr = std::make_unique<SyncManager>(
+      this, _useLevels, _useDistSim);
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -195,7 +203,7 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // In the case that networking is not running, or this is a primary.
   // If this is a network secondary, this data is populated via the network.
-  if (!this->networkMgr || (this->networkMgr && this->networkMgr->IsPrimary()))
+  if (!this->networkMgr || this->networkMgr->IsPrimary())
   {
     if (!this->currentInfo.paused)
     {
@@ -319,6 +327,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     igndbg << "Initializing network configuration" << std::endl;
     this->networkMgr->Initialize();
+    this->syncMgr->DistributePerformers();
   }
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
@@ -358,8 +367,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     sleepTime = 0ns;
     actualSleep = 0ns;
 
-    if(!this->networkMgr ||
-        (this->networkMgr && this->networkMgr->IsPrimary()))
+    if (!this->networkMgr || this->networkMgr->IsPrimary())
     {
       sleepTime = std::max(0ns, this->prevUpdateRealTime +
           this->updatePeriod - std::chrono::steady_clock::now() -
@@ -429,8 +437,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Process entity removals.
     this->entityCompMgr.ProcessRemoveEntityRequests();
 
+
     if (this->networkMgr) {
       IGN_PROFILE("SyncB");
+
+      this->syncMgr->Sync();
+
       while (this->running && !this->networkMgr->StepAck(
             this->currentInfo.iterations))
       {

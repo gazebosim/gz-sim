@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerActive.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -46,7 +47,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels, const bool _useDistSim)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels,
+    const bool _useDistSim)
     : runner(_runner), useLevels(_useLevels), useDistSim(_useDistSim)
 {
   this->entityCreator = std::make_unique<SdfEntityCreator>(
@@ -161,6 +163,8 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     geometry.Load(performer->GetElement("geometry"));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+                                        components::PerformerActive(true));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -345,11 +349,14 @@ void LevelManager::UpdateLevelsState()
         return false;
       });
 
-  this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
-                                   components::ParentEntity>(
+  this->runner->entityCompMgr.Each<components::Performer,
+                                   components::Geometry,
+                                   components::ParentEntity,
+                                   components::PerformerActive>(
       [&](const Entity &, const components::Performer *,
           const components::Geometry *_geometry,
-          const components::ParentEntity *_parent) -> bool
+          const components::ParentEntity *_parent,
+          const components::PerformerActive *_active) -> bool
       {
         auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
@@ -383,7 +390,7 @@ void LevelManager::UpdateLevelsState()
                   center - (box->Size() / 2 + buffer),
                   center + (box->Size() / 2 + buffer)};
 
-              if (region.Intersects(performerVolume))
+              if (_active->Data() && region.Intersects(performerVolume))
               {
                 levelsToLoad.push_back(_entity);
               }
@@ -393,7 +400,8 @@ void LevelManager::UpdateLevelsState()
                 // the buffer of this level
                 if (this->IsLevelActive(_entity))
                 {
-                  if (outerRegion.Intersects(performerVolume))
+                  if (_active->Data()
+                      && outerRegion.Intersects(performerVolume))
                   {
                     levelsToLoad.push_back(_entity);
                     return true;
@@ -496,6 +504,17 @@ void LevelManager::UpdateLevelsState()
   }
   // Erase from vector
   this->activeLevels.erase(pendingEnd, this->activeLevels.end());
+
+  /*
+  std::stringstream ss;
+  ss << "Active levels (" << this->activeLevels.size() << "): ";
+  for (const auto& level: this->activeLevels)
+  {
+    ss << level << ", ";
+  }
+  ss << std::endl;
+  igndbg << ss.str();
+  */
 }
 
 /////////////////////////////////////////////////

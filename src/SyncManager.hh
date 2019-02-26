@@ -30,8 +30,9 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Types.hh"
-
 #include "ignition/gazebo/network/NetworkRole.hh"
+#include "ignition/transport/Node.hh"
+
 
 namespace ignition
 {
@@ -53,12 +54,30 @@ namespace ignition
       public: SyncManager(SimulationRunner *_runner, bool _useLevels = false,
                   bool _useDistSim = false);
 
+      public: void DistributePerformers();
+
+      public: bool Sync();
+
       /// \brief Pointer to the simulation runner associated with the sync
       /// manager.
       private: SimulationRunner *const runner;
 
       /// \brief Entity of the world.
       private: Entity worldEntity{kNullEntity};
+
+      private: ignition::transport::Node node;
+
+      private: ignition::transport::Node::Publisher posePub;
+
+      private: void OnPose(const ignition::msgs::Pose_V &_msg);
+
+      private: std::mutex poseMutex;
+
+      private: std::vector<ignition::msgs::Pose_V> poseMsgs;
+
+      private: std::vector<Entity> performers;
+
+      private: std::unordered_map<std::string, std::vector<Entity>> affinity;
 
       /// \brief Role of this network participant.
       private: NetworkRole role;
