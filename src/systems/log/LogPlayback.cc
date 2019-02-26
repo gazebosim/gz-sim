@@ -235,8 +235,7 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   }
 
 
-  // size_t nEntities = _ecm.EntityCount();
-  ignerr << _ecm.EntityCount() << " entities" << std::endl;
+  igndbg << _ecm.EntityCount() << " entities" << std::endl;
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
     ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
