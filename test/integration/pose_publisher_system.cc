@@ -181,9 +181,25 @@ TEST_F(PosePublisherTest, PublishCmd)
   EXPECT_EQ(1000u, lowerLinkPoses.size());
   EXPECT_EQ(1000u, upperLinkPoses.size());
 
+  // Wait for a message to be received
+  bool received = false;
+  for (int sleep = 0; sleep < 30; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    mutex.lock();
+    received = (poseMsgs.size() ==
+        (basePoses.size() + lowerLinkPoses.size() + upperLinkPoses.size()));
+    mutex.unlock();
+
+    if (received)
+      break;
+  }
+
+  EXPECT_TRUE(received);
+
   // verify the pose msgs against the recorded ones
   mutex.lock();
-  EXPECT_GT(poseMsgs.size(), 0u);
   for (auto msg : poseMsgs)
   {
     EXPECT_TRUE(!msg.name().empty());
