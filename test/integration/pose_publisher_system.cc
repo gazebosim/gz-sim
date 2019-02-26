@@ -207,10 +207,20 @@ TEST_F(PosePublisherTest, PublishCmd)
   }
   EXPECT_TRUE(received);
 
-  // verify the pose msgs
   int tCounter = 0;
   int numLinks = 3;
   mutex.lock();
+
+  // sort the pose msgs according to timestamp
+  std::sort(poseMsgs.begin(), poseMsgs.end(), [](
+      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+  {
+    common::Time lt(_l.header().stamp().sec(), _l.header().stamp().nsec());
+    common::Time rt(_r.header().stamp().sec(), _r.header().stamp().nsec());
+    return lt < rt;
+  });
+
+  // verify pose msgs against recorded ones
   for (auto msg : poseMsgs)
   {
     EXPECT_TRUE(!msg.name().empty());
