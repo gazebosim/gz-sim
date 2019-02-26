@@ -17,11 +17,12 @@
 
 #include <gtest/gtest.h>
 
-#include "msgs/serialized.pb.h"
-
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
+
+#include "msgs/serialized.pb.h"
+
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -1411,81 +1412,152 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
 /////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, StreamOperators)
 {
-  EXPECT_EQ(0u, manager.EntityCount());
+  // Entities and components
+  Entity e1{1};
+  Entity e2{2};
+  Entity e3{3};
 
-  // Entities
-  auto entity1 = manager.CreateEntity();
-  auto entity2 = manager.CreateEntity();
-  EXPECT_EQ(2u, manager.EntityCount());
+  int e1c0{123};
+  double e1c1{0.456};
+  double e2c0{0.123};
+  std::string e2c1{"string"};
+  int e3c0{456};
 
-  // Components
-  manager.CreateComponent<IntComponent>(entity1, IntComponent(123));
-  manager.CreateComponent<DoubleComponent>(entity2, DoubleComponent(0.123));
-  manager.CreateComponent<StringComponent>(entity2, StringComponent("string"));
+  // Fill manager with entities and components
+  {
+    // Entities
+    EXPECT_EQ(e1, manager.CreateEntity());
+    EXPECT_EQ(e2, manager.CreateEntity());
+    EXPECT_EQ(2u, manager.EntityCount());
 
-  // Serialize
+    // Components
+    manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
+    manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(e2c0));
+    manager.CreateComponent<StringComponent>(e2, StringComponent(e2c1));
+  }
+
+  // Serialize manager
   std::ostringstream ostr;
   ostr << manager;
   EXPECT_FALSE(ostr.str().empty());
 
   // Deserialize into a message
-  std::istringstream istr(ostr.str());
-
   gazebo::msgs::SerializedState stateMsg;
-  stateMsg.ParseFromIstream(&istr);
 
   // Check message
-  ASSERT_EQ(2, stateMsg.entities_size());
+  {
+    std::istringstream istr(ostr.str());
+    stateMsg.ParseFromIstream(&istr);
 
-  auto e1 = stateMsg.entities(0);
-  EXPECT_EQ(entity1, e1.id());
-  ASSERT_EQ(1, e1.components().size());
+    ASSERT_EQ(2, stateMsg.entities_size());
 
-  auto e1c0 = e1.components(0);
-  EXPECT_EQ(IntComponent::typeId, e1c0.type());
-  EXPECT_EQ("123", e1c0.component());
+    const auto &e1Msg = stateMsg.entities(0);
+    EXPECT_EQ(e1, e1Msg.id());
+    ASSERT_EQ(1, e1Msg.components().size());
 
-  auto e2 = stateMsg.entities(1);
-  EXPECT_EQ(entity2, e2.id());
-  ASSERT_EQ(2, e2.components().size());
+    const auto &e1c0Msg = e1Msg.components(0);
+    EXPECT_EQ(IntComponent::typeId, e1c0Msg.type());
+    EXPECT_EQ(e1c0, std::stoi(e1c0Msg.component()));
 
-  auto e2c0 = e2.components(0);
-  EXPECT_EQ(DoubleComponent::typeId, e2c0.type());
-  EXPECT_EQ("0.123", e2c0.component());
+    const auto &e2Msg = stateMsg.entities(1);
+    EXPECT_EQ(e2, e2Msg.id());
+    ASSERT_EQ(2, e2Msg.components().size());
 
-  auto e2c1 = e2.components(1);
-  EXPECT_EQ(StringComponent::typeId, e2c1.type());
-  EXPECT_EQ("string", e2c1.component());
+    const auto &e2c0Msg = e2Msg.components(0);
+    EXPECT_EQ(DoubleComponent::typeId, e2c0Msg.type());
+    EXPECT_DOUBLE_EQ(e2c0, std::stod(e2c0Msg.component()));
+
+    const auto &e2c1Msg = e2Msg.components(1);
+    EXPECT_EQ(StringComponent::typeId, e2c1Msg.type());
+    EXPECT_EQ(e2c1, e2c1Msg.component());
+  }
 
   // Deserialize into a new ECM
-  std::istringstream newIstr(ostr.str());
   EntityComponentManager newEcm;
-  newIstr >> newEcm;
 
   // Check ECM
-  EXPECT_EQ(2u, newEcm.EntityCount());
+  {
+    std::istringstream istr(ostr.str());
+    istr >> newEcm;
 
-  EXPECT_TRUE(newEcm.HasEntity(entity1));
+    EXPECT_EQ(2u, newEcm.EntityCount());
 
-  EXPECT_TRUE(newEcm.HasComponentType(
-        IntComponent::typeId));
-  auto newE1C0 = newEcm.Component<IntComponent>(entity1);
-  ASSERT_NE(nullptr, newE1C0);
-  EXPECT_EQ(123, newE1C0->Data());
+    EXPECT_TRUE(newEcm.HasEntity(e1));
 
-  EXPECT_TRUE(newEcm.HasEntity(entity2));
+    EXPECT_TRUE(newEcm.HasComponentType(IntComponent::typeId));
+    const auto &e1c0Comp = newEcm.Component<IntComponent>(e1);
+    ASSERT_NE(nullptr, e1c0Comp);
+    EXPECT_EQ(e1c0, e1c0Comp->Data());
 
-  EXPECT_TRUE(newEcm.HasComponentType(
-        DoubleComponent::typeId));
-  auto newE2C0 = newEcm.Component<DoubleComponent>(entity2);
-  ASSERT_NE(nullptr, newE2C0);
-  EXPECT_DOUBLE_EQ(0.123, newE2C0->Data());
+    EXPECT_TRUE(newEcm.HasEntity(e2));
 
-  EXPECT_TRUE(newEcm.HasComponentType(
-        StringComponent::typeId));
-  auto newE2C1 = newEcm.Component<StringComponent>(entity2);
-  ASSERT_NE(nullptr, newE2C1);
-  EXPECT_EQ("string", newE2C1->Data());
+    EXPECT_TRUE(newEcm.HasComponentType(DoubleComponent::typeId));
+    const auto &e2c0Comp = newEcm.Component<DoubleComponent>(e2);
+    ASSERT_NE(nullptr, e2c0Comp);
+    EXPECT_DOUBLE_EQ(e2c0, e2c0Comp->Data());
+
+    EXPECT_TRUE(newEcm.HasComponentType(StringComponent::typeId));
+    const auto &e2c1Comp = newEcm.Component<StringComponent>(e2);
+    ASSERT_NE(nullptr, e2c1Comp);
+    EXPECT_EQ(e2c1, e2c1Comp->Data());
+  }
+
+  // Create new message with different entities / components
+  {
+    stateMsg.Clear();
+
+    // e1 has a component removed and another added
+    auto e1Msg = stateMsg.add_entities();
+    e1Msg->set_id(e1);
+
+    auto e1c1Msg = e1Msg->add_components();
+    e1c1Msg->set_type(DoubleComponent::typeId);
+    e1c1Msg->set_component(std::to_string(e1c1));
+
+    // e2 is removed
+
+    // e3 is a new entity
+    auto e3Msg = stateMsg.add_entities();
+    e3Msg->set_id(e3);
+    auto e3c0Msg = e3Msg->add_components();
+    e3c0Msg->set_type(IntComponent::typeId);
+    e3c0Msg->set_component(std::to_string(e3c0));
+
+    // Set new state on top of previous one
+    std::ostringstream newOstr;
+    stateMsg.SerializeToOstream(&newOstr);
+
+    std::istringstream istr(newOstr.str());
+    istr >> manager;
+    manager.ProcessEntityRemovals();
+  }
+
+  // Check ECM was properly updated
+  {
+    EXPECT_EQ(2u, manager.EntityCount());
+
+    // e1 is still there
+    EXPECT_TRUE(manager.HasEntity(e1));
+
+    // e1c0 is gone
+    const auto &e1c0Comp = manager.Component<IntComponent>(e1);
+    EXPECT_EQ(nullptr, e1c0Comp);
+
+    // e1c1 is new
+    const auto &e1c1Comp = manager.Component<DoubleComponent>(e1);
+    ASSERT_NE(nullptr, e1c1Comp);
+    EXPECT_DOUBLE_EQ(e1c1, e1c1Comp->Data());
+
+    // e2 was removed
+    EXPECT_FALSE(manager.HasEntity(e2));
+
+    // e3 was created
+    EXPECT_TRUE(manager.HasEntity(e3));
+
+    const auto &e3c0Comp = manager.Component<IntComponent>(e3);
+    ASSERT_NE(nullptr, e3c0Comp);
+    EXPECT_DOUBLE_EQ(e3c0, e3c0Comp->Data());
+  }
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

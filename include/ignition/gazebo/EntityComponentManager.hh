@@ -397,7 +397,11 @@ namespace ignition
           const EntityComponentManager &_ecm);
 
       /// \brief Stream extraction operator. This updates the ECM's state
-      /// from a string.
+      /// from a string. The stream must contain the full state, not an
+      /// increment.
+      /// Entities and components which are in the new state but not the old one
+      /// will be created and marked as new. Likewise, entities and components
+      /// not present in the new state will be marked for removal.
       /// \param[in] _in The input stream
       /// \param[in] _ecm The ECM which will extract the stream.
       /// \return The stream
