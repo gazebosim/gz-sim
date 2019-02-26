@@ -17,6 +17,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   sdf_include.cc
+  touch_plugin.cc
   user_commands.cc
 )
 
