@@ -221,6 +221,16 @@ namespace ignition
         return Pose3<T>(_pose.CoordPositionAdd(*this),  this->q * _pose.q);
       }
 
+      /// \brief Multiplication assignment operator. This pose will become
+      /// equal to this * _pose.
+      /// \param[in] _pose Pose3<T> to multiply to this pose
+      /// \return The resulting pose
+      public: const Pose3<T> &operator*=(const Pose3<T> &_pose)
+      {
+        *this = *this * _pose;
+        return *this;
+      }
+
       /// \brief Equal operator
       /// \param[in] _pose Pose3<T> to copy
       public: Pose3<T> &operator=(const Pose3<T> &_pose)

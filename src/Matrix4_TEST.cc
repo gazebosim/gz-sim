@@ -88,10 +88,26 @@ TEST(Matrix4dTest, ConstructFromPose3d)
     EXPECT_EQ(trans, mat.Translation());
     EXPECT_EQ(qt, mat.Rotation());
     EXPECT_EQ(pose.Inverse(), mat.Inverse().Pose());
+    // ensure inverses multiply to identity
     EXPECT_EQ(mat.Inverse() * mat, math::Matrix4d::Identity);
     EXPECT_EQ(mat * mat.Inverse(), math::Matrix4d::Identity);
     EXPECT_EQ(pose.Inverse() * pose, math::Pose3d::Zero);
     EXPECT_EQ(pose * pose.Inverse(), math::Pose3d::Zero);
+    // repeat test with *=
+    {
+      math::Matrix4d m = math::Matrix4d::Identity;
+      m *= mat;
+      EXPECT_EQ(m, mat);
+      m *= mat.Inverse();
+      EXPECT_EQ(m, math::Matrix4d::Identity);
+    }
+    {
+      math::Pose3d p;
+      p *= pose;
+      EXPECT_EQ(p, pose);
+      p *= pose.Inverse();
+      EXPECT_EQ(p, math::Pose3d::Zero);
+    }
   }
 
   // Zero values
@@ -136,6 +152,30 @@ TEST(Matrix4dTest, ConstructFromPose3d)
     // ensure pose multiplication order matches matrix order
     EXPECT_EQ(m1 * m2 * m3, math::Matrix4d(pose1 * pose2 * pose3));
     EXPECT_EQ(m3 * m2 * m1, math::Matrix4d(pose3 * pose2 * pose1));
+
+    // repeat test with *=
+    {
+      math::Matrix4d m = math::Matrix4d::Identity;
+      math::Pose3d p;
+
+      m *= m1;
+      p *= pose1;
+      EXPECT_EQ(m, m1);
+      EXPECT_EQ(p, pose1);
+      EXPECT_EQ(m, math::Matrix4d(p));
+
+      m *= m2;
+      p *= pose2;
+      EXPECT_EQ(m, m1 * m2);
+      EXPECT_EQ(p, pose1 * pose2);
+      EXPECT_EQ(m, math::Matrix4d(p));
+
+      m *= m3;
+      p *= pose3;
+      EXPECT_EQ(m, m1 * m2 * m3);
+      EXPECT_EQ(p, pose1 * pose2 * pose3);
+      EXPECT_EQ(m, math::Matrix4d(p));
+    }
   }
 }
 
