@@ -827,8 +827,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
 {
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
-  if (!_ecm.HasComponentType(
-          _ecm.ComponentType<components::ContactSensorData>()))
+  if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
     return;
 
   // TODO(addisu) If systems are assumed to only have one world, we should
