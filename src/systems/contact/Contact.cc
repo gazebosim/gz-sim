@@ -110,14 +110,16 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
   this->collisionEntities = std::move(_collisionEntities);
 
   auto contactElem = _sdf->GetElement("contact");
-  if (contactElem ->HasElement("topic"))
-  {
-    this->topic = contactElem ->Get<std::string>("topic");
-  }
-  else
+  auto tmpTopic = contactElem->Get<std::string>("topic");
+
+  if (tmpTopic == "__default_topic__")
   {
     // use default topic for sensor
     this->topic = std::move(_topic);
+  }
+  else
+  {
+    this->topic = tmpTopic;
   }
 
   igndbg << "Contact system publishing on " << this->topic << std::endl;
