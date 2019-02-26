@@ -100,20 +100,20 @@ TEST_F(DepthCameraTest, DepthCameraBox)
   EXPECT_NE(depthBuffer, nullptr);
 
   // Take into account box of 1 m on each side and 0.05 cm sensor offset
-  double expectedRangeAtMidPointBox1 = 0.45;
-  unsigned int height = 320;
-  unsigned int width = 320;
+  double expectedRangeAtMidPointBox1 = 2.45;
+  unsigned int height = 256;
+  unsigned int width = 256;
 
   // Sensor should see TestBox1
-  unsigned int first = width * height / 2;
-  unsigned int mid = width / 2 + width * height / 2;
-  unsigned int last = width - 1 + width * height / 2;
+  int left = height/2 * width;
+  int mid = height/2 * width + width/2 - 1;
+  int right = height/2 * width  + width - 1;
 
   // Lock access to buffer and don't release it
   mutex.lock();
-  EXPECT_DOUBLE_EQ(depthBuffer[first], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[left], ignition::math::INF_D);
   EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, LASER_TOL);
-  EXPECT_DOUBLE_EQ(depthBuffer[last], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[right], ignition::math::INF_D);
 
   delete[] depthBuffer;
 }
