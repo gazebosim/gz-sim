@@ -19,8 +19,6 @@ syntax = "proto3";
 
 package ignition.gazebo.msgs;
 
-import "ignition/msgs/time.proto";
-
 message PerformerAffinity
 {
   string model_name = 1;

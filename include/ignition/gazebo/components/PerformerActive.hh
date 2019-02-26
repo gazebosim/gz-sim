@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMERAFFINITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMERAFFINITY_HH_
-
-#include <string>
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMER_ACTIVE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_PERFORMER_ACTIVE_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -33,15 +31,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds the address of the distributed secondary that
-  /// this performer is associated with.
-  using PerformerAffinity = Component<std::string, class PerformerAffinityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerAffinity",
-      PerformerAffinity)
+  /// \brief This component identifies an entity as being a performer.
+  using PerformerActive = Component<bool, class PerformerActiveTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerActive",
+      PerformerActive)
 }
 }
 }
 }
-
 #endif
 
