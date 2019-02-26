@@ -1,15 +1,10 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo sensor demo
-
-  Listen to sensor readings:
-
-    Altimeter: ign topic -e -t /altimeter
-    Imu: ign topic -e -t /imu
-    Magnetometer: ign topic -e -t /magnetometer
+  Note: For now, this file must be loaded from ign-gazebo's root folder so the
+  mesh's relative path is correct.
 -->
 <sdf version="1.6">
-  <world name="sensors">
+  <world name="gpu_lidar_sensor">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -19,20 +14,9 @@
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
-      name="ignition::gazebo::systems::v0::Altimeter">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-imu-system.so"
-      name="ignition::gazebo::systems::v0::Imu">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-magnetometer-system.so"
-      name="ignition::gazebo::systems::v0::Magnetometer">
-    </plugin>
-    <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::v0::UserCommands">
+      filename="libignition-gazebo-sensors-system.so"
+      name="ignition::gazebo::systems::v0::Sensors">
+      <render_engine>ogre</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
@@ -54,10 +38,8 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/sensors/scene/info</service>
-        <pose_topic>/world/sensors/pose/info</pose_topic>
-        <scene_topic>/world/sensors/scene/info</scene_topic>
-        <deletion_topic>/world/sensors/scene/deletion</deletion_topic>
+        <service>/world/gpu_lidar_sensor/scene/info</service>
+        <pose_topic>/world/gpu_lidar_sensor/pose/info</pose_topic>
       </plugin>
 
       <!-- World control -->
@@ -80,8 +62,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/sensors/control</service>
-        <stats_topic>/world/sensors/stats</stats_topic>
+        <service>/world/gpu_lidar_sensor/control</service>
+        <stats_topic>/world/gpu_lidar_sensor/stats</stats_topic>
 
       </plugin>
 
@@ -106,7 +88,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/sensors/stats</topic>
+        <topic>/world/gpu_lidar_sensor/stats</topic>
       </plugin>
     </gui>
 
@@ -129,9 +111,12 @@
       <link name="link">
         <collision name="collision">
           <geometry>
-            <plane>
+            <!--plane>
               <normal>0 0 1</normal>
-            </plane>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
           </geometry>
         </collision>
         <visual name="visual">
@@ -151,9 +136,47 @@
       </link>
     </model>
 
-    <model name="sensors_box">
-      <pose>4 0 3.0 0 0.0 3.14</pose>
-      <link name="link">
+    <model name="box">
+      <pose>1 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+            <emissive>1 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="gpu_lidar">
+      <pose>0 0 0.5 0 0 0.0 </pose>
+      <link name="gpu_lidar_link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
           <mass>0.1</mass>
@@ -177,26 +200,35 @@
             </box>
           </geometry>
         </visual>
-        <sensor name="altimeter" type="altimeter">
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
+        <sensor name='gpu_lidar' type='gpu_lidar'>"
+          <topic>lidar</topic>
+          <updateRate>10</updateRate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>640</samples>
+                <resolution>1</resolution>
+                <min_angle>-1.396263</min_angle>
+                <max_angle>1.396263</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.08</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
-          <topic>altimeter</topic>
-        </sensor>
-        <sensor name="imu" type="imu">
-          <always_on>1</always_on>
-          <update_rate>100</update_rate>
-          <visualize>true</visualize>
-          <topic>imu</topic>
-        </sensor>
-        <sensor name="magnetometer" type="magnetometer">
-          <always_on>1</always_on>
-          <update_rate>100</update_rate>
-          <visualize>true</visualize>
-          <topic>magnetometer</topic>
         </sensor>
       </link>
+      <static>true</static>
     </model>
-
   </world>
 </sdf>
