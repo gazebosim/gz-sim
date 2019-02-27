@@ -20,6 +20,7 @@
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
 
+#include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -174,17 +175,18 @@ void SyncManager::DistributePerformers()
       {
         for (int ii = 0; ii < _req.affinity_size(); ++ii) {
           const auto& affinityMsg = _req.affinity(ii);
-
-          this->runner->entityCompMgr.CreateComponent(affinityMsg.entity_id(),
-            components::PerformerAffinity(affinityMsg.secondary_prefix()));
-
           auto pid =
             ecm.Component<components::ParentEntity>(affinityMsg.entity_id());
+
+          ecm.CreateComponent(affinityMsg.entity_id(),
+            components::PerformerAffinity(affinityMsg.secondary_prefix()));
+
           auto isStatic = ecm.Component<components::Static>(pid->Data());
           auto isActive =
             ecm.Component<components::PerformerActive>(affinityMsg.entity_id());
 
-          if (affinityMsg.secondary_prefix() == mgr->Namespace()) {
+          if (affinityMsg.secondary_prefix() == mgr->Namespace())
+          {
             performers.push_back(affinityMsg.entity_id());
             *isStatic = components::Static(false);
             *isActive = components::PerformerActive(true);
@@ -200,6 +202,7 @@ void SyncManager::DistributePerformers()
       };
 
     this->node.Advertise(topic, fcn);
+
     while (!received) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -216,6 +219,8 @@ void SyncManager::OnPose(const ignition::msgs::Pose_V & _msg)
 /////////////////////////////////////////////////
 bool SyncManager::Sync()
 {
+  IGN_PROFILE("SyncManager::Sync");
+
   // TODO(mjcarroll) this is where more advanced serialization/sync will go.
   auto& ecm = this->runner->entityCompMgr;
 

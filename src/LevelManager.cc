@@ -164,7 +164,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerActive(true));
+                                        components::PerformerActive(false));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -337,17 +337,20 @@ void LevelManager::UpdateLevelsState()
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
 
-  // Handle default level
-  this->runner->entityCompMgr.Each<components::DefaultLevel>(
-      [&](const Entity &_entity, const components::DefaultLevel *) -> bool
-      {
-        if (!this->IsLevelActive(_entity))
+  {
+    IGN_PROFILE("DefaultLevel");
+    // Handle default level
+    this->runner->entityCompMgr.Each<components::DefaultLevel>(
+        [&](const Entity &_entity, const components::DefaultLevel *) -> bool
         {
-          levelsToLoad.push_back(_entity);
-        }
-        // We assume one default level
-        return false;
-      });
+          if (!this->IsLevelActive(_entity))
+          {
+            levelsToLoad.push_back(_entity);
+          }
+          // We assume one default level
+          return false;
+        });
+  }
 
   this->runner->entityCompMgr.Each<components::Performer,
                                    components::Geometry,
@@ -358,64 +361,82 @@ void LevelManager::UpdateLevelsState()
           const components::ParentEntity *_parent,
           const components::PerformerActive *_active) -> bool
       {
-        auto pose = this->runner->entityCompMgr.Component<components::Pose>(
-            _parent->Data());
-        // We assume the geometry contains a box.
-        auto perfBox = _geometry->Data().BoxShape();
+        IGN_PROFILE("EachPerformer");
 
-        math::AxisAlignedBox performerVolume{
-             pose->Data().Pos() - perfBox->Size() / 2,
-             pose->Data().Pos() + perfBox->Size() / 2};
-
-        // loop through levels and check for intersections
-        // Add all levels with inersections to the levelsToLoad even if they are
-        // currently active.
-        this->runner->entityCompMgr.Each<components::Level, components::Pose,
-                                         components::Geometry,
-                                         components::LevelBuffer >(
-            [&](const Entity &_entity, const components::Level *,
-                const components::Pose *_pose,
-                const components::Geometry *_levelGeometry,
-                const components::LevelBuffer *_levelBuffer) -> bool
+        if (!_active->Data())
+        {
+          this->runner->entityCompMgr.Each<components::Level>(
+            [&](const Entity &_entity, const components::Level *) -> bool
             {
-              // Check if the performer is in this level
-              // assume a box for now
-              auto box = _levelGeometry->Data().BoxShape();
-              auto buffer = _levelBuffer->Data();
-              auto center = _pose->Data().Pos();
-              math::AxisAlignedBox region{center - box->Size() / 2,
-                                          center + box->Size() / 2};
-
-              math::AxisAlignedBox outerRegion{
-                  center - (box->Size() / 2 + buffer),
-                  center + (box->Size() / 2 + buffer)};
-
-              if (_active->Data() && region.Intersects(performerVolume))
+              IGN_PROFILE("EarlyOut");
+              // Early exit if we are using an inactive participant.
+              if (!_active->Data())
               {
-                levelsToLoad.push_back(_entity);
-              }
-              else
-              {
-                // If the level is active, check if the performer is outside of
-                // the buffer of this level
-                if (this->IsLevelActive(_entity))
-                {
-                  if (_active->Data()
-                      && outerRegion.Intersects(performerVolume))
-                  {
-                    levelsToLoad.push_back(_entity);
-                    return true;
-                  }
-                  // Otherwise, mark the level to be unloaded
-                  levelsToUnload.push_back(_entity);
-                }
+                levelsToUnload.push_back(_entity);
               }
               return true;
             });
+          return true;
+        }
+        else
+        {
+          auto pose = this->runner->entityCompMgr.Component<components::Pose>(
+              _parent->Data());
+          // We assume the geometry contains a box.
+          auto perfBox = _geometry->Data().BoxShape();
 
-        return true;
+          math::AxisAlignedBox performerVolume{
+               pose->Data().Pos() - perfBox->Size() / 2,
+               pose->Data().Pos() + perfBox->Size() / 2};
+
+          // loop through levels and check for intersections
+          // Add all levels with inersections to the levelsToLoad even if they
+          // are currently active.
+          this->runner->entityCompMgr.Each<components::Level, components::Pose,
+                                           components::Geometry,
+                                           components::LevelBuffer >(
+              [&](const Entity &_entity, const components::Level *,
+                  const components::Pose *_pose,
+                  const components::Geometry *_levelGeometry,
+                  const components::LevelBuffer *_levelBuffer) -> bool
+              {
+                  IGN_PROFILE("CheckPerformerAgainstLevel");
+                  // Check if the performer is in this level
+                  // assume a box for now
+                  auto box = _levelGeometry->Data().BoxShape();
+                  auto buffer = _levelBuffer->Data();
+                  auto center = _pose->Data().Pos();
+                  math::AxisAlignedBox region{center - box->Size() / 2,
+                                              center + box->Size() / 2};
+
+                  math::AxisAlignedBox outerRegion{
+                      center - (box->Size() / 2 + buffer),
+                      center + (box->Size() / 2 + buffer)};
+
+                  if (region.Intersects(performerVolume))
+                  {
+                    levelsToLoad.push_back(_entity);
+                  }
+                  else
+                  {
+                    // If the level is active, check if the performer is
+                    // outside of the buffer of this level
+                    if (this->IsLevelActive(_entity))
+                    {
+                      if (outerRegion.Intersects(performerVolume))
+                      {
+                        levelsToLoad.push_back(_entity);
+                        return true;
+                      }
+                      // Otherwise, mark the level to be unloaded
+                      levelsToUnload.push_back(_entity);
+                    }
+                  }
+                  return true;
+                });
+          return true;
+        }
       });
-
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());
@@ -520,8 +541,6 @@ void LevelManager::UpdateLevelsState()
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 {
-  IGN_PROFILE("LevelManager::LoadActiveEntities");
-
   if (this->worldEntity == kNullEntity)
   {
     ignerr << "Could not find the world entity while loading levels\n";
@@ -563,8 +582,6 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 void LevelManager::UnloadInactiveEntities(
     const std::set<std::string> &_namesToUnload)
 {
-  IGN_PROFILE("LevelManager::UnloadInactiveEntities");
-
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
           const components::Name *_name) -> bool
