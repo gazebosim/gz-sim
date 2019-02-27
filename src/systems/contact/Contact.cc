@@ -30,16 +30,12 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
 
 #include "Contact.hh"
 
@@ -110,7 +106,8 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
   this->collisionEntities = std::move(_collisionEntities);
 
   auto contactElem = _sdf->GetElement("contact");
-  auto tmpTopic = contactElem->Get<std::string>("topic");
+  auto tmpTopic =
+      contactElem->Get<std::string>("topic", "__default_topic__").first;
 
   if (tmpTopic == "__default_topic__")
   {
@@ -122,7 +119,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
     this->topic = tmpTopic;
   }
 
-  igndbg << "Contact system publishing on " << this->topic << std::endl;
+  ignmsg << "Contact system publishing on " << this->topic << std::endl;
   this->pub = this->node.Advertise<ignition::msgs::Contacts>(this->topic);
 }
 
