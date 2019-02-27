@@ -18,9 +18,11 @@
 #define IGNITION_GAZEBO_SERVERCONFIG_HH_
 
 #include <chrono>
+#include <list>
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
+#include <sdf/Element.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
@@ -39,8 +41,109 @@ namespace ignition
     /// configuration.
     class IGNITION_GAZEBO_VISIBLE ServerConfig
     {
+      class PluginInfoPrivate;
+      /// \brief Information about a plugin that should be loaded by the
+      /// server.
+      /// \detail Currently supports attaching a plugin to an entity given its
+      /// type and name, but it can't tell apart multiple entities with the same
+      /// name in different parts of the entity tree.
+      /// \sa const std::list<PluginInfo> &Plugins() const
+      public: class PluginInfo
+      {
+        /// \brief Default constructor.
+        public: PluginInfo();
+
+        /// \brief Destructor.
+        public: ~PluginInfo();
+
+        /// \brief Constructor with plugin information specified.
+        /// \param[in] _entityName Name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type which should receive  this
+        /// plugin. The type is used in conjuction with _entityName to
+        /// uniquely identify an entity.
+        /// \param[in] _filename Plugin library filename.
+        /// \param[in] _name Name of the interface within the plugin library
+        /// to load.
+        /// \param[in] _sdf Plugin XML elements associated with this plugin.
+        public: PluginInfo(const std::string &_entityName,
+                           const std::string &_entityType,
+                           const std::string &_filename,
+                           const std::string &_name,
+                           const sdf::ElementPtr &_sdf);
+
+        /// \brief Copy constructor.
+        /// \param[in] _info Plugin to copy.
+        public: PluginInfo(const PluginInfo &_info);
+
+        /// \brief Equal operator.
+        /// \param[in] _info PluginInfo to copy.
+        /// \return Reference to this class.
+        public: PluginInfo &operator=(const PluginInfo &_info);
+
+        /// \brief Get the name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \return Entity name.
+        public: const std::string &EntityName() const;
+
+        /// \brief Set the name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityName Entity name.
+        public: void SetEntityName(const std::string &_entityName);
+
+        /// \brief Get the entity type which should receive  this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \return Entity type string.
+        public: const std::string &EntityType() const;
+
+        /// \brief Set the type of the entity which should receive this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type string.
+        public: void SetEntityType(const std::string &_entityType);
+
+        /// \brief Get the plugin library filename.
+        /// \return Plugin library filename.
+        public: const std::string &Filename() const;
+
+        /// \brief Set the type of the entity which should receive this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type string.
+        public: void SetFilename(const std::string &_filename);
+
+        /// \brief Name of the interface within the plugin library
+        /// to load.
+        /// \return Interface name.
+        public: const std::string &Name() const;
+
+        /// \brief Set the name of the interface within the plugin library
+        /// to load.
+        /// \param[in] _name Interface name.
+        public: void SetName(const std::string &_name);
+
+        /// \brief Plugin XML elements associated with this plugin.
+        /// \return SDF pointer.
+        public: const sdf::ElementPtr &Sdf() const;
+
+        /// \brief Set the plugin XML elements associated with this plugin.
+        /// \param[in] _sdf SDF pointer, it will be cloned.
+        public: void SetSdf(const sdf::ElementPtr &_sdf);
+
+        /// \brief Private data pointer
+        private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;
+      };
+
       /// \brief Constructor
       public: ServerConfig();
+
+      /// \brief Copy constructor.
+      /// \param[in] _config ServerConfig to copy.
+      public: ServerConfig(const ServerConfig &_config);
 
       /// \brief Destructor
       public: ~ServerConfig();
@@ -97,6 +200,21 @@ namespace ignition
       /// indicates that the default value will be used, which is currently
       /// ~/.ignition/fuel.
       public: void SetResourceCache(const std::string &_path);
+
+      /// \brief Instruct simulation to attach a plugin to a specific
+      /// entity when simulation starts.
+      /// \param[in] _info Information about the plugin to load.
+      public: void AddPlugin(const PluginInfo &_info);
+
+      /// \brief Get all the plugins that should be loaded.
+      /// \return A list of all the plugins specified via
+      /// AddPlugin(const PluginInfo &).
+      public: const std::list<PluginInfo> &Plugins() const;
+
+      /// \brief Equal operator.
+      /// \param[in] _cfg ServerConfig to copy.
+      /// \return Reference to this class.
+      public: ServerConfig &operator=(const ServerConfig &_cfg);
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
