@@ -69,9 +69,15 @@ TEST_P(ServerFixture, DefaultServerConfig)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ServerConfigPluginInfo)
 {
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("an_entity");
+  pluginInfo.SetEntityType("model");
+  pluginInfo.SetFilename("filename");
+  pluginInfo.SetName("interface");
+  pluginInfo.SetSdf(nullptr);
+
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.AddPlugin(
-      {"an_entity", "model", "filename", "interface", nullptr});
+  serverConfig.AddPlugin(pluginInfo);
 
   const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
   ASSERT_FALSE(plugins.empty());

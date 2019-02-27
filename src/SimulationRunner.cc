@@ -19,7 +19,9 @@
 
 #include "ignition/common/Profiler.hh"
 
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 
 using namespace ignition;
@@ -440,8 +442,27 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
   // Check plugins from the ServerConfig for matching entities.
   for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
   {
-    Entity entity = this->entityCompMgr.EntityByComponents(
-        components::Name(plugin.EntityName()));
+    // \todo(anyone) Type + name is not enough to uniquely identify an entity
+    // \todo(louise) The runner shouldn't care about specific components, this
+    // logic should be moved somewhere else.
+    Entity entity{kNullEntity};
+
+    if ("model" == plugin.EntityType())
+    {
+      entity = this->entityCompMgr.EntityByComponents(
+          components::Name(plugin.EntityName()), components::Model());
+    }
+    else if ("world" == plugin.EntityType())
+    {
+      entity = this->entityCompMgr.EntityByComponents(
+          components::Name(plugin.EntityName()), components::World());
+    }
+    else
+    {
+      ignwarn << "No support for attaching plugins to entity of type ["
+              << plugin.EntityType() << "]" << std::endl;
+    }
+
     // Skip plugins that do not match the provided entity
     if (entity != _entity)
       continue;
