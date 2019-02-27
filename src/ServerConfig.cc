@@ -24,6 +24,9 @@ class ignition::gazebo::ServerConfigPrivate
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
 
+  // \brief The SDF string that the server should load
+  public: std::string sdfString = "";
+
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
 
@@ -48,6 +51,7 @@ ServerConfig::~ServerConfig() = default;
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
   this->dataPtr->sdfFile = _file;
+  this->dataPtr->sdfString = "";
   return true;
 }
 
@@ -55,6 +59,20 @@ bool ServerConfig::SetSdfFile(const std::string &_file)
 std::string ServerConfig::SdfFile() const
 {
   return this->dataPtr->sdfFile;
+}
+
+//////////////////////////////////////////////////
+bool ServerConfig::SetSdfString(const std::string &_sdfString)
+{
+  this->dataPtr->sdfFile = "";
+  this->dataPtr->sdfString = _sdfString;
+  return true;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::SdfString() const
+{
+  return this->dataPtr->sdfString;
 }
 
 //////////////////////////////////////////////////

@@ -35,6 +35,21 @@
 using namespace ignition;
 using namespace std::chrono_literals;
 
+static const char kTestWorld[] =
+  "<?xml version='1.0'?>"
+  "<sdf version='1.6'>"
+    "<world name='default'>"
+      "<plugin"
+      "  filename='libignition-gazebo-systems.so'"
+      "  name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "</plugin>"
+      "<plugin"
+      "  filename='libignition-gazebo-user-commands-system.so'"
+      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "</plugin>"
+    "</world>"
+  "</sdf>";
+
 class ServerFixture : public ::testing::TestWithParam<int>
 {
   protected: void SetUp() override
@@ -61,8 +76,17 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+  auto retString = serverConfig.SetSdfString(kTestWorld);
+  EXPECT_TRUE(retString);
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  // Setting the SDF file should override the string.
+  auto retFile = serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
+  EXPECT_TRUE(retFile);
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -78,6 +102,32 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, SdfStringServerConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  auto retFile = serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  EXPECT_TRUE(retFile);
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  // Setting the string should override the file.
+  auto retString = serverConfig.SetSdfString(kTestWorld);
+  EXPECT_TRUE(retString);
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_EQ(2u, *server.EntityCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
