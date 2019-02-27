@@ -117,9 +117,21 @@ const std::string &ServerConfig::PluginInfo::EntityName() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetEntityName(const std::string &_entityName)
+{
+  this->dataPtr->entityName = _entityName;
+}
+
+//////////////////////////////////////////////////
 const std::string &ServerConfig::PluginInfo::EntityType() const
 {
   return this->dataPtr->entityType;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetEntityType(const std::string &_entityType)
+{
+  this->dataPtr->entityType = _entityType;
 }
 
 //////////////////////////////////////////////////
@@ -129,15 +141,36 @@ const std::string &ServerConfig::PluginInfo::Filename() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
+{
+  this->dataPtr->filename = _filename;
+}
+
+//////////////////////////////////////////////////
 const std::string &ServerConfig::PluginInfo::Name() const
 {
   return this->dataPtr->name;
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetName(const std::string &_name)
+{
+  this->dataPtr->name = _name;
+}
+
+//////////////////////////////////////////////////
 const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
 {
   return this->dataPtr->sdf;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
+{
+  if (_sdf)
+    this->dataPtr->sdf = _sdf->Clone();
+  else
+    this->dataPtr->sdf = nullptr;
 }
 
 /// \brief Private data for ServerConfig.
