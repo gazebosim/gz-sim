@@ -44,6 +44,9 @@ namespace ignition
       class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
       /// server.
+      /// \detail Currently supports attaching a plugin to an entity given its
+      /// type and name, but it can't tell apart multiple entities with the same
+      /// name in different parts of the entity tree.
       /// \sa const std::list<PluginInfo> &Plugins() const
       public: class PluginInfo
       {
@@ -85,24 +88,51 @@ namespace ignition
         /// \return Entity name.
         public: const std::string &EntityName() const;
 
+        /// \brief Set the name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityName Entity name.
+        public: void SetEntityName(const std::string &_entityName);
+
         /// \brief Get the entity type which should receive  this
         /// plugin. The type is used in conjuction with EntityName to
         /// uniquely identify an entity.
         /// \return Entity type string.
         public: const std::string &EntityType() const;
 
+        /// \brief Set the type of the entity which should receive this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type string.
+        public: void SetEntityType(const std::string &_entityType);
+
         /// \brief Get the plugin library filename.
         /// \return Plugin library filename.
         public: const std::string &Filename() const;
+
+        /// \brief Set the type of the entity which should receive this
+        /// plugin. The type is used in conjuction with EntityName to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type string.
+        public: void SetFilename(const std::string &_filename);
 
         /// \brief Name of the interface within the plugin library
         /// to load.
         /// \return Interface name.
         public: const std::string &Name() const;
 
+        /// \brief Set the name of the interface within the plugin library
+        /// to load.
+        /// \param[in] _name Interface name.
+        public: void SetName(const std::string &_name);
+
         /// \brief Plugin XML elements associated with this plugin.
         /// \return SDF pointer.
         public: const sdf::ElementPtr &Sdf() const;
+
+        /// \brief Set the plugin XML elements associated with this plugin.
+        /// \param[in] _sdf SDF pointer, it will be cloned.
+        public: void SetSdf(const sdf::ElementPtr &_sdf);
 
         /// \brief Private data pointer
         private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;
