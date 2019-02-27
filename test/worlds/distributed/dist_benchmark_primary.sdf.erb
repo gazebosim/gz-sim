@@ -218,13 +218,10 @@
   Type: <%= $type %>
   N_x: <%= $n_x %>
   N_y: <%= $n_y %>
+  N_v: <%= $n_v %>
 -->
 <sdf version="1.6">
   <world name="default">
-    <plugin
-     filename="libignition-gazebo-physics-system.so"
-     name="ignition::gazebo::systems::v0::Physics">
-    </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
@@ -557,16 +554,6 @@
       <parent>chassis</parent>
       <child>caster</child>
     </joint>
-
-    <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::DiffDrive">
-      <left_joint>left_wheel_joint</left_joint>
-      <right_joint>right_wheel_joint</right_joint>
-      <wheel_separation>1.25</wheel_separation>
-      <wheel_radius>0.3</wheel_radius>
-    </plugin>
-
   </model>
   <% end %>
 
