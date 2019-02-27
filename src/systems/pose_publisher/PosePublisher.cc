@@ -85,36 +85,30 @@ void PosePublisher::Configure(const Entity &_entity,
   if (!this->dataPtr->model.Valid(_ecm))
   {
     ignerr << "PosePublisher plugin should be attached to a model entity. "
-           << "Failed to initialize." << std::endl;
+      << "Failed to initialize." << std::endl;
     return;
   }
 
   std::string poseTopic =
-      scopedName(_entity, _ecm) + "/pose";
+    scopedName(_entity, _ecm) + "/pose";
   this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<ignition::msgs::Pose>(poseTopic);
+    this->dataPtr->node.Advertise<ignition::msgs::Pose>(poseTopic);
 
-    // parse optional params
-  if (_sdf->HasElement("publish_link_pose"))
-  {
-    this->dataPtr->publishLinkPose =
-        _sdf->Get<bool>("publish_link_pose");
-  }
-  if (_sdf->HasElement("publish_nested_model_pose"))
-  {
-    this->dataPtr->publishNestedModelPose =
-        _sdf->Get<bool>("publish_nested_model_pose");
-  }
-  if (_sdf->HasElement("publish_visual_pose"))
-  {
-    this->dataPtr->publishVisualPose =
-        _sdf->Get<bool>("publish_visual_pose");
-  }
-  if (_sdf->HasElement("publish_collision_pose"))
-  {
-    this->dataPtr->publishCollisionPose =
-        _sdf->Get<bool>("publish_collision_pose");
-  }
+  // parse optional params
+  this->dataPtr->publishLinkPose = _sdf->Get<bool>("publish_link_pose",
+      this->dataPtr->publishLinkPose).first;
+
+  this->dataPtr->publishNestedModelPose =
+    _sdf->Get<bool>("publish_nested_model_pose",
+        this->dataPtr->publishNestedModelPose).first;
+
+  this->dataPtr->publishVisualPose =
+    _sdf->Get<bool>("publish_visual_pose",
+        this->dataPtr->publishVisualPose).first;
+
+  this->dataPtr->publishCollisionPose =
+    _sdf->Get<bool>("publish_collision_pose",
+        this->dataPtr->publishCollisionPose).first;
 }
 
 //////////////////////////////////////////////////
