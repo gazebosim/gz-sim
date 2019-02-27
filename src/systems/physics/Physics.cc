@@ -849,7 +849,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
   // position. This map groups contacts so that it is easy to query all the
   // contacts of one entity.
   using EntityContactMap =
-      std::unordered_map<Entity, std::deque<const WorldType::Contact *>>;
+      std::unordered_map<Entity, std::deque<const WorldType::ContactPoint *>>;
 
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
@@ -860,8 +860,9 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
   auto allContacts = worldPhys->GetContactsFromLastStep();
-  for (const auto &contact : allContacts)
+  for (const auto &contactComposite : allContacts)
   {
+    const auto &contact = contactComposite.Get<WorldType::ContactPoint>();
     auto coll1It = this->collisionEntityMap.find(contact.collision1);
     auto coll2It = this->collisionEntityMap.find(contact.collision2);
 
