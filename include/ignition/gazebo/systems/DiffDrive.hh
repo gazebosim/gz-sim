@@ -31,7 +31,8 @@ namespace systems
   // Forward declaration
   class DiffDrivePrivate;
 
-  /// \brief
+  /// \brief Differential drive controller which can be attached to a model
+  /// with any number of left and right wheels.
   class IGNITION_GAZEBO_VISIBLE DiffDrive
       : public System,
         public ISystemConfigure,
