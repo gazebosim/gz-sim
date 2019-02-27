@@ -39,6 +39,9 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  // Forward declarations.
+  class LogPlaybackPrivate;
+
   /// \class LogPlayback LogPlayback.hh
   ///   ignition/gazebo/systems/log/LogPlayback.hh
   /// \brief Log state playback
@@ -63,22 +66,8 @@ namespace systems
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 
-    /// \brief Name of log file to play back
-    public: std::string logPath = "file.tlog";
-    public: std::string sdfPath = "file.sdf";
-
-    private: std::unique_ptr <ignition::transport::log::Log> log;
-
-    private: ignition::transport::log::Batch poseBatch;
-    private: ignition::transport::log::MsgIter iter;
-
-    private: std::chrono::nanoseconds logStartTime;
-    private: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
-    private: bool printedEnd;
-
-    private: void parsePose(EntityComponentManager &_ecm);
-    // Key: link name. Value: link pose
-    private: std::map <std::string, ignition::msgs::Pose> name_to_pose;
+    /// \brief Private data pointer.
+    private: std::unique_ptr<LogPlaybackPrivate> dataPtr;
   };
   }
 }

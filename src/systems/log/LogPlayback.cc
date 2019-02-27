@@ -17,8 +17,9 @@
 
 #include "LogPlayback.hh"
 
-#include <fstream>
 #include <string>
+#include <fstream>
+#include <filesystem>
 
 #include <ignition/plugin/RegisterMore.hh>
 
@@ -38,32 +39,64 @@
 using namespace ignition::gazebo::systems;
 using namespace ignition::transport::log;
 
+/// \brief Private LogPlayback data class.
+class ignition::gazebo::systems::LogPlaybackPrivate
+{
+  /// \brief Reads the next pose message in log file, set poses in world
+  public: void ParsePose(EntityComponentManager &_ecm);
+
+
+  /// \brief Name of recorded log file to play back
+  public: std::string logPath = "file.tlog";
+  /// \brief Name of recorded SDF file
+  public: std::string sdfPath = "file.sdf";
+
+  /// \brief Log object to read ign-transport log file
+  public: std::unique_ptr <ignition::transport::log::Log> log;
+
+  /// \brief A batch of data from log file, of all pose messages
+  public: ignition::transport::log::Batch poseBatch;
+  /// \brief Iterator to go through messages in Batch
+  public: ignition::transport::log::MsgIter iter;
+
+  /// \brief First timestamp in log file
+  public: std::chrono::nanoseconds logStartTime;
+  /// \brief Timestamp when plugin started
+  public: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
+  /// \brief Flag to print finish message once
+  public: bool printedEnd;
+
+  // Key: link name. Value: link pose
+  /// \brief Maps link name to link pose recorded
+  public: std::map <std::string, ignition::msgs::Pose> nameToPose;
+};
+
+
 //////////////////////////////////////////////////
 LogPlayback::LogPlayback()
-  : System()
+  : System(), dataPtr(std::make_unique<LogPlaybackPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-LogPlayback::~LogPlayback()
-{
-}
+LogPlayback::~LogPlayback() = default;
 
-void LogPlayback::parsePose(EntityComponentManager &_ecm)
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 {
   // TODO(mabelmzhang): Parse iter->Type() to get substring after last ".",
   //   to know what message type to create. For now just assuming Pose_V.
 
   // Protobuf message
-  ignition::msgs::Pose_V posev_msg;
+  ignition::msgs::Pose_V posevMsg;
   // Convert binary bytes in string into a ign-msgs msg
-  posev_msg.ParseFromString(this->iter->Data());
+  posevMsg.ParseFromString(this->iter->Data());
 
-  igndbg << "Pose_V size: " << posev_msg.pose_size() << std::endl;
+  igndbg << "Pose_V size: " << posevMsg.pose_size() << std::endl;
 
-  for (int i = 0; i < posev_msg.pose_size(); i ++)
+  for (int i = 0; i < posevMsg.pose_size(); ++i)
   {
-    ignition::msgs::Pose pose = posev_msg.pose(i);
+    ignition::msgs::Pose pose = posevMsg.pose(i);
 
     // igndbg << pose.name() << std::endl;
 
@@ -73,7 +106,7 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
     //   different, until ECM is serialized.
 
     // Update link pose in map
-    this->name_to_pose.insert_or_assign(pose.name(), pose);
+    this->nameToPose.insert_or_assign(pose.name(), pose);
   }
 
 
@@ -95,7 +128,7 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
 
 
     // Look for model pose in log entry loaded
-    ignition::msgs::Pose pose = this->name_to_pose.at(_nameComp->Data());
+    ignition::msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
@@ -140,7 +173,7 @@ void LogPlayback::parsePose(EntityComponentManager &_ecm)
 
 
     // Look for the link poses in log entry loaded
-    ignition::msgs::Pose pose = this->name_to_pose.at(_nameComp->Data());
+    ignition::msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
@@ -169,48 +202,62 @@ void LogPlayback::Configure(const Entity &/*_id*/,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get params from SDF
-  this->logPath = _sdf->Get<std::string>("log_path",
-    this->logPath).first;
-  this->sdfPath = _sdf->Get<std::string>("sdf_path",
-    this->sdfPath).first;
-  ignmsg << "Playing back log file " << this->logPath << std::endl;
+  this->dataPtr->logPath = _sdf->Get<std::string>("log_path",
+    this->dataPtr->logPath).first;
+  this->dataPtr->sdfPath = _sdf->Get<std::string>("sdf_path",
+    this->dataPtr->sdfPath).first;
+  ignmsg << "Playing back log file " << this->dataPtr->logPath << std::endl;
+
+  if (this->dataPtr->logPath.empty() || this->dataPtr->sdfPath.empty())
+  {
+    ignerr << "Unspecified log path to playback. Nothing to play.\n";
+    return;
+  }
+
+  if (!std::filesystem::exists(this->dataPtr->logPath) ||
+      !std::filesystem::exists(this->dataPtr->sdfPath))
+  {
+    ignerr << "log_path and/or sdf_path invalid. File does not exist. "
+      << "Nothing to play.\n";
+    return;
+  }
 
 
   // Call Log.hh directly to load a .tlog file
 
-  this->log.reset(new Log());
-  this->log->Open(this->logPath);
+  this->dataPtr->log = std::make_unique<Log>();
+  this->dataPtr->log->Open(this->dataPtr->logPath);
 
   // Access messages in .tlog file
   TopicList opts = TopicList("/world/default/pose/info");
-  this->poseBatch = this->log->QueryMessages(opts);
-  this->iter = this->poseBatch.begin();
+  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
+  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
 
   // Record first timestamp
-  this->logStartTime = this->iter->TimeReceived();
-  igndbg << this->logStartTime.count() << std::endl;
-  igndbg << this->iter->Type() << std::endl;
+  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
+  igndbg << this->dataPtr->logStartTime.count() << std::endl;
+  igndbg << this->dataPtr->iter->Type() << std::endl;
 
-  parsePose(_ecm);
+  this->dataPtr->ParsePose(_ecm);
 
 
   // Load recorded SDF file
 
   sdf::Root root;
-  if (root.Load(this->sdfPath).size() != 0)
+  if (root.Load(this->dataPtr->sdfPath).size() != 0)
   {
-    ignerr << "Error loading SDF file " << this->sdfPath << std::endl;
+    ignerr << "Error loading SDF file " << this->dataPtr->sdfPath << std::endl;
     return;
   }
   igndbg << "World count: " << root.WorldCount() << std::endl;
   igndbg << "Model count: " << root.ModelCount() << std::endl;
-  const sdf::World * sdf_world = root.WorldByIndex(0);
+  const sdf::World * sdfWorld = root.WorldByIndex(0);
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
   //   is not re-recorded.
-  if (sdf_world->Element()->HasElement("plugin"))
+  if (sdfWorld->Element()->HasElement("plugin"))
   {
-    sdf::ElementPtr pluginElt = sdf_world->Element()->GetElement("plugin");
+    sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
     // If never found, nothing to remove
     while (pluginElt != sdf::ElementPtr(nullptr))
     {
@@ -225,9 +272,9 @@ void LogPlayback::Configure(const Entity &/*_id*/,
         // If found it, remove it
         else
         {
-          ignerr << "Found LogRecord plugin\n";
+          igndbg << "Found LogRecord plugin\n";
           pluginElt->RemoveFromParent();
-          ignerr << "Removed LogRecord plugin from loaded SDF\n";
+          igndbg << "Removed LogRecord plugin from loaded SDF\n";
           break;
         }
       }
@@ -239,14 +286,14 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
     ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-  creator.CreateEntities(sdf_world);
+  creator.CreateEntities(sdfWorld);
 
 
-  this->worldStartTime = std::chrono::high_resolution_clock::now();
+  this->dataPtr->worldStartTime = std::chrono::high_resolution_clock::now();
 
   // Advance one entry in batch for Update()
-  ++(this->iter);
-  this->printedEnd = false;
+  ++(this->dataPtr->iter);
+  this->dataPtr->printedEnd = false;
 }
 
 //////////////////////////////////////////////////
@@ -254,13 +301,13 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   // Sanity check. If reached the end, done.
-  if (this->iter == this->poseBatch.end())
+  if (this->dataPtr->iter == this->dataPtr->poseBatch.end())
   {
     // Print only once
-    if (!this->printedEnd)
+    if (!this->dataPtr->printedEnd)
     {
       ignmsg << "Finished playing all recorded data\n";
-      this->printedEnd = true;
+      this->dataPtr->printedEnd = true;
     }
     return;
   }
@@ -270,25 +317,22 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   //   play the joint positions at next logged timestamp.
 
   auto now = std::chrono::high_resolution_clock::now();
-  auto diff_time = std::chrono::duration_cast <std::chrono::nanoseconds>(
-    now - this->worldStartTime);
+  auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
+    now - this->dataPtr->worldStartTime);
 
-  if (diff_time.count() >=
-    (this->iter->TimeReceived().count() - this->logStartTime.count()))
+  if (diffTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
+    this->dataPtr->logStartTime.count()))
   {
     // Print timestamp of this log entry
-    igndbg << this->iter->TimeReceived().count() << std::endl;
+    igndbg << this->dataPtr->iter->TimeReceived().count() << std::endl;
 
     // Parse pose and move link
-    parsePose(_ecm);
+    this->dataPtr->ParsePose(_ecm);
 
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
-    ++(this->iter);
+    ++(this->dataPtr->iter);
   }
-  // Else nothing to play
-  else
-    return;
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,

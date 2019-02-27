@@ -40,9 +40,25 @@
 
 using namespace ignition::gazebo::systems;
 
+// Private data class.
+class ignition::gazebo::systems::LogRecordPrivate
+{
+  // If use ign-transport Log, must end in .tlog
+  /// \brief Name of log file to record
+  public: std::string logPath = "file.tlog";
+  // Temporary for recording sdf string, before have custom SQL field for
+  //   a big SDF string.
+  public: std::string sdfPath = "file.sdf";
+
+  // Use ign-transport directly
+  /// \brief Log file or nullptr if not recording
+  public: ignition::transport::log::Recorder recorder;
+};
+
+
 //////////////////////////////////////////////////
 LogRecord::LogRecord()
-  : System()
+  : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
 }
 
@@ -50,7 +66,7 @@ LogRecord::LogRecord()
 LogRecord::~LogRecord()
 {
   // Use ign-transport directly
-  this->recorder.Stop();
+  this->dataPtr->recorder.Stop();
 
   ignmsg << "Stopping recording" << std::endl;
 }
@@ -61,54 +77,47 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
   // Get params from SDF
-  this->logPath = _sdf->Get<std::string>("log_path",
-      this->logPath).first;
-  this->sdfPath = _sdf->Get<std::string>("sdf_path",
-      this->sdfPath).first;
+  this->dataPtr->logPath = _sdf->Get<std::string>("log_path",
+      this->dataPtr->logPath).first;
+  this->dataPtr->sdfPath = _sdf->Get<std::string>("sdf_path",
+      this->dataPtr->sdfPath).first;
 
   // Check if files already exist, don't overwrite
-  if (std::filesystem::exists(this->logPath) ||
-      std::filesystem::exists(this->sdfPath))
+  if (std::filesystem::exists(this->dataPtr->logPath) ||
+      std::filesystem::exists(this->dataPtr->sdfPath))
   {
     ignerr << "log_path and/or sdf_path already exist on disk! "
       << "Not overwriting. Will not record." << std::endl;
     return;
   }
 
-  ignmsg << "Recording to log file " << this->logPath << std::endl;
+  ignmsg << "Recording to log file " << this->dataPtr->logPath << std::endl;
 
 
   // Use ign-transport directly
 
-  this->recorder.AddTopic("/world/default/pose/info");
-  // this->recorder.AddTopic(std::regex(".*"));
+  this->dataPtr->recorder.AddTopic("/world/default/pose/info");
+  // this->dataPtr->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
-  this->recorder.Start(this->logPath);
+  this->dataPtr->recorder.Start(this->dataPtr->logPath);
 
 
   // Record SDF as a string.
 
   // TODO(mabelmzhang): For now, just dumping a big string to a text file,
   //   until we have a message for the SDF.
-  std::ofstream ofs(this->sdfPath);
+  std::ofstream ofs(this->dataPtr->sdfPath);
   // Go up to root of SDF, to output entire SDF file
-  sdf::ElementPtr sdf_root = _sdf->GetParent();
-  while (sdf_root->GetParent() != NULL)
+  sdf::ElementPtr sdfRoot = _sdf->GetParent();
+  while (sdfRoot->GetParent() != nullptr)
   {
-    sdf_root = sdf_root->GetParent();
+    sdfRoot = sdfRoot->GetParent();
   }
-  ofs << sdf_root->ToString("");
-  ignmsg << "Outputted SDF to " << this->sdfPath << std::endl;
-}
-
-//////////////////////////////////////////////////
-void LogRecord::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &/*_ecm*/)
-{
+  ofs << sdfRoot->ToString("");
+  ignmsg << "Outputted SDF to " << this->dataPtr->sdfPath << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
-                    LogRecord::ISystemConfigure,
-                    LogRecord::ISystemUpdate)
+                    LogRecord::ISystemConfigure)
