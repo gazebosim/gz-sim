@@ -31,6 +31,25 @@ using namespace std::chrono_literals;
 
 uint64_t kIterations;
 
+// Create a special test world that doesn't use physics to avoid some issues
+// where ODE doesn't initialize properly in multiple physics instances in the
+// same process.
+// \TODO(anyone) Remove this if ODE issues are corrected.
+static const char kTestWorld[] =
+  "<?xml version='1.0'?>"
+  "<sdf version='1.6'>"
+    "<world name='default'>"
+      "<plugin"
+      "  filename='libignition-gazebo-systems.so'"
+      "  name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "</plugin>"
+      "<plugin"
+      "  filename='libignition-gazebo-user-commands-system.so'"
+      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "</plugin>"
+    "</world>"
+  "</sdf>";
+
 /////////////////////////////////////////////////
 // Send a world control message.
 void worldControl(bool _paused, uint64_t _steps)
@@ -99,11 +118,10 @@ uint64_t iterations()
 #ifdef  __linux__
 TEST(NetworkHandshake, Handshake)
 {
-  ignition::common::Console::SetVerbosity(4);
-
   setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
   setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
   ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorld);
   Server serverPrimary(serverConfig);
   serverPrimary.SetUpdatePeriod(1us);
 
