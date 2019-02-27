@@ -262,10 +262,6 @@ namespace components
               << "deserialized." << std::endl;
     };
 
-    /// \brief Returns the unique name for the component's type.
-    /// The name is manually chosen during the Factory registration.
-    public: virtual std::string TypeName() const = 0;
-
     /// \brief Returns the unique ID for the component's type.
     /// The ID is derived from the name that is manually chosen during the
     /// Factory registration and is guaranteed to be the same across compilers
@@ -337,9 +333,6 @@ namespace components
     public: bool operator!=(const Component &_component) const;
 
     // Documentation inherited
-    public: std::string TypeName() const override;
-
-    // Documentation inherited
     public: ComponentTypeId TypeId() const override;
 
     // Documentation inherited
@@ -358,10 +351,6 @@ namespace components
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
-
-    /// \brief Unique name for this component type. This is set through the
-    /// Factory registration.
-    public: inline static std::string typeName{""};
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
@@ -412,14 +401,7 @@ namespace components
     }
 
     // Documentation inherited
-    public: std::string TypeName() const override;
-
-    // Documentation inherited
     public: uint64_t TypeId() const override;
-
-    /// \brief Unique name for this component type. This is set through the
-    /// Factory registration.
-    public: inline static std::string typeName{""};
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
@@ -528,13 +510,6 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  std::string Component<DataType, Identifier>::TypeName() const
-  {
-    return typeName;
-  }
-
-  //////////////////////////////////////////////////
-  template <typename DataType, typename Identifier>
   ComponentTypeId Component<DataType, Identifier>::TypeId() const
   {
     return typeId;
@@ -554,13 +529,6 @@ namespace components
       const Component<NoData, Identifier> &) const
   {
     return false;
-  }
-
-  //////////////////////////////////////////////////
-  template <typename Identifier>
-  std::string Component<NoData, Identifier>::TypeName() const
-  {
-    return typeName;
   }
 
   //////////////////////////////////////////////////

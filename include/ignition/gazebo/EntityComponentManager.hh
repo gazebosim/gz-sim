@@ -464,14 +464,6 @@ namespace ignition
       private: components::BaseComponent *ComponentImplementation(
                    const ComponentKey &_key);
 
-      /// \brief Register a new component type.
-      /// \param[in] _typeId Type if of the new component.
-      /// \param[in] _type Pointer to the component storage. Ownership is
-      /// transfered.
-      private: void RegisterComponentType(
-                   const ComponentTypeId _typeId,
-                   ComponentStorageBase *_type);
-
       /// \brief End of the AddComponentToView recursion. This function is
       /// called when Rest is empty.
       /// \param[in, out] _view The FirstComponent will be added to the
