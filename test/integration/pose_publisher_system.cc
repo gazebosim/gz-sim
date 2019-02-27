@@ -171,7 +171,6 @@ TEST_F(PosePublisherTest, PublishCmd)
           ignition::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
            common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
-
     });
   server.AddSystem(testSystem.systemPtr);
 
