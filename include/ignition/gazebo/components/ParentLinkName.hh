@@ -30,8 +30,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component used to indicate that a model is parentlinkname (i.e.
-  /// not moveable).
+  /// \brief Holds the name of the entity's parent link.
   using ParentLinkName = Component<std::string, class ParentLinkNameTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
     "ign_gazebo_components.ParentLinkName", ParentLinkName)
