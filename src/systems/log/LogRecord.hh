@@ -36,12 +36,14 @@ namespace systems
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  // Forward declarations.
+  class LogRecordPrivate;
+
   /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
   /// \brief Log state recorder
   class IGNITION_GAZEBO_VISIBLE LogRecord:
     public System,
-    public ISystemConfigure,
-    public ISystemUpdate
+    public ISystemConfigure
   {
     /// \brief Constructor
     public: explicit LogRecord();
@@ -55,20 +57,8 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
-    /// Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
-
-    // If use ign-transport Log, must end in .tlog
-    /// \brief Name of log file to record
-    public: std::string logPath = "file.tlog";
-    // Temporary for recording sdf string, before have custom SQL field for
-    //   a big SDF string.
-    public: std::string sdfPath = "file.sdf";
-
-    // Use ign-transport directly
-    /// \brief log file or nullptr if not recording
-    private: ignition::transport::log::Recorder recorder;
+    /// \brief Private data pointer.
+    private: std::unique_ptr<LogRecordPrivate> dataPtr;
   };
   }
 }

@@ -61,24 +61,24 @@ public:
 
   KeyboardTeleop();
   KeyboardTeleop(double, double);
-  void keyLoop();
+  void KeyLoop();
 
 private:
 
-  double l_scale_, a_scale_;
+  double lScale, aScale;
 };
 
 
 KeyboardTeleop::KeyboardTeleop():
-  l_scale_(1.0),
-  a_scale_(1.0)
+  lScale(1.0),
+  aScale(1.0)
 {
 
 }
 
-KeyboardTeleop::KeyboardTeleop(double sl, double sa):
-  l_scale_(sl),
-  a_scale_(sa)
+KeyboardTeleop::KeyboardTeleop(double _sl, double _sa):
+  lScale(_sl),
+  aScale(_sa)
 {
 
 }
@@ -87,15 +87,15 @@ KeyboardTeleop::KeyboardTeleop(double sl, double sa):
 int kfd = 0;
 struct termios cooked, raw;
 
-void quit(int sig)
+void Quit(int _sig)
 {
-  (void)sig;
+  (void)_sig;
   tcsetattr(kfd, TCSANOW, &cooked);
   exit(0);
 }
 
 
-void KeyboardTeleop::keyLoop()
+void KeyboardTeleop::KeyLoop()
 {
   char c;
   bool dirty = false, dirty2 = false;
@@ -175,12 +175,12 @@ void KeyboardTeleop::keyLoop()
     }
    
     ignition::msgs::Twist cmdVelMsg;
-    cmdVelMsg.mutable_linear()->set_x(l_scale_ * linear);
-    cmdVelMsg.mutable_angular()->set_z(a_scale_ * angular);
+    cmdVelMsg.mutable_linear()->set_x(lScale * linear);
+    cmdVelMsg.mutable_angular()->set_z(aScale * angular);
 
     ignition::msgs::Twist cmdVelMsg2;
-    cmdVelMsg2.mutable_linear()->set_x(l_scale_ * linear2);
-    cmdVelMsg2.mutable_angular()->set_z(a_scale_ * angular2);
+    cmdVelMsg2.mutable_linear()->set_x(lScale * linear2);
+    cmdVelMsg2.mutable_angular()->set_z(aScale * angular2);
 
     /*
     cmdVelMsg.mutable_linear()->set_x(axisLinear.X() * scaleLinear.X());
@@ -251,8 +251,8 @@ int main(int argc, char** argv)
 
   KeyboardTeleop teleop_turtle = KeyboardTeleop (scaleLinear.X(),
     scaleAngular.Z());
-  signal(SIGINT, quit);
-  teleop_turtle.keyLoop();
+  signal(SIGINT, Quit);
+  teleop_turtle.KeyLoop();
   
   return(0);
 }

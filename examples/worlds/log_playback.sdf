@@ -1,17 +1,14 @@
 <?xml version='1.0'?>
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='libignition-gazebo-physics-system.so'
-            name='ignition::gazebo::systems::v0::Physics'>
-    </plugin>
     <plugin filename='libignition-gazebo-systems.so'
             name='ignition::gazebo::systems::v0::SceneBroadcaster'>
     </plugin>
     <plugin
       filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::v0::LogPlayback'>
-      <log_path>test.tlog</log_path>
-      <sdf_path>test.sdf</sdf_path>
+      <!--log_path>test.tlog</log_path>
+      <sdf_path>test.sdf</sdf_path-->
     </plugin>
 
     <gui fullscreen='0'>
