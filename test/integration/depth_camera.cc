@@ -23,9 +23,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
