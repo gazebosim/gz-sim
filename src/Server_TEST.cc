@@ -113,7 +113,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
   // Test server config copy constructor
   {
-    ServerConfig cfg(serverConfig);
+    const ServerConfig &cfg(serverConfig);
     const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
     ASSERT_FALSE(cfgPlugins.empty());
 
@@ -137,8 +137,8 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
   sdf->AddAttribute("name", "string",
-      "ignition::gazebo::TestModelSystem", 1);
-  sdf->AddAttribute("filename", "string", "libTestModelSystem.so", 1);
+      "ignition::gazebo::TestModelSystem", true);
+  sdf->AddAttribute("filename", "string", "libTestModelSystem.so", true);
 
   sdf::ElementPtr child(new sdf::Element);
   child->SetParent(sdf);
