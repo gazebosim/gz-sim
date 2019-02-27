@@ -13,6 +13,9 @@
 
 ### Ignition Math 5.x.x
 
+1. eigen3: add conversion functions for Eigen::AlignedBox3d <=> ignition::math::AxisAlignedBox
+    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/302)
+
 
 ### Ignition Math 5.0.0 (2018-12-12)
 
@@ -29,6 +32,9 @@
    axis-aligned. The previous `Box` functionality is now in the
    `AxisAlignedBox` class.
     * [Pull request 257](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/257)
+
+1. Added eigen3 component with functions for converting between Eigen and ign-math types.
+    * [Pull request 256](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/256)
 
 1. Added a `MassMatrix3::SetFromCylinder` function that uses a `Material`
 to specify a density.
