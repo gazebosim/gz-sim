@@ -19,9 +19,10 @@
 
 #include "ignition/common/Profiler.hh"
 
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -31,16 +32,17 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const bool _useLevels
-                                   )
+                                   const ServerConfig &_config)
     // \todo(nkoenig) Either copy the world, or add copy constructor to the
     // World and other elements.
     : sdfWorld(_world)
 {
+  this->serverConfig = _config;
+
   // Keep world name
   this->worldName = _world->Name();
 
-  // Keep system loader to plugins can be loaded at runtime
+  // Keep system loader so plugins can be loaded at runtime
   this->systemLoader = _systemLoader;
 
   // Check if this is going to be a distributed runner
@@ -104,7 +106,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this, _useLevels);
+  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -403,25 +405,80 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  if (!_sdf->HasElement("plugin"))
-    return;
-
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
-    auto system = this->systemLoader->LoadPlugin(pluginElem);
+    // No error message for the 'else' case of the following 'if' statement
+    // because SDF create a default <plugin> element even if it's not
+    // specified. An error message would result in spamming
+    // the console. \todo(nkoenig) Fix SDF should so that elements are not
+    // automatically added.
+    if (pluginElem->Get<std::string>("filename") != "__default__" &&
+        pluginElem->Get<std::string>("name") != "__default__")
+    {
+      std::optional<SystemPluginPtr> system =
+        this->systemLoader->LoadPlugin(pluginElem);
+      if (system)
+      {
+        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+        if (systemConfig != nullptr)
+        {
+          systemConfig->Configure(_entity, pluginElem,
+              this->entityCompMgr,
+              this->eventMgr);
+        }
+        this->AddSystem(system.value());
+      }
+    }
+
+    pluginElem = pluginElem->GetNextElement("plugin");
+  }
+
+  // \todo(nkoenig) Remove plugins from the server config after they have
+  // been added. We might not want to do this if we want to support adding
+  // the same plugin to multiple entities, for example via a regex
+  // expression.
+  //
+  // Check plugins from the ServerConfig for matching entities.
+  for (const ServerConfig::PluginInfo &plugin : this->serverConfig.Plugins())
+  {
+    // \todo(anyone) Type + name is not enough to uniquely identify an entity
+    // \todo(louise) The runner shouldn't care about specific components, this
+    // logic should be moved somewhere else.
+    Entity entity{kNullEntity};
+
+    if ("model" == plugin.EntityType())
+    {
+      entity = this->entityCompMgr.EntityByComponents(
+          components::Name(plugin.EntityName()), components::Model());
+    }
+    else if ("world" == plugin.EntityType())
+    {
+      entity = this->entityCompMgr.EntityByComponents(
+          components::Name(plugin.EntityName()), components::World());
+    }
+    else
+    {
+      ignwarn << "No support for attaching plugins to entity of type ["
+              << plugin.EntityType() << "]" << std::endl;
+    }
+
+    // Skip plugins that do not match the provided entity
+    if (entity != _entity)
+      continue;
+
+    std::optional<SystemPluginPtr> system =
+      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(_entity, pluginElem,
-                                this->entityCompMgr,
+        systemConfig->Configure(entity, plugin.Sdf(), this->entityCompMgr,
                                 this->eventMgr);
       }
       this->AddSystem(system.value());
     }
-    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 
