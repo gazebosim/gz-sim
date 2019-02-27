@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_DEPTH_CAMERA_HH_
-#define IGNITION_GAZEBO_COMPONENTS_DEPTH_CAMERA_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
+#define IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
 
 #include <sdf/Element.hh>
 #include <ignition/gazebo/components/Factory.hh>
