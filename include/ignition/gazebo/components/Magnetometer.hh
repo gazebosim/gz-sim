@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PARENTLINKNAME_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PARENTLINKNAME_HH_
+*/
+#ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
+#define IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 
-#include <string>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
+#include <sdf/Element.hh>
+
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
+#include <ignition/gazebo/components/Factory.hh>
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -30,13 +33,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Holds the name of the entity's parent link.
-  using ParentLinkName = Component<std::string, class ParentLinkNameTag>;
+  /// \brief TODO(anyone) Substitute with sdf::Magnetometer once that exists?
+  /// This is currently the whole <sensor> element.
+  using Magnetometer = Component<sdf::ElementPtr, class MagnetometerTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
-    "ign_gazebo_components.ParentLinkName", ParentLinkName)
+      "ign_gazebo_components.Magnetometer", Magnetometer)
 }
 }
 }
 }
-
 #endif
