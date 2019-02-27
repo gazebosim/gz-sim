@@ -2,6 +2,9 @@
 
 ### Ignition Math 6.x.x
 
+1. eigen3: add conversion functions for Eigen::AlignedBox3d <=> ignition::math::AxisAlignedBox
+    * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/302)
+
 ### Ignition Math 6.0.0
 
 1. Helper function that converts from `std::chrono::steady_clock::duration` to
