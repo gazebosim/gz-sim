@@ -24,16 +24,13 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 
 #include "plugins/MockSystem.hh"
 
-#define LASER_TOL 1e-4
-#define DOUBLE_TOL 1e-6
+#define DEPTH_TOL 1e-4
 
 using namespace ignition;
 using namespace gazebo;
@@ -112,7 +109,7 @@ TEST_F(DepthCameraTest, DepthCameraBox)
   // Lock access to buffer and don't release it
   mutex.lock();
   EXPECT_DOUBLE_EQ(depthBuffer[left], ignition::math::INF_D);
-  EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, LASER_TOL);
+  EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, DEPTH_TOL);
   EXPECT_DOUBLE_EQ(depthBuffer[right], ignition::math::INF_D);
 
   delete[] depthBuffer;
