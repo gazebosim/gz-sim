@@ -99,11 +99,10 @@ uint64_t iterations()
 #ifdef  __linux__
 TEST(NetworkHandshake, Handshake)
 {
-  ignition::common::Console::SetVerbosity(4);
-
   setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
   setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
   ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
   Server serverPrimary(serverConfig);
   serverPrimary.SetUpdatePeriod(1us);
 
