@@ -41,6 +41,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
@@ -103,8 +104,8 @@ namespace ignition
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                        const SystemLoaderPtr &_systemLoader,
-                                        const bool _useLevels = false);
+                                 const SystemLoaderPtr &_systemLoader,
+                                 const ServerConfig &_config = ServerConfig());
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -360,6 +361,9 @@ namespace ignition
 
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
+
+      /// \brief Copy of the server configuration.
+      public: ServerConfig serverConfig;
 
       friend class LevelManager;
     };

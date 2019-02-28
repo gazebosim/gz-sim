@@ -105,6 +105,8 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  this->dataPtr->config = _config;
+
   // Configure the fuel client
   fuel_tools::ClientConfig config;
   if (!_config.ResourceCache().empty())
@@ -146,8 +148,6 @@ Server::Server(const ServerConfig &_config)
       ignerr << err << "\n";
     return;
   }
-
-  this->dataPtr->useLevels = _config.UseLevels();
 
   this->dataPtr->CreateEntities();
 
