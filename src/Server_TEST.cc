@@ -76,15 +76,13 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  EXPECT_TRUE(serverConfig.SetSdfString(kTestWorld));
-  EXPECT_TRUE(retString);
+  serverConfig.SetSdfString(kTestWorld);
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
   // Setting the SDF file should override the string.
-  EXPECT_TRUE(serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf"));
-  EXPECT_TRUE(retFile);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -109,13 +107,13 @@ TEST_P(ServerFixture, SdfStringServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  EXPECT_TRUE(serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf"));
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
   // Setting the string should override the file.
-  EXPECT_TRUE(serverConfig.SetSdfString(kTestWorld));
+  serverConfig.SetSdfString(kTestWorld);
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
@@ -228,7 +226,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  EXPECT_TRUE(serverConfig.SetSdfString(kTestWorld));
+  serverConfig.SetSdfString(kTestWorld);
   gazebo::Server server(serverConfig);
 
   EXPECT_FALSE(server.Running());
