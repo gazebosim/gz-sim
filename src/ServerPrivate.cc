@@ -134,7 +134,7 @@ void ServerPrivate::CreateEntities()
     }
 
     this->simRunners.push_back(std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->useLevels));
+        world, this->systemLoader, this->config));
   }
 }
 
