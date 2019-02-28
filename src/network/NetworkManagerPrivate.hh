@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,17 @@ namespace ignition
       /// \brief Information about this peer
       public: PeerInfo peerInfo;
 
+      /// \brief EventManager to emit/connect to
+      public: EventManager *eventMgr;
+
       /// \brief Object to manage information about discovered peers.
       public: std::unique_ptr<PeerTracker> tracker;
+
+      /// \brief Track connection to "PeerRemoved" Event
+      public: ignition::common::ConnectionPtr peerRemovedConn;
+
+      /// \brief Traack connection to "PeerStale" Event
+      public: ignition::common::ConnectionPtr peerStaleConn;
     };
     }
   }  // namespace gazebo

@@ -47,12 +47,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
+  // If the configuration is invalid, then networkMgr will be `nullptr`.
   this->networkMgr = NetworkManager::Create();
-  if (this->networkMgr && !this->networkMgr->Valid())
-  {
-    // If not, release the networkMgr, it's not needed.
-    this->networkMgr.reset();
-  }
 
   // Get the first physics profile
   // \todo(louise) Support picking a specific profile
