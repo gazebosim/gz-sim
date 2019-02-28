@@ -11,16 +11,16 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::v0::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::v0::Sensors">
+      name="ignition::gazebo::v0::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      name="ignition::gazebo::v0::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">

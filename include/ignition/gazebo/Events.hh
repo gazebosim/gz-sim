@@ -28,12 +28,12 @@ namespace ignition
 {
   namespace gazebo
   {
+    // Inline bracket to help doxygen filtering.
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Namespace for all events. Refer to the EventManager class for
     /// more information about events.
     namespace events
     {
-      // Inline bracket to help doxygen filtering.
-      inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
       /// \brief The pause event can be used to pause or unpause simulation.
       /// Emit a value of true to pause simulation, and emit a value of false
       /// to unpause simulation.
