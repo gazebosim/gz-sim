@@ -39,6 +39,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/ServerConfig.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 
 using namespace std::chrono_literals;
@@ -119,8 +120,8 @@ namespace ignition
       /// pointer to child nodes of the root
       public: sdf::Root sdfRoot;
 
-      /// \brief Whether to use the level system
-      public: bool useLevels{false};
+      /// \brief The server configuration.
+      public: ServerConfig config;
 
       /// \brief Client used to download resources from Ignition Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;

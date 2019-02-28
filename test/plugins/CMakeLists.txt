@@ -29,6 +29,7 @@ if(BUILD_TESTING)
     target_link_libraries(${src}
       PRIVATE
         ignition-plugin${IGN_PLUGIN_VER}::register
+        ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
         ignition-gazebo
     )
     install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
