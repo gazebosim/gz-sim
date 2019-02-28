@@ -268,9 +268,11 @@ TEST_P(ServerFixture, SigInt)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
-  ignition::common::Console::SetVerbosity(4);
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorld);
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
@@ -306,8 +308,11 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorld);
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
