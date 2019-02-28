@@ -18,13 +18,12 @@
 #include "LogRecord.hh"
 
 #include <ignition/msgs/pose_v.pb.h>
+#include <sys/stat.h>
 
 #include <string>
 #include <fstream>
 #include <filesystem>
 #include <ctime>
-
-#include <sys/stat.h>
 
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
@@ -116,8 +115,8 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     }
 
     std::time_t timestamp = std::time(nullptr);
-    ignerr << std::to_string (timestamp) << std::endl;
-    fsLogPath /= std::to_string (timestamp);
+    ignerr << std::to_string(timestamp) << std::endl;
+    fsLogPath /= std::to_string(timestamp);
 
     this->dataPtr->logPath = fsLogPath.string() + ".tlog";
     this->dataPtr->sdfPath = fsLogPath.string() + ".sdf";
