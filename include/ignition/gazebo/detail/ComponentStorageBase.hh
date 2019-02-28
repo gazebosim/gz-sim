@@ -164,7 +164,7 @@ namespace ignition
         }
 
         std::lock_guard<std::mutex> lock(this->mutex);
-        result = this->idCounter++;
+        result = ++this->idCounter;
         this->idMap[result] = this->components.size();
         // Copy the component
         this->components.push_back(std::move(
