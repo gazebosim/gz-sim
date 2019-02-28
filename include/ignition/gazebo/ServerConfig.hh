@@ -148,21 +148,31 @@ namespace ignition
       /// \brief Destructor
       public: ~ServerConfig();
 
-      /// \brief Set an SDF file. The SDF parser will attempt to load the
-      /// provided file. If the file fails to load, then the stored SDF file
-      /// will remain unchanged and a false value will be returned. You can
-      /// override the check using the _force parameter.
+      /// \brief Set an SDF file to be used with the server.
+      ///
+      /// Setting the SDF file will override any value set by `SetSdfString`.
+      ///
       /// \param[in] _file Full path to an SDF file.
-      /// \param[in] _force Force the stored SDF file, bypassing the SDF
-      /// parser check.
-      /// \return True if the provided file was successfully found and
-      /// parsed, false otherwise.
+      /// \return (reserved for future use)
       public: bool SetSdfFile(const std::string &_file);
 
       /// \brief Get the SDF file that has been set. An empty string will be
       /// returned if an SDF file has not been set.
       /// \return The full path to the SDF file, or empty string.
       public: std::string SdfFile() const;
+
+      /// \brief Set an SDF string to be used by the server.
+      ///
+      /// Setting the SDF string will override any value set by `SetSdfFile`.
+      ///
+      /// \param[in] _file Full path to an SDF file.
+      /// \return (reserved for future use)
+      public: bool SetSdfString(const std::string &_sdfString);
+
+      /// \brief Get the SDF String that has been set. An empty string will
+      /// be returned if an SDF string has not been set.
+      /// \return The full contents of the SDF string, or empty string.
+      public: std::string SdfString() const;
 
       /// \brief Set the update rate in Hertz. Value <=0 are ignored.
       /// \param[in] _hz The desired update rate of the server in Hertz.

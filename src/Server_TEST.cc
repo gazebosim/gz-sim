@@ -43,6 +43,8 @@ class ServerFixture : public ::testing::TestWithParam<int>
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+
+    ignition::common::Console::SetVerbosity(4);
   }
 };
 
@@ -173,8 +175,15 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  // Setting the SDF file should override the string.
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -190,6 +199,30 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, SdfStringServerConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  // Setting the string should override the file.
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_EQ(2u, *server.EntityCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -291,7 +324,10 @@ TEST_P(ServerFixture, RunNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
-  gazebo::Server server;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  gazebo::Server server(serverConfig);
+
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
@@ -331,9 +367,11 @@ TEST_P(ServerFixture, SigInt)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
-  ignition::common::Console::SetVerbosity(4);
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
@@ -369,8 +407,11 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
