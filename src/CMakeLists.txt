@@ -90,7 +90,7 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  ${PROJECT_LIBRARY_TARGET_NAME}_private_msgs
+  ignition-gazebo_private_msgs
 )
 
 ign_add_component(systems
