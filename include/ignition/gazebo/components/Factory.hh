@@ -135,7 +135,7 @@ namespace components
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsById.find(_type);
-      if (it != this->compsById.end())
+      if (it != this->compsById.end() && nullptr != it->second)
         comp = it->second->Create();
 
       return comp;
@@ -150,7 +150,7 @@ namespace components
     {
       std::unique_ptr<ComponentStorageBase> storage;
       auto it = this->storagesById.find(_typeId);
-      if (it != this->storagesById.end())
+      if (it != this->storagesById.end() && nullptr != it->second)
         storage = it->second->Create();
 
       return storage;
