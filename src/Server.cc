@@ -105,6 +105,8 @@ static const char kDefaultWorld[] =
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+  this->dataPtr->config = _config;
+
   // Configure the fuel client
   fuel_tools::ClientConfig config;
   if (!_config.ResourceCache().empty())
@@ -133,6 +135,11 @@ Server::Server(const ServerConfig &_config)
     // 'src/gui_main.cc'.
     errors = this->dataPtr->sdfRoot.Load(filePath);
   }
+  else if (!_config.SdfString().empty())
+  {
+    ignmsg << "Loading SDF string.\n";
+    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+  }
   else
   {
     // Load an empty world.
@@ -146,9 +153,6 @@ Server::Server(const ServerConfig &_config)
       ignerr << err << "\n";
     return;
   }
-
-  this->dataPtr->useLevels = _config.UseLevels();
-  this->dataPtr->useDistSim = _config.UseDistSim();
 
   this->dataPtr->CreateEntities();
 
