@@ -49,9 +49,13 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \param[in] _name Name of the interface within the plugin library
   /// to load.
   /// \param[in] _sdf Plugin XML elements associated with this plugin.
+  // cppcheck-suppress passedByValue
   public: PluginInfoPrivate(std::string _entityName,
+  // cppcheck-suppress passedByValue
                             std::string _entityType,
+  // cppcheck-suppress passedByValue
                             std::string _filename,
+  // cppcheck-suppress passedByValue
                             std::string _name)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
@@ -195,6 +199,9 @@ class ignition::gazebo::ServerConfigPrivate
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
 
+  // \brief The SDF string that the server should load
+  public: std::string sdfString = "";
+
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
 
@@ -228,6 +235,7 @@ ServerConfig::~ServerConfig() = default;
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
   this->dataPtr->sdfFile = _file;
+  this->dataPtr->sdfString = "";
   return true;
 }
 
@@ -235,6 +243,20 @@ bool ServerConfig::SetSdfFile(const std::string &_file)
 std::string ServerConfig::SdfFile() const
 {
   return this->dataPtr->sdfFile;
+}
+
+//////////////////////////////////////////////////
+bool ServerConfig::SetSdfString(const std::string &_sdfString)
+{
+  this->dataPtr->sdfFile = "";
+  this->dataPtr->sdfString = _sdfString;
+  return true;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::SdfString() const
+{
+  return this->dataPtr->sdfString;
 }
 
 //////////////////////////////////////////////////

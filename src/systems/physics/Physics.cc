@@ -911,6 +911,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
       });
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::Physics,
+IGNITION_ADD_PLUGIN(Physics,
                     ignition::gazebo::System,
                     Physics::ISystemUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")
