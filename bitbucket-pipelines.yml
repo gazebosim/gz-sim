@@ -96,11 +96,11 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition Gazebo
-          - ./tools/clang_tidy.sh
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
+          - ./tools/clang_tidy.sh
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
