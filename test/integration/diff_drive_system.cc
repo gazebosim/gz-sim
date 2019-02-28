@@ -33,6 +33,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /// \brief Test DiffDrive system
 class DiffDriveTest : public ::testing::TestWithParam<int>
@@ -97,6 +98,71 @@ TEST_P(DiffDriveTest, PublishCmd)
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that records the vehicle poses
+  Relay testSystem;
+
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(),
+        components::Name("vehicle"));
+      EXPECT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check that vehicle didn't move
+  server.Run(true, 1000, false);
+
+  EXPECT_EQ(1000u, poses.size());
+
+  for (const auto &pose : poses)
+  {
+    EXPECT_EQ(poses[0], pose);
+  }
+
+  // Publish command and check that vehicle moved
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 3000, false);
+
+  EXPECT_EQ(4000u, poses.size());
+
+  EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
+  EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
+  EXPECT_NEAR(poses[0].Pos().Z(), poses[3999].Pos().Z(), tol);
+  EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
+  EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
+  EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+}
+
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest, SkidPublishCmd)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_skid.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
 
   // Create a system that records the vehicle poses
   Relay testSystem;

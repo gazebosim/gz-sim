@@ -41,16 +41,16 @@ class ignition::gazebo::systems::DiffDrivePrivate
   public: transport::Node node;
 
   /// \brief Entity of the left joint
-  public: Entity leftJoint = kNullEntity;
+  public: std::vector<Entity> leftJoints;
 
   /// \brief Entity of the right joint
-  public: Entity rightJoint = kNullEntity;
+  public: std::vector<Entity> rightJoints;
 
   /// \brief Name of left joint
-  public: std::string leftJointName = "left_joint";
+  public: std::vector<std::string> leftJointNames;
 
   /// \brief Name of right joint
-  public: std::string rightJointName = "right_joint";
+  public: std::vector<std::string> rightJointNames;
 
   /// \brief Calculated speed of left joint
   public: double leftJointSpeed{0};
@@ -89,11 +89,24 @@ void DiffDrive::Configure(const Entity &_entity,
     return;
   }
 
+  // Ugly, but needed because the sdf::Element::GetElement is not a const
+  // function and _sdf is a const shared pointer to a const sdf::Element.
+  sdf::Element *ptr = const_cast<sdf::Element*>(_sdf.get());
+
   // Get params from SDF
-  this->dataPtr->leftJointName = _sdf->Get<std::string>("left_joint",
-      this->dataPtr->leftJointName).first;
-  this->dataPtr->rightJointName = _sdf->Get<std::string>("right_joint",
-      this->dataPtr->rightJointName).first;
+  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
+  while (sdfElem)
+  {
+    this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("left_joint");
+  }
+  sdfElem = ptr->GetElement("right_joint");
+  while (sdfElem)
+  {
+    this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("right_joint");
+  }
+
   this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
       this->dataPtr->wheelSeparation).first;
   this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
@@ -113,49 +126,61 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   // If the joints haven't been identified yet, look for them
-  if (this->dataPtr->leftJoint == kNullEntity ||
-      this->dataPtr->rightJoint == kNullEntity)
+  if (this->dataPtr->leftJoints.empty() ||
+      this->dataPtr->rightJoints.empty())
   {
-    this->dataPtr->leftJoint =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->leftJointName);
-    this->dataPtr->rightJoint =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->rightJointName);
+    for (const std::string &name : this->dataPtr->leftJointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+        this->dataPtr->leftJoints.push_back(joint);
+    }
+
+    for (const std::string &name : this->dataPtr->rightJointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+        this->dataPtr->rightJoints.push_back(joint);
+    }
   }
 
-  if (this->dataPtr->leftJoint == kNullEntity ||
-      this->dataPtr->rightJoint == kNullEntity)
+  if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
     return;
 
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
-  // Update left wheel
-  auto leftVel =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->leftJoint);
+  for (Entity joint : this->dataPtr->leftJoints)
+  {
+    // Update wheel velocity
+    auto vel = _ecm.Component<components::JointVelocity>(joint);
 
-  if (leftVel == nullptr)
-  {
-    _ecm.CreateComponent(this->dataPtr->leftJoint,
-        components::JointVelocity(this->dataPtr->leftJointSpeed));
-  }
-  else
-  {
-    *leftVel = components::JointVelocity(this->dataPtr->leftJointSpeed);
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(joint,
+          components::JointVelocity(this->dataPtr->leftJointSpeed));
+    }
+    else
+    {
+      *vel = components::JointVelocity(this->dataPtr->leftJointSpeed);
+    }
   }
 
-  // Update right wheel
-  auto rightVel =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->rightJoint);
+  for (Entity joint : this->dataPtr->rightJoints)
+  {
+    // Update wheel velocity
+    auto vel = _ecm.Component<components::JointVelocity>(joint);
 
-  if (rightVel == nullptr)
-  {
-    _ecm.CreateComponent(this->dataPtr->rightJoint,
-        components::JointVelocity(this->dataPtr->rightJointSpeed));
-  }
-  else
-  {
-    *rightVel = components::JointVelocity(this->dataPtr->rightJointSpeed);
+    if (vel == nullptr)
+    {
+      _ecm.CreateComponent(joint,
+          components::JointVelocity(this->dataPtr->rightJointSpeed));
+    }
+    else
+    {
+      *vel = components::JointVelocity(this->dataPtr->rightJointSpeed);
+    }
   }
 }
 
@@ -175,4 +200,3 @@ IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate)
-
