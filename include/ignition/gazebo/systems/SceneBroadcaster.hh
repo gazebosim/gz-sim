@@ -27,6 +27,8 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   class SceneBroadcasterPrivate;
@@ -59,6 +61,7 @@ namespace systems
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
   };
+}
 }
 }
 }

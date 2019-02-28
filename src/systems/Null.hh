@@ -27,6 +27,8 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \class Null Null.hh ignition/gazebo/systems/Null.hh
@@ -62,6 +64,7 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) override;
   };
+  }
 }
 }
 }
