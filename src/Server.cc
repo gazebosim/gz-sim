@@ -135,6 +135,11 @@ Server::Server(const ServerConfig &_config)
     // 'src/gui_main.cc'.
     errors = this->dataPtr->sdfRoot.Load(filePath);
   }
+  else if (!_config.SdfString().empty())
+  {
+    ignmsg << "Loading SDF string.\n";
+    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+  }
   else
   {
     // Load an empty world.
