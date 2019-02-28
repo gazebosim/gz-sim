@@ -91,7 +91,7 @@ void DiffDrive::Configure(const Entity &_entity,
 
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
-  sdf::Element *ptr = const_cast<sdf::Element*>(_sdf.get());
+  auto ptr = const_cast<sdf::Element *>(_sdf.get());
 
   // Get params from SDF
   sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
