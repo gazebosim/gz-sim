@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/altimeter.pb.h>
+#include <mutex>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
@@ -90,12 +91,15 @@ class Relay
 };
 
 
+std::mutex mutex;
 std::vector<msgs::Altimeter> altMsgs;
 
 /////////////////////////////////////////////////
 void altimeterCb(const msgs::Altimeter &_msg)
 {
+  mutex.lock();
   altMsgs.push_back(_msg);
+  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -152,6 +156,26 @@ TEST_F(AltimeterTest, ModelFalling)
   server.Run(true, iters100, false);
   EXPECT_EQ(iters100, poses.size());
 
+  // Wait for messages to be received
+  size_t waitForMsgs = poses.size();
+  for (int sleep = 0; sleep < 30; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    mutex.lock();
+    bool received = altMsgs.size() == waitForMsgs;
+    mutex.unlock();
+
+    if (received)
+      break;
+  }
+
+  mutex.lock();
+  EXPECT_EQ(altMsgs.size(), waitForMsgs);
+  auto firstMsg = altMsgs.front();
+  auto lastMsg = altMsgs.back();
+  mutex.unlock();
+
   // check altimeter world pose
   // verify the altimeter model z pos is decreasing
   EXPECT_GT(poses.front().Pos().Z(), poses.back().Pos().Z());
@@ -163,19 +187,38 @@ TEST_F(AltimeterTest, ModelFalling)
   // check altimeter sensor data
   // vertical position = world position - intial position
   // so since altimeter is falling, vertical position should be negative
-  EXPECT_GT(altMsgs.front().vertical_position(),
-      altMsgs.back().vertical_position());
-  EXPECT_LT(altMsgs.back().vertical_position(), 0.0);
+  EXPECT_GT(firstMsg.vertical_position(),
+      lastMsg.vertical_position());
+  EXPECT_LT(lastMsg.vertical_position(), 0.0);
   // vertical velocity should be negative
-  EXPECT_GT(altMsgs.front().vertical_velocity(),
-      altMsgs.back().vertical_velocity());
-  EXPECT_LT(altMsgs.back().vertical_velocity(), 0.0);
+  EXPECT_GT(firstMsg.vertical_velocity(),
+      lastMsg.vertical_velocity());
+  EXPECT_LT(lastMsg.vertical_velocity(), 0.0);
 
   // Run server for longer period of time so the altimeter falls then rests
   // on the ground plane
   size_t iters1000 = 1000u;
   server.Run(true, iters1000, false);
   EXPECT_EQ(iters100 + iters1000, poses.size());
+
+  // Wait for messages to be received
+  waitForMsgs = poses.size();
+  for (int sleep = 0; sleep < 30; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    mutex.lock();
+    bool received = altMsgs.size() == waitForMsgs;
+    mutex.unlock();
+
+    if (received)
+      break;
+  }
+
+  mutex.lock();
+  EXPECT_EQ(altMsgs.size(), waitForMsgs);
+  lastMsg = altMsgs.back();
+  mutex.unlock();
 
   // check altimeter world pose
   // altimeter should be on the ground
@@ -187,7 +230,7 @@ TEST_F(AltimeterTest, ModelFalling)
 
   // check altimeter sensor data
   // altimeter vertical position = 0.05 (world pos) - 3.05 (initial position)
-  EXPECT_LT(altMsgs.back().vertical_position(), -3.0);
+  EXPECT_LT(lastMsg.vertical_position(), -3.0);
   // velocity should be zero
-  EXPECT_NEAR(altMsgs.back().vertical_velocity(), 0u, 1e-3);
+  EXPECT_NEAR(lastMsg.vertical_velocity(), 0u, 1e-3);
 }
