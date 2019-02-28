@@ -155,7 +155,11 @@ TEST(PeerTracker, PeerTrackerStale)
   auto tracker2 = std::make_shared<PeerTracker>(info2);
   tracker2->SetHeartbeatPeriod(std::chrono::milliseconds(100));
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  for (int sleep = 0; sleep < 50 && tracker2->NumPeers() == 0; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+  }
+
   EXPECT_EQ(1, stalePeers);
 
   // Expect while tracker1 can see tracker2, the opposite is
@@ -198,7 +202,15 @@ TEST(PeerTracker, Partitioned)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  for (int sleep = 0; sleep < 30 &&
+      (tracker1.NumPeers() == 0 ||
+       tracker2.NumPeers() == 0 ||
+       tracker3.NumPeers() == 0 ||
+       tracker4.NumPeers() == 0);
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
 
   // Trackers should detect peers in the same partition.
   EXPECT_EQ(1u, tracker1.NumPeers());
