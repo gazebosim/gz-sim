@@ -169,7 +169,7 @@ namespace ignition
       /// \return (reserved for future use)
       public: bool SetSdfString(const std::string &_sdfString);
 
-      /// \brief Get the SDF String that has been set. An emptry string will
+      /// \brief Get the SDF String that has been set. An empty string will
       /// be returned if an SDF string has not been set.
       /// \return The full contents of the SDF string, or empty string.
       public: std::string SdfString() const;
