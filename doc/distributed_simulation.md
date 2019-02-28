@@ -13,13 +13,13 @@
 Each ign-gazebo instance has the ability to run with the `--distributed` flag.
 When the flag is present, the instance attempts to join a distributed simulation
 environment by utilizing `ign-transport`. Ign-transport is used to register and
-track available peers, as well as syncronize clock and state among multiple
+track available peers, as well as synchronize clock and state among multiple
 distributed environment participants.
 
 Distributed environment participants can take one of the following roles.
 
-* Primary - responsible for distributing work and syncronizing clocks among the
-            other pariticipants
+* Primary - responsible for distributing work and synchronizing clocks among the
+            other participants
 * Secondary - responsible for receiving work from the primary instance and
               executing physics and sensor simulation.  Results are reported
               back to the Primary.
@@ -28,7 +28,7 @@ The distribution utilizes the concept of performers in order to set where
 physics simulation will occur. A performer is an additional annotation in the
 sdf file which marks each model which will be a performer. Performers are
 allocated to secondaries using a round-robin fashion. If there are more
-performers than secondaries, mutiple performers will be allocated to each
+performers than secondaries, multiple performers will be allocated to each
 secondary.
 
 ## Assumptions
@@ -61,7 +61,7 @@ variables to dictate the behavior of the primary.
     to join. Simulation will not begin until **N** secondaries have been
     discovered.
 
-In all other environemtsn, the secondaries, the instance will only read the
+In all other environments, the secondaries, the instance will only read the
 role environment variable
 
 * **IGN_GAZEBO_NETWORK_ROLE=SECONDARY** - Dictates that the role of this
