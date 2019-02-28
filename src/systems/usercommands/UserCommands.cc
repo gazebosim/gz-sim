@@ -504,3 +504,6 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
   UserCommands::ISystemPreUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+                          "ignition::gazebo::systems::UserCommands")

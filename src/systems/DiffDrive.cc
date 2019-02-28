@@ -196,7 +196,9 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
     (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
+IGNITION_ADD_PLUGIN(DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
