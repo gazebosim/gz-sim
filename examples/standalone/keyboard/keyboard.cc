@@ -17,6 +17,10 @@
 
 /*
   Adapted from https://github.com/ros/ros_tutorials/blob/lunar-devel/turtlesim/tutorials/teleop_turtle_key.cpp
+  Original Copyright:
+  Software License Agreement (BSD License)
+  Copyright (c) 2008, Willow Garage, Inc.
+  All rights reserved.
  */
 
 
