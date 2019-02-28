@@ -19,7 +19,6 @@ set(network_sources
   network/NetworkManager.cc
   network/NetworkManagerPrimary.cc
   network/NetworkManagerSecondary.cc
-  network/NetworkManagerReadOnly.cc
   network/PeerInfo.cc
   network/PeerTracker.cc
 )
