@@ -24,6 +24,8 @@
 #include <filesystem>
 #include <ctime>
 
+#include <sys/stat.h>
+
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/log/Log.hh>
@@ -54,8 +56,27 @@ class ignition::gazebo::systems::LogRecordPrivate
   // Use ign-transport directly
   /// \brief Log file or nullptr if not recording
   public: ignition::transport::log::Recorder recorder;
+
+  public: std::string UniqueFilePath(const std::string &_pathAndName,
+    const std::string &_extension);
 };
 
+//////////////////////////////////////////////////
+std::string LogRecordPrivate::UniqueFilePath(const std::string &_pathAndName,
+  const std::string &_extension)
+{
+  std::string result = _pathAndName + "." + _extension;
+  int count = 1;
+  struct stat buf;
+
+  // Check if file exists and change name accordingly
+  while (stat(result.c_str(), &buf) != -1)
+  {
+    result = _pathAndName + "(" + std::to_string(count++) + ")." + _extension;
+  }
+
+  return result;
+}
 
 //////////////////////////////////////////////////
 LogRecord::LogRecord()
@@ -101,18 +122,30 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     this->dataPtr->logPath = fsLogPath.string() + ".tlog";
     this->dataPtr->sdfPath = fsLogPath.string() + ".sdf";
 
-    ignerr << "Unspecified log path to record to. "
+    ignwarn << "Unspecified log path to record to. "
       << "Recording to default location " << this->dataPtr->logPath << " and "
       << this->dataPtr->sdfPath << std::endl;
   }
 
   // Check if files already exist, don't overwrite
-  if (std::filesystem::exists(this->dataPtr->logPath) ||
-      std::filesystem::exists(this->dataPtr->sdfPath))
+  if (std::filesystem::exists(this->dataPtr->logPath))
   {
-    ignerr << "log_path and/or sdf_path already exist on disk! "
-      << "Not overwriting. Will not record." << std::endl;
-    return;
+    std::filesystem::path fsLogPath = this->dataPtr->logPath;
+    this->dataPtr->logPath = this->dataPtr->UniqueFilePath(
+      fsLogPath.stem().string(), fsLogPath.extension().string().substr(1));
+
+    ignwarn << "log_path already exist on disk! "
+      << "Recording instead to " << this->dataPtr->logPath << std::endl;
+  }
+
+  if (std::filesystem::exists(this->dataPtr->sdfPath))
+  {
+    std::filesystem::path fsSdfPath = this->dataPtr->sdfPath;
+    this->dataPtr->sdfPath = this->dataPtr->UniqueFilePath(
+      fsSdfPath.stem().string(), fsSdfPath.extension().string().substr(1));
+
+    ignwarn << "sdf_path already exist on disk! "
+      << "Recording instead to " << this->dataPtr->sdfPath << std::endl;
   }
 
   ignmsg << "Recording to log file " << this->dataPtr->logPath << std::endl;
