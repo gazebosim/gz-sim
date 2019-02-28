@@ -126,7 +126,7 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   // publish poses
   auto simTimeSecNsec =
     ignition::math::durationToSecNsec(_info.simTime);
-  for (const auto pose : poses)
+  for (const auto &pose : poses)
   {
     // fill pose msg
     // frame_id: parent entity name
@@ -136,9 +136,9 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     auto header = poseMsg.mutable_header();
     header->mutable_stamp()->set_sec(simTimeSecNsec.first);
     header->mutable_stamp()->set_nsec(simTimeSecNsec.second);
-    std::string frameId = std::get<0>(pose);
-    std::string childFrameId = std::get<1>(pose);
-    math::Pose3d transform = std::get<2>(pose);
+    const std::string &frameId = std::get<0>(pose);
+    const std::string &childFrameId = std::get<1>(pose);
+    const math::Pose3d &transform = std::get<2>(pose);
     auto frame = header->add_data();
     frame->set_key("frame_id");
     frame->add_value(frameId);
