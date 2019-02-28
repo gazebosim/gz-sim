@@ -2,9 +2,9 @@
 <sdf version="1.6">
   <world name="placeholder">
     <plugin name="keyboard" filename="libKeyboardPlugin.so">
-      <twist_topic>/model/vehicle_green/cmd_vel</twist_topic>
+      <twist_arrows>/model/vehicle_green/cmd_vel</twist_arrows>
 
-      <twist_topic2>/model/vehicle_blue/cmd_vel</twist_topic2>
+      <twist_wasd>/model/vehicle_blue/cmd_vel</twist_wasd>
 
       <!-- Scale for linear XYZ, defaults to 0.5 on X-->
       <scale_linear>1 0 0</scale_linear>

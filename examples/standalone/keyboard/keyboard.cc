@@ -236,10 +236,10 @@ int main(int argc, char** argv)
   // Set up transport
   ignition::transport::Node node;
 
-  auto twistTopic = plugin->Get<std::string>("twist_topic", "/cmd_vel").first;
+  auto twistTopic = plugin->Get<std::string>("twist_arrows", "/cmd_vel").first;
   cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
 
-  auto twistTopic2 = plugin->Get<std::string>("twist_topic2", "/cmd_vel").first;
+  auto twistTopic2 = plugin->Get<std::string>("twist_wasd", "/cmd_vel").first;
   cmdVelPub2 = node.Advertise<ignition::msgs::Twist>(twistTopic2);
 
   //axisLinear = plugin->Get<ignition::math::Vector3d>("axis_linear",
