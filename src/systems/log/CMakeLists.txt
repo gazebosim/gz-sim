@@ -1,12 +1,3 @@
-# The log component is added to find_package() in ../../CMakeLists.txt.
-#   But if remove code from this repo, need this line here, and remove log
-#   component from ../../CMakeLists.txt.
-#ign_find_package(ignition-transport6 REQUIRED COMPONENTS log)
-
-ign_find_package(ignition-msgs3 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
-
-
 set (log_system_sources
   LogRecord.cc
   LogPlayback.cc
@@ -22,7 +13,6 @@ target_link_libraries(${log_system_target}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   # Use ign-transport directly
   ignition-transport${IGN_TRANSPORT_VER}::log
-  ignition-msgs${IGN_MSGS_VER}
   ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
@@ -31,9 +21,3 @@ target_link_libraries(${log_system_target}
 
 install(TARGETS ${log_system_target}
         DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
-
-# Set install instructions for the sql schema, and configure the build to use it
-#set(SCHEMA_INSTALL_BASE ${CMAKE_INSTALL_DATAROOTDIR}/ignition/${PROJECT_NAME_LOWER})
-#install(DIRECTORY sql DESTINATION ${SCHEMA_INSTALL_BASE})
-#set(SCHEMA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${SCHEMA_INSTALL_BASE}/sql)
-#configure_file(build_config.hh.in build_config.hh @ONLY)
