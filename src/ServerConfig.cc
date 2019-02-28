@@ -53,10 +53,10 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
                             const std::string &_entityType,
                             const std::string &_filename,
                             const std::string &_name)
-          : entityName(std::move(_entityName)),
-            entityType(std::move(_entityType)),
-            filename(std::move(_filename)),
-            name(std::move(_name))
+          : entityName(_entityName),
+            entityType(_entityType),
+            filename(_filename),
+            name(_name)
   {
   }
 
