@@ -46,6 +46,40 @@ TEST(EigenConversions, ConvertVector3)
 }
 
 /////////////////////////////////////////////////
+/// Check AxisAlignedBox conversions
+TEST(EigenConversions, ConvertAxisAlignedBox)
+{
+  {
+    ignition::math::AxisAlignedBox iBox, iBox2;
+    Eigen::AlignedBox3d eBox = ignition::math::eigen3::convert(iBox);
+    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[0]);
+    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[1]);
+    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[2]);
+    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[0]);
+    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[1]);
+    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[2]);
+    iBox2 = ignition::math::eigen3::convert(eBox);
+    EXPECT_EQ(iBox, iBox2);
+  }
+
+  {
+    ignition::math::AxisAlignedBox iBox(
+        ignition::math::Vector3d(100.5, -2.314, 42),
+        ignition::math::Vector3d(305, 2.314, 142));
+    ignition::math::AxisAlignedBox iBox2;
+    Eigen::AlignedBox3d eBox = ignition::math::eigen3::convert(iBox);
+    EXPECT_DOUBLE_EQ(iBox.Min()[0], eBox.min()[0]);
+    EXPECT_DOUBLE_EQ(iBox.Min()[1], eBox.min()[1]);
+    EXPECT_DOUBLE_EQ(iBox.Min()[2], eBox.min()[2]);
+    EXPECT_DOUBLE_EQ(iBox.Max()[0], eBox.max()[0]);
+    EXPECT_DOUBLE_EQ(iBox.Max()[1], eBox.max()[1]);
+    EXPECT_DOUBLE_EQ(iBox.Max()[2], eBox.max()[2]);
+    iBox2 = ignition::math::eigen3::convert(eBox);
+    EXPECT_EQ(iBox, iBox2);
+  }
+}
+
+/////////////////////////////////////////////////
 /// Check Quaternion conversions
 TEST(EigenConversions, ConvertQuaternion)
 {
