@@ -15,15 +15,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="libignition-gazebo0-physics-system.so"
       name="ignition::gazebo::systems::v0::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="libignition-gazebo0-user-commands-system.so"
       name="ignition::gazebo::systems::v0::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
+      filename="libignition-gazebo0-systems.so"
       name="ignition::gazebo::systems::v0::SceneBroadcaster">
     </plugin>
 
@@ -369,7 +369,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-systems.so"
+        filename="libignition-gazebo0-systems.so"
         name="ignition::gazebo::systems::v0::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
