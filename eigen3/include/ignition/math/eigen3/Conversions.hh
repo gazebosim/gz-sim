@@ -19,6 +19,7 @@
 #define IGNITION_MATH_EIGEN3_CONVERSIONS_HH_
 
 #include <Eigen/Geometry>
+#include <ignition/math/AxisAlignedBox.hh>
 #include <ignition/math/Matrix3.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -36,6 +37,16 @@ namespace ignition
       inline Eigen::Vector3d convert(const ignition::math::Vector3d &_v)
       {
         return Eigen::Vector3d(_v[0], _v[1], _v[2]);
+      }
+
+      /// \brief Convert from ignition::math::AxisAlignedBox to
+      /// Eigen::AlignedBox3d.
+      /// \param[in] _b ignition::math::AxisAlignedBox to convert
+      /// \return The equivalent Eigen::AlignedBox3d.
+      inline Eigen::AlignedBox3d convert(
+          const ignition::math::AxisAlignedBox &_b)
+      {
+        return Eigen::AlignedBox3d(convert(_b.Min()), convert(_b.Max()));
       }
 
       /// \brief Convert from ignition::math::Matrix3d to Eigen::Matrix3d.
@@ -92,6 +103,19 @@ namespace ignition
         vec.Z() = _v[2];
 
         return vec;
+      }
+
+      /// \brief Convert Eigen::AlignedBox3d to ignition::math::AxisAlignedBox.
+      /// \param[in] _b Eigen::AlignedBox3d to convert.
+      /// \return The equivalent ignition::math::AxisAlignedBox.
+      inline ignition::math::AxisAlignedBox convert(
+          const Eigen::AlignedBox3d &_b)
+      {
+        ignition::math::AxisAlignedBox box;
+        box.Min() = convert(_b.min());
+        box.Max() = convert(_b.max());
+
+        return box;
       }
 
       /// \brief Convert Eigen::Matrix3d to ignition::math::Matrix3d.
