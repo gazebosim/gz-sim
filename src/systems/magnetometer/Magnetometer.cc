@@ -267,3 +267,6 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
   Magnetometer::ISystemPreUpdate,
   Magnetometer::ISystemPostUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+                          "ignition::gazebo::systems::Magnetometer")
