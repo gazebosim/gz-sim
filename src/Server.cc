@@ -33,7 +33,7 @@ static const char kDefaultWorld[] =
       "<plugin filename='libignition-gazebo-physics-system.so'"
       "        name='ignition::gazebo::systems::v0::Physics'>"
       "</plugin>"
-      "<plugin filename='libignition-gazebo-systems.so'"
+      "<plugin filename='libignition-gazebo-scene-broadcaster-system.so'"
       "        name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
       "</plugin>"
       "<plugin"
