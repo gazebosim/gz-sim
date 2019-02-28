@@ -28,6 +28,7 @@
 #include <sdf/Root.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
+#include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -197,7 +198,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Configure(const Entity &/*_id*/,
+void LogPlayback::Configure(const Entity &_worldEntity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
@@ -283,11 +284,31 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   }
 
 
-  igndbg << _ecm.EntityCount() << " entities" << std::endl;
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
     ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
-  creator.CreateEntities(sdfWorld);
+
+  // Models
+  for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
+      ++modelIndex)
+  {
+    auto model = sdfWorld->ModelByIndex(modelIndex);
+    auto modelEntity = creator.CreateEntities(model);
+
+    creator.SetParent(modelEntity, _worldEntity);
+  }
+
+  // Lights
+  for (uint64_t lightIndex = 0; lightIndex < sdfWorld->LightCount();
+      ++lightIndex)
+  {
+    auto light = sdfWorld->LightByIndex(lightIndex);
+    auto lightEntity = creator.CreateEntities(light);
+
+    creator.SetParent(lightEntity, _worldEntity);
+  }
+
+  _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
 
   this->dataPtr->worldStartTime = std::chrono::high_resolution_clock::now();
