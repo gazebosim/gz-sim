@@ -220,7 +220,7 @@ TEST_F(PosePublisherTest, PublishCmd)
   });
 
   // verify pose msgs against recorded ones
-  for (auto msg : poseMsgs)
+  for (const auto &msg : poseMsgs)
   {
     EXPECT_TRUE(!msg.name().empty());
 
