@@ -284,3 +284,5 @@ IGNITION_ADD_PLUGIN(Contact, System,
   Contact::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
+
