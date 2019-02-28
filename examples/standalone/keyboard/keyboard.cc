@@ -33,7 +33,6 @@
 #include <termios.h>
 #include <stdio.h>
 
-//#include <fcntl.h>
 #include <unistd.h>  // read()
 
 #define KEYCODE_ARR_R 0x43 
@@ -52,10 +51,8 @@
 ignition::transport::Node::Publisher cmdVelPub;
 ignition::transport::Node::Publisher cmdVelPub2;
 
-//ignition::math::Vector3d axisLinear;
 ignition::math::Vector3d scaleLinear;
 
-//ignition::math::Vector3d axisAngular;
 ignition::math::Vector3d scaleAngular;
 
 
@@ -186,16 +183,6 @@ void KeyboardTeleop::KeyLoop()
     cmdVelMsg2.mutable_linear()->set_x(lScale * linear2);
     cmdVelMsg2.mutable_angular()->set_z(aScale * angular2);
 
-    /*
-    cmdVelMsg.mutable_linear()->set_x(axisLinear.X() * scaleLinear.X());
-    cmdVelMsg.mutable_linear()->set_y(axisLinear.Y() * scaleLinear.Y());
-    cmdVelMsg.mutable_linear()->set_z(axisLinear.Z() * scaleLinear.Z());
-
-    cmdVelMsg.mutable_angular()->set_x(axisAngular.X() * scaleAngular.X());
-    cmdVelMsg.mutable_angular()->set_y(axisAngular.Y() * scaleAngular.Y());
-    cmdVelMsg.mutable_angular()->set_z(axisAngular.Z() * scaleAngular.Z());
-    */
-
     if (dirty)
     {
       cmdVelPub.Publish(cmdVelMsg);
@@ -242,17 +229,14 @@ int main(int argc, char** argv)
   auto twistTopic2 = plugin->Get<std::string>("twist_wasd", "/cmd_vel").first;
   cmdVelPub2 = node.Advertise<ignition::msgs::Twist>(twistTopic2);
 
-  //axisLinear = plugin->Get<ignition::math::Vector3d>("axis_linear",
-  //    ignition::math::Vector3d::UnitX).first;
   scaleLinear = plugin->Get<ignition::math::Vector3d>("scale_linear",
       ignition::math::Vector3d(0.5, 0, 0)).first;
 
-  //axisAngular = plugin->Get<ignition::math::Vector3d>("axis_angular",
-  //    ignition::math::Vector3d::Zero).first;
   scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
       ignition::math::Vector3d(0, 0, 0.5)).first;
 
 
+  // Only linear X and angular Z are used
   KeyboardTeleop teleop_turtle = KeyboardTeleop (scaleLinear.X(),
     scaleAngular.Z());
   signal(SIGINT, Quit);
