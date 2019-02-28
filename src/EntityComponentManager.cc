@@ -524,9 +524,17 @@ bool EntityComponentManager::HasComponentType(
 void EntityComponentManagerPrivate::CreateComponentStorage(
     const ComponentTypeId _typeId)
 {
+  auto storage = components::Factory::Instance()->NewStorage(_typeId);
+
+  if (nullptr == storage)
+  {
+    ignerr << "Internal errror: failed to create storage for type [" << _typeId
+           << "]" << std::endl;
+    return;
+  }
+
+  this->components[_typeId] = std::move(storage);
   igndbg << "Created storage for component type [" << _typeId << "].\n";
-  this->components[_typeId] = std::move(
-     components::Factory::Instance()->NewStorage(_typeId));
 }
 
 /////////////////////////////////////////////////
