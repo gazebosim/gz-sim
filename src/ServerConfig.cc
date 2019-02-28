@@ -49,9 +49,13 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \param[in] _name Name of the interface within the plugin library
   /// to load.
   /// \param[in] _sdf Plugin XML elements associated with this plugin.
+  // cppcheck-suppress passedByValue
   public: PluginInfoPrivate(std::string _entityName,
+  // cppcheck-suppress passedByValue
                             std::string _entityType,
+  // cppcheck-suppress passedByValue
                             std::string _filename,
+  // cppcheck-suppress passedByValue
                             std::string _name)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
