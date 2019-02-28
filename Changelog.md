@@ -2,6 +2,8 @@
 
 ### Ignition Math 6.x.x
 
+### Ignition Math 6.1.0
+
 1. eigen3: add conversion functions for Eigen::AlignedBox3d <=> ignition::math::AxisAlignedBox
     * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/302)
 
