@@ -859,7 +859,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
     EXPECT_EQ(_joint->Name(), _name->Data());
   };
 
-  std::set<std::string> jointsToCheck = {
+  std::set<std::string> jointsToCheck {
     "revolute_demo",
     "gearbox_demo",
     "revolute2_demo",

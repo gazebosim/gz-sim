@@ -49,10 +49,10 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \param[in] _name Name of the interface within the plugin library
   /// to load.
   /// \param[in] _sdf Plugin XML elements associated with this plugin.
-  public: PluginInfoPrivate(std::string _entityName,
-                            std::string _entityType,
-                            std::string _filename,
-                            std::string _name)
+  public: PluginInfoPrivate(const std::string &_entityName,
+                            const std::string &_entityType,
+                            const std::string &_filename,
+                            const std::string &_name)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
             filename(std::move(_filename)),
