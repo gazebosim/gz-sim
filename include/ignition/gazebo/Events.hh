@@ -44,6 +44,15 @@ namespace ignition
       /// \endcode
       using Pause = ignition::common::EventT<void(bool), struct PauseTag>;
 
+      /// \brief The stop event can be used to terminate simulation.
+      /// Emit this signal to terminate an active simulation.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<ignition::gazebo::events::Stop>();
+      /// \endcode
+      using Stop = ignition::common::EventT<void(void), struct StopTag>;
+
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple <plugin> tags.
