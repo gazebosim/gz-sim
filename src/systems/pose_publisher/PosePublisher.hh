@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
+#define IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
 
-#include <ignition/gazebo/System.hh>
 #include <memory>
+#include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+#include <ignition/gazebo/System.hh>
 
 namespace ignition
 {
@@ -29,20 +31,20 @@ namespace systems
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   // Forward declaration
-  class DiffDrivePrivate;
+  class PosePublisherPrivate;
 
-  /// \brief Differential drive controller which can be attached to a model
-  /// with any number of left and right wheels.
-  class IGNITION_GAZEBO_VISIBLE DiffDrive
+  /// \brief Pose publisher system. Attach to an entity to publish the
+  /// transform of its child entities in the form of ignition::msgs::Pose msgs
+  class IGNITION_GAZEBO_VISIBLE PosePublisher
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: DiffDrive();
+    public: PosePublisher();
 
     /// \brief Destructor
-    public: ~DiffDrive() override = default;
+    public: ~PosePublisher() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -51,12 +53,12 @@ namespace systems
                            EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PostUpdate(
+                const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<DiffDrivePrivate> dataPtr;
+    private: std::unique_ptr<PosePublisherPrivate> dataPtr;
   };
   }
 }
@@ -64,4 +66,3 @@ namespace systems
 }
 
 #endif
-
