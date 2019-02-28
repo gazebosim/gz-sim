@@ -71,7 +71,7 @@ ign service -s /world/empty/remove \
     </plugin>
     <plugin
       filename="libignition-gazebo-contact-system.so"
-      name="ignition::gazebo::systems::v0::Contact">
+      name="ignition::gazebo::systems::Contact">
     </plugin>
 
     <gui fullscreen="0">

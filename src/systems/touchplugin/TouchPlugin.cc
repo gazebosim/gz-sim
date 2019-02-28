@@ -385,8 +385,10 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
   }
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::TouchPlugin,
+IGNITION_ADD_PLUGIN(TouchPlugin,
                     ignition::gazebo::System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

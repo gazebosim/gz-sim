@@ -3,11 +3,11 @@
   <world name="touch">
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-contact-system.so"
-      name="ignition::gazebo::systems::v0::Contact">
+      name="ignition::gazebo::systems::Contact">
     </plugin>
 
     <model name="ground_plane">
@@ -56,7 +56,7 @@
       </link>
       <plugin
         filename="libignition-gazebo-touchplugin-system.so"
-        name="ignition::gazebo::systems::v0::TouchPlugin">
+        name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>
         <namespace>white_touches_only_green</namespace>
@@ -111,7 +111,7 @@
       </link>
       <plugin
         filename="libignition-gazebo-touchplugin-system.so"
-        name="ignition::gazebo::systems::v0::TouchPlugin">
+        name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_red_yellow</target>
         <time>2</time>
         <namespace>red_and_yellow_touch_only_green</namespace>
@@ -144,7 +144,7 @@
       </link>
       <plugin
         filename="libignition-gazebo-touchplugin-system.so"
-        name="ignition::gazebo::systems::v0::TouchPlugin">
+        name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_blue</target>
         <time>2</time>
         <namespace>blue_touches_only_green</namespace>
