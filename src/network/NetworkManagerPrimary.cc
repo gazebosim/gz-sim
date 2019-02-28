@@ -21,40 +21,182 @@
 
 #include "ignition/common/Console.hh"
 #include "ignition/common/Util.hh"
+#include "ignition/gazebo/Events.hh"
+
+#include "msgs/peer_control.pb.h"
+#include "msgs/simulation_step.pb.h"
 
 #include "NetworkManagerPrivate.hh"
+#include "PeerTracker.hh"
 
 using namespace ignition;
 using namespace gazebo;
 
 //////////////////////////////////////////////////
-NetworkManagerPrimary::NetworkManagerPrimary(const NetworkConfig &_config):
-  NetworkManager(_config)
+NetworkManagerPrimary::NetworkManagerPrimary(
+    EventManager *_eventMgr, const NetworkConfig &_config,
+    const NodeOptions &_options):
+  NetworkManager(_eventMgr, _config, _options),
+  node(_options)
 {
+  this->simStepPub = this->node.Advertise<msgs::SimulationStep>("step");
+
+  auto eventMgr = this->dataPtr->eventMgr;
+  if (eventMgr)
+  {
+    this->dataPtr->peerRemovedConn = eventMgr->Connect<PeerRemoved>(
+        [this](PeerInfo _info)
+        {
+          if (_info.role == NetworkRole::SimulationSecondary)
+          {
+            ignerr << "Secondary removed, stopping simulation" << std::endl;
+            this->dataPtr->eventMgr->Emit<events::Stop>();
+          }
+        });
+
+    this->dataPtr->peerStaleConn = eventMgr->Connect<PeerStale>(
+        [this](PeerInfo _info)
+        {
+          if (_info.role == NetworkRole::SimulationSecondary)
+          {
+            ignerr << "Secondary went stale, stopping simulation" << std::endl;
+            this->dataPtr->eventMgr->Emit<events::Stop>();
+          }
+        });
+  }
+  else
+  {
+    ignwarn << "NetworkManager started without EventManager. "
+      << "Distributed environment may not terminate correctly" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerPrimary::Valid() const
+void NetworkManagerPrimary::Initialize()
 {
-  bool valid = this->dataPtr->config.role == NetworkRole::SimulationPrimary;
-  valid &= (this->dataPtr->config.numSecondariesExpected != 0);
-  return valid;
+  auto peers = this->dataPtr->tracker->SecondaryPeers();
+  for (const auto& peer : peers)
+  {
+    msgs::PeerControl req;
+    ignition::msgs::Empty resp;
+    req.set_enable_sim(true);
+
+    auto sc = std::make_unique<SecondaryControl>();
+    sc->id = peer;
+    sc->prefix = peer.substr(0, 8);
+
+    bool result;
+    std::string topic {sc->prefix + "/control"};
+    bool executed = this->node.Request(topic, req, 5000, resp, result);
+
+    if (executed)
+    {
+      if (result)
+      {
+        igndbg << "Peer initialized [" << sc->prefix << "]" << std::endl;
+        sc->ready = true;
+      }
+      else
+      {
+        igndbg << "Peer service call failed [" << sc->prefix << "]"
+          << std::endl;
+      }
+    }
+    else
+    {
+      igndbg << "Peer service call timed out [" << sc->prefix << "]"
+        << std::endl;
+    }
+
+    auto ackTopic = std::string {sc->prefix + "/stepAck"};
+    std::function<void(const msgs::SimulationStep&)> fcn =
+        std::bind(&NetworkManagerPrimary::OnStepAck, this, sc->prefix,
+            std::placeholders::_1);
+    this->node.Subscribe<msgs::SimulationStep>(ackTopic, fcn);
+
+    secondaries[sc->prefix] = std::move(sc);
+  }
 }
 
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::Ready() const
 {
-  bool ready = this->Valid();
-  auto secondaries = this->dataPtr->tracker->NumSecondary();
-  igndbg << "Found: " << secondaries << " network secondaries."
-         << " (Expected: " << this->dataPtr->config.numSecondariesExpected
-         << ")" << std::endl;
-  ready &= (secondaries == this->dataPtr->config.numSecondariesExpected);
+  // The detected number of peers in the "Secondary" role must match
+  // the number exepected (set via configuration of environment).
+  auto nSecondary = this->dataPtr->tracker->NumSecondary();
+  return (nSecondary == this->dataPtr->config.numSecondariesExpected);
+}
+
+//////////////////////////////////////////////////
+bool NetworkManagerPrimary::Step(
+    uint64_t &_iteration,
+    std::chrono::steady_clock::duration &_stepSize,
+    std::chrono::steady_clock::duration &_simTime)
+{
+  bool ready = true;
+  for (const auto& secondary : this->secondaries)
+  {
+    ready &= secondary.second->ready;
+  }
+
+  if (ready)
+  {
+    auto step = msgs::SimulationStep();
+    step.set_iteration(_iteration);
+
+    auto stepSizeSecNsec =
+      ignition::math::durationToSecNsec(_stepSize);
+    step.set_stepsize(stepSizeSecNsec.second);
+
+    auto simTimeSecNsec =
+      ignition::math::durationToSecNsec(_simTime);
+    step.mutable_simtime()->set_sec(simTimeSecNsec.first);
+    step.mutable_simtime()->set_nsec(simTimeSecNsec.second);
+    this->simStepPub.Publish(step);
+  }
   return ready;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManagerPrimary::StepAck(uint64_t _iteration)
+
+{
+  bool stepAck = true;
+  bool iters = true;
+  for (const auto& secondary : this->secondaries)
+  {
+    stepAck &= secondary.second->recvStepAck;
+    iters &= (_iteration == secondary.second->recvIter);
+  }
+
+  if (stepAck && iters)
+  {
+    for (auto & secondary : this->secondaries)
+    {
+      secondary.second->recvStepAck = false;
+    }
+  }
+
+  return (stepAck && iters);
 }
 
 //////////////////////////////////////////////////
 std::string NetworkManagerPrimary::Namespace() const
 {
   return "";
+}
+
+//////////////////////////////////////////////////
+void NetworkManagerPrimary::OnStepAck(const std::string &_secondary,
+      const msgs::SimulationStep &_msg)
+{
+  this->secondaries[_secondary]->recvStepAck = true;
+  this->secondaries[_secondary]->recvIter = _msg.iteration();
+}
+
+//////////////////////////////////////////////////
+std::map<std::string, SecondaryControl::Ptr>&
+NetworkManagerPrimary::Secondaries()
+{
+  return this->secondaries;
 }

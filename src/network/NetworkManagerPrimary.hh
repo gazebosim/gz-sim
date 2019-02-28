@@ -17,12 +17,19 @@
 #ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
 #define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
+#include <atomic>
+#include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-
+#include <ignition/gazebo/Entity.hh>
+#include <ignition/transport/Node.hh>
 #include <ignition/gazebo/network/NetworkManager.hh>
+
+#include "msgs/simulation_step.pb.h"
 
 namespace ignition
 {
@@ -30,6 +37,29 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    struct SecondaryControl
+    {
+      /// \brief indicate if the secondary is ready to execute
+      std::atomic<bool> ready {false};
+      /// \brief acknowledge received flag
+      std::atomic<bool> recvStepAck {false};
+      /// \brief last acknowledged iteration from secondary peer.
+      std::atomic<uint64_t> recvIter {0};
+
+      /// \brief id of the secondary peer
+      std::string id;
+      /// \brief prefix namespace of the secondary peer
+      std::string prefix;
+      /// \brief string identification of associated performers to this peer
+      std::vector<std::string> performers;
+      /// \brief entity identification of associated performers to this peer
+      std::vector<Entity> performerIds;
+
+      /// \brief Convenience alias for unique_ptr.
+      using Ptr = std::unique_ptr<SecondaryControl>;
+    };
+
+
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
     ///   ignition/gazebo/network/NetworkManagerPrimary.hh
     /// \brief SimulationPrimary specific behaviors
@@ -37,25 +67,54 @@ namespace ignition
       public NetworkManager
     {
       // Documentation inherited
-      public: explicit NetworkManagerPrimary(const NetworkConfig &_config);
+      public: explicit NetworkManagerPrimary(EventManager *_eventMgr,
+                                             const NetworkConfig &_config,
+                                             const NodeOptions &_options);
 
       // Documentation inherited
-      public: bool Valid() const override;
+      public: void Initialize() override;
 
       // Documentation inherited
       public: bool Ready() const override;
 
+      /// \brief Populate simulation step data.
+      /// On the network primary, the arguments will be used to distribute
+      /// clock state to all of the network participants.
+      /// \param[in] _iteration current simulation iteration
+      /// \param[in] _stepSize current simulation step size
+      /// \param[in] _stepSize current simulation time
+      /// \return True if simulation step is ready.
+      public: bool Step(
+                  uint64_t &_iteration,
+                  std::chrono::steady_clock::duration &_stepSize,
+                  std::chrono::steady_clock::duration &_simTime) override;
+
+      /// \brief Acknowledge the completion of a simulation step.
+      /// On the network primary, this will aggregate the acknowledgements of
+      /// all simulation participants
+      /// \return True if all participants acknowledge the simuation step.
+      public: bool StepAck(uint64_t _iteration) override;
+
       // Documentation inherited
       public: std::string Namespace() const override;
 
-      // Documentation inherited
-      public: bool IsPrimary() const override { return true; };
+      /// \brief Return a mutable reference to the currently detected secondary
+      /// peers.
+      public: std::map<std::string, SecondaryControl::Ptr>& Secondaries();
 
-      // Documentation inherited
-      public: bool IsSecondary() const override { return false; };
+      /// \brief Called when a step acknowledgement is received from a
+      /// secondary.
+      public: void OnStepAck(const std::string &_secondary,
+                  const msgs::SimulationStep &_msg);
 
-      // Documentation inherited
-      public: bool IsReadOnly() const override { return false; };
+      /// \brief Container of currently used secondary peers
+      private: std::map<std::string, SecondaryControl::Ptr> secondaries;
+
+      /// \brief Transport node
+      private: ignition::transport::Node node;
+
+      /// \brief Publisher for network clock sync
+      private: ignition::transport::Node::Publisher simStepPub;
     };
     }
   }  // namespace gazebo
