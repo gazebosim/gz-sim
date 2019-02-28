@@ -18,15 +18,10 @@
 #define IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
 
 #include <memory>
-#include <string>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
-
-// Use ign-transport directly
-#include <ignition/transport/log/Recorder.hh>
-
 
 namespace ignition
 {
@@ -51,7 +46,7 @@ namespace systems
     /// \brief Destructor
     public: ~LogRecord() override;
 
-    /// Documentation inherited
+    // Documentation inherited
     public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
