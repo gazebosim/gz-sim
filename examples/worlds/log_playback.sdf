@@ -7,8 +7,8 @@
     <plugin
       filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::v0::LogPlayback'>
-      <!--log_path>test.tlog</log_path>
-      <sdf_path>test.sdf</sdf_path-->
+      <log_path>test.tlog</log_path>
+      <sdf_path>test.sdf</sdf_path>
     </plugin>
 
     <gui fullscreen='0'>

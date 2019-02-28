@@ -47,9 +47,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
 
   /// \brief Name of recorded log file to play back
-  public: std::string logPath = "file.tlog";
+  public: std::string logPath;
   /// \brief Name of recorded SDF file
-  public: std::string sdfPath = "file.sdf";
+  public: std::string sdfPath;
 
   /// \brief Log object to read ign-transport log file
   public: std::unique_ptr <ignition::transport::log::Log> log;
@@ -206,7 +206,6 @@ void LogPlayback::Configure(const Entity &/*_id*/,
     this->dataPtr->logPath).first;
   this->dataPtr->sdfPath = _sdf->Get<std::string>("sdf_path",
     this->dataPtr->sdfPath).first;
-  ignmsg << "Playing back log file " << this->dataPtr->logPath << std::endl;
 
   if (this->dataPtr->logPath.empty() || this->dataPtr->sdfPath.empty())
   {
@@ -217,11 +216,13 @@ void LogPlayback::Configure(const Entity &/*_id*/,
   if (!std::filesystem::exists(this->dataPtr->logPath) ||
       !std::filesystem::exists(this->dataPtr->sdfPath))
   {
-    ignerr << "log_path and/or sdf_path invalid. File does not exist. "
+    ignerr << "log_path and/or sdf_path invalid. File(s) do not exist. "
       << "Nothing to play.\n";
     return;
   }
 
+
+  ignmsg << "Playing back log file " << this->dataPtr->logPath << std::endl;
 
   // Call Log.hh directly to load a .tlog file
 
