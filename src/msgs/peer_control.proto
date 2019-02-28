@@ -1,0 +1,38 @@
+/*
+ * Copyright (C) 2019 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+
+package ignition.gazebo.msgs;
+
+import "ignition/msgs/header.proto";
+
+/// \brief Message to control various aspects of peer execution.
+/// This message is only sent from NetworkPrimary to NetworkSecondary in order
+/// to either enable/disable simulation or pause/unpause simulation on the
+/// secondary.
+message PeerControl
+{
+  /// \brief Optional header data
+  ignition.msgs.Header header = 1;
+
+  /// \brief Enable simulation on network secondary (True to enable)
+  bool enable_sim = 2;
+
+  /// \brief Pause/Unpause simuluation on network secondary (True to pause)
+  bool pause_sim = 3;
+}
