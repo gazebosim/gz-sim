@@ -31,9 +31,6 @@ namespace ignition
 {
   namespace gazebo
   {
-    // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
     /// \brief Namespace for all System plugins. Refer to the System class for
     /// more information about systems.
     namespace systems {}
@@ -110,7 +107,6 @@ namespace ignition
       public: virtual void PostUpdate(const UpdateInfo &_info,
                                       const EntityComponentManager &_ecm) = 0;
     };
-    }
   }
 }
 #endif
