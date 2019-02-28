@@ -20,4 +20,23 @@
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
 
+// Create a special test world that doesn't use physics to avoid some issues
+// where ODE doesn't initialize properly in multiple physics instances in the
+// same process.
+// \TODO(anyone) Remove this if ODE issues are corrected.
+static const char kTestWorldSansPhysics[] =
+  "<?xml version='1.0'?>"
+  "<sdf version='1.6'>"
+    "<world name='default'>"
+      "<plugin"
+      "  filename='libignition-gazebo-systems.so'"
+      "  name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "</plugin>"
+      "<plugin"
+      "  filename='libignition-gazebo-user-commands-system.so'"
+      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "</plugin>"
+    "</world>"
+  "</sdf>";
+
 #endif
