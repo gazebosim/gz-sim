@@ -102,7 +102,7 @@ TEST(NetworkHandshake, Handshake)
   setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
   setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
   ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
   Server serverPrimary(serverConfig);
   serverPrimary.SetUpdatePeriod(1us);
 
