@@ -24,12 +24,14 @@ namespace ignition
 {
   namespace gazebo
   {
+    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     class TestSystem: public System
     {
-     public: TestSystem();
+      public: TestSystem();
 
-     public: virtual ~TestSystem();
+      public: virtual ~TestSystem();
     };
+    }
   }
 }
 
