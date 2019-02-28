@@ -41,14 +41,12 @@ struct TestWorldSansPhysics
       "<world name='default'>"
         "<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-systems.so'"
-        "  name='ignition::gazebo::systems::v" +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "::SceneBroadcaster'>"
+        "  name='ignition::gazebo::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
         "  filename='libignition-gazebo" +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
-        "  name='ignition::gazebo::systems::v"+
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "::UserCommands'>"
+        "  name='ignition::gazebo::systems::UserCommands'>"
         "</plugin>"
       "</world>"
     "</sdf>";
