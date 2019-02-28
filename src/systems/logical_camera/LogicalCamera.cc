@@ -116,7 +116,8 @@ void LogicalCameraPrivate::CreateLogicalCameraEntities(
         std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
         auto data = _logicalCamera->Data()->Clone();
         data->GetAttribute("name")->Set(sensorScopedName);
-        auto sensor = this->sensorFactory.CreateSensor<
+        std::unique_ptr<sensors::LogicalCameraSensor> sensor =
+            this->sensorFactory.CreateSensor<
             sensors::LogicalCameraSensor>(data);
 
         // set sensor parent
@@ -162,7 +163,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Pose3d worldPose = _worldPose->Data();
+          const math::Pose3d &worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
           it->second->SetModelPoses(std::move(modelPoses));
         }
