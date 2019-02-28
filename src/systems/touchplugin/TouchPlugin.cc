@@ -50,7 +50,7 @@ class ignition::gazebo::systems::TouchPluginPrivate
   /// \param[in] _value True to enable plugin.
   public: void Enable(const bool _value);
 
-  /// \brief TODO
+  /// \brief Process contact sensor data and determine if a touch event occurs
   /// \param[in] _info Simulation update info
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
   public: void Update(const UpdateInfo &_info,
@@ -73,6 +73,7 @@ class ignition::gazebo::systems::TouchPluginPrivate
   /// \brief Target collisions which this model should be touching.
   public: std::vector<Entity> targetEntities;
 
+  /// \brief std::chrono::duration type used throught this plugin
   public: using DurationType = std::chrono::duration<double>;
 
   /// \brief Target time to continuously touch.
@@ -190,6 +191,7 @@ void TouchPluginPrivate::Enable(const bool _value)
 {
   if (_value)
   {
+    this->touchedPub.reset();
     this->touchedPub = this->node.Advertise<msgs::Boolean>(
         "/" + this->ns + "/touched");
 
@@ -274,19 +276,22 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
     if (completed)
     {
       igndbg << "Model [" << this->model.Name(_ecm) << "] touched ["
-             << this->targetName << "] exclusively for "
-             << this->targetTime.count() << " s" << std::endl;
+        << this->targetName << "] exclusively for "
+        << this->targetTime.count() << " s" << std::endl;
 
-      msgs::Boolean msg;
-      msg.set_data(true);
-      this->touchedPub->Publish(msg);
-
+      if (this->touchedPub.has_value())
+      {
+        msgs::Boolean msg;
+        msg.set_data(true);
+        this->touchedPub->Publish(msg);
+      }
       // Disable
       this->Enable(false);
     }
   }
 }
 
+//////////////////////////////////////////////////
 void TouchPlugin::Configure(const Entity &_entity,
                             const std::shared_ptr<const sdf::Element> &_sdf,
                             EntityComponentManager &_ecm, EventManager &)
@@ -301,6 +306,7 @@ void TouchPlugin::Configure(const Entity &_entity,
   this->dataPtr->sdfConfig = _sdf->Clone();
 }
 
+//////////////////////////////////////////////////
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   if (!this->dataPtr->initialized)

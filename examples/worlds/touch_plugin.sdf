@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <!--
 This is an example demonstrating the use of the TouchPlugin.  The plugin
-requires that the Contact system be loaded contact sensors be placed in at
-least one link on the model on which this plugin is attached and
+requires that the Contact system be loaded and contact sensors be placed in at
+least one link on the model on which this plugin is attached.
 
 The plugin's parameters are documented in src/systems/touchplugin/TouchPlugin.hh
 

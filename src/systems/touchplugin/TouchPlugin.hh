@@ -34,8 +34,8 @@ namespace systems
 
   /// \brief Plugin which checks if a model has touched some specific target
   /// for a given time continuously and exclusively. After the touch is
-  /// completed, the plugin is disabled. It can be re-enabled through a Gazebo
-  /// transport service.
+  /// completed, the plugin is disabled. It can be re-enabled through an
+  /// Ignition transport service.
   ///
   /// It requires that contact sensors be placed in at least one link on the
   /// model on which this plugin is attached.
