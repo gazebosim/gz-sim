@@ -36,21 +36,6 @@ using namespace ignition;
 using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
-static const char kTestWorld[] =
-  "<?xml version='1.0'?>"
-  "<sdf version='1.6'>"
-    "<world name='default'>"
-      "<plugin"
-      "  filename='libignition-gazebo-systems.so'"
-      "  name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
-      "</plugin>"
-      "<plugin"
-      "  filename='libignition-gazebo-user-commands-system.so'"
-      "  name='ignition::gazebo::systems::v0::UserCommands'>"
-      "</plugin>"
-    "</world>"
-  "</sdf>";
-
 class ServerFixture : public ::testing::TestWithParam<int>
 {
   protected: void SetUp() override
@@ -188,7 +173,7 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfString(kTestWorld);
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
@@ -225,7 +210,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
   // Setting the string should override the file.
-  serverConfig.SetSdfString(kTestWorld);
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
@@ -338,7 +323,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorld);
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
   gazebo::Server server(serverConfig);
 
   EXPECT_FALSE(server.Running());
@@ -381,7 +366,7 @@ TEST_P(ServerFixture, SigInt)
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorld);
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
 
   gazebo::Server server1(serverConfig);
   gazebo::Server server2(serverConfig);
@@ -421,7 +406,7 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorld);
+  serverConfig.SetSdfString(kTestWorldSansPhysics);
 
   gazebo::Server server1(serverConfig);
   gazebo::Server server2(serverConfig);
