@@ -8,11 +8,11 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::v0::systems::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-imu-system.so"
-      name="ignition::gazebo::v0::systems::Imu">
+      name="ignition::gazebo::systems::Imu">
     </plugin>
 
     <model name="ground_plane">
