@@ -40,20 +40,17 @@ struct DefaultWorld
       {
         std::string("<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-        "name='ignition::gazebo::systems::v" +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR +"::Physics'></plugin>"
+        "name='ignition::gazebo::systems::Physics'></plugin>"
       },
       {
         std::string("<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-systems.so' "
-        "name='ignition::gazebo::systems::v" +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "::SceneBroadcaster'></plugin>"
+        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
       },
       {
         std::string("<plugin filename='libignition-gazebo") +
         IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-        "name='ignition::gazebo::systems::v"+
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "::UserCommands'></plugin>"
+        "name='ignition::gazebo::systems::UserCommands'></plugin>"
       }};
 
     static std::string world = std::string("<?xml version='1.0'?>"
