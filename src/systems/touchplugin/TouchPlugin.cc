@@ -100,6 +100,10 @@ class ignition::gazebo::systems::TouchPluginPrivate
 
   /// \brief Whether the plugin is enabled.
   public: bool enabled{false};
+
+  /// \brief Mutex for variables mutated by the service callback.
+  /// The variables are: touchPub, touchStart, enabled
+  public: std::mutex serviceMutex;
 };
 
 //////////////////////////////////////////////////
@@ -189,6 +193,8 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void TouchPluginPrivate::Enable(const bool _value)
 {
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+
   if (_value)
   {
     this->touchedPub.reset();
@@ -219,75 +225,88 @@ TouchPlugin::TouchPlugin()
 void TouchPluginPrivate::Update(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
-  if (!_info.paused && this->enabled)
   {
-    bool touching{false};
-    // Iterate through all the target entities and check if there is a contact
-    // between the target entity and this model
-    for (const Entity colEntity : this->collisionEntities)
+    std::lock_guard<std::mutex> lock(this->serviceMutex);
+    if (!this->enabled)
+      return;
+  }
+
+  if (_info.paused)
+    return;
+
+  bool touching{false};
+  // Iterate through all the target entities and check if there is a contact
+  // between the target entity and this model
+  for (const Entity colEntity : this->collisionEntities)
+  {
+    auto *contacts = _ecm.Component<components::ContactSensorData>(colEntity);
+    if (contacts)
     {
-      auto *contacts = _ecm.Component<components::ContactSensorData>(colEntity);
-      if (contacts)
+      // Check if the contacts include one of the target entities.
+      for (const auto &contact : contacts->Data().contact())
       {
-        // Check if the contacts include one of the target entities.
-        for (const auto &contact : contacts->Data().contact())
+        bool col1Target = std::binary_search(this->targetEntities.begin(),
+            this->targetEntities.end(),
+            contact.collision1().id());
+        bool col2Target = std::binary_search(this->targetEntities.begin(),
+            this->targetEntities.end(),
+            contact.collision2().id());
+        if (col1Target || col2Target)
         {
-          bool col1Target = std::binary_search(this->targetEntities.begin(),
-                                               this->targetEntities.end(),
-                                               contact.collision1().id());
-          bool col2Target = std::binary_search(this->targetEntities.begin(),
-                                               this->targetEntities.end(),
-                                               contact.collision2().id());
-          if (col1Target || col2Target)
-          {
-            touching = true;
-          }
+          touching = true;
         }
       }
     }
+  }
 
-    if (!touching)
+  if (!touching)
+  {
+    std::lock_guard<std::mutex> lock(this->serviceMutex);
+    if (this->touchStart != DurationType::zero())
     {
-      if (this->touchStart != DurationType::zero())
-      {
-        igndbg << "Not touching anything" << std::endl;
-      }
-      this->touchStart = DurationType::zero();
-      return;
+      igndbg << "Not touching anything" << std::endl;
     }
+    this->touchStart = DurationType::zero();
+    return;
+  }
 
-    // Start touch timer
+  // Start touch timer
+  {
+    std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (this->touchStart == DurationType::zero())
     {
       this->touchStart =
-          std::chrono::duration_cast<DurationType>(_info.simTime);
+        std::chrono::duration_cast<DurationType>(_info.simTime);
 
       igndbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
-             << this->targetName << "] at " << this->touchStart.count() << " s"
-             << std::endl;
+        << this->targetName << "] at " << this->touchStart.count() << " s"
+        << std::endl;
     }
+  }
 
-    // Check if it has been touched for long enough
-    auto completed = (std::chrono::duration_cast<DurationType>(_info.simTime) -
-                      this->touchStart) > this->targetTime;
+  // Check if it has been touched for long enough
+  auto completed = (std::chrono::duration_cast<DurationType>(_info.simTime) -
+      this->touchStart) > this->targetTime;
 
-    // This is a single-use plugin. After touched, publish a message
-    // and stop updating
-    if (completed)
+  // This is a single-use plugin. After touched, publish a message
+  // and stop updating
+  if (completed)
+  {
+    igndbg << "Model [" << this->model.Name(_ecm) << "] touched ["
+      << this->targetName << "] exclusively for "
+      << this->targetTime.count() << " s" << std::endl;
+
     {
-      igndbg << "Model [" << this->model.Name(_ecm) << "] touched ["
-        << this->targetName << "] exclusively for "
-        << this->targetTime.count() << " s" << std::endl;
-
+      std::lock_guard<std::mutex> lock(this->serviceMutex);
       if (this->touchedPub.has_value())
       {
         msgs::Boolean msg;
         msg.set_data(true);
         this->touchedPub->Publish(msg);
       }
-      // Disable
-      this->Enable(false);
     }
+    // Disable
+    this->Enable(false);
   }
 }
 
