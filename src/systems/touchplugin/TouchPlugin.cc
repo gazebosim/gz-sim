@@ -56,6 +56,12 @@ class ignition::gazebo::systems::TouchPluginPrivate
   public: void Update(const UpdateInfo &_info,
                       const EntityComponentManager &_ecm);
 
+  /// \brief Add target entities. Called when new collisions are found
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager
+  /// \param[in] _entities List of potential entities to add to targetEntities.
+  public: void AddTargetEntities(const EntityComponentManager &_ecm,
+                                 const std::vector<Entity> &_entities);
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
@@ -118,22 +124,16 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   }
 
   this->targetName = _sdf->GetElement("target")->Get<std::string>();
-  // The target name can be a substring of the desired collision name so we have
-  // to iterate through all collisions and check if their scoped name has this
-  // substring
+
+  std::vector<Entity> potentialEntities;
   _ecm.Each<components::Collision>(
       [&](const Entity &_entity, const components::Collision *) -> bool
       {
-        std::string name = scopedName(_entity, _ecm);
-        if (name.find(this->targetName) != std::string::npos)
-        {
-          this->targetEntities.push_back(_entity);
-        }
+        potentialEntities.push_back(_entity);
         return true;
       });
 
-  // Sort so that we can do binary search later on.
-  std::sort(this->targetEntities.begin(), this->targetEntities.end());
+  this->AddTargetEntities(_ecm, potentialEntities);
 
   // Create a list of collision entities that have been marked as contact
   // sensors in this model. These are collisions that have a ContactSensorData
@@ -311,6 +311,29 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void TouchPluginPrivate::AddTargetEntities(const EntityComponentManager &_ecm,
+                                           const std::vector<Entity> &_entities)
+{
+  if (_entities.empty())
+    return;
+
+  for (Entity entity : _entities)
+  {
+    // The target name can be a substring of the desired collision name so we
+    // have to iterate through all collisions and check if their scoped name has
+    // this substring
+    std::string name = scopedName(entity, _ecm);
+    if (name.find(this->targetName) != std::string::npos)
+    {
+      this->targetEntities.push_back(entity);
+    }
+  }
+
+  // Sort so that we can do binary search later on.
+  std::sort(this->targetEntities.begin(), this->targetEntities.end());
+}
+
+//////////////////////////////////////////////////
 void TouchPlugin::Configure(const Entity &_entity,
                             const std::shared_ptr<const sdf::Element> &_sdf,
                             EntityComponentManager &_ecm, EventManager &)
@@ -334,6 +357,21 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
     // that all entities have been created when Configure is called
     this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
     this->dataPtr->initialized = true;
+  }
+
+  // This is not an "else" because "initialized" can be set in the if block
+  // above
+  if (this->dataPtr->initialized)
+  {
+    // Update target entities when new collisions are added
+    std::vector<Entity> potentialEntities;
+    _ecm.EachNew<components::Collision>(
+        [&](const Entity &_entity, const components::Collision *) -> bool
+        {
+          potentialEntities.push_back(_entity);
+          return true;
+        });
+    this->dataPtr->AddTargetEntities(_ecm, potentialEntities);
   }
 }
 
