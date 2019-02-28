@@ -30,7 +30,7 @@ if(BUILD_TESTING)
       PRIVATE
         ignition-plugin${IGN_PLUGIN_VER}::register
         ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-        ignition-gazebo
+        ignition-gazebo${PROJECT_VERSION_MAJOR}
     )
     install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
   endforeach (src)

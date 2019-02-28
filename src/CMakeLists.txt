@@ -121,7 +121,7 @@ ign_build_tests(TYPE UNIT
     ${gtest_sources}
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
-    ignition-gazebo
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 
 # Create the gazebo executable
