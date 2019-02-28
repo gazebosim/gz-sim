@@ -46,7 +46,7 @@ namespace systems
     public: explicit Magnetometer();
 
     /// \brief Destructor
-    public: virtual ~Magnetometer();
+    public: ~Magnetometer() override;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
