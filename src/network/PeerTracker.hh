@@ -17,9 +17,10 @@
 #ifndef IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
 #define IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
 
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
+#include <vector>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -122,6 +123,17 @@ namespace ignition
       public: inline size_t NumReadOnly() const
               {
                 return NumPeers(NetworkRole::ReadOnly);
+              }
+
+      /// \brief Retrieve the ids of discovered peers.
+      public: std::vector<std::string> SecondaryPeers() const
+              {
+                std::vector<std::string> ret;
+                for (const auto& it : this->peers)
+                {
+                  ret.push_back(it.first);
+                }
+                return ret;
               }
 
       /// \brief Internal loop to announce and check stale peers.
