@@ -30,11 +30,11 @@ static const char kTestWorldSansPhysics[] =
     "<world name='default'>"
       "<plugin"
       "  filename='libignition-gazebo-systems.so'"
-      "  name='ignition::gazebo::systems::v0::SceneBroadcaster'>"
+      "  name='ignition::gazebo::systems::SceneBroadcaster'>"
       "</plugin>"
       "<plugin"
       "  filename='libignition-gazebo-user-commands-system.so'"
-      "  name='ignition::gazebo::systems::v0::UserCommands'>"
+      "  name='ignition::gazebo::systems::UserCommands'>"
       "</plugin>"
     "</world>"
   "</sdf>";
