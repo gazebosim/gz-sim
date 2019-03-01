@@ -15,24 +15,11 @@
  *
  */
 
-#include <sdf/Geometry.hh>
-#include <sdf/Light.hh>
-#include <sdf/Model.hh>
-#include <sdf/World.hh>
-
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/LevelBuffer.hh"
-#include "ignition/gazebo/components/LevelEntityNames.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerActive.hh"
@@ -48,7 +35,6 @@
 #include "network/NetworkManagerSecondary.hh"
 
 #include "msgs/performer_affinity.pb.h"
-
 
 using namespace ignition;
 using namespace gazebo;

@@ -50,7 +50,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
       << std::endl;
   }
 
-  this->node.Subscribe("/step", &NetworkManagerSecondary::OnStep, this);
+  this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
   std::string ackTopic { this->Namespace() + "/stepAck" };
   this->stepAckPub = this->node.Advertise<msgs::SimulationStep>(ackTopic);

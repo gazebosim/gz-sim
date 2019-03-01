@@ -19,12 +19,9 @@
 #define IGNITION_GAZEBO_SYNCMANAGER_HH
 
 #include <memory>
-#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <sdf/Element.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -80,6 +77,9 @@ namespace ignition
       /// manager.
       private: SimulationRunner *const runner;
 
+      /// \brief Callback for when pose syncronization is received.
+      /// \param[in] _msg Message with vector of incoming pose updates
+      /// \TODO(mjcarroll) to be replaced with ECM sync.
       private: void OnPose(const ignition::msgs::Pose_V &_msg);
 
       /// \brief Entity of the world.
@@ -89,7 +89,7 @@ namespace ignition
       private: ignition::transport::Node node;
 
       /// \brief Publisher for managed perfomers
-      /// \todo(mjcarroll) - Update this to utilize ECM sync
+      /// \TODO(mjcarroll) - Update this to utilize ECM sync
       private: ignition::transport::Node::Publisher posePub;
 
       /// \brief Mutex to protect collection of incoming pose messages
