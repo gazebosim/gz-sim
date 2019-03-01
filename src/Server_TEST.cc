@@ -175,7 +175,7 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
@@ -212,7 +212,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
   // Setting the string should override the file.
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
@@ -325,7 +325,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
   gazebo::Server server(serverConfig);
 
   EXPECT_FALSE(server.Running());
@@ -368,7 +368,7 @@ TEST_P(ServerFixture, SigInt)
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);
   gazebo::Server server2(serverConfig);
@@ -408,7 +408,7 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  serverConfig.SetSdfString(kTestWorldSansPhysics);
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);
   gazebo::Server server2(serverConfig);
