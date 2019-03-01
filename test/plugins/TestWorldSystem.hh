@@ -25,11 +25,13 @@ namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
+}
 }
 
 class TestWorldSystem :
