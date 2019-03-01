@@ -196,7 +196,7 @@ namespace ignition
       /// system
       public: bool UseDistSim() const;
 
-      /// \brief Get whether the server is using the distributed sim system
+      /// \brief Set whether the server is using the distributed sim system.
       /// \param[in] _distSim Value to set.
       public: void SetUseDistSim(const bool _distSim);
 
