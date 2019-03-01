@@ -19,7 +19,7 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Geometry.hh"
@@ -34,7 +34,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/systems/SceneBroadcaster.hh"
+
+#include "SceneBroadcaster.hh"
 
 using namespace ignition;
 using namespace gazebo;
