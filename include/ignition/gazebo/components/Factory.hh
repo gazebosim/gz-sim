@@ -163,8 +163,8 @@ namespace components
       std::vector<ComponentTypeId> types;
 
       // Return the list of all known component types.
-      for (const auto &[id, funct] : this->compsById)
-        types.push_back(id);
+      for (const auto &comp : this->compsById)
+        types.push_back(comp.first);
 
       return types;
     }
