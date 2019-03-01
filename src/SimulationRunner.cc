@@ -394,6 +394,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr)
     {
       IGN_PROFILE("SyncA");
+      // \todo(anyone) Replace busy loop with a condition.
       while (this->running && !this->networkMgr->Step(
               this->currentInfo.iterations,
               this->currentInfo.dt,
@@ -439,6 +440,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
       this->syncMgr->Sync();
 
+      // \todo(anyone) Replace busy loop with a condition.
       while (this->running && !this->networkMgr->StepAck(
             this->currentInfo.iterations))
       {
