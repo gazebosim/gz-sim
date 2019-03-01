@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="placeholder">
+    <plugin name="keyboard" filename="libKeyboardPlugin.so">
+      <twist_arrows>/model/vehicle_green/cmd_vel</twist_arrows>
+
+      <twist_wasd>/model/vehicle_blue/cmd_vel</twist_wasd>
+
+      <!-- Scale for linear XYZ, only X is used. Defaults to 0.5 on X -->
+      <scale_linear>1 0 0</scale_linear>
+
+      <!-- Scale for angular RPY, only Z is used. Defaults to 0.5 on Yaw -->
+      <scale_angular>0 0 1</scale_angular>
+
+    </plugin>
+  </world>
+</sdf>
+
