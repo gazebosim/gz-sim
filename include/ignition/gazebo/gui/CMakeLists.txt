@@ -27,7 +27,7 @@ link_directories(
   ${IGNITION-TRANSPORT_LIBRARY_DIRS}
 )
 
-set(gui_lib ign-gazebo-gui-lib)
+set(gui_lib ignition-gazebo${PROJECT_VERSION_MAJOR}-gui)
 
 # TODO(anyone) Creating a separate library now, maybe create a component?
 add_library(${gui_lib}
