@@ -14,6 +14,7 @@ target_link_libraries(${sensors_system_target}
     ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
     ignition-sensors${IGN_SENSORS_VER}::camera
     ignition-sensors${IGN_SENSORS_VER}::gpu_lidar
+    ignition-sensors${IGN_SENSORS_VER}::depth_camera
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register
