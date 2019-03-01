@@ -15,7 +15,7 @@
       name="ignition::gazebo::systems::LogRecord">
       <!-- Optional, directories to write recorded files. If unspecified,
              will record to default. -->
-      <path></path>
+      <path>/tmp/log</path>
     </plugin>
 
     <gui fullscreen="0">
