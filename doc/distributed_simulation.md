@@ -24,12 +24,11 @@ Distributed environment participants can take one of the following roles.
               executing physics and sensor simulation.  Results are reported
               back to the Primary.
 
-The distribution utilizes the concept of performers in order to set where
-physics simulation will occur. A performer is an additional annotation in the
-sdf file which marks each model which will be a performer. Performers are
-allocated to secondaries using a round-robin fashion. If there are more
-performers than secondaries, multiple performers will be allocated to each
-secondary.
+The distribution of simulation work utilizes the concept of performers in
+order to set where physics simulation will occur. A performer is an additional
+annotation in an SDF file which marks each model that will be a performer.
+Performers are allocated to secondaries using a round-robin fashion. If there
+are more performers than secondaries, multiple performers will be allocated to each secondary.
 
 ## Assumptions
 
@@ -49,11 +48,10 @@ secondary.
 
 ### Configuration and launch
 
-Multiple `ign-gazebo` executables are started in the same network environment,
+Multiple `ign-gazebo` executables are started on the same local arean network,
 each with the `--distributed` flag set.
 
-In one environment, the primary, the instance will read several environment
-variables to dictate the behavior of the primary.
+The primary instance will read several environment variables to dictate its behavior.
 
 * **IGN_GAZEBO_NETWORK_ROLE=PRIMARY** - Dictates that the role of this
     participant is a Primary
@@ -61,23 +59,22 @@ variables to dictate the behavior of the primary.
     to join. Simulation will not begin until **N** secondaries have been
     discovered.
 
-In all other environments, the secondaries, the instance will only read the
-role environment variable
+The secondary instances will only read the role environment variable
 
 * **IGN_GAZEBO_NETWORK_ROLE=SECONDARY** - Dictates that the role of this
     participant is a Secondary
 
 ### Discovery
 
-Once the `ign-gazebo` instance is started, it will being a process of discovering
-peers in the network. Each peer will send an announcement when it joins or leaves
-the network, and also periodically send a heartbeat.
+Once the `ign-gazebo` instance is started, it will begin a process of
+discovering peers in the network. Each peer will send an announcement when it
+joins or leaves the network, and also periodically sends a heartbeat.
 
-Once each secondary has discovered the primary, and the primary has discovered
-the correct number of secondaries, then simulation is allowed to begin.
+Simulation is allowed to begin once each secondary has discovered the
+primary and the primary has discovered the correct number of secondaries.
 
-If at any time the primary or any secondaries leave the network either
-intentionally (through shutdown), or unintentionally (segfault or network
+If at any time the primary or any secondaries leave the network, either
+intentionally (through shutdown) or unintentionally (segfault or network
 issues), then the rest of the simulation graph will get a signal and shut down
 safely.
 
@@ -93,11 +90,11 @@ performers across the network graph. Each performer specified in the SDF file
 gets assigned to a network secondary. If there are more performers than
 secondaries, then some secondaries will receive multiple performers.
 
-When a secondary is assigned a performer, it is marked as Active and not-Static
-in the physics simulation environment.  For unassigned performers, they are
-treated as static objects at this point.
+When a secondary is assigned a performer, it is marked as active and not
+static (dynamic) in the physics simulation environment. For unassigned
+performers, they are treated as static objects at this point.
 
-The simulation primary does no physics simulation at this point.
+The primary performs no physics simulation at this point.
 
 ### Stepping
 
@@ -117,4 +114,3 @@ simulation to continue to the next step.
 All interaction with the simulation environment happens via the primary.
 
 Play/pause and GUI functionality all work with the simulation primary instance.
-
