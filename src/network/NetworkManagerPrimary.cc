@@ -88,7 +88,7 @@ void NetworkManagerPrimary::Initialize()
     std::string topic {sc->prefix + "/control"};
     unsigned int timeout = 5000;
 
-    igndbg << "Attemping to register secondary [" << topic << "]" << std::endl;
+    igndbg << "Attempting to register secondary [" << topic << "]" << std::endl;
     bool executed = this->node.Request(topic, req, timeout, resp, result);
 
     if (executed)
@@ -143,6 +143,7 @@ bool NetworkManagerPrimary::Step(
 
   if (ready)
   {
+    // Throttle the number of step messages going to the debug output.
     if (_iteration % 1000 == 0)
     {
       igndbg << "NetworkStep: " << _iteration << std::endl;

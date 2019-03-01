@@ -19,13 +19,23 @@ syntax = "proto3";
 
 package ignition.gazebo.msgs;
 
+import "ignition/msgs/entity.proto";
+
+/// \brief Message to contain information about one performer's distributed
+/// simulation affinity.
 message PerformerAffinity
 {
+  /// \brief Name of the performer model
   string model_name = 1;
-  uint64 entity_id = 2;
+
+  /// \brief Information about the performer entity.
+  ignition.msgs.Entity entity = 2;
+
+  /// \brief Prefix used to communicate with the secondary.
   string secondary_prefix = 3;
 }
 
+/// \brief Message containing an array of performer affinities.
 message PerformerAffinities
 {
   repeated PerformerAffinity affinity = 1;
