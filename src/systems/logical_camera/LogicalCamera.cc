@@ -203,3 +203,7 @@ IGNITION_ADD_PLUGIN(LogicalCamera, System,
   LogicalCamera::ISystemPreUpdate,
   LogicalCamera::ISystemPostUpdate
 )
+
+
+IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+    "ignition::gazebo::systems::LogicalCamera")
