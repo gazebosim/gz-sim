@@ -163,6 +163,7 @@ Server::Server(const ServerConfig &_config)
   }
   else
   {
+    ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
     errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
