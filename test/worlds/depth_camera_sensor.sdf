@@ -4,19 +4,19 @@
   mesh's relative path is correct.
 -->
 <sdf version="1.6">
-  <world name="gpu_lidar_sensor">
+  <world name="depth_camera_sensor">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo0-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo0-sensors-system.so"
+      filename="libignition-gazebo-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
+      <render_engine>ogre</render_engine>
     </plugin>
 
     <light type="directional" name="sun">
@@ -48,10 +48,13 @@
         </collision>
         <visual name="visual">
           <geometry>
-            <plane>
+            <!--plane>
               <normal>0 0 1</normal>
               <size>100 100</size>
-            </plane>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
           </geometry>
           <material>
             <ambient>0.8 0.8 0.8 1</ambient>
@@ -64,7 +67,7 @@
     </model>
 
     <model name="box">
-      <pose>1 0 0.5 0 0 0</pose>
+      <pose>3 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -101,9 +104,9 @@
       </link>
     </model>
 
-    <model name="gpu_lidar">
-      <pose>0 0 0.5 0 0 0.0 </pose>
-      <link name="gpu_lidar_link">
+    <model name="depth_camera">
+      <pose>0 0 0.5 0 0.0 0</pose>
+      <link name="depth_camera_link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
         <inertial>
           <mass>0.1</mass>
@@ -127,33 +130,22 @@
             </box>
           </geometry>
         </visual>
-        <sensor name='gpu_lidar' type='gpu_lidar'>"
-          <topic>lidar</topic>
-          <updateRate>10</updateRate>
-          <ray>
-            <scan>
-              <horizontal>
-                <samples>640</samples>
-                <resolution>1</resolution>
-                <min_angle>-1.396263</min_angle>
-                <max_angle>1.396263</max_angle>
-              </horizontal>
-              <vertical>
-                <samples>1</samples>
-                <resolution>0.01</resolution>
-                <min_angle>0</min_angle>
-                <max_angle>0</max_angle>
-              </vertical>
-            </scan>
-            <range>
-              <min>0.08</min>
-              <max>10.0</max>
-              <resolution>0.01</resolution>
-            </range>
-          </ray>
-          <alwaysOn>1</alwaysOn>
-          <visualize>true</visualize>
-        </sensor>
+        <sensor name="depth_camera" type="depth_camera">
+          <update_rate>10</update_rate>
+          <topic>depth_camera</topic>
+          <camera>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>256</width>
+              <height>256</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+          </sensor>
       </link>
       <static>true</static>
     </model>

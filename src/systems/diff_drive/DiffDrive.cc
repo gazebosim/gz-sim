@@ -17,15 +17,16 @@
 #include <ignition/msgs/pose.pb.h>
 #include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/systems/DiffDrive.hh"
 #include "ignition/gazebo/Model.hh"
+
+#include "DiffDrive.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -196,7 +197,9 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
     (linVel - angVel * this->wheelSeparation / 2.0) / this->wheelRadius;
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::DiffDrive,
+IGNITION_ADD_PLUGIN(DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

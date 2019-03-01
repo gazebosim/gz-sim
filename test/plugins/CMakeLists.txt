@@ -15,10 +15,7 @@ set (test_plugins
   TestSystem
   TestWorldSystem
   MockSystem
-)
-
-set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  Null
 )
 
 # Plugin shared libraries
@@ -30,8 +27,7 @@ if(BUILD_TESTING)
       PRIVATE
         ignition-plugin${IGN_PLUGIN_VER}::register
         ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-        ignition-gazebo
+        ignition-gazebo${PROJECT_VERSION_MAJOR}
     )
-    install(TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
   endforeach (src)
 endif()
