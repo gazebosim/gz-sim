@@ -2,11 +2,11 @@
 <sdf version='1.6'>
   <world name='default'>
     <plugin filename='libignition-gazebo-systems.so'
-            name='ignition::gazebo::systems::v0::SceneBroadcaster'>
+            name='ignition::gazebo::systems::SceneBroadcaster'>
     </plugin>
     <plugin
       filename='libignition-gazebo-log-system.so'
-      name='ignition::gazebo::systems::v0::LogPlayback'>
+      name='ignition::gazebo::systems::LogPlayback'>
       <log_path>HOME/.ignition/gazebo/log/1551403299</log_path>
       <sdf_path>HOME/.ignition/gazebo/log/1551403299</sdf_path>
     </plugin>

@@ -153,13 +153,13 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // If directories already exist, do not overwrite
   if (ignition::common::exists(logPath))
   {
-    logPath = this->dataPtr->UniqueDirectoryPath( logPath);
+    logPath = this->dataPtr->UniqueDirectoryPath(logPath);
     ignwarn << "log_path already exist on disk! "
       << "Recording instead to " << logPath << std::endl;
   }
   if (ignition::common::exists(sdfPath))
   {
-    sdfPath = this->dataPtr->UniqueDirectoryPath( sdfPath);
+    sdfPath = this->dataPtr->UniqueDirectoryPath(sdfPath);
     ignwarn << "sdf_path already exist on disk! "
       << "Recording instead to " << sdfPath << std::endl;
   }
