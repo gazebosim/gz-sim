@@ -131,7 +131,7 @@ ign_add_executable(ign-gazebo-gui gui_main.cc)
 set_property(TARGET ign-gazebo-gui PROPERTY OUTPUT_NAME ign-gazebo-gui)
 target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
-  ign-gazebo${PROJECT_VERSION_MAJOR}-gui-lib
+  ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
   ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
