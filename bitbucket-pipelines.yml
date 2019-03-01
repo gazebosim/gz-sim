@@ -96,6 +96,7 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition Gazebo
+          - ./tools/clang_tidy.sh
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
@@ -105,6 +106,4 @@ pipelines:
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov
           - make codecheck
-          - cd ..
-          - ./tools/clang_tidy.sh
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
