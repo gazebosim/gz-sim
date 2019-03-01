@@ -25,8 +25,9 @@
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
@@ -459,6 +460,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::CONTACT)
+  {
+    auto elem = _sensor->Element();
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::ContactSensor(elem));
+    // We will let the contact system create the necessary components for
+    // physics to populate.
   }
   else
   {

@@ -3,6 +3,7 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   altimeter_system.cc
   components.cc
+  contact_system.cc
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
