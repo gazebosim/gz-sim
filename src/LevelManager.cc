@@ -152,7 +152,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerActive());
+                                        components::PerformerActive(true));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -358,10 +358,7 @@ void LevelManager::UpdateLevelsState()
             {
               IGN_PROFILE("EarlyOut");
               // Early exit if we are using an inactive participant.
-              if (!_active->Data())
-              {
-                levelsToUnload.push_back(_entity);
-              }
+              levelsToUnload.push_back(_entity);
               return true;
             });
           return true;
