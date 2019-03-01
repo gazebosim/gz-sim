@@ -145,7 +145,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
       << "Recording to default location " << logPath << std::endl;
   }
 
-  // If directories already exist, do not overwrite
+  // If directoriy already exists, do not overwrite
   if (common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
