@@ -208,3 +208,6 @@ void LogRecord::Configure(const Entity &/*_entity*/,
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure)
+
+IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
+                          "ignition::gazebo::systems::LogRecord")

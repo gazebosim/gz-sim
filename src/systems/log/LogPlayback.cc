@@ -369,3 +369,6 @@ IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
                     ignition::gazebo::System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+                          "ignition::gazebo::systems::LogPlayback")
