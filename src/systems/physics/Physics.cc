@@ -574,9 +574,9 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
-  for (auto &[entity, world] : this->entityWorldMap)
+  for (auto &world : this->entityWorldMap)
   {
-    world->Step(output, state, input);
+    world.second->Step(output, state, input);
   }
 }
 
