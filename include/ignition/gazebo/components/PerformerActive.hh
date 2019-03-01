@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMER_ACTIVE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PERFORMER_ACTIVE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_PERFORMERACTIVE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_PERFORMERACTIVE_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>

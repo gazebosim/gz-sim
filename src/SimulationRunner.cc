@@ -100,25 +100,20 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
+  // Create the level manager
+  this->levelMgr = std::make_unique<LevelManager>(
+      this, _config.UseLevels(), _config.UseDistributedSimulation());
+
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
   // If the configuration is invalid, then networkMgr will be `nullptr`.
-  if (_config.UseDistSim())
+  if (_config.UseDistributedSimulation())
   {
     this->networkMgr = NetworkManager::Create(&this->eventMgr);
+    // Create the sync manager
+    this->syncMgr = std::make_unique<SyncManager>(
+        this, _config.UseLevels(), _config.UseDistributedSimulation());
   }
-  else
-  {
-    this->networkMgr = nullptr;
-  }
-
-  // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(
-      this, _config.UseLevels(), _config.UseDistSim());
-
-  // Create the sync manager
-  this->syncMgr = std::make_unique<SyncManager>(
-      this, _config.UseLevels(), _config.UseDistSim());
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -398,7 +393,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     if (this->networkMgr)
     {
-      IGN_PROFILE("SyncA");
+      IGN_PROFILE("NetworkSync - SendStep");
       while (this->running && !this->networkMgr->Step(
               this->currentInfo.iterations,
               this->currentInfo.dt,
@@ -439,8 +434,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->entityCompMgr.ProcessRemoveEntityRequests();
 
 
-    if (this->networkMgr) {
-      IGN_PROFILE("SyncB");
+    if (this->networkMgr)
+    {
+      IGN_PROFILE("NetworkSync - SecondaryAck");
 
       this->syncMgr->Sync();
 

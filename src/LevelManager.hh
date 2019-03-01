@@ -72,7 +72,8 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
       /// \param[in] _useLevels Whether to use the levels defined. If false, all
-      /// entities will be added to the default level
+      /// \param[in] _useDistSim Whether to use distributed simulation. Levels
+      /// will only be loaded for active performers.
       public: LevelManager(SimulationRunner *_runner, bool _useLevels = false,
                   bool _useDistSim = false);
 

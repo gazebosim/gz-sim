@@ -100,7 +100,7 @@ void LevelManager::ReadLevelPerformerInfo()
     if (pluginElem == nullptr)
     {
       ignerr << "Could not find a plugin tag with name " << kPluginName
-             << ". Levels will not work.\n";
+             << ". Levels and distributed simulation will not work.\n";
     }
     else
     {
@@ -164,7 +164,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerActive(true));
+                                        components::PerformerActive());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -525,22 +525,13 @@ void LevelManager::UpdateLevelsState()
   }
   // Erase from vector
   this->activeLevels.erase(pendingEnd, this->activeLevels.end());
-
-  /*
-  std::stringstream ss;
-  ss << "Active levels (" << this->activeLevels.size() << "): ";
-  for (const auto& level: this->activeLevels)
-  {
-    ss << level << ", ";
-  }
-  ss << std::endl;
-  igndbg << ss.str();
-  */
 }
 
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 {
+  IGN_PROFILE("LevelManager::LoadActiveEntities");
+
   if (this->worldEntity == kNullEntity)
   {
     ignerr << "Could not find the world entity while loading levels\n";

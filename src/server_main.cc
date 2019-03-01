@@ -174,7 +174,7 @@ int main(int _argc, char **_argv)
   if (FLAGS_distributed)
   {
     igndbg << "Using the distributed simulation system\n";
-    serverConfig.SetUseDistSim(true);
+    serverConfig.SetUseDistributedSimulation(true);
   }
 
   // Create the Gazebo server
