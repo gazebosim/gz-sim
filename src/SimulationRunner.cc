@@ -202,21 +202,16 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
+  this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
 
   // In the case that networking is not running, or this is a primary.
   // If this is a network secondary, this data is populated via the network.
-  if (!this->networkMgr || this->networkMgr->IsPrimary())
+  if (!this->currentInfo.paused &&
+      (!this->networkMgr || this->networkMgr->IsPrimary()))
   {
-    if (!this->currentInfo.paused)
-    {
-      this->currentInfo.simTime += this->stepSize;
-      ++this->currentInfo.iterations;
-      this->currentInfo.dt = this->stepSize;
-    }
-    else
-    {
-      this->currentInfo.dt = std::chrono::steady_clock::duration::zero();
-    }
+    this->currentInfo.simTime += this->stepSize;
+    ++this->currentInfo.iterations;
+    this->currentInfo.dt = this->stepSize;
   }
 }
 
