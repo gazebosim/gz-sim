@@ -57,8 +57,11 @@ TEST_F(TouchPluginTest, OneLink)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool whiteTouched{false};
-  auto whiteTouchCb =
-      std::function([&](const msgs::Boolean &) { whiteTouched = true; });
+  auto whiteTouchCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        whiteTouched = true;
+      });
 
   transport::Node node;
   node.Subscribe("/white_touches_only_green/touched", whiteTouchCb);
@@ -102,8 +105,11 @@ TEST_F(TouchPluginTest, MultiLink)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool redTouched{false};
-  auto redTouchedCb =
-      std::function([&](const msgs::Boolean &) { redTouched  = true; });
+  auto redTouchedCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        redTouched = true;
+      });
 
   transport::Node node;
   // Subscribe to plugin notifications
@@ -132,8 +138,11 @@ TEST_F(TouchPluginTest, StartDisabled)
 
   // Subscribe to plugin notifications
   bool blueTouched{false};
-  auto blueTouchedCb =
-      std::function([&](const msgs::Boolean &) { blueTouched  = true; });
+  auto blueTouchedCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        blueTouched = true;
+      });
 
   transport::Node node;
   // Subscribe to plugin notifications
@@ -167,8 +176,11 @@ TEST_F(TouchPluginTest, RemovalOfParentModel)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool redTouched{false};
-  auto redTouchedCb =
-      std::function([&](const msgs::Boolean &) { redTouched  = true; });
+  auto redTouchedCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        redTouched = true;
+      });
 
   transport::Node node;
   // Subscribe to plugin notifications
@@ -251,8 +263,11 @@ TEST_F(TouchPluginTest, SpawnedEntities)
   transport::Node node;
 
   bool whiteTouched{false};
-  auto whiteTouchCb =
-      std::function([&](const msgs::Boolean &) { whiteTouched = true; });
+  auto whiteTouchCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        whiteTouched = true;
+      });
 
   node.Subscribe("/white_touches_only_green/touched", whiteTouchCb);
 
