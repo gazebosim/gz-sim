@@ -20,7 +20,9 @@
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
 
-#include "ignition/common/Profiler.hh"
+#include <ignition/common/Profiler.hh>
+#include <ignition/msgs/Utility.hh>
+
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -40,6 +42,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/World.hh"
+
 
 #include "SyncManager.hh"
 #include "SimulationRunner.hh"
@@ -116,7 +119,7 @@ void SyncManager::DistributePerformers()
 
         auto affinityMsg = msg.add_affinity();
         affinityMsg->set_model_name(parentName->Data());
-        affinityMsg->set_entity_id(_entity);
+        affinityMsg->mutable_entity()->set_id(_entity);
         affinityMsg->set_secondary_prefix(secondaryIt->second->prefix);
 
         auto isStatic = ecm.Component<components::Static>(pid);
@@ -175,19 +178,19 @@ void SyncManager::DistributePerformers()
       {
         for (int ii = 0; ii < _req.affinity_size(); ++ii) {
           const auto& affinityMsg = _req.affinity(ii);
-          auto pid =
-            ecm.Component<components::ParentEntity>(affinityMsg.entity_id());
+          const auto& entityId = affinityMsg.entity().id();
 
-          ecm.CreateComponent(affinityMsg.entity_id(),
+          auto pid = ecm.Component<components::ParentEntity>(entityId);
+
+          ecm.CreateComponent(entityId,
             components::PerformerAffinity(affinityMsg.secondary_prefix()));
 
           auto isStatic = ecm.Component<components::Static>(pid->Data());
-          auto isActive =
-            ecm.Component<components::PerformerActive>(affinityMsg.entity_id());
+          auto isActive = ecm.Component<components::PerformerActive>(entityId);
 
           if (affinityMsg.secondary_prefix() == mgr->Namespace())
           {
-            performers.push_back(affinityMsg.entity_id());
+            performers.push_back(entityId);
             *isStatic = components::Static(false);
             *isActive = components::PerformerActive(true);
           }
@@ -232,14 +235,8 @@ bool SyncManager::Sync()
       auto pid = ecm.Component<components::ParentEntity>(entity);
       auto pose = ecm.Component<components::Pose>(pid->Data());
       auto poseMsg = msg.add_pose();
+      ignition::msgs::Set(poseMsg, pose->Data());
       poseMsg->set_id(entity);
-      poseMsg->mutable_position()->set_x(pose->Data().Pos().X());
-      poseMsg->mutable_position()->set_y(pose->Data().Pos().Y());
-      poseMsg->mutable_position()->set_z(pose->Data().Pos().Z());
-      poseMsg->mutable_orientation()->set_w(pose->Data().Rot().W());
-      poseMsg->mutable_orientation()->set_x(pose->Data().Rot().X());
-      poseMsg->mutable_orientation()->set_y(pose->Data().Rot().Y());
-      poseMsg->mutable_orientation()->set_z(pose->Data().Rot().Z());
     }
     this->posePub.Publish(msg);
   }
@@ -253,18 +250,7 @@ bool SyncManager::Sync()
         const auto& poseMsg = msg.pose(ii);
         auto pid = ecm.Component<components::ParentEntity>(poseMsg.id());
         auto pose = ecm.Component<components::Pose>(pid->Data());
-
-        ignition::math::Pose3d newPose;
-        newPose.Set(
-            ignition::math::Vector3d(
-              poseMsg.position().x(),
-              poseMsg.position().y(),
-              poseMsg.position().z()),
-            ignition::math::Quaterniond(
-              poseMsg.orientation().w(),
-              poseMsg.orientation().x(),
-              poseMsg.orientation().y(),
-              poseMsg.orientation().z()));
+        auto newPose = ignition::msgs::Convert(poseMsg);
         *pose = components::Pose(newPose);
       }
     }
