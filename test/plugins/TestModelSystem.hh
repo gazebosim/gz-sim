@@ -22,16 +22,19 @@
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/System.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/gazebo/config.hh>
 
 namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
+}
 }
 
 class TestModelSystem :
