@@ -17,6 +17,7 @@
 
 #include "LogPlayback.hh"
 
+#include <chrono>
 #include <string>
 
 #include <ignition/msgs/pose_v.pb.h>
@@ -66,7 +67,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   public: std::chrono::nanoseconds logStartTime;
 
   /// \brief Timestamp when plugin started
-  public: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
+  public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
 
   /// \brief Flag to print finish message once
   public: bool printedEnd;
@@ -211,22 +212,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     return;
   }
 
-  ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
-
-  // Call Log.hh directly to load a .tlog file
-  this->dataPtr->log = std::make_unique<transport::log::Log>();
-  this->dataPtr->log->Open(dbPath);
-
-  // Access messages in .tlog file
-  transport::log::TopicList opts("/world/default/pose/info");
-  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
-  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
-
-  // Record first timestamp
-  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
-
-  this->dataPtr->ParsePose(_ecm);
-
   // Load recorded SDF file
   sdf::Root root;
   if (root.Load(sdfPath).size() != 0 || root.WorldCount() <= 0)
@@ -289,7 +274,23 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
-  this->dataPtr->worldStartTime = std::chrono::high_resolution_clock::now();
+  ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
+
+  // Call Log.hh directly to load a .tlog file
+  this->dataPtr->log = std::make_unique<transport::log::Log>();
+  this->dataPtr->log->Open(dbPath);
+
+  // Access messages in .tlog file
+  transport::log::TopicList opts("/world/default/pose/info");
+  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
+  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
+
+  // Record first timestamp
+  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
+
+  this->dataPtr->ParsePose(_ecm);
+
+  this->dataPtr->worldStartTime = std::chrono::steady_clock::now();
 
   // Advance one entry in batch for Update()
   ++(this->dataPtr->iter);
@@ -315,7 +316,7 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
-  auto now = std::chrono::high_resolution_clock::now();
+  auto now = std::chrono::steady_clock::now();
   auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
     now - this->dataPtr->worldStartTime);
 
