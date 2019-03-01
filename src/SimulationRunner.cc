@@ -521,8 +521,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
       if (systemConfig != nullptr)
       {
-        systemConfig->Configure(_entity, pluginElem,
-                                this->entityCompMgr,
+        systemConfig->Configure(_entity, plugin.Sdf(), this->entityCompMgr,
                                 this->eventMgr);
       }
       this->AddSystem(system.value());
