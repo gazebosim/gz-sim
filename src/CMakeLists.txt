@@ -93,24 +93,9 @@ add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
   ${PROJECT_LIBRARY_TARGET_NAME}_private_msgs
 )
 
-ign_add_component(systems
-  SOURCES ${systems_sources}
-  GET_TARGET_NAME SYSTEMS_TARGET
-  CXX_STANDARD 17)
-
-target_link_libraries(${SYSTEMS_TARGET}
-  PUBLIC
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-common${IGN_COMMON_VER}::profiler
-  ${SDFormat_LIBRARIES}
-  PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::register
-)
-
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
-install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
