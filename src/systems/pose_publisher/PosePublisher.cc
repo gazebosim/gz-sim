@@ -206,3 +206,6 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     System,
                     PosePublisher::ISystemConfigure,
                     PosePublisher::ISystemPostUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+                          "ignition::gazebo::systems::PosePublisher")

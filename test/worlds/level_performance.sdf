@@ -9,11 +9,11 @@
   <world name="default">
     <plugin
      filename="libignition-gazebo-physics-system.so"
-     name="ignition::gazebo::systems::v0::Physics">
+     name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
   <gui fullscreen="0">

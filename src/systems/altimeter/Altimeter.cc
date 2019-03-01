@@ -257,3 +257,5 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPreUpdate,
   Altimeter::ISystemPostUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")
