@@ -42,7 +42,7 @@ TEST(SystemLoader, Constructor)
   root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
       "<plugin filename='libignition-gazebo-physics-system.so'"
-      "        name='ignition::gazebo::systems::v0::Physics'>"
+      "        name='ignition::gazebo::systems::Physics'>"
       "</plugin>"
       "</world></sdf>");
 

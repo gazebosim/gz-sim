@@ -16,15 +16,15 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::v0::UserCommands">
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -370,7 +370,7 @@
 
       <plugin
         filename="libignition-gazebo-systems.so"
-        name="ignition::gazebo::systems::v0::DiffDrive">
+        name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
         <right_joint>front_right_wheel_joint</right_joint>

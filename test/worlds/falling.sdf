@@ -3,7 +3,7 @@
   <world name="default">
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
