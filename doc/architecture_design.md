@@ -583,10 +583,14 @@ class MyPlugin
 };
 
 // Register plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::MyPlugin,
+IGNITION_ADD_PLUGIN(MyPlugin,
                     ignition::gazebo::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
+
+// Add plugin alias so that we can refer to the plugin without the version
+// namespace
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin,"ignition::gazebo::systems::MyPlugin")
 ```
 
 ---

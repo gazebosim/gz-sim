@@ -633,7 +633,12 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 }
 
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
+IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
+
+// Add plugin alias so that we can refer to the plugin without the version
+// namespace
+IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "ignition::gazebo::systems::SceneBroadcaster")
