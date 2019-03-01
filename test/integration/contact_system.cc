@@ -73,7 +73,7 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
   // subscribe to contacts topic
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function(contactCb);
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
   node.Subscribe("/test_multiple_collisions", callbackFunc);
 
   // Run server
@@ -141,7 +141,7 @@ TEST_F(ContactSystemTest, RemoveContactSensor)
   // subscribe to contacts topic
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function(contactCb);
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
   node.Subscribe("/test_multiple_collisions", callbackFunc);
 
   // Run server for a few iterations before removing sensor
