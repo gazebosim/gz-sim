@@ -44,10 +44,10 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  //
   // Forward declaration
   class SceneManagerPrivate;
 

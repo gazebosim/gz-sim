@@ -304,3 +304,5 @@ IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPreUpdate,
   Imu::ISystemPostUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")
