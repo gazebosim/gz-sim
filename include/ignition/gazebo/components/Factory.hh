@@ -108,12 +108,10 @@ namespace components
     {
       auto typeHash = ignition::common::hash64(_type);
 
+      // Every time a plugin which uses a component type is loaded, it attempts
+      // to register it again, so we skip it.
       if (ComponentTypeT::typeId != 0)
       {
-        std::cerr << "Type [" << typeid(ComponentTypeT).name()
-                  << "] registered with typeId [" << ComponentTypeT::typeId
-                  << "]. Not overriding with [" << typeHash << "]."
-                  << std::endl;
         return;
       }
 
@@ -203,6 +201,9 @@ namespace components
   /// \brief Static component registration macro.
   ///
   /// Use this macro to register components.
+  ///
+  /// \detail Each time a plugin which uses a component is loaded, it tries to
+  /// register the component again, so we prevent that.
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
@@ -210,6 +211,8 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
+      if (_classname::typeId != 0) \
+        return; \
       using namespace ignition;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
       using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \

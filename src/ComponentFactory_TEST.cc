@@ -46,7 +46,6 @@ TEST_F(ComponentFactoryTest, Register)
   EXPECT_EQ(0u, MyCustom::typeId);
 
   // Store number of registered component types
-  EXPECT_EQ(factory->TypeIds().size(), factory->TypeIds().size());
   auto registeredCount = factory->TypeIds().size();
 
   factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
