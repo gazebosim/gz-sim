@@ -17,26 +17,43 @@
 #ifndef IGNITION_GAZEBO_TEST_CONFIG_HH_
 #define IGNITION_GAZEBO_TEST_CONFIG_HH_
 
+#include <ignition/gazebo/config.hh>
+
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
 
+namespace ignition
+{
+namespace gazebo
+{
 // Create a special test world that doesn't use physics to avoid some issues
 // where ODE doesn't initialize properly in multiple physics instances in the
 // same process.
 // \TODO(anyone) Remove this if ODE issues are corrected.
-static const char kTestWorldSansPhysics[] =
-  "<?xml version='1.0'?>"
-  "<sdf version='1.6'>"
-    "<world name='default'>"
-      "<plugin"
-      "  filename='libignition-gazebo-scene-broadcaster-system.so'"
-      "  name='ignition::gazebo::systems::SceneBroadcaster'>"
-      "</plugin>"
-      "<plugin"
-      "  filename='libignition-gazebo-user-commands-system.so'"
-      "  name='ignition::gazebo::systems::UserCommands'>"
-      "</plugin>"
-    "</world>"
-  "</sdf>";
+struct TestWorldSansPhysics
+{
+  /// \brief Return the SDF world string.
+  /// \return Get the SDF world string.
+  public: static std::string &World()
+  {
+    static std::string world = std::string("<?xml version='1.0'?>"
+    "<sdf version='1.6'>"
+      "<world name='default'>"
+        "<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
+        "  name='ignition::gazebo::systems::SceneBroadcaster'>"
+        "</plugin>"
+        "<plugin"
+        "  filename='libignition-gazebo" +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
+        "  name='ignition::gazebo::systems::UserCommands'>"
+        "</plugin>"
+      "</world>"
+    "</sdf>";
+    return world;
+  }
+};
+}
+}
 
 #endif
