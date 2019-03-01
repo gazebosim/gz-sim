@@ -12,11 +12,10 @@
     </plugin>
     <plugin
       filename="libignition-gazebo-log-system.so"
-      name="ignition::gazebo::systems::v0::LogRecord">
+      name="ignition::gazebo::systems::LogRecord">
       <!-- Optional, directories to write recorded files. If unspecified,
              will record to default. -->
-      <!--log_path></log_path>
-      <sdf_path></sdf_path-->
+      <path></path>
     </plugin>
 
     <gui fullscreen="0">

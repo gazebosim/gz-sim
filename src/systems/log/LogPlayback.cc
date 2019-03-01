@@ -209,43 +209,39 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   // Get directory paths from SDF
   // Name of recorded log file to play back
   std::string logPath;
-  logPath = _sdf->Get<std::string>("log_path", logPath).first;
-  // Name of recorded SDF file
-  std::string sdfPath;
-  sdfPath = _sdf->Get<std::string>("sdf_path", sdfPath).first;
+  logPath = _sdf->Get<std::string>("path", logPath).first;
 
-  if (logPath.empty() || sdfPath.empty())
+  if (logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return;
   }
 
-  if ((!ignition::common::isDirectory(logPath)) ||
-    (!ignition::common::isDirectory(sdfPath)))
+  if (!ignition::common::isDirectory(logPath))
   {
     ignerr << "Specified log path must be a directory.\n";
     return;
   }
 
   // Append file name
-  logPath = ignition::common::joinPaths(logPath, "state.tlog");
-  sdfPath = ignition::common::joinPaths(sdfPath, "state.sdf");
+  std::string dbPath = ignition::common::joinPaths(logPath, "state.tlog");
+  // Temporary. Name of recorded SDF file
+  std::string sdfPath = ignition::common::joinPaths(logPath, "state.sdf");
 
-  if (!ignition::common::exists(logPath) ||
+  if (!ignition::common::exists(dbPath) ||
       !ignition::common::exists(sdfPath))
   {
-    ignerr << "log_path and/or sdf_path invalid. File(s) do not exist. "
-      << "Nothing to play.\n";
+    ignerr << "Log path invalid. File(s) do not exist. Nothing to play.\n";
     return;
   }
 
 
-  ignmsg << "Playing back log file " << logPath << std::endl;
+  ignmsg << "Playing back log file " << dbPath << std::endl;
 
   // Call Log.hh directly to load a .tlog file
 
   this->dataPtr->log = std::make_unique<transport::log::Log>();
-  this->dataPtr->log->Open(logPath);
+  this->dataPtr->log->Open(dbPath);
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/default/pose/info");
@@ -376,3 +372,6 @@ IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
                     ignition::gazebo::System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+                          "ignition::gazebo::systems::LogPlayback")
