@@ -25,10 +25,10 @@ pipelines:
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
-            libignition-sensors-dev
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
+            libignition-sensors-dev
             # libignition-fuel-tools3-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
@@ -59,7 +59,7 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b sensor_plugin
           # - cd ign-sensors
           # - mkdir build
           # - cd build
