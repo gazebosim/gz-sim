@@ -827,6 +827,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
 {
+  IGN_PROFILE("PhysicsPrivate::UpdateCollisions");
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
