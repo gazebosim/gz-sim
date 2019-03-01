@@ -130,11 +130,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // Name of log file to record
   // If use ign-transport Log, must end in .tlog
   std::string logPath;
-  logPath = _sdf->Get<std::string>("log_path", logPath).first;
-  // Temporary for recording sdf string, before have custom SQL field for
-  //   a big SDF string.
-  std::string sdfPath;
-  sdfPath = _sdf->Get<std::string>("sdf_path", sdfPath).first;
+  logPath = _sdf->Get<std::string>("path", logPath).first;
 
   // If unspecified, or specified is not a directory, use default directory
   if (logPath.empty() || !ignition::common::isDirectory(logPath))
@@ -143,25 +139,13 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     ignwarn << "Unspecified log path to record to. "
       << "Recording to default location " << logPath << std::endl;
   }
-  if (sdfPath.empty() || !ignition::common::isDirectory(sdfPath))
-  {
-    sdfPath = this->dataPtr->DefaultRecordPath();
-    ignwarn << "Unspecified SDF path to record to. "
-      << "Recording to default location " << sdfPath << std::endl;
-  }
 
   // If directories already exist, do not overwrite
   if (ignition::common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
-    ignwarn << "log_path already exist on disk! "
+    ignwarn << "Log path already exist on disk! "
       << "Recording instead to " << logPath << std::endl;
-  }
-  if (ignition::common::exists(sdfPath))
-  {
-    sdfPath = this->dataPtr->UniqueDirectoryPath(sdfPath);
-    ignwarn << "sdf_path already exist on disk! "
-      << "Recording instead to " << sdfPath << std::endl;
   }
 
   // Create log directory
@@ -169,16 +153,13 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   {
     ignition::common::createDirectories(logPath);
   }
-  if (!ignition::common::exists(sdfPath))
-  {
-    ignition::common::createDirectories(sdfPath);
-  }
 
   // Append file names
-  logPath = ignition::common::joinPaths(logPath, "state.tlog");
-  sdfPath = ignition::common::joinPaths(sdfPath, "state.sdf");
+  std::string dbPath = ignition::common::joinPaths(logPath, "state.tlog");
+  // Temporary for recording sdf string
+  std::string sdfPath = ignition::common::joinPaths(logPath, "state.sdf");
 
-  ignmsg << "Recording to log file " << logPath << std::endl;
+  ignmsg << "Recording to log file " << dbPath << std::endl;
 
 
   // Use ign-transport directly
@@ -187,7 +168,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // this->dataPtr->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
-  this->dataPtr->recorder.Start(logPath);
+  this->dataPtr->recorder.Start(dbPath);
 
 
   // Record SDF as a string.
