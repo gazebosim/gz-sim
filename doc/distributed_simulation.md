@@ -48,7 +48,7 @@ are more performers than secondaries, multiple performers will be allocated to e
 
 ### Configuration and launch
 
-Multiple `ign-gazebo` executables are started on the same local arean network,
+Multiple `ign-gazebo` executables are started on the same local area network,
 each with the `--distributed` flag set.
 
 The primary instance will read several environment variables to dictate its behavior.
