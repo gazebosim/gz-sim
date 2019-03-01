@@ -27,34 +27,60 @@ link_directories(
   ${IGNITION-TRANSPORT_LIBRARY_DIRS}
 )
 
-set(gui_lib ignition-gazebo${PROJECT_VERSION_MAJOR}-gui)
 
-# TODO(anyone) Creating a separate library now, maybe create a component?
-add_library(${gui_lib}
+###
+set (gui_comp_sources
   ${gui_sources}
   ${headers_MOC}
   ${resources_RCC}
 )
 
-target_link_libraries(${gui_lib}
+ign_add_component(gui
+  SOURCES ${gui_comp_sources}
+  GET_TARGET_NAME gui_target
+  CXX_STANDARD 17)
+
+target_link_libraries(${gui_target}
   PUBLIC
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
-  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-  ${Qt5Core_LIBRARIES}
-  ${Qt5Widgets_LIBRARIES}
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
+    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    ${Qt5Core_LIBRARIES}
+    ${Qt5Widgets_LIBRARIES}
 )
 
-add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  ${gui_lib}
-)
+install(TARGETS ${gui_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
 
-set_target_properties(${gui_lib} PROPERTIES VERSION ${PROJECT_VERSION_FULL})
-install (
-  TARGETS ${gui_lib}
-  EXPORT ${PROJECT_LIBRARY_TARGET_NAME}-all
-  DESTINATION ${IGN_LIB_INSTALL_DIR}
-  COMPONENT shlib
-)
+###
 
+#set(gui_lib ignition-gazebo${PROJECT_VERSION_MAJOR}-gui)
+#
+## TODO(anyone) Creating a separate library now, maybe create a component?
+#add_library(${gui_lib}
+#  ${gui_sources}
+#  ${headers_MOC}
+#  ${resources_RCC}
+#)
+#
+#target_link_libraries(${gui_lib}
+#  PUBLIC
+#  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+#  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
+#  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+#  ${Qt5Core_LIBRARIES}
+#  ${Qt5Widgets_LIBRARIES}
+#)
+#
+#add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
+#  ${gui_lib}
+#)
+#
+#set_target_properties(${gui_lib} PROPERTIES VERSION ${PROJECT_VERSION_FULL})
+#install (
+#  TARGETS ${gui_lib}
+#  EXPORT ${PROJECT_LIBRARY_TARGET_NAME}-all
+#  DESTINATION ${IGN_LIB_INSTALL_DIR}
+#  COMPONENT shlib
+#)
+#
 install (FILES gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
