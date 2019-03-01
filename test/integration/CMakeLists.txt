@@ -16,12 +16,14 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  scene_broadcaster_system.cc
   sdf_include.cc
   user_commands.cc
 )
 
 # Tests that require a valid display
 set(tests_needing_display
+  depth_camera.cc
   gpu_lidar.cc
   sensors_system.cc
 )
