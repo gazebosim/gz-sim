@@ -105,20 +105,8 @@ void LevelManager::ReadLevelPerformerInfo()
     else
     {
       this->ReadPerformers(pluginElem);
-    }
-  }
-
-
-  if (this->useLevels)
-  {
-    if (pluginElem == nullptr)
-    {
-      ignerr << "Could not find a plugin tag with name " << kPluginName
-             << ". Levels will not work.\n";
-    }
-    else
-    {
-      this->ReadLevels(pluginElem);
+      if (this->useLevels)
+        this->ReadLevels(pluginElem);
     }
   }
 
