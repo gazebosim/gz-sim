@@ -104,10 +104,21 @@ namespace components
     /// \tparam ComponentTypeT Type of component to register.
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
-      StorageDescriptorBase *_storageDesc = nullptr)
+      StorageDescriptorBase *_storageDesc)
     {
+      auto typeHash = ignition::common::hash64(_type);
+
+      if (ComponentTypeT::typeId != 0)
+      {
+        std::cerr << "Type [" << typeid(ComponentTypeT).name()
+                  << "] registered with typeId [" << ComponentTypeT::typeId
+                  << "]. Not overriding with [" << typeHash << "]."
+                  << std::endl;
+        return;
+      }
+
       // Initialize static member variable
-      ComponentTypeT::typeId = ignition::common::hash64(_type);
+      ComponentTypeT::typeId = typeHash;
 
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
