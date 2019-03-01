@@ -73,7 +73,7 @@ void help()
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
   << " resources. Can be useful with the -f option to find an SDF file."
   << std::endl
-  << "  IGN_GAZEBO_NETWORK_ROLE     Partipant role to be used in a distributed "
+  << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
   << " simulation environment. Role is one of [PRIMARY, SECONDARY]."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
