@@ -46,6 +46,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
+#include "ignition/gazebo/config.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition;
@@ -56,6 +57,7 @@ namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
@@ -65,6 +67,7 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
+}
 }
 }
 }
