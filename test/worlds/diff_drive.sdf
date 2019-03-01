@@ -225,7 +225,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-systems.so"
+        filename="libignition-gazebo-diff-drive-system.so"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
