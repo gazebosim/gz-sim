@@ -533,3 +533,5 @@ IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
   Sensors::ISystemPostUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
