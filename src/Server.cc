@@ -21,85 +21,106 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+
+#include "ignition/gazebo/config.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
 using namespace ignition::gazebo;
 
-static const char kDefaultWorld[] =
-  "<?xml version='1.0'?>"
-  "<sdf version='1.6'>"
-    "<world name='default'>"
-      "<plugin filename='libignition-gazebo-physics-system.so'"
-      "        name='ignition::gazebo::systems::Physics'>"
-      "</plugin>"
-      "<plugin filename='libignition-gazebo-scene-broadcaster-system.so'"
-      "        name='ignition::gazebo::systems::SceneBroadcaster'>"
-      "</plugin>"
-      "<plugin"
-      "  filename='libignition-gazebo-user-commands-system.so'"
-      "  name='ignition::gazebo::systems::UserCommands'>"
-      "</plugin>"
-      "<gui fullscreen='0'>"
-      "  <plugin filename='Scene3D' name='3D View'>"
-      "    <ignition-gui>"
-      "      <title>3D View</title>"
-      "      <property type='bool' key='showTitleBar'>false</property>"
-      "      <property type='string' key='state'>docked</property>"
-      "    </ignition-gui>"
-      "    <engine>ogre</engine>"
-      "    <scene>scene</scene>"
-      "    <ambient_light>0.4 0.4 0.4</ambient_light>"
-      "    <background_color>0.8 0.8 0.8</background_color>"
-      "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
-      "    <service>/world/default/scene/info</service>"
-      "    <pose_topic>/world/default/pose/info</pose_topic>"
-      "    <scene_topic>/world/default/scene/info</scene_topic>"
-      "    <deletion_topic>/world/default/scene/deletion</deletion_topic>"
-      "  </plugin>"
-      "  <plugin filename='WorldControl' name='World control'>"
-      "    <ignition-gui>"
-      "      <title>World control</title>"
-      "      <property type='bool' key='showTitleBar'>false</property>"
-      "      <property type='bool' key='resizable'>false</property>"
-      "      <property type='double' key='height'>72</property>"
-      "      <property type='double' key='width'>121</property>"
-      "      <property type='double' key='z'>1</property>"
-      "      <property type='string' key='state'>floating</property>"
-      "      <anchors target='3D View'>"
-      "        <line own='left' target='left'/>"
-      "        <line own='bottom' target='bottom'/>"
-      "      </anchors>"
-      "    </ignition-gui>"
-      "    <play_pause>true</play_pause>"
-      "    <step>true</step>"
-      "    <start_paused>true</start_paused>"
-      "    <service>/world/default/control</service>"
-      "    <stats_topic>/world/default/stats</stats_topic>"
-      "  </plugin>"
-      "  <plugin filename='WorldStats' name='World stats'>"
-      "    <ignition-gui>"
-      "      <title>World stats</title>"
-      "      <property type='bool' key='showTitleBar'>false</property>"
-      "      <property type='bool' key='resizable'>false</property>"
-      "      <property type='double' key='height'>110</property>"
-      "      <property type='double' key='width'>290</property>"
-      "      <property type='double' key='z'>1</property>"
-      "      <property type='string' key='state'>floating</property>"
-      "      <anchors target='3D View'>"
-      "        <line own='right' target='right'/>"
-      "        <line own='bottom' target='bottom'/>"
-      "      </anchors>"
-      "    </ignition-gui>"
-      "    <sim_time>true</sim_time>"
-      "    <real_time>true</real_time>"
-      "    <real_time_factor>true</real_time_factor>"
-      "    <iterations>true</iterations>"
-      "    <topic>/world/default/stats</topic>"
-      "  </plugin>"
-      "</gui>"
-    "</world>"
-  "</sdf>";
+/// \brief This struct provides access to the default world.
+struct DefaultWorld
+{
+  /// \brief Get the default world as a string.
+  /// \return An SDF string that contains the default world.
+  public: static std::string &World()
+  {
+    // The set of gazebo plugins.
+    static std::vector<std::string> plugins{
+      {
+        std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
+        "name='ignition::gazebo::systems::Physics'></plugin>"
+      },
+      {
+        std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
+        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
+      },
+      {
+        std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
+        "name='ignition::gazebo::systems::UserCommands'></plugin>"
+      }};
+
+    static std::string world = std::string("<?xml version='1.0'?>"
+      "<sdf version='1.6'>"
+        "<world name='default'>") +
+        std::accumulate(plugins.begin(), plugins.end(), std::string("")) +
+          "<gui fullscreen='0'>"
+          "  <plugin filename='Scene3D' name='3D View'>"
+          "    <ignition-gui>"
+          "      <title>3D View</title>"
+          "      <property type='bool' key='showTitleBar'>false</property>"
+          "      <property type='string' key='state'>docked</property>"
+          "    </ignition-gui>"
+          "    <engine>ogre</engine>"
+          "    <scene>scene</scene>"
+          "    <ambient_light>0.4 0.4 0.4</ambient_light>"
+          "    <background_color>0.8 0.8 0.8</background_color>"
+          "    <camera_pose>-6 0 6 0 0.5 0</camera_pose>"
+          "    <service>/world/default/scene/info</service>"
+          "    <pose_topic>/world/default/pose/info</pose_topic>"
+          "    <scene_topic>/world/default/scene/info</scene_topic>"
+          "    <deletion_topic>/world/default/scene/deletion</deletion_topic>"
+          "  </plugin>"
+          "  <plugin filename='WorldControl' name='World control'>"
+          "    <ignition-gui>"
+          "      <title>World control</title>"
+          "      <property type='bool' key='showTitleBar'>false</property>"
+          "      <property type='bool' key='resizable'>false</property>"
+          "      <property type='double' key='height'>72</property>"
+          "      <property type='double' key='width'>121</property>"
+          "      <property type='double' key='z'>1</property>"
+          "      <property type='string' key='state'>floating</property>"
+          "      <anchors target='3D View'>"
+          "        <line own='left' target='left'/>"
+          "        <line own='bottom' target='bottom'/>"
+          "      </anchors>"
+          "    </ignition-gui>"
+          "    <play_pause>true</play_pause>"
+          "    <step>true</step>"
+          "    <start_paused>true</start_paused>"
+          "    <service>/world/default/control</service>"
+          "    <stats_topic>/world/default/stats</stats_topic>"
+          "  </plugin>"
+          "  <plugin filename='WorldStats' name='World stats'>"
+          "    <ignition-gui>"
+          "      <title>World stats</title>"
+          "      <property type='bool' key='showTitleBar'>false</property>"
+          "      <property type='bool' key='resizable'>false</property>"
+          "      <property type='double' key='height'>110</property>"
+          "      <property type='double' key='width'>290</property>"
+          "      <property type='double' key='z'>1</property>"
+          "      <property type='string' key='state'>floating</property>"
+          "      <anchors target='3D View'>"
+          "        <line own='right' target='right'/>"
+          "        <line own='bottom' target='bottom'/>"
+          "      </anchors>"
+          "    </ignition-gui>"
+          "    <sim_time>true</sim_time>"
+          "    <real_time>true</real_time>"
+          "    <real_time_factor>true</real_time_factor>"
+          "    <iterations>true</iterations>"
+          "    <topic>/world/default/stats</topic>"
+          "  </plugin>"
+          "</gui>"
+        "</world>"
+      "</sdf>";
+
+    return world;
+  }
+};
 
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
@@ -142,9 +163,10 @@ Server::Server(const ServerConfig &_config)
   }
   else
   {
+    ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(kDefaultWorld);
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
   if (!errors.empty())
