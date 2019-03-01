@@ -123,6 +123,39 @@ namespace components
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
     }
 
+    /// \brief Unregister a component so that the factory can't create instances
+    /// of the component or its storage anymore.
+    /// \tparam ComponentTypeT Type of component to unregister.
+    public: template<typename ComponentTypeT>
+    void Unregister()
+    {
+      // Not registered
+      if (ComponentTypeT::typeId == 0)
+      {
+        return;
+      }
+
+      {
+        auto it = this->compsById.find(ComponentTypeT::typeId);
+        if (it != this->compsById.end())
+        {
+          delete it->second;
+          this->compsById.erase(it);
+        }
+      }
+
+      {
+        auto it = this->storagesById.find(ComponentTypeT::typeId);
+        if (it != this->storagesById.end())
+        {
+          delete it->second;
+          this->storagesById.erase(it);
+        }
+      }
+
+      ComponentTypeT::typeId = 0;
+    }
+
     /// \brief Create a new instance of a component.
     /// \return Pointer to a component. Null if the component
     /// type could not be handled.
