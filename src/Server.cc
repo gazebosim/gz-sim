@@ -44,7 +44,7 @@ struct DefaultWorld
       },
       {
         std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-systems.so' "
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
         "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
       },
       {
