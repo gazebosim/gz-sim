@@ -194,11 +194,11 @@ namespace ignition
       /// \brief Get whether the server is using the distributed sim system
       /// \return True if the server is set to use the distributed simulation
       /// system
-      public: bool UseDistSim() const;
+      public: bool UseDistributedSimulation() const;
 
       /// \brief Set whether the server is using the distributed sim system.
-      /// \param[in] _distSim Value to set.
-      public: void SetUseDistSim(const bool _distSim);
+      /// \param[in] _distributeSimulation Value to set.
+      public: void SetUseDistributedSimulation(const bool _distributed);
 
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if

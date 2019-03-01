@@ -291,10 +291,10 @@ namespace ignition
       private: std::unique_ptr<LevelManager> levelMgr;
 
       /// \brief Manager of distributing/receiving network work.
-      private: std::unique_ptr<NetworkManager> networkMgr;
+      private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
 
       /// \brief Manager of network sync.
-      private: std::unique_ptr<SyncManager> syncMgr;
+      private: std::unique_ptr<SyncManager> syncMgr{nullptr};
 
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
