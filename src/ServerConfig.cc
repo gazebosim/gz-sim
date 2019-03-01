@@ -193,6 +193,7 @@ class ignition::gazebo::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
+            useDistributed(_cfg->useDistributed),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins) { }
 
