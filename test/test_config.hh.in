@@ -40,7 +40,7 @@ struct TestWorldSansPhysics
     "<sdf version='1.6'>"
       "<world name='default'>"
         "<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-systems.so'"
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
         "  name='ignition::gazebo::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
