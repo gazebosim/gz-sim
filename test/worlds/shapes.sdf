@@ -10,7 +10,7 @@
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin

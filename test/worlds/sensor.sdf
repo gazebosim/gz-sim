@@ -7,7 +7,7 @@
       <render_engine>ogre</render_engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
