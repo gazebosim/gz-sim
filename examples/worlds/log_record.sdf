@@ -15,7 +15,7 @@
       name="ignition::gazebo::systems::LogRecord">
       <!-- Optional, directories to write recorded files. If unspecified,
              will record to default. -->
-      <path></path>
+      <path>/tmp/ign-gazebo-log-record-demo</path>
     </plugin>
 
     <gui fullscreen="0">
@@ -140,7 +140,7 @@
         </visual>
       </link>
     </model>
-  
+
     <model name='vehicle_green'>
       <pose>0 -2 0.325 0 0 0</pose>
       <link name='chassis_green'>
@@ -177,7 +177,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='left_wheel_green'>
         <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
         <inertial>
@@ -212,7 +212,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='right_wheel_green'>
         <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
         <inertial>
@@ -247,7 +247,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='caster_green'>
         <pose>-0.957138 -0 -0.125 0 -0 0</pose>
         <inertial>
@@ -282,7 +282,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <joint name='left_wheel_joint_green' type='revolute'>
         <parent>chassis_green</parent>
         <child>left_wheel_green</child>
@@ -294,7 +294,7 @@
           </limit>
         </axis>
       </joint>
- 
+
       <joint name='right_wheel_joint_green' type='revolute'>
         <parent>chassis_green</parent>
         <child>right_wheel_green</child>
@@ -306,12 +306,12 @@
           </limit>
         </axis>
       </joint>
- 
+
       <joint name='caster_wheel_green' type='ball'>
         <parent>chassis_green</parent>
         <child>caster_green</child>
       </joint>
- 
+
       <plugin
         filename="libignition-gazebo-systems.so"
         name="ignition::gazebo::systems::DiffDrive">
@@ -320,9 +320,9 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
- 
+
     </model>
-    
+
     <model name='vehicle_blue'>
       <pose>0 2 0.325 0 0 0</pose>
       <link name='chassis_blue'>
@@ -359,7 +359,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='left_wheel_blue'>
         <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
         <inertial>
@@ -394,7 +394,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='right_wheel_blue'>
         <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
         <inertial>
@@ -429,7 +429,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <link name='caster_blue'>
         <pose>-0.957138 -0 -0.125 0 -0 0</pose>
         <inertial>
@@ -464,7 +464,7 @@
           </geometry>
         </collision>
       </link>
- 
+
       <joint name='left_wheel_joint_blue' type='revolute'>
         <parent>chassis_blue</parent>
         <child>left_wheel_blue</child>
@@ -476,7 +476,7 @@
           </limit>
         </axis>
       </joint>
- 
+
       <joint name='right_wheel_joint_blue' type='revolute'>
         <parent>chassis_blue</parent>
         <child>right_wheel_blue</child>
@@ -488,12 +488,12 @@
           </limit>
         </axis>
       </joint>
- 
+
       <joint name='caster_wheel_blue' type='ball'>
         <parent>chassis_blue</parent>
         <child>caster_blue</child>
       </joint>
- 
+
       <plugin
         filename="libignition-gazebo-systems.so"
         name="ignition::gazebo::systems::DiffDrive">
@@ -502,8 +502,8 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
- 
+
     </model>
-  
+
   </world>
 </sdf>

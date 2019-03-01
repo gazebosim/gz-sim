@@ -47,10 +47,10 @@ using namespace ignition::gazebo::systems;
 class ignition::gazebo::systems::LogRecordPrivate
 {
   /// \brief Ignition transport recorder
-  public: ignition::transport::log::Recorder recorder;
+  public: transport::log::Recorder recorder;
 
   /// \brief Default directory to record to
-  public: std::string DefaultRecordPath();
+  public: static std::string DefaultRecordPath();
 
   // TODO(mabelmzhang) port to ign-common Filesystem
   /// \brief Generates a path for a file which doesn't collide with existing
@@ -63,19 +63,21 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::string UniqueFilePath(const std::string &_pathAndName,
     const std::string &_extension);
 
-  /// \brief Unique directory path to not overwrite existing file
+  /// \brief Unique directory path to not overwrite existing directory
+  /// \param[in] _pathAndName Full absolute path
   public: std::string UniqueDirectoryPath(const std::string &_dir);
 };
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
 {
-  std::string fsLogPath = ignition::common::joinPaths(IGN_HOMEDIR,
-    ".ignition/gazebo/log");
+  std::string home;
+  common::env(IGN_HOMEDIR, home);
 
   std::time_t timestamp = std::time(nullptr);
-  fsLogPath = ignition::common::joinPaths(fsLogPath,
-    std::to_string(timestamp));
+
+  std::string fsLogPath = common::joinPaths(home,
+    ".ignition", "gazebo", "log", std::to_string(timestamp));
 
   return fsLogPath;
 }
@@ -86,10 +88,9 @@ std::string LogRecordPrivate::UniqueFilePath(const std::string &_pathAndName,
 {
   std::string result = _pathAndName + "." + _extension;
   int count = 1;
-  struct stat buf;
 
   // Check if file exists and change name accordingly
-  while (stat(result.c_str(), &buf) != -1)
+  while (common::exists(result.c_str()))
   {
     result = _pathAndName + "(" + std::to_string(count++) + ")." + _extension;
   }
@@ -102,10 +103,9 @@ std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
 {
   std::string result = _dir;
   int count = 1;
-  struct stat buf;
 
   // Check if file exists and change name accordingly
-  while (stat(result.c_str(), &buf) != -1)
+  while (common::exists(result.c_str()))
   {
     result = _dir + "(" + std::to_string(count++) + ")";
   }
@@ -134,21 +134,19 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
   // Get directory paths from SDF params
-  // Name of log file to record
-  // If use ign-transport Log, must end in .tlog
-  std::string logPath;
-  logPath = _sdf->Get<std::string>("path", logPath).first;
+  std::string logPath = _sdf->Get<std::string>("path");
 
   // If unspecified, or specified is not a directory, use default directory
-  if (logPath.empty() || !ignition::common::isDirectory(logPath))
+  if (logPath.empty() ||
+      (common::exists(logPath) && !common::isDirectory(logPath)))
   {
     logPath = this->dataPtr->DefaultRecordPath();
-    ignwarn << "Unspecified log path to record to. "
+    ignmsg << "Unspecified or invalid log path to record to. "
       << "Recording to default location " << logPath << std::endl;
   }
 
   // If directories already exist, do not overwrite
-  if (ignition::common::exists(logPath))
+  if (common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
     ignwarn << "Log path already exist on disk! "
@@ -156,15 +154,16 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   }
 
   // Create log directory
-  if (!ignition::common::exists(logPath))
+  if (!common::exists(logPath))
   {
-    ignition::common::createDirectories(logPath);
+    common::createDirectories(logPath);
   }
 
   // Append file names
-  std::string dbPath = ignition::common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(logPath, "state.tlog");
+
   // Temporary for recording sdf string
-  std::string sdfPath = ignition::common::joinPaths(logPath, "state.sdf");
+  std::string sdfPath = common::joinPaths(logPath, "state.sdf");
 
   ignmsg << "Recording to log file " << dbPath << std::endl;
 
@@ -189,7 +188,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   }
   ofs << sdfRoot->ToString("");
 
-  ignmsg << "Save initial SDF file to [" << sdfPath << "]" << std::endl;
+  ignmsg << "Saved initial SDF file to [" << sdfPath << "]" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
