@@ -32,4 +32,6 @@ TestSystem::TestSystem()
 TestSystem::~TestSystem() = default;
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TestSystem, ignition::gazebo::System)
+IGNITION_ADD_PLUGIN(TestSystem, ignition::gazebo::System)
+
+IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "ignition::gazebo::TestSystem")

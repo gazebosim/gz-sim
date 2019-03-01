@@ -16,27 +16,27 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-altimeter-system.so"
-      name="ignition::gazebo::systems::v0::Altimeter">
+      name="ignition::gazebo::systems::Altimeter">
     </plugin>
     <plugin
       filename="libignition-gazebo-imu-system.so"
-      name="ignition::gazebo::systems::v0::Imu">
+      name="ignition::gazebo::systems::Imu">
     </plugin>
     <plugin
       filename="libignition-gazebo-magnetometer-system.so"
-      name="ignition::gazebo::systems::v0::Magnetometer">
+      name="ignition::gazebo::systems::Magnetometer">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::v0::UserCommands">
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
