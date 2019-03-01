@@ -7,7 +7,7 @@
     <plugin
       filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::LogPlayback'>
-      <path>/tmp/log(3)</path>
+      <path>/tmp/log</path>
     </plugin>
 
     <gui fullscreen='0'>

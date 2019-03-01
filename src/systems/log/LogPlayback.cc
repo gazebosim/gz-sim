@@ -19,6 +19,7 @@
 
 #include <string>
 #include <fstream>
+#include <chrono>
 
 #include <ignition/plugin/RegisterMore.hh>
 
@@ -58,7 +59,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief First timestamp in log file
   public: std::chrono::nanoseconds logStartTime;
   /// \brief Timestamp when plugin started
-  public: std::chrono::time_point<std::chrono::system_clock> worldStartTime;
+  public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
   /// \brief Flag to print finish message once
   public: bool printedEnd;
 
@@ -314,7 +315,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   this->dataPtr->ParsePose(_ecm);
 
-  this->dataPtr->worldStartTime = std::chrono::high_resolution_clock::now();
+  this->dataPtr->worldStartTime = std::chrono::steady_clock::now();
 
   // Advance one entry in batch for Update()
   ++(this->dataPtr->iter);
@@ -341,7 +342,7 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
-  auto now = std::chrono::high_resolution_clock::now();
+  auto now = std::chrono::steady_clock::now();
   auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
     now - this->dataPtr->worldStartTime);
 
