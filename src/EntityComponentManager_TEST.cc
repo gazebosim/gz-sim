@@ -23,6 +23,7 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include <ignition/gazebo/config.hh>
 
 using namespace ignition;
 using namespace gazebo;
@@ -32,6 +33,7 @@ namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
@@ -63,6 +65,8 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
 }
 }
 }
+}
+
 class EntityCompMgrTest : public EntityComponentManager
 {
   public: void RunClearNewlyCreatedEntities()
