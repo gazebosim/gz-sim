@@ -7,11 +7,11 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-altimeter-system.so"
-      name="ignition::gazebo::systems::v0::Altimeter">
+      name="ignition::gazebo::systems::Altimeter">
     </plugin>
 
     <model name="ground_plane">
