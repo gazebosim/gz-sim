@@ -4,17 +4,19 @@
   <world name="default">
     <plugin
      filename="libignition-gazebo-physics-system.so"
-     name="ignition::gazebo::systems::v0::Physics">
+     name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="libignition-gazebo-log-system.so"
       name="ignition::gazebo::systems::v0::LogRecord">
-      <log_path>test.tlog</log_path>
-      <sdf_path>test.sdf</sdf_path>
+      <!-- Optional, directories to write recorded files. If unspecified,
+             will record to default. -->
+      <!--log_path></log_path>
+      <sdf_path></sdf_path-->
     </plugin>
 
     <gui fullscreen="0">
@@ -313,7 +315,7 @@
  
       <plugin
         filename="libignition-gazebo-systems.so"
-        name="ignition::gazebo::systems::v0::DiffDrive">
+        name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
         <wheel_separation>1.25</wheel_separation>
@@ -495,7 +497,7 @@
  
       <plugin
         filename="libignition-gazebo-systems.so"
-        name="ignition::gazebo::systems::v0::DiffDrive">
+        name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>
         <wheel_separation>1.25</wheel_separation>

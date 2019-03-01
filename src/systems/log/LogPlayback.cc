@@ -19,7 +19,6 @@
 
 #include <string>
 #include <fstream>
-#include <filesystem>
 
 #include <ignition/msgs/pose_v.pb.h>
 
@@ -28,6 +27,7 @@
 
 #include <ignition/plugin/RegisterMore.hh>
 
+#include <ignition/common/Filesystem.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -52,12 +52,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Reads the next pose message in log file, set poses in world
   public: void ParsePose(EntityComponentManager &_ecm);
-
-  /// \brief Name of recorded log file to play back
-  public: std::string logPath;
-
-  /// \brief Name of recorded SDF file
-  public: std::string sdfPath;
 
   /// \brief Log object to read ign-transport log file
   public: std::unique_ptr <transport::log::Log> log;
@@ -212,20 +206,33 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
-  // Get params from SDF
-  this->dataPtr->logPath = _sdf->Get<std::string>("log_path",
-    this->dataPtr->logPath).first;
-  this->dataPtr->sdfPath = _sdf->Get<std::string>("sdf_path",
-    this->dataPtr->sdfPath).first;
+  // Get directory paths from SDF
+  // Name of recorded log file to play back
+  std::string logPath;
+  logPath = _sdf->Get<std::string>("log_path", logPath).first;
+  // Name of recorded SDF file
+  std::string sdfPath;
+  sdfPath = _sdf->Get<std::string>("sdf_path", sdfPath).first;
 
-  if (this->dataPtr->logPath.empty() || this->dataPtr->sdfPath.empty())
+  if (logPath.empty() || sdfPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return;
   }
 
-  if (!std::filesystem::exists(this->dataPtr->logPath) ||
-      !std::filesystem::exists(this->dataPtr->sdfPath))
+  if ((!ignition::common::isDirectory(logPath)) ||
+    (!ignition::common::isDirectory(sdfPath)))
+  {
+    ignerr << "Specified log path must be a directory.\n";
+    return;
+  }
+
+  // Append file name
+  logPath = ignition::common::joinPaths(logPath, "state.tlog");
+  sdfPath = ignition::common::joinPaths(sdfPath, "state.sdf");
+
+  if (!ignition::common::exists(logPath) ||
+      !ignition::common::exists(sdfPath))
   {
     ignerr << "log_path and/or sdf_path invalid. File(s) do not exist. "
       << "Nothing to play.\n";
@@ -233,12 +240,12 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 
 
-  ignmsg << "Playing back log file " << this->dataPtr->logPath << std::endl;
+  ignmsg << "Playing back log file " << logPath << std::endl;
 
   // Call Log.hh directly to load a .tlog file
 
   this->dataPtr->log = std::make_unique<transport::log::Log>();
-  this->dataPtr->log->Open(this->dataPtr->logPath);
+  this->dataPtr->log->Open(logPath);
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/default/pose/info");
@@ -255,9 +262,9 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   // Load recorded SDF file
 
   sdf::Root root;
-  if (root.Load(this->dataPtr->sdfPath).size() != 0)
+  if (root.Load(sdfPath).size() != 0)
   {
-    ignerr << "Error loading SDF file " << this->dataPtr->sdfPath << std::endl;
+    ignerr << "Error loading SDF file " << sdfPath << std::endl;
     return;
   }
   igndbg << "World count: " << root.WorldCount() << std::endl;
@@ -293,10 +300,9 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 
 
-  igndbg << _ecm.EntityCount() << " entities" << std::endl;
   // Create all Entities in SDF <world> tag
-  gazebo::SdfEntityCreator creator =
-    gazebo::SdfEntityCreator(_ecm, _eventMgr);
+  ignition::gazebo::SdfEntityCreator creator =
+    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
