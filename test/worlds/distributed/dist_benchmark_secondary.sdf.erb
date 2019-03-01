@@ -223,8 +223,8 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="libignition-gazebo-physics-system.so"
-     name="ignition::gazebo::systems::v0::Physics">
+     filename="libignition-gazebo0-physics-system.so"
+     name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <scene>
@@ -483,8 +483,8 @@
     </joint>
 
     <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::DiffDrive">
+      filename="libignition-gazebo0-diff-drive-system.so"
+      name="ignition::gazebo::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>1.25</wheel_separation>

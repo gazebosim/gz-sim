@@ -59,11 +59,9 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
-      /// \param[in] _useLevels Whether the simulationrunner is using levels.
       /// \param[in] _useDistSim Whether the simulationrunner is distributed
       /// simulation.
-      public: SyncManager(SimulationRunner *_runner, bool _useLevels = false,
-                  bool _useDistSim = false);
+      public: SyncManager(SimulationRunner *_runner, bool _useDistSim = false);
 
       /// \brief Distribute performer affinity to the secondaries in the
       /// distributed simulation environment.
@@ -106,9 +104,6 @@ namespace ignition
 
       /// \brief Role of this network participant.
       private: NetworkRole role;
-
-      /// \brief Flag whether to use levels or not.
-      private: bool useLevels{false};
 
       /// \brief Flag whether distributed simulation is in use.
       private: bool useDistSim{false};

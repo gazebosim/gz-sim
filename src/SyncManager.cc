@@ -41,10 +41,8 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 SyncManager::SyncManager(
-  SimulationRunner * _runner, bool _useLevels,
-  bool _useDistSim)
+  SimulationRunner * _runner, bool _useDistSim)
 : runner(_runner),
-  useLevels(_useLevels),
   useDistSim(_useDistSim)
 {
   this->entityCreator = std::make_unique<SdfEntityCreator>(
