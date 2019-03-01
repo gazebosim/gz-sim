@@ -112,7 +112,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     this->networkMgr = NetworkManager::Create(&this->eventMgr);
     // Create the sync manager
     this->syncMgr = std::make_unique<SyncManager>(
-        this, _config.UseLevels(), _config.UseDistributedSimulation());
+        this, _config.UseDistributedSimulation());
   }
 
   // Load the active levels
