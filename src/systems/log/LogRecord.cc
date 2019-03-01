@@ -132,15 +132,15 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   std::string logPath;
   logPath = _sdf->Get<std::string>("path", logPath).first;
 
-  // If unspecified, or specified is not a directory, use default directory
-  if (logPath.empty() || !ignition::common::isDirectory(logPath))
+  // If unspecified, use default directory
+  if (logPath.empty())
   {
     logPath = this->dataPtr->DefaultRecordPath();
     ignwarn << "Unspecified log path to record to. "
       << "Recording to default location " << logPath << std::endl;
   }
 
-  // If directories already exist, do not overwrite
+  // If directory already exists, do not overwrite
   if (ignition::common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
