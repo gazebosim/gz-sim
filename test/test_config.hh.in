@@ -29,7 +29,7 @@ static const char kTestWorldSansPhysics[] =
   "<sdf version='1.6'>"
     "<world name='default'>"
       "<plugin"
-      "  filename='libignition-gazebo-systems.so'"
+      "  filename='libignition-gazebo-scene-broadcaster-system.so'"
       "  name='ignition::gazebo::systems::SceneBroadcaster'>"
       "</plugin>"
       "<plugin"

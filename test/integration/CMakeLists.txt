@@ -17,6 +17,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  scene_broadcaster_system.cc
   sdf_include.cc
   touch_plugin.cc
   user_commands.cc
