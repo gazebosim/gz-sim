@@ -69,6 +69,10 @@ ign service -s /world/empty/remove \
       filename="libignition-gazebo0-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="libignition-gazebo0-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
 
     <gui fullscreen="0">
 
