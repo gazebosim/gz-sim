@@ -227,26 +227,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 
 
-  ignmsg << "Playing back log file " << dbPath << std::endl;
-
-  // Call Log.hh directly to load a .tlog file
-
-  this->dataPtr->log = std::make_unique<Log>();
-  this->dataPtr->log->Open(dbPath);
-
-  // Access messages in .tlog file
-  TopicList opts = TopicList("/world/default/pose/info");
-  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
-  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
-
-  // Record first timestamp
-  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
-  igndbg << this->dataPtr->logStartTime.count() << std::endl;
-  igndbg << this->dataPtr->iter->Type() << std::endl;
-
-  this->dataPtr->ParsePose(_ecm);
-
-
   // Load recorded SDF file
 
   sdf::Root root;
@@ -314,6 +294,25 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
+
+  ignmsg << "Playing back log file " << dbPath << std::endl;
+
+  // Call Log.hh directly to load a .tlog file
+
+  this->dataPtr->log = std::make_unique<Log>();
+  this->dataPtr->log->Open(dbPath);
+
+  // Access messages in .tlog file
+  TopicList opts = TopicList("/world/default/pose/info");
+  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
+  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
+
+  // Record first timestamp
+  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
+  igndbg << this->dataPtr->logStartTime.count() << std::endl;
+  igndbg << this->dataPtr->iter->Type() << std::endl;
+
+  this->dataPtr->ParsePose(_ecm);
 
   this->dataPtr->worldStartTime = std::chrono::high_resolution_clock::now();
 
