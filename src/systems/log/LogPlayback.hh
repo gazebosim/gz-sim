@@ -17,19 +17,11 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 #define IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 
-#include <ignition/msgs/pose_v.pb.h>
-
 #include <memory>
-#include <string>
-#include <map>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
-
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Batch.hh>
-#include <ignition/transport/log/MsgIter.hh>
 
 namespace ignition
 {
