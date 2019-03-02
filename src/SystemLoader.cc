@@ -92,6 +92,15 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
+    if (!_plugin->HasInterface<System>())
+    {
+      ignerr << "Failed to load system plugin [" << _name <<
+        "] : system not found in library  [" << _filename <<
+        "] from path [" << pathToLib << "]." << std::endl;
+
+      return false;
+    }
+
     systemPluginsAdded.insert(_plugin);
     return true;
   }

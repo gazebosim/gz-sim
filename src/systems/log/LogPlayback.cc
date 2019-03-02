@@ -29,6 +29,7 @@
 #include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Time.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -67,7 +68,8 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   public: std::chrono::nanoseconds logStartTime;
 
   /// \brief Timestamp when plugin started
-  public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
+  //public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
+  //public: common::Time worldStartTime;
 
   /// \brief Flag to print finish message once
   public: bool printedEnd;
@@ -189,20 +191,20 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     return;
   }
 
-  if (!ignition::common::isDirectory(logPath))
+  if (!common::isDirectory(logPath))
   {
     ignerr << "Specified log path must be a directory.\n";
     return;
   }
 
   // Append file name
-  std::string dbPath = ignition::common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(logPath, "state.tlog");
 
   // Temporary. Name of recorded SDF file
-  std::string sdfPath = ignition::common::joinPaths(logPath, "state.sdf");
+  std::string sdfPath = common::joinPaths(logPath, "state.sdf");
 
-  if (!ignition::common::exists(dbPath) ||
-      !ignition::common::exists(sdfPath))
+  if (!common::exists(dbPath) ||
+      !common::exists(sdfPath))
   {
     ignerr << "Log path invalid. File(s) do not exist. Nothing to play.\n";
     return;
@@ -286,7 +288,8 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   this->dataPtr->ParsePose(_ecm);
 
-  this->dataPtr->worldStartTime = std::chrono::steady_clock::now();
+  //this->dataPtr->worldStartTime = std::chrono::steady_clock;
+  //this->dataPtr->worldStartTime = common::Time();
 
   // Advance one entry in batch for Update()
   ++(this->dataPtr->iter);
@@ -294,7 +297,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Update(const UpdateInfo &/*_info*/,
+void LogPlayback::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   // Sanity check. If reached the end, done.
@@ -312,11 +315,16 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
-  auto now = std::chrono::steady_clock::now();
-  auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
-    now - this->dataPtr->worldStartTime);
+  auto now = _info.simTime;
+  //auto diffTime = now - this->dataPtr->worldStartTime;
 
-  if (diffTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
+  //auto now = std::chrono::steady_clock::now();
+  //auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
+  //  now - this->dataPtr->worldStartTime);
+
+  //if (diffTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
+  //  this->dataPtr->logStartTime.count()))
+  if (_info.simTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
     this->dataPtr->logStartTime.count()))
   {
     // Parse pose and move link

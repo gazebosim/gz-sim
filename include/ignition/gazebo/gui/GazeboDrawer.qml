@@ -44,7 +44,7 @@ Rectangle {
     id: drawerModel
 
     // Custom action which calls custom C++ code
-    ListElement {
+    /*ListElement {
       title: "New world"
       action: "newWorld"
       type: "world"
@@ -64,7 +64,7 @@ Rectangle {
       title: "Save world as..."
       action: "saveWorldAs"
       type: "world"
-    }
+    }*/
 
     // Actions provided by Ignition GUI, with custom titles
     ListElement {
