@@ -58,16 +58,20 @@ ign service -s /world/empty/remove \
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="libignition-gazebo0-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="libignition-gazebo0-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libignition-gazebo0-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo0-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
     </plugin>
 
     <gui fullscreen="0">

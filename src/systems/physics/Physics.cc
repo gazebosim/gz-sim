@@ -15,7 +15,13 @@
  *
  */
 
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
+#include <ignition/msgs/entity.pb.h>
+
 #include <iostream>
+#include <deque>
+#include <unordered_map>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/MeshManager.hh>
@@ -34,6 +40,7 @@
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
 #include <ignition/physics/GetEntities.hh>
+#include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Shape.hh>
@@ -61,6 +68,7 @@
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/ContactSensorData.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
@@ -94,6 +102,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::LinkFrameSemantics,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
+          ignition::physics::GetContactsFromLastStepFeature,
           ignition::physics::RemoveEntities,
           ignition::physics::mesh::AttachMeshShapeFeature,
           ignition::physics::SetBasicJointState,
@@ -107,6 +116,9 @@ class ignition::gazebo::systems::PhysicsPrivate
 
 
   public: using EnginePtrType = ignition::physics::EnginePtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
+  public: using WorldType = ignition::physics::World<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
   public: using WorldPtrType = ignition::physics::WorldPtr<
@@ -144,6 +156,10 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateSim(EntityComponentManager &_ecm) const;
 
+  /// \brief Update collision components from physics simulation
+  /// \param[in] _ecm Mutable reference to ECM.
+  public: void UpdateCollisions(EntityComponentManager &_ecm) const;
+
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, WorldPtrType> entityWorldMap;
@@ -156,9 +172,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// ign-physics.
   public: std::unordered_map<Entity, LinkPtrType> entityLinkMap;
 
-  /// \brief A map between collision entity ids in the ECM to Link Entities in
+  /// \brief A map between collision entity ids in the ECM to Shape Entities in
   /// ign-physics.
   public: std::unordered_map<Entity, ShapePtrType> entityCollisionMap;
+
+  /// \brief A map between shape entities in ign-physics to collision entities
+  /// in the ECM. This is the reverse map of entityCollisionMap.
+  public: std::unordered_map<ShapePtrType, Entity> collisionEntityMap;
 
   /// \brief a map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
@@ -376,6 +396,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         collision.SetPose(_pose->Data());
         collision.SetGeom(_geom->Data());
 
+        ShapePtrType collisionPtrPhys;
         if (_geom->Data().Type() == sdf::GeometryType::MESH)
         {
           const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
@@ -395,17 +416,19 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             return true;
           }
 
-          linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
+          collisionPtrPhys = linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
               ignition::math::eigen3::convert(_pose->Data()),
               ignition::math::eigen3::convert(meshSdf->Scale()));
         }
         else
         {
-          linkPtrPhys->ConstructCollision(collision);
+          collisionPtrPhys = linkPtrPhys->ConstructCollision(collision);
         }
 
-        // for now, we won't have a map to the collision once it's added
-        this->entityCollisionMap.insert(std::make_pair(_entity, nullptr));
+        this->entityCollisionMap.insert(
+            std::make_pair(_entity, collisionPtrPhys));
+        this->collisionEntityMap.insert(
+            std::make_pair(collisionPtrPhys, _entity));
         return true;
       });
 
@@ -493,7 +516,12 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             for (const auto &childCollision :
                  _ecm.ChildrenByComponents(childLink, components::Collision()))
             {
-              this->entityCollisionMap.erase(childCollision);
+              auto collIt = this->entityCollisionMap.find(childCollision);
+              if (collIt != this->entityCollisionMap.end())
+              {
+                this->collisionEntityMap.erase(collIt->second);
+                this->entityCollisionMap.erase(collIt);
+              }
             }
             this->entityLinkMap.erase(childLink);
           }
@@ -546,9 +574,9 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
-  for (auto &[entity, world] : this->entityWorldMap)
+  for (auto &world : this->entityWorldMap)
   {
-    world->Step(output, state, input);
+    world.second->Step(output, state, input);
   }
 }
 
@@ -787,6 +815,98 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               entityWorldLinearAcc);
           *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
         }
+
+        return true;
+      });
+
+  this->UpdateCollisions(_ecm);
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
+{
+  IGN_PROFILE("PhysicsPrivate::UpdateCollisions");
+  // Quit early if the ContactData component hasn't been created. This means
+  // there are no systems that need contact information
+  if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
+    return;
+
+  // TODO(addisu) If systems are assumed to only have one world, we should
+  // capture the world Entity in a Configure call
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
+
+  if (worldEntity == kNullEntity)
+  {
+    ignerr << "Missing world entity.\n";
+    return;
+  }
+
+  // Safe to assume this won't throw because the world entity should always be
+  // available
+  auto worldPhys = this->entityWorldMap.at(worldEntity);
+
+  // Each contact object we get from ign-physics contains the EntityPtrs of the
+  // two colliding entities and other data about the contact such as the
+  // position. This map groups contacts so that it is easy to query all the
+  // contacts of one entity.
+  using EntityContactMap =
+      std::unordered_map<Entity, std::deque<const WorldType::ContactPoint *>>;
+
+  // This data structure is essentially a mapping between a pair of entities and
+  // a list of pointers to their contact object. We use a map inside a map to
+  // create msgs::Contact objects conveniently later on.
+  std::unordered_map<Entity, EntityContactMap> entityContactMap;
+
+  // Note that we are temporarily storing pointers to elements in this
+  // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
+  // until the end of this function.
+  auto allContacts = worldPhys->GetContactsFromLastStep();
+  for (const auto &contactComposite : allContacts)
+  {
+    const auto &contact = contactComposite.Get<WorldType::ContactPoint>();
+    auto coll1It = this->collisionEntityMap.find(contact.collision1);
+    auto coll2It = this->collisionEntityMap.find(contact.collision2);
+
+    if ((coll1It != this->collisionEntityMap.end()) &&
+        (coll2It != this->collisionEntityMap.end()))
+    {
+      entityContactMap[coll1It->second][coll2It->second].push_back(&contact);
+      entityContactMap[coll2It->second][coll1It->second].push_back(&contact);
+    }
+  }
+
+  // Go through each collision entity that has a ContactData component and
+  // set the component value to the list of contacts that correspond to
+  // the collision entity
+  _ecm.Each<components::Collision, components::ContactSensorData>(
+      [&](const Entity &_collEntity1, components::Collision *,
+          components::ContactSensorData *_contacts) -> bool
+      {
+        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        {
+          // Clear the last contact data
+          *_contacts = components::ContactSensorData();
+          return true;
+        }
+
+        const auto &contactMap = entityContactMap[_collEntity1];
+
+        msgs::Contacts contactsComp;
+
+        for (const auto &[collEntity2, contactData] : contactMap)
+        {
+          msgs::Contact *contactMsg = contactsComp.add_contact();
+          contactMsg->mutable_collision1()->set_id(_collEntity1);
+          contactMsg->mutable_collision2()->set_id(collEntity2);
+          for (const auto &contact : contactData)
+          {
+            auto *position = contactMsg->add_position();
+            position->set_x(contact->point.x());
+            position->set_y(contact->point.y());
+            position->set_z(contact->point.z());
+          }
+        }
+        *_contacts = components::ContactSensorData(std::move(contactsComp));
 
         return true;
       });

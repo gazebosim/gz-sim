@@ -35,9 +35,13 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const ServerConfig &_config)
     // \todo(nkoenig) Either copy the world, or add copy constructor to the
     // World and other elements.
-    : sdfWorld(_world)
+    : sdfWorld(_world), serverConfig(_config)
 {
-  this->serverConfig = _config;
+  if (nullptr == _world)
+  {
+    ignerr << "Can't start simulation runner with null world." << std::endl;
+    return;
+  }
 
   // Keep world name
   this->worldName = _world->Name();

@@ -3,6 +3,7 @@ set(TEST_TYPE "INTEGRATION")
 set(tests
   altimeter_system.cc
   components.cc
+  contact_system.cc
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
@@ -10,6 +11,7 @@ set(tests
   examples_build.cc
   imu_system.cc
   level_manager.cc
+  logical_camera_system.cc
   magnetometer_system.cc
   model.cc
   network_handshake.cc
@@ -18,11 +20,13 @@ set(tests
   pose_publisher_system.cc
   scene_broadcaster_system.cc
   sdf_include.cc
+  touch_plugin.cc
   user_commands.cc
 )
 
 # Tests that require a valid display
 set(tests_needing_display
+  depth_camera.cc
   gpu_lidar.cc
   sensors_system.cc
 )
