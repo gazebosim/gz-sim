@@ -49,6 +49,12 @@ using namespace gazebo;
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
     : runner(_runner), useLevels(_useLevels)
 {
+  if (nullptr == _runner)
+  {
+    ignerr << "Can't start level manager with null runner." << std::endl;
+    return;
+  }
+
   this->entityCreator = std::make_unique<SdfEntityCreator>(
       this->runner->entityCompMgr,
       this->runner->eventMgr);
