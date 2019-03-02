@@ -75,7 +75,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
 void NetworkManagerPrimary::Initialize()
 {
   auto peers = this->dataPtr->tracker->SecondaryPeers();
-  for (const auto& peer : peers)
+  for (const auto &peer : peers)
   {
     msgs::PeerControl req, resp;
     req.set_enable_sim(true);
@@ -136,7 +136,7 @@ bool NetworkManagerPrimary::Step(
     std::chrono::steady_clock::duration &_simTime)
 {
   bool ready = true;
-  for (const auto& secondary : this->secondaries)
+  for (const auto &secondary : this->secondaries)
   {
     ready &= secondary.second->ready;
   }
