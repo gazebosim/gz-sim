@@ -17,29 +17,36 @@
 
 #include "LogPlayback.hh"
 
-#include <string>
-#include <fstream>
 #include <chrono>
+#include <string>
+
+#include <ignition/msgs/pose_v.pb.h>
+#include <ignition/msgs/Utility.hh>
+
+#include <ignition/math/Quaternion.hh>
+#include <ignition/math/Vector3.hh>
 
 #include <ignition/plugin/RegisterMore.hh>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/transport/log/QueryOptions.hh>
+#include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
+
 #include <sdf/Root.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
+
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Pose.hh"
 
 
-using namespace ignition::gazebo::systems;
-using namespace ignition::transport::log;
+using namespace ignition;
+using namespace gazebo;
+using namespace systems;
 
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
@@ -47,25 +54,27 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Reads the next pose message in log file, set poses in world
   public: void ParsePose(EntityComponentManager &_ecm);
 
-
   /// \brief Log object to read ign-transport log file
-  public: std::unique_ptr <ignition::transport::log::Log> log;
+  public: std::unique_ptr <transport::log::Log> log;
 
   /// \brief A batch of data from log file, of all pose messages
-  public: ignition::transport::log::Batch poseBatch;
+  public: transport::log::Batch poseBatch;
+
   /// \brief Iterator to go through messages in Batch
-  public: ignition::transport::log::MsgIter iter;
+  public: transport::log::MsgIter iter;
 
   /// \brief First timestamp in log file
   public: std::chrono::nanoseconds logStartTime;
+
   /// \brief Timestamp when plugin started
   public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
+
   /// \brief Flag to print finish message once
   public: bool printedEnd;
 
   // Key: link name. Value: link pose
   /// \brief Maps link name to link pose recorded
-  public: std::map <std::string, ignition::msgs::Pose> nameToPose;
+  public: std::map <std::string, msgs::Pose> nameToPose;
 };
 
 
@@ -85,15 +94,14 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
   //   to know what message type to create. For now just assuming Pose_V.
 
   // Protobuf message
-  ignition::msgs::Pose_V posevMsg;
+  msgs::Pose_V posevMsg;
+
   // Convert binary bytes in string into a ign-msgs msg
   posevMsg.ParseFromString(this->iter->Data());
 
-  igndbg << "Pose_V size: " << posevMsg.pose_size() << std::endl;
-
   for (int i = 0; i < posevMsg.pose_size(); ++i)
   {
-    ignition::msgs::Pose pose = posevMsg.pose(i);
+    msgs::Pose pose = posevMsg.pose(i);
 
     // igndbg << pose.name() << std::endl;
 
@@ -102,10 +110,9 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
     //   distinguish between them. Therefore link names in SDF must be
     //   different, until ECM is serialized.
 
-    // Update link pose in map
+    // Update entity pose in map
     this->nameToPose.insert_or_assign(pose.name(), pose);
   }
-
 
   // Loop through actual models in world
   _ecm.Each<components::Model, components::Name, components::ParentEntity,
@@ -115,33 +122,12 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
           components::ParentEntity * /*_parentComp*/,
           components::Pose *_poseComp) -> bool
   {
-    igndbg << "Model " << _nameComp->Data() << std::endl;
-    igndbg << "Actual pose: \n";
-    igndbg << _poseComp->Data().Pos() << std::endl;
-    igndbg << _poseComp->Data().Rot().X() << " "
-           << _poseComp->Data().Rot().Y() << " "
-           << _poseComp->Data().Rot().Z() << " "
-           << _poseComp->Data().Rot().W() << std::endl;
-
-
     // Look for model pose in log entry loaded
-    ignition::msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
-
-    igndbg << "Recorded pose: " << std::endl;
-    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
-      << pose.position().z() << std::endl;
-    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
-      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
-      << std::endl;
-
+    msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
 
     // Set current pose to recorded pose
     // Use copy assignment operator
-    *_poseComp = components::Pose(ignition::math::Pose3d(
-      ignition::math::Vector3(pose.position().x(), pose.position().y(),
-                              pose.position().z()),
-      ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
-                 pose.orientation().y(), pose.orientation().z())));
+    *_poseComp = components::Pose(msgs::Convert(pose));
 
     return true;
   });
@@ -160,7 +146,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
   {
     igndbg << "Link " << _nameComp->Data() << std::endl;
     // This prints a 6-tuple. Not sure why not 7. components::Pose is a
-    //   SimpleWrapper around ignition::math::Pose3d, whose Rot() returns
+    //   SimpleWrapper around math::Pose3d, whose Rot() returns
     //   quaternion.
     //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
     // Print 7-tuple
@@ -170,7 +156,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 
 
     // Look for the link poses in log entry loaded
-    ignition::msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
+    msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
@@ -182,11 +168,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 
     // Set current pose to recorded pose
     // Use copy assignment operator
-    *_poseComp = components::Pose(ignition::math::Pose3d(
-      ignition::math::Vector3(pose.position().x(), pose.position().y(),
-                              pose.position().z()),
-      ignition::math::Quaternion(pose.orientation().w(), pose.orientation().x(),
-                 pose.orientation().y(), pose.orientation().z())));
+    *_poseComp = components::Pose(msgs::Convert(pose));
 
     return true;
   });
@@ -199,9 +181,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  // Name of recorded log file to play back
-  std::string logPath;
-  logPath = _sdf->Get<std::string>("path", logPath).first;
+  std::string logPath = _sdf->Get<std::string>("path");
 
   if (logPath.empty())
   {
@@ -217,6 +197,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   // Append file name
   std::string dbPath = ignition::common::joinPaths(logPath, "state.tlog");
+
   // Temporary. Name of recorded SDF file
   std::string sdfPath = ignition::common::joinPaths(logPath, "state.sdf");
 
@@ -227,17 +208,13 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     return;
   }
 
-
   // Load recorded SDF file
-
   sdf::Root root;
-  if (root.Load(sdfPath).size() != 0)
+  if (root.Load(sdfPath).size() != 0 || root.WorldCount() <= 0)
   {
-    ignerr << "Error loading SDF file " << sdfPath << std::endl;
+    ignerr << "Error loading SDF file [" << sdfPath << "]" << std::endl;
     return;
   }
-  igndbg << "World count: " << root.WorldCount() << std::endl;
-  igndbg << "Model count: " << root.ModelCount() << std::endl;
   const sdf::World * sdfWorld = root.WorldByIndex(0);
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
@@ -246,11 +223,11 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   {
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
     // If never found, nothing to remove
-    while (pluginElt != sdf::ElementPtr(nullptr))
+    while (pluginElt != nullptr)
     {
       if (pluginElt->HasAttribute("name"))
       {
-        if (pluginElt->GetAttribute("name")->GetAsString().find ("LogRecord")
+        if (pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
           == std::string::npos)
         {
           // Go to next plugin
@@ -259,7 +236,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
         // If found it, remove it
         else
         {
-          igndbg << "Found LogRecord plugin\n";
           pluginElt->RemoveFromParent();
           igndbg << "Removed LogRecord plugin from loaded SDF\n";
           break;
@@ -267,7 +243,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
       }
     }
   }
-
 
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
@@ -295,23 +270,19 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
-
-  ignmsg << "Playing back log file " << dbPath << std::endl;
+  ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
 
   // Call Log.hh directly to load a .tlog file
-
-  this->dataPtr->log = std::make_unique<Log>();
+  this->dataPtr->log = std::make_unique<transport::log::Log>();
   this->dataPtr->log->Open(dbPath);
 
   // Access messages in .tlog file
-  TopicList opts = TopicList("/world/default/pose/info");
+  transport::log::TopicList opts("/world/default/pose/info");
   this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
   this->dataPtr->iter = this->dataPtr->poseBatch.begin();
 
   // Record first timestamp
   this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
-  igndbg << this->dataPtr->logStartTime.count() << std::endl;
-  igndbg << this->dataPtr->iter->Type() << std::endl;
 
   this->dataPtr->ParsePose(_ecm);
 
@@ -338,7 +309,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
     return;
   }
 
-
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
@@ -349,9 +319,6 @@ void LogPlayback::Update(const UpdateInfo &/*_info*/,
   if (diffTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
     this->dataPtr->logStartTime.count()))
   {
-    // Print timestamp of this log entry
-    igndbg << this->dataPtr->iter->TimeReceived().count() << std::endl;
-
     // Parse pose and move link
     this->dataPtr->ParsePose(_ecm);
 
