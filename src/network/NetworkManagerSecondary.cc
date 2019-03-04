@@ -96,10 +96,7 @@ void NetworkManagerSecondary::Initialize()
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::Step(
-    uint64_t &_iteration,
-    std::chrono::steady_clock::duration &_stepSize,
-    std::chrono::steady_clock::duration &_simTime)
+bool NetworkManagerSecondary::Step(UpdateInfo &_info)
 {
   if (!this->enableSim)
   {
@@ -112,14 +109,17 @@ bool NetworkManagerSecondary::Step(
       [this](){return this->currentStep != nullptr;});
 
   if (status) {
-    if (_iteration % 1000 == 0)
+    // Throttle the number of step messages going to the debug output.
+    if (!this->currentStep->paused() &&
+        this->currentStep->iteration() % 1000 == 0)
     {
-      igndbg << "NetworkStep: " << _iteration << std::endl;
+      igndbg << "NetworkStep: " << this->currentStep->iteration() << std::endl;
     }
-    _iteration = this->currentStep->iteration();
-    _stepSize = std::chrono::steady_clock::duration(
+    _info.iterations = this->currentStep->iteration();
+    _info.paused = this->currentStep->paused();
+    _info.dt = std::chrono::steady_clock::duration(
         std::chrono::nanoseconds(this->currentStep->stepsize()));
-    _simTime = std::chrono::steady_clock::duration(
+    _info.simTime = std::chrono::steady_clock::duration(
         std::chrono::seconds(this->currentStep->simtime().sec()) +
         std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
     this->currentStep.reset();
