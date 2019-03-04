@@ -19,7 +19,6 @@ set(network_sources
   network/NetworkManager.cc
   network/NetworkManagerPrimary.cc
   network/NetworkManagerSecondary.cc
-  network/NetworkManagerReadOnly.cc
   network/PeerInfo.cc
   network/PeerTracker.cc
 )
@@ -91,27 +90,12 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  ${PROJECT_LIBRARY_TARGET_NAME}_private_msgs
-)
-
-ign_add_component(systems
-  SOURCES ${systems_sources}
-  GET_TARGET_NAME SYSTEMS_TARGET
-  CXX_STANDARD 17)
-
-target_link_libraries(${SYSTEMS_TARGET}
-  PUBLIC
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-common${IGN_COMMON_VER}::profiler
-  ${SDFormat_LIBRARIES}
-  PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::register
+  ignition-gazebo_private_msgs
 )
 
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
-install(TARGETS ${SYSTEMS_TARGET} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
@@ -121,7 +105,7 @@ ign_build_tests(TYPE UNIT
     ${gtest_sources}
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
-    ignition-gazebo
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 
 # Create the gazebo executable
@@ -147,7 +131,7 @@ ign_add_executable(ign-gazebo-gui gui_main.cc)
 set_property(TARGET ign-gazebo-gui PROPERTY OUTPUT_NAME ign-gazebo-gui)
 target_link_libraries(ign-gazebo-gui PUBLIC ${PROJECT_LIBRARY_TARGET_NAME}
   gflags
-  ign-gazebo-gui-lib
+  ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
   ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
   ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}

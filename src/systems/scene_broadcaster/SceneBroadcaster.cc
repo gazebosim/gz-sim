@@ -19,7 +19,7 @@
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
-#include <ignition/plugin/RegisterMore.hh>
+#include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Geometry.hh"
@@ -34,7 +34,8 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/systems/SceneBroadcaster.hh"
+
+#include "SceneBroadcaster.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -472,7 +473,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     }
     for (const auto &[id, edge] : newGraph.Edges())
     {
-      if (!this->sceneGraph.EdgeFromId(edge.get().Id()).Valid())
+      if (!this->sceneGraph.EdgeFromId(id).Valid())
         this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
     }
   }
@@ -632,7 +633,12 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 }
 
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::SceneBroadcaster,
+IGNITION_ADD_PLUGIN(SceneBroadcaster,
                     ignition::gazebo::System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
+
+// Add plugin alias so that we can refer to the plugin without the version
+// namespace
+IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "ignition::gazebo::systems::SceneBroadcaster")

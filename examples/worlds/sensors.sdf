@@ -15,28 +15,28 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      filename="libignition-gazebo1-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-altimeter-system.so"
-      name="ignition::gazebo::systems::v0::Altimeter">
+      filename="libignition-gazebo1-altimeter-system.so"
+      name="ignition::gazebo::systems::Altimeter">
     </plugin>
     <plugin
-      filename="libignition-gazebo-imu-system.so"
-      name="ignition::gazebo::systems::v0::Imu">
+      filename="libignition-gazebo1-imu-system.so"
+      name="ignition::gazebo::systems::Imu">
     </plugin>
     <plugin
-      filename="libignition-gazebo-magnetometer-system.so"
-      name="ignition::gazebo::systems::v0::Magnetometer">
+      filename="libignition-gazebo1-magnetometer-system.so"
+      name="ignition::gazebo::systems::Magnetometer">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::v0::UserCommands">
+      filename="libignition-gazebo1-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">

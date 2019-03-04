@@ -1,0 +1,215 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="touch">
+    <plugin
+      filename="libignition-gazebo1-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo1-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="white_box">
+      <pose>0 0 4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="white_box_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+      </link>
+      <plugin
+        filename="libignition-gazebo1-touchplugin-system.so"
+        name="ignition::gazebo::systems::TouchPlugin">
+        <target>green_box_for_white</target>
+        <time>3</time>
+        <namespace>white_touches_only_green</namespace>
+        <enabled>true</enabled>
+      </plugin>
+    </model>
+
+    <model name="red_yellow_box">
+      <pose>4 0 4 0 0 0</pose>
+      <link name="red">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="red_box_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+      </link>
+      <link name="yellow">
+        <pose>0 2 0 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="yellow_box_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+      </link>
+      <plugin
+        filename="libignition-gazebo1-touchplugin-system.so"
+        name="ignition::gazebo::systems::TouchPlugin">
+        <target>green_box_for_red_yellow</target>
+        <time>2</time>
+        <namespace>red_and_yellow_touch_only_green</namespace>
+        <enabled>true</enabled>
+      </plugin>
+    </model>
+
+    <model name="blue_box">
+      <pose>8 0 4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="blue_box_sensor" type="contact">
+          <contact>
+            <collision>collision</collision>
+          </contact>
+        </sensor>
+      </link>
+      <plugin
+        filename="libignition-gazebo1-touchplugin-system.so"
+        name="ignition::gazebo::systems::TouchPlugin">
+        <target>green_box_for_blue</target>
+        <time>2</time>
+        <namespace>blue_touches_only_green</namespace>
+      </plugin>
+    </model>
+
+    <model name="green_box_for_white">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="green_box_for_red_yellow">
+      <pose>4 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="green_box_for_blue">
+      <pose>8 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>
+

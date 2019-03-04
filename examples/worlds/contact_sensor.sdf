@@ -1,15 +1,33 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="shapes">
+<!--
+Ignition Gazebo contact sensor example
+
+Run the following to print out contacts,
+
+  ign topic -e -t "/contact_example"
+-->
+
+  <world name="contact_sensor">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      filename="libignition-gazebo1-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      filename="libignition-gazebo1-contact-system.so"
+      name="ignition::gazebo::systems::Contact">
     </plugin>
+    <plugin
+      filename="libignition-gazebo1-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo1-systems.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
     <gui fullscreen="0">
+
       <!-- 3D scene -->
       <plugin filename="Scene3D" name="3D View">
         <ignition-gui>
@@ -18,15 +36,15 @@
           <property type="string" key="state">docked</property>
         </ignition-gui>
 
-        <engine>ogre2</engine>
+        <engine>ogre</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
-        <scene_topic>/world/shapes/scene/info</scene_topic>
-        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
+        <service>/world/contact_sensor/scene/info</service>
+        <pose_topic>/world/contact_sensor/pose/info</pose_topic>
+        <scene_topic>/world/contact_sensor/scene/info</scene_topic>
+        <deletion_topic>/world/contact_sensor/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -49,8 +67,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/shapes/control</service>
-        <stats_topic>/world/shapes/stats</stats_topic>
+        <service>/world/contact_sensor/control</service>
+        <stats_topic>/world/contact_sensor/stats</stats_topic>
 
       </plugin>
 
@@ -75,17 +93,15 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/shapes/stats</topic>
-
+        <topic>/world/contact_sensor/stats</topic>
       </plugin>
-
     </gui>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
@@ -97,6 +113,7 @@
 
     <model name="ground_plane">
       <static>true</static>
+      <pose>0 0 0.0 0 0.5 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
@@ -122,14 +139,33 @@
       </link>
     </model>
 
-    <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/double_pendulum_with_base/2</uri>
-    </include>
-
-    <include>
-      <pose>1 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/nate/models/my_Backpack</uri>
-    </include>
+    <model name="contact_model">
+      <pose>0 0 3.0 0 0.0 0</pose>
+      <link name="link">
+        <collision name="collision_sphere">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <sensor name='sensor_contact' type='contact'>
+          <contact>
+            <collision>collision_sphere</collision>
+            <topic>/contact_example</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+        </sensor>
+      </link>
+    </model>
 
   </world>
 </sdf>

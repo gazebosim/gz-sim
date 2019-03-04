@@ -45,6 +45,7 @@ namespace ignition
 {
 namespace gazebo
 {
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
 /// \brief This class is passed to every command and contains interfaces that
@@ -112,6 +113,7 @@ class RemoveCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 };
+}
 }
 }
 }
@@ -504,3 +506,6 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
   UserCommands::ISystemPreUpdate
 )
+
+IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+                          "ignition::gazebo::systems::UserCommands")

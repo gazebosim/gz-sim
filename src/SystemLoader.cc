@@ -83,20 +83,21 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    auto validPlugins = loader.PluginsImplementing<System>();
-    if (validPlugins.count(_name) == 0) {
-      ignerr << "Failed to load system plugin [" << _name <<
-                "] : system not found in library  [" << _filename <<
-                "] from path [" << pathToLib << "]." << std::endl;
-      return false;
-    }
-
     _plugin = loader.Instantiate(_name);
     if (!_plugin)
     {
       ignerr << "Failed to load system plugin [" << _name <<
                 "] : could not instantiate from library [" << _filename <<
                 "] from path [" << pathToLib << "]." << std::endl;
+      return false;
+    }
+
+    if (!_plugin->HasInterface<System>())
+    {
+      ignerr << "Failed to load system plugin [" << _name <<
+        "] : system not found in library  [" << _filename <<
+        "] from path [" << pathToLib << "]." << std::endl;
+
       return false;
     }
 

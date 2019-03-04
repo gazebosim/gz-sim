@@ -33,6 +33,7 @@
 #include "plugins/MockSystem.hh"
 
 using namespace ignition;
+using namespace ignition::gazebo;
 using namespace std::chrono_literals;
 
 class ServerFixture : public ::testing::TestWithParam<int>
@@ -42,6 +43,8 @@ class ServerFixture : public ::testing::TestWithParam<int>
     // Augment the system plugin path.  In SetUp to avoid test order issues.
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
+
+    ignition::common::Console::SetVerbosity(4);
   }
 };
 
@@ -54,6 +57,117 @@ TEST_P(ServerFixture, DefaultServerConfig)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(std::nullopt, server.Running(1));
   EXPECT_TRUE(*server.Paused());
+  EXPECT_TRUE(serverConfig.Plugins().empty());
+
+  serverConfig.SetUpdateRate(1000.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  serverConfig.SetUpdateRate(-1000.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  serverConfig.SetUpdateRate(0.0);
+  EXPECT_DOUBLE_EQ(1000.0, *serverConfig.UpdateRate());
+  EXPECT_EQ(1ms, serverConfig.UpdatePeriod());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigPluginInfo)
+{
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("an_entity");
+  pluginInfo.SetEntityType("model");
+  pluginInfo.SetFilename("filename");
+  pluginInfo.SetName("interface");
+  pluginInfo.SetSdf(nullptr);
+
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.AddPlugin(pluginInfo);
+
+  const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
+  ASSERT_FALSE(plugins.empty());
+
+  EXPECT_EQ("an_entity", plugins.front().EntityName());
+  EXPECT_EQ("model", plugins.front().EntityType());
+  EXPECT_EQ("filename", plugins.front().Filename());
+  EXPECT_EQ("interface", plugins.front().Name());
+  EXPECT_EQ(nullptr, plugins.front().Sdf());
+
+  // Test operator=
+  {
+    ServerConfig::PluginInfo info;
+    info = plugins.front();
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Filename(), plugins.front().Filename());
+    EXPECT_EQ(info.Name(), plugins.front().Name());
+    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+  }
+
+  // Test copy constructor
+  {
+    ServerConfig::PluginInfo info(plugins.front());
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Filename(), plugins.front().Filename());
+    EXPECT_EQ(info.Name(), plugins.front().Name());
+    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+  }
+
+  // Test server config copy constructor
+  {
+    const ServerConfig &cfg(serverConfig);
+    const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
+    ASSERT_FALSE(cfgPlugins.empty());
+
+    EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(cfgPlugins.front().Filename(), plugins.front().Filename());
+    EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
+    EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigRealPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  sdf::ElementPtr sdf(new sdf::Element);
+  sdf->SetName("plugin");
+  sdf->AddAttribute("name", "string",
+      "ignition::gazebo::TestModelSystem", true);
+  sdf->AddAttribute("filename", "string", "libTestModelSystem.so", true);
+
+  sdf::ElementPtr child(new sdf::Element);
+  child->SetParent(sdf);
+  child->SetName("model_key");
+  child->AddValue("string", "987", "1");
+
+  serverConfig.AddPlugin({"box", "model",
+      "libTestModelSystem.so", "ignition::gazebo::TestModelSystem", sdf});
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run the server
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_FALSE(*server.Paused());
+
+  // The TestModelSystem should have created a service. Call the service to
+  // make sure the TestModelSystem was successfully loaded.
+  transport::Node node;
+  msgs::StringMsg rep;
+  bool result;
+  bool executed = node.Request("/test/service", 5000, rep, result);
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_EQ("TestModelSystem", rep.data());
 }
 
 /////////////////////////////////////////////////
@@ -61,8 +175,15 @@ TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  // Setting the SDF file should override the string.
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -78,6 +199,30 @@ TEST_P(ServerFixture, SdfServerConfig)
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_FALSE(server.HasEntity("bad", 0));
   EXPECT_FALSE(server.HasEntity("bad", 1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, SdfStringServerConfig)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+  EXPECT_FALSE(serverConfig.SdfFile().empty());
+  EXPECT_TRUE(serverConfig.SdfString().empty());
+
+  // Setting the string should override the file.
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+  EXPECT_TRUE(serverConfig.SdfFile().empty());
+  EXPECT_FALSE(serverConfig.SdfString().empty());
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_TRUE(*server.Paused());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_EQ(2u, *server.EntityCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
@@ -179,7 +324,10 @@ TEST_P(ServerFixture, RunNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
-  gazebo::Server server;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+  gazebo::Server server(serverConfig);
+
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
@@ -219,9 +367,11 @@ TEST_P(ServerFixture, SigInt)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersNonBlocking)
 {
-  ignition::common::Console::SetVerbosity(4);
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
@@ -257,8 +407,11 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, TwoServersMixedBlocking)
 {
-  gazebo::Server server1;
-  gazebo::Server server2;
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+
+  gazebo::Server server1(serverConfig);
+  gazebo::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
