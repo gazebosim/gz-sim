@@ -473,7 +473,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     }
     for (const auto &[id, edge] : newGraph.Edges())
     {
-      if (!this->sceneGraph.EdgeFromId(edge.get().Id()).Valid())
+      if (!this->sceneGraph.EdgeFromId(id).Valid())
         this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
     }
   }

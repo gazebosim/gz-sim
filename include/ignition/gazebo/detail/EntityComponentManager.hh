@@ -34,18 +34,8 @@ template<typename ComponentTypeT>
 ComponentKey EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentTypeT::typeId;
-
-  // Create the component storage if one does not exist for
-  // the component type.
-  if (!this->HasComponentType(typeId))
-  {
-    this->RegisterComponentType(typeId,
-          new ComponentStorage<ComponentTypeT>());
-  }
-
-  return this->CreateComponentImplementation(_entity, typeId, &_data);
+  return this->CreateComponentImplementation(_entity, ComponentTypeT::typeId,
+      &_data);
 }
 
 //////////////////////////////////////////////////

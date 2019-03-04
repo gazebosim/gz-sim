@@ -12,16 +12,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="libignition-gazebo1-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
+      filename="libignition-gazebo1-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -190,7 +190,7 @@
       </link>
     </model>
 
-    <model name="camera_alone">
+    <model name="cameras_alone">
       <pose>2.5 0 1.5 0 0.0 3.14</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
@@ -216,7 +216,7 @@
             </box>
           </geometry>
         </visual>
-        <sensor name="camera_alone" type="camera">
+        <sensor name="cameras_alone" type="camera">
           <camera>
             <horizontal_fov>1.047</horizontal_fov>
             <image>
@@ -233,6 +233,22 @@
           <visualize>true</visualize>
           <topic>camera_alone</topic>
         </sensor>
+        <sensor name="depth_camera1" type="depth_camera">
+          <update_rate>10</update_rate>
+          <topic>depth_camera</topic>
+          <camera>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+          </sensor>
       </link>
       <static>true</static>
     </model>

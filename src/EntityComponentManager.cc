@@ -21,6 +21,7 @@
 
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Component.hh"
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 using namespace ignition;
@@ -28,12 +29,22 @@ using namespace gazebo;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
+  /// \brief Implementation of the CreateEntity function, which takes a specific
+  /// entity as input.
+  /// \param[in] _entity Entity to be created.
+  /// \return Created entity, which should match the input.
+  public: Entity CreateEntityImplementation(Entity _entity);
+
   /// \brief Recursively insert an entity and all its descendants into a given
   /// set.
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
   public: void InsertEntityRecursive(Entity _entity,
       std::set<Entity> &_set);
+
+  /// \brief Register a new component type.
+  /// \param[in] _typeId Type if of the new component.
+  public: void CreateComponentStorage(const ComponentTypeId _typeId);
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -96,15 +107,21 @@ Entity EntityComponentManager::CreateEntity()
     return entity;
   }
 
-  this->dataPtr->entities.AddVertex(std::to_string(entity), entity, entity);
+  return this->dataPtr->CreateEntityImplementation(entity);
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
+{
+  this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
 
   // Add entity to the list of newly created entities
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-    this->dataPtr->newlyCreatedEntities.insert(entity);
+    std::lock_guard<std::mutex> lock(this->entityCreatedMutex);
+    this->newlyCreatedEntities.insert(_entity);
   }
 
-  return entity;
+  return _entity;
 }
 
 /////////////////////////////////////////////////
@@ -351,6 +368,12 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  // If type hasn't been instantiated yet, create a storage for it
+  if (!this->HasComponentType(_componentTypeId))
+  {
+    this->dataPtr->CreateComponentStorage(_componentTypeId);
+  }
+
   // Instantiate the new component.
   std::pair<ComponentId, bool> componentIdPair =
     this->dataPtr->components[_componentTypeId]->Create(_data);
@@ -366,7 +389,6 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
 
   return componentKey;
 }
-
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::EntityMatches(Entity _entity,
@@ -499,12 +521,20 @@ bool EntityComponentManager::HasComponentType(
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::RegisterComponentType(
-    const ComponentTypeId _typeId,
-    ComponentStorageBase *_type)
+void EntityComponentManagerPrivate::CreateComponentStorage(
+    const ComponentTypeId _typeId)
 {
-  igndbg << "Register new component type " << _typeId << ".\n";
-  this->dataPtr->components[_typeId].reset(_type);
+  auto storage = components::Factory::Instance()->NewStorage(_typeId);
+
+  if (nullptr == storage)
+  {
+    ignerr << "Internal errror: failed to create storage for type [" << _typeId
+           << "]" << std::endl;
+    return;
+  }
+
+  this->components[_typeId] = std::move(storage);
+  igndbg << "Created storage for component type [" << _typeId << "].\n";
 }
 
 /////////////////////////////////////////////////
