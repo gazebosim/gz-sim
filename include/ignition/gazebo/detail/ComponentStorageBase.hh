@@ -164,6 +164,8 @@ namespace ignition
         }
 
         std::lock_guard<std::mutex> lock(this->mutex);
+        // cppcheck-suppress unmatchedSuppression
+        // cppcheck-suppress postfixOperator
         result = this->idCounter++;
         this->idMap[result] = this->components.size();
         // Copy the component

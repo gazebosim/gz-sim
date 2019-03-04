@@ -2,8 +2,8 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      filename="libignition-gazebo1-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">

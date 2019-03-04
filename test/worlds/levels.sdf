@@ -2,8 +2,8 @@
 <sdf version="1.6">
   <world name="levels">
     <plugin
-      filename="libignition-gazebo-systems.so"
-      name="ignition::gazebo::systems::v0::SceneBroadcaster">
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
   <gui fullscreen="0">

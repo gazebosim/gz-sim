@@ -7,8 +7,8 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::v0::Physics">
+      filename="libignition-gazebo1-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
@@ -225,8 +225,8 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-systems.so"
-        name="ignition::gazebo::systems::v0::DiffDrive">
+        filename="libignition-gazebo1-diff-drive-system.so"
+        name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>

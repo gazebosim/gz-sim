@@ -12,8 +12,6 @@ pipelines:
           - docker/scripts/enable_gcc8.sh
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
-          - docker/scripts/enable_ign_prerelease.sh
-          - docker/scripts/enable_ign_nightly.sh
           - sudo apt-get update
           # Dependency: Ignition packages
           - apt-get -y install
@@ -25,11 +23,11 @@ pipelines:
             libignition-plugin-dev
             libignition-physics-dev
             libignition-rendering-dev
-            libignition-sensors-dev
             libignition-tools-dev
             libignition-transport6-dev
             libsdformat8-dev
-            # libignition-fuel-tools3-dev
+            libignition-sensors-dev
+            libignition-fuel-tools3-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
           #   libxml2-utils
@@ -59,7 +57,7 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b sensor_plugin
           # - cd ign-sensors
           # - mkdir build
           # - cd build
@@ -67,15 +65,15 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition fuel-tools (uncomment if a specific branch is needed)
-          - apt install -y
-            libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b default
-          - cd ign-fuel-tools
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false
-          - make -j4 install
-          - cd ../..
+          # - apt install -y
+          #   libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-fuel-tools -b default
+          # - cd ign-fuel-tools
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
           # Ignition gui (uncomment if a specific branch is needed)
           # - apt install -y
           #   qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
@@ -96,6 +94,7 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition Gazebo
+          - ./tools/clang_tidy.sh
           - mkdir build
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
@@ -105,6 +104,4 @@ pipelines:
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov
           - make codecheck
-          - cd ..
-          - ./tools/clang_tidy.sh
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10

@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
 
+#include <cstdint>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -104,14 +105,56 @@ namespace components
     /// \tparam ComponentTypeT Type of component to register.
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
-      StorageDescriptorBase *_storageDesc = nullptr)
+      StorageDescriptorBase *_storageDesc)
     {
+      auto typeHash = ignition::common::hash64(_type);
+
+      // Every time a plugin which uses a component type is loaded, it attempts
+      // to register it again, so we skip it.
+      if (ComponentTypeT::typeId != 0)
+      {
+        return;
+      }
+
       // Initialize static member variable
-      ComponentTypeT::typeId = ignition::common::hash64(_type);
+      ComponentTypeT::typeId = typeHash;
 
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
+    }
+
+    /// \brief Unregister a component so that the factory can't create instances
+    /// of the component or its storage anymore.
+    /// \tparam ComponentTypeT Type of component to unregister.
+    public: template<typename ComponentTypeT>
+    void Unregister()
+    {
+      // Not registered
+      if (ComponentTypeT::typeId == 0)
+      {
+        return;
+      }
+
+      {
+        auto it = this->compsById.find(ComponentTypeT::typeId);
+        if (it != this->compsById.end())
+        {
+          delete it->second;
+          this->compsById.erase(it);
+        }
+      }
+
+      {
+        auto it = this->storagesById.find(ComponentTypeT::typeId);
+        if (it != this->storagesById.end())
+        {
+          delete it->second;
+          this->storagesById.erase(it);
+        }
+      }
+
+      ComponentTypeT::typeId = 0;
     }
 
     /// \brief Create a new instance of a component.
@@ -135,7 +178,7 @@ namespace components
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsById.find(_type);
-      if (it != this->compsById.end())
+      if (it != this->compsById.end() && nullptr != it->second)
         comp = it->second->Create();
 
       return comp;
@@ -150,7 +193,7 @@ namespace components
     {
       std::unique_ptr<ComponentStorageBase> storage;
       auto it = this->storagesById.find(_typeId);
-      if (it != this->storagesById.end())
+      if (it != this->storagesById.end() && nullptr != it->second)
         storage = it->second->Create();
 
       return storage;
@@ -163,8 +206,8 @@ namespace components
       std::vector<ComponentTypeId> types;
 
       // Return the list of all known component types.
-      for (const auto &[id, funct] : this->compsById)
-        types.push_back(id);
+      for (const auto &comp : this->compsById)
+        types.push_back(comp.first);
 
       return types;
     }
@@ -192,6 +235,9 @@ namespace components
   /// \brief Static component registration macro.
   ///
   /// Use this macro to register components.
+  ///
+  /// \detail Each time a plugin which uses a component is loaded, it tries to
+  /// register the component again, so we prevent that.
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
   #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
@@ -199,6 +245,8 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
+      if (_classname::typeId != 0) \
+        return; \
       using namespace ignition;\
       using Desc = gazebo::components::ComponentDescriptor<_classname>; \
       using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
