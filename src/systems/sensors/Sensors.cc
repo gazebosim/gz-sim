@@ -28,10 +28,12 @@
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/CameraSensor.hh>
+#include <ignition/sensors/DepthCameraSensor.hh>
 #include <ignition/sensors/GpuLidarSensor.hh>
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Light.hh"
@@ -116,6 +118,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   // Only initialize if there are rendering sensors
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
+       _ecm.HasComponentType(components::DepthCamera::typeId) ||
         _ecm.HasComponentType(components::GpuLidar::typeId)))
   {
     this->dataPtr->engine =
@@ -263,6 +266,53 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
+  // Create depth cameras
+  _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+    [&](const Entity &_entity,
+        const components::DepthCamera *_depthCamera,
+        const components::ParentEntity *_parent)->bool
+      {
+        // two camera models with the same camera sensor name
+        // causes name conflicts. We'll need to use scoped names
+        // TODO(anyone) do this in ign-sensors?
+        auto parent = sceneManager.NodeById(_parent->Data());
+        if (!parent)
+        {
+          ignerr << "Failed to create sensor for entity [" << _entity
+                 << "]. Parent not found." << std::endl;
+          return true;
+        }
+
+        auto data = _depthCamera->Data()->Clone();
+        std::string scopedName = parent->Name() + "::"
+            + data->Get<std::string>("name");
+        data->GetAttribute("name")->Set(scopedName);
+
+        // Create within ign-sensors
+        auto sensor =
+            this->sensorManager.CreateSensor<sensors::DepthCameraSensor>(data);
+
+        if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
+        {
+          ignerr << "Failed to create sensor [" << scopedName << "]"
+                 << std::endl;
+        }
+        // Add to the system's scene manager
+        else if (!this->sceneManager.AddSensor(
+            _entity, sensor->DepthCamera()->Id(), _parent->Data()))
+        {
+          ignerr << "Failed to create sensor [" << scopedName << "]"
+                 << std::endl;
+        }
+        else
+        {
+          this->entityToSensorId[_entity] = sensor->Id();
+          sensor->SetParent(parent->Name());
+        }
+
+        return true;
+      });
+
   // Create gpu lidar
   _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
     [&](const Entity &_entity,
@@ -365,10 +415,24 @@ void SensorsPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
-  // Create cameras
+  // Update cameras
   _ecm.Each<components::Camera, components::Pose>(
     [&](const Entity &_entity,
         const components::Camera *,
+        const components::Pose *_pose)->bool
+      {
+        auto node = this->sceneManager.NodeById(_entity);
+        if (node)
+        {
+          node->SetLocalPose(_pose->Data());
+        }
+        return true;
+      });
+
+  // Update depth cameras
+  _ecm.Each<components::DepthCamera, components::Pose>(
+    [&](const Entity &_entity,
+        const components::DepthCamera *,
         const components::Pose *_pose)->bool
       {
         auto node = this->sceneManager.NodeById(_entity);
@@ -430,6 +494,18 @@ void SensorsPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
   // cameras
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
+      {
+        this->sensorManager.Remove(_entity);
+          // \todo(louise) FixMe: SensorId not implemented in ign-sensors
+          // auto sensorID = this->sensorManager.SensorId(entity->Name());
+          // this->sensorManager.Remove(sensorID);
+        this->sceneManager.RemoveEntity(_entity);
+        return true;
+      });
+
+  // depth cameras
+  _ecm.EachRemoved<components::DepthCamera>(
+    [&](const Entity &_entity, const components::DepthCamera *)->bool
       {
         this->sensorManager.Remove(_entity);
           // \todo(louise) FixMe: SensorId not implemented in ign-sensors

@@ -14,15 +14,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="libignition-gazebo1-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="libignition-gazebo1-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -339,7 +339,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo-pose-publisher-system.so"
+        filename="libignition-gazebo1-pose-publisher-system.so"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_collision_pose>false</publish_collision_pose>

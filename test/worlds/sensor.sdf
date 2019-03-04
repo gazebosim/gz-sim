@@ -2,12 +2,12 @@
 <sdf version="1.6">
   <world name="camera_sensor">
     <plugin
-      filename="libignition-gazebo-sensors-system.so"
+      filename="libignition-gazebo1-sensors-system.so"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
