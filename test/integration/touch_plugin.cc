@@ -96,6 +96,12 @@ TEST_F(TouchPluginTest, OneLink)
   // Wait and see it notifies again
   whiteTouched = false;
   server->Run(true, 3100, false);
+
+  // TODO(anyone) Not fair to only wait for "true"
+  for (int sleep = 0; sleep < 50 && !whiteTouched; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+  }
   EXPECT_TRUE(whiteTouched);
 }
 
@@ -167,6 +173,12 @@ TEST_F(TouchPluginTest, StartDisabled)
   // Wait and see it notifies now
   blueTouched = false;
   server->Run(true, 3000, false);
+
+  for (int sleep = 0; sleep < 50 && !blueTouched; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+  }
+
   EXPECT_TRUE(blueTouched);
 }
 
@@ -232,7 +244,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
           </sensor>
         </link>
         <plugin
-          filename="libignition-gazebo0-touchplugin-system.so"
+          filename="libignition-gazebo1-touchplugin-system.so"
           name="ignition::gazebo::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
@@ -312,6 +324,13 @@ TEST_F(TouchPluginTest, SpawnedEntities)
 
     // Give it time to touch for at least 0.2 seconds
     server->Run(true, 500, false);
+
+    // TODO(anyone) Not fair to only wait for "true"
+    for (int sleep = 0; sleep < 50 && !whiteTouched; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    }
+
     EXPECT_TRUE(whiteTouched);
   };
 
