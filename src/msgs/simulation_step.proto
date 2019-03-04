@@ -36,5 +36,8 @@ message SimulationStep
 
   /// \brief Current simulation time.
   ignition.msgs.Time simTime = 3;
+
+  /// \brief Simulation paused
+  bool paused = 4;
 }
 

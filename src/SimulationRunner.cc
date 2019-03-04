@@ -390,10 +390,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       IGN_PROFILE("NetworkSync - SendStep");
       // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->networkMgr->Step(
-              this->currentInfo.iterations,
-              this->currentInfo.dt,
-              this->currentInfo.simTime))
+      while (this->running && !this->networkMgr->Step(this->currentInfo))
       {
       }
     }

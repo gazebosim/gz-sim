@@ -23,8 +23,7 @@ import "ignition/msgs/header.proto";
 
 /// \brief Message to control various aspects of peer execution.
 /// This message is only sent from NetworkPrimary to NetworkSecondary in order
-/// to either enable/disable simulation or pause/unpause simulation on the
-/// secondary.
+/// to enable/disable simulation.
 message PeerControl
 {
   /// \brief Optional header data
@@ -32,7 +31,4 @@ message PeerControl
 
   /// \brief Enable simulation on network secondary (True to enable)
   bool enable_sim = 2;
-
-  /// \brief Pause/Unpause simuluation on network secondary (True to pause)
-  bool pause_sim = 3;
 }
