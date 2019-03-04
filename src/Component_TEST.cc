@@ -58,9 +58,14 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, DataByMove)
 {
+  auto factory = components::Factory::Instance();
+
   // Create a custom component with shared_ptr data
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
+  factory->Register<CustomComponent>("ign_gazebo_components.MyCustom",
+     new components::ComponentDescriptor<CustomComponent>(),
+     new components::StorageDescriptor<CustomComponent>());
 
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();
@@ -164,10 +169,6 @@ class InertialWrapper : public InertialBase
 // Component without De/Serialize
 class NoSerialize : public components::BaseComponent
 {
-  public: std::string TypeName() const override
-  {
-    return "";
-  }
   public: ComponentTypeId TypeId() const override
   {
     return 0;
@@ -452,29 +453,25 @@ TEST_F(ComponentTest, IStream)
 }
 
 //////////////////////////////////////////////////
-TEST_F(ComponentTest, TypeName)
+TEST_F(ComponentTest, TypeId)
 {
   // Component with data
   {
     using Custom = components::Component<int, class CustomTag>;
-    Custom::typeName = "custom";
     Custom::typeId = 123456;
 
     Custom comp;
 
-    EXPECT_EQ("custom", comp.TypeName());
     EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
   }
 
   // Component without data
   {
     using Custom = components::Component<components::NoData, class CustomTag>;
-    Custom::typeName = "custom";
     Custom::typeId = 123456;
 
     Custom comp;
 
-    EXPECT_EQ("custom", comp.TypeName());
     EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
   }
 }
