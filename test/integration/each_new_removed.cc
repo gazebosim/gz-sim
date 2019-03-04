@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <sdf/World.hh>
 
+#include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -33,6 +34,8 @@ using namespace ignition;
 using namespace std::chrono_literals;
 
 using IntComponent = gazebo::components::Component<int, class IntComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+    IntComponent)
 
 class EachNewRemovedFixture : public ::testing::Test
 {
