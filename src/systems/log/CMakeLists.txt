@@ -16,7 +16,6 @@ target_link_libraries(${log_system_target}
   ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   ignition-plugin${IGN_PLUGIN_VER}::register
-  stdc++fs
 )
 
 install(TARGETS ${log_system_target}
