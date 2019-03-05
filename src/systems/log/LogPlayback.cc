@@ -216,7 +216,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
   const sdf::World * sdfWorld = root.WorldByIndex(0);
 
-  std::vector <sdf::ElementPtr> plugins_rm;
+  std::vector <sdf::ElementPtr> pluginsRm;
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
   //   is not re-recorded.
@@ -228,13 +228,8 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     // If never found, nothing to remove
     while (pluginElt != nullptr)
     {
-      ignerr << pluginElt->ToString("");
-      ignerr << pluginElt->GetName() << std::endl;
-
       if (pluginElt->HasAttribute("name"))
       {
-        ignerr << pluginElt->GetAttribute("name")->GetAsString() << std::endl;
-
         if ((pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
           != std::string::npos) ||
           (pluginElt->GetAttribute("name")->GetAsString().find("Physics")
@@ -243,7 +238,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
           // Flag for removal.
           // Do not actually remove plugin from parent while looping through
           //   children of this parent. Else cannot access next element.
-          plugins_rm.push_back(pluginElt);
+          pluginsRm.push_back(pluginElt);
         }
       }
 
@@ -253,11 +248,10 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 
   // Remove the marked plugins
-  for (std::vector<sdf::ElementPtr>::iterator it = plugins_rm.begin();
-    it != plugins_rm.end(); ++it)
+  for (auto & it : pluginsRm)
   {
-    (*it)->RemoveFromParent();
-    ignerr << "Removed " << (*it)->GetAttribute("name")->GetAsString()
+    it->RemoveFromParent();
+    igndbg << "Removed " << it->GetAttribute("name")->GetAsString()
       << " plugin from loaded SDF\n";
   }
 
