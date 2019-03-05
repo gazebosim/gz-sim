@@ -10,7 +10,6 @@ ign_add_component(log-system
 
 target_link_libraries(${log_system_target}
   PUBLIC
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
   # Use ign-transport directly
   ignition-transport${IGN_TRANSPORT_VER}::log
   ${PROJECT_LIBRARY_TARGET_NAME}
