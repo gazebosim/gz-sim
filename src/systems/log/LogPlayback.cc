@@ -17,10 +17,11 @@
 
 #include "LogPlayback.hh"
 
+#include <ignition/msgs/pose_v.pb.h>
+
 #include <chrono>
 #include <string>
 
-#include <ignition/msgs/pose_v.pb.h>
 #include <ignition/msgs/Utility.hh>
 
 #include <ignition/math/Quaternion.hh>
@@ -217,6 +218,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
   //   is not re-recorded.
+  // Remove Physics plugin, so that it does not clash with recorded poses.
   if (sdfWorld->Element()->HasElement("plugin"))
   {
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
@@ -225,19 +227,18 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     {
       if (pluginElt->HasAttribute("name"))
       {
-        if (pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
-          == std::string::npos)
-        {
-          // Go to next plugin
-          pluginElt = pluginElt->GetNextElement("plugin");
-        }
-        // If found it, remove it
-        else
+        if ((pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
+          != std::string::npos) ||
+          (pluginElt->GetAttribute("name")->GetAsString().find("Physics")
+          != std::string::npos))
         {
           pluginElt->RemoveFromParent();
-          igndbg << "Removed LogRecord plugin from loaded SDF\n";
-          break;
+          igndbg << "Removed " << pluginElt->GetAttribute("name")->GetAsString()
+            << " plugin from loaded SDF\n";
         }
+
+        // Go to next plugin
+        pluginElt = pluginElt->GetNextElement("plugin");
       }
     }
   }
