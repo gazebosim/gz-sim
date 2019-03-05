@@ -180,7 +180,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  std::string logPath = _sdf->Get<std::string>("path");
+  auto logPath = _sdf->Get<std::string>("path");
 
   if (logPath.empty())
   {

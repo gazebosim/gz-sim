@@ -92,7 +92,8 @@ std::string LogRecordPrivate::UniqueFilePath(const std::string &_pathAndName,
   // Check if file exists and change name accordingly
   while (common::exists(result.c_str()))
   {
-    result = _pathAndName + "(" + std::to_string(count++) + ")." + _extension;
+    result = _pathAndName + "(" + std::to_string(count++) + ").";
+    result += _extension;
   }
 
   return result;
@@ -134,7 +135,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
   // Get directory paths from SDF params
-  std::string logPath = _sdf->Get<std::string>("path");
+  auto logPath = _sdf->Get<std::string>("path");
 
   // If unspecified, or specified is not a directory, use default directory
   if (logPath.empty() ||
