@@ -9,8 +9,6 @@ in sync and displays the unified information to the GUI.
 
 ## Try it out
 
-1. Build the test distribution worlds TODO(louise) create worlds specific for the demo
-
 1. On one terminal, start the simulation primary:
 
         . ./primary.sh
@@ -24,5 +22,5 @@ in sync and displays the unified information to the GUI.
 
     Once you've started all 3 secondaries, you'll see the 3 shapes show up on the window.
 
-1. Press play and you should see the shapes rolling down. FIXME: they are not moving
+1. Press play and you should see the shapes rolling down.
 

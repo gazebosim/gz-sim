@@ -36,17 +36,14 @@ NetworkConfig NetworkConfig::FromEnv()
     if (role == "PRIMARY" || role == "SIMULATION_PRIMARY")
     {
       config.role = NetworkRole::SimulationPrimary;
-      ignmsg << "Network role: PRIMARY" << std::endl;
     }
     else if (role == "SECONDARY" || role == "SIMULATION_SECONDARY")
     {
       config.role = NetworkRole::SimulationSecondary;
-      ignmsg << "Network role: SECONDARY" << std::endl;
     }
     else if (role == "READONLY" || role == "READ_ONLY")
     {
       config.role = NetworkRole::ReadOnly;
-      ignmsg << "Network role: READ-ONLY" << std::endl;
     }
     else
     {
@@ -71,8 +68,6 @@ NetworkConfig NetworkConfig::FromEnv()
       try
       {
         config.numSecondariesExpected = std::stoul(secondaries);
-        ignmsg << "Network primary expects [" << config.numSecondariesExpected
-               << "]" << std::endl;
       }
       catch (const std::invalid_argument& e)
       {

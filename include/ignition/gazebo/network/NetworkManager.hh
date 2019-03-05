@@ -118,6 +118,10 @@ namespace ignition
       /// \brief Convenience method for retrieving readonly role.
       public: bool IsReadOnly() const;
 
+      /// \brief Get the manager's config.
+      /// \return The manager's config.
+      public: NetworkConfig Config() const;
+
       /// \brief Private data
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };

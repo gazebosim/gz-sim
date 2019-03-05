@@ -127,3 +127,9 @@ bool NetworkManager::IsReadOnly() const
 {
   return this->dataPtr->config.role == NetworkRole::ReadOnly;
 }
+
+//////////////////////////////////////////////////
+NetworkConfig NetworkManager::Config() const
+{
+  return this->dataPtr->config;
+}
