@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 

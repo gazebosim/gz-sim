@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_ENTITY_HH_
 #define IGNITION_GAZEBO_ENTITY_HH_
 
+#include <cstdint>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 

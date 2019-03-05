@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
 
+#include <cstdint>
 #include <cstring>
 #include <map>
 #include <memory>
