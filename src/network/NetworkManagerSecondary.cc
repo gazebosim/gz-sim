@@ -113,7 +113,8 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
     if (!this->currentStep->paused() &&
         this->currentStep->iteration() % 1000 == 0)
     {
-      igndbg << "NetworkStep: " << this->currentStep->iteration() << std::endl;
+      igndbg << "Network iterations: " << this->currentStep->iteration()
+             << std::endl;
     }
     _info.iterations = this->currentStep->iteration();
     _info.paused = this->currentStep->paused();

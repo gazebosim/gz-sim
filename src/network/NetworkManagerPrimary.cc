@@ -143,7 +143,7 @@ bool NetworkManagerPrimary::Step(UpdateInfo &_info)
     // Throttle the number of step messages going to the debug output.
     if (!_info.paused && _info.iterations % 1000 == 0)
     {
-      igndbg << "NetworkStep: " << _info.iterations << std::endl;
+      igndbg << "Network iterations: " << _info.iterations << std::endl;
     }
 
     auto step = msgs::SimulationStep();
