@@ -67,10 +67,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief First timestamp in log file
   public: std::chrono::nanoseconds logStartTime;
 
-  /// \brief Timestamp when plugin started
-  //public: std::chrono::time_point<std::chrono::steady_clock> worldStartTime;
-  //public: common::Time worldStartTime;
-
   /// \brief Flag to print finish message once
   public: bool printedEnd;
 
@@ -288,9 +284,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   this->dataPtr->ParsePose(_ecm);
 
-  //this->dataPtr->worldStartTime = std::chrono::steady_clock;
-  //this->dataPtr->worldStartTime = common::Time();
-
   // Advance one entry in batch for Update()
   ++(this->dataPtr->iter);
   this->dataPtr->printedEnd = false;
@@ -316,15 +309,7 @@ void LogPlayback::Update(const UpdateInfo &_info,
   //   play the joint positions at next logged timestamp.
 
   auto now = _info.simTime;
-  //auto diffTime = now - this->dataPtr->worldStartTime;
-
-  //auto now = std::chrono::steady_clock::now();
-  //auto diffTime = std::chrono::duration_cast <std::chrono::nanoseconds>(
-  //  now - this->dataPtr->worldStartTime);
-
-  //if (diffTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
-  //  this->dataPtr->logStartTime.count()))
-  if (_info.simTime.count() >= (this->dataPtr->iter->TimeReceived().count() -
+  if (now.count() >= (this->dataPtr->iter->TimeReceived().count() -
     this->dataPtr->logStartTime.count()))
   {
     // Parse pose and move link
