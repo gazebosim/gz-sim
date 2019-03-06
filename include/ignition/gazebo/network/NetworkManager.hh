@@ -100,14 +100,6 @@ namespace ignition
                   std::chrono::steady_clock::duration &_stepSize,
                   std::chrono::steady_clock::duration &_simTime) = 0;
 
-      /// \brief Populate simulation step data
-      /// This method is called at the beginning of a simulation iteration.
-      /// It will populate the info argument with the appropriate values for
-      /// the simuation iteration.
-      /// \param[inout] _info current simulation update information
-      /// \return True if simulation step was successfully synced.
-      public: virtual bool Step(UpdateInfo &_info) = 0;
-
       /// \brief Acknowledge completion of a step
       /// This method is called at the end of a simulation iteration to provide
       /// a syncronization point for all distributed simulation runner
@@ -134,6 +126,14 @@ namespace ignition
       /// \brief Get the manager's config.
       /// \return The manager's config.
       public: NetworkConfig Config() const;
+
+      /// \brief Populate simulation step data
+      /// This method is called at the beginning of a simulation iteration.
+      /// It will populate the info argument with the appropriate values for
+      /// the simuation iteration.
+      /// \param[inout] _info current simulation update information
+      /// \return True if simulation step was successfully synced.
+      public: virtual bool Step(UpdateInfo &_info);
 
       /// \brief Private data
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;

@@ -103,7 +103,6 @@ NetworkManager::NetworkManager(
 //////////////////////////////////////////////////
 NetworkManager::~NetworkManager() = default;
 
-
 //////////////////////////////////////////////////
 NetworkRole NetworkManager::Role() const
 {
@@ -132,4 +131,12 @@ bool NetworkManager::IsReadOnly() const
 NetworkConfig NetworkManager::Config() const
 {
   return this->dataPtr->config;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManager::Step(UpdateInfo &_info)
+{
+  return this->Step(_info.iterations,
+                    _info.dt,
+                    _info.simTime);
 }
