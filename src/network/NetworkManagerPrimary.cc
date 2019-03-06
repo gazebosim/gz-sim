@@ -130,6 +130,42 @@ bool NetworkManagerPrimary::Ready() const
 }
 
 //////////////////////////////////////////////////
+bool NetworkManagerPrimary::Step(
+    uint64_t &_iteration,
+    std::chrono::steady_clock::duration &_stepSize,
+    std::chrono::steady_clock::duration &_simTime)
+{
+  bool ready = true;
+  for (const auto& secondary : this->secondaries)
+  {
+    ready &= secondary.second->ready;
+  }
+
+  if (ready)
+  {
+    // Throttle the number of step messages going to the debug output.
+    if (_iteration % 1000 == 0)
+    {
+      igndbg << "NetworkStep: " << _iteration << std::endl;
+    }
+
+    auto step = msgs::SimulationStep();
+    step.set_iteration(_iteration);
+
+    auto stepSizeSecNsec =
+      ignition::math::durationToSecNsec(_stepSize);
+    step.set_stepsize(stepSizeSecNsec.second);
+
+    auto simTimeSecNsec =
+      ignition::math::durationToSecNsec(_simTime);
+    step.mutable_simtime()->set_sec(simTimeSecNsec.first);
+    step.mutable_simtime()->set_nsec(simTimeSecNsec.second);
+    this->simStepPub.Publish(step);
+  }
+  return ready;
+}
+
+//////////////////////////////////////////////////
 bool NetworkManagerPrimary::Step(UpdateInfo &_info)
 {
   bool ready = true;
