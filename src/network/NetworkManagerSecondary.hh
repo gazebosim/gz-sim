@@ -55,6 +55,12 @@ namespace ignition
       public: void Initialize() override;
 
       // Documentation inherited
+      public: bool Step(
+                  uint64_t &_iteration,
+                  std::chrono::steady_clock::duration &_stepSize,
+                  std::chrono::steady_clock::duration &_simTime) override;
+
+      // Documentation inherited
       public: bool Step(UpdateInfo &_info) override;
 
       // Documentation inherited
