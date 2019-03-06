@@ -26,7 +26,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/EventManager.hh>
-#include <ignition/gazebo/network/NetworkConfig.hh>
+
+#include "NetworkConfig.hh"
 
 namespace ignition
 {
@@ -90,7 +91,7 @@ namespace ignition
       /// \brief Populate simulation step data
       /// This method is called at the beginning of a simulation iteration.
       /// It will populate the iteration, stepSize and simTime arguments with
-      /// their appropriate values for the simuation iteration.
+      /// their appropriate values for the simulation iteration.
       /// \param[inout] _iteration current simulation iteration
       /// \param[inout] _stepSize current simulation step size
       /// \param[inout] _simTime current simulation time
@@ -122,6 +123,10 @@ namespace ignition
 
       /// \brief Convenience method for retrieving readonly role.
       public: bool IsReadOnly() const;
+
+      /// \brief Get the manager's config.
+      /// \return The manager's config.
+      public: NetworkConfig Config() const;
 
       /// \brief Private data
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;

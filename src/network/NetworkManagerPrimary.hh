@@ -27,8 +27,8 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/gazebo/network/NetworkManager.hh>
 
+#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
 
 namespace ignition
