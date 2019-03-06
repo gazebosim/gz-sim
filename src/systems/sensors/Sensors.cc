@@ -133,6 +133,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
              << this->dataPtr->engineName << "]" << std::endl;
       return;
     }
+
     this->dataPtr->scene = this->dataPtr->engine->CreateScene("scene");
 
     // Create simulation runner sensor manager
@@ -253,8 +254,12 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           ignerr << "Failed to create sensor [" << scopedName << "]"
                  << std::endl;
         }
+
+        // Set the scene so it can create the rendering camera
+        sensor->SetScene(this->scene);
+
         // Add to the system's scene manager
-        else if (!this->sceneManager.AddSensor(
+        if (!this->sceneManager.AddSensor(
             _entity, sensor->RenderingCamera()->Id(), _parent->Data()))
         {
           ignerr << "Failed to create sensor [" << scopedName << "]"
@@ -301,8 +306,12 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           ignerr << "Failed to create sensor [" << scopedName << "]"
                  << std::endl;
         }
+
+        // Set the scene so the it can create the rendering depth camera
+        sensor->SetScene(this->scene);
+
         // Add to the system's scene manager
-        else if (!this->sceneManager.AddSensor(
+        if (!this->sceneManager.AddSensor(
             _entity, sensor->DepthCamera()->Id(), _parent->Data()))
         {
           ignerr << "Failed to create sensor [" << scopedName << "]"
@@ -312,7 +321,6 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         {
           this->entityToSensorId[_entity] = sensor->Id();
           sensor->SetParent(parent->Name());
-          sensor->SetScene(this->scene);
         }
 
         return true;
@@ -346,8 +354,12 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           ignerr << "Failed to create sensor [" << scopedName << "]"
                  << std::endl;
         }
+
+        // Set the scene so it can create the gpu ray cameras
+        sensor->SetScene(this->scene);
+
         // Add to the system's scene manager
-        else if (!this->sceneManager.AddSensor(
+        if (!this->sceneManager.AddSensor(
             _entity, sensor->GpuRays()->Id(), _parent->Data()))
         {
           ignerr << "Failed to add the sensor [" << scopedName << "] to "
@@ -357,7 +369,6 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         {
           this->entityToSensorId[_entity] = sensor->Id();
           sensor->SetParent(parent->Name());
-          sensor->SetScene(this->scene);
         }
 
         return true;
