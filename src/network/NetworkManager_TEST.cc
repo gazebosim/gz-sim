@@ -218,11 +218,6 @@ TEST(NetworkManager, Step)
   secondaryInfo1.simTime = std::chrono::steady_clock::duration{0};
   secondaryInfo1.paused = true;
 
-  auto secondaryInfo2 = UpdateInfo();
-  secondaryInfo2.iterations = 0;
-  secondaryInfo2.dt = std::chrono::steady_clock::duration{2ms};
-  secondaryInfo2.simTime = std::chrono::steady_clock::duration{0};
-  secondaryInfo2.paused = true;
 
   auto secondaryThread1 = std::thread([&nmSecondary1, &secondaryInfo1](){
     nmSecondary1->Initialize();
@@ -235,13 +230,20 @@ TEST(NetworkManager, Step)
     }
   });
 
+  auto secondaryInfo2 = UpdateInfo();
+  secondaryInfo2.iterations = 0;
+  secondaryInfo2.dt = std::chrono::steady_clock::duration{2ms};
+  secondaryInfo2.simTime = std::chrono::steady_clock::duration{0};
+  secondaryInfo2.paused = true;
+
   auto secondaryThread2 = std::thread([&nmSecondary2, &secondaryInfo2](){
     nmSecondary2->Initialize();
 
     while (secondaryInfo2.iterations < 100)
     {
-      while (!nmSecondary2->Step(secondaryInfo2)) {}
-      EXPECT_FALSE(secondaryInfo2.paused);
+      while (!nmSecondary2->Step(secondaryInfo2.iterations,
+                                 secondaryInfo2.dt,
+                                 secondaryInfo2.simTime)) {}
       while (!nmSecondary2->StepAck(secondaryInfo2.iterations)) {}
     }
   });
