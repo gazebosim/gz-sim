@@ -90,7 +90,7 @@ namespace ignition
       /// \brief Populate simulation step data
       /// This method is called at the beginning of a simulation iteration.
       /// It will populate the iteration, stepSize and simTime arguments with
-      /// their appropriate values for the simuation iteration.
+      /// their appropriate values for the simulation iteration.
       /// \param[inout] _iteration current simulation iteration
       /// \param[inout] _stepSize current simulation step size
       /// \param[inout] _simTime current simulation time
@@ -122,6 +122,18 @@ namespace ignition
 
       /// \brief Convenience method for retrieving readonly role.
       public: bool IsReadOnly() const;
+
+      /// \brief Get the manager's config.
+      /// \return The manager's config.
+      public: NetworkConfig Config() const;
+
+      /// \brief Populate simulation step data
+      /// This method is called at the beginning of a simulation iteration.
+      /// It will populate the info argument with the appropriate values for
+      /// the simuation iteration.
+      /// \param[inout] _info current simulation update information
+      /// \return True if simulation step was successfully synced.
+      public: virtual bool Step(UpdateInfo &_info);
 
       /// \brief Private data
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;

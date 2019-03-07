@@ -59,11 +59,7 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
-      /// \param[in] _useLevels Whether the simulationrunner is using levels.
-      /// \param[in] _useDistSim Whether the simulationrunner is distributed
-      /// simulation.
-      public: SyncManager(SimulationRunner *_runner, bool _useLevels = false,
-                  bool _useDistSim = false);
+      public: explicit SyncManager(SimulationRunner *_runner);
 
       /// \brief Distribute performer affinity to the secondaries in the
       /// distributed simulation environment.
@@ -81,9 +77,6 @@ namespace ignition
       /// \param[in] _msg Message with vector of incoming pose updates
       /// \TODO(mjcarroll) to be replaced with ECM sync.
       private: void OnPose(const ignition::msgs::Pose_V &_msg);
-
-      /// \brief Entity of the world.
-      private: Entity worldEntity{kNullEntity};
 
       /// \brief Ignition transport communication node
       private: ignition::transport::Node node;
@@ -106,12 +99,6 @@ namespace ignition
 
       /// \brief Role of this network participant.
       private: NetworkRole role;
-
-      /// \brief Flag whether to use levels or not.
-      private: bool useLevels{false};
-
-      /// \brief Flag whether distributed simulation is in use.
-      private: bool useDistSim{false};
 
       /// \brief Entity Creator API.
       private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};

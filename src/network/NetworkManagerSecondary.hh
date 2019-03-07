@@ -61,6 +61,9 @@ namespace ignition
                   std::chrono::steady_clock::duration &_simTime) override;
 
       // Documentation inherited
+      public: bool Step(UpdateInfo &_info) override;
+
+      // Documentation inherited
       public: bool StepAck(uint64_t _iteration) override;
 
       // Documentation inherited

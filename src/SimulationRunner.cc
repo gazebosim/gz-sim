@@ -114,9 +114,21 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   if (_config.UseDistributedSimulation())
   {
     this->networkMgr = NetworkManager::Create(&this->eventMgr);
+
+    if (this->networkMgr->IsPrimary())
+    {
+      ignmsg << "Network Primary, expects ["
+             << this->networkMgr->Config().numSecondariesExpected
+             << "] seondaries." << std::endl;
+    }
+    else if (this->networkMgr->IsSecondary())
+    {
+      ignmsg << "Network Secondary, with namespace ["
+             << this->networkMgr->Namespace() << "]." << std::endl;
+    }
+
     // Create the sync manager
-    this->syncMgr = std::make_unique<SyncManager>(
-        this, _config.UseLevels(), _config.UseDistributedSimulation());
+    this->syncMgr = std::make_unique<SyncManager>(this);
   }
 
   // Load the active levels
@@ -394,10 +406,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       IGN_PROFILE("NetworkSync - SendStep");
       // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->networkMgr->Step(
-              this->currentInfo.iterations,
-              this->currentInfo.dt,
-              this->currentInfo.simTime))
+      while (this->running && !this->networkMgr->Step(this->currentInfo))
       {
       }
     }

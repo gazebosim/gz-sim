@@ -89,6 +89,12 @@ namespace ignition
                   std::chrono::steady_clock::duration &_stepSize,
                   std::chrono::steady_clock::duration &_simTime) override;
 
+      /// \brief Populate simulation step data.
+      /// On the network primary, the argument will be used to distribute
+      /// simulation state to all of the network participants.
+      /// \return True if simulation step is ready.
+      public: bool Step(UpdateInfo &_info) override;
+
       /// \brief Acknowledge the completion of a simulation step.
       /// On the network primary, this will aggregate the acknowledgements of
       /// all simulation participants

@@ -41,22 +41,15 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 SyncManager::SyncManager(
-  SimulationRunner * _runner, bool _useLevels,
-  bool _useDistSim)
-: runner(_runner),
-  useLevels(_useLevels),
-  useDistSim(_useDistSim)
+  SimulationRunner * _runner)
+: runner(_runner)
 {
   this->entityCreator = std::make_unique<SdfEntityCreator>(
     this->runner->entityCompMgr,
     this->runner->eventMgr);
 
-  if (!_useDistSim) {
-    igndbg << "Distributed Sim off, SyncManager disabled." << std::endl;
-    return;
-  }
-
-  if (_useDistSim && !this->runner->networkMgr) {
+  if (!this->runner->networkMgr)
+  {
     ignerr << "Cannot start distributed simulation. " <<
       "Server was given --distributed flag, " <<
       "but invalid configuration detected." << std::endl;
@@ -65,28 +58,28 @@ SyncManager::SyncManager(
 
   this->role = this->runner->networkMgr->Role();
 
-  if (this->role != NetworkRole::None) {
+  if (this->role != NetworkRole::None)
+  {
     this->posePub = this->node.Advertise<ignition::msgs::Pose_V>("pose_update");
   }
 
-  if (this->role == NetworkRole::SimulationPrimary) {
+  if (this->role == NetworkRole::SimulationPrimary)
+  {
     this->node.Subscribe("pose_update", &SyncManager::OnPose, this);
   }
-
-  this->worldEntity = this->runner->entityCompMgr.EntityByComponents(
-      components::World());
 }
 
 /////////////////////////////////////////////////
 void SyncManager::DistributePerformers()
 {
-  if (this->role == NetworkRole::SimulationPrimary) {
+  if (this->role == NetworkRole::SimulationPrimary)
+  {
     auto mgr = dynamic_cast<NetworkManagerPrimary *>(
         this->runner->networkMgr.get());
 
-    auto & secondaries = mgr->Secondaries();
+    auto &secondaries = mgr->Secondaries();
     auto secondaryIt = secondaries.begin();
-    auto& ecm = this->runner->entityCompMgr;
+    auto &ecm = this->runner->entityCompMgr;
 
     msgs::PerformerAffinities msg;
 
@@ -106,23 +99,25 @@ void SyncManager::DistributePerformers()
         affinityMsg->set_secondary_prefix(secondaryIt->second->prefix);
 
         auto isStatic = ecm.Component<components::Static>(pid);
-        *isStatic = components::Static(true);
+        *isStatic = components::Static(false);
 
         auto isActive = ecm.Component<components::PerformerActive>(_entity);
-        *isActive = components::PerformerActive(false);
+        *isActive = components::PerformerActive(true);
 
         this->runner->entityCompMgr.CreateComponent(_entity,
         components::PerformerAffinity(secondaryIt->second->prefix));
 
         secondaryIt++;
-        if (secondaryIt == secondaries.end()) {
+        if (secondaryIt == secondaries.end())
+        {
           secondaryIt = secondaries.begin();
         }
 
         return true;
       });
 
-    for (auto & secondary : secondaries) {
+    for (auto &secondary : secondaries)
+    {
       bool result;
       msgs::PerformerAffinities resp;
 
@@ -130,7 +125,8 @@ void SyncManager::DistributePerformers()
       unsigned int timeout = 5000;
 
       bool executed = this->node.Request(topic, msg, timeout, resp, result);
-      if (executed) {
+      if (executed)
+      {
         if (!result)
         {
           ignwarn << "Failed to set performer affinities for " <<
@@ -150,18 +146,19 @@ void SyncManager::DistributePerformers()
   {
     auto mgr = dynamic_cast<NetworkManagerSecondary *>(
         this->runner->networkMgr.get());
-    auto& ecm = this->runner->entityCompMgr;
+    auto &ecm = this->runner->entityCompMgr;
     std::string topic {mgr->Namespace() + "/affinity"};
     bool received = false;
 
     std::function<bool(const msgs::PerformerAffinities &,
                        msgs::PerformerAffinities &)> fcn =
-      [&received, &mgr, this, &ecm](const msgs::PerformerAffinities & _req,
+      [&received, &mgr, this, &ecm](const msgs::PerformerAffinities &_req,
         msgs::PerformerAffinities &/*_resp*/) -> bool
       {
-        for (int ii = 0; ii < _req.affinity_size(); ++ii) {
-          const auto& affinityMsg = _req.affinity(ii);
-          const auto& entityId = affinityMsg.entity().id();
+        for (int ii = 0; ii < _req.affinity_size(); ++ii)
+        {
+          const auto &affinityMsg = _req.affinity(ii);
+          const auto &entityId = affinityMsg.entity().id();
 
           auto pid = ecm.Component<components::ParentEntity>(entityId);
 
@@ -173,9 +170,12 @@ void SyncManager::DistributePerformers()
 
           if (affinityMsg.secondary_prefix() == mgr->Namespace())
           {
-            performers.push_back(entityId);
+            this->performers.push_back(entityId);
             *isStatic = components::Static(false);
             *isActive = components::PerformerActive(true);
+            igndbg << "Secondary [" << mgr->Namespace()
+                   << "] assigned affinity to performer [" << entityId << "]."
+                   << std::endl;
           }
           else
           {
@@ -189,7 +189,10 @@ void SyncManager::DistributePerformers()
 
     this->node.Advertise(topic, fcn);
 
-    while (!received) {
+    igndbg << "Secondary [" << mgr->Namespace()
+           << "] waiting for affinity assignment." << std::endl;
+    while (!received)
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   }
@@ -214,7 +217,8 @@ bool SyncManager::Sync()
   {
     ignition::msgs::Pose_V msg;
 
-    for (const auto & entity : this->performers) {
+    for (const auto &entity : this->performers)
+    {
       auto pid = ecm.Component<components::ParentEntity>(entity);
       auto pose = ecm.Component<components::Pose>(pid->Data());
       auto poseMsg = msg.add_pose();
