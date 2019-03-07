@@ -123,9 +123,6 @@ namespace ignition
       /// \brief The server configuration.
       public: ServerConfig config;
 
-      /// \brief Whether to use the distributed simulation system
-      public: bool useDistSim{false};
-
       /// \brief Client used to download resources from Ignition Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 

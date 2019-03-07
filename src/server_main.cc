@@ -167,13 +167,13 @@ int main(int _argc, char **_argv)
 
   if (FLAGS_levels)
   {
-    igndbg << "Using the level system\n";
+    ignmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
 
   if (FLAGS_distributed)
   {
-    igndbg << "Using the distributed simulation system\n";
+    ignmsg << "Using the distributed simulation system\n";
     serverConfig.SetUseDistributedSimulation(true);
   }
 

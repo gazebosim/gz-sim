@@ -75,7 +75,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
 void NetworkManagerPrimary::Initialize()
 {
   auto peers = this->dataPtr->tracker->SecondaryPeers();
-  for (const auto& peer : peers)
+  for (const auto &peer : peers)
   {
     msgs::PeerControl req, resp;
     req.set_enable_sim(true);
@@ -158,6 +158,40 @@ bool NetworkManagerPrimary::Step(
 
     auto simTimeSecNsec =
       ignition::math::durationToSecNsec(_simTime);
+    step.mutable_simtime()->set_sec(simTimeSecNsec.first);
+    step.mutable_simtime()->set_nsec(simTimeSecNsec.second);
+    this->simStepPub.Publish(step);
+  }
+  return ready;
+}
+
+//////////////////////////////////////////////////
+bool NetworkManagerPrimary::Step(UpdateInfo &_info)
+{
+  bool ready = true;
+  for (const auto &secondary : this->secondaries)
+  {
+    ready &= secondary.second->ready;
+  }
+
+  if (ready)
+  {
+    // Throttle the number of step messages going to the debug output.
+    if (!_info.paused && _info.iterations % 1000 == 0)
+    {
+      igndbg << "Network iterations: " << _info.iterations << std::endl;
+    }
+
+    auto step = msgs::SimulationStep();
+    step.set_iteration(_info.iterations);
+    step.set_paused(_info.paused);
+
+    auto stepSizeSecNsec =
+      ignition::math::durationToSecNsec(_info.dt);
+    step.set_stepsize(stepSizeSecNsec.second);
+
+    auto simTimeSecNsec =
+      ignition::math::durationToSecNsec(_info.simTime);
     step.mutable_simtime()->set_sec(simTimeSecNsec.first);
     step.mutable_simtime()->set_nsec(simTimeSecNsec.second);
     this->simStepPub.Publish(step);
