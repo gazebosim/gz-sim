@@ -20,8 +20,7 @@
 #include <cstdlib>
 #include <ignition/common/Console.hh>
 
-#include "ignition/gazebo/network/NetworkManager.hh"
-
+#include "NetworkManager.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 

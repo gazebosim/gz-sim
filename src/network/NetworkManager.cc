@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/network/NetworkManager.hh"
+
 
 #include <algorithm>
 #include <string>
@@ -22,6 +22,7 @@
 #include "ignition/common/Console.hh"
 #include "ignition/common/Util.hh"
 
+#include "NetworkManager.hh"
 #include "NetworkManagerPrivate.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
