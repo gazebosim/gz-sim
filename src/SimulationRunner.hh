@@ -46,8 +46,8 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/network/NetworkManager.hh"
 
+#include "network/NetworkManager.hh"
 #include "LevelManager.hh"
 #include "SyncManager.hh"
 

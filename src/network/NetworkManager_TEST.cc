@@ -20,8 +20,7 @@
 #include <cstdlib>
 #include <ignition/common/Console.hh>
 
-#include "ignition/gazebo/network/NetworkManager.hh"
-
+#include "NetworkManager.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 
@@ -241,9 +240,7 @@ TEST(NetworkManager, Step)
 
     while (secondaryInfo2.iterations < 100)
     {
-      while (!nmSecondary2->Step(secondaryInfo2.iterations,
-                                 secondaryInfo2.dt,
-                                 secondaryInfo2.simTime)) {}
+      while (!nmSecondary2->Step(secondaryInfo2)) {}
       while (!nmSecondary2->StepAck(secondaryInfo2.iterations)) {}
     }
   });

@@ -27,9 +27,9 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/network/NetworkRole.hh"
 #include "ignition/transport/Node.hh"
 
+#include "network/NetworkRole.hh"
 
 namespace ignition
 {
