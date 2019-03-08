@@ -14,6 +14,14 @@ the GUI.
 
 ## Try it out
 
+1. Generate the primary world:
+
+        erb type=primary distributed_levels.sdf.erb > primary.sdf
+
+1. Generate the secondary world:
+
+        erb type=secondary distributed_levels.sdf.erb > secondary.sdf
+
 1. On one terminal, start the simulation primary:
 
         . ./primary.sh
