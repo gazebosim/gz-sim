@@ -82,7 +82,7 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
       execute_process(
         # RESULT_VARIABLE is store in a FAIL variable since the command
         # returns 0 if ok and 1 if error (inverse than cmake IF)
-        COMMAND timeout 10 ${PROJECT_SOURCE_DIR}/tools/gl-test.py
+        COMMAND ${PROJECT_SOURCE_DIR}/tools/gl-test.py
         RESULT_VARIABLE GL_FAIL_RESULT
         ERROR_VARIABLE GL_ERROR
         OUTPUT_QUIET
