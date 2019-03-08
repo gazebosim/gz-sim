@@ -14,14 +14,6 @@ the GUI.
 
 ## Try it out
 
-1. Generate the primary world:
-
-        erb type=primary distributed_levels.sdf.erb > primary.sdf
-
-1. Generate the secondary world:
-
-        erb type=secondary distributed_levels.sdf.erb > secondary.sdf
-
 1. On one terminal, start the simulation primary:
 
         . ./primary.sh
@@ -38,3 +30,19 @@ the GUI.
 1. Press play and you should see the levels being loaded and unloaded as the
    shapes roll down.
 
+# Generating worlds
+
+The SDF files in this demo have been generated from an ERB template.
+This is how to generate each file:
+
+* Generate the primary world:
+
+        erb type=primary distributed_levels.sdf.erb > primary.sdf
+
+* Generate the secondary world:
+
+        erb type=secondary distributed_levels.sdf.erb > secondary.sdf
+
+* Generate a standalone world that can be run without `--distributed`:
+
+        erb type=standalone distributed_levels.sdf.erb > standalone.sdf
