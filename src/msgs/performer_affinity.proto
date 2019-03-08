@@ -25,14 +25,11 @@ import "ignition/msgs/entity.proto";
 /// simulation affinity.
 message PerformerAffinity
 {
-  /// \brief Name of the performer model
-  string model_name = 1;
-
   /// \brief Information about the performer entity.
-  ignition.msgs.Entity entity = 2;
+  ignition.msgs.Entity entity = 1;
 
   /// \brief Prefix used to communicate with the secondary.
-  string secondary_prefix = 3;
+  string secondary_prefix = 2;
 }
 
 /// \brief Message containing an array of performer affinities.

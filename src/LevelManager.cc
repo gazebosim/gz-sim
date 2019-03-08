@@ -36,10 +36,10 @@
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerActive.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
+#include "network/components/PerformerActive.hh"
 #include "LevelManager.hh"
 #include "SimulationRunner.hh"
 

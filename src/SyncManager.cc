@@ -22,7 +22,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerActive.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -33,6 +32,7 @@
 
 #include "network/NetworkManagerPrimary.hh"
 #include "network/NetworkManagerSecondary.hh"
+#include "network/components/PerformerActive.hh"
 
 #include "msgs/performer_affinity.pb.h"
 
@@ -94,7 +94,7 @@ void SyncManager::DistributePerformers()
           this->runner->entityCompMgr.Component<components::Name>(pid);
 
         auto affinityMsg = msg.add_affinity();
-        affinityMsg->set_model_name(parentName->Data());
+        affinityMsg->mutable_entity()->set_name(parentName->Data());
         affinityMsg->mutable_entity()->set_id(_entity);
         affinityMsg->set_secondary_prefix(secondaryIt->second->prefix);
 
@@ -191,7 +191,8 @@ void SyncManager::DistributePerformers()
 
     igndbg << "Secondary [" << mgr->Namespace()
            << "] waiting for affinity assignment." << std::endl;
-    while (!received)
+    while (!received &&
+           !this->runner->stopReceived)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
