@@ -11,14 +11,14 @@ in sync and displays the unified information to the GUI.
 
 1. On one terminal, start the simulation primary:
 
-        . ./primary.sh
+        ./primary.sh
 
     An empty window will appear. Simulation won't be initialized until all 3
     secondaries are initialized.
 
 1. Open 3 other terminals and run the following to start a simulation secondary for each:
 
-        . ./secondary.sh
+        ./secondary.sh
 
     Once you've started all 3 secondaries, you'll see the 3 shapes show up on the window.
 

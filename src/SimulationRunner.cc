@@ -98,7 +98,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
 
   this->stopConn = this->eventMgr.Connect<events::Stop>(
-      std::bind(&SimulationRunner::Stop, this));
+      std::bind(&SimulationRunner::OnStop, this));
 
   this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
@@ -316,6 +316,13 @@ void SimulationRunner::UpdateSystems()
 /////////////////////////////////////////////////
 void SimulationRunner::Stop()
 {
+  this->eventMgr.Emit<events::Stop>();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::OnStop()
+{
+  this->stopReceived = true;
   this->running = false;
 }
 
@@ -332,9 +339,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Initialize network communications.
   if (this->networkMgr)
   {
+    // todo(mjcarroll) improve guard conditions around the busy loops.
     igndbg << "Initializing network configuration" << std::endl;
     this->networkMgr->Initialize();
-    this->syncMgr->DistributePerformers();
+
+    if (!this->stopReceived)
+    {
+      this->syncMgr->DistributePerformers();
+    }
+    else
+    {
+      this->running = false;
+      return false;
+    }
   }
 
   // Keep track of wall clock time. Only start the realTimeWatch if this
@@ -546,6 +563,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::StopReceived() const
+{
+  return this->stopReceived;
 }
 
 /////////////////////////////////////////////////

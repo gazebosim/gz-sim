@@ -58,6 +58,12 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
   {
+    // Set a flag when the executable is stopping to cleanly exit.
+    this->stoppingConn = eventMgr->Connect<events::Stop>(
+        [this](){
+          this->stopReceived = true;
+    });
+
     this->dataPtr->peerRemovedConn = eventMgr->Connect<PeerRemoved>(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
@@ -89,7 +95,7 @@ bool NetworkManagerSecondary::Ready() const
 //////////////////////////////////////////////////
 void NetworkManagerSecondary::Initialize()
 {
-  while (!this->enableSim)
+  while (!this->enableSim && !this->stopReceived)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -98,7 +104,7 @@ void NetworkManagerSecondary::Initialize()
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::Step(UpdateInfo &_info)
 {
-  if (!this->enableSim)
+  if (!this->enableSim || this->stopReceived)
   {
     return false;
   }

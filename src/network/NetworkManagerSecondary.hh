@@ -79,6 +79,12 @@ namespace ignition
       /// \brief Condition variable to signal changes of currentStep data.
       private: std::condition_variable stepCv;
 
+      /// \brief Track connection to "events::Stop" Event
+      public: ignition::common::ConnectionPtr stoppingConn;
+
+      /// \brief Flag to indicate if simulation server is stopping.
+      private: std::atomic<bool> stopReceived {false};
+
       /// \brief Flag to control enabling/disabling simulation secondary.
       private: std::atomic<bool> enableSim {false};
 
