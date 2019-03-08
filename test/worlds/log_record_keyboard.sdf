@@ -13,8 +13,7 @@
     <plugin
       filename="libignition-gazebo1-log-system.so"
       name="ignition::gazebo::systems::LogRecord">
-      <!-- Optional, directories to write recorded files. If unspecified,
-             will record to default. -->
+      <!-- Will be automatically changed in integration test. -->
       <path>/tmp/log</path>
     </plugin>
 

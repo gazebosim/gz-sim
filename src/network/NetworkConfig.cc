@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/network/NetworkConfig.hh"
+#include "NetworkConfig.hh"
 
 #include <algorithm>
 

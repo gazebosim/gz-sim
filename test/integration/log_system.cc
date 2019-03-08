@@ -22,17 +22,13 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 
+#include <sdf/Root.hh>
+#include <sdf/World.hh>
+#include <sdf/Element.hh>
+
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 #include "ignition/gazebo/test_config.hh"
-
-#ifdef _WIN32
-#include <direct.h>
-#define ChangeDirectory _chdir
-#else
-#include <unistd.h>
-#define ChangeDirectory chdir
-#endif
 
 using namespace ignition;
 using namespace gazebo;
@@ -53,24 +49,62 @@ class LogSystemTest : public ::testing::Test
 TEST_F(LogSystemTest, CreateLogFile)
 {
   // Configure to use binary path as cache
-  ASSERT_EQ(0, ChangeDirectory(PROJECT_BINARY_PATH));
-  common::removeAll("test_cache");
-  common::createDirectories("test_cache");
+  std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test", "test_cache");
+  if (common::exists(cacheDir))
+  {
+    common::removeAll(cacheDir);
+  }
+  common::createDirectories(cacheDir);
+  std::string logDest = common::joinPaths(cacheDir, "log");
 
   ServerConfig serverConfig;
-  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  serverConfig.SetResourceCache(cacheDir);
+
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_record_keyboard.sdf");
-  serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetResourceCache(common::cwd() + "/test_cache");
+
+  sdf::Root root;
+  EXPECT_FALSE(root.Load(sdfPath).size() != 0);
+  EXPECT_FALSE(root.WorldCount() <= 0);
+  const sdf::World * sdfWorld = root.WorldByIndex(0);
+  EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
+
+  sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
+  while (pluginElt != nullptr)
+  {
+    if (pluginElt->HasAttribute("name"))
+    {
+      // Change log path to build directory
+      if (pluginElt->GetAttribute("name")->GetAsString().find("LogRecord")
+        != std::string::npos)
+      {
+        if (pluginElt->HasElement("path"))
+        {
+          sdf::ElementPtr pathElt = pluginElt->GetElement("path");
+          pathElt->Set(logDest);
+        }
+        else
+        {
+          sdf::ElementPtr pathElt = pluginElt->AddElement("path");
+          pathElt->Set(logDest);
+        }
+      }
+    }
+
+    // Go to next plugin
+    pluginElt = pluginElt->GetNextElement("plugin");
+  }
+
+  // Pass changed SDF to server
+  serverConfig.SetSdfString(root.Element()->ToString(""));
 
   // Start server
   Server server(serverConfig);
   server.Run(true, 1000, false);
 
   // Verify file is created
-  // TODO: Change this to be in build/ directory
-  EXPECT_TRUE(common::exists(common::joinPaths("/", "tmp", "log")));
+  EXPECT_TRUE(common::exists(logDest));
 
-  common::removeAll("test_cache");
+  common::removeAll(cacheDir);
 }
 
