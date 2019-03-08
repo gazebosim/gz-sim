@@ -191,7 +191,8 @@ void SyncManager::DistributePerformers()
 
     igndbg << "Secondary [" << mgr->Namespace()
            << "] waiting for affinity assignment." << std::endl;
-    while (!received)
+    while (!received &&
+           !this->runner->stopReceived)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

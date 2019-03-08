@@ -114,6 +114,9 @@ namespace ignition
       /// \brief Stop running
       public: void Stop();
 
+      /// \brief Internal method for handling stop event (to prevent recursion)
+      private: void OnStop();
+
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
       /// \return True if the operation completed successfully.
@@ -139,6 +142,10 @@ namespace ignition
       /// then simulation is stepping forward.
       /// \return True if the server is running.
       public: bool Running() const;
+
+      /// \brief Get whether the runner has received a stop event
+      /// \return True if the event has been received.
+      public: bool StopReceived() const;
 
       /// \brief Get whether the runner is ready to execute.
       /// \return True if the runner is ready
@@ -261,6 +268,9 @@ namespace ignition
 
       /// \brief Process world control service messages.
       private: void ProcessWorldControl();
+
+      /// \brief This is used to indicate that a stop event has been received.
+      private: std::atomic<bool> stopReceived{false};
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.

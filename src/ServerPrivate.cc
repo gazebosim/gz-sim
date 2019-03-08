@@ -84,20 +84,23 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   {
     // Check for network ready (needed for distributed sim)
     bool networkReady = false;
-    while (this->running && !networkReady)
+    bool receivedStop = false;
+    while (this->running && !networkReady && !receivedStop)
     {
       networkReady = true;
       for (const auto &runner : this->simRunners)
       {
+        receivedStop |= runner->StopReceived();
         networkReady &= runner->Ready();
       }
-      if (!networkReady)
+
+      if (!networkReady && !receivedStop)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }
 
-    if (!networkReady)
+    if (!networkReady || receivedStop)
     {
       ignerr << "Failed to start network, simulation terminating" << std::endl;
       return false;
