@@ -15,9 +15,9 @@
  *
 */
 
-#include <string>
-
 #include <gtest/gtest.h>
+
+#include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
@@ -49,7 +49,8 @@ class LogSystemTest : public ::testing::Test
 TEST_F(LogSystemTest, CreateLogFile)
 {
   // Configure to use binary path as cache
-  std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test", "test_cache");
+  std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+    "test_cache");
   if (common::exists(cacheDir))
   {
     common::removeAll(cacheDir);
@@ -64,8 +65,8 @@ TEST_F(LogSystemTest, CreateLogFile)
     "test", "worlds", "log_record_keyboard.sdf");
 
   sdf::Root root;
-  EXPECT_FALSE(root.Load(sdfPath).size() != 0);
-  EXPECT_FALSE(root.WorldCount() <= 0);
+  EXPECT_EQ(root.Load(sdfPath).size(), 0);
+  EXPECT_GT(root.WorldCount(), 0);
   const sdf::World * sdfWorld = root.WorldByIndex(0);
   EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
 
