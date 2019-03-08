@@ -25,8 +25,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/gazebo/network/NetworkManager.hh>
 
+#include "NetworkManager.hh"
 #include "ignition/msgs/empty.pb.h"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"

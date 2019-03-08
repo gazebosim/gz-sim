@@ -17,9 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/common/Console.hh"
-#include "ignition/common/Util.hh"
-#include "ignition/gazebo/network/NetworkConfig.hh"
+#include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
+
+#include "NetworkConfig.hh"
 
 using namespace ignition::gazebo;
 
