@@ -79,7 +79,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors1 REQUIRED COMPONENTS rendering camera gpu_lidar logical_camera depth_camera)
+ign_find_package(ignition-sensors1 REQUIRED COMPONENTS rendering camera gpu_lidar logical_camera depth_camera altimeter)
 set(IGN_SENSORS_VER ${ignition-sensors1_VERSION_MAJOR})
 
 #--------------------------------------
