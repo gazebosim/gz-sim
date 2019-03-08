@@ -94,7 +94,7 @@ void SyncManager::DistributePerformers()
           this->runner->entityCompMgr.Component<components::Name>(pid);
 
         auto affinityMsg = msg.add_affinity();
-        affinityMsg->set_model_name(parentName->Data());
+        affinityMsg->mutable_entity()->set_name(parentName->Data());
         affinityMsg->mutable_entity()->set_id(_entity);
         affinityMsg->set_secondary_prefix(secondaryIt->second->prefix);
 
