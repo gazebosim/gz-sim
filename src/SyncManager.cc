@@ -22,7 +22,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerActive.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -33,6 +32,7 @@
 
 #include "network/NetworkManagerPrimary.hh"
 #include "network/NetworkManagerSecondary.hh"
+#include "network/components/PerformerActive.hh"
 
 #include "msgs/performer_affinity.pb.h"
 
