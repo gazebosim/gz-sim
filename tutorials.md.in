@@ -8,6 +8,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 **The tutorials**
 
 1. \subpage createsystemplugins "Create System Plugins"
+2. \subpage distributedsimulation "Distributed Simulation"
 
 ## License
 

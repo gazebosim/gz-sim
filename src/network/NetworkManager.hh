@@ -90,16 +90,11 @@ namespace ignition
 
       /// \brief Populate simulation step data
       /// This method is called at the beginning of a simulation iteration.
-      /// It will populate the iteration, stepSize and simTime arguments with
-      /// their appropriate values for the simulation iteration.
-      /// \param[inout] _iteration current simulation iteration
-      /// \param[inout] _stepSize current simulation step size
-      /// \param[inout] _simTime current simulation time
+      /// It will populate the info argument with the appropriate values for
+      /// the simuation iteration.
+      /// \param[inout] _info current simulation update information
       /// \return True if simulation step was successfully synced.
-      public: virtual bool Step(
-                  uint64_t &_iteration,
-                  std::chrono::steady_clock::duration &_stepSize,
-                  std::chrono::steady_clock::duration &_simTime) = 0;
+      public: virtual bool Step(UpdateInfo &_info) = 0;
 
       /// \brief Acknowledge completion of a step
       /// This method is called at the end of a simulation iteration to provide
