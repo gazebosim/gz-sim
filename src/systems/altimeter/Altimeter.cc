@@ -24,6 +24,9 @@
 #include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
 
+#include <ignition/sensors/SensorFactory.hh>
+#include <ignition/sensors/AltimeterSensor.hh>
+
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -39,50 +42,15 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Altimeter sensor class
-class ignition::gazebo::systems::AltimeterSensor
-{
-  /// \brief Constructor
-  public: AltimeterSensor();
-
-  /// \brief Destructor
-  public: ~AltimeterSensor();
-
-  /// \brief Load the altimeter from an sdf element
-  /// \param[in] _sdf SDF element describing the altimeter
-  public: void Load(const sdf::ElementPtr &_sdf);
-
-  /// \brief Publish altimeter data over ign transport
-  public: void Publish();
-
-  /// \brief Topic to publish data to
-  public: std::string topic;
-
-  /// \brief Vertical position in meters
-  public: double verticalPosition = 0.0;
-
-  /// \brief Vertical velocity in meters per second
-  public: double verticalVelocity = 0.0;
-
-  /// \brief Vertical reference, i.e. initial sensor position
-  public: double verticalReference = 0.0;
-
-  /// \brief Ign transport node
-  public: transport::Node node;
-
-  /// \brief publisher for altimeter data
-  public: transport::Node::Publisher pub;
-
-  /// \brief common::Time from when the sensor was updated
-  public: common::Time lastMeasurementTime;
-};
-
 /// \brief Private Altimeter data class.
 class ignition::gazebo::systems::AltimeterPrivate
 {
   /// \brief A map of altimeter entity to its vertical reference
-  public: std::unordered_map<Entity, std::unique_ptr<AltimeterSensor>>
-      entitySensorMap;
+  public: std::unordered_map<Entity,
+      std::unique_ptr<sensors::AltimeterSensor>> entitySensorMap;
+
+  /// \brief Ign-sensors sensor factory for creating sensors
+  public: sensors::SensorFactory sensorFactory;
 
   /// \brief Create altimeter sensor
   /// \param[in] _ecm Mutable reference to ECM.
@@ -97,43 +65,6 @@ class ignition::gazebo::systems::AltimeterPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveAltimeterEntities(const EntityComponentManager &_ecm);
 };
-
-//////////////////////////////////////////////////
-AltimeterSensor::AltimeterSensor() = default;
-
-//////////////////////////////////////////////////
-AltimeterSensor::~AltimeterSensor() = default;
-
-//////////////////////////////////////////////////
-void AltimeterSensor::Load(const sdf::ElementPtr &_sdf)
-{
-  if (_sdf->HasElement("topic"))
-    this->topic = _sdf->Get<std::string>("topic");
-}
-
-//////////////////////////////////////////////////
-void AltimeterSensor::Publish()
-{
-  if (this->topic.empty())
-    return;
-
-  if (!this->pub)
-  {
-    this->pub = this->node.Advertise<ignition::msgs::Altimeter>(this->topic);
-    ignmsg << "Altimeter publishing messages on [" << this->topic << "]"
-           << std::endl;
-  }
-
-  msgs::Altimeter msg;
-  msg.mutable_header()->mutable_stamp()->set_sec(
-      this->lastMeasurementTime.sec);
-  msg.mutable_header()->mutable_stamp()->set_nsec(
-      this->lastMeasurementTime.nsec);
-  msg.set_vertical_position(this->verticalPosition);
-  msg.set_vertical_velocity(this->verticalVelocity);
-  msg.set_vertical_reference(this->verticalReference);
-  this->pub.Publish(msg);
-}
 
 //////////////////////////////////////////////////
 Altimeter::Altimeter() : System(), dataPtr(std::make_unique<AltimeterPrivate>())
@@ -163,9 +94,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
     {
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
-      it.second->lastMeasurementTime = common::Time(time.first, time.second);
-
-      it.second->Publish();
+      it.second->Update(common::Time(time.first, time.second));
     }
   }
 
@@ -176,23 +105,35 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
 {
   // Create altimeters
-  _ecm.EachNew<components::Altimeter>(
+  _ecm.EachNew<components::Altimeter, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::Altimeter *_altimeter)->bool
+        const components::Altimeter *_altimeter,
+        const components::ParentEntity *_parent)->bool
       {
-        // Get initial pose of parent link and set the reference z pos
+        // create sensor
+        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        auto data = _altimeter->Data()->Clone();
+        data->GetAttribute("name")->Set(sensorScopedName);
+        // check topic
+        if (!data->HasElement("topic"))
+        {
+          std::string topic = scopedName(_entity, _ecm) + "/altimeter";
+          data->GetElement("topic")->Set(topic);
+        }
+        std::unique_ptr<sensors::AltimeterSensor> sensor =
+            this->sensorFactory.CreateSensor<
+            sensors::AltimeterSensor>(data);
+        // set sensor parent
+        std::string parentName = _ecm.Component<components::Name>(
+            _parent->Data())->Data();
+        sensor->SetParent(parentName);
+
+        // Get initial pose of sensor and set the reference z pos
         // The WorldPose component was just created and so it's empty
         // We'll compute the world pose manually here
         double verticalReference = worldPose(_entity, _ecm).Pos().Z();
-        auto sensor = std::make_unique<AltimeterSensor>();
-        sensor->Load(_altimeter->Data());
-        sensor->verticalReference = verticalReference;
-
-        // create default topic for sensor if not specified
-        if (sensor->topic.empty())
-        {
-          sensor->topic = scopedName(_entity, _ecm, "/") + "/altimeter";
-        }
+        sensor->SetVerticalReference(verticalReference);
+        sensor->SetPosition(verticalReference);
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -216,10 +157,8 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         {
           math::Vector3d linearVel;
           math::Pose3d worldPose = _worldPose->Data();
-          double pos = worldPose.Pos().Z() - it->second->verticalReference;
-          double vel = _worldLinearVel->Data().Z();
-          it->second->verticalPosition = pos;
-          it->second->verticalVelocity = vel;
+          it->second->SetPosition(worldPose.Pos().Z());
+          it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
         }
         else
         {
