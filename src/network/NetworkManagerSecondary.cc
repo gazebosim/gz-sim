@@ -58,6 +58,12 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
   {
+    // Set a flag when the executable is stopping to cleanly exit.
+    this->stoppingConn = eventMgr->Connect<events::Stop>(
+        [this](){
+          this->stopReceived = true;
+    });
+
     this->dataPtr->peerRemovedConn = eventMgr->Connect<PeerRemoved>(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
@@ -71,7 +77,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
           {
-            ignerr << "Secondary went stale, stopping simulation" << std::endl;
+            ignerr << "Primary went stale, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
     });
@@ -89,33 +95,38 @@ bool NetworkManagerSecondary::Ready() const
 //////////////////////////////////////////////////
 void NetworkManagerSecondary::Initialize()
 {
+  while (!this->enableSim && !this->stopReceived)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::Step(
-    uint64_t &_iteration,
-    std::chrono::steady_clock::duration &_stepSize,
-    std::chrono::steady_clock::duration &_simTime)
+bool NetworkManagerSecondary::Step(UpdateInfo &_info)
 {
-  if (!this->enableSim)
+  if (!this->enableSim || this->stopReceived)
   {
     return false;
   }
 
   std::unique_lock<std::mutex> lock(this->stepMutex);
   auto status = this->stepCv.wait_for(lock,
-      std::chrono::nanoseconds(500),
+      std::chrono::nanoseconds(100),
       [this](){return this->currentStep != nullptr;});
 
   if (status) {
-    if (_iteration != 0 && _iteration % 1000 == 0)
+    // Throttle the number of step messages going to the debug output.
+    if (!this->currentStep->paused() &&
+        this->currentStep->iteration() % 1000 == 0)
     {
-      igndbg << "NetworkStep: " << _iteration << std::endl;
+      igndbg << "Network iterations: " << this->currentStep->iteration()
+             << std::endl;
     }
-    _iteration = this->currentStep->iteration();
-    _stepSize = std::chrono::steady_clock::duration(
+    _info.iterations = this->currentStep->iteration();
+    _info.paused = this->currentStep->paused();
+    _info.dt = std::chrono::steady_clock::duration(
         std::chrono::nanoseconds(this->currentStep->stepsize()));
-    _simTime = std::chrono::steady_clock::duration(
+    _info.simTime = std::chrono::steady_clock::duration(
         std::chrono::seconds(this->currentStep->simtime().sec()) +
         std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
     this->currentStep.reset();
@@ -141,10 +152,11 @@ std::string NetworkManagerSecondary::Namespace() const
 
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
-                                        ignition::msgs::Empty &/*_resp*/)
+                                        msgs::PeerControl& _resp)
 {
+  igndbg << "NetworkManagerSecondary::OnControl" << std::endl;
   this->enableSim = _req.enable_sim();
-  this->pauseSim = _req.pause_sim();
+  _resp.set_enable_sim(this->enableSim);
   return true;
 }
 

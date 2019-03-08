@@ -19,25 +19,21 @@ syntax = "proto3";
 
 package ignition.gazebo.msgs;
 
-import "ignition/msgs/time.proto";
+import "ignition/msgs/entity.proto";
 
-/// \brief Message to contain simulation step information for distributed
-/// simulation.
-/// This message is currently sent from NetworkPrimary to NetworkSecondaries
-/// at the beginning of each simulation iteration.
-message SimulationStep
+/// \brief Message to contain information about one performer's distributed
+/// simulation affinity.
+message PerformerAffinity
 {
-  /// \brief Simulation iteration number.
-  uint64 iteration = 1;
+  /// \brief Information about the performer entity.
+  ignition.msgs.Entity entity = 1;
 
-  /// \brief Simulation step size in nanoseconds
-  /// This is how much simulation time is going to increment.
-  uint64 stepSize = 2;
-
-  /// \brief Current simulation time.
-  ignition.msgs.Time simTime = 3;
-
-  /// \brief Simulation paused
-  bool paused = 4;
+  /// \brief Prefix used to communicate with the secondary.
+  string secondary_prefix = 2;
 }
 
+/// \brief Message containing an array of performer affinities.
+message PerformerAffinities
+{
+  repeated PerformerAffinity affinity = 1;
+}
