@@ -104,7 +104,7 @@ TEST_F(LogSystemTest, CreateLogFile)
   server.Run(true, 1000, false);
 
   // Verify file is created
-  EXPECT_TRUE(common::exists(logDest));
+  EXPECT_TRUE(common::exists(common::joinPaths(logDest, "state.tlog")));
 
   common::removeAll(cacheDir);
 }
