@@ -10,10 +10,9 @@ ign_add_component(altimeter-system
 target_link_libraries(${altimeter_system_target}
   PUBLIC
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
-    ignition-sensors${IGN_SENSORS_VER}::altimeter
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
+    ignition-sensors${IGN_SENSORS_VER}::altimeter
     ignition-plugin${IGN_PLUGIN_VER}::register
 )
 
