@@ -65,9 +65,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Iterator to go through messages in Batch
   public: transport::log::MsgIter iter;
 
-  /// \brief First timestamp in log file
-  public: std::chrono::nanoseconds logStartTime;
-
   /// \brief Flag to print finish message once
   public: bool printedEnd;
 
@@ -293,9 +290,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
   this->dataPtr->iter = this->dataPtr->poseBatch.begin();
 
-  // Record first timestamp
-  this->dataPtr->logStartTime = this->dataPtr->iter->TimeReceived();
-
   this->dataPtr->ParsePose(_ecm);
 
   // Advance one entry in batch for Update()
@@ -322,9 +316,13 @@ void LogPlayback::Update(const UpdateInfo &_info,
   // If timestamp since start of program has exceeded next logged timestamp,
   //   play the joint positions at next logged timestamp.
 
+  // Get timestamp in logged data
+  msgs::Pose_V posevMsg;
+  posevMsg.ParseFromString(this->dataPtr->iter->Data());
+
   auto now = _info.simTime;
-  if (now.count() >= (this->dataPtr->iter->TimeReceived().count() -
-    this->dataPtr->logStartTime.count()))
+  if (now.count() >= (posevMsg.header().stamp().sec() * 1000000000 +
+    posevMsg.header().stamp().nsec()))
   {
     // Parse pose and move link
     this->dataPtr->ParsePose(_ecm);
