@@ -1,3 +1,5 @@
+\page distributedsimulation
+
 # Distributed Simulation
 
 ## Goals
