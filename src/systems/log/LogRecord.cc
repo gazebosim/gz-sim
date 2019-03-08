@@ -29,6 +29,8 @@
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 
+#include <sdf/World.hh>
+
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -166,15 +168,6 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // Temporary for recording sdf string
   std::string sdfPath = common::joinPaths(logPath, "state.sdf");
 
-  ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
-
-  // Use ign-transport directly
-  this->dataPtr->recorder.AddTopic("/world/default/pose/info");
-  // this->dataPtr->recorder.AddTopic(std::regex(".*"));
-
-  // This calls Log::Open() and loads sql schema
-  this->dataPtr->recorder.Start(dbPath);
-
   // Record SDF as a string.
 
   // TODO(mabelmzhang): For now, just dumping a big string to a text file,
@@ -188,8 +181,18 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     sdfRoot = sdfRoot->GetParent();
   }
   ofs << sdfRoot->ToString("");
-
   ignmsg << "Saved initial SDF file to [" << sdfPath << "]" << std::endl;
+
+  ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
+
+  // Use ign-transport directly
+  sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
+  this->dataPtr->recorder.AddTopic("/world/" +
+    sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
+  // this->dataPtr->recorder.AddTopic(std::regex(".*"));
+
+  // This calls Log::Open() and loads sql schema
+  this->dataPtr->recorder.Start(dbPath);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,

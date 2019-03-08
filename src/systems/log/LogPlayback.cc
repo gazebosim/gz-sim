@@ -288,7 +288,8 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   this->dataPtr->log->Open(dbPath);
 
   // Access messages in .tlog file
-  transport::log::TopicList opts("/world/default/pose/info");
+  transport::log::TopicList opts("/world/" +
+    sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
   this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
   this->dataPtr->iter = this->dataPtr->poseBatch.begin();
 
