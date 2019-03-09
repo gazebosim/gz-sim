@@ -67,10 +67,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd;
-
-  // Key: link name. Value: link pose
-  /// \brief Maps link name to link pose recorded
-  public: std::map <std::string, msgs::Pose> nameToPose;
 };
 
 
@@ -86,8 +82,17 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 {
-  // TODO(mabelmzhang): Parse iter->Type() to get substring after last ".",
-  //   to know what message type to create. For now just assuming Pose_V.
+  // Maps link name to link pose recorded
+  // Key: link name. Value: link pose
+  std::map <std::string, msgs::Pose> nameToPose;
+
+  size_t found_pos = this->iter->Type().find_last_of(".");
+  if (this->iter->Type().substr(found_pos + 1).compare ("Pose_V") != 0)
+  {
+    ignwarn << "Logged message types other than Pose_V are currently not "
+      << "supported. Message will not be played.\n";
+    return;
+  }
 
   // Protobuf message
   msgs::Pose_V posevMsg;
@@ -107,7 +112,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
     //   different, until ECM is serialized.
 
     // Update entity pose in map
-    this->nameToPose.insert_or_assign(pose.name(), pose);
+    nameToPose.insert_or_assign(pose.name(), pose);
   }
 
   // Loop through actual models in world
@@ -119,7 +124,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
           components::Pose *_poseComp) -> bool
   {
     // Look for model pose in log entry loaded
-    msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
+    msgs::Pose pose = nameToPose.at(_nameComp->Data());
 
     // Set current pose to recorded pose
     // Use copy assignment operator
@@ -152,7 +157,7 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 
 
     // Look for the link poses in log entry loaded
-    msgs::Pose pose = this->nameToPose.at(_nameComp->Data());
+    msgs::Pose pose = nameToPose.at(_nameComp->Data());
 
     igndbg << "Recorded pose: " << std::endl;
     igndbg << pose.position().x() << ", " << pose.position().y() << ", "
