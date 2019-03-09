@@ -104,7 +104,6 @@ NetworkManager::NetworkManager(
 //////////////////////////////////////////////////
 NetworkManager::~NetworkManager() = default;
 
-
 //////////////////////////////////////////////////
 NetworkRole NetworkManager::Role() const
 {
@@ -127,4 +126,10 @@ bool NetworkManager::IsSecondary() const
 bool NetworkManager::IsReadOnly() const
 {
   return this->dataPtr->config.role == NetworkRole::ReadOnly;
+}
+
+//////////////////////////////////////////////////
+NetworkConfig NetworkManager::Config() const
+{
+  return this->dataPtr->config;
 }
