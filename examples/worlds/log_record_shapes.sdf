@@ -1,4 +1,10 @@
 <?xml version="1.0" ?>
+<!--
+  Log record demo.
+
+  Running this world will record log files to /tmp/log. You can playback
+  running the log_playback.sdf file.
+-->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ode">
