@@ -82,8 +82,8 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 {
-  size_t found_pos = this->iter->Type().find_last_of(".");
-  if (this->iter->Type().substr(found_pos + 1).compare ("Pose_V") != 0)
+  size_t foundPos = this->iter->Type().find_last_of('.');
+  if (this->iter->Type().substr(foundPos + 1).compare ("Pose_V") != 0)
   {
     ignwarn << "Logged message types other than Pose_V are currently not "
       << "supported. Message will not be played.\n";
