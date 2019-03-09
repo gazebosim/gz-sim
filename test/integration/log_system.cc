@@ -65,8 +65,8 @@ TEST_F(LogSystemTest, CreateLogFile)
     "test", "worlds", "log_record_keyboard.sdf");
 
   sdf::Root root;
-  EXPECT_EQ(root.Load(sdfPath).size(), 0);
-  EXPECT_GT(root.WorldCount(), 0);
+  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
+  EXPECT_GT(root.WorldCount(), 0lu);
   const sdf::World * sdfWorld = root.WorldByIndex(0);
   EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
 
