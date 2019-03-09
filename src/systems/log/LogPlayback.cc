@@ -19,13 +19,11 @@
 
 #include <ignition/msgs/pose_v.pb.h>
 
-#include <chrono>
 #include <string>
 
 #include <ignition/msgs/Utility.hh>
 
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Vector3.hh>
+#include <ignition/math/Pose3.hh>
 
 #include <ignition/plugin/RegisterMore.hh>
 
@@ -39,10 +37,6 @@
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 
@@ -53,20 +47,18 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
-  /// \brief Reads the next pose message in log file, set poses in world
-  public: void ParsePose(EntityComponentManager &_ecm);
-
-  /// \brief Log object to read ign-transport log file
-  public: std::unique_ptr <transport::log::Log> log;
+  /// \brief Reads the next message in log file and updates the ECM
+  /// \param[in] _ecm Mutable ECM.
+  public: void ParseNext(EntityComponentManager &_ecm);
 
   /// \brief A batch of data from log file, of all pose messages
-  public: transport::log::Batch poseBatch;
+  public: transport::log::Batch batch;
 
   /// \brief Iterator to go through messages in Batch
   public: transport::log::MsgIter iter;
 
   /// \brief Flag to print finish message once
-  public: bool printedEnd;
+  public: bool printedEnd{false};
 };
 
 
@@ -80,13 +72,14 @@ LogPlayback::LogPlayback()
 LogPlayback::~LogPlayback() = default;
 
 //////////////////////////////////////////////////
-void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
+void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
 {
   size_t foundPos = this->iter->Type().find_last_of('.');
-  if (this->iter->Type().substr(foundPos + 1).compare ("Pose_V") != 0)
+  if (this->iter->Type().substr(foundPos + 1).compare("Pose_V") != 0)
   {
     ignwarn << "Logged message types other than Pose_V are currently not "
-      << "supported. Message will not be played.\n";
+      << "supported. Message of type [" << this->iter->Type()
+      << "] will not be played.\n";
     return;
   }
 
@@ -96,47 +89,27 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
   // Convert binary bytes in string into a ign-msgs msg
   posevMsg.ParseFromString(this->iter->Data());
 
-  // Maps link name to link pose recorded
-  // Key: link name. Value: link pose
+  // Maps entity to pose recorded
+  // Key: entity. Value: pose
   std::map <Entity, msgs::Pose> idToPose;
 
   for (int i = 0; i < posevMsg.pose_size(); ++i)
   {
     msgs::Pose pose = posevMsg.pose(i);
 
-    // igndbg << pose.name() << std::endl;
-
     // Update entity pose in map
     idToPose.insert_or_assign(pose.id(), pose);
   }
 
-  // Loop through actual models in world
-  _ecm.Each<components::Model, components::Name, components::ParentEntity,
-               components::Pose>(
-      [&](const Entity &_entity, components::Model *,
-          components::Name * /*_nameComp*/,
-          components::ParentEntity * /*_parentComp*/,
-          components::Pose *_poseComp) -> bool
+  // Loop through entities in world
+  _ecm.Each<components::Pose>(
+      [&](const Entity &_entity, components::Pose *_poseComp) -> bool
   {
-    // Look for model pose in log entry loaded
-    msgs::Pose pose = idToPose.at(_entity);
+    // Check if we have an updated pose for this entity
+    if (idToPose.find(_entity) == idToPose.end())
+      return true;
 
-    // Set current pose to recorded pose
-    // Use copy assignment operator
-    *_poseComp = components::Pose(msgs::Convert(pose));
-
-    return true;
-  });
-
-  // Loop through actual links in world
-  _ecm.Each<components::Link, components::Name, components::ParentEntity,
-               components::Pose>(
-      [&](const Entity &_entity, components::Link *,
-          components::Name * /*_nameComp*/,
-          components::ParentEntity * /*_parentComp*/,
-          components::Pose *_poseComp) -> bool
-  {
-    // Look for the link poses in log entry loaded
+    // Look for pose in log entry loaded
     msgs::Pose pose = idToPose.at(_entity);
 
     // Set current pose to recorded pose
@@ -163,7 +136,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   if (!common::isDirectory(logPath))
   {
-    ignerr << "Specified log path must be a directory.\n";
+    ignerr << "Specified log path [" << logPath << "] must be a directory.\n";
     return;
   }
 
@@ -176,9 +149,14 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   if (!common::exists(dbPath) ||
       !common::exists(sdfPath))
   {
-    ignerr << "Log path invalid. File(s) do not exist. Nothing to play.\n";
+    ignerr << "Log path invalid. File(s) [" << dbPath << "] / [" << sdfPath
+           << "] do not exist. Nothing to play.\n";
     return;
   }
+
+  ignmsg << "Loading log files:"  << std::endl
+         << "* " << dbPath << std::endl
+         << "* " << sdfPath << std::endl;
 
   // Load recorded SDF file
   sdf::Root root;
@@ -187,13 +165,16 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     ignerr << "Error loading SDF file [" << sdfPath << "]" << std::endl;
     return;
   }
-  const sdf::World * sdfWorld = root.WorldByIndex(0);
+  const sdf::World *sdfWorld = root.WorldByIndex(0);
 
   std::vector <sdf::ElementPtr> pluginsRm;
 
   // Look for LogRecord plugin in the SDF and remove it, so that playback
   //   is not re-recorded.
   // Remove Physics plugin, so that it does not clash with recorded poses.
+  // TODO(anyone) Cherry-picking plugins to remove doesn't scale well,
+  // handle this better once we're logging the initial world state in the DB
+  // file.
   if (sdfWorld->Element()->HasElement("plugin"))
   {
     sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
@@ -221,7 +202,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 
   // Remove the marked plugins
-  for (auto & it : pluginsRm)
+  for (auto &it : pluginsRm)
   {
     it->RemoveFromParent();
     igndbg << "Removed " << it->GetAttribute("name")->GetAsString()
@@ -257,20 +238,19 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
 
   // Call Log.hh directly to load a .tlog file
-  this->dataPtr->log = std::make_unique<transport::log::Log>();
-  this->dataPtr->log->Open(dbPath);
+  auto log = std::make_unique<transport::log::Log>();
+  log->Open(dbPath);
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
     sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
-  this->dataPtr->poseBatch = this->dataPtr->log->QueryMessages(opts);
-  this->dataPtr->iter = this->dataPtr->poseBatch.begin();
+  this->dataPtr->batch = log->QueryMessages(opts);
+  this->dataPtr->iter = this->dataPtr->batch.begin();
 
-  this->dataPtr->ParsePose(_ecm);
+  this->dataPtr->ParseNext(_ecm);
 
   // Advance one entry in batch for Update()
   ++(this->dataPtr->iter);
-  this->dataPtr->printedEnd = false;
 }
 
 //////////////////////////////////////////////////
@@ -278,7 +258,7 @@ void LogPlayback::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   // Sanity check. If reached the end, done.
-  if (this->dataPtr->iter == this->dataPtr->poseBatch.end())
+  if (this->dataPtr->iter == this->dataPtr->batch.end())
   {
     // Print only once
     if (!this->dataPtr->printedEnd)
@@ -301,7 +281,7 @@ void LogPlayback::Update(const UpdateInfo &_info,
     posevMsg.header().stamp().nsec()))
   {
     // Parse pose and move link
-    this->dataPtr->ParsePose(_ecm);
+    this->dataPtr->ParseNext(_ecm);
 
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
