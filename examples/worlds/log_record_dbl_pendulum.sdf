@@ -1,13 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo pose publisher plugin demo
+  Log record demo.
 
-  Try listening to topic:
-
-    ign topic -e -t "/model/double_pendulum_with_base/pose"
+  Running this world will record log files to /tmp/log. You can playback
+  running the log_playback.sdf file.
 -->
 <sdf version="1.6">
-  <world name="pose_publisher">
+  <world name="log_pendulum">
 
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
@@ -48,10 +47,10 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/pose_publisher/scene/info</service>
-        <pose_topic>/world/pose_publisher/pose/info</pose_topic>
-        <scene_topic>/world/pose_publisher/scene/info</scene_topic>
-        <deletion_topic>/world/pose_publisher/scene/deletion</deletion_topic>
+        <service>/world/log_pendulum/scene/info</service>
+        <pose_topic>/world/log_pendulum/pose/info</pose_topic>
+        <scene_topic>/world/log_pendulum/scene/info</scene_topic>
+        <deletion_topic>/world/log_pendulum/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -74,8 +73,8 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/pose_publisher/control</service>
-        <stats_topic>/world/pose_publisher/stats</stats_topic>
+        <service>/world/log_pendulum/control</service>
+        <stats_topic>/world/log_pendulum/stats</stats_topic>
 
       </plugin>
 
@@ -100,7 +99,7 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/pose_publisher/stats</topic>
+        <topic>/world/log_pendulum/stats</topic>
 
       </plugin>
 
@@ -344,15 +343,6 @@
           <xyz>1.0 0 0</xyz>
         </axis>
       </joint>
-
-      <plugin
-        filename="libignition-gazebo1-pose-publisher-system.so"
-        name="ignition::gazebo::systems::PosePublisher">
-        <publish_link_pose>true</publish_link_pose>
-        <publish_collision_pose>false</publish_collision_pose>
-        <publish_visual_pose>false</publish_visual_pose>
-        <publish_nested_model_pose>false</publish_nested_model_pose>
-      </plugin>
 
     </model>
 
