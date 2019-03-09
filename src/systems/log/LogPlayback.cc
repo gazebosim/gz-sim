@@ -82,10 +82,6 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 {
-  // Maps link name to link pose recorded
-  // Key: link name. Value: link pose
-  std::map <std::string, msgs::Pose> nameToPose;
-
   size_t found_pos = this->iter->Type().find_last_of(".");
   if (this->iter->Type().substr(found_pos + 1).compare ("Pose_V") != 0)
   {
@@ -100,31 +96,30 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
   // Convert binary bytes in string into a ign-msgs msg
   posevMsg.ParseFromString(this->iter->Data());
 
+  // Maps link name to link pose recorded
+  // Key: link name. Value: link pose
+  std::map <Entity, msgs::Pose> idToPose;
+
   for (int i = 0; i < posevMsg.pose_size(); ++i)
   {
     msgs::Pose pose = posevMsg.pose(i);
 
     // igndbg << pose.name() << std::endl;
 
-    // TODO(mabelmzhang): Pose ign-msgs do not have parent information, so if
-    //   two links of different models are of same name, there is no way to
-    //   distinguish between them. Therefore link names in SDF must be
-    //   different, until ECM is serialized.
-
     // Update entity pose in map
-    nameToPose.insert_or_assign(pose.name(), pose);
+    idToPose.insert_or_assign(pose.id(), pose);
   }
 
   // Loop through actual models in world
   _ecm.Each<components::Model, components::Name, components::ParentEntity,
                components::Pose>(
-      [&](const Entity &/*_entity*/, components::Model *,
-          components::Name *_nameComp,
+      [&](const Entity &_entity, components::Model *,
+          components::Name * /*_nameComp*/,
           components::ParentEntity * /*_parentComp*/,
           components::Pose *_poseComp) -> bool
   {
     // Look for model pose in log entry loaded
-    msgs::Pose pose = nameToPose.at(_nameComp->Data());
+    msgs::Pose pose = idToPose.at(_entity);
 
     // Set current pose to recorded pose
     // Use copy assignment operator
@@ -133,39 +128,16 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
     return true;
   });
 
-
-  /*
   // Loop through actual links in world
-  // TODO(mabelmzhang): Use parentComp to distinguish between Links with same
-  //   name for different Models.
   _ecm.Each<components::Link, components::Name, components::ParentEntity,
                components::Pose>(
       [&](const Entity &_entity, components::Link *,
-          components::Name *_nameComp,
-          components::ParentEntity *_parentComp,
+          components::Name * /*_nameComp*/,
+          components::ParentEntity * /*_parentComp*/,
           components::Pose *_poseComp) -> bool
   {
-    igndbg << "Link " << _nameComp->Data() << std::endl;
-    // This prints a 6-tuple. Not sure why not 7. components::Pose is a
-    //   SimpleWrapper around math::Pose3d, whose Rot() returns
-    //   quaternion.
-    //igndbg << "Actual pose: " << _poseComp->Data() << std::endl;
-    // Print 7-tuple
-    igndbg << "Actual pose: \n";
-    igndbg << _poseComp->Data().Pos() << std::endl;
-    igndbg << _poseComp->Data().Rot() << std::endl;
-
-
     // Look for the link poses in log entry loaded
-    msgs::Pose pose = nameToPose.at(_nameComp->Data());
-
-    igndbg << "Recorded pose: " << std::endl;
-    igndbg << pose.position().x() << ", " << pose.position().y() << ", "
-      << pose.position().z() << std::endl;
-    igndbg << pose.orientation().x() << ", " << pose.orientation().y()
-      << ", " << pose.orientation().z() << ", " << pose.orientation().w()
-      << std::endl;
-
+    msgs::Pose pose = idToPose.at(_entity);
 
     // Set current pose to recorded pose
     // Use copy assignment operator
@@ -173,7 +145,6 @@ void LogPlaybackPrivate::ParsePose(EntityComponentManager &_ecm)
 
     return true;
   });
-  */
 }
 
 //////////////////////////////////////////////////
