@@ -45,10 +45,10 @@ class GpuLidarTest : public ::testing::Test
 };
 
 std::mutex mutex;
-std::vector<msgs::LaserScan> laserMsgs;
+std::vector<ignition::msgs::LaserScan> laserMsgs;
 
 /////////////////////////////////////////////////
-void laserCb(const msgs::LaserScan &_msg)
+void laserCb(const ignition::msgs::LaserScan &_msg)
 {
   mutex.lock();
   laserMsgs.push_back(_msg);

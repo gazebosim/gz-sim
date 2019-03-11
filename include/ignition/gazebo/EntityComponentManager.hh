@@ -35,6 +35,7 @@
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
+#include "msgs/serialized.pb.h"
 
 namespace ignition
 {

@@ -124,7 +124,7 @@ void AltimeterSensor::Publish()
            << std::endl;
   }
 
-  msgs::Altimeter msg;
+  ignition::msgs::Altimeter msg;
   msg.mutable_header()->mutable_stamp()->set_sec(
       this->lastMeasurementTime.sec);
   msg.mutable_header()->mutable_stamp()->set_nsec(

@@ -251,8 +251,8 @@ namespace ignition
       /// and multistep.
       /// \param[out] _res Response to client, true if successful.
       /// \return True for success
-      private: bool OnWorldControl(const msgs::WorldControl &_req,
-                                         msgs::Boolean &_res);
+      private: bool OnWorldControl(const ignition::msgs::WorldControl &_req,
+                                         ignition::msgs::Boolean &_res);
 
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
@@ -371,13 +371,13 @@ namespace ignition
       private: UpdateInfo currentInfo;
 
       /// \brief Buffer of world control messages.
-      private: std::list<msgs::WorldControl> worldControlMsgs;
+      private: std::list<ignition::msgs::WorldControl> worldControlMsgs;
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
 
       /// \brief Keep the latest GUI message.
-      public: msgs::GUI guiMsg;
+      public: ignition::msgs::GUI guiMsg;
 
       /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;

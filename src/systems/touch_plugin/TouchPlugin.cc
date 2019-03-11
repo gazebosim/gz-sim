@@ -174,8 +174,8 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
 
   // Start/stop "service"
   std::string enableService{"/" + this->ns + "/enable"};
-  std::function<void(const msgs::Boolean &)> enableCb =
-      [this](const msgs::Boolean &_req)
+  std::function<void(const ignition::msgs::Boolean &)> enableCb =
+      [this](const ignition::msgs::Boolean &_req)
       {
         this->Enable(_req.data());
       };
@@ -198,7 +198,7 @@ void TouchPluginPrivate::Enable(const bool _value)
   if (_value)
   {
     this->touchedPub.reset();
-    this->touchedPub = this->node.Advertise<msgs::Boolean>(
+    this->touchedPub = this->node.Advertise<ignition::msgs::Boolean>(
         "/" + this->ns + "/touched");
 
     this->touchStart = DurationType::zero();
@@ -300,7 +300,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
       std::lock_guard<std::mutex> lock(this->serviceMutex);
       if (this->touchedPub.has_value())
       {
-        msgs::Boolean msg;
+        ignition::msgs::Boolean msg;
         msg.set_data(true);
         this->touchedPub->Publish(msg);
       }
