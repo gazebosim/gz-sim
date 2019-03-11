@@ -39,6 +39,7 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
+#include "network/components/PerformerActive.hh"
 #include "LevelManager.hh"
 #include "SimulationRunner.hh"
 
@@ -46,8 +47,9 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
-    : runner(_runner), useLevels(_useLevels)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels,
+    const bool _useDistSim)
+    : runner(_runner), useLevels(_useLevels), useDistSim(_useDistSim)
 {
   if (nullptr == _runner)
   {
@@ -99,17 +101,18 @@ void LevelManager::ReadLevelPerformerInfo()
     }
   }
 
-  if (this->useLevels)
+  if (this->useLevels || this->useDistSim)
   {
     if (pluginElem == nullptr)
     {
       ignerr << "Could not find a plugin tag with name " << kPluginName
-             << ". Levels will not work.\n";
+             << ". Levels and distributed simulation will not work.\n";
     }
     else
     {
       this->ReadPerformers(pluginElem);
-      this->ReadLevels(pluginElem);
+      if (this->useLevels)
+        this->ReadLevels(pluginElem);
     }
   }
 
@@ -154,6 +157,8 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     geometry.Load(performer->GetElement("geometry"));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+                                        components::PerformerActive(true));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -326,24 +331,37 @@ void LevelManager::UpdateLevelsState()
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
 
-  // Handle default level
-  this->runner->entityCompMgr.Each<components::DefaultLevel>(
-      [&](const Entity &_entity, const components::DefaultLevel *) -> bool
-      {
-        if (!this->IsLevelActive(_entity))
+  {
+    IGN_PROFILE("DefaultLevel");
+    // Handle default level
+    this->runner->entityCompMgr.Each<components::DefaultLevel>(
+        [&](const Entity &_entity, const components::DefaultLevel *) -> bool
         {
-          levelsToLoad.push_back(_entity);
-        }
-        // We assume one default level
-        return false;
-      });
+          if (!this->IsLevelActive(_entity))
+          {
+            levelsToLoad.push_back(_entity);
+          }
+          // We assume one default level
+          return false;
+        });
+  }
 
-  this->runner->entityCompMgr.Each<components::Performer, components::Geometry,
-                                   components::ParentEntity>(
+  this->runner->entityCompMgr.Each<components::Performer,
+                                   components::Geometry,
+                                   components::ParentEntity,
+                                   components::PerformerActive>(
       [&](const Entity &, const components::Performer *,
           const components::Geometry *_geometry,
-          const components::ParentEntity *_parent) -> bool
+          const components::ParentEntity *_parent,
+          const components::PerformerActive *_active) -> bool
       {
+        IGN_PROFILE("EachPerformer");
+
+        if (!_active->Data())
+        {
+          return true;
+        }
+
         auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
         // We assume the geometry contains a box.
@@ -354,8 +372,8 @@ void LevelManager::UpdateLevelsState()
              pose->Data().Pos() + perfBox->Size() / 2};
 
         // loop through levels and check for intersections
-        // Add all levels with inersections to the levelsToLoad even if they are
-        // currently active.
+        // Add all levels with inersections to the levelsToLoad even if they
+        // are currently active.
         this->runner->entityCompMgr.Each<components::Level, components::Pose,
                                          components::Geometry,
                                          components::LevelBuffer >(
@@ -364,43 +382,42 @@ void LevelManager::UpdateLevelsState()
                 const components::Geometry *_levelGeometry,
                 const components::LevelBuffer *_levelBuffer) -> bool
             {
-              // Check if the performer is in this level
-              // assume a box for now
-              auto box = _levelGeometry->Data().BoxShape();
-              auto buffer = _levelBuffer->Data();
-              auto center = _pose->Data().Pos();
-              math::AxisAlignedBox region{center - box->Size() / 2,
-                                          center + box->Size() / 2};
+                IGN_PROFILE("CheckPerformerAgainstLevel");
+                // Check if the performer is in this level
+                // assume a box for now
+                auto box = _levelGeometry->Data().BoxShape();
+                auto buffer = _levelBuffer->Data();
+                auto center = _pose->Data().Pos();
+                math::AxisAlignedBox region{center - box->Size() / 2,
+                                            center + box->Size() / 2};
 
-              math::AxisAlignedBox outerRegion{
-                  center - (box->Size() / 2 + buffer),
-                  center + (box->Size() / 2 + buffer)};
+                math::AxisAlignedBox outerRegion{
+                    center - (box->Size() / 2 + buffer),
+                    center + (box->Size() / 2 + buffer)};
 
-              if (region.Intersects(performerVolume))
-              {
-                levelsToLoad.push_back(_entity);
-              }
-              else
-              {
-                // If the level is active, check if the performer is outside of
-                // the buffer of this level
-                if (this->IsLevelActive(_entity))
+                if (region.Intersects(performerVolume))
                 {
-                  if (outerRegion.Intersects(performerVolume))
-                  {
-                    levelsToLoad.push_back(_entity);
-                    return true;
-                  }
-                  // Otherwise, mark the level to be unloaded
-                  levelsToUnload.push_back(_entity);
+                  levelsToLoad.push_back(_entity);
                 }
-              }
-              return true;
-            });
-
+                else
+                {
+                  // If the level is active, check if the performer is
+                  // outside of the buffer of this level
+                  if (this->IsLevelActive(_entity))
+                  {
+                    if (outerRegion.Intersects(performerVolume))
+                    {
+                      levelsToLoad.push_back(_entity);
+                      return true;
+                    }
+                    // Otherwise, mark the level to be unloaded
+                    levelsToUnload.push_back(_entity);
+                  }
+                }
+                return true;
+              });
         return true;
       });
-
   {
     auto pendingEnd = std::unique(levelsToLoad.begin(), levelsToLoad.end());
     levelsToLoad.erase(pendingEnd, levelsToLoad.end());
@@ -537,8 +554,6 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 void LevelManager::UnloadInactiveEntities(
     const std::set<std::string> &_namesToUnload)
 {
-  IGN_PROFILE("LevelManager::UnloadInactiveEntities");
-
   this->runner->entityCompMgr.Each<components::Model, components::Name>(
       [&](const Entity &_entity, const components::Model *,
           const components::Name *_name) -> bool
