@@ -72,8 +72,10 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _runner A pointer to the simulationrunner that owns this
       /// \param[in] _useLevels Whether to use the levels defined. If false, all
-      /// entities will be added to the default level
-      public: LevelManager(SimulationRunner *_runner, bool _useLevels = false);
+      /// \param[in] _useDistSim Whether to use distributed simulation. Levels
+      /// will only be loaded for active performers.
+      public: LevelManager(SimulationRunner *_runner, bool _useLevels = false,
+                  bool _useDistSim = false);
 
       /// \brief Load and unload levels
       /// This is where we compute intersections and determine if a performer is
@@ -139,6 +141,9 @@ namespace ignition
 
       /// \brief Flag whether to use levels or not.
       private: bool useLevels{false};
+
+      /// \brief Flag whether distributed simulation is in use.
+      private: bool useDistSim{false};
 
       /// \brief Entity Creator API.
       private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
