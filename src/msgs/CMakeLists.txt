@@ -2,7 +2,6 @@ PROTOBUF_GENERATE_CPP(PROTO_PRIVATE_SRC PROTO_PRIVATE_HEADERS
   peer_info.proto
   peer_control.proto
   performer_affinity.proto
-  serialized.proto
   simulation_step.proto
 )
 
@@ -11,5 +10,21 @@ set(PROTO_PRIVATE_HEADERS ${PROTO_PRIVATE_HEADERS} PARENT_SCOPE)
 
 add_custom_target(ignition-gazebo_private_msgs
   DEPENDS ${PROTO_PRIVATE_SRC}
+)
+
+PROTOBUF_GENERATE_CPP(PROTO_PUBLIC_SRC PROTO_PUBLIC_HEADERS
+  serialized.proto
+)
+
+set(PROTO_PUBLIC_SRC ${PROTO_PUBLIC_SRC} PARENT_SCOPE)
+set(PROTO_PUBLIC_HEADERS ${PROTO_PUBLIC_HEADERS} PARENT_SCOPE)
+
+add_custom_target(ignition-gazebo_public_msgs
+  DEPENDS ${PROTO_PUBLIC_SRC}
+)
+
+ign_install_includes(
+  "${IGN_INCLUDE_INSTALL_DIR_POSTFIX}/ignition/${IGN_DESIGNATION}/msgs"
+  ${PROTO_PUBLIC_HEADERS}
 )
 

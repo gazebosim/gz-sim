@@ -91,10 +91,10 @@ class Relay
 };
 
 std::mutex mutex;
-std::vector<msgs::Magnetometer> magnetometerMsgs;
+std::vector<ignition::msgs::Magnetometer> magnetometerMsgs;
 
 /////////////////////////////////////////////////
-void magnetometerCb(const msgs::Magnetometer &_msg)
+void magnetometerCb(const ignition::msgs::Magnetometer &_msg)
 {
   mutex.lock();
   magnetometerMsgs.push_back(_msg);

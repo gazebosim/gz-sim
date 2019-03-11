@@ -43,7 +43,7 @@ class TestModelSystem :
 {
   public: TestModelSystem() = default;
 
-  private: bool Service(msgs::StringMsg &_msg)
+  private: bool Service(ignition::msgs::StringMsg &_msg)
            {
              _msg.set_data("TestModelSystem");
              return true;

@@ -84,10 +84,10 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
   }
 };
 
-std::vector<msgs::Clock> clockMsgs;
+std::vector<ignition::msgs::Clock> clockMsgs;
 
 /////////////////////////////////////////////////
-void clockCb(const msgs::Clock &_msg)
+void clockCb(const ignition::msgs::Clock &_msg)
 {
   clockMsgs.push_back(_msg);
 }
@@ -1131,7 +1131,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
 
   bool result{false};
   unsigned int timeout{5000};
-  msgs::GUI res;
+  ignition::msgs::GUI res;
 
   EXPECT_TRUE(node.Request("/world/default/gui/info", timeout, res, result));
   EXPECT_TRUE(result);

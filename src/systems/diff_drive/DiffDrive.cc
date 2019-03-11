@@ -186,7 +186,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
+void DiffDrivePrivate::OnCmdVel(const ignition::msgs::Twist &_msg)
 {
   auto linVel = _msg.linear().x();
   auto angVel = _msg.angular().z();

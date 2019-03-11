@@ -5,12 +5,15 @@ add_subdirectory(msgs)
 set_source_files_properties(
   ${PROTO_PRIVATE_SRC}
   ${PROTO_PRIVATE_HEADERS}
+  ${PROTO_PUBLIC_SRC}
+  ${PROTO_PUBLIC_HEADERS}
   PROPERTIES GENERATED TRUE
 )
 
 # Suppress compiler warnings in generated protobuf C++ code.
 set_source_files_properties(
   ${PROTO_PRIVATE_SRC}
+  ${PROTO_PUBLIC_SRC}
   COMPILE_FLAGS -Wno-unused-parameter
 )
 
@@ -45,6 +48,7 @@ set (sources
   Util.cc
   View.cc
   ${PROTO_PRIVATE_SRC}
+  ${PROTO_PUBLIC_SRC}
   ${network_sources}
 )
 
@@ -92,6 +96,7 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 
 add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-gazebo_private_msgs
+  ignition-gazebo_public_msgs
 )
 
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR

@@ -57,8 +57,8 @@ TEST_F(TouchPluginTest, OneLink)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool whiteTouched{false};
-  auto whiteTouchCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
+  auto whiteTouchCb = std::function<void(const ignition::msgs::Boolean &)>(
+      [&](const ignition::msgs::Boolean &)
       {
         whiteTouched = true;
       });
@@ -87,7 +87,7 @@ TEST_F(TouchPluginTest, OneLink)
   EXPECT_FALSE(whiteTouched);
 
   // Enable plugin again
-  msgs::Boolean req;
+  ignition::msgs::Boolean req;
   req.set_data(true);
   bool executed = node.Request("/white_touches_only_green/enable", req);
 
@@ -111,8 +111,8 @@ TEST_F(TouchPluginTest, MultiLink)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool redTouched{false};
-  auto redTouchedCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
+  auto redTouchedCb = std::function<void(const ignition::msgs::Boolean &)>(
+      [&](const ignition::msgs::Boolean &)
       {
         redTouched = true;
       });
@@ -144,8 +144,8 @@ TEST_F(TouchPluginTest, StartDisabled)
 
   // Subscribe to plugin notifications
   bool blueTouched{false};
-  auto blueTouchedCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
+  auto blueTouchedCb = std::function<void(const ignition::msgs::Boolean &)>(
+      [&](const ignition::msgs::Boolean &)
       {
         blueTouched = true;
       });
@@ -164,7 +164,7 @@ TEST_F(TouchPluginTest, StartDisabled)
   EXPECT_FALSE(blueTouched);
 
   // Enable plugin
-  msgs::Boolean req;
+  ignition::msgs::Boolean req;
   req.set_data(true);
   bool executed = node.Request("/blue_touches_only_green/enable", req);
 
@@ -188,8 +188,8 @@ TEST_F(TouchPluginTest, RemovalOfParentModel)
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
   bool redTouched{false};
-  auto redTouchedCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
+  auto redTouchedCb = std::function<void(const ignition::msgs::Boolean &)>(
+      [&](const ignition::msgs::Boolean &)
       {
         redTouched = true;
       });
@@ -275,8 +275,8 @@ TEST_F(TouchPluginTest, SpawnedEntities)
   transport::Node node;
 
   bool whiteTouched{false};
-  auto whiteTouchCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
+  auto whiteTouchCb = std::function<void(const ignition::msgs::Boolean &)>(
+      [&](const ignition::msgs::Boolean &)
       {
         whiteTouched = true;
       });
@@ -284,11 +284,11 @@ TEST_F(TouchPluginTest, SpawnedEntities)
   node.Subscribe("/white_touches_only_green/touched", whiteTouchCb);
 
   // Request entity spawn
-  msgs::EntityFactory req;
+  ignition::msgs::EntityFactory req;
   unsigned int timeout = 5000;
   std::string service{"/world/empty/create"};
 
-  msgs::Boolean res;
+  ignition::msgs::Boolean res;
   bool result;
 
   auto testFunc = [&](const std::string &_box1, const std::string &_box2)

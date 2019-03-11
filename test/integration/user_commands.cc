@@ -159,14 +159,14 @@ TEST_F(UserCommandsTest, Create)
       "</sdfo>";
 
   // Request entity spawn
-  msgs::EntityFactory req;
+  ignition::msgs::EntityFactory req;
   req.set_sdf(modelStr);
 
   auto pose = req.mutable_pose();
   auto pos = pose->mutable_position();
   pos->set_z(10);
 
-  msgs::Boolean res;
+  ignition::msgs::Boolean res;
   bool result;
   unsigned int timeout = 5000;
   std::string service{"/world/empty/create"};
@@ -391,11 +391,11 @@ TEST_F(UserCommandsTest, Remove)
   EXPECT_EQ(15u, ecm->EntityCount());
 
   // Entity remove by name
-  msgs::Entity req;
+  ignition::msgs::Entity req;
   req.set_name("box");
-  req.set_type(msgs::Entity::MODEL);
+  req.set_type(ignition::msgs::Entity::MODEL);
 
-  msgs::Boolean res;
+  ignition::msgs::Boolean res;
   bool result;
   unsigned int timeout = 5000;
   std::string service{"/world/default/remove"};
@@ -445,7 +445,7 @@ TEST_F(UserCommandsTest, Remove)
 
   req.Clear();
   req.set_name("cylinder_link");
-  req.set_type(msgs::Entity::LINK);
+  req.set_type(ignition::msgs::Entity::LINK);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -466,7 +466,7 @@ TEST_F(UserCommandsTest, Remove)
   req.Clear();
   req.set_id(cylinderId);
   req.set_name("sun");
-  req.set_type(msgs::Entity::LIGHT);
+  req.set_type(ignition::msgs::Entity::LIGHT);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -512,7 +512,7 @@ TEST_F(UserCommandsTest, Remove)
   // Unsupported type - fails to remove
   req.Clear();
   req.set_name("sun");
-  req.set_type(msgs::Entity::LINK);
+  req.set_type(ignition::msgs::Entity::LINK);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -527,7 +527,7 @@ TEST_F(UserCommandsTest, Remove)
   // Remove light
   req.Clear();
   req.set_name("sun");
-  req.set_type(msgs::Entity::LIGHT);
+  req.set_type(ignition::msgs::Entity::LIGHT);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);

@@ -84,18 +84,18 @@ void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
   }
 
   // Protobuf message
-  msgs::Pose_V posevMsg;
+  ignition::msgs::Pose_V posevMsg;
 
   // Convert binary bytes in string into a ign-msgs msg
   posevMsg.ParseFromString(this->iter->Data());
 
   // Maps entity to pose recorded
   // Key: entity. Value: pose
-  std::map <Entity, msgs::Pose> idToPose;
+  std::map <Entity, ignition::msgs::Pose> idToPose;
 
   for (int i = 0; i < posevMsg.pose_size(); ++i)
   {
-    msgs::Pose pose = posevMsg.pose(i);
+    auto pose = posevMsg.pose(i);
 
     // Update entity pose in map
     idToPose.insert_or_assign(pose.id(), pose);
@@ -110,11 +110,11 @@ void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
       return true;
 
     // Look for pose in log entry loaded
-    msgs::Pose pose = idToPose.at(_entity);
+    auto pose = idToPose.at(_entity);
 
     // Set current pose to recorded pose
     // Use copy assignment operator
-    *_poseComp = components::Pose(msgs::Convert(pose));
+    *_poseComp = components::Pose(ignition::msgs::Convert(pose));
 
     return true;
   });
@@ -273,7 +273,7 @@ void LogPlayback::Update(const UpdateInfo &_info,
   //   play the joint positions at next logged timestamp.
 
   // Get timestamp in logged data
-  msgs::Pose_V posevMsg;
+  ignition::msgs::Pose_V posevMsg;
   posevMsg.ParseFromString(this->dataPtr->iter->Data());
 
   auto now = _info.simTime;
