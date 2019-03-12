@@ -15,8 +15,6 @@
  *
  */
 
-#include <ignition/msgs/imu.pb.h>
-
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>
