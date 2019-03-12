@@ -12,6 +12,7 @@ target_link_libraries(${imu_system_target}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
+    ignition-sensors${IGN_SENSORS_VER}::imu
     ignition-plugin${IGN_PLUGIN_VER}::register
 )
 
