@@ -27,8 +27,8 @@
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/gazebo/network/NetworkManager.hh>
 
+#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
 
 namespace ignition
@@ -78,16 +78,10 @@ namespace ignition
       public: bool Ready() const override;
 
       /// \brief Populate simulation step data.
-      /// On the network primary, the arguments will be used to distribute
-      /// clock state to all of the network participants.
-      /// \param[in] _iteration current simulation iteration
-      /// \param[in] _stepSize current simulation step size
-      /// \param[in] _stepSize current simulation time
+      /// On the network primary, the argument will be used to distribute
+      /// simulation state to all of the network participants.
       /// \return True if simulation step is ready.
-      public: bool Step(
-                  uint64_t &_iteration,
-                  std::chrono::steady_clock::duration &_stepSize,
-                  std::chrono::steady_clock::duration &_simTime) override;
+      public: bool Step(UpdateInfo &_info) override;
 
       /// \brief Acknowledge the completion of a simulation step.
       /// On the network primary, this will aggregate the acknowledgements of

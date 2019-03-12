@@ -25,9 +25,8 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/gazebo/network/NetworkManager.hh>
 
-#include "ignition/msgs/empty.pb.h"
+#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
 
@@ -56,10 +55,7 @@ namespace ignition
       public: void Initialize() override;
 
       // Documentation inherited
-      public: bool Step(
-                  uint64_t &_iteration,
-                  std::chrono::steady_clock::duration &_stepSize,
-                  std::chrono::steady_clock::duration &_simTime) override;
+      public: bool Step(UpdateInfo &_info) override;
 
       // Documentation inherited
       public: bool StepAck(uint64_t _iteration) override;
@@ -69,7 +65,7 @@ namespace ignition
 
       /// \brief Callback for when PeerControl service request is received.
       public: bool OnControl(const msgs::PeerControl &_req,
-                             ignition::msgs::Empty &_resp);
+                             msgs::PeerControl &_resp);
 
       /// \brief Callback for when SimulationStep message is received.
       public: void OnStep(const msgs::SimulationStep &_msg);
@@ -83,11 +79,17 @@ namespace ignition
       /// \brief Condition variable to signal changes of currentStep data.
       private: std::condition_variable stepCv;
 
+      /// \brief Track connection to "events::Stop" Event
+      public: ignition::common::ConnectionPtr stoppingConn;
+
+      /// \brief Flag to indicate if simulation server is stopping.
+      private: std::atomic<bool> stopReceived {false};
+
       /// \brief Flag to control enabling/disabling simulation secondary.
-      private: std::atomic<bool> enableSim;
+      private: std::atomic<bool> enableSim {false};
 
       /// \brief Flag to control pausing/unpausing simulation secondary.
-      private: std::atomic<bool> pauseSim;
+      private: std::atomic<bool> pauseSim {true};
 
       /// \brief Transport node used for communication with simulation graph.
       private: ignition::transport::Node node;

@@ -46,9 +46,10 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/network/NetworkManager.hh"
 
+#include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "SyncManager.hh"
 
 using namespace std::chrono_literals;
 
@@ -104,14 +105,17 @@ namespace ignition
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
       public: explicit SimulationRunner(const sdf::World *_world,
-                                 const SystemLoaderPtr &_systemLoader,
-                                 const ServerConfig &_config = ServerConfig());
+                                const SystemLoaderPtr &_systemLoader,
+                                const ServerConfig &_config = ServerConfig());
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
 
       /// \brief Stop running
       public: void Stop();
+
+      /// \brief Internal method for handling stop event (to prevent recursion)
+      private: void OnStop();
 
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
@@ -138,6 +142,10 @@ namespace ignition
       /// then simulation is stepping forward.
       /// \return True if the server is running.
       public: bool Running() const;
+
+      /// \brief Get whether the runner has received a stop event
+      /// \return True if the event has been received.
+      public: bool StopReceived() const;
 
       /// \brief Get whether the runner is ready to execute.
       /// \return True if the runner is ready
@@ -261,6 +269,9 @@ namespace ignition
       /// \brief Process world control service messages.
       private: void ProcessWorldControl();
 
+      /// \brief This is used to indicate that a stop event has been received.
+      private: std::atomic<bool> stopReceived{false};
+
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       private: std::atomic<bool> running{false};
@@ -290,7 +301,10 @@ namespace ignition
       private: std::unique_ptr<LevelManager> levelMgr;
 
       /// \brief Manager of distributing/receiving network work.
-      private: std::unique_ptr<NetworkManager> networkMgr;
+      private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
+
+      /// \brief Manager of network sync.
+      private: std::unique_ptr<SyncManager> syncMgr{nullptr};
 
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
@@ -336,6 +350,9 @@ namespace ignition
       /// \brief Connection to the pause event.
       private: ignition::common::ConnectionPtr pauseConn;
 
+      /// \brief Connection to the stop event.
+      private: ignition::common::ConnectionPtr stopConn;
+
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
 
@@ -366,6 +383,7 @@ namespace ignition
       public: ServerConfig serverConfig;
 
       friend class LevelManager;
+      friend class SyncManager;
     };
     }
   }
