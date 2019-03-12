@@ -193,6 +193,7 @@ class ignition::gazebo::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
+            useDistributed(_cfg->useDistributed),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins) { }
 
@@ -207,6 +208,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the level system
   public: bool useLevels{false};
+
+  /// \brief Use the distributed simulation system
+  public: bool useDistributed{false};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -296,6 +300,18 @@ bool ServerConfig::UseLevels() const
 void ServerConfig::SetUseLevels(const bool _levels)
 {
   this->dataPtr->useLevels = _levels;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::UseDistributedSimulation() const
+{
+  return this->dataPtr->useDistributed;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetUseDistributedSimulation(const bool _distributed)
+{
+  this->dataPtr->useDistributed = _distributed;
 }
 
 /////////////////////////////////////////////////

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/network/NetworkConfig.hh"
+#include "NetworkConfig.hh"
 
 #include <algorithm>
 
@@ -55,8 +55,8 @@ NetworkConfig NetworkConfig::FromEnv()
   }
   else
   {
-      igndbg << "IGN_GAZEBO_NETWORK_ROLE not set"
-             << ", distributed sim disabled" << std::endl;
+      ignwarn << "IGN_GAZEBO_NETWORK_ROLE not set"
+              << ", distributed sim disabled" << std::endl;
   }
 
   // If this is configured as a primary, we need to know number of secondaries

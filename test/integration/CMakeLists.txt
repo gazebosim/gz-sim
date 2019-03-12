@@ -22,6 +22,7 @@ set(tests
   sdf_include.cc
   touch_plugin.cc
   user_commands.cc
+  log_system.cc
 )
 
 # Tests that require a valid display

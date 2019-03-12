@@ -27,7 +27,8 @@ namespace ignition
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Enumeration of roles that a network participant can take.
-    enum class NetworkRole {
+    enum class NetworkRole
+    {
       /// \brief participant has no role in the network
       None = 0,
       /// \brief participant is read-only, could potentially be used
