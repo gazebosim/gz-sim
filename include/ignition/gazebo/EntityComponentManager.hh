@@ -36,7 +36,7 @@
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
-#include "msgs/serialized.pb.h"
+#include "msgs/serialized.pb.h" // NOLINT
 
 namespace ignition
 {
@@ -392,13 +392,13 @@ namespace ignition
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
-      /// \param[in] _types Type ID of components to be serialized. Leave empty
-      /// to get all components.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
+      /// \param[in] _types Type ID of components to be serialized. Leave empty
+      /// to get all components.
       gazebo::msgs::SerializedState State(
-          std::unordered_set<ComponentTypeId> _types = {},
-          std::unordered_set<Entity> _entities = {}) const;
+          std::unordered_set<Entity> _entities = {},
+          std::unordered_set<ComponentTypeId> _types = {}) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old

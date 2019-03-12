@@ -21,7 +21,7 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
 
-#include "msgs/serialized.pb.h"
+#include "msgs/serialized.pb.h" // NOLINT
 
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -1427,7 +1427,8 @@ TEST_P(EntityComponentManagerFixture, State)
   double e2c0{0.123};
   std::string e2c1{"string"};
   int e3c0{456};
-  unsigned int e4c0{789u};
+  int e3c0New{654};
+  int e4c0{789u};
 
   // Fill manager with entities and components
   {
@@ -1536,13 +1537,13 @@ TEST_P(EntityComponentManagerFixture, State)
     auto e3Msg = stateMsg.mutable_entities(2);
 
     auto e3c0Msg = e3Msg->mutable_components(0);
-    e3c0Msg->set_component(std::to_string(654));
+    e3c0Msg->set_component(std::to_string(e3c0New));
 
     // e4 is a new entity
     auto e4Msg = stateMsg.add_entities();
     e4Msg->set_id(e4);
     auto e4c0Msg = e4Msg->add_components();
-    e4c0Msg->set_type(UIntComponent::typeId);
+    e4c0Msg->set_type(IntComponent::typeId);
     e4c0Msg->set_component(std::to_string(e4c0));
   }
 
@@ -1581,14 +1582,38 @@ TEST_P(EntityComponentManagerFixture, State)
     // e3c0 is updated
     const auto &e3c0Comp = manager.Component<IntComponent>(e3);
     EXPECT_NE(nullptr, e3c0Comp);
-    EXPECT_EQ(e3c0, e3c0Comp->Data());
+    EXPECT_EQ(e3c0New, e3c0Comp->Data());
 
     // e4 was created
     EXPECT_TRUE(manager.HasEntity(e4));
 
-    const auto &e4c0Comp = manager.Component<UIntComponent>(e4);
+    const auto &e4c0Comp = manager.Component<IntComponent>(e4);
     ASSERT_NE(nullptr, e4c0Comp);
     EXPECT_DOUBLE_EQ(e4c0, e4c0Comp->Data());
+  }
+
+  // Serialize into a message with selected entities and components
+  stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
+
+  // Check message
+  {
+    ASSERT_EQ(2, stateMsg.entities_size());
+
+    const auto &e3Msg = stateMsg.entities(0);
+    EXPECT_EQ(e3, e3Msg.id());
+    ASSERT_EQ(1, e3Msg.components().size());
+
+    const auto &e3c0Msg = e3Msg.components(0);
+    EXPECT_EQ(IntComponent::typeId, e3c0Msg.type());
+    EXPECT_EQ(e3c0New, std::stoi(e3c0Msg.component()));
+
+    const auto &e4Msg = stateMsg.entities(1);
+    EXPECT_EQ(e4, e4Msg.id());
+    ASSERT_EQ(1, e4Msg.components().size());
+
+    const auto &e4c0Msg = e4Msg.components(0);
+    EXPECT_EQ(IntComponent::typeId, e4c0Msg.type());
+    EXPECT_EQ(e4c0, std::stoi(e4c0Msg.component()));
   }
 }
 
