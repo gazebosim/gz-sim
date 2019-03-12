@@ -21,8 +21,6 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Rand.hh>
 
-#include "msgs/serialized.pb.h" // NOLINT
-
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
