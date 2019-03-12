@@ -1,0 +1,421 @@
+<?xml version="1.0" ?>
+<%
+  # World generator
+  #
+  # Command line options (usage erb [opt]=[arg]):
+  # type: primary / secondary / standalone (not distributed)
+
+  ###############################################
+  #                                             #
+  #           COMMAND LINE ARGUMENTS            #
+  #                                             #
+  ###############################################
+
+  vars = ARGV.take_while {|arg| arg[/^\w+=/]}
+  ARGV.slice!(0, vars.size)
+  vars.each do |var|
+    k, v = var.split('=', 2)
+    TOPLEVEL_BINDING.eval %Q(#{k} = "#{v}")
+  end
+
+  primary = false;
+  secondary = false;
+  if (defined? type)
+    if (type.to_s == 'primary')
+      primary = true
+    elsif (type.to_s == 'secondary')
+      secondary = true
+    elsif (type.to_s == 'standalone')
+      primary = true
+      secondary = true
+    end
+  end
+
+  ###############################################
+  #                                             #
+  #                  MODELS                     #
+  #                                             #
+  ###############################################
+
+  shapes =
+  [
+    {:name => 'green_sphere',
+     :color => '0 1 0 1',
+     :y_pos => '-1.5',
+     :geom => '<sphere><radius>0.2</radius></sphere>'},
+    {:name => 'yellow_box',
+     :color => '1 1 0 1',
+     :y_pos => '1.5',
+     :geom => '<box><size>1 1 1</size></box>'},
+  ]
+
+  block_width = 2.0
+  block_length = 3.0
+  slope = Math::PI / 6
+  level_height = 2.0
+  level_buffer = 1.0
+  total_steps = 6
+
+  blocks = []
+  (0..total_steps-1).each do |step|
+
+    sides =
+    [
+      {:sufix => 'A',
+       :y_pos => -1.5,
+       :width => 2.0},
+      {:sufix => 'B',
+       :y_pos => 1.5,
+       :width => 2.0}
+    ]
+
+    if step == 3
+      sides =
+      [
+        {:sufix => 'C',
+         :y_pos => 0,
+         :width => 5.0}
+      ]
+    end
+
+    for side in sides
+
+      blocks.push(
+      {
+        :name => 'block_' + step.to_s + '_' + side[:sufix],
+        :x_pos => block_length * step * Math::cos(slope),
+        :y_pos => side[:y_pos],
+        :z_pos => -block_length * step * Math::sin(slope),
+        :width => side[:width],
+      })
+    end
+  end
+%>
+<!--
+  Generated from distributed_levels.erb.sdf
+
+  - primary: <%= primary %>
+  - secondary: <%= secondary %>
+
+-->
+<sdf version="1.6">
+  <world name="default">
+
+    <% if secondary %>
+    <plugin
+     filename="libignition-gazebo1-physics-system.so"
+     name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <% end %>
+
+    <% if primary %>
+    <plugin
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <service>/world/default/scene/info</service>
+        <pose_topic>/world/default/pose/info</pose_topic>
+        <scene_topic>/world/default/scene/info</scene_topic>
+        <deletion_topic>/world/default/scene/deletion</deletion_topic>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/default/control</service>
+        <stats_topic>/world/default/stats</stats_topic>
+
+      </plugin>
+
+      <!--World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/default/stats</topic>
+
+      </plugin>
+
+    </gui>
+    <% end %>
+
+    <scene>
+      <ambient>0.8 0.8 0.8 1.0</ambient>
+      <background>0.34 0.39 0.43 1.0</background>
+      <grid>false</grid>
+      <origin_visual>false</origin_visual>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <%
+      for shape in shapes
+    %>
+
+    <model name="<%= shape[:name] %>">
+      <pose>0 <%= shape[:y_pos] %> 2.5 0 0 0</pose>
+      <link name="shape_link">
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="shape_collision">
+          <geometry>
+            <%= shape[:geom] %>
+          </geometry>
+        </collision>
+
+        <visual name="shape_visual">
+          <geometry>
+            <%= shape[:geom] %>
+          </geometry>
+          <material>
+            <ambient><%= shape[:color] %></ambient>
+            <diffuse><%= shape[:color] %></diffuse>
+            <specular><%= shape[:color] %></specular>
+            <emissive><%= shape[:color] %></emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <% end %>
+
+    <%
+      for block in blocks
+    %>
+    <model name="<%= block[:name] %>">
+      <static>true</static>
+      <pose><%= block[:x_pos] %> <%= block[:y_pos] %> <%= block[:z_pos] %> 0 <%= slope %> 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size><%= block_length %> <%= block[:width] %> 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size><%= block_length %> <%= block[:width] %> 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="level_vis_<%= block[:name] %>">
+      <static>true</static>
+      <pose><%= block[:x_pos] %> <%= block[:y_pos] %> <%= block[:z_pos] %> 0 0 0</pose>
+      <link name="link">
+        <visual name="visual_level">
+          <geometry>
+            <box>
+              <size><%= block_length %> <%= block[:width] %> <%= level_height %></size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 0.8 0.2</ambient>
+            <diffuse>0 0 0.8 0.2</diffuse>
+            <specular>0 0 0.8 0.2</specular>
+            <emissive>0 0 0.8 0.2</emissive>
+          </material>
+        </visual>
+        <visual name="visual_buffer">
+          <geometry>
+            <box>
+              <size>
+                <%= block_length + level_buffer*2 %>
+                <%= block[:width] + level_buffer*2 %>
+                <%= level_height  + level_buffer*2 %>
+              </size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0.8 0.8 0.2</ambient>
+            <diffuse>0 0.8 0.8 0.2</diffuse>
+            <specular>0 0.8 0.8 0.2</specular>
+            <emissive>0 0.8 0.8 0.2</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <% end %>
+
+    <model name="end_block_A">
+      <static>true</static>
+      <pose>
+        <%= block_length * (total_steps - 1.0) * Math::cos(slope) %>
+        -1.5
+        <%= -block_length * (total_steps - 1.0) * Math::sin(slope) %>
+        0
+        0
+        0
+      </pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 5.0 4.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 2.0 4.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="end_block_B">
+      <static>true</static>
+      <pose>
+        <%= block_length * (total_steps - 0.5) * Math::cos(slope) %>
+        1.5
+        <%= -block_length * (total_steps - 0.5) * Math::sin(slope) %>
+        0
+        0
+        0
+      </pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 5.0 4.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 2.0 4.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+            <emissive>0.8 0.8 0.8 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <plugin name="ignition::gazebo" filename="dummy">
+
+    <%
+      for shape in shapes
+    %>
+      <performer name="perf_<%= shape[:name] %>">
+        <ref><%= shape[:name] %></ref>
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </performer>
+    <% end %>
+
+    <%
+      for block in blocks
+    %>
+    <level name="level_<%= block[:name] %>">
+      <pose><%= block[:x_pos] %> <%= block[:y_pos] %> <%= block[:z_pos] %> 0 0 0</pose>
+      <geometry>
+        <box>
+          <size><%= block_length %> <%= block[:width] %> <%= level_height %></size>
+        </box>
+      </geometry>
+      <buffer><%= level_buffer %></buffer>
+      <ref><%= block[:name] %></ref>
+    </level>
+    <% end %>
+
+
+    </plugin>
+
+  </world>
+</sdf>

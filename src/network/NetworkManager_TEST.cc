@@ -20,8 +20,7 @@
 #include <cstdlib>
 #include <ignition/common/Console.hh>
 
-#include "ignition/gazebo/network/NetworkManager.hh"
-
+#include "NetworkManager.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 
@@ -190,54 +189,59 @@ TEST(NetworkManager, Step)
   std::atomic<bool> running {true};
 
   auto primaryThread = std::thread([&nmPrimary, &running](){
-    uint64_t primaryIter = 0;
-    auto primaryStepSize = std::chrono::steady_clock::duration{2ms};
-    auto primarySimTime = std::chrono::steady_clock::duration{0};
+    auto info = UpdateInfo();
+    info.iterations = 0;
+    info.dt = std::chrono::steady_clock::duration{2ms};
+    info.simTime = std::chrono::steady_clock::duration{0};
+    info.paused = false;
 
     nmPrimary->Initialize();
-    nmPrimary->Step(primaryIter, primaryStepSize, primarySimTime);
+    nmPrimary->Step(info);
 
-    while (primaryIter <= 100)
+    while (info.iterations <= 100)
     {
-      while (!nmPrimary->Step(primaryIter, primaryStepSize, primarySimTime)) {}
+      while (!nmPrimary->Step(info)) {}
 
-      while (!nmPrimary->StepAck(primaryIter)) {}
+      while (!nmPrimary->StepAck(info.iterations)) {}
 
-      primaryIter++;
-      primarySimTime += primaryStepSize;
+      info.iterations++;
+      info.simTime += info.dt;
     }
 
     running = false;
   });
 
-  uint64_t secondaryIter1 = 0;
-  uint64_t secondaryIter2 = 0;
+  auto secondaryInfo1 = UpdateInfo();
+  secondaryInfo1.iterations = 0;
+  secondaryInfo1.dt = std::chrono::steady_clock::duration{2ms};
+  secondaryInfo1.simTime = std::chrono::steady_clock::duration{0};
+  secondaryInfo1.paused = true;
 
-  auto secondaryThread1 = std::thread([&nmSecondary1, &secondaryIter1](){
-    auto secondaryStepSize = std::chrono::steady_clock::duration{0ms};
-    auto secondarySimTime = std::chrono::steady_clock::duration{0};
 
+  auto secondaryThread1 = std::thread([&nmSecondary1, &secondaryInfo1](){
     nmSecondary1->Initialize();
 
-    while (secondaryIter1 < 100)
+    while (secondaryInfo1.iterations < 100)
     {
-      while (!nmSecondary1->Step(
-            secondaryIter1, secondaryStepSize, secondarySimTime)) {}
-      while (!nmSecondary1->StepAck(secondaryIter1)) {}
+      while (!nmSecondary1->Step(secondaryInfo1)) {}
+      EXPECT_FALSE(secondaryInfo1.paused);
+      while (!nmSecondary1->StepAck(secondaryInfo1.iterations)) {}
     }
   });
 
-  auto secondaryThread2 = std::thread([&nmSecondary2, &secondaryIter2](){
-    auto secondaryStepSize = std::chrono::steady_clock::duration{0ms};
-    auto secondarySimTime = std::chrono::steady_clock::duration{0};
+  auto secondaryInfo2 = UpdateInfo();
+  secondaryInfo2.iterations = 0;
+  secondaryInfo2.dt = std::chrono::steady_clock::duration{2ms};
+  secondaryInfo2.simTime = std::chrono::steady_clock::duration{0};
+  secondaryInfo2.paused = true;
 
+  auto secondaryThread2 = std::thread([&nmSecondary2, &secondaryInfo2](){
     nmSecondary2->Initialize();
 
-    while (secondaryIter2 < 100)
+    while (secondaryInfo2.iterations < 100)
     {
-      while (!nmSecondary2->Step(
-            secondaryIter2, secondaryStepSize, secondarySimTime)) {}
-      while (!nmSecondary2->StepAck(secondaryIter2)) {}
+      while (!nmSecondary2->Step(secondaryInfo2)) {}
+      while (!nmSecondary2->StepAck(secondaryInfo2.iterations)) {}
     }
   });
 
@@ -250,6 +254,6 @@ TEST(NetworkManager, Step)
   secondaryThread2.join();
 
   EXPECT_FALSE(running);
-  EXPECT_EQ(100u, secondaryIter1);
-  EXPECT_EQ(100u, secondaryIter2);
+  EXPECT_EQ(100u, secondaryInfo1.iterations);
+  EXPECT_EQ(100u, secondaryInfo2.iterations);
 }

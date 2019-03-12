@@ -21,8 +21,8 @@
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/network/NetworkRole.hh>
 
+#include "NetworkRole.hh"
 #include "msgs/peer_info.pb.h"
 
 namespace ignition

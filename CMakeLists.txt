@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo0 VERSION 0.1.0)
+project(ignition-gazebo1 VERSION 1.0.1)
 
 #============================================================================
 # Find ignition-cmake
@@ -14,7 +14,7 @@ find_package(ignition-cmake2 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project()
 
 #============================================================================
 # Set project-specific options
@@ -41,7 +41,7 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport6 REQUIRED)
+ign_find_package(ignition-transport6 REQUIRED COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
 
 #--------------------------------------
