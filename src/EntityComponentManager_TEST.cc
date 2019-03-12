@@ -1420,24 +1420,28 @@ TEST_P(EntityComponentManagerFixture, State)
   Entity e1{1};
   Entity e2{2};
   Entity e3{3};
+  Entity e4{4};
 
   int e1c0{123};
   double e1c1{0.456};
   double e2c0{0.123};
   std::string e2c1{"string"};
   int e3c0{456};
+  unsigned int e4c0{789u};
 
   // Fill manager with entities and components
   {
     // Entities
     EXPECT_EQ(e1, manager.CreateEntity());
     EXPECT_EQ(e2, manager.CreateEntity());
-    EXPECT_EQ(2u, manager.EntityCount());
+    EXPECT_EQ(e3, manager.CreateEntity());
+    EXPECT_EQ(3u, manager.EntityCount());
 
     // Components
     manager.CreateComponent<IntComponent>(e1, IntComponent(e1c0));
     manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(e2c0));
     manager.CreateComponent<StringComponent>(e2, StringComponent(e2c1));
+    manager.CreateComponent<IntComponent>(e3, IntComponent(e3c0));
   }
 
   // Serialize into a message
@@ -1445,8 +1449,7 @@ TEST_P(EntityComponentManagerFixture, State)
 
   // Check message
   {
-
-    ASSERT_EQ(2, stateMsg.entities_size());
+    ASSERT_EQ(3, stateMsg.entities_size());
 
     const auto &e1Msg = stateMsg.entities(0);
     EXPECT_EQ(e1, e1Msg.id());
@@ -1467,6 +1470,14 @@ TEST_P(EntityComponentManagerFixture, State)
     const auto &e2c1Msg = e2Msg.components(1);
     EXPECT_EQ(StringComponent::typeId, e2c1Msg.type());
     EXPECT_EQ(e2c1, e2c1Msg.component());
+
+    const auto &e3Msg = stateMsg.entities(2);
+    EXPECT_EQ(e3, e3Msg.id());
+    ASSERT_EQ(1, e1Msg.components().size());
+
+    const auto &e3c0Msg = e3Msg.components(0);
+    EXPECT_EQ(IntComponent::typeId, e3c0Msg.type());
+    EXPECT_EQ(e3c0, std::stoi(e3c0Msg.component()));
   }
 
   // Deserialize into a new ECM
@@ -1476,7 +1487,7 @@ TEST_P(EntityComponentManagerFixture, State)
   {
     newEcm.SetState(stateMsg);
 
-    EXPECT_EQ(2u, newEcm.EntityCount());
+    EXPECT_EQ(3u, newEcm.EntityCount());
 
     EXPECT_TRUE(newEcm.HasEntity(e1));
 
@@ -1496,36 +1507,58 @@ TEST_P(EntityComponentManagerFixture, State)
     const auto &e2c1Comp = newEcm.Component<StringComponent>(e2);
     ASSERT_NE(nullptr, e2c1Comp);
     EXPECT_EQ(e2c1, e2c1Comp->Data());
+
+    EXPECT_TRUE(newEcm.HasEntity(e3));
+
+    EXPECT_TRUE(newEcm.HasComponentType(IntComponent::typeId));
+    const auto &e3c0Comp = newEcm.Component<IntComponent>(e3);
+    ASSERT_NE(nullptr, e3c0Comp);
+    EXPECT_EQ(e3c0, e3c0Comp->Data());
   }
 
-  // Create new message with different entities / components
+  // Update message to change entities / components
   {
-    stateMsg.Clear();
-
     // e1 has a component removed and another added
-    auto e1Msg = stateMsg.add_entities();
-    e1Msg->set_id(e1);
+    auto e1Msg = stateMsg.mutable_entities(0);
+
+    auto e1c0Msg = e1Msg->mutable_components(0);
+    e1c0Msg->set_remove(true);
 
     auto e1c1Msg = e1Msg->add_components();
     e1c1Msg->set_type(DoubleComponent::typeId);
     e1c1Msg->set_component(std::to_string(e1c1));
 
     // e2 is removed
+    auto e2Msg = stateMsg.mutable_entities(1);
+    e2Msg->set_remove(true);
 
-    // e3 is a new entity
-    auto e3Msg = stateMsg.add_entities();
-    e3Msg->set_id(e3);
-    auto e3c0Msg = e3Msg->add_components();
-    e3c0Msg->set_type(IntComponent::typeId);
-    e3c0Msg->set_component(std::to_string(e3c0));
+    // e3 has a component updated
+    auto e3Msg = stateMsg.mutable_entities(2);
+
+    auto e3c0Msg = e3Msg->mutable_components(0);
+    e3c0Msg->set_component(std::to_string(654));
+
+    // e4 is a new entity
+    auto e4Msg = stateMsg.add_entities();
+    e4Msg->set_id(e4);
+    auto e4c0Msg = e4Msg->add_components();
+    e4c0Msg->set_type(UIntComponent::typeId);
+    e4c0Msg->set_component(std::to_string(e4c0));
   }
 
   // Set new state on top of previous one and check ECM was properly updated
   {
     manager.SetState(stateMsg);
+
+    // Check that e2 has been marked for removal
+    EXPECT_EQ(4u, manager.EntityCount());
+    EXPECT_TRUE(manager.HasEntity(e2));
+    EXPECT_EQ(1, removedCount<DoubleComponent>(manager));
+
+    // Process removal
     manager.ProcessEntityRemovals();
 
-    EXPECT_EQ(2u, manager.EntityCount());
+    EXPECT_EQ(3u, manager.EntityCount());
 
     // e1 is still there
     EXPECT_TRUE(manager.HasEntity(e1));
@@ -1542,12 +1575,20 @@ TEST_P(EntityComponentManagerFixture, State)
     // e2 was removed
     EXPECT_FALSE(manager.HasEntity(e2));
 
-    // e3 was created
+    // e3 is still there
     EXPECT_TRUE(manager.HasEntity(e3));
 
+    // e3c0 is updated
     const auto &e3c0Comp = manager.Component<IntComponent>(e3);
-    ASSERT_NE(nullptr, e3c0Comp);
-    EXPECT_DOUBLE_EQ(e3c0, e3c0Comp->Data());
+    EXPECT_NE(nullptr, e3c0Comp);
+    EXPECT_EQ(e3c0, e3c0Comp->Data());
+
+    // e4 was created
+    EXPECT_TRUE(manager.HasEntity(e4));
+
+    const auto &e4c0Comp = manager.Component<UIntComponent>(e4);
+    ASSERT_NE(nullptr, e4c0Comp);
+    EXPECT_DOUBLE_EQ(e4c0, e4c0Comp->Data());
   }
 }
 
