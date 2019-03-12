@@ -29,6 +29,9 @@ message SerializedComponent
 
   /// \brief Component's serialized data in string format.
   string component = 2;
+
+  /// \brief Whether the component should be removed.
+  bool remove = 3;
 };
 
 /// \brief Holds all the information needed to reconstruct an entity and its
@@ -40,6 +43,9 @@ message SerializedEntity
 
   /// \brief All the components belonging to the entity.
   repeated SerializedComponent components = 2;
+
+  /// \brief Whether the entity and all its components should be removed.
+  bool remove = 3;
 };
 
 /// \brief Holds all the information needed to reconstruct the simulation state

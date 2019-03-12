@@ -673,50 +673,19 @@ gazebo::msgs::SerializedState EntityComponentManager::State(
 void EntityComponentManager::SetState(
     const gazebo::msgs::SerializedState &_stateMsg)
 {
-  // Remove entities and components which don't exist in new state
-  for (const auto &[entity, components] : this->dataPtr->entityComponents)
-  {
-    bool hasEntity{false};
-    for (int e = 0; e < _stateMsg.entities_size(); ++e)
-    {
-      if (entity != _stateMsg.entities(e).id())
-      {
-        continue;
-      }
-      hasEntity = true;
-
-      for (const auto &[typeId, compId] : components)
-      {
-        bool hasComponent{false};
-        for (int c = 0; c < _stateMsg.entities(e).components_size(); ++c)
-        {
-          if (typeId == _stateMsg.entities(e).components(c).type())
-          {
-            hasComponent = true;
-            break;
-          }
-        }
-
-        // Remove component
-        if (!hasComponent)
-        {
-          this->RemoveComponent(entity, typeId);
-        }
-      }
-    }
-
-    // Remove entity
-    if (!hasEntity)
-    {
-      this->RequestRemoveEntity(entity, false);
-      continue;
-    }
-  }
-
-  // Create / update entities and components
+  // Create / remove / update entities
   for (int e = 0; e < _stateMsg.entities_size(); ++e)
   {
-    Entity entity{_stateMsg.entities(e).id()};
+    auto entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    // Remove entity
+    if (entityMsg.remove())
+    {
+      this->RequestRemoveEntity(entity);
+      continue;
+    }
 
     // Create entity if it doesn't exist
     if (!this->HasEntity(entity))
@@ -724,10 +693,10 @@ void EntityComponentManager::SetState(
       this->dataPtr->CreateEntityImplementation(entity);
     }
 
-    // Update / add / remove components
-    for (int c = 0; c < _stateMsg.entities(e).components_size(); ++c)
+    // Create / remove / update components
+    for (int c = 0; c < entityMsg.components_size(); ++c)
     {
-      auto compMsg = _stateMsg.entities(e).components(c);
+      auto compMsg = entityMsg.components(c);
 
       // Create component
       auto newComp = components::Factory::Instance()->New(compMsg.type());
@@ -744,6 +713,13 @@ void EntityComponentManager::SetState(
 
       // Get type id
       auto typeId = newComp->TypeId();
+
+      // Remove component
+      if (compMsg.remove())
+      {
+        this->RemoveComponent(entity, typeId);
+        continue;
+      }
 
       // Get Component
       auto comp = this->ComponentImplementation(entity, typeId);
