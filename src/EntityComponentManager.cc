@@ -640,17 +640,14 @@ void EntityComponentManager::RebuildViews()
   }
 }
 
-namespace ignition
-{
-namespace gazebo
-{
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-{
 //////////////////////////////////////////////////
-std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
+gazebo::msgs::SerializedState EntityComponentManager::State(
+    std::unordered_set<ComponentTypeId> _types,
+    std::unordered_set<Entity> _entities) const
 {
+  // TODO use type and entities
   gazebo::msgs::SerializedState stateMsg;
-  for (const auto &[entity, components] : _ecm.dataPtr->entityComponents)
+  for (const auto &[entity, components] : this->dataPtr->entityComponents)
   {
     auto entityMsg = stateMsg.add_entities();
     entityMsg->set_id(entity);
@@ -659,7 +656,7 @@ std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
     {
       auto compMsg = entityMsg->add_components();
 
-      auto compBase = _ecm.ComponentImplementation(entity, typeId);
+      auto compBase = this->ComponentImplementation(entity, typeId);
       compMsg->set_type(compBase->TypeId());
 
       std::ostringstream ostr;
@@ -669,24 +666,20 @@ std::ostream &operator<<(std::ostream &_out, const EntityComponentManager &_ecm)
     }
   }
 
-  stateMsg.SerializeToOstream(&_out);
-  return _out;
+  return stateMsg;
 }
 
 //////////////////////////////////////////////////
-std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
+void EntityComponentManager::SetState(
+    const gazebo::msgs::SerializedState &_stateMsg)
 {
-  // Parse stream into a message
-  gazebo::msgs::SerializedState stateMsg;
-  stateMsg.ParseFromIstream(&_in);
-
   // Remove entities and components which don't exist in new state
-  for (const auto &[entity, components] : _ecm.dataPtr->entityComponents)
+  for (const auto &[entity, components] : this->dataPtr->entityComponents)
   {
     bool hasEntity{false};
-    for (int e = 0; e < stateMsg.entities_size(); ++e)
+    for (int e = 0; e < _stateMsg.entities_size(); ++e)
     {
-      if (entity != stateMsg.entities(e).id())
+      if (entity != _stateMsg.entities(e).id())
       {
         continue;
       }
@@ -695,9 +688,9 @@ std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
       for (const auto &[typeId, compId] : components)
       {
         bool hasComponent{false};
-        for (int c = 0; c < stateMsg.entities(e).components_size(); ++c)
+        for (int c = 0; c < _stateMsg.entities(e).components_size(); ++c)
         {
-          if (typeId == stateMsg.entities(e).components(c).type())
+          if (typeId == _stateMsg.entities(e).components(c).type())
           {
             hasComponent = true;
             break;
@@ -707,7 +700,7 @@ std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
         // Remove component
         if (!hasComponent)
         {
-          _ecm.RemoveComponent(entity, typeId);
+          this->RemoveComponent(entity, typeId);
         }
       }
     }
@@ -715,26 +708,26 @@ std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
     // Remove entity
     if (!hasEntity)
     {
-      _ecm.RequestRemoveEntity(entity, false);
+      this->RequestRemoveEntity(entity, false);
       continue;
     }
   }
 
   // Create / update entities and components
-  for (int e = 0; e < stateMsg.entities_size(); ++e)
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
   {
-    Entity entity{stateMsg.entities(e).id()};
+    Entity entity{_stateMsg.entities(e).id()};
 
     // Create entity if it doesn't exist
-    if (!_ecm.HasEntity(entity))
+    if (!this->HasEntity(entity))
     {
-      _ecm.dataPtr->CreateEntityImplementation(entity);
+      this->dataPtr->CreateEntityImplementation(entity);
     }
 
     // Update / add / remove components
-    for (int c = 0; c < stateMsg.entities(e).components_size(); ++c)
+    for (int c = 0; c < _stateMsg.entities(e).components_size(); ++c)
     {
-      auto compMsg = stateMsg.entities(e).components(c);
+      auto compMsg = _stateMsg.entities(e).components(c);
 
       // Create component
       auto newComp = components::Factory::Instance()->New(compMsg.type());
@@ -753,12 +746,12 @@ std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
       auto typeId = newComp->TypeId();
 
       // Get Component
-      auto comp = _ecm.ComponentImplementation(entity, typeId);
+      auto comp = this->ComponentImplementation(entity, typeId);
 
       // Create if new
       if (nullptr == comp)
       {
-        _ecm.CreateComponentImplementation(entity, typeId, newComp.get());
+        this->CreateComponentImplementation(entity, typeId, newComp.get());
       }
       // Update component value
       else
@@ -767,9 +760,4 @@ std::istream &operator>>(std::istream &_in, EntityComponentManager &_ecm)
       }
     }
   }
-
-  return _in;
-}
-}
-}
 }
