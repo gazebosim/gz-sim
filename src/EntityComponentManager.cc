@@ -683,7 +683,7 @@ void EntityComponentManager::SetState(
   // Create / remove / update entities
   for (int e = 0; e < _stateMsg.entities_size(); ++e)
   {
-    auto entityMsg = _stateMsg.entities(e);
+    const auto &entityMsg = _stateMsg.entities(e);
 
     Entity entity{entityMsg.id()};
 
@@ -703,7 +703,7 @@ void EntityComponentManager::SetState(
     // Create / remove / update components
     for (int c = 0; c < entityMsg.components_size(); ++c)
     {
-      auto compMsg = entityMsg.components(c);
+      const auto &compMsg = entityMsg.components(c);
 
       // Create component
       auto newComp = components::Factory::Instance()->New(compMsg.type());
@@ -743,7 +743,9 @@ void EntityComponentManager::SetState(
       {
         // TODO(louise) We're shortcutting above and always  removing the
         // component so that we don't get here, gotta figure out why this
-        // doesn't update the component
+        // doesn't update the component. The following line prints the correct
+        // values.
+        // igndbg << *comp << "  " << *newComp.get() << std::endl;
         // *comp = *newComp.get();
       }
     }

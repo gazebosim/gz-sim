@@ -12,6 +12,7 @@ cmake .. \
 
 # Build enough to get generated msg headers
 make ignition-gazebo_private_msgs
+make ignition-gazebo_public_msgs
 
 cd ..
 

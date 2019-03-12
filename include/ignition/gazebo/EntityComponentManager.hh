@@ -20,7 +20,6 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <sstream>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
@@ -36,7 +35,7 @@
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
-#include "msgs/serialized.pb.h" // NOLINT
+#include "msgs/serialized.pb.h"
 
 namespace ignition
 {
