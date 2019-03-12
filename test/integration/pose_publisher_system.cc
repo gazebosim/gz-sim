@@ -90,10 +90,10 @@ class Relay
 };
 
 std::mutex mutex;
-std::vector<ignition::msgs::Pose> poseMsgs;
+std::vector<msgs::Pose> poseMsgs;
 
 /////////////////////////////////////////////////
-void poseCb(const ignition::msgs::Pose &_msg)
+void poseCb(const msgs::Pose &_msg)
 {
   mutex.lock();
   poseMsgs.push_back(_msg);
@@ -248,7 +248,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 
     // verify pose
     math::Pose3d expectedPose;
-    auto p = ignition::msgs::Convert(msg);
+    auto p = msgs::Convert(msg);
     if (msg.name() == baseName)
     {
       expectedPose = basePoses.front();

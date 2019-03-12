@@ -95,8 +95,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _msg Pointer to msg object to which the links will be added
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
-  public: static void AddLinks(ignition::msgs::Model *_msg,
-                               const Entity _entity,
+  public: static void AddLinks(msgs::Model *_msg, const Entity _entity,
                                const SceneGraphType &_graph);
 
   /// \brief Adds visuals to a msgs::Link object based on the contents of
@@ -104,8 +103,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _msg Pointer to msg object to which the visuals will be added
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
-  public: static void AddVisuals(ignition::msgs::Link *_msg,
-                                 const Entity _entity,
+  public: static void AddVisuals(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -190,10 +188,10 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
 
-  ignition::msgs::Pose_V poseMsg;
+  msgs::Pose_V poseMsg;
 
   // Set the time stamp in the header
-  auto *stamp = poseMsg.mutable_header()->mutable_stamp();
+  msgs::Time *stamp = poseMsg.mutable_header()->mutable_stamp();
   auto simTimeSecNsec =
     ignition::math::durationToSecNsec(_info.simTime);
   stamp->set_sec(simTimeSecNsec.first);
@@ -207,7 +205,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       {
         // Add to pose msg
         auto pose = poseMsg.add_pose();
-        ignition::msgs::Set(pose, _poseComp->Data());
+        msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
 
@@ -222,7 +220,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       {
         // Add to pose msg
         auto pose = poseMsg.add_pose();
-        ignition::msgs::Set(pose, _poseComp->Data());
+        msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
         return true;
@@ -236,7 +234,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       {
         // Add to pose msg
         auto pose = poseMsg.add_pose();
-        ignition::msgs::Set(pose, _poseComp->Data());
+        msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
         return true;
@@ -250,7 +248,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       {
         // Add to pose msg
         auto pose = poseMsg.add_pose();
-        ignition::msgs::Set(pose, _poseComp->Data());
+        msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
         return true;
@@ -309,8 +307,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   transport::AdvertiseMessageOptions advertOpts;
   advertOpts.SetMsgsPerSec(60);
-  this->posePub = this->node->Advertise<ignition::msgs::Pose_V>(topic,
-      advertOpts);
+  this->posePub = this->node->Advertise<msgs::Pose_V>(topic, advertOpts);
 
   ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/" << topic
          << "]" << std::endl;
@@ -371,11 +368,10 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto modelMsg = std::make_shared<ignition::msgs::Model>();
+        auto modelMsg = std::make_shared<msgs::Model>();
         modelMsg->set_id(_entity);
         modelMsg->set_name(_nameComp->Data());
-        modelMsg->mutable_pose()->CopyFrom(
-            ignition::msgs::Convert(_poseComp->Data()));
+        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
@@ -393,11 +389,10 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto linkMsg = std::make_shared<ignition::msgs::Link>();
+        auto linkMsg = std::make_shared<msgs::Link>();
         linkMsg->set_id(_entity);
         linkMsg->set_name(_nameComp->Data());
-        linkMsg->mutable_pose()->CopyFrom(
-            ignition::msgs::Convert(_poseComp->Data()));
+        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
@@ -415,19 +410,18 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto visualMsg = std::make_shared<ignition::msgs::Visual>();
+        auto visualMsg = std::make_shared<msgs::Visual>();
         visualMsg->set_id(_entity);
         visualMsg->set_parent_id(_parentComp->Data());
         visualMsg->set_name(_nameComp->Data());
-        visualMsg->mutable_pose()->CopyFrom(
-            ignition::msgs::Convert(_poseComp->Data()));
+        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Geometry is optional
         auto geometryComp = _manager.Component<components::Geometry>(_entity);
         if (geometryComp)
         {
           visualMsg->mutable_geometry()->CopyFrom(
-              convert<ignition::msgs::Geometry>(geometryComp->Data()));
+              convert<msgs::Geometry>(geometryComp->Data()));
         }
 
         // Material is optional
@@ -435,7 +429,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         if (materialComp)
         {
           visualMsg->mutable_material()->CopyFrom(
-              convert<ignition::msgs::Material>(materialComp->Data()));
+              convert<msgs::Material>(materialComp->Data()));
         }
 
         // Add to graph
@@ -454,13 +448,12 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto lightMsg = std::make_shared<ignition::msgs::Light>();
-        lightMsg->CopyFrom(convert<ignition::msgs::Light>(_lightComp->Data()));
+        auto lightMsg = std::make_shared<msgs::Light>();
+        lightMsg->CopyFrom(convert<msgs::Light>(_lightComp->Data()));
         lightMsg->set_id(_entity);
         lightMsg->set_parent_id(_parentComp->Data());
         lightMsg->set_name(_nameComp->Data());
-        lightMsg->mutable_pose()->CopyFrom(
-            ignition::msgs::Convert(_poseComp->Data()));
+        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
@@ -487,7 +480,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   if (newEntity)
   {
-    ignition::msgs::Scene sceneMsg;
+    msgs::Scene sceneMsg;
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
@@ -532,7 +525,7 @@ void SceneBroadcasterPrivate::SceneGraphRemoveEntities(
   if (!removedEntities.empty())
   {
     // Send the list of deleted entities
-    ignition::msgs::UInt32_V deletionMsg;
+    msgs::UInt32_V deletionMsg;
 
     for (const auto &entity : removedEntities)
     {
@@ -550,7 +543,7 @@ void SceneBroadcasterPrivate::AddModels(T *_msg, const Entity _entity,
 {
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto modelMsg = std::dynamic_pointer_cast<ignition::msgs::Model>(
+    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
         vertex.second.get().Data());
     if (!modelMsg)
       continue;
@@ -576,7 +569,7 @@ void SceneBroadcasterPrivate::AddLights(T *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto lightMsg = std::dynamic_pointer_cast<ignition::msgs::Light>(
+    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
         vertex.second.get().Data());
     if (!lightMsg)
       continue;
@@ -586,17 +579,15 @@ void SceneBroadcasterPrivate::AddLights(T *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-void SceneBroadcasterPrivate::AddVisuals(
-    ignition::msgs::Link *_msg,
-    const Entity _entity,
-    const SceneGraphType &_graph)
+void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const Entity _entity,
+                                         const SceneGraphType &_graph)
 {
   if (!_msg)
     return;
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto visualMsg = std::dynamic_pointer_cast<ignition::msgs::Visual>(
+    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
         vertex.second.get().Data());
     if (!visualMsg)
       continue;
@@ -606,16 +597,15 @@ void SceneBroadcasterPrivate::AddVisuals(
 }
 
 //////////////////////////////////////////////////
-void SceneBroadcasterPrivate::AddLinks(
-    ignition::msgs::Model *_msg, const Entity _entity,
-    const SceneGraphType &_graph)
+void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
+                                       const SceneGraphType &_graph)
 {
   if (!_msg)
     return;
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto linkMsg = std::dynamic_pointer_cast<ignition::msgs::Link>(
+    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
         vertex.second.get().Data());
     if (!linkMsg)
       continue;

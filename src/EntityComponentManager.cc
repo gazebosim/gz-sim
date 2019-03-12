@@ -639,11 +639,11 @@ void EntityComponentManager::RebuildViews()
 }
 
 //////////////////////////////////////////////////
-gazebo::msgs::SerializedState EntityComponentManager::State(
+ignition::msgs::SerializedState EntityComponentManager::State(
     std::unordered_set<Entity> _entities,
     std::unordered_set<ComponentTypeId> _types) const
 {
-  gazebo::msgs::SerializedState stateMsg;
+  ignition::msgs::SerializedState stateMsg;
   for (const auto &[entity, components] : this->dataPtr->entityComponents)
   {
     if (!_entities.empty() && _entities.find(entity) == _entities.end())
@@ -678,7 +678,7 @@ gazebo::msgs::SerializedState EntityComponentManager::State(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const gazebo::msgs::SerializedState &_stateMsg)
+    const ignition::msgs::SerializedState &_stateMsg)
 {
   // Create / remove / update entities
   for (int e = 0; e < _stateMsg.entities_size(); ++e)

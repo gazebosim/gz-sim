@@ -46,11 +46,11 @@ class DepthCameraTest : public ::testing::Test
 };
 
 std::mutex mutex;
-ignition::msgs::Image depthMsg;
+msgs::Image depthMsg;
 float * depthBuffer = nullptr;
 
 /////////////////////////////////////////////////
-void depthCb(const ignition::msgs::Image &_msg)
+void depthCb(const msgs::Image &_msg)
 {
   mutex.lock();
   unsigned int depthSamples = _msg.width() * _msg.height();

@@ -893,11 +893,11 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
 
         const auto &contactMap = entityContactMap[_collEntity1];
 
-        ignition::msgs::Contacts contactsComp;
+        msgs::Contacts contactsComp;
 
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          auto *contactMsg = contactsComp.add_contact();
+          msgs::Contact *contactMsg = contactsComp.add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           for (const auto &contact : contactData)

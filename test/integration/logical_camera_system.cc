@@ -48,10 +48,10 @@ class LogicalCameraTest : public ::testing::Test
 };
 
 std::mutex mutex;
-std::vector<ignition::msgs::LogicalCameraImage> logicalCameraMsgs;
+std::vector<msgs::LogicalCameraImage> logicalCameraMsgs;
 
 /////////////////////////////////////////////////
-void logicalCameraCb(const ignition::msgs::LogicalCameraImage &_msg)
+void logicalCameraCb(const msgs::LogicalCameraImage &_msg)
 {
   mutex.lock();
   logicalCameraMsgs.push_back(_msg);

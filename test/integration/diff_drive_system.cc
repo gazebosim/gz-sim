@@ -130,11 +130,11 @@ TEST_P(DiffDriveTest, PublishCmd)
 
   // Publish command and check that vehicle moved
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Twist>("/model/vehicle/cmd_vel");
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
 
-  ignition::msgs::Twist msg;
-  ignition::msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  ignition::msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
 
   pub.Publish(msg);
 
@@ -195,11 +195,11 @@ TEST_P(DiffDriveTest, SkidPublishCmd)
 
   // Publish command and check that vehicle moved
   transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Twist>("/model/vehicle/cmd_vel");
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
 
-  ignition::msgs::Twist msg;
-  ignition::msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  ignition::msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
 
   pub.Publish(msg);
 

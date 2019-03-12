@@ -62,9 +62,9 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
   server.SetUpdatePeriod(1ns);
 
   std::mutex contactMutex;
-  std::vector<ignition::msgs::Contacts> contactMsgs;
+  std::vector<msgs::Contacts> contactMsgs;
 
-  auto contactCb = [&](const ignition::msgs::Contacts &_msg) -> void
+  auto contactCb = [&](const msgs::Contacts &_msg) -> void
   {
     std::lock_guard<std::mutex> lock(contactMutex);
     contactMsgs.push_back(_msg);
@@ -73,8 +73,7 @@ TEST_F(ContactSystemTest, MultipleCollisionsAsContactSensors)
   // subscribe to contacts topic
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function<void(const ignition::msgs::Contacts &)>(
-      contactCb);
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
   node.Subscribe("/test_multiple_collisions", callbackFunc);
 
   // Run server
@@ -131,9 +130,9 @@ TEST_F(ContactSystemTest, RemoveContactSensor)
   Server server(serverConfig);
 
   std::mutex contactMutex;
-  std::vector<ignition::msgs::Contacts> contactMsgs;
+  std::vector<msgs::Contacts> contactMsgs;
 
-  auto contactCb = [&](const ignition::msgs::Contacts &_msg) -> void
+  auto contactCb = [&](const msgs::Contacts &_msg) -> void
   {
     std::lock_guard<std::mutex> lock(contactMutex);
     contactMsgs.push_back(_msg);
@@ -142,8 +141,7 @@ TEST_F(ContactSystemTest, RemoveContactSensor)
   // subscribe to contacts topic
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function<void(const ignition::msgs::Contacts &)>(
-      contactCb);
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
   node.Subscribe("/test_multiple_collisions", callbackFunc);
 
   // Run server for a few iterations before removing sensor

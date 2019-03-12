@@ -148,7 +148,7 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
 
     // set pose
     poseMsg.set_name(childFrameId);
-    ignition::msgs::Set(&poseMsg, transform);
+    msgs::Set(&poseMsg, transform);
     this->dataPtr->posePub.Publish(poseMsg);
   }
 }

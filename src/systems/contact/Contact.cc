@@ -57,7 +57,7 @@ class ContactSensor
   /// \param[in] _stamp Time stamp of the sensor measurement
   /// \param[in] _contacts A contact message to be added to the list
   public: void AddContacts(const std::chrono::steady_clock::duration &_stamp,
-                           const ignition::msgs::Contacts &_contacts);
+                           const msgs::Contacts &_contacts);
 
   /// \brief Publish sensor data over ign transport
   public: void Publish();
@@ -66,7 +66,7 @@ class ContactSensor
   public: std::string topic;
 
   /// \brief Message to publish
-  public: ignition::msgs::Contacts contactsMsg;
+  public: msgs::Contacts contactsMsg;
 
   /// \brief Ign transport node
   public: transport::Node node;
@@ -126,7 +126,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
 //////////////////////////////////////////////////
 void ContactSensor::AddContacts(
     const std::chrono::steady_clock::duration &_stamp,
-    const ignition::msgs::Contacts &_contacts)
+    const msgs::Contacts &_contacts)
 {
   auto ts = math::durationToSecNsec(_stamp);
   for (const auto &contact : _contacts.contact())

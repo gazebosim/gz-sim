@@ -154,7 +154,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // In the future, support modifying GUI from the server at runtime.
   if (_world->Gui())
   {
-    this->guiMsg = convert<ignition::msgs::GUI>(*_world->Gui());
+    this->guiMsg = convert<msgs::GUI>(*_world->Gui());
   }
 
   std::string infoService{"gui/info"};
@@ -629,8 +629,8 @@ void SimulationRunner::SetPaused(const bool _paused)
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::OnWorldControl(const ignition::msgs::WorldControl &_req,
-    ignition::msgs::Boolean &_res)
+bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
+    msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
   this->worldControlMsgs.push_back(_req);
@@ -650,7 +650,7 @@ void SimulationRunner::ProcessMessages()
 void SimulationRunner::ProcessWorldControl()
 {
   IGN_PROFILE("SimulationRunner::ProcessWorldControl");
-  for (const ignition::msgs::WorldControl &msg : this->worldControlMsgs)
+  for (const msgs::WorldControl &msg : this->worldControlMsgs)
   {
     // Play / pause
     this->SetPaused(msg.pause());

@@ -67,7 +67,7 @@ class ignition::gazebo::systems::ImuSensor
   public: std::string topic;
 
   /// \brief Topic to publish data to
-  public: ignition::msgs::IMU imuMsg;
+  public: msgs::IMU imuMsg;
 
   /// \brief Noise free linear acceleration
   public: ignition::math::Vector3d linearAcc;
@@ -151,12 +151,9 @@ void ImuSensor::Publish()
       this->lastMeasurementTime.sec);
   this->imuMsg.mutable_header()->mutable_stamp()->set_nsec(
       this->lastMeasurementTime.nsec);
-  ignition::msgs::Set(this->imuMsg.mutable_orientation(),
-      this->imuReferenceOrientation);
-  ignition::msgs::Set(this->imuMsg.mutable_angular_velocity(),
-      this->angularVel);
-  ignition::msgs::Set(this->imuMsg.mutable_linear_acceleration(),
-      this->linearAcc);
+  msgs::Set(this->imuMsg.mutable_orientation(), this->imuReferenceOrientation);
+  msgs::Set(this->imuMsg.mutable_angular_velocity(), this->angularVel);
+  msgs::Set(this->imuMsg.mutable_linear_acceleration(), this->linearAcc);
   this->pub.Publish(this->imuMsg);
 }
 

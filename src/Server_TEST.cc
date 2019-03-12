@@ -162,7 +162,7 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   // The TestModelSystem should have created a service. Call the service to
   // make sure the TestModelSystem was successfully loaded.
   transport::Node node;
-  ignition::msgs::StringMsg rep;
+  msgs::StringMsg rep;
   bool result;
   bool executed = node.Request("/test/service", 5000, rep, result);
   EXPECT_TRUE(executed);
