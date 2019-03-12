@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_TYPES_HH_
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <utility>
 #include <ignition/common/Time.hh>
