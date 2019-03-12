@@ -95,7 +95,8 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _msg Pointer to msg object to which the links will be added
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
-  public: static void AddLinks(ignition::msgs::Model *_msg, const Entity _entity,
+  public: static void AddLinks(ignition::msgs::Model *_msg,
+                               const Entity _entity,
                                const SceneGraphType &_graph);
 
   /// \brief Adds visuals to a msgs::Link object based on the contents of
@@ -103,7 +104,8 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _msg Pointer to msg object to which the visuals will be added
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
-  public: static void AddVisuals(ignition::msgs::Link *_msg, const Entity _entity,
+  public: static void AddVisuals(ignition::msgs::Link *_msg,
+                                 const Entity _entity,
                                  const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph

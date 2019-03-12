@@ -151,9 +151,12 @@ void ImuSensor::Publish()
       this->lastMeasurementTime.sec);
   this->imuMsg.mutable_header()->mutable_stamp()->set_nsec(
       this->lastMeasurementTime.nsec);
-  ignition::msgs::Set(this->imuMsg.mutable_orientation(), this->imuReferenceOrientation);
-  ignition::msgs::Set(this->imuMsg.mutable_angular_velocity(), this->angularVel);
-  ignition::msgs::Set(this->imuMsg.mutable_linear_acceleration(), this->linearAcc);
+  ignition::msgs::Set(this->imuMsg.mutable_orientation(),
+      this->imuReferenceOrientation);
+  ignition::msgs::Set(this->imuMsg.mutable_angular_velocity(),
+      this->angularVel);
+  ignition::msgs::Set(this->imuMsg.mutable_linear_acceleration(),
+      this->linearAcc);
   this->pub.Publish(this->imuMsg);
 }
 

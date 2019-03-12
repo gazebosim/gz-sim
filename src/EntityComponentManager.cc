@@ -19,8 +19,6 @@
 #include <set>
 #include <vector>
 
-#include "msgs/serialized.pb.h"
-
 #include "ignition/common/Profiler.hh"
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
@@ -642,18 +640,27 @@ void EntityComponentManager::RebuildViews()
 
 //////////////////////////////////////////////////
 gazebo::msgs::SerializedState EntityComponentManager::State(
-    std::unordered_set<ComponentTypeId> _types,
-    std::unordered_set<Entity> _entities) const
+    std::unordered_set<Entity> _entities,
+    std::unordered_set<ComponentTypeId> _types) const
 {
-  // TODO use type and entities
   gazebo::msgs::SerializedState stateMsg;
   for (const auto &[entity, components] : this->dataPtr->entityComponents)
   {
+    if (!_entities.empty() && _entities.find(entity) == _entities.end())
+    {
+      continue;
+    }
+
     auto entityMsg = stateMsg.add_entities();
     entityMsg->set_id(entity);
 
     for (const auto &[typeId, compId] : components)
     {
+      if (!_types.empty() && _types.find(typeId) == _entities.end())
+      {
+        continue;
+      }
+
       auto compMsg = entityMsg->add_components();
 
       auto compBase = this->ComponentImplementation(entity, typeId);
@@ -714,10 +721,12 @@ void EntityComponentManager::SetState(
       // Get type id
       auto typeId = newComp->TypeId();
 
+      // TODO(louise) Move into if, see TODO below
+      this->RemoveComponent(entity, typeId);
+
       // Remove component
       if (compMsg.remove())
       {
-        this->RemoveComponent(entity, typeId);
         continue;
       }
 
@@ -732,7 +741,10 @@ void EntityComponentManager::SetState(
       // Update component value
       else
       {
-        *comp = *newComp.get();
+        // TODO(louise) We're shortcutting above and always  removing the
+        // component so that we don't get here, gotta figure out why this
+        // doesn't update the component
+        // *comp = *newComp.get();
       }
     }
   }
