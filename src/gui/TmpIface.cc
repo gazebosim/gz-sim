@@ -31,8 +31,8 @@ TmpIface::TmpIface()
 }
 
 /////////////////////////////////////////////////
-bool TmpIface::OnServerControl(const ignition::msgs::ServerControl &_req,
-                                     ignition::msgs::Boolean &_res)
+bool TmpIface::OnServerControl(const msgs::ServerControl &_req,
+                                     msgs::Boolean &_res)
 {
   igndbg << "OnServerControl: request" << std::endl;
   igndbg << _req.DebugString() << std::endl;
@@ -56,7 +56,7 @@ void TmpIface::OnNewWorld()
            << std::endl;
   };
 
-  ignition::msgs::ServerControl req;
+  msgs::ServerControl req;
   req.set_new_world(true);
   this->node.Request("/server_control", req, cb);
 }
@@ -76,7 +76,7 @@ void TmpIface::OnLoadWorld(const QString &_path)
            << std::endl;
   };
 
-  ignition::msgs::ServerControl req;
+  msgs::ServerControl req;
   req.set_open_filename(localPath.toStdString());
   this->node.Request("/server_control", req, cb);
 }
@@ -96,7 +96,7 @@ void TmpIface::OnSaveWorldAs(const QString &_path)
            << std::endl;
   };
 
-  ignition::msgs::ServerControl req;
+  msgs::ServerControl req;
   req.set_save_filename(localPath.toStdString());
   this->node.Request("/server_control", req, cb);
 }

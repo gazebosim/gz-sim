@@ -92,10 +92,10 @@ class Relay
 
 
 std::mutex mutex;
-std::vector<ignition::msgs::Altimeter> altMsgs;
+std::vector<msgs::Altimeter> altMsgs;
 
 /////////////////////////////////////////////////
-void altimeterCb(const ignition::msgs::Altimeter &_msg)
+void altimeterCb(const msgs::Altimeter &_msg)
 {
   mutex.lock();
   altMsgs.push_back(_msg);

@@ -124,13 +124,13 @@ void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
 //////////////////////////////////////////////////
 void MagnetometerSensor::Publish()
 {
-  ignition::msgs::Magnetometer msg;
+  msgs::Magnetometer msg;
   msg.mutable_header()->mutable_stamp()->set_sec(
       this->lastMeasurementTime.sec);
   msg.mutable_header()->mutable_stamp()->set_nsec(
       this->lastMeasurementTime.nsec);
 
-  ignition::msgs::Set(msg.mutable_field_tesla(), this->localField);
+  msgs::Set(msg.mutable_field_tesla(), this->localField);
   this->pub.Publish(msg);
 }
 

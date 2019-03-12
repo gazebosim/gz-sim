@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief A component type that contains a list of contacts.
   using ContactSensorData =
-      Component<ignition::msgs::Contacts, class ContactSensorDataTag>;
+      Component<msgs::Contacts, class ContactSensorDataTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ContactSensorData",
                                 ContactSensorData)
 }

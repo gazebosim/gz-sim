@@ -49,25 +49,24 @@ TEST(Conversions, Light)
   light.SetSpotOuterAngle(3.3);
   light.SetSpotFalloff(0.9);
 
-  ignition::msgs::Light lightMsg;
-  lightMsg = convert<ignition::msgs::Light>(light);
+  msgs::Light lightMsg;
+  lightMsg = convert<msgs::Light>(light);
   EXPECT_EQ("test_convert_light", lightMsg.name());
-  EXPECT_EQ(ignition::msgs::Light_LightType_DIRECTIONAL, lightMsg.type());
+  EXPECT_EQ(msgs::Light_LightType_DIRECTIONAL, lightMsg.type());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0),
-      ignition::msgs::Convert(lightMsg.pose()));
+      msgs::Convert(lightMsg.pose()));
   /// \todo(anyone) add pose frame fields in ign-msgs?
   // EXPECT_EQ("world", lightMsg.pose_frame());
   EXPECT_TRUE(lightMsg.cast_shadows());
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1),
-      ignition::msgs::Convert(lightMsg.diffuse()));
+      msgs::Convert(lightMsg.diffuse()));
   EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1),
-      ignition::msgs::Convert(lightMsg.specular()));
+      msgs::Convert(lightMsg.specular()));
   EXPECT_FLOAT_EQ(3.2, lightMsg.range());
   EXPECT_FLOAT_EQ(0.5, lightMsg.attenuation_constant());
   EXPECT_FLOAT_EQ(0.1, lightMsg.attenuation_linear());
   EXPECT_FLOAT_EQ(0.01, lightMsg.attenuation_quadratic());
-  EXPECT_EQ(math::Vector3d(0.1, 0.2, 1),
-      ignition::msgs::Convert(lightMsg.direction()));
+  EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), msgs::Convert(lightMsg.direction()));
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
   EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
@@ -95,7 +94,7 @@ TEST(Conversions, Gui)
   auto gui = world->Gui();
   ASSERT_NE(nullptr, gui);
 
-  auto guiMsg = convert<ignition::msgs::GUI>(*gui);
+  auto guiMsg = convert<msgs::GUI>(*gui);
   EXPECT_TRUE(guiMsg.fullscreen());
   ASSERT_EQ(2, guiMsg.plugin_size());
 

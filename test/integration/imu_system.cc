@@ -94,10 +94,10 @@ class Relay
 };
 
 std::mutex mutex;
-std::vector<ignition::msgs::IMU> imuMsgs;
+std::vector<msgs::IMU> imuMsgs;
 
 /////////////////////////////////////////////////
-void imuCb(const ignition::msgs::IMU &_msg)
+void imuCb(const msgs::IMU &_msg)
 {
   mutex.lock();
   imuMsgs.push_back(_msg);

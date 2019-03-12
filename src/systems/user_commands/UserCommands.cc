@@ -94,7 +94,7 @@ class CreateCommand : public UserCommandBase
   /// \brief Constructor
   /// \param[in] _msg Factory message.
   /// \param[in] _iface Pointer to user commands interface.
-  public: CreateCommand(ignition::msgs::EntityFactory *_msg,
+  public: CreateCommand(msgs::EntityFactory *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -107,7 +107,7 @@ class RemoveCommand : public UserCommandBase
   /// \brief Constructor
   /// \param[in] _msg Message identifying the entity to be removed.
   /// \param[in] _iface Pointer to user commands interface.
-  public: RemoveCommand(ignition::msgs::Entity *_msg,
+  public: RemoveCommand(msgs::Entity *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -126,16 +126,16 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully spawned.
   /// \return True if successful.
-  public: bool CreateService(const ignition::msgs::EntityFactory &_req,
-      ignition::msgs::Boolean &_res);
+  public: bool CreateService(const msgs::EntityFactory &_req,
+      msgs::Boolean &_res);
 
   /// \brief Callback for remove service
   /// \param[in] _req Request containing identification of entity to be removed.
   /// \param[in] _res True if message successfully received and queued.
   /// It does not mean that the entity will be successfully removed.
   /// \return True if successful.
-  public: bool RemoveService(const ignition::msgs::Entity &_req,
-      ignition::msgs::Boolean &_res);
+  public: bool RemoveService(const msgs::Entity &_req,
+      msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -217,9 +217,8 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::CreateService(
-    const ignition::msgs::EntityFactory &_req,
-    ignition::msgs::Boolean &_res)
+bool UserCommandsPrivate::CreateService(const msgs::EntityFactory &_req,
+    msgs::Boolean &_res)
 {
   // Create command and push it to queue
   auto msg = _req.New();
@@ -237,8 +236,8 @@ bool UserCommandsPrivate::CreateService(
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::RemoveService(const ignition::msgs::Entity &_req,
-    ignition::msgs::Boolean &_res)
+bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
+    msgs::Boolean &_res)
 {
   // Create command and push it to queue
   auto msg = _req.New();
@@ -263,7 +262,7 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
 }
 
 //////////////////////////////////////////////////
-CreateCommand::CreateCommand(ignition::msgs::EntityFactory *_msg,
+CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
@@ -272,8 +271,7 @@ CreateCommand::CreateCommand(ignition::msgs::EntityFactory *_msg,
 //////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
-  auto createMsg = dynamic_cast<const ignition::msgs::EntityFactory *>(
-      this->msg);
+  auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
   if (nullptr == createMsg)
   {
     ignerr << "Internal error, null create message" << std::endl;
@@ -285,29 +283,29 @@ bool CreateCommand::Execute()
   sdf::Errors errors;
   switch (createMsg->from_case())
   {
-    case ignition::msgs::EntityFactory::kSdf:
+    case msgs::EntityFactory::kSdf:
     {
       errors = root.LoadSdfString(createMsg->sdf());
       break;
     }
-    case ignition::msgs::EntityFactory::kSdfFilename:
+    case msgs::EntityFactory::kSdfFilename:
     {
       errors = root.Load(createMsg->sdf_filename());
       break;
     }
-    case ignition::msgs::EntityFactory::kModel:
+    case msgs::EntityFactory::kModel:
     {
       // TODO(louise) Support model msg
       ignerr << "model field not yet supported." << std::endl;
       return false;
     }
-    case ignition::msgs::EntityFactory::kLight:
+    case msgs::EntityFactory::kLight:
     {
       // TODO(louise) Support light msg
       ignerr << "light field not yet supported." << std::endl;
       return false;
     }
-    case ignition::msgs::EntityFactory::kCloneName:
+    case msgs::EntityFactory::kCloneName:
     {
       // TODO(louise) Implement clone
       ignerr << "Cloning an entity is not yet supported." << std::endl;
@@ -407,7 +405,7 @@ bool CreateCommand::Execute()
   if (createMsg->has_pose())
   {
     auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-    *poseComp = components::Pose(ignition::msgs::Convert(createMsg->pose()));
+    *poseComp = components::Pose(msgs::Convert(createMsg->pose()));
   }
 
   // Update name
@@ -421,7 +419,7 @@ bool CreateCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-RemoveCommand::RemoveCommand(ignition::msgs::Entity *_msg,
+RemoveCommand::RemoveCommand(msgs::Entity *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
@@ -430,7 +428,7 @@ RemoveCommand::RemoveCommand(ignition::msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool RemoveCommand::Execute()
 {
-  auto removeMsg = dynamic_cast<const ignition::msgs::Entity *>(this->msg);
+  auto removeMsg = dynamic_cast<const msgs::Entity *>(this->msg);
   if (nullptr == removeMsg)
   {
     ignerr << "Internal error, null remove message" << std::endl;
@@ -443,14 +441,14 @@ bool RemoveCommand::Execute()
     entity = removeMsg->id();
   }
   else if (!removeMsg->name().empty() &&
-      removeMsg->type() != ignition::msgs::Entity::NONE)
+      removeMsg->type() != msgs::Entity::NONE)
   {
-    if (removeMsg->type() == ignition::msgs::Entity::MODEL)
+    if (removeMsg->type() == msgs::Entity::MODEL)
     {
       entity = this->iface->ecm->EntityByComponents(components::Model(),
         components::Name(removeMsg->name()));
     }
-    else if (removeMsg->type() == ignition::msgs::Entity::LIGHT)
+    else if (removeMsg->type() == msgs::Entity::LIGHT)
     {
       entity = this->iface->ecm->EntityByComponents(
         components::Name(removeMsg->name()));

@@ -52,7 +52,7 @@ namespace ignition
     /// \param[in] _in SDF geometry.
     /// \return Geometry message.
     template<>
-    ignition::msgs::Geometry convert(const sdf::Geometry &_in);
+    msgs::Geometry convert(const sdf::Geometry &_in);
 
     /// \brief Generic conversion from an SDF material to another type.
     /// \param[in] _in SDF material.
@@ -69,7 +69,7 @@ namespace ignition
     /// \param[in] _in SDF material.
     /// \return Material message.
     template<>
-    ignition::msgs::Material convert(const sdf::Material &_in);
+    msgs::Material convert(const sdf::Material &_in);
 
     /// \brief Generic conversion from an SDF light to another type.
     /// \param[in] _in SDF light.
@@ -86,7 +86,7 @@ namespace ignition
     /// \param[in] _in SDF light.
     /// \return Light message.
     template<>
-    ignition::msgs::Light convert(const sdf::Light &_in);
+    msgs::Light convert(const sdf::Light &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
@@ -102,7 +102,7 @@ namespace ignition
     /// \param[in] _in SDF gui.
     /// \return Gui message.
     template<>
-    ignition::msgs::GUI convert(const sdf::Gui &_in);
+    msgs::GUI convert(const sdf::Gui &_in);
     }
   }
 }
