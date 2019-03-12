@@ -1414,7 +1414,7 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
 }
 
 /////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture, StreamOperators)
+TEST_P(EntityComponentManagerFixture, State)
 {
   // Entities and components
   Entity e1{1};
@@ -1440,18 +1440,11 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
     manager.CreateComponent<StringComponent>(e2, StringComponent(e2c1));
   }
 
-  // Serialize manager
-  std::ostringstream ostr;
-  ostr << manager;
-  EXPECT_FALSE(ostr.str().empty());
-
-  // Deserialize into a message
-  gazebo::msgs::SerializedState stateMsg;
+  // Serialize into a message
+  auto stateMsg = manager.State();
 
   // Check message
   {
-    std::istringstream istr(ostr.str());
-    stateMsg.ParseFromIstream(&istr);
 
     ASSERT_EQ(2, stateMsg.entities_size());
 
@@ -1481,8 +1474,7 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
 
   // Check ECM
   {
-    std::istringstream istr(ostr.str());
-    istr >> newEcm;
+    newEcm.SetState(stateMsg);
 
     EXPECT_EQ(2u, newEcm.EntityCount());
 
@@ -1526,18 +1518,13 @@ TEST_P(EntityComponentManagerFixture, StreamOperators)
     auto e3c0Msg = e3Msg->add_components();
     e3c0Msg->set_type(IntComponent::typeId);
     e3c0Msg->set_component(std::to_string(e3c0));
-
-    // Set new state on top of previous one
-    std::ostringstream newOstr;
-    stateMsg.SerializeToOstream(&newOstr);
-
-    std::istringstream istr(newOstr.str());
-    istr >> manager;
-    manager.ProcessEntityRemovals();
   }
 
-  // Check ECM was properly updated
+  // Set new state on top of previous one and check ECM was properly updated
   {
+    manager.SetState(stateMsg);
+    manager.ProcessEntityRemovals();
+
     EXPECT_EQ(2u, manager.EntityCount());
 
     // e1 is still there

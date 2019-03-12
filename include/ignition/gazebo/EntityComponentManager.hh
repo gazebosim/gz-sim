@@ -24,6 +24,7 @@
 #include <string>
 #include <typeinfo>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include <ignition/common/Console.hh>
@@ -389,25 +390,23 @@ namespace ignition
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
 
-      /// \brief Stream insertion operator. This serializes the ECM's state
-      /// to a string.
-      /// \param[in] _out Output stream.
-      /// \param[in] _ecm The ECM to be streamed.
-      /// \return The stream
-      public: friend std::ostream &operator<<(std::ostream &_out,
-          const EntityComponentManager &_ecm);
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \param[in] _types Type ID of components to be serialized. Leave empty
+      /// to get all components.
+      /// \param[in] _entities Entities to be serialized. Leave empty to get
+      /// all entities.
+      gazebo::msgs::SerializedState State(
+          std::unordered_set<ComponentTypeId> _types = {},
+          std::unordered_set<Entity> _entities = {}) const;
 
-      /// \brief Stream extraction operator. This updates the ECM's state
-      /// from a string. The stream must contain the full state, not an
-      /// increment.
-      /// Entities and components which are in the new state but not the old one
-      /// will be created and marked as new. Likewise, entities and components
-      /// not present in the new state will be marked for removal.
-      /// \param[in] _in The input stream
-      /// \param[in] _ecm The ECM which will extract the stream.
-      /// \return The stream
-      public: friend std::istream &operator>>(std::istream &_in,
-          EntityComponentManager &_ecm);
+      /// \brief Set the absolute state of the ECM from a serialized message.
+      /// Entities / components that are in the new state but not in the old
+      /// one will be created.
+      /// Entities / components that are marked as removed will be removed, but
+      /// they won't be removed if they're not present in the state.
+      /// \param[in] _stateMsg Message containing state to be set.
+      void SetState(const gazebo::msgs::SerializedState &_stateMsg);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
