@@ -1,5 +1,7 @@
 set(TEST_TYPE "PERFORMANCE")
 
+find_package(benchmark REQUIRED)
+
 set(tests
   each.cc
   level_manager.cc
@@ -7,4 +9,13 @@ set(tests
 
 link_directories(${PROJECT_BINARY_DIR}/test)
 
-ign_build_tests(TYPE PERFORMANCE SOURCES ${tests})
+
+add_executable(PERFORMANCE_each
+  each.cc
+)
+
+target_link_libraries(PERFORMANCE_each
+  benchmark
+  benchmark_main
+  ignition-gazebo${PROJECT_VERSION_MAJOR}
+)
