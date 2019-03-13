@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/network/NetworkManager.hh"
+
 
 #include <algorithm>
 #include <string>
@@ -22,6 +22,7 @@
 #include "ignition/common/Console.hh"
 #include "ignition/common/Util.hh"
 
+#include "NetworkManager.hh"
 #include "NetworkManagerPrivate.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
@@ -103,7 +104,6 @@ NetworkManager::NetworkManager(
 //////////////////////////////////////////////////
 NetworkManager::~NetworkManager() = default;
 
-
 //////////////////////////////////////////////////
 NetworkRole NetworkManager::Role() const
 {
@@ -126,4 +126,10 @@ bool NetworkManager::IsSecondary() const
 bool NetworkManager::IsReadOnly() const
 {
   return this->dataPtr->config.role == NetworkRole::ReadOnly;
+}
+
+//////////////////////////////////////////////////
+NetworkConfig NetworkManager::Config() const
+{
+  return this->dataPtr->config;
 }
