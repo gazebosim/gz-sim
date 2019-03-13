@@ -68,6 +68,7 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)(benchmark::State&
   for (auto _ : st)
   {
     auto matchingEntityCount = st.range(0);
+    st.counters.insert({{"matching", st.range(0)}, {"nonmatching", st.range(1)}});
 
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
@@ -94,6 +95,7 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)(benchmark::State& s
   for (auto _ : st)
   {
     auto matchingEntityCount = st.range(0);
+    st.counters.insert({{"matching", st.range(0)}, {"nonmatching", st.range(1)}});
 
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
