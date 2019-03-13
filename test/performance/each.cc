@@ -15,9 +15,7 @@
  *
 */
 
-
-#include <gtest/gtest.h>
-#include <ignition/math/Stopwatch.hh>
+#include <benchmark/benchmark.h>
 
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -27,118 +25,119 @@
 using namespace ignition;
 using namespace gazebo;
 
-void warmstart()
-{
-  // Create the entity component manager
-  EntityComponentManager mgr;
+constexpr const int kEachIterations {100};
 
-  // Create the matching entities
-  for (int i = 0; i < 100; ++i)
+class EntityComponentManagerFixture: public benchmark::Fixture
+{
+  virtual void SetUp(const ::benchmark::State& _state)
   {
-    Entity entity = mgr.CreateEntity();
-    mgr.CreateComponent(entity, components::World());
-    mgr.CreateComponent(entity, components::Name("world_name"));
+    mgr = new EntityComponentManager();
+    auto matchingEntityCount = _state.range(0);
+    auto nonmatchingEntityCount = _state.range(1);
+    this->populate(matchingEntityCount, nonmatchingEntityCount);
   }
 
-  mgr.Each<components::World, components::Name>(
-      [&](const Entity &, const components::World *,
-        const components::Name *)->bool {return true;});
-}
-
-TEST(EntityComponentManagerPerfrormance, Each)
-{
-  int eachIterations = 100;
-  int maxEntityCount = 1000;
-  int step = maxEntityCount/10;
-
-  // Initial allocation of resources can throw off calculations.
-  warmstart();
-
-  for (int matchingEntityCount = 1; matchingEntityCount < maxEntityCount;
-       matchingEntityCount += step)
+  virtual void TearDown(const ::benchmark::State& /*_state*/)
   {
-    for (int nonmatchingEntityCount = 1;
-         nonmatchingEntityCount < maxEntityCount;
-         nonmatchingEntityCount += step)
+    delete mgr;
+  }
+
+  protected:
+
+  void populate(int matchingEntityCount, int nonmatchingEntityCount)
+  {
+    for (int i = 0; i < matchingEntityCount; ++i)
     {
-      EntityComponentManager mgr;
+      Entity worldEntity = mgr->CreateEntity();
+      mgr->CreateComponent(worldEntity, components::World());
+      mgr->CreateComponent(worldEntity, components::Name("world_name"));
+    }
 
-      for (int i = 0; i < matchingEntityCount; ++i)
+    for (int i = 0; i < nonmatchingEntityCount; ++i)
+    {
+      Entity worldEntity = mgr->CreateEntity();
+      mgr->CreateComponent(worldEntity, components::Name("world_name"));
+    }
+  }
+
+  EntityComponentManager* mgr;
+};
+
+BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)(benchmark::State& st)
+{
+  for (auto _ : st)
+  {
+    auto matchingEntityCount = st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->EachNoCache<components::World, components::Name>(
+          [&](const Entity &, const components::World *,
+            const components::Name *)->bool
+          {
+            entitiesMatched++;
+            return true;
+          });
+
+      if (entitiesMatched != matchingEntityCount)
       {
-        Entity worldEntity = mgr.CreateEntity();
-        mgr.CreateComponent(worldEntity, components::World());
-        mgr.CreateComponent(worldEntity, components::Name("world_name"));
+        st.SkipWithError("Failed to match correct number of entities");
       }
-
-      for (int i = 0; i < nonmatchingEntityCount; ++i)
-      {
-        Entity entity = mgr.CreateEntity();
-        mgr.CreateComponent(entity, components::Name("world_name"));
-      }
-
-      // Calculate the duration of the cached version of
-      // EntityComponentManager::Each
-      math::Stopwatch watch;
-      int cachedMatchedEntityCount = 0;
-      watch.Start(true);
-      for (int i = 0; i < eachIterations; ++i)
-      {
-        mgr.Each<components::World, components::Name>(
-            [&](const Entity &, const components::World *,
-              const components::Name *)->bool
-            {
-              cachedMatchedEntityCount++;
-              return true;
-            });
-      }
-      watch.Stop();
-      auto cacheDuration = watch.ElapsedRunTime();
-
-      // Calculate the duration of the cacheless version of
-      // EntityComponentManager::Each
-      int cachelessMatchedEntityCount = 0;
-      watch.Start(true);
-      for (int i = 0; i < eachIterations; ++i)
-      {
-        mgr.EachNoCache<components::World, components::Name>(
-            [&](const Entity &, const components::World *,
-              const components::Name *)->bool
-            {
-              cachelessMatchedEntityCount++;
-              return true;
-            });
-      }
-      watch.Stop();
-      auto cachelessDuration = watch.ElapsedRunTime();
-
-      // Make sure the entity count matches between caches and not cached
-      EXPECT_EQ(cachedMatchedEntityCount,
-          matchingEntityCount * eachIterations);
-      EXPECT_EQ(cachelessMatchedEntityCount,
-          matchingEntityCount * eachIterations);
-
-      double cacheIterAvg = cacheDuration.count() /
-        static_cast<double>(eachIterations);
-      double cacheEntityAvg = cacheIterAvg / matchingEntityCount;
-
-      double cachelessIterAvg = cachelessDuration.count() /
-        static_cast<double>(eachIterations);
-      double cachelessEntityAvg = cachelessIterAvg / matchingEntityCount;
-
-     // Debug output
-     // std::cout << "=================================\n"
-     // std::cout << "Matching Entity Count =\t\t"
-     // << matchingEntityCount << "\n"
-     // << "Nonmatching Entity Count =\t" << nonmatchingEntityCount << "\n"
-     // << "Each Iterations =\t\t" << eachIterations << "\n"
-     // << "Cache total =\t\t\t" << cacheDuration.count() << " ns\n"
-     // << "Cache avg per iter =\t\t" << cacheIterAvg << " ns\n"
-     // << "Cache avg per iter*entity =\t" << cacheEntityAvg << " ns\n"
-     // << "Cacheless total =\t\t" << cachelessDuration.count() << " ns\n"
-     // << "Cacheless avg per iter=\t\t" << cachelessIterAvg << " ns\n"
-     // << "Cacheless avg per iter*entity=\t" << cachelessEntityAvg << " ns\n"
-
-      EXPECT_LT(cacheEntityAvg, cachelessEntityAvg);
     }
   }
 }
+
+BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)(benchmark::State& st)
+{
+  for (auto _ : st)
+  {
+    auto matchingEntityCount = st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->Each<components::World, components::Name>(
+          [&](const Entity &, const components::World *,
+            const components::Name *)->bool
+          {
+            entitiesMatched++;
+            return true;
+          });
+
+      if (entitiesMatched != matchingEntityCount)
+      {
+        st.SkipWithError("Failed to match correct number of entities");
+      }
+    }
+  }
+}
+
+/// Method to generate test argument combinations.  google/benchmark does
+// powers of 2 by default, which looks kind of ugly.
+static void EachTestArgs(benchmark::internal::Benchmark* b)
+{
+  int maxEntityCount = 1000;
+  int step = maxEntityCount/5;
+
+  for (int matchingEntityCount = 0; matchingEntityCount <= maxEntityCount;
+       matchingEntityCount += step)
+  {
+    for (int nonmatchingEntityCount = 0;
+         nonmatchingEntityCount <= maxEntityCount;
+         nonmatchingEntityCount += step)
+    {
+      b->Args({matchingEntityCount, nonmatchingEntityCount});
+    }
+  }
+}
+
+BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachNoCache)
+  ->Unit(benchmark::kMillisecond)
+  ->Apply(EachTestArgs);
+
+BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachCache)
+  ->Unit(benchmark::kMillisecond)
+  ->Apply(EachTestArgs);
