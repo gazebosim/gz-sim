@@ -2,6 +2,10 @@
 
 ### Ignition Math 5.x.x
 
+1. Change definition of Pose3 `*` operator to fix multiplication order
+    * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/301)
+    * [Issue 60](https://bitbucket.org/ignitionrobotics/ign-math/issues/60)
+
 1. eigen3: add conversion functions for Eigen::AlignedBox3d <=> ignition::math::AxisAlignedBox
     * [Pull request 302](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/302)
 
