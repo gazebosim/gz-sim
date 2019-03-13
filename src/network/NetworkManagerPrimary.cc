@@ -75,10 +75,9 @@ NetworkManagerPrimary::NetworkManagerPrimary(
 void NetworkManagerPrimary::Initialize()
 {
   auto peers = this->dataPtr->tracker->SecondaryPeers();
-  for (const auto& peer : peers)
+  for (const auto &peer : peers)
   {
-    msgs::PeerControl req;
-    ignition::msgs::Empty resp;
+    msgs::PeerControl req, resp;
     req.set_enable_sim(true);
 
     auto sc = std::make_unique<SecondaryControl>();
@@ -87,7 +86,10 @@ void NetworkManagerPrimary::Initialize()
 
     bool result;
     std::string topic {sc->prefix + "/control"};
-    bool executed = this->node.Request(topic, req, 5000, resp, result);
+    unsigned int timeout = 5000;
+
+    igndbg << "Attempting to register secondary [" << topic << "]" << std::endl;
+    bool executed = this->node.Request(topic, req, timeout, resp, result);
 
     if (executed)
     {
@@ -128,28 +130,32 @@ bool NetworkManagerPrimary::Ready() const
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerPrimary::Step(
-    uint64_t &_iteration,
-    std::chrono::steady_clock::duration &_stepSize,
-    std::chrono::steady_clock::duration &_simTime)
+bool NetworkManagerPrimary::Step(UpdateInfo &_info)
 {
   bool ready = true;
-  for (const auto& secondary : this->secondaries)
+  for (const auto &secondary : this->secondaries)
   {
     ready &= secondary.second->ready;
   }
 
   if (ready)
   {
+    // Throttle the number of step messages going to the debug output.
+    if (!_info.paused && _info.iterations % 1000 == 0)
+    {
+      igndbg << "Network iterations: " << _info.iterations << std::endl;
+    }
+
     auto step = msgs::SimulationStep();
-    step.set_iteration(_iteration);
+    step.set_iteration(_info.iterations);
+    step.set_paused(_info.paused);
 
     auto stepSizeSecNsec =
-      ignition::math::durationToSecNsec(_stepSize);
+      ignition::math::durationToSecNsec(_info.dt);
     step.set_stepsize(stepSizeSecNsec.second);
 
     auto simTimeSecNsec =
-      ignition::math::durationToSecNsec(_simTime);
+      ignition::math::durationToSecNsec(_info.simTime);
     step.mutable_simtime()->set_sec(simTimeSecNsec.first);
     step.mutable_simtime()->set_nsec(simTimeSecNsec.second);
     this->simStepPub.Publish(step);
