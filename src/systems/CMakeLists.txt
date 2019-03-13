@@ -7,6 +7,7 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 #              SOURCES <sources>
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>]
+#              [PRIVATE_COMPILE_DEFS <definitions...>])
 #
 # Add a system component to Ignition Gazebo.
 #
@@ -61,7 +62,7 @@ function(gz_add_system system_name)
 
   # The library created by `ign_add_component` includes the ign-gazebo version
   # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
-  # files, we also install an unversioned symlink.
+  # files, we also install an unversioned symlink into a versioned folder.
   INSTALL(CODE "execute_process( \
     COMMAND ${CMAKE_COMMAND} -E create_symlink \
     ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX} \
