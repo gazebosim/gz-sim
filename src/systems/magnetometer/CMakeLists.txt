@@ -13,6 +13,7 @@ target_link_libraries(${magnetometer_system_target}
     ${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register
+    ignition-sensors${IGN_SENSORS_VER}::magnetometer
 )
 
 install(TARGETS ${magnetometer_system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
