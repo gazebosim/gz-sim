@@ -1,3 +1,19 @@
+## Ignition Gazebo 1.x
+
+### Ignition Gazebo 1.0.2 (2019-03-12)
+
+1. Use TARGET_SO_NAME to fix finding dartsim plugin
+    * [Pull Request 217](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/217)
+
+### Ignition Gazebo 1.0.1 (2019-03-01)
+
+1. Update gazebo version number in sdf files
+    * [Pull Request 207](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/207)
+
+### Ignition Gazebo 1.0.0 (2019-03-01)
+
+1. Initial release
+
 ## Ignition Gazebo 0.x
 
 ### Ignition Gazebo 0.1.0
