@@ -30,7 +30,7 @@ The output of the plugin is via
       name="ignition::gazebo::systems::Contact">
     </plugin>
     <plugin
-      filename="libignition-gazebo-systems.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
