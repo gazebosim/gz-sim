@@ -654,16 +654,16 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     auto entityMsg = stateMsg.add_entities();
     entityMsg->set_id(entity);
 
-    for (const auto &[typeId, compId] : components)
+    for (const auto &comp : components)
     {
-      if (!_types.empty() && _types.find(typeId) == _entities.end())
+      if (!_types.empty() && _types.find(comp.first) == _entities.end())
       {
         continue;
       }
 
       auto compMsg = entityMsg->add_components();
 
-      auto compBase = this->ComponentImplementation(entity, typeId);
+      auto compBase = this->ComponentImplementation(entity, comp.first);
       compMsg->set_type(compBase->TypeId());
 
       std::ostringstream ostr;
