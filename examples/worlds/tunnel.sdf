@@ -14,15 +14,15 @@
     </scene>
 
     <plugin
-      filename="libignition-gazebo0-physics-system.so"
+      filename="libignition-gazebo1-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo0-user-commands-system.so"
+      filename="libignition-gazebo1-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo0-scene-broadcaster-system.so"
+      filename="libignition-gazebo1-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -973,6 +973,261 @@
       <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X1/7</uri>
       <pose>0 0 .2 0 0 0</pose>
     </include>
+
+    <plugin name="ignition::gazebo" filename="dummy">
+      <performer name="perf_x1">
+        <ref>x1</ref>
+        <geometry><box><size>2 2 2</size></box></geometry>
+      </performer>
+
+      <level name="level0">
+        <ref>staging_area</ref>
+        <ref>base_station</ref>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry><box><size>80 80 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+      <level name="level1">
+        <ref>tile_0</ref>
+        <ref>tile_1</ref>
+        <ref>tile_2</ref>
+        <ref>tile_3</ref>
+        <ref>tile_5</ref>
+        <ref>radio_1</ref>
+        <ref>tile_6</ref>
+        <ref>tile_15</ref>
+        <ref>tile_16</ref>
+        <ref>tile_17</ref>
+        <ref>tile_19</ref>
+        <ref>tile_20</ref>
+        <ref>tile_21</ref>
+        <ref>tile_22</ref>
+        <ref>tile_23</ref>
+        <ref>phone_1</ref>
+        <ref>tile_25</ref>
+        <ref>tile_26</ref>
+        <ref>tile_27</ref>
+        <ref>toolbox_1</ref>
+        <ref>tile_31</ref>
+        <ref>tile_32</ref>
+
+        <pose>295 190 0 0 0 0</pose>
+        <geometry><box><size>140 110 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level2">
+        <ref>tile_4</ref>
+        <ref>tile_5</ref>
+        <ref>radio_1</ref>
+        <ref>tile_7</ref>
+        <ref>tile_8</ref>
+        <ref>tile_9</ref>
+        <ref>tile_10</ref>
+        <ref>tile_11</ref>
+        <ref>tile_12</ref>
+        <ref>tile_13</ref>
+        <ref>tile_14</ref>
+        <ref>tile_15</ref>
+        <ref>tile_16</ref>
+        <ref>backpack_1</ref>
+
+        <pose>155 200 0 0 0 0</pose>
+        <geometry><box><size>200 30 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level3">
+        <ref>tile_4</ref>
+        <ref>tile_12</ref>
+        <ref>tile_18</ref>
+        <ref>tile_24</ref>
+        <ref>tile_30</ref>
+        <ref>tile_38</ref>
+        <ref>extinguisher_1</ref>
+
+        <pose>165 160 0 0 0 0</pose>
+        <geometry><box><size>35 110 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level4">
+        <ref>tile_28</ref>
+        <ref>tile_29</ref>
+        <ref>tile_30</ref>
+        <ref>extinguisher_1</ref>
+        <ref>tile_33</ref>
+        <ref>tile_34</ref>
+        <ref>tile_35</ref>
+        <ref>tile_36</ref>
+        <ref>tile_37</ref>
+        <ref>tile_38</ref>
+
+        <pose>110 130 0 0 0 0</pose>
+        <geometry><box><size>140 45 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level5">
+        <ref>tile_28</ref>
+        <ref>tile_29</ref>
+        <ref>tile_33</ref>
+        <ref>tile_34</ref>
+        <ref>tile_35</ref>
+        <ref>tile_39</ref>
+        <ref>tile_44</ref>
+        <ref>tile_48</ref>
+        <ref>tile_51</ref>
+        <ref>tile_54</ref>
+        <ref>tile_62</ref>
+        <ref>tile_63</ref>
+        <ref>tile_64</ref>
+        <ref>tile_80</ref>
+        <ref>tile_86</ref>
+        <ref>tile_89</ref>
+        <ref>tile_95</ref>
+        <ref>tile_96</ref>
+
+        <pose>90 30 0 0 0 0</pose>
+        <geometry><box><size>50 230 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level6">
+        <ref>tile_40</ref>
+        <ref>tile_41</ref>
+        <ref>tile_42</ref>
+        <ref>tile_43</ref>
+        <ref>radio_2</ref>
+        <ref>tile_45</ref>
+        <ref>tile_46</ref>
+        <ref>tile_47</ref>
+        <ref>tile_49</ref>
+        <ref>tile_50</ref>
+        <ref>toolbox_2</ref>
+        <ref>tile_52</ref>
+        <ref>tile_53</ref>
+        <ref>tile_55</ref>
+        <ref>phone_2</ref>
+        <ref>tile_56</ref>
+        <ref>tile_68</ref>
+        <ref>tile_69</ref>
+        <ref>tile_70</ref>
+        <ref>tile_71</ref>
+        <ref>tile_72</ref>
+        <ref>tile_73</ref>
+        <ref>tile_81</ref>
+        <ref>tile_82</ref>
+        <ref>tile_87</ref>
+        <ref>tile_88</ref>
+        <ref>tile_90</ref>
+        <ref>tile_91</ref>
+        <ref>tile_92</ref>
+        <ref>tile_93</ref>
+        <ref>tile_94</ref>
+        <ref>valve_1</ref>
+
+        <pose>240 20 0 0 0 0</pose>
+        <geometry><box><size>120 180 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level7">
+        <ref>staging_area</ref>
+        <ref>base_station</ref>
+        <ref>phone_2</ref>
+        <ref>tile_60</ref>
+        <ref>tile_61</ref>
+        <ref>tile_62</ref>
+        <ref>tile_63</ref>
+        <ref>tile_64</ref>
+        <ref>tile_65</ref>
+        <ref>tile_66</ref>
+        <ref>tile_67</ref>
+        <ref>tile_68</ref>
+        <ref>tile_69</ref>
+        <ref>tile_70</ref>
+        <pose>100 0 0 0 0 0</pose>
+        <geometry><box><size>260 50 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level8">
+        <ref>tile_57</ref>
+        <ref>tile_58</ref>
+        <ref>tile_59</ref>
+        <ref>electrical_box_1</ref>
+        <ref>tile_71</ref>
+        <ref>tile_72</ref>
+        <ref>tile_73</ref>
+        <ref>tile_74</ref>
+        <ref>tile_75</ref>
+        <ref>tile_76</ref>
+        <ref>tile_77</ref>
+        <ref>tile_78</ref>
+        <ref>tile_79</ref>
+        <ref>tile_83</ref>
+        <ref>tile_84</ref>
+        <ref>tile_85</ref>
+        <ref>backpack_2</ref>
+
+        <pose>340 0 0 0 0 0</pose>
+        <geometry><box><size>150 60 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+      <level name="level9">
+        <ref>tile_89</ref>
+        <ref>tile_95</ref>
+        <ref>tile_96</ref>
+        <ref>tile_97</ref>
+        <ref>phone_3</ref>
+        <ref>tile_98</ref>
+        <ref>tile_99</ref>
+        <ref>tile_100</ref>
+        <ref>valve_2</ref>
+        <ref>tile_101</ref>
+        <ref>tile_102</ref>
+        <ref>electrical_box_2</ref>
+        <ref>tile_104</ref>
+        <ref>tile_106</ref>
+        <ref>tile_107</ref>
+        <ref>tile_112</ref>
+        <ref>tile_113</ref>
+
+        <pose>110 -145 0 0 0 0</pose>
+        <geometry><box><size>100 160 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+      <level name="level10">
+        <ref>tile_102</ref>
+        <ref>electrical_box_2</ref>
+        <ref>tile_103</ref>
+        <ref>tile_104</ref>
+        <ref>backpack_3</ref>
+        <ref>tile_105</ref>
+        <ref>tile_106</ref>
+        <ref>tile_107</ref>
+        <ref>tile_108</ref>
+        <ref>tile_109</ref>
+        <ref>tile_110</ref>
+        <ref>tile_111</ref>
+        <ref>tile_112</ref>
+        <ref>tile_113</ref>
+        <ref>tile_114</ref>
+        <ref>extinguisher_2</ref>
+        <ref>tile_115</ref>
+        <ref>tile_116</ref>
+        <ref>tile_117</ref>
+        <ref>tile_118</ref>
+        <ref>tile_119</ref>
+
+        <pose>220 -200 0 0 0 0</pose>
+        <geometry><box><size>175 100 100</size></box></geometry>
+        <buffer>10</buffer>
+      </level>
+
+    </plugin>
 
   </world>
 </sdf>
