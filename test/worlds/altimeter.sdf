@@ -6,11 +6,11 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo1-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo1-altimeter-system.so"
+      filename="libignition-gazebo-altimeter-system.so"
       name="ignition::gazebo::systems::Altimeter">
     </plugin>
 
