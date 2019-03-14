@@ -15,6 +15,8 @@
  *
 */
 
+#include <ignition/math/Helpers.hh>
+
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
@@ -43,7 +45,6 @@
 #include "ignition/gazebo/Conversions.hh"
 
 using namespace ignition;
-using namespace gazebo;
 
 //////////////////////////////////////////////////
 template<>
@@ -166,6 +167,21 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
   {
     ignwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Time ignition::gazebo::convert(const
+    std::chrono::steady_clock::duration &_in)
+{
+  msgs::Time out;
+
+  auto secNsec = ignition::math::durationToSecNsec(_in);
+
+  out.set_sec(secNsec.first);
+  out.set_nsec(secNsec.second);
 
   return out;
 }
