@@ -637,3 +637,117 @@ void EntityComponentManager::RebuildViews()
     }
   }
 }
+
+//////////////////////////////////////////////////
+ignition::msgs::SerializedState EntityComponentManager::State(
+    std::unordered_set<Entity> _entities,
+    std::unordered_set<ComponentTypeId> _types) const
+{
+  ignition::msgs::SerializedState stateMsg;
+  for (const auto &[entity, components] : this->dataPtr->entityComponents)
+  {
+    if (!_entities.empty() && _entities.find(entity) == _entities.end())
+    {
+      continue;
+    }
+
+    auto entityMsg = stateMsg.add_entities();
+    entityMsg->set_id(entity);
+
+    for (const auto &comp : components)
+    {
+      if (!_types.empty() && _types.find(comp.first) == _entities.end())
+      {
+        continue;
+      }
+
+      auto compMsg = entityMsg->add_components();
+
+      auto compBase = this->ComponentImplementation(entity, comp.first);
+      compMsg->set_type(compBase->TypeId());
+
+      std::ostringstream ostr;
+      ostr << *compBase;
+
+      compMsg->set_component(ostr.str());
+    }
+  }
+
+  return stateMsg;
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::SetState(
+    const ignition::msgs::SerializedState &_stateMsg)
+{
+  // Create / remove / update entities
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  {
+    const auto &entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    // Remove entity
+    if (entityMsg.remove())
+    {
+      this->RequestRemoveEntity(entity);
+      continue;
+    }
+
+    // Create entity if it doesn't exist
+    if (!this->HasEntity(entity))
+    {
+      this->dataPtr->CreateEntityImplementation(entity);
+    }
+
+    // Create / remove / update components
+    for (int c = 0; c < entityMsg.components_size(); ++c)
+    {
+      const auto &compMsg = entityMsg.components(c);
+
+      // Create component
+      auto newComp = components::Factory::Instance()->New(compMsg.type());
+
+      if (nullptr == newComp)
+      {
+        ignwarn << "Failed to deserialize component of type [" << compMsg.type()
+                << "]" << std::endl;
+        continue;
+      }
+
+      std::istringstream istr(compMsg.component());
+      istr >> *newComp.get();
+
+      // Get type id
+      auto typeId = newComp->TypeId();
+
+      // TODO(louise) Move into if, see TODO below
+      this->RemoveComponent(entity, typeId);
+
+      // Remove component
+      if (compMsg.remove())
+      {
+        continue;
+      }
+
+      // Get Component
+      auto comp = this->ComponentImplementation(entity, typeId);
+
+      // Create if new
+      if (nullptr == comp)
+      {
+        this->CreateComponentImplementation(entity, typeId, newComp.get());
+      }
+      // Update component value
+      else
+      {
+        // TODO(louise) We're shortcutting above and always  removing the
+        // component so that we don't get here, gotta figure out why this
+        // doesn't update the component. The following line prints the correct
+        // values.
+        // igndbg << *comp << "  " << *newComp.get() << std::endl;
+        // *comp = *newComp.get();
+      }
+    }
+  }
+}

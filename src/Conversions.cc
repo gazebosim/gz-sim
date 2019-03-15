@@ -43,7 +43,6 @@
 #include "ignition/gazebo/Conversions.hh"
 
 using namespace ignition;
-using namespace gazebo;
 
 //////////////////////////////////////////////////
 template<>
