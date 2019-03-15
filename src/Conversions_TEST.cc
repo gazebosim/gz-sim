@@ -124,4 +124,8 @@ TEST(Conversions, Time)
   auto msg = convert<msgs::Time>(duration);
   EXPECT_EQ(0, msg.sec());
   EXPECT_EQ(2000000, msg.nsec());
+
+  auto duration2 = convert<std::chrono::steady_clock::duration>(msg);
+  EXPECT_EQ(duration, duration2);
+  EXPECT_EQ(2000000, duration2.count());
 }
