@@ -29,6 +29,9 @@
 1. ECM state streaming
     * [Pull Request 184](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/184)
 
+1. Unversioned system libraries
+    * [Pull Request 222](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/222)
+
 ### Ignition Gazebo 1.0.2 (2019-03-12)
 
 1. Use TARGET_SO_NAME to fix finding dartsim plugin
