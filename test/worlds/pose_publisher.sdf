@@ -7,7 +7,7 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo1-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <light type="directional" name="sun">
@@ -250,7 +250,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo1-pose-publisher-system.so"
+        filename="libignition-gazebo-pose-publisher-system.so"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_collision_pose>false</publish_collision_pose>
