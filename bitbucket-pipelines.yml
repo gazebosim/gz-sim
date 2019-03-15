@@ -12,6 +12,7 @@ pipelines:
           - docker/scripts/enable_gcc8.sh
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
+          - docker/scripts/enable_ign_prerelease.sh
           - sudo apt-get update
           # Dependency: Ignition packages
           - apt-get -y install
