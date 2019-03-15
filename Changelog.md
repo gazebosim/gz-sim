@@ -1,5 +1,34 @@
 ## Ignition Gazebo 1.x
 
+### Ignition Gazebo 1.X.X
+
+
+### Ignition Gazebo 1.1.0 (2019-03-15)
+
+1. Distributed performers running in lockstep
+    * [Pull Request 186](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/186)
+    * [Pull Request 201](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/201)
+    * [Pull Request 209](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/209)
+    * [Pull Request 213](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/213)
+
+1. Fix documentation tagfiles
+    * [Pull Request 214](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/214)
+
+1. Convert gui library into a component
+    * [Pull Request 206](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/206)
+
+1. include <cstdint> wherever special int types like uint64_t are used
+    * [Pull Request 208](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/208)
+
+1. Move network internal
+    * [Pull Request 211](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/211)
+
+1. Logging / playback
+    * [Pull Request 181](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/181)
+
+1. ECM state streaming
+    * [Pull Request 184](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/184)
+
 ### Ignition Gazebo 1.0.2 (2019-03-12)
 
 1. Use TARGET_SO_NAME to fix finding dartsim plugin
