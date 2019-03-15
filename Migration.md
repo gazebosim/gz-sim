@@ -9,3 +9,9 @@ release will remove the deprecated code.
 
 * All headers in `gazebo/network` are no longer installed.
 
+* The ignition-gazebo1-gui library has been changed to a `gui` component of
+ignition-gazebo. To use the gui component downstream, update the find package
+call in cmake to request for the component, e.g.
+`ign_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
+`libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
+
