@@ -424,3 +424,79 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
     pose = poseComp->Data();
   }
 }
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/friction.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ns);
+
+  std::map<std::string, double> boxParams{
+      {"box1", 0.01}, {"box2", 0.1}, {"box3", 1.0}};
+  std::map<std::string, std::vector<ignition::math::Pose3d>> poses;
+
+  // Create a system that records the poses of the 3 boxes
+  Relay testSystem;
+  double dt = 0.0;
+
+  testSystem.OnPostUpdate(
+    [&boxParams, &poses, &dt](const gazebo::UpdateInfo &_info,
+    const gazebo::EntityComponentManager &_ecm)
+    {
+      dt = _info.dt.count();
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const ignition::gazebo::Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (boxParams.find(_name->Data()) != boxParams.end()) {
+            poses[_name->Data()].push_back(_pose->Data());
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  const size_t iters = 2000;
+  server.Run(true, iters, false);
+
+  std::vector<std::pair<double, double>> yPosCoeffPairs;
+  for (const auto& [name, coeff] : boxParams)
+  {
+    EXPECT_EQ(iters, poses[name].size());
+    // Check that the box with the smallest friction coefficient has travelled
+    // the most in the y direction. To do so, put the y values of the last poses
+    // in a sorted list paired up with the friction coefficients and check that
+    // the list is in an order such that the highest y value corresponds to the
+    // lower coefficient
+    yPosCoeffPairs.emplace_back(poses[name].back().Pos().Y(), coeff);
+  }
+
+  EXPECT_EQ(boxParams.size(), yPosCoeffPairs.size());
+  // Sort by y position
+  std::sort(yPosCoeffPairs.begin(), yPosCoeffPairs.end(),
+      [](std::pair<double, double> &_a, std::pair<double, double> &_b)
+      {
+        return _a.first < _b.first;
+      });
+
+  bool isDecreasingCoeff = std::is_sorted(
+      yPosCoeffPairs.begin(), yPosCoeffPairs.end(),
+      [](std::pair<double, double> &_a, std::pair<double, double> &_b)
+      {
+        return _a.second > _b.second;
+      });
+
+  std::ostringstream oss;
+  for (const auto &[pos, coeff] : yPosCoeffPairs)
+  {
+    oss << "(" << pos << ", " << coeff << "), ";
+  }
+  EXPECT_TRUE(isDecreasingCoeff) << oss.str();
+}
