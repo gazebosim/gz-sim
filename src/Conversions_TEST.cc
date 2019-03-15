@@ -15,8 +15,8 @@
  *
 */
 
-#include <chrono>
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
