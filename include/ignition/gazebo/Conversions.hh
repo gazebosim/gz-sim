@@ -123,6 +123,23 @@ namespace ignition
     /// \return Ignition time message.
     template<>
     msgs::Time convert(const std::chrono::steady_clock::duration &_in);
+
+    /// \brief Generic conversion from a time message to another type.
+    /// \param[in] _in Time message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Time &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a time message to a steady clock
+    /// duration.
+    /// \param[in] _in Time message.
+    /// \return Steady clock duration.
+    template<>
+    std::chrono::steady_clock::duration convert(const msgs::Time &_in);
     }
   }
 }
