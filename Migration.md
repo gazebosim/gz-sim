@@ -16,14 +16,21 @@ release will remove the deprecated code.
     * IsNearPositive(const T) is similar to IsPositive(const T)
       but it checks for positive semidefinite inertia
       using >= instead of >.
+
 1. **Plane.hh**
     + Added copy constructor.
+
+1. **Pose3.hh**
+    + Added `*=` operator.
 
 ### Breaking Changes
 
 1. The `Box` class has been changed to a templatized class that is not
    axis-aligned. The previous `Box` functionality is now in the
    `AxisAlignedBox` class.
+
+1. The behavior of `Pose3` multiplication operator `*` has been changed to
+   match behavior of Matrix and Quaternion multiplication.
 
 ### Modifications
 
