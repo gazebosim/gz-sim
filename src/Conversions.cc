@@ -15,8 +15,6 @@
  *
 */
 
-#include <ignition/math/Helpers.hh>
-
 #include <ignition/msgs/boxgeom.pb.h>
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
@@ -27,6 +25,8 @@
 #include <ignition/msgs/plugin.pb.h>
 #include <ignition/msgs/spheregeom.pb.h>
 #include <ignition/msgs/Utility.hh>
+
+#include <ignition/math/Helpers.hh>
 
 #include <ignition/common/Console.hh>
 

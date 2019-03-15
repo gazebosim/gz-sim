@@ -17,13 +17,13 @@
 #ifndef IGNITION_GAZEBO_CONVERSIONS_HH_
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
-#include <chrono>
-
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/time.pb.h>
+
+#include <chrono>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Geometry.hh>
