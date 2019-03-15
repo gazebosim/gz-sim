@@ -32,7 +32,7 @@ void runTimer(math::Stopwatch &_time)
   std::chrono::duration<int, std::milli> handleSteadyClock =
     std::chrono::milliseconds(0);
 #ifdef _WIN32
-  handleSteadyClock = std::chrono::milliseconds(100);
+  handleSteadyClock += std::chrono::milliseconds(100);
 #endif
 
   // Start the timer
