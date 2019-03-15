@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
+#include <ignition/msgs/serialized.pb.h>
+
 #include <map>
 #include <memory>
 #include <set>
@@ -26,9 +28,9 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/math/graph/Graph.hh>
-#include <ignition/msgs/serialized.pb.h>
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
