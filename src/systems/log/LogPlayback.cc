@@ -75,7 +75,7 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
 {
-  if (this->iter->Type() == "ignition.msgs.Pose_V")
+  if (this->iter->Type() != "ignition.msgs.Pose_V")
   {
     ignwarn << "Logged message types other than Pose_V are currently not "
       << "supported. Message of type [" << this->iter->Type()
@@ -290,8 +290,9 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
-    // TODO(anyone) Support multiple msgs per update, in case playback has a lower
-    // frequency than record - using transport::log::TimeRangeOption should help.
+    // TODO(anyone) Support multiple msgs per update, in case playback has a
+    // lower frequency than record - using transport::log::TimeRangeOption
+    // should help.
     ++(this->dataPtr->iter);
   }
 }
