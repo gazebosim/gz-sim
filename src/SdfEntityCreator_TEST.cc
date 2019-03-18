@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
+#include <sdf/Battery.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Joint.hh>
@@ -26,6 +27,7 @@
 #include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/test_config.hh"
+#include "ignition/gazebo/components/Battery.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -775,6 +777,57 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
     });
 
   EXPECT_EQ(4u, lightCount);
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfEntityCreatorTest, CreateBatteries)
+{
+  EXPECT_EQ(0u, this->ecm.EntityCount());
+
+  // SdfEntityCreator
+  SdfEntityCreator creator(this->ecm, evm);
+
+  // Load SDF File
+  sdf::Root root;
+  root.Load(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/batteries.sdf");
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create entities
+  creator.CreateEntities(root.WorldByIndex(0));
+
+  // Check entities
+  // 1 x world + 1 x model + 1 x link + 1 x visual + 1 x light
+  EXPECT_EQ(5u, this->ecm.EntityCount());
+
+  // Check batteries
+  unsigned int batteryCount{0};
+  this->ecm.Each<components::Battery,
+           components::Name>(
+    [&](const Entity &,
+        const components::Battery *_battery,
+        const components::Name *_name)->bool
+    {
+      EXPECT_NE(nullptr, _battery);
+      EXPECT_NE(nullptr, _name);
+
+      batteryCount++;
+
+      // Test each battery in SDF
+      if (batteryCount == 1u)
+      {
+        // Battery Component
+        EXPECT_EQ("linear_battery", _name->Data());
+
+        // sdf::Battery object inside Component
+        EXPECT_DOUBLE_EQ(_battery->Data().Voltage(), 12.592);
+        EXPECT_EQ("linear_battery", _battery->Data().Name());
+      }
+
+      return true;
+    });
+
+  EXPECT_EQ(1u, batteryCount);
 }
 
 /////////////////////////////////////////////////

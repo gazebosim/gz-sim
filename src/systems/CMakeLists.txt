@@ -3,6 +3,7 @@ set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
 )
 
 add_subdirectory(altimeter)
+add_subdirectory(battery_plugin)
 add_subdirectory(contact)
 add_subdirectory(diff_drive)
 add_subdirectory(imu)
