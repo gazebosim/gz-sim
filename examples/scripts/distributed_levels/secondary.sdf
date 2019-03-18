@@ -12,7 +12,7 @@
 
     
     <plugin
-     filename="libignition-gazebo1-physics-system.so"
+     filename="libignition-gazebo-physics-system.so"
      name="ignition::gazebo::systems::Physics">
     </plugin>
     
