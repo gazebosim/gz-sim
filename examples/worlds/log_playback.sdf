@@ -1,11 +1,11 @@
 <?xml version='1.0'?>
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='libignition-gazebo1-scene-broadcaster-system.so'
+    <plugin filename='libignition-gazebo-scene-broadcaster-system.so'
             name='ignition::gazebo::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='libignition-gazebo1-log-system.so'
+      filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::LogPlayback'>
       <path>/tmp/log</path>
     </plugin>
