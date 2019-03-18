@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include <sdf/Battery.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Joint.hh>
@@ -131,6 +132,12 @@ namespace ignition
       /// \param[in] _sensor SDF sensor object.
       /// \return Sensor entity.
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
+
+      /// \brief Create all entities that exist in the sdf::Battery object and
+      /// load their plugins.
+      /// \param[in] _battery SDF battery object.
+      /// \return Battery entity.
+      public: Entity CreateEntities(const sdf::Battery *_battery);
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation

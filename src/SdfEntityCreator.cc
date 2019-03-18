@@ -17,12 +17,14 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
+#include <ignition/common/Battery.hh>
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/Battery.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -275,6 +277,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     this->SetParent(sensorEntity, linkEntity);
   }
 
+  // Battery
+  for (uint64_t batteryIndex = 0; batteryIndex < _link->BatteryCount();
+      ++batteryIndex)
+  {
+    auto battery = _link->BatteryByIndex(batteryIndex);
+    auto batteryEntity = this->CreateEntities(battery);
+
+    this->SetParent(batteryEntity, linkEntity);
+  }
+
   return linkEntity;
 }
 
@@ -477,6 +489,24 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
 
   return sensorEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_battery)
+{
+  IGN_PROFILE("SdfEntityCreator::CreateEtties(sdf::Battery)");
+
+  // Entity
+  Entity batteryEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(batteryEntity,
+      components::Battery(*_battery));
+          //common::Battery(_battery->Name(), _battery->Voltage())));
+  this->dataPtr->ecm->CreateComponent(batteryEntity,
+      components::Name(_battery->Name()));
+
+  return batteryEntity;
 }
 
 //////////////////////////////////////////////////

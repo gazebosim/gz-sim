@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <model name="linear_battery_demo_model">
+      <pose>0 0 0 0 0 0</pose>
+      <static>false</static>
+      <link name="body">
+        <pose>0 0 0.5 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>1.8</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>1.8</iyy>
+            <iyz>0.0</iyz>
+            <izz>1.8</izz>
+          </inertia>
+          <mass>10.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.1</mu>
+                <mu2>0.1</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+        <battery name="linear_battery">
+          <voltage>12.592</voltage>
+        </battery>
+      </link>
+      <plugin name="battery" filename="libLinearBatteryPlugin.so">
+        <link_name>body</link_name>
+        <battery_name>linear_battery</battery_name>
+        <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
+        <open_circuit_voltage_linear_coef>-3.1424</open_circuit_voltage_linear_coef>
+        <initial_charge>1.1665</initial_charge>
+        <capacity>1.2009</capacity>
+        <resistance>0.061523</resistance>
+        <smooth_current_tau>1.9499</smooth_current_tau>
+      </plugin>
+      <plugin name="motherboard" filename="libLinearBatteryConsumerPlugin.so">
+        <link_name>body</link_name>
+        <battery_name>linear_battery</battery_name>
+        <power_load>6.6</power_load> <!-- mother board power load = 6.6 W -->
+      </plugin>
+    </model>
+  </world>
+</sdf>
