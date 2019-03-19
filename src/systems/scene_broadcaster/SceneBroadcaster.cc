@@ -191,11 +191,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   msgs::Pose_V poseMsg;
 
   // Set the time stamp in the header
-  msgs::Time *stamp = poseMsg.mutable_header()->mutable_stamp();
-  auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(_info.simTime);
-  stamp->set_sec(simTimeSecNsec.first);
-  stamp->set_nsec(simTimeSecNsec.second);
+  poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+     convert<msgs::Time>(_info.simTime));
 
     // Models
   _manager.Each<components::Model, components::Name, components::Pose>(
