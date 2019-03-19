@@ -60,12 +60,8 @@ class ignition::gazebo::SystemLoaderPrivate
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
-      // We assume ignition::gazebo corresponds to the levels feature
-      if (_name != "ignition::gazebo")
-      {
-        ignerr << "Failed to load system plugin [" << _filename <<
-                  "] : couldn't find shared library." << std::endl;
-      }
+      ignerr << "Failed to load system plugin [" << _filename <<
+                "] : couldn't find shared library." << std::endl;
       return false;
     }
 
