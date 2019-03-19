@@ -244,7 +244,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
           </sensor>
         </link>
         <plugin
-          filename="libignition-gazebo1-touchplugin-system.so"
+          filename="libignition-gazebo-touchplugin-system.so"
           name="ignition::gazebo::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
