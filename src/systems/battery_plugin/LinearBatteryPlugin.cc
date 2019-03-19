@@ -307,7 +307,7 @@ double LinearBatteryPluginPrivate::OnUpdateVoltage(
 */
 
 double LinearBatteryPlugin::OnUpdateVoltage(
-  const std::shared_ptr<common::Battery> &_battery)
+  const common::Battery *_battery)
 {
   //double dt = std::chrono::duration_cast<std::chrono::seconds>(this->dataPtr->stepSize).count();
   double dt = this->dataPtr->maxStepSize;
@@ -322,7 +322,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
   this->dataPtr->iraw = totalpower / _battery->Voltage();
 
-  this->dataPtr->ismooth = this->dataPtr->ismooth + k * 
+  this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
