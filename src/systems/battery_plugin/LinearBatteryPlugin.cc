@@ -53,8 +53,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Callback for Battery Update events.
   /// \param[in] _battery Pointer to the battery that is to be updated.
   /// \return The new voltage.
-  //public: double OnUpdateVoltage(
-  //  const std::shared_ptr<common::Battery> &_battery);
+  //public: double OnUpdateVoltage(const common::Battery *_battery);
 
   /// \brief Pointer to world.
   //public: physics::WorldPtr world;
@@ -158,34 +157,22 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     return;
   }
 
+  // Get max step size from SDF physics
   const sdf::Physics * sdfPhys = sdfWorld->PhysicsByIndex(0);
   this->dataPtr->maxStepSize = sdfPhys->MaxStepSize();
 
+  //Entity worldEntity = _ecm.EntityByComponents<components::World>(
+  //  components::World());
+  //auto worldComp = _ecm.ChildrenByComponents(worldEntity, components::World());
 
-  // Get max step size from SDF physics
-  Entity worldEntity = _ecm.EntityByComponents<components::World>(
-    components::World());
-  auto worldComp = _ecm.ChildrenByComponents(worldEntity, components::World());
 
   // Pointer to link containing battery
   Entity linkEntity = kNullEntity;
   if (_sdf->HasElement("link_name"))
   {
-    // Find the link entity with the matching name that this plugin is to
-    //   attach to.
     std::string linkName = _sdf->Get<std::string>("link_name");
-    _ecm.Each<components::Link, components::Name>(
-        [&](const Entity &_currEntity, const components::Link *,
-            const components::Name *_nameComp) -> bool
-        {
-          if (_nameComp->Data() == linkName)
-          {
-            linkEntity = _currEntity;
-          }
-          return true;
-        });
 
-    //linkEntity = model.LinkByName(_ecm, linkName);
+    linkEntity = model.LinkByName(_ecm, linkName);
     IGN_ASSERT(linkEntity != kNullEntity, "Link was NULL");
   }
   else
@@ -216,12 +203,35 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   {
     std::string batteryName = _sdf->Get<std::string>("battery_name");
 
+    // TODO{mabelzhang} Create a test that has two links of same names in
+    //   different models, and check the battery attaches to the correct model.
+    //   Create a test that has two links, each with a battery of the same name,
+    //   and check that the batteries are each attached to the correct link.
+    _ecm.Each<components::Battery, components::Name>(
+        [&](const Entity &_batEntity, const components::Battery *_batComp,
+            const components::Name *_nameComp) -> bool
+        {
+          // If parent link matches the target link, and battery name matches
+          //   the target battery
+          if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
+            (_nameComp->Data() == batteryName))
+          {
+            this->dataPtr->battery = std::shared_ptr<common::Battery>(new common::Battery(
+              _batComp->Data().Name(), _batComp->Data().Voltage()));
+            return true;
+          }
+          return true;
+        });
+
+    /*
+    // Can't do this, need to create sdf::Battery::operator!=() for this to work. Can we access the linkEntity's children directly?
     // Get batteries of this link entity
     auto linkBatteries =
         _ecm.ChildrenByComponents(linkEntity, components::Battery());
     // For each battery entity under this link
     for (const Entity batEntity : linkBatteries)
     {
+      // TODO{mabelzhang} does battery entity contain battery component, or does link entity contain battery component?
       if (_ecm.EntityHasComponentType(batEntity, components::Battery::typeId))
       {
         components::Battery * batComp = _ecm.Component<components::Battery>(
@@ -235,6 +245,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
         }
       }
     }
+    */
 
     IGN_ASSERT(this->dataPtr->battery, "Battery was NULL");
 
@@ -245,7 +256,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     }
     else
     {
-      // TODO{mabelzhang} port this line, then compiler will be happy
       this->dataPtr->battery->SetUpdateFunc(
         //LinearBatteryPluginPrivate::OnUpdateVoltage);
         //std::bind(&LinearBatteryPluginPrivate::OnUpdateVoltage, this->dataPtr,
@@ -282,7 +292,7 @@ void LinearBatteryPluginPrivate::Reset()
 /////////////////////////////////////////////////
 /*
 double LinearBatteryPluginPrivate::OnUpdateVoltage(
-  const std::shared_ptr<common::Battery> &_battery)
+  const common::Battery *_battery)
 {
   //double dt = std::chrono::duration_cast<std::chrono::seconds>(this->stepSize).count();
   double dt = this->maxStepSize;
