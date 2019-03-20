@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
 
-//#include <sdf/Battery.hh>
 #include <ignition/common/Battery.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
