@@ -242,9 +242,15 @@ namespace components
     /// \param[in] _out Out stream.
     protected: virtual void Serialize(std::ostream &/*_out*/) const
     {
-      ignwarn << "Trying to serialize copmponent which hasn't implemented "
-              << "the `Serialize` function. Component will not be serialized."
-              << std::endl;
+      static bool warned{false};
+      if (!warned)
+      {
+        ignwarn << "Trying to serialize copmponent of type [" << this->TypeId()
+                << "], which hasn't implemented the `Serialize` function. "
+                << "Component will not be serialized."
+                << std::endl;
+        warned = true;
+      }
     };
 
     /// \brief Fills a component based on a stream with a serialized data.
@@ -257,9 +263,15 @@ namespace components
     /// \param[in] _in In stream.
     protected: virtual void Deserialize(std::istream &/*_in*/)
     {
-      ignwarn << "Trying to deserialize copmponent which hasn't implemented "
-              << "the `Deserialize` function. Component will not be "
-              << "deserialized." << std::endl;
+      static bool warned{false};
+      if (!warned)
+      {
+        ignwarn << "Trying to deserialize copmponent of type ["
+                << this->TypeId() << "], which hasn't implemented the "
+                << "`Deserialize` function. Component will not be deserialized."
+                << std::endl;
+        warned = true;
+      }
     };
 
     /// \brief Returns the unique ID for the component's type.
@@ -267,6 +279,11 @@ namespace components
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
+
+    /// \brief Returns the unique name for the component's type.
+    /// The name is manually chosen during Factory registration and is
+    /// guaranteed to be the same across compilers and runs.
+    public: virtual std::string TypeName() const = 0;
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -336,6 +353,9 @@ namespace components
     public: ComponentTypeId TypeId() const override;
 
     // Documentation inherited
+    public: std::string TypeName() const override;
+
+    // Documentation inherited
     public: void Serialize(std::ostream &_out) const override;
 
     // Documentation inherited
@@ -355,6 +375,10 @@ namespace components
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     public: inline static ComponentTypeId typeId{0};
+
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName;
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -401,11 +425,18 @@ namespace components
     }
 
     // Documentation inherited
-    public: uint64_t TypeId() const override;
+    public: ComponentTypeId TypeId() const override;
+
+    // Documentation inherited
+    public: std::string TypeName() const override;
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     public: inline static ComponentTypeId typeId{0};
+
+    /// \brief Unique name for this component type. This is set through the
+    /// Factory registration.
+    public: inline static std::string typeName;
   };
 
   template <typename DataType>
@@ -516,6 +547,13 @@ namespace components
   }
 
   //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier>
+  std::string Component<DataType, Identifier>::TypeName() const
+  {
+    return typeName;
+  }
+
+  //////////////////////////////////////////////////
   template <typename Identifier>
   bool Component<NoData, Identifier>::operator==(
       const Component<NoData, Identifier> &) const
@@ -536,6 +574,13 @@ namespace components
   ComponentTypeId Component<NoData, Identifier>::TypeId() const
   {
     return typeId;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  std::string Component<NoData, Identifier>::TypeName() const
+  {
+    return typeName;
   }
 }
 }
