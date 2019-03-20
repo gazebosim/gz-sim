@@ -173,6 +173,10 @@ class NoSerialize : public components::BaseComponent
   {
     return 0;
   }
+  public: std::string TypeName() const override
+  {
+    return "";
+  }
 };
 
 //////////////////////////////////////////////////
@@ -473,5 +477,29 @@ TEST_F(ComponentTest, TypeId)
     Custom comp;
 
     EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, TypeName)
+{
+  // Component with data
+  {
+    using Custom = components::Component<int, class CustomTag>;
+    Custom::typeName = "123456";
+
+    Custom comp;
+
+    EXPECT_EQ("123456", comp.TypeName());
+  }
+
+  // Component without data
+  {
+    using Custom = components::Component<components::NoData, class CustomTag>;
+    Custom::typeName = "123456";
+
+    Custom comp;
+
+    EXPECT_EQ("123456", comp.TypeName());
   }
 }
