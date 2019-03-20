@@ -269,6 +269,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   {
     ignerr << "No <battery_name> specified.\n";
   }
+
+  ignmsg << "LinearBatteryPlugin configured\n";
 }
 
 /////////////////////////////////////////////////
@@ -316,6 +318,8 @@ double LinearBatteryPluginPrivate::OnUpdateVoltage(
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
+  igndbg << "OnUpdateVoltage() called\n";
+
   // double dt = std::chrono::duration_cast<std::chrono::seconds>(
   //   this->dataPtr->stepSize).count();
   double dt = this->dataPtr->maxStepSize;

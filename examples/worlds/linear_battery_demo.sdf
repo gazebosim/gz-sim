@@ -1,6 +1,100 @@
 <?xml version="1.0" ?>
+<!--
+  Battery demo
+-->
+
 <sdf version="1.6">
-  <world name="linear_battery_demo">
+  <world name="battery_demo">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="libignition-gazebo2-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo2-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo2-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="Scene3D" name="3D View">
+        <ignition-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <service>/world/battery_demo/scene/info</service>
+        <pose_topic>/world/battery_demo/pose/info</pose_topic>
+        <scene_topic>/world/battery_demo/scene/info</scene_topic>
+        <deletion_topic>/world/battery_demo/scene/deletion</deletion_topic>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <ignition-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <service>/world/battery_demo/control</service>
+        <stats_topic>/world/battery_demo/stats</stats_topic>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <ignition-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </ignition-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+        <topic>/world/battery_demo/stats</topic>
+
+      </plugin>
+
+    </gui>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -85,6 +179,7 @@
           <voltage>12.592</voltage>
         </battery>
       </link>
+
       <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <link_name>body</link_name>
@@ -102,6 +197,8 @@
         <battery_name>linear_battery</battery_name>
         <power_load>6.6</power_load> <!-- mother board power load = 6.6 W -->
       </plugin>
+
     </model>
+
   </world>
 </sdf>
