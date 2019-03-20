@@ -501,8 +501,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_battery)
 
   // Components
   this->dataPtr->ecm->CreateComponent(batteryEntity,
-      components::Battery(*_battery));
-          //common::Battery(_battery->Name(), _battery->Voltage())));
+      components::Battery(common::Battery(_battery->Name(), _battery->Voltage())));
+      // components::Battery(*_battery));
   this->dataPtr->ecm->CreateComponent(batteryEntity,
       components::Name(_battery->Name()));
 

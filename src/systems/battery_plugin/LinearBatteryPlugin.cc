@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
 #include "LinearBatteryPlugin.hh"
 
@@ -53,13 +53,10 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Callback for Battery Update events.
   /// \param[in] _battery Pointer to the battery that is to be updated.
   /// \return The new voltage.
-  //public: double OnUpdateVoltage(const common::Battery *_battery);
+  // public: double OnUpdateVoltage(const common::Battery *_battery);
 
   /// \brief Pointer to world.
-  //public: physics::WorldPtr world;
-
-  /// \brief Pointer to physics engine.
-  //public: physics::PhysicsEnginePtr physics;
+  // public: physics::WorldPtr world;
 
   /// \brief Pointer to battery contained in link.
   public: std::shared_ptr<common::Battery> battery;
@@ -91,7 +88,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: double q;
 
   /// \brief Simulation time handled during a single update.
-  //public: std::chrono::steady_clock::duration stepSize;
+  // public: std::chrono::steady_clock::duration stepSize;
   public: double maxStepSize;
 };
 
@@ -120,7 +117,6 @@ LinearBatteryPlugin::~LinearBatteryPlugin()
 }
 
 /////////////////////////////////////////////////
-//void LinearBatteryPlugin::Configure(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
 void LinearBatteryPlugin::Configure(const Entity &_entity,
                const std::shared_ptr<const sdf::Element> &_sdf,
                EntityComponentManager &_ecm,
@@ -153,7 +149,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   const sdf::World * sdfWorld = sdfRoot.WorldByIndex(0);
   if (sdfWorld->PhysicsCount() == 0)
   {
-    ignerr << "Missing physics element in SDF. Failed to initiaize." << std::endl;
+    ignerr << "Missing physics element in SDF. Failed to initiaize."
+      << std::endl;
     return;
   }
 
@@ -161,16 +158,17 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   const sdf::Physics * sdfPhys = sdfWorld->PhysicsByIndex(0);
   this->dataPtr->maxStepSize = sdfPhys->MaxStepSize();
 
-  //Entity worldEntity = _ecm.EntityByComponents<components::World>(
-  //  components::World());
-  //auto worldComp = _ecm.ChildrenByComponents(worldEntity, components::World());
+  // Entity worldEntity = _ecm.EntityByComponents<components::World>(
+  //   components::World());
+  // auto worldComp = _ecm.ChildrenByComponents(worldEntity,
+  //   components::World());
 
 
-  // Pointer to link containing battery
+  // Pointer to link that this plugin targets
   Entity linkEntity = kNullEntity;
   if (_sdf->HasElement("link_name"))
   {
-    std::string linkName = _sdf->Get<std::string>("link_name");
+    auto linkName = _sdf->Get<std::string>("link_name");
 
     linkEntity = model.LinkByName(_ecm, linkName);
     IGN_ASSERT(linkEntity != kNullEntity, "Link was NULL");
@@ -201,9 +199,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("battery_name"))
   {
-    std::string batteryName = _sdf->Get<std::string>("battery_name");
+    auto batteryName = _sdf->Get<std::string>("battery_name");
 
-    // TODO{mabelzhang} Create a test that has two links of same names in
+    // TODO(mabelzhang) Create a test that has two links of same names in
     //   different models, and check the battery attaches to the correct model.
     //   Create a test that has two links, each with a battery of the same name,
     //   and check that the batteries are each attached to the correct link.
@@ -216,22 +214,24 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
             (_nameComp->Data() == batteryName))
           {
-            this->dataPtr->battery = std::shared_ptr<common::Battery>(new common::Battery(
-              _batComp->Data().Name(), _batComp->Data().Voltage()));
+            this->dataPtr->battery = std::make_shared<common::Battery>(
+              _batComp->Data());
             return true;
           }
           return true;
         });
 
     /*
-    // Can't do this, need to create sdf::Battery::operator!=() for this to work. Can we access the linkEntity's children directly?
+    // Can't do this, need to create sdf::Battery::operator!=() for this to
+    //   work. Can we access the linkEntity's children directly?
     // Get batteries of this link entity
     auto linkBatteries =
         _ecm.ChildrenByComponents(linkEntity, components::Battery());
     // For each battery entity under this link
     for (const Entity batEntity : linkBatteries)
     {
-      // TODO{mabelzhang} does battery entity contain battery component, or does link entity contain battery component?
+      // TODO(mabelzhang) does battery entity contain battery component, or
+      //   does link entity contain battery component?
       if (_ecm.EntityHasComponentType(batEntity, components::Battery::typeId))
       {
         components::Battery * batComp = _ecm.Component<components::Battery>(
@@ -240,8 +240,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
         // Check if the battery entity's name matches the plugin battery's name
         if (batComp->Data().Name() == batteryName)
         {
-          this->dataPtr->battery = std::shared_ptr<common::Battery>(new common::Battery(
-            batComp->Data().Name(), batComp->Data().Voltage()));
+          this->dataPtr->battery =
+            std::shared_ptr<common::Battery>(new common::Battery(
+              batComp->Data().Name(), batComp->Data().Voltage()));
         }
       }
     }
@@ -257,8 +258,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     else
     {
       this->dataPtr->battery->SetUpdateFunc(
-        //LinearBatteryPluginPrivate::OnUpdateVoltage);
-        //std::bind(&LinearBatteryPluginPrivate::OnUpdateVoltage, this->dataPtr,
+        // LinearBatteryPluginPrivate::OnUpdateVoltage);
+        // std::bind(&LinearBatteryPluginPrivate::OnUpdateVoltage,
+        //   this->dataPtr,
         std::bind(&LinearBatteryPlugin::OnUpdateVoltage, this,
           std::placeholders::_1));
     }
@@ -267,12 +269,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   {
     ignerr << "No <battery_name> specified.\n";
   }
-}
-
-/////////////////////////////////////////////////
-void LinearBatteryPlugin::Update(const UpdateInfo &/*_info*/,
-  EntityComponentManager &/*_ecm*/)
-{
 }
 
 /////////////////////////////////////////////////
@@ -294,7 +290,8 @@ void LinearBatteryPluginPrivate::Reset()
 double LinearBatteryPluginPrivate::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  //double dt = std::chrono::duration_cast<std::chrono::seconds>(this->stepSize).count();
+  // double dt = std::chrono::duration_cast<std::chrono::seconds>(
+  //   this->stepSize).count();
   double dt = this->maxStepSize;
   double totalpower = 0.0;
   double k = dt / this->tau;
@@ -319,7 +316,8 @@ double LinearBatteryPluginPrivate::OnUpdateVoltage(
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  //double dt = std::chrono::duration_cast<std::chrono::seconds>(this->dataPtr->stepSize).count();
+  // double dt = std::chrono::duration_cast<std::chrono::seconds>(
+  //   this->dataPtr->stepSize).count();
   double dt = this->dataPtr->maxStepSize;
   double totalpower = 0.0;
   double k = dt / this->dataPtr->tau;
@@ -345,7 +343,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     ignition::gazebo::System,
-                    LinearBatteryPlugin::ISystemConfigure,
-                    LinearBatteryPlugin::ISystemUpdate)
+                    LinearBatteryPlugin::ISystemConfigure)
 
-IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin, "ignition::gazebo::systems::LinearBatteryPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+  "ignition::gazebo::systems::LinearBatteryPlugin")

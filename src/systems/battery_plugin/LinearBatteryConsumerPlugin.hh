@@ -15,14 +15,10 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_CONSUMER_PLUGIN_HH_
+#define IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_CONSUMER_PLUGIN_HH_
 
-#include <string>
-#include <map>
 #include <memory>
-
-#include <ignition/common/Battery.hh>
 
 #include "ignition/gazebo/System.hh"
 
@@ -35,36 +31,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class LinearBatteryPluginPrivate;
+  class LinearBatteryConsumerPluginPrivate;
 
-  /// \brief A plugin that simulates a linear battery.
-  class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
+  /// \brief A plugin that manages a linear battery consumer.
+  class IGNITION_GAZEBO_VISIBLE LinearBatteryConsumerPlugin
       : public System,
         public ISystemConfigure
   {
-    /// \brief Constructor
-    public: LinearBatteryPlugin();
+    /// \brief Constructor.
+    public: LinearBatteryConsumerPlugin();
 
-    /// \brief Destructor
-    public: ~LinearBatteryPlugin() override;
+    /// \brief Destructor.
+    public: ~LinearBatteryConsumerPlugin();
 
-    // Documentation inherited
+    // Documentation Inherited.
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
-    /// \brief Callback for Battery Update events.
-    /// \param[in] _battery Pointer to the battery that is to be updated.
-    /// \return The new voltage.
-    public: double OnUpdateVoltage(const common::Battery *_battery);
-
     /// \brief Private data pointer
-    private: std::unique_ptr<LinearBatteryPluginPrivate> dataPtr;
+    private: std::unique_ptr<LinearBatteryConsumerPluginPrivate> dataPtr;
   };
   }
 }
 }
 }
-
 #endif
