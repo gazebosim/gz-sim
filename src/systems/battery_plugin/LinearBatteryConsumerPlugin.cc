@@ -133,6 +133,8 @@ void LinearBatteryConsumerPlugin::Configure(const Entity &_entity,
     ignwarn << "Required attribute power_load missing "
             << "in LinearBatteryConsumerPlugin SDF" << std::endl;
   }
+
+  ignmsg << "LinearBatteryConsumerPlugin configured\n";
 }
 
 IGNITION_ADD_PLUGIN(LinearBatteryConsumerPlugin,
