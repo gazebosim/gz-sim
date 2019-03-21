@@ -466,7 +466,8 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
   const size_t iters = 2000;
   server.Run(true, iters, false);
 
-  std::vector<std::pair<double, double>> yPosCoeffPairs;
+  using PairType = std::pair<double, double>;
+  std::vector<PairType> yPosCoeffPairs;
   for (const auto& [name, coeff] : boxParams)
   {
     EXPECT_EQ(iters, poses[name].size());
@@ -479,24 +480,33 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
   }
 
   EXPECT_EQ(boxParams.size(), yPosCoeffPairs.size());
-  // Sort by y position
+  // Sort by coefficient first in a descending order
   std::sort(yPosCoeffPairs.begin(), yPosCoeffPairs.end(),
-      [](std::pair<double, double> &_a, std::pair<double, double> &_b)
-      {
-        return _a.first < _b.first;
-      });
+            [](const PairType &_a, const PairType &_b)
+            {
+              return _a.second > _b.second;
+            });
 
-  bool isDecreasingCoeff = std::is_sorted(
-      yPosCoeffPairs.begin(), yPosCoeffPairs.end(),
-      [](std::pair<double, double> &_a, std::pair<double, double> &_b)
-      {
-        return _a.second > _b.second;
-      });
+  // Check if the Y position is strictly increasing
+  bool isIncreasingYPos =
+      std::is_sorted(yPosCoeffPairs.begin(), yPosCoeffPairs.end(),
+                     [](const PairType &_a, const PairType &_b)
+                     {
+                       // std::is_sorted works by iterating through the
+                       // container until comp(_a, _b) is true, where comp is
+                       // this function. If comp returns true before reaching
+                       // the end of the container, the container is not sorted.
+                       // In a strictly ascending order, _a should always be
+                       // greater than _b so this comparision should always
+                       // return false. The last term is added to avoid floating
+                       // point tolerance issues.
+                       return _a.first <= _b.first + 1e-4;
+                     });
 
   std::ostringstream oss;
   for (const auto &[pos, coeff] : yPosCoeffPairs)
   {
     oss << "(" << pos << ", " << coeff << "), ";
   }
-  EXPECT_TRUE(isDecreasingCoeff) << oss.str();
+  EXPECT_TRUE(isIncreasingYPos) << oss.str();
 }
