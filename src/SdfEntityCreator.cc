@@ -492,19 +492,50 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 }
 
 //////////////////////////////////////////////////
-Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_battery)
+Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
 {
   IGN_PROFILE("SdfEntityCreator::CreateEtties(sdf::Battery)");
 
   // Entity
   Entity batteryEntity = this->dataPtr->ecm->CreateEntity();
 
-  // Components
-  this->dataPtr->ecm->CreateComponent(batteryEntity, components::Battery(
-      common::Battery(_battery->Name(), _battery->Voltage())));
-    // components::Battery(*_battery));
-  this->dataPtr->ecm->CreateComponent(batteryEntity,
-      components::Name(_battery->Name()));
+  bool batExists = false;
+  // Temporary battery if the same one already exists
+  auto battery = common::Battery(_batterySdf->Name(), _batterySdf->Voltage());
+
+  // Check if a common::Battery with the name already exists
+  this->dataPtr->ecm->Each<components::Battery>(
+      [&](const Entity & /*_batEntity*/, components::Battery *_batComp) -> bool
+      {
+        // If an existing battery is the same as the one to be created, point
+        //   the new battery component to the existing common::Battery
+        if (*(_batComp->Data()) == battery)
+        {
+          batExists = true;
+
+          // Use existing battery
+          this->dataPtr->ecm->CreateComponent(batteryEntity,
+              components::Battery(_batComp->Data()));
+          this->dataPtr->ecm->CreateComponent(batteryEntity,
+              components::Name(_batterySdf->Name()));
+
+          return true;
+        }
+        return true;
+      });
+
+  // If battery does not already exist, use a new battery
+  if (!batExists)
+  {
+    // Initialize new battery
+    battery.Init();
+
+    // Components
+    this->dataPtr->ecm->CreateComponent(batteryEntity, components::Battery(
+        common::BatteryPtr(std::make_shared<common::Battery>(battery))));
+    this->dataPtr->ecm->CreateComponent(batteryEntity,
+        components::Name(_batterySdf->Name()));
+  }
 
   return batteryEntity;
 }

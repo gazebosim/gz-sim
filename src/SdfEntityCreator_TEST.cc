@@ -820,8 +820,8 @@ TEST_F(SdfEntityCreatorTest, CreateBatteries)
         EXPECT_EQ("linear_battery", _name->Data());
 
         // sdf::Battery object inside Component
-        EXPECT_DOUBLE_EQ(_battery->Data().Voltage(), 12.592);
-        EXPECT_EQ("linear_battery", _battery->Data().Name());
+        EXPECT_DOUBLE_EQ(_battery->Data()->Voltage(), 12.592);
+        EXPECT_EQ("linear_battery", _battery->Data()->Name());
       }
 
       return true;

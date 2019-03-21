@@ -59,7 +59,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   // public: physics::WorldPtr world;
 
   /// \brief Pointer to battery contained in link.
-  public: std::shared_ptr<common::Battery> battery;
+  public: common::BatteryPtr battery;
 
   /// \brief Open-circuit voltage.
   /// E(t) = e0 + e1 * Q(t) / c
@@ -205,6 +205,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     //   different models, and check the battery attaches to the correct model.
     //   Create a test that has two links, each with a battery of the same name,
     //   and check that the batteries are each attached to the correct link.
+    //   Create a test with multiple batteries under one link.
+    //   Create a test with multiple links consuming the same battery (?).
     _ecm.Each<components::Battery, components::Name>(
         [&](const Entity &_batEntity, const components::Battery *_batComp,
             const components::Name *_nameComp) -> bool
@@ -214,39 +216,13 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
             (_nameComp->Data() == batteryName))
           {
-            this->dataPtr->battery = std::make_shared<common::Battery>(
-              _batComp->Data());
+            // this->dataPtr->battery = std::make_shared<common::Battery>(
+            //   _batComp->Data());
+            this->dataPtr->battery = _batComp->Data();
             return true;
           }
           return true;
         });
-
-    /*
-    // Can't do this, need to create sdf::Battery::operator!=() for this to
-    //   work. Can we access the linkEntity's children directly?
-    // Get batteries of this link entity
-    auto linkBatteries =
-        _ecm.ChildrenByComponents(linkEntity, components::Battery());
-    // For each battery entity under this link
-    for (const Entity batEntity : linkBatteries)
-    {
-      // TODO(mabelzhang) does battery entity contain battery component, or
-      //   does link entity contain battery component?
-      if (_ecm.EntityHasComponentType(batEntity, components::Battery::typeId))
-      {
-        components::Battery * batComp = _ecm.Component<components::Battery>(
-          batEntity);
-
-        // Check if the battery entity's name matches the plugin battery's name
-        if (batComp->Data().Name() == batteryName)
-        {
-          this->dataPtr->battery =
-            std::shared_ptr<common::Battery>(new common::Battery(
-              batComp->Data().Name(), batComp->Data().Voltage()));
-        }
-      }
-    }
-    */
 
     IGN_ASSERT(this->dataPtr->battery, "Battery was NULL");
 
@@ -270,6 +246,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     ignerr << "No <battery_name> specified.\n";
   }
 
+  igndbg << "Battery name: " << this->dataPtr->battery->Name()
+         << std::endl;
+  igndbg << "Battery voltage: " << this->dataPtr->battery->Voltage()
+         << std::endl;
+
   ignmsg << "LinearBatteryPlugin configured\n";
 }
 
@@ -285,6 +266,13 @@ void LinearBatteryPluginPrivate::Reset()
   this->iraw = 0.0;
   this->ismooth = 0.0;
   this->Init();
+}
+
+//////////////////////////////////////////////////
+void LinearBatteryPlugin::Update(const UpdateInfo &/*_info*/,
+                                 EntityComponentManager &/*_ecm*/)
+{
+  this->dataPtr->battery->Update();
 }
 
 /////////////////////////////////////////////////
@@ -318,8 +306,6 @@ double LinearBatteryPluginPrivate::OnUpdateVoltage(
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  igndbg << "OnUpdateVoltage() called\n";
-
   // double dt = std::chrono::duration_cast<std::chrono::seconds>(
   //   this->dataPtr->stepSize).count();
   double dt = this->dataPtr->maxStepSize;
@@ -340,6 +326,12 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
 
+  igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
+         << std::endl;
+  igndbg << "voltage: " << (this->dataPtr->e0 + this->dataPtr->e1 * (
+    1 - this->dataPtr->q / this->dataPtr->c)
+      - this->dataPtr->r * this->dataPtr->ismooth) << std::endl;
+
   return this->dataPtr->e0 + this->dataPtr->e1 * (
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
@@ -347,7 +339,8 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     ignition::gazebo::System,
-                    LinearBatteryPlugin::ISystemConfigure)
+                    LinearBatteryPlugin::ISystemConfigure,
+                    LinearBatteryPlugin::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "ignition::gazebo::systems::LinearBatteryPlugin")

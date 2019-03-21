@@ -32,7 +32,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// A component that identifies an entity as being a battery
-  using Battery = Component<common::Battery, class BatteryTag>;
+  using Battery = Component<common::BatteryPtr, class BatteryTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Battery", Battery)
 }
 }
