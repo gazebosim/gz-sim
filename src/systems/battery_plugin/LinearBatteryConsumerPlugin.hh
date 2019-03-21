@@ -42,7 +42,7 @@ namespace systems
     public: LinearBatteryConsumerPlugin();
 
     /// \brief Destructor.
-    public: ~LinearBatteryConsumerPlugin();
+    public: ~LinearBatteryConsumerPlugin() override;
 
     // Documentation Inherited.
     public: void Configure(const Entity &_entity,

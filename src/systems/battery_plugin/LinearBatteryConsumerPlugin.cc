@@ -36,7 +36,7 @@ using namespace systems;
 class ignition::gazebo::systems::LinearBatteryConsumerPluginPrivate
 {
   /// \brief Pointer to battery.
-  public: std::shared_ptr<common::Battery> battery;
+  public: common::BatteryPtr battery;
 
   /// \brief Battery consumer identifier.
   public: int32_t consumerId;
@@ -99,8 +99,7 @@ void LinearBatteryConsumerPlugin::Configure(const Entity &_entity,
           if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
             (_nameComp->Data() == batteryName))
           {
-            this->dataPtr->battery = std::make_shared<common::Battery>(
-              _batComp->Data());
+            this->dataPtr->battery = _batComp->Data();
             return true;
           }
           return true;
@@ -121,7 +120,7 @@ void LinearBatteryConsumerPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("power_load"))
   {
-    double powerLoad = _sdf->Get<double>("power_load");
+    auto powerLoad = _sdf->Get<double>("power_load");
     this->dataPtr->consumerId = this->dataPtr->battery->AddConsumer();
     bool success = this->dataPtr->battery->SetPowerLoad(
       this->dataPtr->consumerId, powerLoad);

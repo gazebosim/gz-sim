@@ -40,7 +40,8 @@ namespace systems
   /// \brief A plugin that simulates a linear battery.
   class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
       : public System,
-        public ISystemConfigure
+        public ISystemConfigure,
+        public ISystemUpdate
   {
     /// \brief Constructor
     public: LinearBatteryPlugin();
@@ -53,6 +54,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
 
     /// \brief Callback for Battery Update events.
     /// \param[in] _battery Pointer to the battery that is to be updated.

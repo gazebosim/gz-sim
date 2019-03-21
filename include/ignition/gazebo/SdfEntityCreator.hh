@@ -137,7 +137,7 @@ namespace ignition
       /// load their plugins.
       /// \param[in] _battery SDF battery object.
       /// \return Battery entity.
-      public: Entity CreateEntities(const sdf::Battery *_battery);
+      public: Entity CreateEntities(const sdf::Battery *_batterySdf);
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
