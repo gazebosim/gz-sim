@@ -1,4 +1,4 @@
-\page createsystemplugins
+\page createsystemplugins Create System Plugins
 
 # Implementing a System Plugin
 
