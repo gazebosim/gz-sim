@@ -1048,20 +1048,20 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_NE(kNullEntity, modelId);
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(),
-      0.123);
+  std::string componentName{"WorldPluginComponent"};
+  auto componentId = ignition::common::hash64(componentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
+      componentId));
 
   // Check component registered by model plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        IntComponent::typeId));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
-  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(),
-      987);
+  componentName = "ModelPluginComponent";
+  componentId = ignition::common::hash64(componentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
+      componentId));
 }
 
 /////////////////////////////////////////////////
@@ -1089,9 +1089,13 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
       });
   EXPECT_NE(kNullEntity, worldEntity);
 
+  // We can't access the type registered by the plugin unless we link against
+  // it, but we know its name to check
+  std::string componentName{"WorldPluginComponent"};
+  auto componentId = ignition::common::hash64(componentName);
+
   // Check there's no double component
-  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
+  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
@@ -1104,12 +1108,9 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
       rootWith.WorldByIndex(0)->Element());
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
-      0.123);
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldEntity,
+      componentId));
 }
 
 /////////////////////////////////////////////////

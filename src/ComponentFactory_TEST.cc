@@ -65,6 +65,15 @@ TEST_F(ComponentFactoryTest, Register)
   EXPECT_EQ(registeredCount + 1, ids.size());
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
 
+  // Fail to register 2 components with same name
+  using Duplicate = components::Component<components::NoData,
+      class MyCustomTag>;
+  factory->Register<Duplicate>("ign_gazebo_components.MyCustom",
+      new components::ComponentDescriptor<Duplicate>(),
+      new components::StorageDescriptor<Duplicate>());
+
+  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
+
   // Unregister
   factory->Unregister<MyCustom>();
 
