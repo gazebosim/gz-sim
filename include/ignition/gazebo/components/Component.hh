@@ -283,7 +283,8 @@ namespace components
     /// \brief Returns the unique name for the component's type.
     /// The name is manually chosen during Factory registration and is
     /// guaranteed to be the same across compilers and runs.
-    public: virtual std::string TypeName() const = 0;
+    /// \details To be made pure virtual on version 2.0.
+    public: virtual std::string TypeName() const {return std::string();};
   };
 
   /// \brief A component type that wraps any data type. The intention is for
