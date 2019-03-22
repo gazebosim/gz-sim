@@ -173,10 +173,6 @@ class NoSerialize : public components::BaseComponent
   {
     return 0;
   }
-  public: std::string TypeName() const override
-  {
-    return "";
-  }
 };
 
 //////////////////////////////////////////////////
@@ -490,7 +486,7 @@ TEST_F(ComponentTest, TypeName)
 
     Custom comp;
 
-    EXPECT_EQ("123456", comp.TypeName());
+    EXPECT_EQ("123456", comp.typeName);
   }
 
   // Component without data
@@ -500,6 +496,6 @@ TEST_F(ComponentTest, TypeName)
 
     Custom comp;
 
-    EXPECT_EQ("123456", comp.TypeName());
+    EXPECT_EQ("123456", comp.typeName);
   }
 }
