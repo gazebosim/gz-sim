@@ -70,44 +70,15 @@ class BatteryPluginTest : public ::testing::Test
 // Single link consuming single battery
 TEST_F(BatteryPluginTest, SingleLinkSingleBattery)
 {
-  ServerConfig serverConfig;
-
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery_slsb.sdf");
-
   sdf::Root root;
   EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
   EXPECT_GT(root.WorldCount(), 0lu);
 
   // Pass changed SDF to server
-  serverConfig.SetSdfFile(sdfPath);
-
-  // Start server
-  Server server(serverConfig);
-  // TODO(mabelzhang) This seg faults, unless comment out battery plugin in SDF
-  server.Run(true, 100, false);
-
-  // TODO(mabelzhang) Check battery voltage < sdf::Battery::Voltage() init voltage,
-  //   and components::Battery::Data()->PowerLoads.size() == 1
-}
-
-/////////////////////////////////////////////////
-// Multiple links consuming the same battery
-TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
-{
   ServerConfig serverConfig;
-
-  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "battery_mlsb.sdf");
-
-  sdf::Root root;
-  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
-  EXPECT_GT(root.WorldCount(), 0lu);
-
-  // Pass changed SDF to server
   serverConfig.SetSdfFile(sdfPath);
-
-  Server server(serverConfig);
 
   // A pointer to the ecm. This will be valid once we run the mock system
   gazebo::EntityComponentManager *ecm = nullptr;
@@ -117,8 +88,83 @@ TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
       ecm = &_ecm;
     };
 
+  // Start server
+  Server server(serverConfig);
   server.AddSystem(this->systemPtr);
+  server.Run(true, 100, false);
+  EXPECT_NE(nullptr, ecm);
 
+  // Check the link exists
+  Entity linkEntity = ecm->EntityByComponents(components::Link(),
+    components::Name("body"));
+  EXPECT_NE(kNullEntity, linkEntity);
+
+  // Check a battery exists
+  EXPECT_TRUE(ecm->HasComponentType(components::Battery::typeId));
+
+  // Find battery entity
+  Entity batEntity = ecm->EntityByComponents(components::Name("linear_battery"));
+  EXPECT_NE(kNullEntity, batEntity);
+
+  // Find battery component
+  EXPECT_TRUE(ecm->EntityHasComponentType(batEntity, components::Battery::typeId));
+  auto batComp = ecm->Component<components::Battery>(batEntity);
+  EXPECT_NE(nullptr, batComp->Data());
+
+  // Check there is a single consumer
+  EXPECT_EQ(batComp->Data()->PowerLoads().size(), 1lu);
+  EXPECT_EQ(batComp->Data()->Name(), "linear_battery");
+  EXPECT_NEAR(batComp->Data()->InitVoltage(), 12.592, 1e-6);
+
+  // Check voltage after consumption is lower than initial voltage
+  EXPECT_LT(batComp->Data()->Voltage(), 12.592);
+
+  // Check there is a single battery matching exactly the one specified
+  ecm->Each<components::Battery, components::Name>(
+      [&](const Entity &_batEntity, components::Battery *_batComp,
+          components::Name *_nameComp) -> bool
+      {
+        EXPECT_NE(kNullEntity, _batEntity);
+        EXPECT_EQ(_nameComp->Data(), "linear_battery");
+
+        // Check there is a single consumer
+        EXPECT_NE(nullptr, _batComp->Data());
+        EXPECT_EQ(_batComp->Data()->PowerLoads().size(), 1lu);
+        EXPECT_EQ(_batComp->Data()->Name(), "linear_battery");
+        EXPECT_NEAR(_batComp->Data()->InitVoltage(), 12.592, 1e-6);
+
+        // Check voltage after consumption is lower than initial voltage
+        EXPECT_LT(_batComp->Data()->Voltage(), 12.592);
+
+        return true;
+      });
+}
+
+/*
+/////////////////////////////////////////////////
+// Multiple links consuming the same battery
+TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
+{
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "battery_mlsb.sdf");
+  sdf::Root root;
+  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
+  EXPECT_GT(root.WorldCount(), 0lu);
+
+  // Pass changed SDF to server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfPath);
+
+  // A pointer to the ecm. This will be valid once we run the mock system
+  gazebo::EntityComponentManager *ecm = nullptr;
+  this->mockSystem->preUpdateCallback =
+    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+    };
+
+  Server server(serverConfig);
+  server.AddSystem(this->systemPtr);
   server.Run(true, 10, false);
   EXPECT_NE(nullptr, ecm);
 
@@ -126,10 +172,8 @@ TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
   Entity linkEntity = ecm->EntityByComponents(components::Link(),
     components::Name("lower_link"));
   EXPECT_NE(kNullEntity, linkEntity);
-  std::cerr << "PASSED: linkEntity != kNullEntity\n";
 
   EXPECT_TRUE(ecm->HasComponentType(components::Battery::typeId));
-  std::cerr << "PASSED: HasComponentType(components::Battery::typeId)\n";
 
 
   // Verify voltages
@@ -142,6 +186,8 @@ TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
   //auto batComp = ecm->Component<components::Battery>(batEntity);
   //EXPECT_NE(nullptr, batComp->Data());
   //EXPECT_GT(batComp->Data()->PowerLoads().size(), 1lu);
+}
+*/
 
   /*
   ecm->Each<components::Battery, components::Name>(
@@ -157,8 +203,6 @@ TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
         return true;
       });
   */
-
-}
 
 /*
 /////////////////////////////////////////////////
