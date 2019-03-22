@@ -81,7 +81,7 @@ void SyncManager::DistributePerformers()
     auto secondaryIt = secondaries.begin();
     auto &ecm = this->runner->entityCompMgr;
 
-    msgs::PerformerAffinities msg;
+    private_msgs::PerformerAffinities msg;
 
     this->runner->entityCompMgr.Each<components::Performer,
                                      components::ParentEntity>(
@@ -119,7 +119,7 @@ void SyncManager::DistributePerformers()
     for (auto &secondary : secondaries)
     {
       bool result;
-      msgs::PerformerAffinities resp;
+      private_msgs::PerformerAffinities resp;
 
       std::string topic {secondary.second->prefix + "/affinity"};
       unsigned int timeout = 5000;
@@ -150,10 +150,11 @@ void SyncManager::DistributePerformers()
     std::string topic {mgr->Namespace() + "/affinity"};
     bool received = false;
 
-    std::function<bool(const msgs::PerformerAffinities &,
-                       msgs::PerformerAffinities &)> fcn =
-      [&received, &mgr, this, &ecm](const msgs::PerformerAffinities &_req,
-        msgs::PerformerAffinities &/*_resp*/) -> bool
+    std::function<bool(const private_msgs::PerformerAffinities &,
+                       private_msgs::PerformerAffinities &)> fcn =
+      [&received, &mgr, this, &ecm](
+        const private_msgs::PerformerAffinities &_req,
+        private_msgs::PerformerAffinities &/*_resp*/) -> bool
       {
         for (int ii = 0; ii < _req.affinity_size(); ++ii)
         {
