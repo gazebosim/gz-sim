@@ -41,6 +41,11 @@ class TestWorldSystem :
   public ISystemUpdate
 {
   public: TestWorldSystem() = default;
+  public: ~TestWorldSystem()
+        {
+          components::Factory::Instance()->Unregister<
+              components::WorldPluginComponent>();
+        }
 
   public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,

@@ -42,6 +42,11 @@ class TestModelSystem :
   public ISystemConfigure
 {
   public: TestModelSystem() = default;
+  public: ~TestModelSystem()
+        {
+          components::Factory::Instance()->Unregister<
+              components::ModelPluginComponent>();
+        }
 
   private: bool Service(msgs::StringMsg &_msg)
            {
