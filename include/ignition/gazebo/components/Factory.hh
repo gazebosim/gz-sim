@@ -123,7 +123,7 @@ namespace components
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
-      this->idsToNames[ComponentTypeT::typeId] = ComponentTypeT::typeName;
+      namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -153,6 +153,14 @@ namespace components
         {
           delete it->second;
           this->storagesById.erase(it);
+        }
+      }
+
+      {
+        auto it = namesById.find(ComponentTypeT::typeId);
+        if (it != namesById.end())
+        {
+          namesById.erase(it);
         }
       }
 
@@ -216,10 +224,10 @@ namespace components
 
     /// \brief Get a component's type name given its type ID.
     /// return Unique component name.
-    public: std::string NameById(ComponentTypeId _typeId) const
+    public: std::string Name(ComponentTypeId _typeId) const
     {
-      if (this->idsToNames.find(_typeId) != this->idsToNames.end())
-        return this->idsToNames.at(_typeId);
+      if (namesById.find(_typeId) != namesById.end())
+        return namesById.at(_typeId);
 
       return "";
     }
@@ -244,7 +252,7 @@ namespace components
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
 
     /// \brief A list of IDs and their equivalent names.
-    private: static std::map<ComponentTypeId, std::string> idsToNames;
+    public: inline static std::map<ComponentTypeId, std::string> namesById;
   };
 
   /// \brief Static component registration macro.

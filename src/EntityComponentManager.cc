@@ -535,7 +535,7 @@ void EntityComponentManagerPrivate::CreateComponentStorage(
 
   this->components[_typeId] = std::move(storage);
   igndbg << "Using components of type [" << _typeId << "] / ["
-         << components::Factory::Instance()->NameById(_typeId) << "].\n";
+         << components::Factory::Instance()->Name(_typeId) << "].\n";
 }
 
 /////////////////////////////////////////////////
