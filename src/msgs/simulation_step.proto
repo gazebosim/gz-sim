@@ -17,7 +17,7 @@
 
 syntax = "proto3";
 
-package ignition.gazebo.msgs;
+package ignition.gazebo.private_msgs;
 
 import "ignition/msgs/time.proto";
 

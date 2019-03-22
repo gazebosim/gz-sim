@@ -1,4 +1,4 @@
-\page distributedsimulation
+\page distributedsimulation Distributed Simulation
 
 # Distributed Simulation
 
