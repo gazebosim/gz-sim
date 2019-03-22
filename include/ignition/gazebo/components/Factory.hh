@@ -116,6 +116,14 @@ namespace components
 
       auto typeHash = ignition::common::hash64(_type);
 
+      // Enforce unique IDs
+      if (this->compsById.find(typeHash) != this->compsById.end())
+      {
+        std::cerr << "Failed to register duplicate component type [" << _type
+                  << "]" << std::endl;
+        return;
+      }
+
       // Initialize static member variable
       ComponentTypeT::typeId = typeHash;
       ComponentTypeT::typeName = _type;
@@ -252,6 +260,7 @@ namespace components
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
 
     /// \brief A list of IDs and their equivalent names.
+    /// \detail Make it non-static on version 2.0.
     public: inline static std::map<ComponentTypeId, std::string> namesById;
   };
 
