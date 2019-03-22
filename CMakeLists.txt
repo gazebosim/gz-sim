@@ -74,7 +74,14 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics1 REQUIRED COMPONENTS mesh sdf dartsim dartsim-plugin)
+ign_find_package(ignition-physics1
+  COMPONENTS
+    mesh
+    sdf
+    dartsim
+    dartsim-plugin
+  REQUIRED
+  VERSION 1.1)
 set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
