@@ -50,11 +50,6 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Reset the plugin
   public: void Reset();
 
-  /// \brief Callback for Battery Update events.
-  /// \param[in] _battery Pointer to the battery that is to be updated.
-  /// \return The new voltage.
-  // public: double OnUpdateVoltage(const common::Battery *_battery);
-
   /// \brief Pointer to world.
   // public: physics::WorldPtr world;
 
@@ -114,6 +109,11 @@ LinearBatteryPlugin::LinearBatteryPlugin()
 LinearBatteryPlugin::~LinearBatteryPlugin()
 {
   this->dataPtr->Reset();
+
+  // This is needed so that common::Battery stops calling the callback function
+  //   of this object, when this object is destroyed. Else seg fault in test,
+  //   though no seg fault in actual run.
+  this->dataPtr->battery->ResetUpdateFunc();
 }
 
 /////////////////////////////////////////////////
@@ -232,9 +232,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     else
     {
       this->dataPtr->battery->SetUpdateFunc(
-        // LinearBatteryPluginPrivate::OnUpdateVoltage);
-        // std::bind(&LinearBatteryPluginPrivate::OnUpdateVoltage,
-        //   this->dataPtr,
         std::bind(&LinearBatteryPlugin::OnUpdateVoltage, this,
           std::placeholders::_1));
     }
@@ -274,33 +271,6 @@ void LinearBatteryPlugin::Update(const UpdateInfo &/*_info*/,
 }
 
 /////////////////////////////////////////////////
-/*
-double LinearBatteryPluginPrivate::OnUpdateVoltage(
-  const common::Battery *_battery)
-{
-  // double dt = std::chrono::duration_cast<std::chrono::seconds>(
-  //   this->stepSize).count();
-  double dt = this->maxStepSize;
-  double totalpower = 0.0;
-  double k = dt / this->tau;
-
-  if (fabs(_battery->Voltage()) < 1e-3)
-    return 0.0;
-
-  for (auto powerLoad : _battery->PowerLoads())
-    totalpower += powerLoad.second;
-
-  this->iraw = totalpower / _battery->Voltage();
-
-  this->ismooth = this->ismooth + k * (this->iraw - this->ismooth);
-
-  this->q = this->q - ((dt * this->ismooth) / 3600.0);
-
-  return this->e0 + this->e1 * (1 - this->q / this->c)
-    - this->r * this->ismooth;
-}
-*/
-
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
