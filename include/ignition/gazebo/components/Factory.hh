@@ -116,22 +116,33 @@ namespace components
 
       auto typeHash = ignition::common::hash64(_type);
 
-      // Enforce unique IDs
-      if (this->compsById.find(typeHash) != this->compsById.end())
-      {
-        std::cerr << "Failed to register duplicate component type [" << _type
-                  << "]" << std::endl;
-        return;
-      }
-
-      // Initialize static member variable
+      // Initialize static member variable - with clang, we need to set these
+      // static members for every shared lib that uses the component, but we
+      // only add them to the maps below once.
       ComponentTypeT::typeId = typeHash;
       ComponentTypeT::typeName = _type;
+
+      // Warn user in case of name collision at runtime - we can't prevent them
+      // from compiling 2 libs with different types registering the same name.
+      auto runtimeName = typeid(ComponentTypeT).name();
+      auto runtimeNameIt = this->runtimeNamesById.find(typeHash);
+      if (runtimeNameIt != this->runtimeNamesById.end())
+      {
+        if (runtimeNameIt->second != runtimeName)
+        {
+          std::cerr
+            << "Registered components of different types with same name: type ["
+            << runtimeNameIt->second << "] and type [" << runtimeName
+            << "] with name [" << _type << "]" << std::endl;
+        }
+        return;
+      }
 
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
+      runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -169,6 +180,14 @@ namespace components
         if (it != namesById.end())
         {
           namesById.erase(it);
+        }
+      }
+
+      {
+        auto it = runtimeNamesById.find(ComponentTypeT::typeId);
+        if (it != runtimeNamesById.end())
+        {
+          runtimeNamesById.erase(it);
         }
       }
 
@@ -262,6 +281,12 @@ namespace components
     /// \brief A list of IDs and their equivalent names.
     /// \detail Make it non-static on version 2.0.
     public: inline static std::map<ComponentTypeId, std::string> namesById;
+
+    /// \brief Keep track of the runtime names for types and warn the user if
+    /// they try to register different types with the same typeName.
+    /// \detail Make it non-static on version 2.0.
+    public: inline static std::map<ComponentTypeId, std::string>
+        runtimeNamesById;
   };
 
   /// \brief Static component registration macro.

@@ -1108,9 +1108,10 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
       rootWith.WorldByIndex(0)->Element());
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldEntity,
-      componentId));
+      componentId)) << componentId;
 }
 
 /////////////////////////////////////////////////
