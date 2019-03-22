@@ -244,7 +244,7 @@ namespace components
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
 
     /// \brief A list of IDs and their equivalent names.
-    private: std::map<ComponentTypeId, std::string> idsToNames;
+    private: static std::map<ComponentTypeId, std::string> idsToNames;
   };
 
   /// \brief Static component registration macro.
