@@ -216,8 +216,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
             (_nameComp->Data() == batteryName))
           {
-            // this->dataPtr->battery = std::make_shared<common::Battery>(
-            //   _batComp->Data());
             this->dataPtr->battery = _batComp->Data();
             return true;
           }
@@ -306,6 +304,8 @@ double LinearBatteryPluginPrivate::OnUpdateVoltage(
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
+  IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
+
   // double dt = std::chrono::duration_cast<std::chrono::seconds>(
   //   this->dataPtr->stepSize).count();
   double dt = this->dataPtr->maxStepSize;
