@@ -501,7 +501,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
 
   bool batExists = false;
   // Temporary battery if the same one already exists
-  auto battery = common::Battery(_batterySdf->Name(), _batterySdf->Voltage());
+  auto tmpBattery = common::Battery(_batterySdf->Name(),
+    _batterySdf->Voltage());
 
   // Check if a common::Battery with the name already exists
   this->dataPtr->ecm->Each<components::Battery>(
@@ -509,7 +510,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
       {
         // If an existing battery is the same as the one to be created, point
         //   the new battery component to the existing common::Battery
-        if (*(_batComp->Data()) == battery)
+        if (*(_batComp->Data()) == tmpBattery)
         {
           batExists = true;
 
@@ -518,8 +519,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
               components::Battery(_batComp->Data()));
           this->dataPtr->ecm->CreateComponent(batteryEntity,
               components::Name(_batterySdf->Name()));
-
-          return true;
         }
         return true;
       });
@@ -527,12 +526,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
   // If battery does not already exist, use a new battery
   if (!batExists)
   {
+    auto battery = new common::Battery(_batterySdf->Name(),
+      _batterySdf->Voltage());
+
     // Initialize new battery
-    battery.Init();
+    battery->Init();
 
     // Components
     this->dataPtr->ecm->CreateComponent(batteryEntity, components::Battery(
-        common::BatteryPtr(std::make_shared<common::Battery>(battery))));
+        common::BatteryPtr(battery)));
+        //common::BatteryPtr(std::make_shared<common::Battery>(*battery))));
     this->dataPtr->ecm->CreateComponent(batteryEntity,
         components::Name(_batterySdf->Name()));
   }
