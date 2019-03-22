@@ -68,7 +68,6 @@ class BatteryPluginTest : public ::testing::Test
 
 /////////////////////////////////////////////////
 // Single link consuming single battery
-/*
 TEST_F(BatteryPluginTest, SingleLinkSingleBattery)
 {
   ServerConfig serverConfig;
@@ -91,7 +90,6 @@ TEST_F(BatteryPluginTest, SingleLinkSingleBattery)
   // TODO(mabelzhang) Check battery voltage < sdf::Battery::Voltage() init voltage,
   //   and components::Battery::Data()->PowerLoads.size() == 1
 }
-*/
 
 /////////////////////////////////////////////////
 // Multiple links consuming the same battery
@@ -144,7 +142,6 @@ TEST_F(BatteryPluginTest, MultipleLinksSingleBattery)
   //auto batComp = ecm->Component<components::Battery>(batEntity);
   //EXPECT_NE(nullptr, batComp->Data());
   //EXPECT_GT(batComp->Data()->PowerLoads().size(), 1lu);
-
 
   /*
   ecm->Each<components::Battery, components::Name>(

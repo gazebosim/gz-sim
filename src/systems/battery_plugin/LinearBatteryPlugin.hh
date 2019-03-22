@@ -62,7 +62,7 @@ namespace systems
     /// \brief Callback for Battery Update events.
     /// \param[in] _battery Pointer to the battery that is to be updated.
     /// \return The new voltage.
-    public: double OnUpdateVoltage(const common::Battery *_battery);
+    private: double OnUpdateVoltage(const common::Battery *_battery);
 
     /// \brief Private data pointer
     private: std::unique_ptr<LinearBatteryPluginPrivate> dataPtr;
