@@ -12,15 +12,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo2-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo2-user-commands-system.so"
+      filename="libignition-gazebo-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo2-scene-broadcaster-system.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -343,7 +343,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo2-pose-publisher-system.so"
+        filename="libignition-gazebo-pose-publisher-system.so"
         name="ignition::gazebo::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_collision_pose>false</publish_collision_pose>
@@ -351,7 +351,7 @@
         <publish_nested_model_pose>false</publish_nested_model_pose>
       </plugin>
 
-      <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <link_name>base</link_name>
         <battery_name>linear_battery</battery_name>
@@ -362,14 +362,14 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
       </plugin>
-      <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryconsumerplugin-system.so"
          name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
         <link_name>base</link_name>
         <battery_name>linear_battery</battery_name>
         <power_load>6.6</power_load>
       </plugin>
 
-      <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <link_name>lower_link</link_name>
         <battery_name>linear_battery</battery_name>
@@ -380,7 +380,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
       </plugin>
-      <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryconsumerplugin-system.so"
          name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
         <link_name>lower_link</link_name>
         <battery_name>linear_battery</battery_name>

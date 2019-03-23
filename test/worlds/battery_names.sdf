@@ -14,15 +14,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo2-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo2-user-commands-system.so"
+      filename="libignition-gazebo-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo2-scene-broadcaster-system.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -183,7 +183,7 @@
         </battery>
       </link>
 
-      <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <link_name>body</link_name>
         <battery_name>linear_battery1</battery_name>
@@ -194,7 +194,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
       </plugin>
-      <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryconsumerplugin-system.so"
          name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
         <link_name>body</link_name>
         <battery_name>linear_battery1</battery_name>
@@ -247,7 +247,7 @@
         </battery>
       </link>
 
-      <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
         <link_name>body</link_name>
         <battery_name>linear_battery2</battery_name>
@@ -258,7 +258,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
       </plugin>
-      <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
+      <plugin filename="libignition-gazebo-linearbatteryconsumerplugin-system.so"
          name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
         <link_name>body</link_name>
         <battery_name>linear_battery2</battery_name>

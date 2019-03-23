@@ -538,7 +538,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
     // Components
     this->dataPtr->ecm->CreateComponent(batteryEntity, components::Battery(
         common::BatteryPtr(battery)));
-        //common::BatteryPtr(std::make_shared<common::Battery>(*battery))));
     this->dataPtr->ecm->CreateComponent(batteryEntity,
         components::Name(_batterySdf->Name()));
   }

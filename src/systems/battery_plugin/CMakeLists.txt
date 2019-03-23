@@ -1,40 +1,13 @@
-# Battery plugin
-set (linearbatteryplugin_system_sources
-  LinearBatteryPlugin.cc
+gz_add_system(linearbatteryplugin
+  SOURCES
+    LinearBatteryPlugin.cc
+  PUBLIC_LINK_LIBS
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
 
-ign_add_component(linearbatteryplugin-system
-  SOURCES ${linearbatteryplugin_system_sources}
-  GET_TARGET_NAME linearbatteryplugin_system_target
-  CXX_STANDARD 17)
-
-target_link_libraries(${linearbatteryplugin_system_target}
-  PUBLIC
-  ${PROJECT_LIBRARY_TARGET_NAME}
-  PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::register
+gz_add_system(linearbatteryconsumerplugin
+  SOURCES
+    LinearBatteryConsumerPlugin.cc
+  PUBLIC_LINK_LIBS
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
 )
-
-install(TARGETS ${linearbatteryplugin_system_target}
-        DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
-
-
-# Battery consumer plugin
-set (linearbatteryconsumerplugin_system_sources
-  LinearBatteryConsumerPlugin.cc
-)
-
-ign_add_component(linearbatteryconsumerplugin-system
-  SOURCES ${linearbatteryconsumerplugin_system_sources}
-  GET_TARGET_NAME linearbatteryconsumerplugin_system_target
-  CXX_STANDARD 17)
-
-target_link_libraries(${linearbatteryconsumerplugin_system_target}
-  PUBLIC
-  ${PROJECT_LIBRARY_TARGET_NAME}
-  PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::register
-)
-
-install(TARGETS ${linearbatteryconsumerplugin_system_target}
-        DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
