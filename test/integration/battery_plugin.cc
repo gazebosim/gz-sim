@@ -266,17 +266,17 @@ TEST_F(BatteryPluginTest, SingleLinkMultipleBatteries)
     Entity batEntity = ecm->EntityByComponents(components::Name(
       batNames[i]));
     EXPECT_NE(kNullEntity, batEntity);
- 
+
     // Find battery components
     EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
       components::Battery::typeId));
     auto batComp = ecm->Component<components::Battery>(batEntity);
     EXPECT_NE(nullptr, batComp->Data());
- 
+
     // Check battery initial parameters
     EXPECT_EQ(batComp->Data()->Name(), batNames[i]);
     EXPECT_NEAR(batComp->Data()->InitVoltage(), batVolts[i], 1e-6);
- 
+
     // Check there is a single consumer
     EXPECT_EQ(batComp->Data()->PowerLoads().size(), 1lu);
   }
@@ -334,24 +334,24 @@ TEST_F(BatteryPluginTest, MultipleLinksMultipleBatteries)
 
   std::string batNames[2] = {"linear_battery1", "linear_battery2"};
   double batVolts[2] = {12.592, 6.0};
-  long unsigned int nConsumers[2] = {1, 2};
+  uint64_t nConsumers[2] = {1, 2};
   for (int i = 0; i < 2; ++i)
   {
     // Find battery entities
     Entity batEntity = ecm->EntityByComponents(components::Name(
       batNames[i]));
     EXPECT_NE(kNullEntity, batEntity);
- 
+
     // Find battery components
     EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
       components::Battery::typeId));
     auto batComp = ecm->Component<components::Battery>(batEntity);
     EXPECT_NE(nullptr, batComp->Data());
- 
+
     // Check battery initial parameters
     EXPECT_EQ(batComp->Data()->Name(), batNames[i]);
     EXPECT_NEAR(batComp->Data()->InitVoltage(), batVolts[i], 1e-6);
- 
+
     // Check there is a single consumer
     EXPECT_EQ(batComp->Data()->PowerLoads().size(), nConsumers[i]);
   }
@@ -366,19 +366,19 @@ TEST_F(BatteryPluginTest, MultipleLinksMultipleBatteries)
       {
         // Increment on the entity
         batCount++;
- 
+
         // Look for a battery the same as this one
         bool newBat = true;
-        for (auto it = batteries.begin(); it != batteries.end(); ++it)
+        for (auto & it : batteries)
         {
-          if (*it == _batComp->Data())
+          if (it == _batComp->Data())
           {
             newBat = false;
             break;
           }
         }
         if (newBat)
-          batteries.push_back (_batComp->Data());
+          batteries.push_back(_batComp->Data());
         return true;
       });
   // Three battery entities
