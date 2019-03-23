@@ -31,9 +31,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using ModelPluginComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ModelPluginComponent",
-    ModelPluginComponent)
+using IntComponent = components::Component<int, class IntComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+    IntComponent)
 }
 }
 
@@ -42,11 +42,6 @@ class TestModelSystem :
   public ISystemConfigure
 {
   public: TestModelSystem() = default;
-  public: ~TestModelSystem()
-        {
-          components::Factory::Instance()->Unregister<
-              components::ModelPluginComponent>();
-        }
 
   private: bool Service(msgs::StringMsg &_msg)
            {
@@ -79,8 +74,7 @@ class TestModelSystem :
               &TestModelSystem::Service, this);
 
           auto value = _sdf->Get<int>("model_key");
-          _ecm.CreateComponent(_entity,
-              components::ModelPluginComponent(value));
+          _ecm.CreateComponent(_entity, components::IntComponent(value));
         }
 
   private: Model model;
