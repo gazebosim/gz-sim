@@ -211,6 +211,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.01</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -246,6 +253,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>5</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -281,6 +295,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.01</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -316,6 +337,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>5</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 

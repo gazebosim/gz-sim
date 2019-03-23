@@ -12,7 +12,7 @@ pipelines:
           - docker/scripts/enable_gcc8.sh
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
-          #- docker/scripts/enable_ign_prerelease.sh
+          - docker/scripts/enable_ign_prerelease.sh
           - sudo apt-get update
           # Dependency: Ignition packages
           - apt-get -y install
@@ -93,6 +93,18 @@ pipelines:
           # - cd build
           # - cmake .. -DBUILD_TESTING=false
           # - make -j4 install
+          # - cd ../..
+          # Ignition Physics (uncomment if a specific branch is needed)
+          # - apt-get -y install
+          #   libdart6-dev
+          #   libdart6-collision-ode-dev
+          #   libdart6-utils-urdf-dev
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-physics -b default
+          # - cd ign-physics
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
+          # - make install
           # - cd ../..
           # Ignition Gazebo
           - ./tools/clang_tidy.sh
