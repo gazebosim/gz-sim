@@ -53,7 +53,8 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
   std::string ackTopic { this->Namespace() + "/stepAck" };
-  this->stepAckPub = this->node.Advertise<msgs::SimulationStep>(ackTopic);
+  this->stepAckPub =
+      this->node.Advertise<private_msgs::SimulationStep>(ackTopic);
 
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
@@ -138,7 +139,7 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::StepAck(uint64_t _iteration)
 {
-  auto step = msgs::SimulationStep();
+  auto step = private_msgs::SimulationStep();
   step.set_iteration(_iteration);
   this->stepAckPub.Publish(step);
   return true;
@@ -151,8 +152,8 @@ std::string NetworkManagerSecondary::Namespace() const
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
-                                        msgs::PeerControl& _resp)
+bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
+                                        private_msgs::PeerControl& _resp)
 {
   igndbg << "NetworkManagerSecondary::OnControl" << std::endl;
   this->enableSim = _req.enable_sim();
@@ -161,10 +162,10 @@ bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerSecondary::OnStep(const msgs::SimulationStep &_msg)
+void NetworkManagerSecondary::OnStep(const private_msgs::SimulationStep &_msg)
 {
   std::unique_lock<std::mutex> lock(this->stepMutex);
-  this->currentStep = std::make_unique<msgs::SimulationStep>(_msg);
+  this->currentStep = std::make_unique<private_msgs::SimulationStep>(_msg);
   lock.unlock();
   this->stepCv.notify_all();
 }
