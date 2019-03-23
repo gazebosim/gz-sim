@@ -34,6 +34,7 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/components/Battery.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 
 #include "plugins/MockSystem.hh"
@@ -384,4 +385,64 @@ TEST_F(BatteryPluginTest, MultipleLinksMultipleBatteries)
   EXPECT_EQ(batCount, 3lu);
   // Two actual common::Battery instances
   EXPECT_EQ(batteries.size(), 2lu);
+}
+
+/////////////////////////////////////////////////
+// Links with the same name under different models. Tests batteries are
+// attached to the correct model
+TEST_F(BatteryPluginTest, LinksSameName)
+{
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "battery_names.sdf");
+  sdf::Root root;
+  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
+  EXPECT_GT(root.WorldCount(), 0lu);
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfPath);
+
+  // A pointer to the ecm. This will be valid once we run the mock system
+  gazebo::EntityComponentManager *ecm = nullptr;
+  this->mockSystem->preUpdateCallback =
+    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+    };
+
+  // Start server
+  Server server(serverConfig);
+  server.AddSystem(this->systemPtr);
+  server.Run(true, 100, false);
+  EXPECT_NE(nullptr, ecm);
+
+  ecm->Each<components::Battery>(
+      [&](const Entity &_batEntity, components::Battery *_batComp)
+        -> bool
+      {
+        Entity linkEnt = ecm->ParentEntity(_batEntity);
+        EXPECT_NE(linkEnt, kNullEntity);
+
+        Entity modelEnt = ecm->ParentEntity(linkEnt);
+        EXPECT_NE(modelEnt, kNullEntity);
+
+        // Check parent's parent is a Model component
+        EXPECT_TRUE(ecm->EntityHasComponentType(modelEnt,
+          components::Model::typeId));
+
+        // Get model name
+        EXPECT_TRUE(ecm->EntityHasComponentType(modelEnt,
+          components::Name::typeId));
+        auto modelNameComp = ecm->Component<components::Name>(modelEnt);
+
+        // Check battery is attached to the correct model
+        if (_batComp->Data()->Name() == "linear_battery1")
+        {
+          EXPECT_EQ(modelNameComp->Data(), "linear_battery_demo_model1");
+        }
+        else if (_batComp->Data()->Name() == "linear_battery2")
+        {
+          EXPECT_EQ(modelNameComp->Data(), "linear_battery_demo_model2");
+        }
+        return true;
+      });
 }
