@@ -21,6 +21,9 @@
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/time.pb.h>
+
+#include <chrono>
 
 #include <ignition/common/Console.hh>
 #include <sdf/Geometry.hh>
@@ -103,6 +106,40 @@ namespace ignition
     /// \return Gui message.
     template<>
     msgs::GUI convert(const sdf::Gui &_in);
+
+    /// \brief Generic conversion from a steady clock duration to another type.
+    /// \param[in] _in Steady clock duration.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const std::chrono::steady_clock::duration &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a steady clock duration to a time
+    /// message.
+    /// \param[in] _in Steady clock duration.
+    /// \return Ignition time message.
+    template<>
+    msgs::Time convert(const std::chrono::steady_clock::duration &_in);
+
+    /// \brief Generic conversion from a time message to another type.
+    /// \param[in] _in Time message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Time &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a time message to a steady clock
+    /// duration.
+    /// \param[in] _in Time message.
+    /// \return Steady clock duration.
+    template<>
+    std::chrono::steady_clock::duration convert(const msgs::Time &_in);
     }
   }
 }

@@ -25,9 +25,9 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -128,17 +128,15 @@ void ContactSensor::AddContacts(
     const std::chrono::steady_clock::duration &_stamp,
     const msgs::Contacts &_contacts)
 {
-  auto ts = math::durationToSecNsec(_stamp);
+  auto stamp = convert<msgs::Time>(_stamp);
   for (const auto &contact : _contacts.contact())
   {
     auto *newContact = this->contactsMsg.add_contact();
     newContact->CopyFrom(contact);
-    newContact->mutable_header()->mutable_stamp()->set_sec(ts.first);
-    newContact->mutable_header()->mutable_stamp()->set_nsec(ts.second);
+    newContact->mutable_header()->mutable_stamp()->CopyFrom(stamp);
   }
 
-  this->contactsMsg.mutable_header()->mutable_stamp()->set_sec(ts.first);
-  this->contactsMsg.mutable_header()->mutable_stamp()->set_nsec(ts.second);
+  this->contactsMsg.mutable_header()->mutable_stamp()->CopyFrom(stamp);
 }
 
 //////////////////////////////////////////////////
