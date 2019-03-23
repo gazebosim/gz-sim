@@ -201,10 +201,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   {
     auto batteryName = _sdf->Get<std::string>("battery_name");
 
-    // TODO(mabelzhang) Create a test that has two links of same names in
-    //   different models, and check the battery attaches to the correct model.
-    //   Create a test that has two links, each with a battery of the same name,
-    //   and check that the batteries are each attached to the correct link.
     _ecm.Each<components::Battery, components::Name>(
         [&](const Entity &_batEntity, const components::Battery *_batComp,
             const components::Name *_nameComp) -> bool
