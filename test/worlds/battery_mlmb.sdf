@@ -2,7 +2,7 @@
 <!--
   Battery demo
 
-  Each link consumes a separate battery.
+  Multiple links consuming multiple batteries.
 -->
 <sdf version="1.6">
   <world name="pose_publisher">
@@ -267,6 +267,9 @@
             </cylinder>
           </geometry>
         </collision>
+        <battery name="linear_battery2">
+          <voltage>6.0</voltage>
+        </battery>
       </link>
       <!-- lower link, length 1, IC ~-120 degrees more -->
       <link name="lower_link">
@@ -383,6 +386,24 @@
       <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
          name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
         <link_name>lower_link</link_name>
+        <battery_name>linear_battery2</battery_name>
+        <power_load>4.4</power_load>
+      </plugin>
+
+      <plugin filename="libignition-gazebo2-linearbatteryplugin-system.so"
+        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        <link_name>upper_link</link_name>
+        <battery_name>linear_battery2</battery_name>
+        <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
+        <open_circuit_voltage_linear_coef>-3.1424</open_circuit_voltage_linear_coef>
+        <initial_charge>1.1665</initial_charge>
+        <capacity>1.2009</capacity>
+        <resistance>0.061523</resistance>
+        <smooth_current_tau>1.9499</smooth_current_tau>
+      </plugin>
+      <plugin filename="libignition-gazebo2-linearbatteryconsumerplugin-system.so"
+         name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
+        <link_name>upper_link</link_name>
         <battery_name>linear_battery2</battery_name>
         <power_load>4.4</power_load>
       </plugin>

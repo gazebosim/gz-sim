@@ -205,8 +205,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     //   different models, and check the battery attaches to the correct model.
     //   Create a test that has two links, each with a battery of the same name,
     //   and check that the batteries are each attached to the correct link.
-    //   Create a test with multiple batteries under one link.
-    //   Create a test with multiple links consuming the same battery (?).
     _ecm.Each<components::Battery, components::Name>(
         [&](const Entity &_batEntity, const components::Battery *_batComp,
             const components::Name *_nameComp) -> bool
