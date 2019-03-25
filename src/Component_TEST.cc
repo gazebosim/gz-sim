@@ -475,3 +475,27 @@ TEST_F(ComponentTest, TypeId)
     EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
   }
 }
+
+//////////////////////////////////////////////////
+TEST_F(ComponentTest, TypeName)
+{
+  // Component with data
+  {
+    using Custom = components::Component<int, class CustomTag>;
+    Custom::typeName = "123456";
+
+    Custom comp;
+
+    EXPECT_EQ("123456", comp.typeName);
+  }
+
+  // Component without data
+  {
+    using Custom = components::Component<components::NoData, class CustomTag>;
+    Custom::typeName = "123456";
+
+    Custom comp;
+
+    EXPECT_EQ("123456", comp.typeName);
+  }
+}
