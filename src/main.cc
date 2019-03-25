@@ -25,6 +25,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/config.hh"
 
@@ -236,9 +237,13 @@ int main(int _argc, char **_argv)
     }
   }
 
+  std::string role;
+  if (ignition::common::env("IGN_GAZEBO_NETWORK_ROLE", role))
+    std::transform(role.begin(), role.end(), role.begin(), ::toupper);
+
   // Run the GUI
-  pid_t  guiPid;
-  if (!FLAGS_s && !FLAGS_distributed)
+  pid_t guiPid;
+  if (!FLAGS_s && (!FLAGS_distributed || role == "PRIMARY"))
   {
     guiPid = fork();
     if (guiPid == 0)
