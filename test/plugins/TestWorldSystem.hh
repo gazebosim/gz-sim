@@ -28,9 +28,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
-    DoubleComponent)
+using WorldPluginComponent =
+    components::Component<double, class WorldPluginComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("WorldPluginComponent",
+    WorldPluginComponent)
 }
 }
 
@@ -40,6 +41,10 @@ class TestWorldSystem :
   public ISystemUpdate
 {
   public: TestWorldSystem() = default;
+  public: ~TestWorldSystem()
+        {
+          igndbg << "Destroying TestWorldSystem" << std::endl;
+        }
 
   public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
@@ -47,7 +52,8 @@ class TestWorldSystem :
                          EventManager &/*_eventManager*/) override
         {
           auto value = _sdf->Get<double>("world_key");
-          _ecm.CreateComponent(_entity, components::DoubleComponent(value));
+          _ecm.CreateComponent(_entity,
+              components::WorldPluginComponent(value));
         }
 
   public: void Update(const gazebo::UpdateInfo &_info,
