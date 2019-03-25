@@ -69,7 +69,7 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    auto pluginNames = loader.LoadLib(pathToLib);
+    auto pluginNames = this->loader.LoadLib(pathToLib);
     if (pluginNames.empty())
     {
       ignerr << "Failed to load system plugin [" << _filename <<
@@ -87,7 +87,7 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    _plugin = loader.Instantiate(_name);
+    _plugin = this->loader.Instantiate(_name);
     if (!_plugin)
     {
       ignerr << "Failed to load system plugin [" << _name <<

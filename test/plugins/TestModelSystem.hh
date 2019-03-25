@@ -31,9 +31,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using IntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
-    IntComponent)
+using ModelPluginComponent = components::Component<int, class IntComponentTag>;
+IGN_GAZEBO_REGISTER_COMPONENT("ModelPluginComponent",
+    ModelPluginComponent)
 }
 }
 
@@ -42,6 +42,10 @@ class TestModelSystem :
   public ISystemConfigure
 {
   public: TestModelSystem() = default;
+  public: ~TestModelSystem()
+        {
+          igndbg << "Destroying TestModelSystem" << std::endl;
+        }
 
   private: bool Service(msgs::StringMsg &_msg)
            {
@@ -57,10 +61,14 @@ class TestModelSystem :
           this->model = Model(_entity);
 
           auto link = this->model.LinkByName(_ecm, "link_1");
-          // This plugin might have been attached to the box model in
+          // This plugin might have been attached to the models in
           // test/world/shapes.world.
           if (link == kNullEntity)
             link = this->model.LinkByName(_ecm, "box_link");
+          if (link == kNullEntity)
+            link = this->model.LinkByName(_ecm, "sphere_link");
+          if (link == kNullEntity)
+            link = this->model.LinkByName(_ecm, "cylinder_link");
 
           // Fail to create component if link is not found
           if (link == kNullEntity)
@@ -74,7 +82,8 @@ class TestModelSystem :
               &TestModelSystem::Service, this);
 
           auto value = _sdf->Get<int>("model_key");
-          _ecm.CreateComponent(_entity, components::IntComponent(value));
+          _ecm.CreateComponent(_entity,
+              components::ModelPluginComponent(value));
         }
 
   private: Model model;
