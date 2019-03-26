@@ -40,7 +40,11 @@ class TestWorldSystem :
   public ISystemConfigure,
   public ISystemUpdate
 {
-  public: TestWorldSystem() = default;
+  public: TestWorldSystem()
+        {
+          igndbg << "Constructing TestWorldSystem" << std::endl;
+        }
+
   public: ~TestWorldSystem()
         {
           igndbg << "Destroying TestWorldSystem" << std::endl;
@@ -51,6 +55,7 @@ class TestWorldSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
+          igndbg << "Configuring TestWorldSystem" << std::endl;
           auto value = _sdf->Get<double>("world_key");
           _ecm.CreateComponent(_entity,
               components::WorldPluginComponent(value));

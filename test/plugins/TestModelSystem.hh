@@ -41,7 +41,11 @@ class TestModelSystem :
   public System,
   public ISystemConfigure
 {
-  public: TestModelSystem() = default;
+  public: TestModelSystem()
+        {
+          igndbg << "Constructing TestModelSystem" << std::endl;
+        }
+
   public: ~TestModelSystem()
         {
           igndbg << "Destroying TestModelSystem" << std::endl;
@@ -58,6 +62,7 @@ class TestModelSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
+          igndbg << "Configuring TestModelSystem" << std::endl;
           this->model = Model(_entity);
 
           auto link = this->model.LinkByName(_ecm, "link_1");
