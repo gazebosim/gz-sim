@@ -1,7 +1,5 @@
 \page createsystemplugins Create System Plugins
 
-# Implementing a System Plugin
-
 In Ignition Gazebo, all systems are loaded as plugins at runtime.  To create
 a system plugin for use in the simulation environment, follow the steps
 below.
