@@ -28,6 +28,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Model.hh"
 #include "PosePublisher.hh"
 
@@ -124,8 +125,7 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->FillPoses(this->dataPtr->model.Entity(), _ecm, poses);
 
   // publish poses
-  auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(_info.simTime);
+  auto stampMsg = convert<msgs::Time>(_info.simTime);
   for (const auto &pose : poses)
   {
     // fill pose msg
@@ -134,8 +134,7 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     // pose is the transform from frame_id to child_frame_id
     ignition::msgs::Pose poseMsg;
     auto header = poseMsg.mutable_header();
-    header->mutable_stamp()->set_sec(simTimeSecNsec.first);
-    header->mutable_stamp()->set_nsec(simTimeSecNsec.second);
+    header->mutable_stamp()->CopyFrom(stampMsg);
     const std::string &frameId = std::get<0>(pose);
     const std::string &childFrameId = std::get<1>(pose);
     const math::Pose3d &transform = std::get<2>(pose);
