@@ -1,6 +1,4 @@
-\page levels
-
-# Levels
+\page levels Levels
 
 This tutorial gives an introduction to Ignition Gazebo's levels feature.
 This feature allows loading and unloading objects in simulation according

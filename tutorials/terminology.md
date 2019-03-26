@@ -1,6 +1,4 @@
-\page terminology
-
-# Terminology
+\page terminology Terminology
 
 This is a list of definitions used throughout Ignition Gazebo. Some of them
 are important for downstream users, while some of them are only interesting
