@@ -15,8 +15,8 @@ is about to come into the level, or has left and is far enough away to
 exclude the entity from the level.
 
 All simulation entities which may change levels during the
-simulation, such as robots, actors and dynamic models. A performer only
-has meaning if there are levels.
+simulation, such as robots, actors and dynamic models are called Performers.
+A performer only has meaning in the context of levels or distributed simulation.
 
 To enable levels, it is necessary to add appropriate tags in the SDF file
 as described below, and to launch Gazebo with the `--levels` flag.
@@ -60,7 +60,7 @@ or when Gazebo is launched without the `--levels` flag.
 
 ### Multiple levels, one server
 
-If a world has a single performer, who may be moving across several levels,
+If a world has a single performer, which may be moving across several levels,
 only the level which contains the performer, and the default level, will be
 initially loaded.
 As the performer moves in the world, the runner will load / unload levels as
@@ -192,15 +192,23 @@ a model). The `<ref>` tag designates the name of the performer entity. It is
 a required tag and there can only be one inside a `<performer>`. Multiple
 `<performer>`s cannot point to the same entity.
 
-To simplify the creation of performers, a bounding volume for the performer will
-be generated automatically based on the geometries contained in the referenced
-model's `<collision>` tags.
+In addition, the `<performer>` tag contains information about the volume
+occupied by the performer. This volume is specified by the `<geometry>` tag.
+Only the `<box>` tag is currently supported.
+
+\note The volume for a performer maybe automatically generated in future
+versions of Gazebo.
 
 Example snippet:
 
 ```xml
 <performer name="perf1">
   <ref>robot1</ref>
+  <geometry>
+    <box>
+      <size>1 1 1</size>
+    </box>
+  </geometry>
 </performer>
 ```
 
@@ -262,12 +270,27 @@ the figure
   <plugin name="ignition::gazebo" filename="dummy">
     <performer name="perf1">
       <ref>R1</ref>
+      <geometry>
+        <box>
+          <size>2 2 2</size>
+        </box>
+      </geometry>
     </performer>
     <performer name="perf2">
       <ref>R2</ref>
+      <geometry>
+        <box>
+          <size>2 2 2</size>
+        </box>
+      </geometry>
     </performer>
     <performer name="perf3">
       <ref>R3</ref>
+      <geometry>
+        <box>
+          <size>2 2 2</size>
+        </box>
+      </geometry>
     </performer>
 
     <level name="L1">
