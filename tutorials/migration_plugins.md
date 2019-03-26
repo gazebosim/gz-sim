@@ -11,8 +11,7 @@ sensors, GUI, etc. Due to Ignition Gazebo's architecture based on an
 more powerful. Some plugins in Ignition are systems within Ignition Gazebo,
 while others are specific plugin types from other Ignition libraries.
 
-> **NOTE**: Plugin types other than systems may be added to Ignition Gazebo in
-  the future.
+\note Plugin types other than systems may be added to Ignition Gazebo in the future.
 
 For example, plugins which get and set properties of simulation entities would be
 Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
