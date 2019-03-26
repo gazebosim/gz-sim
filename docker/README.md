@@ -27,18 +27,18 @@ use the Ignition Gazebo code found in the current source tree.
 1. Change the root directory of the Ignition Gazebo source tree. If you are
    currently in the `docker` subdirectory:
 
-```
-cd ..
-```
+    ```
+    cd ..
+    ```
 
 1. Build a docker image using the `build.bash` command. The first argument
    will become the name of the Docker image. The second argument is the
    nightly dockerfile. The following is an example that builds an image
    called "ignition-gazebo-nightly".
 
-```
-./build.bash ignition-gazebo-nightly ./docker/Dockerfile.nightly
-```
+    ```
+    ./build.bash ignition-gazebo-nightly ./docker/Dockerfile.nightly
+    ```
 
 ## Ignition Gazebo Using Debians In Docker
 
@@ -57,23 +57,23 @@ distribution using debians.
    must be the name of the Ignition distribution. For example, to build an
    image of Ignition Acropolis:
 
-```
-./build.bash ignition-acropolis ./Dockerfile.ignition
-```
+    ```
+    ./build.bash ignition-acropolis ./Dockerfile.ignition
+    ```
 
 2. Run the docker image using `run.bash`, and pass in the name of the docker
    image (first argument to the build.bash script).
 
-```
-./run.bash ignition-acropolis
-```
+    ```
+    ./run.bash ignition-acropolis
+    ```
 
 3. You can pass arguments to Ignition Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
-```
-./run.bash ignition-acropolis -f shapes.sdf
-```
+    ```
+    ./run.bash ignition-acropolis -f shapes.sdf
+    ```
 
 ## Appendix
 
