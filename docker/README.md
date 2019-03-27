@@ -31,13 +31,22 @@ use the Ignition Gazebo code found in the current source tree.
     cd ..
     ```
 
-1. Build a docker image using the `build.bash` command. The first argument
-   will become the name of the Docker image. The second argument is the
-   nightly dockerfile. The following is an example that builds an image
-   called "ignition-gazebo-nightly".
+1. Build the ign-gazebo:base image.
 
     ```
-    ./build.bash ignition-gazebo-nightly ./docker/Dockerfile.nightly
+    docker build . -f ./docker/Dockerfile.base -t ign-gazebo:base
+    ```
+
+2. Build the nightly docker image.
+
+    ```
+    docker build . -f ./docker/Dockerfile.nightly -t ign-gazebo:nightly
+    ```
+
+3. Run the docker image.
+
+    ```
+    docker run -it ign-gazebo:nightly /bin/bash
     ```
 
 ## Ignition Gazebo Using Debians In Docker

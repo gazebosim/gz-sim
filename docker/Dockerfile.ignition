@@ -12,18 +12,9 @@ ARG ign_distribution
 # Tools I find useful during development
 RUN apt-get update \
  && apt-get install -y \
-        build-essential \
-        cmake \
-        cppcheck \
-        gdb \
-        git \
         lsb-release \
-        mercurial \
-        ruby2.5 \
-        ruby2.5-dev \
-        software-properties-common \
         sudo \
-        vim \
+        gpg \
         wget \
  && apt-get clean
 
