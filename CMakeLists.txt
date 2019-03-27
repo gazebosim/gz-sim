@@ -79,8 +79,15 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors1 REQUIRED COMPONENTS rendering camera gpu_lidar logical_camera depth_camera)
-set(IGN_SENSORS_VER ${ignition-sensors1_VERSION_MAJOR})
+ign_find_package(ignition-sensors2 REQUIRED
+  COMPONENTS
+    rendering
+    camera
+    gpu_lidar
+    logical_camera
+    depth_camera
+)
+set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
