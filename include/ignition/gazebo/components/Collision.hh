@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_COLLISION_HH_
 #define IGNITION_GAZEBO_COMPONENTS_COLLISION_HH_
 
+#include <sdf/Element.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -33,6 +35,16 @@ namespace components
   using Collision = Component<NoData, class CollisionTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Collision", Collision)
+
+  // TODO(anyone) Replace with sdf::Surface. We really want to hold the value of
+  // the <surface> tag, but since there is no sdf::Surface and no way to
+  // construct an sdf::Collision from a surface element, we are storing the
+  // element of the <collision> tag here.
+  /// \brief A component that holds the sdf::Element of a collision
+  using CollisionElement =
+      Component<sdf::ElementPtr, class CollisionElementTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CollisionElement",
+                                CollisionElement)
 }
 }
 }
