@@ -44,6 +44,8 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check it has no type id yet
   EXPECT_EQ(0u, MyCustom::typeId);
+  EXPECT_EQ("", MyCustom::typeName);
+  EXPECT_EQ("", factory->Name(MyCustom::typeId));
 
   // Store number of registered component types
   auto registeredCount = factory->TypeIds().size();
@@ -54,6 +56,9 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
+  EXPECT_EQ("ign_gazebo_components.MyCustom", MyCustom::typeName);
+  EXPECT_EQ("ign_gazebo_components.MyCustom",
+      factory->Name(MyCustom::typeId));
 
   // Check factory knows id
   auto ids = factory->TypeIds();
@@ -65,8 +70,9 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check it has no type id yet
   ids = factory->TypeIds();
-  EXPECT_EQ(0u, MyCustom::typeId);
   EXPECT_EQ(registeredCount, ids.size());
+  EXPECT_EQ(0u, MyCustom::typeId);
+  EXPECT_EQ("", factory->Name(MyCustom::typeId));
 }
 
 /////////////////////////////////////////////////
