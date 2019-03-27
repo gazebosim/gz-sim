@@ -113,7 +113,18 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // If the configuration is invalid, then networkMgr will be `nullptr`.
   if (_config.UseDistributedSimulation())
   {
-    this->networkMgr = NetworkManager::Create(&this->eventMgr);
+    if (_config.NetworkRole().empty())
+    {
+      /// \todo(nkoenig) Add deprecation warning in ign-gazebo2, and remove
+      /// part of the 'if' statement in ign-gazebo3.
+      this->networkMgr = NetworkManager::Create(&this->eventMgr);
+    }
+    else
+    {
+      this->networkMgr = NetworkManager::Create(&this->eventMgr,
+          NetworkConfig::FromValues(
+            _config.NetworkRole(), _config.NetworkSecondaries()));
+    }
 
     if (this->networkMgr->IsPrimary())
     {

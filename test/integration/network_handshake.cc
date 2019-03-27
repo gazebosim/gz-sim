@@ -99,14 +99,14 @@ uint64_t iterations()
 #ifdef  __linux__
 TEST(NetworkHandshake, Handshake)
 {
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
-  setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
+  serverConfig.SetNetworkRole("primary");
+  serverConfig.SetNetworkSecondaries(2);
   Server serverPrimary(serverConfig);
   serverPrimary.SetUpdatePeriod(1us);
 
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "SECONDARY", 1);
+  serverConfig.SetNetworkRole("secondary");
   Server serverSecondary1(serverConfig);
   serverSecondary1.SetUpdatePeriod(1us);
 
