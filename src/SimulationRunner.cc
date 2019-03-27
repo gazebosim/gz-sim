@@ -270,6 +270,12 @@ void SimulationRunner::PublishStats()
 /////////////////////////////////////////////////
 void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
+  this->pendingSystems.push_back(_system);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
+{
   this->systems.push_back(SystemInternal(_system));
 
   const auto &system = this->systems.back();
@@ -282,6 +288,16 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 
   if (system.postupdate)
     this->systemsPostupdate.push_back(system.postupdate);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessSystemQueue()
+{
+  for (const auto &system : this->pendingSystems)
+  {
+    this->AddSystemToRunner(system);
+  }
+  this->pendingSystems.clear();
 }
 
 /////////////////////////////////////////////////
@@ -435,6 +451,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
     this->levelMgr->UpdateLevelsState();
+
+    // Handle pending systems
+    this->ProcessSystemQueue();
 
     // Update all the systems.
     this->UpdateSystems();
