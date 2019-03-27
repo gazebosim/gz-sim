@@ -31,7 +31,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using ModelPluginComponent = components::Component<int, class IntComponentTag>;
+using ModelPluginComponent = components::Component<int,
+    class ModelPluginComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ModelPluginComponent",
     ModelPluginComponent)
 }
