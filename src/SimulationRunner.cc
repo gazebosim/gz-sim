@@ -482,6 +482,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
+
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
@@ -515,6 +516,21 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
   if (this->serverConfig.UseRecord())
   {
     this->logRecorder.Start();
+
+    /*
+    // Inject SDF. Problem: plugin name is hardcoded and needs to change with
+    //   each ignition version change. Not a good idea to put it here.
+    if (pluginElem != nullptr)
+    {
+      sdf::ElementPtr parentElem = pluginElem->GetParent();
+      if (parentElem != nullptr)
+      {
+        sdf::ElementPtr recordElem = parentElem->AddElement("plugin");
+
+        recordElem->AddAttribute();
+      }
+    }
+    */
   }
 
   // \todo(nkoenig) Remove plugins from the server config after they have
