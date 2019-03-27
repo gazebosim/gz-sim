@@ -50,6 +50,7 @@
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
 #include "SyncManager.hh"
+#include "systems/log/LogRecord.hh"
 
 using namespace std::chrono_literals;
 
@@ -308,6 +309,9 @@ namespace ignition
 
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
+
+      /// \brief Logging recorder.
+      private: systems::LogRecord logRecorder;
 
       /// \brief Wall time of the previous update.
       private: std::chrono::steady_clock::time_point prevUpdateRealTime;

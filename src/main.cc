@@ -41,6 +41,7 @@ DEFINE_string(f, "", "Load an SDF file on start.");
 DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
+DEFINE_bool(record, false, "Use logging system to record states");
 
 //////////////////////////////////////////////////
 void help()
@@ -75,6 +76,9 @@ void help()
   << std::endl
   << "  --levels               Use the level manager."
   << " The default is false, which loads all models."
+  << std::endl
+  << "  --record               Use logging system to record states."
+  << " The default is false."
   << std::endl
   << std::endl;
 }

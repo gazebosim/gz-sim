@@ -38,19 +38,12 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-
-
 using namespace ignition;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
 class ignition::gazebo::systems::LogRecordPrivate
 {
-  /// \brief Ignition transport recorder
-  public: transport::log::Recorder recorder;
-
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
@@ -68,6 +61,15 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Unique directory path to not overwrite existing directory
   /// \param[in] _pathAndName Full absolute path
   public: std::string UniqueDirectoryPath(const std::string &_dir);
+
+  /// \brief Ignition transport recorder
+  public: transport::log::Recorder recorder;
+
+  /// \brief SDF of this plugin
+  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
+
+  /// \brief Indicator of whether a recorder plugin has been started
+  public: static bool started = false;
 };
 
 //////////////////////////////////////////////////
@@ -125,10 +127,7 @@ LogRecord::LogRecord()
 //////////////////////////////////////////////////
 LogRecord::~LogRecord()
 {
-  // Use ign-transport directly
-  this->dataPtr->recorder.Stop();
-
-  ignmsg << "Stopping recording" << std::endl;
+  this->Stop();
 }
 
 //////////////////////////////////////////////////
@@ -136,9 +135,21 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
+  this->dataPtr->sdf = _sdf;
+
   // Get directory paths from SDF params
   auto logPath = _sdf->Get<std::string>("path");
 
+  if (!this->dataPtr->started)
+  {
+    this->Start(logPath.c_str());
+    this->dataPtr->started = true;
+  }
+}
+
+//////////////////////////////////////////////////
+bool LogRecord::Start(const std::string _logPath)
+{
   // If unspecified, or specified is not a directory, use default directory
   if (logPath.empty() ||
       (common::exists(logPath) && !common::isDirectory(logPath)))
@@ -152,7 +163,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   if (common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
-    ignwarn << "Log path already exist on disk! "
+    ignwarn << "Log path already exists on disk! "
       << "Recording instead to [" << logPath << "]" << std::endl;
   }
 
@@ -175,7 +186,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   std::ofstream ofs(sdfPath);
 
   // Go up to root of SDF, to output entire SDF file
-  sdf::ElementPtr sdfRoot = _sdf->GetParent();
+  sdf::ElementPtr sdfRoot = this->dataPtr->sdf->GetParent();
   while (sdfRoot->GetParent() != nullptr)
   {
     sdfRoot = sdfRoot->GetParent();
@@ -192,7 +203,20 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // this->dataPtr->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
-  this->dataPtr->recorder.Start(dbPath);
+  if (this->dataPtr->recorder.Start(dbPath) ==
+      ignition::transport::log::RecorderError::SUCCESS)
+    return true;
+  else
+    return false;
+}
+
+//////////////////////////////////////////////////
+void LogRecord::Stop()
+{
+  // Use ign-transport directly
+  this->dataPtr->recorder.Stop();
+
+  ignmsg << "Stopping recording" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,

@@ -52,6 +52,12 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
+    /// \brief Start recording
+    public: bool Start(const std::string _logPath=std::string(""));
+
+    /// \brief Stop recording
+    public: void Stop();
+
     /// \brief Private data pointer.
     private: std::unique_ptr<LogRecordPrivate> dataPtr;
   };

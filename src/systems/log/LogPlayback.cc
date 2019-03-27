@@ -35,6 +35,7 @@
 
 #include <sdf/Root.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -59,6 +60,15 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
+
+  /// \brief Entity of world
+  public: Entity worldEntity = kNullEntity;
+
+  /// \brief Entity component manager
+  public: std::shared_ptr<EntityComponentManager> ecm = nullptr;
+
+  /// \brief Event manager
+  public: std::shared_ptr<EventManager> eventMgr = nullptr;
 };
 
 
@@ -74,8 +84,7 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
 {
-  size_t foundPos = this->iter->Type().find_last_of('.');
-  if (this->iter->Type().substr(foundPos + 1).compare("Pose_V") != 0)
+  if (this->iter->Type() != "ignition.msgs.Pose_V")
   {
     ignwarn << "Logged message types other than Pose_V are currently not "
       << "supported. Message of type [" << this->iter->Type()
@@ -125,6 +134,10 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
+  this->dataPtr->worldEntity = _worldEntity;
+  this->dataPtr->ecm = std::shared_ptr<EntityComponentManager>(&_ecm);
+  this->dataPtr->eventMgr = std::shared_ptr<EventManager>(&_eventMgr);
+
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
 
@@ -140,18 +153,24 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     return;
   }
 
+  this->Start(logPath.c_str());
+}
+
+//////////////////////////////////////////////////
+bool LogPlayback::Start(const char *_logPath)
+{
   // Append file name
-  std::string dbPath = common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
 
   // Temporary. Name of recorded SDF file
-  std::string sdfPath = common::joinPaths(logPath, "state.sdf");
+  std::string sdfPath = common::joinPaths(_logPath, "state.sdf");
 
   if (!common::exists(dbPath) ||
       !common::exists(sdfPath))
   {
     ignerr << "Log path invalid. File(s) [" << dbPath << "] / [" << sdfPath
            << "] do not exist. Nothing to play.\n";
-    return;
+    return false;
   }
 
   ignmsg << "Loading log files:"  << std::endl
@@ -163,7 +182,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   if (root.Load(sdfPath).size() != 0 || root.WorldCount() <= 0)
   {
     ignerr << "Error loading SDF file [" << sdfPath << "]" << std::endl;
-    return;
+    return false;
   }
   const sdf::World *sdfWorld = root.WorldByIndex(0);
 
@@ -211,7 +230,8 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
-    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
+    ignition::gazebo::SdfEntityCreator(*(this->dataPtr->ecm),
+    *(this->dataPtr->eventMgr));
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
@@ -220,7 +240,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     auto model = sdfWorld->ModelByIndex(modelIndex);
     auto modelEntity = creator.CreateEntities(model);
 
-    creator.SetParent(modelEntity, _worldEntity);
+    creator.SetParent(modelEntity, this->dataPtr->worldEntity);
   }
 
   // Lights
@@ -230,16 +250,18 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     auto light = sdfWorld->LightByIndex(lightIndex);
     auto lightEntity = creator.CreateEntities(light);
 
-    creator.SetParent(lightEntity, _worldEntity);
+    creator.SetParent(lightEntity, this->dataPtr->worldEntity);
   }
 
-  _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
-
-  ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
+  this->dataPtr->eventMgr->Emit<events::LoadPlugins>(
+    this->dataPtr->worldEntity, sdfWorld->Element());
 
   // Call Log.hh directly to load a .tlog file
   auto log = std::make_unique<transport::log::Log>();
-  log->Open(dbPath);
+  if (!log->Open(dbPath))
+  {
+    ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
+  }
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
@@ -247,16 +269,21 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   this->dataPtr->batch = log->QueryMessages(opts);
   this->dataPtr->iter = this->dataPtr->batch.begin();
 
-  this->dataPtr->ParseNext(_ecm);
+  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  {
+    ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+  }
 
-  // Advance one entry in batch for Update()
-  ++(this->dataPtr->iter);
+  return true;
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Update(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
+void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  if (_info.paused)
+    return;
+
+  // TODO(anyone) Support rewind
   // Sanity check. If reached the end, done.
   if (this->dataPtr->iter == this->dataPtr->batch.end())
   {
@@ -273,18 +300,22 @@ void LogPlayback::Update(const UpdateInfo &_info,
   //   play the joint positions at next logged timestamp.
 
   // Get timestamp in logged data
+  // TODO(anyone) Avoid calling ParseFromString twice for the same message
   msgs::Pose_V posevMsg;
   posevMsg.ParseFromString(this->dataPtr->iter->Data());
 
-  auto now = _info.simTime;
-  if (now.count() >= (posevMsg.header().stamp().sec() * 1000000000 +
-    posevMsg.header().stamp().nsec()))
+  auto msgTime = convert<std::chrono::steady_clock::duration>(
+      posevMsg.header().stamp());
+  if (_info.simTime >= msgTime)
   {
     // Parse pose and move link
     this->dataPtr->ParseNext(_ecm);
 
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
+    // TODO(anyone) Support multiple msgs per update, in case playback has a
+    // lower frequency than record - using transport::log::TimeRangeOption
+    // should help.
     ++(this->dataPtr->iter);
   }
 }
