@@ -194,6 +194,7 @@ class ignition::gazebo::ServerConfigPrivate
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useDistributed(_cfg->useDistributed),
+            useRecord(_cfg->useRecord),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins) { }
 
@@ -211,6 +212,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the distributed simulation system
   public: bool useDistributed{false};
+
+  /// \brief Use the logging system to record states
+  public: bool useRecord{false};
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -312,6 +316,18 @@ bool ServerConfig::UseDistributedSimulation() const
 void ServerConfig::SetUseDistributedSimulation(const bool _distributed)
 {
   this->dataPtr->useDistributed = _distributed;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::UseRecord() const
+{
+  return this->dataPtr->useRecord;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetUseRecord(const bool _record)
+{
+  this->dataPtr->useRecord = _record;
 }
 
 /////////////////////////////////////////////////

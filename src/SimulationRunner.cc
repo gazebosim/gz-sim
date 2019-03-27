@@ -511,6 +511,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     pluginElem = pluginElem->GetNextElement("plugin");
   }
 
+  // Passed in through command line flag
+  if (this->serverConfig.UseRecord())
+  {
+    this->logRecorder.Start();
+  }
+
   // \todo(nkoenig) Remove plugins from the server config after they have
   // been added. We might not want to do this if we want to support adding
   // the same plugin to multiple entities, for example via a regex

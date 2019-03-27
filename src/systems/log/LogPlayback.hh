@@ -58,6 +58,9 @@ namespace systems
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
 
+    /// \brief Start log playback.
+    public: bool Start(const char *_logPath);
+
     /// \brief Private data pointer.
     private: std::unique_ptr<LogPlaybackPrivate> dataPtr;
   };
