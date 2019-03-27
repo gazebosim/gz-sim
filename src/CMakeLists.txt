@@ -23,6 +23,11 @@ set(network_sources
   network/PeerTracker.cc
 )
 
+set(log_sources
+  systems/log/LogRecord.cc
+  systems/log/LogPlayback.cc
+)
+
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -46,6 +51,7 @@ set (sources
   View.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
+  ${log_sources}
 )
 
 set (gtest_sources

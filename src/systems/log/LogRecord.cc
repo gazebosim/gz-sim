@@ -62,9 +62,17 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _pathAndName Full absolute path
   public: std::string UniqueDirectoryPath(const std::string &_dir);
 
+  /// \brief Indicator of whether any recorder instance has ever been started
+  public: static bool started;
+
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
+
+  /// \brief SDF of this plugin
+  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
 };
+
+bool LogRecordPrivate::started;
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
@@ -116,6 +124,7 @@ std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
+  LogRecordPrivate::started = false;
 }
 
 //////////////////////////////////////////////////
@@ -132,8 +141,24 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
 {
+  this->dataPtr->sdf = _sdf;
+
   // Get directory paths from SDF params
   auto logPath = _sdf->Get<std::string>("path");
+
+  // If plugin is specified in both the SDF tag and on command line, only
+  //   activate one recorder.
+  if (!LogRecordPrivate::started)
+  {
+    this->Start(logPath);
+    LogRecordPrivate::started = true;
+  }
+}
+
+//////////////////////////////////////////////////
+bool LogRecord::Start(const std::string _logPath)
+{
+  std::string logPath = _logPath;
 
   // If unspecified, or specified is not a directory, use default directory
   if (logPath.empty() ||
@@ -171,7 +196,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   std::ofstream ofs(sdfPath);
 
   // Go up to root of SDF, to output entire SDF file
-  sdf::ElementPtr sdfRoot = _sdf->GetParent();
+  sdf::ElementPtr sdfRoot = this->dataPtr->sdf->GetParent();
   while (sdfRoot->GetParent() != nullptr)
   {
     sdfRoot = sdfRoot->GetParent();
@@ -188,7 +213,11 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   // this->dataPtr->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
-  this->dataPtr->recorder.Start(dbPath);
+  if (this->dataPtr->recorder.Start(dbPath) ==
+      ignition::transport::log::RecorderError::SUCCESS)
+    return true;
+  else
+    return false;
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
