@@ -371,6 +371,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
         components::Geometry(*_collision->Geom()));
   }
 
+  this->dataPtr->ecm->CreateComponent(collisionEntity,
+      components::CollisionElement(_collision->Element()));
+
   return collisionEntity;
 }
 

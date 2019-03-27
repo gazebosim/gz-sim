@@ -36,7 +36,6 @@ DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
 DEFINE_bool(distributed, false, "Use distributed simulation.");
-DEFINE_bool(record, false, "Use logging system to record states");
 
 //////////////////////////////////////////////////
 void help()
@@ -70,8 +69,6 @@ void help()
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
   << std::endl
-  << "  --record               Use logging system to record states."
-  << " The default is false."
   << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
@@ -179,12 +176,6 @@ int main(int _argc, char **_argv)
   {
     ignmsg << "Using the distributed simulation system\n";
     serverConfig.SetUseDistributedSimulation(true);
-  }
-
-  if (FLAGS_record)
-  {
-    ignmsg << "Recording states\n";
-    serverConfig.SetUseRecord(true);
   }
 
   // Create the Gazebo server

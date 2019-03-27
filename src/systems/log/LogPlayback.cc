@@ -60,15 +60,6 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
-
-  /// \brief Entity of world
-  public: Entity worldEntity = kNullEntity;
-
-  /// \brief Entity component manager
-  public: std::shared_ptr<EntityComponentManager> ecm = nullptr;
-
-  /// \brief Event manager
-  public: std::shared_ptr<EventManager> eventMgr = nullptr;
 };
 
 
@@ -134,10 +125,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
-  this->dataPtr->worldEntity = _worldEntity;
-  this->dataPtr->ecm = std::shared_ptr<EntityComponentManager>(&_ecm);
-  this->dataPtr->eventMgr = std::shared_ptr<EventManager>(&_eventMgr);
-
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
 
@@ -153,24 +140,18 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     return;
   }
 
-  this->Start(logPath.c_str());
-}
-
-//////////////////////////////////////////////////
-bool LogPlayback::Start(const char *_logPath)
-{
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(logPath, "state.tlog");
 
   // Temporary. Name of recorded SDF file
-  std::string sdfPath = common::joinPaths(_logPath, "state.sdf");
+  std::string sdfPath = common::joinPaths(logPath, "state.sdf");
 
   if (!common::exists(dbPath) ||
       !common::exists(sdfPath))
   {
     ignerr << "Log path invalid. File(s) [" << dbPath << "] / [" << sdfPath
            << "] do not exist. Nothing to play.\n";
-    return false;
+    return;
   }
 
   ignmsg << "Loading log files:"  << std::endl
@@ -182,7 +163,7 @@ bool LogPlayback::Start(const char *_logPath)
   if (root.Load(sdfPath).size() != 0 || root.WorldCount() <= 0)
   {
     ignerr << "Error loading SDF file [" << sdfPath << "]" << std::endl;
-    return false;
+    return;
   }
   const sdf::World *sdfWorld = root.WorldByIndex(0);
 
@@ -230,8 +211,7 @@ bool LogPlayback::Start(const char *_logPath)
 
   // Create all Entities in SDF <world> tag
   ignition::gazebo::SdfEntityCreator creator =
-    ignition::gazebo::SdfEntityCreator(*(this->dataPtr->ecm),
-    *(this->dataPtr->eventMgr));
+    ignition::gazebo::SdfEntityCreator(_ecm, _eventMgr);
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < sdfWorld->ModelCount();
@@ -240,7 +220,7 @@ bool LogPlayback::Start(const char *_logPath)
     auto model = sdfWorld->ModelByIndex(modelIndex);
     auto modelEntity = creator.CreateEntities(model);
 
-    creator.SetParent(modelEntity, this->dataPtr->worldEntity);
+    creator.SetParent(modelEntity, _worldEntity);
   }
 
   // Lights
@@ -250,11 +230,10 @@ bool LogPlayback::Start(const char *_logPath)
     auto light = sdfWorld->LightByIndex(lightIndex);
     auto lightEntity = creator.CreateEntities(light);
 
-    creator.SetParent(lightEntity, this->dataPtr->worldEntity);
+    creator.SetParent(lightEntity, _worldEntity);
   }
 
-  this->dataPtr->eventMgr->Emit<events::LoadPlugins>(
-    this->dataPtr->worldEntity, sdfWorld->Element());
+  _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
   // Call Log.hh directly to load a .tlog file
   auto log = std::make_unique<transport::log::Log>();
@@ -273,8 +252,6 @@ bool LogPlayback::Start(const char *_logPath)
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
-
-  return true;
 }
 
 //////////////////////////////////////////////////
