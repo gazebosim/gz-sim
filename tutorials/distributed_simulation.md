@@ -53,10 +53,31 @@ are more performers than secondaries, multiple performers will be allocated to e
 Multiple `ign-gazebo` executables are started on the same local area network,
 each with the `--distributed` flag set.
 
+#### Command line options
+
+The primary instance will read several command line options to dictate its behavior.
+
+* **--network-role=primary** - Dictates that the role of this
+    participant is a Primary. Capitalization of "primary" is not important.
+* **--network-secondaries=<N>** - The number of secondaries expected
+    to join. Simulation will not begin until **N** secondaries have been
+    discovered.
+
+The secondary instances will only read the role command line option
+
+* **--network-role=secondary** - Dictates that the role of this
+    participant is a Secondary. Capitalization of "secondary" is not important.
+
+#### Environment variables
+
+**WARNING:** Environment variables for distributed simulation configuration
+is deprecated in version 2.x.x of Ignition Gazebo. Please use the
+command-line options instead. 
+
 The primary instance will read several environment variables to dictate its behavior.
 
 * **IGN_GAZEBO_NETWORK_ROLE=PRIMARY** - Dictates that the role of this
-    participant is a Primary
+    participant is a Primary. Capitalization of "primary" is not important.
 * **IGN_GAZEBO_NETWORK_SECONDARIES=<N>** - The number of secondaries expected
     to join. Simulation will not begin until **N** secondaries have been
     discovered.
@@ -64,7 +85,7 @@ The primary instance will read several environment variables to dictate its beha
 The secondary instances will only read the role environment variable
 
 * **IGN_GAZEBO_NETWORK_ROLE=SECONDARY** - Dictates that the role of this
-    participant is a Secondary
+    participant is a Secondary. Capitalization of "secondary" is not important.
 
 ### Discovery
 
