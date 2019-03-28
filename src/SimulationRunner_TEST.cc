@@ -1146,22 +1146,6 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
 }
 
-TEST_P(SimulationRunnerTest, SystemQueue)
-{
-  // Load SDF file
-  sdf::Root root;
-  root.Load(std::string(PROJECT_SOURCE_PATH) + "/test/worlds/shapes.sdf");
-
-  // Create simulation runner
-  auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
-  // Systems should not be added before Run() is called
-  EXPECT_EQ(0u, runner.SystemCount());
-  runner.SetPaused(false);
-  runner.Run(1);
-  EXPECT_EQ(3u, runner.SystemCount());
-}
-
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(ServerRepeat, SimulationRunnerTest,
