@@ -1,7 +1,5 @@
 \page distributedsimulation Distributed Simulation
 
-# Distributed Simulation
-
 ## Goals
 
 * Simulation can be distributed among 1 or more processes
