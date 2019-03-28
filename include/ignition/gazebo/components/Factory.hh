@@ -107,8 +107,6 @@ namespace components
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
       StorageDescriptorBase *_storageDesc)
     {
-      auto typeHash = ignition::common::hash64(_type);
-
       // Every time a plugin which uses a component type is loaded, it attempts
       // to register it again, so we skip it.
       if (ComponentTypeT::typeId != 0)
@@ -116,12 +114,16 @@ namespace components
         return;
       }
 
+      auto typeHash = ignition::common::hash64(_type);
+
       // Initialize static member variable
       ComponentTypeT::typeId = typeHash;
+      ComponentTypeT::typeName = _type;
 
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
+      namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -151,6 +153,14 @@ namespace components
         {
           delete it->second;
           this->storagesById.erase(it);
+        }
+      }
+
+      {
+        auto it = namesById.find(ComponentTypeT::typeId);
+        if (it != namesById.end())
+        {
+          namesById.erase(it);
         }
       }
 
@@ -201,7 +211,7 @@ namespace components
 
     /// \brief Get all the registered component types by ID.
     /// return Vector of component IDs.
-    public: std::vector<uint64_t> TypeIds() const
+    public: std::vector<ComponentTypeId> TypeIds() const
     {
       std::vector<ComponentTypeId> types;
 
@@ -210,6 +220,16 @@ namespace components
         types.push_back(comp.first);
 
       return types;
+    }
+
+    /// \brief Get a component's type name given its type ID.
+    /// return Unique component name.
+    public: std::string Name(ComponentTypeId _typeId) const
+    {
+      if (namesById.find(_typeId) != namesById.end())
+        return namesById.at(_typeId);
+
+      return "";
     }
 
     /// \brief A list of registered components where the key is its id.
@@ -230,6 +250,10 @@ namespace components
     /// \brief A list of registered storages where the key is its component's
     /// type id.
     private: std::map<ComponentTypeId, StorageDescriptorBase *> storagesById;
+
+    /// \brief A list of IDs and their equivalent names.
+    /// \detail Make it non-static on version 2.0.
+    public: inline static std::map<ComponentTypeId, std::string> namesById;
   };
 
   /// \brief Static component registration macro.
