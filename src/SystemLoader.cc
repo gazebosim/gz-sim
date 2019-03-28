@@ -49,7 +49,7 @@ class ignition::gazebo::SystemLoaderPrivate
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
-    for (const auto &path : systemPluginPaths)
+    for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
     std::string homePath;
@@ -105,7 +105,7 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    systemPluginsAdded.insert(_plugin);
+    this->systemPluginsAdded.insert(_plugin);
     return true;
   }
 
