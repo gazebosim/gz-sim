@@ -14,7 +14,7 @@
 
     
     <plugin
-      filename="libignition-gazebo1-scene-broadcaster-system.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
