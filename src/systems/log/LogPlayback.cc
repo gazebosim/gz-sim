@@ -35,6 +35,7 @@
 
 #include <sdf/Root.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -74,8 +75,7 @@ LogPlayback::~LogPlayback() = default;
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ParseNext(EntityComponentManager &_ecm)
 {
-  size_t foundPos = this->iter->Type().find_last_of('.');
-  if (this->iter->Type().substr(foundPos + 1).compare("Pose_V") != 0)
+  if (this->iter->Type() != "ignition.msgs.Pose_V")
   {
     ignwarn << "Logged message types other than Pose_V are currently not "
       << "supported. Message of type [" << this->iter->Type()
@@ -235,11 +235,12 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 
   _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
-  ignmsg << "Playing back log file [" << dbPath << "]" << std::endl;
-
   // Call Log.hh directly to load a .tlog file
   auto log = std::make_unique<transport::log::Log>();
-  log->Open(dbPath);
+  if (!log->Open(dbPath))
+  {
+    ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
+  }
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
@@ -247,16 +248,19 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   this->dataPtr->batch = log->QueryMessages(opts);
   this->dataPtr->iter = this->dataPtr->batch.begin();
 
-  this->dataPtr->ParseNext(_ecm);
-
-  // Advance one entry in batch for Update()
-  ++(this->dataPtr->iter);
+  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  {
+    ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Update(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
+void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
+  if (_info.paused)
+    return;
+
+  // TODO(anyone) Support rewind
   // Sanity check. If reached the end, done.
   if (this->dataPtr->iter == this->dataPtr->batch.end())
   {
@@ -273,18 +277,22 @@ void LogPlayback::Update(const UpdateInfo &_info,
   //   play the joint positions at next logged timestamp.
 
   // Get timestamp in logged data
+  // TODO(anyone) Avoid calling ParseFromString twice for the same message
   msgs::Pose_V posevMsg;
   posevMsg.ParseFromString(this->dataPtr->iter->Data());
 
-  auto now = _info.simTime;
-  if (now.count() >= (posevMsg.header().stamp().sec() * 1000000000 +
-    posevMsg.header().stamp().nsec()))
+  auto msgTime = convert<std::chrono::steady_clock::duration>(
+      posevMsg.header().stamp());
+  if (_info.simTime >= msgTime)
   {
     // Parse pose and move link
     this->dataPtr->ParseNext(_ecm);
 
     // Advance one entry in batch for next Update() iteration
     // Process one log entry per Update() step.
+    // TODO(anyone) Support multiple msgs per update, in case playback has a
+    // lower frequency than record - using transport::log::TimeRangeOption
+    // should help.
     ++(this->dataPtr->iter);
   }
 }
