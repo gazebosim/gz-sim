@@ -15,17 +15,15 @@
  *
  */
 
-#include "ignition/common/Profiler.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include <ignition/common/Profiler.hh>
+#include <ignition/gazebo/Events.hh>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/World.hh"
 
 #include "SyncManager.hh"
 #include "SimulationRunner.hh"
@@ -60,12 +58,13 @@ SyncManager::SyncManager(
 
   if (this->role != NetworkRole::None)
   {
-    this->posePub = this->node.Advertise<ignition::msgs::Pose_V>("pose_update");
+    this->statePub = this->node.Advertise<msgs::SerializedState>(
+        "state_update");
   }
 
   if (this->role == NetworkRole::SimulationPrimary)
   {
-    this->node.Subscribe("pose_update", &SyncManager::OnPose, this);
+    this->node.Subscribe("state_update", &SyncManager::OnState, this);
   }
 }
 
@@ -201,10 +200,10 @@ void SyncManager::DistributePerformers()
 }
 
 /////////////////////////////////////////////////
-void SyncManager::OnPose(const ignition::msgs::Pose_V & _msg)
+void SyncManager::OnState(const msgs::SerializedState & _msg)
 {
-  std::lock_guard<std::mutex> lock(this->poseMutex);
-  this->poseMsgs.push_back(_msg);
+  std::lock_guard<std::mutex> lock(this->msgMutex);
+  this->stateMsgs.push_back(_msg);
 }
 
 /////////////////////////////////////////////////
@@ -212,38 +211,28 @@ bool SyncManager::Sync()
 {
   IGN_PROFILE("SyncManager::Sync");
 
-  // TODO(mjcarroll) this is where more advanced serialization/sync will go.
-  auto& ecm = this->runner->entityCompMgr;
+  auto &ecm = this->runner->entityCompMgr;
 
   if (this->role == NetworkRole::SimulationSecondary)
   {
-    ignition::msgs::Pose_V msg;
-
-    for (const auto &entity : this->performers)
+    // Get all the performer's models
+    std::unordered_set<Entity> models;
+    for (const auto &perf : this->performers)
     {
-      auto pid = ecm.Component<components::ParentEntity>(entity);
-      auto pose = ecm.Component<components::Pose>(pid->Data());
-      auto poseMsg = msg.add_pose();
-      ignition::msgs::Set(poseMsg, pose->Data());
-      poseMsg->set_id(entity);
+      models.insert(ecm.Component<components::ParentEntity>(perf)->Data());
     }
-    this->posePub.Publish(msg);
+
+    auto msg = ecm.State(models);
+    this->statePub.Publish(msg);
   }
   else
   {
-    std::lock_guard<std::mutex> lock(this->poseMutex);
-    for (const auto& msg : this->poseMsgs)
+    std::lock_guard<std::mutex> lock(this->msgMutex);
+    for (const auto &msg : this->stateMsgs)
     {
-      for (int ii = 0; ii < msg.pose_size(); ++ii)
-      {
-        const auto& poseMsg = msg.pose(ii);
-        auto pid = ecm.Component<components::ParentEntity>(poseMsg.id());
-        auto pose = ecm.Component<components::Pose>(pid->Data());
-        auto newPose = ignition::msgs::Convert(poseMsg);
-        *pose = components::Pose(newPose);
-      }
+      ecm.SetState(msg);
     }
-    this->poseMsgs.clear();
+    this->stateMsgs.clear();
   }
   return true;
 }
