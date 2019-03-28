@@ -85,7 +85,7 @@ void LevelManager::ReadLevelPerformerInfo()
 
   auto worldElem = this->runner->sdfWorld->Element();
 
-  // TODO(anyone) This should probaly go somewhere else as it is a global
+  // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.
   const std::string kPluginName{"ignition::gazebo"};
 
@@ -350,7 +350,7 @@ void LevelManager::UpdateLevelsState()
                                    components::Geometry,
                                    components::ParentEntity,
                                    components::PerformerActive>(
-      [&](const Entity &, const components::Performer *,
+      [&](const Entity &_perfEntity, const components::Performer *,
           const components::Geometry *_geometry,
           const components::ParentEntity *_parent,
           const components::PerformerActive *_active) -> bool
@@ -364,8 +364,15 @@ void LevelManager::UpdateLevelsState()
 
         auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
+
         // We assume the geometry contains a box.
         auto perfBox = _geometry->Data().BoxShape();
+        if (nullptr == perfBox)
+        {
+          ignerr << "Internal error: geometry of performer [" << _perfEntity
+                 << "] missing box." << std::endl;
+          return true;
+        }
 
         math::AxisAlignedBox performerVolume{
              pose->Data().Pos() - perfBox->Size() / 2,

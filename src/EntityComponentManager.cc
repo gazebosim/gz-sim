@@ -706,6 +706,13 @@ void EntityComponentManager::SetState(
     {
       const auto &compMsg = entityMsg.components(c);
 
+      // Skip if component not set. Note that this will also skip components
+      // setting an empty value.
+      if (compMsg.component().empty())
+      {
+        continue;
+      }
+
       // Create component
       auto newComp = components::Factory::Instance()->New(compMsg.type());
 
@@ -742,6 +749,7 @@ void EntityComponentManager::SetState(
       // Update component value
       else
       {
+        ignerr << "Internal error" << std::endl;
         // TODO(louise) We're shortcutting above and always  removing the
         // component so that we don't get here, gotta figure out why this
         // doesn't update the component. The following line prints the correct

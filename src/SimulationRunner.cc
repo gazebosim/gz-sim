@@ -119,7 +119,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     {
       ignmsg << "Network Primary, expects ["
              << this->networkMgr->Config().numSecondariesExpected
-             << "] seondaries." << std::endl;
+             << "] secondaries." << std::endl;
     }
     else if (this->networkMgr->IsSecondary())
     {
@@ -149,6 +149,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+
+  // Create the world statistics publisher.
+  transport::AdvertiseMessageOptions advertOpts;
+  advertOpts.SetMsgsPerSec(5);
+  this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+      "stats", advertOpts);
+
+  // Create the clock publisher.
+  this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
@@ -365,19 +374,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   std::chrono::steady_clock::duration actualSleep;
 
   this->running = true;
-
-  // Create the world statistics publisher.
-  if (!this->statsPub.Valid())
-  {
-    transport::AdvertiseMessageOptions advertOpts;
-    advertOpts.SetMsgsPerSec(5);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
-        "stats", advertOpts);
-  }
-
-  // Create the clock publisher.
-  if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
