@@ -83,7 +83,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: SceneManager sceneManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine = nullptr;
+  public: ignition::rendering::RenderEngine *engine{nullptr};
 
   /// \brief Map of Gazebo entities to their respective IDs within ign-sensors.
   /// Note that both of these are different from node's ID in ign-rendering.
@@ -284,7 +284,7 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
         // two camera models with the same camera sensor name
         // causes name conflicts. We'll need to use scoped names
         // TODO(anyone) do this in ign-sensors?
-        auto parent = sceneManager.NodeById(_parent->Data());
+        auto parent = this->sceneManager.NodeById(_parent->Data());
         if (!parent)
         {
           ignerr << "Failed to create sensor for entity [" << _entity

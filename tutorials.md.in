@@ -5,10 +5,13 @@ will guide you through the process of understanding the capabilities of the
 Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 
-**The tutorials**
+**Tutorials**
 
-1. \subpage createsystemplugins "Create System Plugins"
-2. \subpage distributedsimulation "Distributed Simulation"
+* \subpage terminology "Terminology": List of terms used across the documentation
+* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins
+* \subpage levels "Levels": Load entities on demand in large environments
+* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes
+* \subpage migrationplugins "Migration from Gazebo-classic: plugins": Walk through the differences between writing plugins for Gazebo-classic and Ignition Gazebo
 
 ## License
 
