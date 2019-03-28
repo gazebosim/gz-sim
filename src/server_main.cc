@@ -69,6 +69,7 @@ void help()
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
   << std::endl
+  << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
   << " resources. Can be useful with the -f option to find an SDF file."
