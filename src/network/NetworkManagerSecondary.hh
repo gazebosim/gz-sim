@@ -64,14 +64,14 @@ namespace ignition
       public: std::string Namespace() const override;
 
       /// \brief Callback for when PeerControl service request is received.
-      public: bool OnControl(const msgs::PeerControl &_req,
-                             msgs::PeerControl &_resp);
+      public: bool OnControl(const private_msgs::PeerControl &_req,
+                             private_msgs::PeerControl &_resp);
 
       /// \brief Callback for when SimulationStep message is received.
-      public: void OnStep(const msgs::SimulationStep &_msg);
+      public: void OnStep(const private_msgs::SimulationStep &_msg);
 
       /// \brief Hold the data from the most current simulation step.
-      private: std::unique_ptr<msgs::SimulationStep> currentStep;
+      private: std::unique_ptr<private_msgs::SimulationStep> currentStep;
 
       /// \brief Mutex to protect currentStep data.
       private: std::mutex stepMutex;
