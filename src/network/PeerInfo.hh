@@ -53,12 +53,14 @@ namespace ignition
     /// \brief Construct a `PeerInfo` object from a message.
     /// \param[in] _proto Message
     /// \result Equivalent PeerInfo
-    IGNITION_GAZEBO_VISIBLE PeerInfo fromProto(const msgs::PeerInfo &_proto);
+    IGNITION_GAZEBO_VISIBLE PeerInfo fromProto(
+        const private_msgs::PeerInfo &_proto);
 
     /// \brief Construct a `PeerInfo` message from an object.
     /// \param[in] _info Peer info object
     /// \result Equivalent message
-    IGNITION_GAZEBO_VISIBLE msgs::PeerInfo toProto(const PeerInfo &_info);
+    IGNITION_GAZEBO_VISIBLE private_msgs::PeerInfo toProto(
+        const PeerInfo &_info);
   }  // namespace gazebo
 }  // namespace ignition
 

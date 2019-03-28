@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
@@ -28,6 +29,7 @@
 
 using namespace ignition;
 using namespace gazebo;
+using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
 TEST(Conversions, Light)
@@ -112,4 +114,18 @@ TEST(Conversions, Gui)
   EXPECT_NE(plugin2.innerxml().find(
       "<watermelon>0.5</watermelon>"),
       std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Time)
+{
+  std::chrono::steady_clock::duration duration{2ms};
+
+  auto msg = convert<msgs::Time>(duration);
+  EXPECT_EQ(0, msg.sec());
+  EXPECT_EQ(2000000, msg.nsec());
+
+  auto duration2 = convert<std::chrono::steady_clock::duration>(msg);
+  EXPECT_EQ(duration, duration2);
+  EXPECT_EQ(2000000, duration2.count());
 }

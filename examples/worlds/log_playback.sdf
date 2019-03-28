@@ -1,11 +1,11 @@
 <?xml version='1.0'?>
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='libignition-gazebo2-scene-broadcaster-system.so'
+    <plugin filename='libignition-gazebo-scene-broadcaster-system.so'
             name='ignition::gazebo::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='libignition-gazebo2-log-system.so'
+      filename='libignition-gazebo-log-system.so'
       name='ignition::gazebo::systems::LogPlayback'>
       <path>/tmp/log</path>
     </plugin>
@@ -17,7 +17,7 @@
           <property type='bool' key='showTitleBar'>false</property>
           <property type='string' key='state'>docked</property>
         </ignition-gui>
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
