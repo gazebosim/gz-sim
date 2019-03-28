@@ -42,34 +42,36 @@ std::string PeerInfo::Namespace() const
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::msgs::PeerInfo ignition::gazebo::toProto(
+ignition::gazebo::private_msgs::PeerInfo ignition::gazebo::toProto(
     const PeerInfo &_info)
 {
-  ignition::gazebo::msgs::PeerInfo proto;
+  ignition::gazebo::private_msgs::PeerInfo proto;
   proto.set_id(_info.id);
   proto.set_hostname(_info.hostname);
 
   switch (_info.role)
   {
     case NetworkRole::ReadOnly:
-      proto.set_role(ignition::gazebo::msgs::PeerInfo::READ_ONLY);
+      proto.set_role(ignition::gazebo::private_msgs::PeerInfo::READ_ONLY);
       break;
     case NetworkRole::SimulationPrimary:
-      proto.set_role(ignition::gazebo::msgs::PeerInfo::SIMULATION_PRIMARY);
+      proto.set_role(
+          ignition::gazebo::private_msgs::PeerInfo::SIMULATION_PRIMARY);
       break;
     case NetworkRole::SimulationSecondary:
-      proto.set_role(ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY);
+      proto.set_role(
+          ignition::gazebo::private_msgs::PeerInfo::SIMULATION_SECONDARY);
       break;
     case NetworkRole::None:
     default:
-      proto.set_role(ignition::gazebo::msgs::PeerInfo::NONE);
+      proto.set_role(ignition::gazebo::private_msgs::PeerInfo::NONE);
   }
   return proto;
 }
 
 /////////////////////////////////////////////////
 PeerInfo ignition::gazebo::fromProto(
-    const ignition::gazebo::msgs::PeerInfo& _proto)
+    const ignition::gazebo::private_msgs::PeerInfo& _proto)
 {
   PeerInfo info;
   info.id = _proto.id();
@@ -77,16 +79,16 @@ PeerInfo ignition::gazebo::fromProto(
 
   switch (_proto.role())
   {
-    case ignition::gazebo::msgs::PeerInfo::READ_ONLY:
+    case ignition::gazebo::private_msgs::PeerInfo::READ_ONLY:
       info.role = NetworkRole::ReadOnly;
       break;
-    case ignition::gazebo::msgs::PeerInfo::SIMULATION_PRIMARY:
+    case ignition::gazebo::private_msgs::PeerInfo::SIMULATION_PRIMARY:
       info.role = NetworkRole::SimulationPrimary;
       break;
-    case ignition::gazebo::msgs::PeerInfo::SIMULATION_SECONDARY:
+    case ignition::gazebo::private_msgs::PeerInfo::SIMULATION_SECONDARY:
       info.role = NetworkRole::SimulationSecondary;
       break;
-    case ignition::gazebo::msgs::PeerInfo::NONE:
+    case ignition::gazebo::private_msgs::PeerInfo::NONE:
     default:
       info.role = NetworkRole::None;
       break;
