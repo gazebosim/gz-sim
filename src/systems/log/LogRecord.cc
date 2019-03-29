@@ -152,6 +152,11 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     this->Start(logPath);
     LogRecordPrivate::started = true;
   }
+  else
+  {
+    ignmsg << "A LogRecord instance has already been started. "
+      << "Will not start another.\n";
+  }
 }
 
 //////////////////////////////////////////////////
