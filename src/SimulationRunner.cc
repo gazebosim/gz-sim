@@ -619,14 +619,14 @@ void SimulationRunner::LoadSystemPlugin(const Entity _entity,
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(pluginElem);
+    system = this->systemLoader->LoadPlugin(_pluginElem);
   }
   if (system)
   {
     auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
     if (systemConfig != nullptr)
     {
-      systemConfig->Configure(_entity, pluginElem,
+      systemConfig->Configure(_entity, _pluginElem,
           this->entityCompMgr,
           this->eventMgr);
     }
