@@ -91,6 +91,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     rendering
     camera
     gpu_lidar
+    imu
     logical_camera
     depth_camera
 )
