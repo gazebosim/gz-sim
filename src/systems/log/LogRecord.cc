@@ -158,6 +158,12 @@ void LogRecord::Configure(const Entity &/*_entity*/,
 //////////////////////////////////////////////////
 bool LogRecord::Start(const std::string _logPath)
 {
+  // Only start one recorder instance
+  if (LogRecordPrivate::started)
+  {
+    return true;
+  }
+
   std::string logPath = _logPath;
 
   // If unspecified, or specified is not a directory, use default directory

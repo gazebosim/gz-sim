@@ -482,6 +482,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
+  bool insertRecordPlugin = false;
+  // Record flag passed in through command line
+  // Only insert record plugin at world level
+  if (this->serverConfig.UseLogRecord() && _sdf->GetName() == "world")
+    insertRecordPlugin = true;
+  std::string recordName = "ignition::gazebo::systems::LogRecord";
+  std::string recordFilename = "libignition-gazebo-log-system.so";
 
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
@@ -494,43 +501,30 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
     {
-      std::optional<SystemPluginPtr> system =
-        this->systemLoader->LoadPlugin(pluginElem);
-      if (system)
-      {
-        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-        if (systemConfig != nullptr)
-        {
-          systemConfig->Configure(_entity, pluginElem,
-              this->entityCompMgr,
-              this->eventMgr);
-        }
-        this->AddSystem(system.value());
-      }
+      this->LoadSystemPlugin(_entity, pluginElem);
+    }
+
+    // If record plugin already specified in SDF, don't insert another
+    if (insertRecordPlugin &&
+        pluginElem->Get<std::string>("filename") == recordFilename &&
+        pluginElem->Get<std::string>("name") == recordName)
+    {
+      insertRecordPlugin = false;
     }
 
     pluginElem = pluginElem->GetNextElement("plugin");
   }
 
-  // Passed in through command line flag
-  if (this->serverConfig.UseRecord())
+  // Inject record plugin into SDF and load it
+  if (insertRecordPlugin)
   {
-    this->logRecorder.Start();
+    sdf::ElementPtr recordElem = _sdf->AddElement("plugin");
+    sdf::ParamPtr nameParam = recordElem->GetAttribute("name");
+    nameParam->SetFromString(recordName);
+    sdf::ParamPtr filenameParam = recordElem->GetAttribute("filename");
+    filenameParam->SetFromString(recordFilename);
 
-    /*
-    // Inject SDF. Problem: plugin name is hardcoded and needs to change with
-    //   each ignition version change. Not a good idea to put it here.
-    if (pluginElem != nullptr)
-    {
-      sdf::ElementPtr parentElem = pluginElem->GetParent();
-      if (parentElem != nullptr)
-      {
-        sdf::ElementPtr recordElem = parentElem->AddElement("plugin");
-
-        recordElem->AddAttribute();
-      }
-    }
-    */
+    this->LoadSystemPlugin(_entity, recordElem);
   }
 
   // \todo(nkoenig) Remove plugins from the server config after they have
@@ -578,6 +572,25 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
       }
       this->AddSystem(system.value());
     }
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::LoadSystemPlugin(const Entity _entity,
+    const sdf::ElementPtr &_pluginElem)
+{
+  std::optional<SystemPluginPtr> system =
+    this->systemLoader->LoadPlugin(_pluginElem);
+  if (system)
+  {
+    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+    if (systemConfig != nullptr)
+    {
+      systemConfig->Configure(_entity, _pluginElem,
+          this->entityCompMgr,
+          this->eventMgr);
+    }
+    this->AddSystem(system.value());
   }
 }
 

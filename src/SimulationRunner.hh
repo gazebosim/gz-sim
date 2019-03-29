@@ -50,7 +50,6 @@
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
 #include "SyncManager.hh"
-#include "systems/log/LogRecord.hh"
 
 using namespace std::chrono_literals;
 
@@ -138,6 +137,12 @@ namespace ignition
       /// \param[in] _sdf SDF element
       public: void LoadPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
+
+      /// \brief Load a single system plugin for a given entity.
+      /// \param[in] _entity Entity
+      /// \param[in] _pluginElem SDF plugin element
+      public: void LoadSystemPlugin(const Entity _entity,
+          const sdf::ElementPtr &_pluginElem);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -309,9 +314,6 @@ namespace ignition
 
       /// \brief A pool of worker threads.
       private: common::WorkerPool workerPool{2};
-
-      /// \brief Logging recorder.
-      private: systems::LogRecord logRecorder;
 
       /// \brief Wall time of the previous update.
       private: std::chrono::steady_clock::time_point prevUpdateRealTime;
