@@ -279,6 +279,13 @@ void SimulationRunner::PublishStats()
 /////////////////////////////////////////////////
 void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  this->pendingSystems.push_back(_system);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
+{
   this->systems.push_back(SystemInternal(_system));
 
   const auto &system = this->systems.back();
@@ -291,6 +298,17 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 
   if (system.postupdate)
     this->systemsPostupdate.push_back(system.postupdate);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessSystemQueue()
+{
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  for (const auto &system : this->pendingSystems)
+  {
+    this->AddSystemToRunner(system);
+  }
+  this->pendingSystems.clear();
 }
 
 /////////////////////////////////////////////////
@@ -432,6 +450,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     this->levelMgr->UpdateLevelsState();
 
+    // Handle pending systems
+    this->ProcessSystemQueue();
+
     // Update all the systems.
     this->UpdateSystems();
 
@@ -489,8 +510,11 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
     {
-      std::optional<SystemPluginPtr> system =
-        this->systemLoader->LoadPlugin(pluginElem);
+      std::optional<SystemPluginPtr> system;
+      {
+        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+        system = this->systemLoader->LoadPlugin(pluginElem);
+      }
       if (system)
       {
         auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
@@ -540,8 +564,13 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (entity != _entity)
       continue;
 
-    std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
+    std::optional<SystemPluginPtr> system;
+    {
+      std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+      system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
+                                              nullptr);
+    }
+
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
@@ -593,7 +622,8 @@ size_t SimulationRunner::EntityCount() const
 /////////////////////////////////////////////////
 size_t SimulationRunner::SystemCount() const
 {
-  return this->systems.size();
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  return this->systems.size() + this->pendingSystems.size();
 }
 
 /////////////////////////////////////////////////
