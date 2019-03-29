@@ -196,7 +196,9 @@ class ignition::gazebo::ServerConfigPrivate
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
             resourceCache(_cfg->resourceCache),
-            plugins(_cfg->plugins) { }
+            plugins(_cfg->plugins),
+            networkRole(_cfg->networkRole),
+            networkSecondaries(_cfg->networkSecondaries) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -222,6 +224,12 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
+
+  /// \brief The network role.
+  public: std::string networkRole = "";
+
+  /// \brief The number of network secondaries.
+  public: unsigned int networkSecondaries = 0;
 };
 
 //////////////////////////////////////////////////
@@ -307,9 +315,37 @@ void ServerConfig::SetUseLevels(const bool _levels)
 }
 
 /////////////////////////////////////////////////
+void ServerConfig::SetNetworkSecondaries(unsigned int _secondaries)
+{
+  this->dataPtr->networkSecondaries = _secondaries;
+}
+
+/////////////////////////////////////////////////
+unsigned int ServerConfig::NetworkSecondaries() const
+{
+  return this->dataPtr->networkSecondaries;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetNetworkRole(const std::string &_role)
+{
+  this->dataPtr->networkRole = _role;
+}
+
+/////////////////////////////////////////////////
+std::string ServerConfig::NetworkRole() const
+{
+  return this->dataPtr->networkRole;
+}
+
+/////////////////////////////////////////////////
 bool ServerConfig::UseDistributedSimulation() const
 {
-  return this->dataPtr->useDistributed;
+  // We just check that network role is not empty.
+  // src/network/NetworkConfig.cc checks if this value is valid.
+  // \todo(nkoenig) Deprecated "SetUseDistributedSimulation" in ign-gazebo2
+  // and remove the "|| this->dataPtr->useDistributed" in ign-gazebo3.
+  return !this->dataPtr->networkRole.empty() || this->dataPtr->useDistributed;
 }
 
 /////////////////////////////////////////////////

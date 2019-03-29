@@ -2,6 +2,10 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. Added command line options to configure distributed simulation. These
+   will replace the environment variables.
+    * [Pull Request 238](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/238)
+
 
 ### Ignition Gazebo 1.1.0 (2019-03-15)
 
