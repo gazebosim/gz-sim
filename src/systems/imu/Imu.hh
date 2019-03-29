@@ -32,7 +32,6 @@ namespace systems
 {
   // Forward declarations.
   class ImuPrivate;
-  class ImuSensor;
 
   /// \class Imu Imu.hh ignition/gazebo/systems/Imu.hh
   /// \brief This system manages all IMU sensors in simulation.
