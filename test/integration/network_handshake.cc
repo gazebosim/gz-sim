@@ -154,6 +154,11 @@ TEST(NetworkHandshake, Updates)
 {
   common::Console::SetVerbosity(4);
 
+  auto pluginElem = std::make_shared<sdf::Element>();
+  pluginElem->SetName("plugin");
+  pluginElem->AddAttribute("name", "string", "required_but_ignored", true);
+  pluginElem->AddAttribute("filename", "string", "required_but_ignored", true);
+
   // Primary
   ServerConfig::PluginInfo primaryPluginInfo;
   primaryPluginInfo.SetEntityName("default");
@@ -161,14 +166,7 @@ TEST(NetworkHandshake, Updates)
   primaryPluginInfo.SetFilename(
       "libignition-gazebo-scene-broadcaster-system.so");
   primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
-
-  auto primaryPluginElem = std::make_shared<sdf::Element>();
-  primaryPluginElem->SetName("plugin");
-  primaryPluginElem->AddAttribute("name", "string",
-      "ignition::gazebo::systems::Physics", true);
-  primaryPluginElem->AddAttribute("filename", "string",
-      "libignition-gazebo-physics-system.so", true);
-  primaryPluginInfo.SetSdf(primaryPluginElem);
+  primaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configPrimary;
   configPrimary.SetNetworkRole("primary");
@@ -189,14 +187,7 @@ TEST(NetworkHandshake, Updates)
   secondaryPluginInfo.SetEntityType("world");
   secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
   secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
-
-  auto secondaryPluginElem = std::make_shared<sdf::Element>();
-  secondaryPluginElem->SetName("plugin");
-  secondaryPluginElem->AddAttribute("name", "string",
-      "ignition::gazebo::systems::Physics", true);
-  secondaryPluginElem->AddAttribute("filename", "string",
-      "libignition-gazebo-physics-system.so", true);
-  secondaryPluginInfo.SetSdf(secondaryPluginElem);
+  secondaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configSecondary;
   configSecondary.SetNetworkRole("secondary");
@@ -215,7 +206,7 @@ TEST(NetworkHandshake, Updates)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {
-      auto poseMsg = _msg.pose(i);
+      const auto &poseMsg = _msg.pose(i);
 
       if (poseMsg.name() == "sphere")
       {

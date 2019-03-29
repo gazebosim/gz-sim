@@ -69,7 +69,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
           {
-            ignerr << "Primary removed, stopping simulation" << std::endl;
+            ignmsg << "Primary removed, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
     });
