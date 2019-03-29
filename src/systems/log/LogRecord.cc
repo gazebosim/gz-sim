@@ -65,6 +65,9 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Indicator of whether any recorder instance has ever been started
   public: static bool started;
 
+  /// \brief Indicator of whether this instance has been started
+  public: bool instStarted;
+
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
@@ -124,15 +127,19 @@ std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
+  this->dataPtr->instStarted = false;
 }
 
 //////////////////////////////////////////////////
 LogRecord::~LogRecord()
 {
-  // Use ign-transport directly
-  this->dataPtr->recorder.Stop();
-
-  ignmsg << "Stopping recording" << std::endl;
+  if (this->dataPtr->instStarted)
+  {
+    // Use ign-transport directly
+    this->dataPtr->recorder.Stop();
+ 
+    ignmsg << "Stopping recording" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -227,7 +234,10 @@ bool LogRecord::Start(const std::string _logPath)
   // This calls Log::Open() and loads sql schema
   if (this->dataPtr->recorder.Start(dbPath) ==
       ignition::transport::log::RecorderError::SUCCESS)
+  {
+    this->dataPtr->instStarted = true;
     return true;
+  }
   else
     return false;
 }
