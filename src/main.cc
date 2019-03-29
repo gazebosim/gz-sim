@@ -79,15 +79,19 @@ void help()
   << std::endl
   << "                         The default is false, which loads all models."
   << std::endl
-  << "                         It's always true with --distributed."
+  << "                         It's always true with --network-role."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
+  << " The default is false, which disables all distributed simulation."
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " and/or --network-secondaries instead. It implies --levels."
   << std::endl
-  << "                         The default is false, which disables all "
+  << "  --network-role         Participant role used in a distributed "
+  << " simulation environment. Role is one of [primary, secondary]."
+  << " It implies --levels."
   << std::endl
-  << "                         distributed simulation."
-  << std::endl
-  << "                         It implies --levels. "
+  << "  --network-secondaries  Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl
   << std::endl
   << "Environment variables:" << std::endl
@@ -95,10 +99,13 @@ void help()
   << " resources. Can be useful with the -f option to find an SDF file."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
-  << " simulation environment. Role is one of [PRIMARY, SECONDARY]."
+  << " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will"
+  << " be deprecated in ign-gazebo2. Please use --network-role instead."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " instead."
   << std::endl;
 }
 
