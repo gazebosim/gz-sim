@@ -15,14 +15,14 @@
  *
  */
 
-#include <ignition/msgs/imu.pb.h>
-
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
+
+#include <ignition/sensors/SensorFactory.hh>
+#include <ignition/sensors/ImuSensor.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Imu.hh"
@@ -30,6 +30,7 @@
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -40,66 +41,15 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Imu sensor class
-class ignition::gazebo::systems::ImuSensor
-{
-  /// \brief Constructor
-  public: ImuSensor();
-
-  /// \brief Destructor
-  public: ~ImuSensor();
-
-  /// \brief Load the IMU from an sdf element
-  /// \param[in] _sdf SDF element describing the IMU
-  /// \param[in] _gravity vector describing the world Gravity
-  /// \param[in] _topic string with default topic name
-  /// \param[in] _sensorName string with sensor name
-  public: void Load(const sdf::ElementPtr &_sdf, const math::Vector3d &_gravity,
-              const std::string &_topic, const std::string &_sensorName);
-
-  /// \brief Publish IMU data over ign transport
-  public: void Publish();
-
-  /// \brief Sensors name
-  public: std::string sensorName;
-
-  /// \brief Topic to publish data to
-  public: std::string topic;
-
-  /// \brief Topic to publish data to
-  public: msgs::IMU imuMsg;
-
-  /// \brief Noise free linear acceleration
-  public: ignition::math::Vector3d linearAcc;
-
-  /// \brief Noise free angular velocity.
-  public: ignition::math::Vector3d angularVel;
-
-  /// \brief transform from world frame to Imu reference frame.
-  public: ignition::math::Quaterniond worldToReference;
-
-  /// \brief transform from Imu frame to Imu reference frame.
-  ignition::math::Quaterniond imuReferenceOrientation;
-
-  /// \brief store gravity vector to be added to the IMU output.
-  public: ignition::math::Vector3d gravity;
-
-  /// \brief Ign transport node
-  public: transport::Node node;
-
-  /// \brief publisher for IMU data
-  public: transport::Node::Publisher pub;
-
-  /// \brief common::Time from when the sensor was updated
-  public: common::Time lastMeasurementTime;
-};
-
 /// \brief Private Imu data class.
 class ignition::gazebo::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
-  public: std::unordered_map<Entity, std::unique_ptr<ImuSensor>>
-      entitySensorMap;
+  public: std::unordered_map<Entity,
+      std::unique_ptr<ignition::sensors::ImuSensor>> entitySensorMap;
+
+  /// \brief Ign-sensors sensor factory for creating sensors
+  public: sensors::SensorFactory sensorFactory;
 
   public: Entity worldEntity = kNullEntity;
 
@@ -116,46 +66,6 @@ class ignition::gazebo::systems::ImuPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveImuEntities(const EntityComponentManager &_ecm);
 };
-
-//////////////////////////////////////////////////
-ImuSensor::ImuSensor() = default;
-
-//////////////////////////////////////////////////
-ImuSensor::~ImuSensor() = default;
-
-//////////////////////////////////////////////////
-void ImuSensor::Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_gravity, const std::string &_topic,
-    const std::string &_sensorName)
-{
-  if (_sdf->HasElement("topic"))
-    this->topic = _sdf->Get<std::string>("topic");
-  else
-    // create default topic for sensor
-    this->topic = _topic;
-
-  this->pub = this->node.Advertise<ignition::msgs::IMU>(this->topic);
-
-  // Set sensors world gravity
-  this->gravity = _gravity;
-
-  // Set sensor name
-  this->sensorName = _sensorName;
-  this->imuMsg.set_entity_name(this->sensorName);
-}
-
-//////////////////////////////////////////////////
-void ImuSensor::Publish()
-{
-  this->imuMsg.mutable_header()->mutable_stamp()->set_sec(
-      this->lastMeasurementTime.sec);
-  this->imuMsg.mutable_header()->mutable_stamp()->set_nsec(
-      this->lastMeasurementTime.nsec);
-  msgs::Set(this->imuMsg.mutable_orientation(), this->imuReferenceOrientation);
-  msgs::Set(this->imuMsg.mutable_angular_velocity(), this->angularVel);
-  msgs::Set(this->imuMsg.mutable_linear_acceleration(), this->linearAcc);
-  this->pub.Publish(this->imuMsg);
-}
 
 //////////////////////////////////////////////////
 Imu::Imu() : System(), dataPtr(std::make_unique<ImuPrivate>())
@@ -185,10 +95,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
     {
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
-      it.second->lastMeasurementTime = common::Time(time.first, time.second);
-
-      // Publish sensor data
-      it.second->Publish();
+      it.second->Update(common::Time(time.first, time.second));
     }
   }
 
@@ -216,16 +123,37 @@ void ImuPrivate::CreateImuEntities(EntityComponentManager &_ecm)
   }
 
   // Create IMUs
-  _ecm.EachNew<components::Imu>(
+  _ecm.EachNew<components::Imu, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::Imu *_imu)->bool
+        const components::Imu *_imu,
+        const components::ParentEntity *_parent)->bool
       {
-        std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/imu";
-        std::string sensorName = _ecm.Component<components::Name>(
-            _entity)->Data();
+        // create sensor
+        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        auto data = _imu->Data()->Clone();
+        data->GetAttribute("name")->Set(sensorScopedName);
+        // check topic
+        if (!data->HasElement("topic"))
+        {
+          std::string topic = scopedName(_entity, _ecm) + "/imu";
+          data->GetElement("topic")->Set(topic);
+        }
+        std::unique_ptr<sensors::ImuSensor> sensor =
+            this->sensorFactory.CreateSensor<
+            sensors::ImuSensor>(data);
+        // set sensor parent
+        std::string parentName = _ecm.Component<components::Name>(
+            _parent->Data())->Data();
+        sensor->SetParent(parentName);
 
-        auto sensor = std::make_unique<ImuSensor>();
-        sensor->Load(_imu->Data(), gravity->Data(), defaultTopic, sensorName);
+        // set gravity - assume it remains fixed
+        sensor->SetGravity(gravity->Data());
+
+        // Get initial pose of sensor and set the reference z pos
+        // The WorldPose component was just created and so it's empty
+        // We'll compute the world pose manually here
+        math::Pose3d p = worldPose(_entity, _ecm);
+        sensor->SetOrientationReference(p.Rot());
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -251,23 +179,14 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
         if (it != this->entitySensorMap.end())
         {
           const auto &imuWorldPose = _worldPose->Data();
+          it->second->SetWorldPose(imuWorldPose);
 
-          // Get the IMU angular velocity (defined in imu's local frame)
-          it->second->angularVel = _angularVel->Data();
+          // Set the IMU angular velocity (defined in imu's local frame)
+          it->second->SetAngularVelocity(_angularVel->Data());
 
-          // Get the IMU linear acceleration in the imu local frame
-          it->second->linearAcc = _linearAccel->Data();
-
-          // Add contribution from gravity
-          // Do we want to skip if link does not have gravity enabled?
-          it->second->linearAcc -= imuWorldPose.Rot().Inverse().RotateVector(
-              it->second->gravity);
-
-          // Set the IMU orientation
-          // imu orientation with respect to reference frame
-          it->second->imuReferenceOrientation =
-              it->second->worldToReference.Inverse() * imuWorldPose.Rot();
-        }
+          // Set the IMU linear acceleration in the imu local frame
+          it->second->SetLinearAcceleration(_linearAccel->Data());
+         }
         else
         {
           ignerr << "Failed to update IMU: " << _entity << ". "
