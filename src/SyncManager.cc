@@ -118,27 +118,46 @@ void SyncManager::DistributePerformers()
 
     for (auto &secondary : secondaries)
     {
-      bool result;
-      private_msgs::PerformerAffinities resp;
-
       std::string topic {secondary.second->prefix + "/affinity"};
       unsigned int timeout = 5000;
 
-      bool executed = this->node.Request(topic, msg, timeout, resp, result);
-      if (executed)
+      std::vector<transport::ServicePublisher> publishers;
+      const std::size_t tries = 30;
+      for (size_t i = 0; i < tries; ++i)
       {
-        if (!result)
-        {
+        this->node.ServiceInfo(topic, publishers);
+        if (!publishers.empty())
+          break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout/10));
+      }
+
+      if (publishers.empty())
+      {
           ignwarn << "Failed to set performer affinities for " <<
-            secondary.second->prefix << " (service call failed)" <<
+            secondary.second->prefix << " (service not available)" <<
             std::endl;
-        }
       }
       else
       {
-        ignwarn << "Failed to set performer affinities for " <<
-          secondary.second->prefix << " (service call timed out)" <<
-          std::endl;
+        bool result;
+        private_msgs::PerformerAffinities resp;
+
+        bool executed = this->node.Request(topic, msg, timeout, resp, result);
+        if (executed)
+        {
+          if (!result)
+          {
+            ignwarn << "Failed to set performer affinities for " <<
+              secondary.second->prefix << " (service call failed)" <<
+              std::endl;
+          }
+        }
+        else
+        {
+          ignwarn << "Failed to set performer affinities for " <<
+            secondary.second->prefix << " (service call timed out)" <<
+            std::endl;
+        }
       }
     }
   }

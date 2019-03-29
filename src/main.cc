@@ -81,7 +81,14 @@ void help()
   << std::endl
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
-  << " The GUI will be disabled if distributed simulation is used."
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " and/or --network-secondaries instead."
+  << std::endl
+  << "  --network-role         Participant role used in a distributed "
+  << " simulation environment. Role is one of [primary, secondary]."
+  << std::endl
+  << "  --network-secondaries  Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl
   << "  --record               Use logging system to record states."
   << " The default is false."
@@ -92,10 +99,13 @@ void help()
   << " resources. Can be useful with the -f option to find an SDF file."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
-  << " simulation environment. Role is one of [PRIMARY, SECONDARY]."
+  << " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will"
+  << " be deprecated in ign-gazebo2. Please use --network-role instead."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " instead."
   << std::endl;
 }
 
