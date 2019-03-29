@@ -185,7 +185,7 @@ int main(int _argc, char **_argv)
   if (FLAGS_record)
   {
     ignmsg << "Recording states\n";
-    serverConfig.SetUseRecord(true);
+    serverConfig.SetUseLogRecord(true);
   }
 
   // Create the Gazebo server

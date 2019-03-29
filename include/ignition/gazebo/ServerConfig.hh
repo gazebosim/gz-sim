@@ -202,11 +202,11 @@ namespace ignition
 
       /// \brief Get whether the server is recording states
       /// \return True if the server is set to record states
-      public: bool UseRecord() const;
+      public: bool UseLogRecord() const;
 
       /// \brief Set whether the server is recording states
       /// \param[in] _record Value to set
-      public: void SetUseRecord(const bool _record);
+      public: void SetUseLogRecord(const bool _record);
 
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
