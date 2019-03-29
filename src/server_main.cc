@@ -64,10 +64,18 @@ void help()
   << " The default is false, which starts simulation paused."
   << std::endl
   << "  --levels               Use the level system."
-  << " The default is false, which loads all models."
+  << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --distributed."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
-  << " The default is false, which disables all distributed simulation."
+  << std::endl
+  << "                         The default is false, which disables all "
+  << std::endl
+  << "                         distributed simulation."
+  << std::endl
+  << "                         It implies --levels. "
   << std::endl
   << std::endl
   << "Environment variables:" << std::endl
@@ -176,6 +184,7 @@ int main(int _argc, char **_argv)
   {
     ignmsg << "Using the distributed simulation system\n";
     serverConfig.SetUseDistributedSimulation(true);
+    serverConfig.SetUseLevels(true);
   }
 
   // Create the Gazebo server

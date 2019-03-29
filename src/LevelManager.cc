@@ -47,9 +47,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels,
-    const bool _useDistSim)
-    : runner(_runner), useLevels(_useLevels), useDistSim(_useDistSim)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
+    : runner(_runner), useLevels(_useLevels)
 {
   if (nullptr == _runner)
   {
@@ -101,7 +100,7 @@ void LevelManager::ReadLevelPerformerInfo()
     }
   }
 
-  if (this->useLevels || this->useDistSim)
+  if (this->useLevels)
   {
     if (pluginElem == nullptr)
     {
