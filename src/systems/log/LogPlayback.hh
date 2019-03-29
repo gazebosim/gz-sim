@@ -59,7 +59,9 @@ namespace systems
                         EntityComponentManager &_ecm) final;
 
     /// \brief Start log playback.
-    public: bool Start(const char *_logPath);
+    public: bool Start(const std::string _logPath,
+        const Entity &_worldEntity, EntityComponentManager &_ecm,
+        EventManager &_eventMgr);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<LogPlaybackPrivate> dataPtr;

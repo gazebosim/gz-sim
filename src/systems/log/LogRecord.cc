@@ -157,11 +157,10 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   if (!LogRecordPrivate::started)
   {
     this->Start(logPath);
-    LogRecordPrivate::started = true;
   }
   else
   {
-    ignmsg << "A LogRecord instance has already been started. "
+    ignwarn << "A LogRecord instance has already been started. "
       << "Will not start another.\n";
   }
 }
@@ -172,10 +171,11 @@ bool LogRecord::Start(const std::string _logPath)
   // Only start one recorder instance
   if (LogRecordPrivate::started)
   {
-    ignmsg << "A LogRecord instance has already been started. "
+    ignwarn << "A LogRecord instance has already been started. "
       << "Will not start another.\n";
     return true;
   }
+  LogRecordPrivate::started = true;
 
   std::string logPath = _logPath;
 
