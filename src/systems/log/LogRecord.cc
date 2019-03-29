@@ -72,7 +72,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: std::shared_ptr<const sdf::Element> sdf = nullptr;
 };
 
-bool LogRecordPrivate::started;
+bool LogRecordPrivate::started = false;
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
@@ -124,7 +124,6 @@ std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
-  LogRecordPrivate::started = false;
 }
 
 //////////////////////////////////////////////////
@@ -161,6 +160,8 @@ bool LogRecord::Start(const std::string _logPath)
   // Only start one recorder instance
   if (LogRecordPrivate::started)
   {
+    ignmsg << "A LogRecord instance has already been started. "
+      << "Will not start another.\n";
     return true;
   }
 
