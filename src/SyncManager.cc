@@ -140,7 +140,7 @@ void SyncManager::DistributePerformers()
       else
       {
         bool result;
-      private_msgs::PerformerAffinities resp;
+        private_msgs::PerformerAffinities resp;
 
         bool executed = this->node.Request(topic, msg, timeout, resp, result);
         if (executed)
