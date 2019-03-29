@@ -75,12 +75,19 @@ void help()
   << "  -r                     Run simulation on start."
   << " The default is false, which starts simulation paused."
   << std::endl
-  << "  --levels               Use the level manager."
-  << " The default is false, which loads all models."
+  << "  --levels               Use the level system."
+  << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --distributed."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
-  << " The default is false, which disables all distributed simulation."
-  << " The GUI will be disabled if distributed simulation is used."
+  << std::endl
+  << "                         The default is false, which disables all "
+  << std::endl
+  << "                         distributed simulation."
+  << std::endl
+  << "                         It implies --levels. "
   << std::endl
   << std::endl
   << "Environment variables:" << std::endl
