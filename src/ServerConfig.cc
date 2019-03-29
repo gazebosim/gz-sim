@@ -195,6 +195,7 @@ class ignition::gazebo::ServerConfigPrivate
             useLevels(_cfg->useLevels),
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
+            logPlaybackPath(_cfg->logPlaybackPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -217,6 +218,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the logging system to record states
   public: bool useLogRecord{false};
+
+  /// \brief Path to recorded states to play back using logging system
+  public: std::string logPlaybackPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -364,6 +368,18 @@ bool ServerConfig::UseLogRecord() const
 void ServerConfig::SetUseLogRecord(const bool _record)
 {
   this->dataPtr->useLogRecord = _record;
+}
+
+/////////////////////////////////////////////////
+const std::string ServerConfig::LogPlaybackPath() const
+{
+  return this->dataPtr->logPlaybackPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogPlaybackPath(const std::string _playbackPath)
+{
+  this->dataPtr->logPlaybackPath = _playbackPath;
 }
 
 /////////////////////////////////////////////////

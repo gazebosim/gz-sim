@@ -238,6 +238,14 @@ namespace ignition
       /// \param[in] _record Value to set
       public: void SetUseLogRecord(const bool _record);
 
+      /// \brief Get path to recorded states to play back
+      /// \return Path to recorded states
+      public: const std::string LogPlaybackPath() const;
+
+      /// \brief Set path to recorded states to play back
+      /// \param[in] _playbackPath Path to recorded states
+      public: void SetLogPlaybackPath(const std::string _playbackPath);
+
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
       /// an UpdateRate has not been set.

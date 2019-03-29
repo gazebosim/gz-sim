@@ -41,6 +41,7 @@ DEFINE_string(network_role, "", "Participant role used in a distributed "
 DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
+DEFINE_string(playback, "", "Use logging system to play back states");
 
 //////////////////////////////////////////////////
 void help()
@@ -85,6 +86,9 @@ void help()
   << std::endl
   << "  --record               Use logging system to record states."
   << " The default is false."
+  << std::endl
+  << "  --playback arg         Use logging system to play back states."
+  << " Arg is path to recorded states."
   << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
@@ -211,6 +215,12 @@ int main(int _argc, char **_argv)
   {
     ignmsg << "Recording states\n";
     serverConfig.SetUseLogRecord(true);
+  }
+
+  if (!FLAGS_playback.empty())
+  {
+    ignmsg << "Playing back states" << FLAGS_playback << std::endl;
+    serverConfig.SetLogPlaybackPath(FLAGS_playback);
   }
 
   // Create the Gazebo server
