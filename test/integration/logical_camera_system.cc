@@ -78,7 +78,7 @@ TEST_F(LogicalCameraTest, LogicalCameraBox)
       &logicalCameraCb);
   node.Subscribe(std::string("/world/logical_camera_sensor/") +
       "model/logical_camera/link/logical_camera_link" +
-      "/sensor/logical_camera/logical_camera", &altimeterCb);
+      "/sensor/logical_camera/logical_camera", &logicalCameraCb);
 
   // Run server and verify that we are receiving messages
   size_t iters100 = 100u;
