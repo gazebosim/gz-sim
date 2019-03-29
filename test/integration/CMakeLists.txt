@@ -20,16 +20,10 @@ set(tests
   pose_publisher_system.cc
   scene_broadcaster_system.cc
   sdf_include.cc
+  touch_plugin.cc
   user_commands.cc
   log_system.cc
 )
-
-# Known to fail on OSX, see https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/22
-if(NOT APPLE)
-  list(APPEND tests
-    touch_plugin.cc
-  )
-endif()
 
 # Tests that require a valid display
 set(tests_needing_display
