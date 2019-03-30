@@ -43,10 +43,16 @@ use the Ignition Gazebo code found in the current source tree.
     docker build . -f ./docker/Dockerfile.nightly -t ign-gazebo:nightly
     ```
 
-3. Run the docker image.
+3. Run the docker image with a bash shell.
 
     ```
     docker run -it ign-gazebo:nightly /bin/bash
+    ```
+
+4. Alternatively, you can directly run Ignition Gazebo using
+
+    ```
+    ./docker/run.bash ign-gazebo:nightly ign-gazebo-server -v 4
     ```
 
 ## Ignition Gazebo Using Debians In Docker
