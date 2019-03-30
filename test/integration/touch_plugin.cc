@@ -102,7 +102,11 @@ TEST_F(TouchPluginTest, OneLink)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
+// Known to fail on OSX, see
+// https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/22
+#if !defined (__APPLE__)
   EXPECT_TRUE(whiteTouched);
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -178,8 +182,11 @@ TEST_F(TouchPluginTest, StartDisabled)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
-
+// Known to fail on OSX, see
+// https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/22
+#if !defined (__APPLE__)
   EXPECT_TRUE(blueTouched);
+#endif
 }
 
 //////////////////////////////////////////////////

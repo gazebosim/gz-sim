@@ -200,6 +200,36 @@ namespace ignition
       /// \param[in] _distributeSimulation Value to set.
       public: void SetUseDistributedSimulation(const bool _distributed);
 
+      /// \brief Set the number of network secondary servers that the
+      /// primary server should expect. This value is valid only when
+      /// SetNetworkRole("primary") is also used.
+      /// \param[in] _secondaries Number of secondary servers.
+      /// \sa SetNetworkRole(const std::string &_role)
+      /// \sa NetworkRole() const
+      public: void SetNetworkSecondaries(unsigned int _secondaries);
+
+      /// \brief Get the number of secondary servers that a primary server
+      /// should expect.
+      /// \return Number of secondary servers.
+      /// \sa SetNetworkSecondaries(unsigned int _secondaries)
+      public: unsigned int NetworkSecondaries() const;
+
+      /// \brief Set the network role, which is one of [primary, secondary].
+      /// If primary is used, then make sure to also set the numer of
+      /// network secondaries via
+      /// SetNetworkSecondaries(unsigned int _secondaries).
+      /// \param[in] _role Network role, one of [primary, secondary].
+      /// \note Setting a network role enables distributed simulation.
+      /// \sa SetNetworkSecondaries(unsigned int _secondaries)
+      public: void SetNetworkRole(const std::string &_role);
+
+      /// \brief Get the network role. See
+      /// SetNetworkRole(const std::string &_role) for more information
+      /// about distributed simulation and network roles.
+      /// \return The network role.
+      /// \sa SetNetworkRole(const std::string &_role)
+      public: std::string NetworkRole() const;
+
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
       /// an UpdateRate has not been set.

@@ -50,18 +50,20 @@ void worldControl(bool _paused, uint64_t _steps)
 
 /////////////////////////////////////////////////
 // Get the current paused state from the world stats message
-void testPaused(bool _paused)
+uint64_t testPaused(bool _paused)
 {
   std::condition_variable condition;
   std::mutex mutex;
   transport::Node node;
   bool paused = !_paused;
+  uint64_t iterations = 0;
 
   std::function<void(const ignition::msgs::WorldStatistics &)> cb =
       [&](const ignition::msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
+    iterations = _msg.iterations();
     condition.notify_all();
   };
 
@@ -69,6 +71,7 @@ void testPaused(bool _paused)
   node.Subscribe("/world/default/stats", cb);
   condition.wait(lock);
   EXPECT_EQ(_paused, paused);
+  return iterations;
 }
 
 /////////////////////////////////////////////////
@@ -99,27 +102,49 @@ uint64_t iterations()
 #ifdef  __linux__
 TEST(NetworkHandshake, Handshake)
 {
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
-  setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
-  Server serverPrimary(serverConfig);
-  serverPrimary.SetUpdatePeriod(1us);
+  serverConfig.SetNetworkRole("primary");
+  serverConfig.SetNetworkSecondaries(2);
 
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "SECONDARY", 1);
-  Server serverSecondary1(serverConfig);
-  serverSecondary1.SetUpdatePeriod(1us);
+  std::unique_ptr<Server> serverPrimary(new Server(serverConfig));
+  serverPrimary->SetUpdatePeriod(1us);
 
-  Server serverSecondary2(serverConfig);
-  serverSecondary2.SetUpdatePeriod(1us);
+  serverConfig.SetNetworkRole("secondary");
+  std::unique_ptr<Server> serverSecondary1(new Server(serverConfig));
+  serverSecondary1->SetUpdatePeriod(1us);
 
-  // Run the server asynchronously
-  serverPrimary.Run(false);
-  serverSecondary1.Run(false);
-  serverSecondary2.Run(false);
+  std::unique_ptr<Server> serverSecondary2(new Server(serverConfig));
+  serverSecondary2->SetUpdatePeriod(1us);
 
-  // The server should start paused.
-  testPaused(true);
-  EXPECT_EQ(0u, iterations());
+  std::atomic<bool> testRunning {true};
+
+  auto testFcn = [&](Server * _server){
+    _server->Run(false);
+
+    // The server should start paused.
+    uint64_t iterations = testPaused(true);
+    EXPECT_EQ(0u, iterations);
+
+    while (testRunning)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  auto primaryThread = std::thread(testFcn, serverPrimary.get());
+  auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
+  auto secondaryThread2 = std::thread(testFcn, serverSecondary2.get());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  testRunning = false;
+
+  secondaryThread1.join();
+  secondaryThread2.join();
+  primaryThread.join();
+
+  serverSecondary1.reset();
+  serverSecondary2.reset();
+  serverPrimary.reset();
 }
 #endif  // __linux__
