@@ -15,19 +15,20 @@
  *
  */
 
-#include <ignition/msgs/magnetometer.pb.h>
-
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
+
+#include <ignition/sensors/SensorFactory.hh>
+#include <ignition/sensors/MagnetometerSensor.hh>
 
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
@@ -38,52 +39,15 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Magnetometer sensor class
-class ignition::gazebo::systems::MagnetometerSensor
-{
-  /// \brief Constructor
-  public: MagnetometerSensor();
-
-  /// \brief Destructor
-  public: ~MagnetometerSensor();
-
-  /// \brief Load the magnetometer from an sdf element
-  /// \param[in] _sdf SDF element describing the magnetometer
-  /// \param[in] _worldField Current magnetic field in the world frame.
-  /// \param[in] _topic Topic to publish messages at
-  public: void Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_worldField, const std::string &_topic);
-
-  /// \brief Publish magnetometer data over ign transport
-  public: void Publish();
-
-  /// \brief Topic to publish data to
-  public: std::string topic;
-
-  /// \brief The latest field reading from the sensor, based on the world
-  /// field and the sensor's current position.
-  public: ignition::math::Vector3d localField;
-
-  /// \brief Store world magnetic field vector. We assume it is uniform
-  /// everywhere in the world, and that it doesn't change during the simulation.
-  public: ignition::math::Vector3d worldField;
-
-  /// \brief Ign transport node
-  public: transport::Node node;
-
-  /// \brief publisher for magnetometer data
-  public: transport::Node::Publisher pub;
-
-  /// \brief common::Time from when the sensor was updated
-  public: common::Time lastMeasurementTime;
-};
-
 /// \brief Private Magnetometer data class.
 class ignition::gazebo::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
-  public: std::unordered_map<Entity, std::unique_ptr<MagnetometerSensor>>
-      entitySensorMap;
+  public: std::unordered_map<Entity,
+      std::unique_ptr<ignition::sensors::MagnetometerSensor>> entitySensorMap;
+
+  /// \brief Ign-sensors sensor factory for creating sensors
+  public: sensors::SensorFactory sensorFactory;
 
   /// \brief Create magnetometer sensor
   /// \param[in] _ecm Mutable reference to ECM.
@@ -98,41 +62,6 @@ class ignition::gazebo::systems::MagnetometerPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveMagnetometerEntities(const EntityComponentManager &_ecm);
 };
-
-//////////////////////////////////////////////////
-MagnetometerSensor::MagnetometerSensor() = default;
-
-//////////////////////////////////////////////////
-MagnetometerSensor::~MagnetometerSensor() = default;
-
-//////////////////////////////////////////////////
-void MagnetometerSensor::Load(const sdf::ElementPtr &_sdf,
-    const math::Vector3d &_worldField, const std::string &_topic)
-{
-  if (_sdf->HasElement("topic"))
-    this->topic = _sdf->Get<std::string>("topic");
-  else
-    // create default topic for sensor
-    this->topic = _topic;
-
-  this->pub = this->node.Advertise<ignition::msgs::Magnetometer>(this->topic);
-
-  // Store the world's magnetic field
-  this->worldField = _worldField;
-}
-
-//////////////////////////////////////////////////
-void MagnetometerSensor::Publish()
-{
-  msgs::Magnetometer msg;
-  msg.mutable_header()->mutable_stamp()->set_sec(
-      this->lastMeasurementTime.sec);
-  msg.mutable_header()->mutable_stamp()->set_nsec(
-      this->lastMeasurementTime.nsec);
-
-  msgs::Set(msg.mutable_field_tesla(), this->localField);
-  this->pub.Publish(msg);
-}
 
 //////////////////////////////////////////////////
 Magnetometer::Magnetometer() : System(), dataPtr(
@@ -163,9 +92,7 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
     {
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
-      it.second->lastMeasurementTime = common::Time(time.first, time.second);
-
-      it.second->Publish();
+      it.second->Update(common::Time(time.first, time.second));
     }
   }
 
@@ -192,16 +119,38 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
   }
 
   // Create magnetometers
-  _ecm.EachNew<components::Magnetometer>(
+  _ecm.EachNew<components::Magnetometer, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::Magnetometer *_magnetometer)->bool
+        const components::Magnetometer *_magnetometer,
+        const components::ParentEntity *_parent)->bool
       {
-        std::string defaultTopic = scopedName(_entity, _ecm, "/") +
-          "/magnetometer";
+        // create sensor
+        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        auto data = _magnetometer->Data()->Clone();
+        data->GetAttribute("name")->Set(sensorScopedName);
+        // check topic
+        if (!data->HasElement("topic"))
+        {
+          std::string topic = scopedName(_entity, _ecm) + "/magnetometer";
+          data->GetElement("topic")->Set(topic);
+        }
+        std::unique_ptr<sensors::MagnetometerSensor> sensor =
+            this->sensorFactory.CreateSensor<
+            sensors::MagnetometerSensor>(data);
+        // set sensor parent
+        std::string parentName = _ecm.Component<components::Name>(
+            _parent->Data())->Data();
+        sensor->SetParent(parentName);
 
-        auto sensor = std::make_unique<MagnetometerSensor>();
-        sensor->Load(_magnetometer->Data(), worldField->Data(),
-            defaultTopic);
+        // set world magnetic field. Assume uniform in world and does not
+        // change throughout simulation
+        sensor->SetWorldMagneticField(worldField->Data());
+
+        // Get initial pose of sensor and set the reference z pos
+        // The WorldPose component was just created and so it's empty
+        // We'll compute the world pose manually here
+        math::Pose3d p = worldPose(_entity, _ecm);
+        sensor->SetWorldPose(p);
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -225,11 +174,7 @@ void MagnetometerPrivate::Update(
         {
           // Get the magnetometer physical position
           math::Pose3d magnetometerWorldPose = _worldPose->Data();
-
-          // Rotate the magnetic field into the body frame
-          it->second->localField =
-            magnetometerWorldPose.Rot().Inverse().RotateVector(
-                it->second->worldField);
+          it->second->SetWorldPose(magnetometerWorldPose);
         }
         else
         {

@@ -94,6 +94,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     gpu_lidar
     imu
     logical_camera
+    magnetometer
     depth_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
