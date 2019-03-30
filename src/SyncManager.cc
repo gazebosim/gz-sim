@@ -170,6 +170,8 @@ void SyncManager::DistributePerformers()
           const auto &affinityMsg = _req.affinity(ii);
           const auto &entityId = affinityMsg.entity().id();
 
+          auto pid = ecm.Component<components::ParentEntity>(entityId)->Data();
+
           ecm.CreateComponent(entityId,
             components::PerformerAffinity(affinityMsg.secondary_prefix()));
 
@@ -183,7 +185,7 @@ void SyncManager::DistributePerformers()
           // Remove performers not handled by this secondary
           else
           {
-            ecm.RequestRemoveEntity(entityId);
+            ecm.RequestRemoveEntity(pid);
           }
         }
         received = true;
