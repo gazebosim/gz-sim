@@ -44,7 +44,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Register a new component type.
   /// \param[in] _typeId Type if of the new component.
-  public: void CreateComponentStorage(const ComponentTypeId _typeId);
+  /// \return True if created successfully.
+  public: bool CreateComponentStorage(const ComponentTypeId _typeId);
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -371,7 +372,13 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   // If type hasn't been instantiated yet, create a storage for it
   if (!this->HasComponentType(_componentTypeId))
   {
-    this->dataPtr->CreateComponentStorage(_componentTypeId);
+    if (!this->dataPtr->CreateComponentStorage(_componentTypeId))
+    {
+      ignerr << "Failed to create component of type [" << _componentTypeId
+             << "] for entity [" << _entity
+             << "]. Type has not been properly registered." << std::endl;
+      return ComponentKey();
+    }
   }
 
   // Instantiate the new component.
@@ -521,7 +528,7 @@ bool EntityComponentManager::HasComponentType(
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CreateComponentStorage(
+bool EntityComponentManagerPrivate::CreateComponentStorage(
     const ComponentTypeId _typeId)
 {
   auto storage = components::Factory::Instance()->NewStorage(_typeId);
@@ -530,12 +537,14 @@ void EntityComponentManagerPrivate::CreateComponentStorage(
   {
     ignerr << "Internal errror: failed to create storage for type [" << _typeId
            << "]" << std::endl;
-    return;
+    return false;
   }
 
   this->components[_typeId] = std::move(storage);
   igndbg << "Using components of type [" << _typeId << "] / ["
          << components::Factory::Instance()->Name(_typeId) << "].\n";
+
+  return true;
 }
 
 /////////////////////////////////////////////////
