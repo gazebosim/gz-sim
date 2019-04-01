@@ -20,7 +20,7 @@ This will generate the `libCustomComponent.so` library under `build`.
 
 ## Run
 
-Add the lbrary to the path:
+Add the library to the path:
 
 ~~~
 cd ign-gazebo/examples/plugins/custom_component
