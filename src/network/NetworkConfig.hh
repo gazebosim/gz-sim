@@ -18,6 +18,8 @@
 #define IGNITION_GAZEBO_NETWORK_NETWORKCONFIG_HH_
 
 #include <memory>
+#include <string>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
