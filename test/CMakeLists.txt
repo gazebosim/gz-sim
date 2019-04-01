@@ -26,6 +26,7 @@ add_library(gbenchmark ${GBENCHMARK_SOURCE_FILES})
 target_include_directories(gbenchmark PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gbenchmark/include>
 )
+set_property(TARGET gbenchmark PROPERTY CXX_STANDARD 17)
 target_compile_options(gbenchmark PRIVATE "-Wno-switch-default"
   "-Wno-unused-but-set-variable"
   "-Wno-switch-default"
@@ -50,6 +51,7 @@ add_library(gbenchmark_main
 target_include_directories(gbenchmark_main PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gbenchmark/include>
 )
+set_property(TARGET gbenchmark_main PROPERTY CXX_STANDARD 17)
 target_compile_options(gbenchmark_main
   PUBLIC
   "-Wno-switch-default"
