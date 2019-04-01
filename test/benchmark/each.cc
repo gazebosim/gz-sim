@@ -39,7 +39,7 @@ constexpr const int kEachIterations {100};
 
 class EntityComponentManagerFixture: public benchmark::Fixture
 {
-  protected: void SetUp(const ::benchmark::State& _state) override
+  protected: void SetUp(const ::benchmark::State &_state) override
   {
     mgr = std::make_unique<EntityComponentManager>();
     auto matchingEntityCount = _state.range(0);
@@ -47,7 +47,8 @@ class EntityComponentManagerFixture: public benchmark::Fixture
     this->Populate(matchingEntityCount, nonmatchingEntityCount);
   }
 
-  protected: void Populate(int _matchingEntityCount, int _nonmatchingEntityCount)
+  protected: void Populate(int _matchingEntityCount,
+                           int _nonmatchingEntityCount)
   {
     for (int i = 0; i < _matchingEntityCount; ++i)
     {
@@ -66,12 +67,13 @@ class EntityComponentManagerFixture: public benchmark::Fixture
   std::unique_ptr<EntityComponentManager> mgr;
 };
 
-BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
     auto matchingEntityCount = _st.range(0);
-    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    for (int eachIter = 0; eachIter < kEachIterations; ++eachIter)
     {
       int entitiesMatched = 0;
 
@@ -90,7 +92,8 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)(benchmark::State&
   }
 }
 
-BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -116,7 +119,7 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)(benchmark::State& _
 
 class ManyComponentFixture: public benchmark::Fixture
 {
-  protected: void SetUp(const ::benchmark::State& _state) override
+  protected: void SetUp(const ::benchmark::State &_state) override
   {
     mgr = std::make_unique<EntityComponentManager>();
     auto entityCount = _state.range(0);
@@ -144,7 +147,8 @@ class ManyComponentFixture: public benchmark::Fixture
   std::unique_ptr<EntityComponentManager> mgr;
 };
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -169,7 +173,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)(benchmark::State& 
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -203,7 +208,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentCache)(benchmark::State& 
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -247,7 +253,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)(benchmark::State&
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -272,7 +279,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)(benchmark::State
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -306,7 +314,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)(benchmark::State
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
+(benchmark::State &_st)
 {
   for (auto _ : _st)
   {
@@ -351,8 +360,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)(benchmark::Stat
 }
 
 /// Method to generate test argument combinations.  google/benchmark does
-// powers of 2 by default, which looks kind of ugly.
-static void EachTestArgs(benchmark::internal::Benchmark* _b)
+/// powers of 2 by default, which looks kind of ugly.
+static void EachTestArgs(benchmark::internal::Benchmark *_b)
 {
   int maxEntityCount = 1000;
   int step = maxEntityCount/5;
