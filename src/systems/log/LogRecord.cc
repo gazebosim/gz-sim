@@ -137,7 +137,7 @@ LogRecord::~LogRecord()
   {
     // Use ign-transport directly
     this->dataPtr->recorder.Stop();
- 
+
     ignmsg << "Stopping recording" << std::endl;
   }
 }
@@ -166,7 +166,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
 }
 
 //////////////////////////////////////////////////
-bool LogRecord::Start(const std::string _logPath)
+bool LogRecord::Start(const std::string &_logPath)
 {
   // Only start one recorder instance
   if (LogRecordPrivate::started)

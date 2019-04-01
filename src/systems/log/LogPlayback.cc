@@ -150,7 +150,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 }
 
-bool LogPlayback::Start(const std::string _logPath,
+bool LogPlayback::Start(const std::string &_logPath,
   const Entity &_worldEntity, EntityComponentManager &_ecm,
   EventManager &_eventMgr)
 {

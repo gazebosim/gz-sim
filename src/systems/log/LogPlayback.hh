@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_LOGPLAYBACK_HH_
 
 #include <memory>
+#include <string>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -59,7 +60,7 @@ namespace systems
                         EntityComponentManager &_ecm) final;
 
     /// \brief Start log playback.
-    public: bool Start(const std::string _logPath,
+    public: bool Start(const std::string &_logPath,
         const Entity &_worldEntity, EntityComponentManager &_ecm,
         EventManager &_eventMgr);
 
