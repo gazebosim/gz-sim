@@ -135,9 +135,6 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
-  ignerr << "LogPlayback::Configure()\n";
-  ignerr << _sdf->ToString("");
-
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
 
@@ -270,12 +267,6 @@ bool LogPlayback::Start(const std::string _logPath,
     creator.SetParent(lightEntity, _worldEntity);
   }
 
-  ignerr << sdfWorld->Element()->ToString("");
-
-  // TODO: This emits the playback plugin again. Need to remove it from _worldEntity
-  // TODO: On cmd line arg --playback, all plugins in default world in Server.cc are still loaded! Need to remove those from ecm!!
-  //_eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
-
   // Call Log.hh directly to load a .tlog file
   auto log = std::make_unique<transport::log::Log>();
   if (!log->Open(dbPath))
@@ -293,16 +284,6 @@ bool LogPlayback::Start(const std::string _logPath,
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
-
-  // DEBUG
-  _ecm.Each<components::World, components::Name>(
-      [&](const Entity &_entity, components::World * /*_worldComp*/,
-          components::Name *_nameComp) -> bool
-  {
-    ignerr << _nameComp->Data() << std::endl;
-
-    return true;
-  });
 
   this->dataPtr->instStarted = true;
   return true;

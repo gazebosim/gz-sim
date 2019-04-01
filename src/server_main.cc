@@ -219,8 +219,17 @@ int main(int _argc, char **_argv)
 
   if (!FLAGS_playback.empty())
   {
-    ignmsg << "Playing back states" << FLAGS_playback << std::endl;
-    serverConfig.SetLogPlaybackPath(FLAGS_playback);
+    if (!FLAGS_f.empty())
+    {
+      ignerr << "Both an SDF file and playback flag are specified. "
+        << "Only specify one.\n";
+      return -1;
+    }
+    else
+    {
+      ignmsg << "Playing back states" << FLAGS_playback << std::endl;
+      serverConfig.SetLogPlaybackPath(FLAGS_playback);
+    }
   }
 
   // Create the Gazebo server
