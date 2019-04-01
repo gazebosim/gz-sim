@@ -32,7 +32,6 @@ namespace systems
 {
   // Forward declarations.
   class MagnetometerPrivate;
-  class MagnetometerSensor;
 
   /// \class Magnetometer Magnetometer.hh
   /// \brief An magnetometer sensor that reports the magnetic field in its

@@ -32,7 +32,6 @@ namespace systems
 {
   // Forward declarations.
   class AltimeterPrivate;
-  class AltimeterSensor;
 
   /// \class Altimeter Altimeter.hh ignition/gazebo/systems/Altimeter.hh
   /// \brief An altimeter sensor that reports vertical position and velocity

@@ -89,9 +89,12 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 ign_find_package(ignition-sensors2 REQUIRED
   COMPONENTS
     rendering
+    altimeter
     camera
     gpu_lidar
+    imu
     logical_camera
+    magnetometer
     depth_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
