@@ -539,6 +539,8 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               this->eventMgr);
         }
         this->AddSystem(system.value());
+        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
+               << "] for entity [" << _entity << "]" << std::endl;
       }
     }
 
