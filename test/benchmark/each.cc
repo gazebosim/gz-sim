@@ -71,10 +71,6 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)(benchmark::State&
   for (auto _ : _st)
   {
     auto matchingEntityCount = _st.range(0);
-    _st.counters.insert({
-        {"matching", _st.range(0)},
-        {"nonmatching", _st.range(1)}});
-
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
       int entitiesMatched = 0;
@@ -99,10 +95,6 @@ BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)(benchmark::State& _
   for (auto _ : _st)
   {
     auto matchingEntityCount = _st.range(0);
-    _st.counters.insert({
-        {"matching", _st.range(0)},
-        {"nonmatching", _st.range(1)}});
-
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
       int entitiesMatched = 0;
@@ -152,7 +144,7 @@ class ManyComponentFixture: public benchmark::Fixture
   std::unique_ptr<EntityComponentManager> mgr;
 };
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each1Component)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)(benchmark::State& _st)
 {
   for (auto _ : _st)
   {
@@ -177,7 +169,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1Component)(benchmark::State& _st)
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each5Component)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentCache)(benchmark::State& _st)
 {
   for (auto _ : _st)
   {
@@ -211,7 +203,110 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5Component)(benchmark::State& _st)
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each10Component)(benchmark::State& _st)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)(benchmark::State& _st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->Each<Name,
+                AngularVelocity,
+                WorldAngularVelocity,
+                Inertial,
+                LinearAcceleration,
+                WorldLinearAcceleration,
+                LinearVelocity,
+                WorldLinearVelocity,
+                Pose,
+                WorldPose>(
+          [&](const Entity &,
+              const Name *,
+              const AngularVelocity *,
+              const WorldAngularVelocity *,
+              const Inertial *,
+              const LinearAcceleration *,
+              const WorldLinearAcceleration *,
+              const LinearVelocity *,
+              const WorldLinearVelocity *,
+              const Pose *,
+              const WorldPose *)->bool
+          {
+            entitiesMatched++;
+            return true;
+          });
+
+      if (entitiesMatched != entityCount)
+      {
+        _st.SkipWithError("Failed to match correct number of entities");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)(benchmark::State& _st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->EachNoCache<Name>(
+          [&](const Entity &, const Name *)->bool
+          {
+            entitiesMatched++;
+            return true;
+          });
+
+      if (entitiesMatched != entityCount)
+      {
+        _st.SkipWithError("Failed to match correct number of entities");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)(benchmark::State& _st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->EachNoCache<Name,
+                AngularVelocity,
+                Inertial,
+                LinearAcceleration,
+                LinearVelocity>(
+          [&](const Entity &,
+              const Name *,
+              const AngularVelocity *,
+              const Inertial *,
+              const LinearAcceleration *,
+              const LinearVelocity *)->bool
+          {
+            entitiesMatched++;
+            return true;
+          });
+
+      if (entitiesMatched != entityCount)
+      {
+        _st.SkipWithError("Failed to match correct number of entities");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)(benchmark::State& _st)
 {
   for (auto _ : _st)
   {
@@ -282,19 +377,37 @@ BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachCache)
   ->Unit(benchmark::kMillisecond)
   ->Apply(EachTestArgs);
 
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each1Component)
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentNoCache)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each5Component)
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentCache)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each10Component)
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentNoCache)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentCache)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentNoCache)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)
