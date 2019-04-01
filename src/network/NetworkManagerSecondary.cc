@@ -110,30 +110,40 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
     return false;
   }
 
-  std::unique_lock<std::mutex> lock(this->stepMutex);
-  auto status = this->stepCv.wait_for(lock,
-      std::chrono::nanoseconds(100),
-      [this](){return this->currentStep != nullptr;});
-
-  if (status) {
-    // Throttle the number of step messages going to the debug output.
-    if (!this->currentStep->paused() &&
-        this->currentStep->iteration() % 1000 == 0)
+  // Only wait if we haven't received a step yet
+  if (this->currentStep == nullptr)
+  {
+    std::unique_lock<std::mutex> lock(this->stepMutex);
+    auto status = this->stepCv.wait_for(lock,
+        std::chrono::nanoseconds(100),
+        [this]()
     {
-      igndbg << "Network iterations: " << this->currentStep->iteration()
-             << std::endl;
+      return this->currentStep != nullptr;
+    });
+
+    if (!status)
+    {
+      return false;
     }
-    _info.iterations = this->currentStep->iteration();
-    _info.paused = this->currentStep->paused();
-    _info.dt = std::chrono::steady_clock::duration(
-        std::chrono::nanoseconds(this->currentStep->stepsize()));
-    _info.simTime = std::chrono::steady_clock::duration(
-        std::chrono::seconds(this->currentStep->simtime().sec()) +
-        std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
-    this->currentStep.reset();
   }
 
-  return status;
+  // Throttle the number of step messages going to the debug output.
+  if (!this->currentStep->paused() &&
+      this->currentStep->iteration() % 1000 == 0)
+  {
+    igndbg << "Network iterations: " << this->currentStep->iteration()
+           << std::endl;
+  }
+  _info.iterations = this->currentStep->iteration();
+  _info.paused = this->currentStep->paused();
+  _info.dt = std::chrono::steady_clock::duration(
+      std::chrono::nanoseconds(this->currentStep->stepsize()));
+  _info.simTime = std::chrono::steady_clock::duration(
+      std::chrono::seconds(this->currentStep->simtime().sec()) +
+      std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
+
+  this->currentStep.reset();
+  return true;
 }
 
 //////////////////////////////////////////////////

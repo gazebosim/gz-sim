@@ -127,7 +127,7 @@ void SyncManager::DistributePerformers()
         this->node.ServiceInfo(topic, publishers);
         if (!publishers.empty())
           break;
-        std::this_thread::sleep_for(std::chrono::milliseconds(timeout/10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout/tries));
       }
 
       if (publishers.empty())
@@ -210,11 +210,12 @@ void SyncManager::DistributePerformers()
 
     igndbg << "Secondary [" << mgr->Namespace()
            << "] waiting for affinity assignment." << std::endl;
-    while (!received &&
-           !this->runner->stopReceived)
+    while (!received && !this->runner->stopReceived)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    igndbg << "Secondary [" << mgr->Namespace()
+           << "] received affinity assignment." << std::endl;
   }
 }
 
