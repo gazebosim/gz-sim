@@ -117,20 +117,34 @@ TEST(NetworkHandshake, Handshake)
   std::unique_ptr<Server> serverSecondary2(new Server(serverConfig));
   serverSecondary2->SetUpdatePeriod(1us);
 
-  // Run the server asynchronously
-  serverPrimary->Run(false);
-  // The server should start paused.
-  uint64_t iterations = testPaused(true);
-  EXPECT_EQ(0u, iterations);
+  std::atomic<bool> testRunning {true};
 
-  serverSecondary1->Run(false);
-  serverSecondary2->Run(false);
+  auto testFcn = [&](Server * _server){
+    _server->Run(false);
 
-  // Stop primary first, otherwise things hang...
-  // \todo(mjcarroll) If serverSecondary1.reset() precedes serverPrimary.reset()
-  // then a deadlock occurs. Not sure why.
-  serverPrimary.reset();
+    // The server should start paused.
+    uint64_t iterations = testPaused(true);
+    EXPECT_EQ(0u, iterations);
+
+    while (testRunning)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  auto primaryThread = std::thread(testFcn, serverPrimary.get());
+  auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
+  auto secondaryThread2 = std::thread(testFcn, serverSecondary2.get());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  testRunning = false;
+
+  secondaryThread1.join();
+  secondaryThread2.join();
+  primaryThread.join();
+
   serverSecondary1.reset();
   serverSecondary2.reset();
+  serverPrimary.reset();
 }
 #endif  // __linux__
