@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/common/Time.hh>
-#include <ignition/math/Pose3.hh>
+
+#include <ignition/msgs/double.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/Model.hh"
 
@@ -78,14 +74,8 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
-  auto sdfClone = _sdf->Clone();
-
   // Get params from SDF
-  auto sdfElem = sdfClone->GetElement("joint_name");
-  if (sdfElem)
-  {
-    this->dataPtr->jointName = sdfElem->Get<std::string>();
-  }
+  this->dataPtr->jointName = _sdf->Get<std::string>("joint_name");
 
   if (this->dataPtr->jointName == "")
   {
