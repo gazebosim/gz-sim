@@ -1048,20 +1048,31 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_NE(kNullEntity, modelId);
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(),
-      0.123);
+  std::string worldComponentName{"WorldPluginComponent"};
+  auto worldComponentId = ignition::common::hash64(worldComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
+      worldComponentId));
 
   // Check component registered by model plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        IntComponent::typeId));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
-  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(),
-      987);
+  std::string modelComponentName{"ModelPluginComponent"};
+  auto modelComponentId = ignition::common::hash64(modelComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
+      modelComponentId));
+
+  // Clang re-registers components between tests. If we don't unregister them
+  // beforehand, the new plugin tries to create a storage type from a previous
+  // plugin, causing a crash.
+  // Is this only a problem with GTest, or also during simulation? How to
+  // reproduce? Maybe we need to test unloading plugins, but we have no API for
+  // it yet.
+  #if defined (__clang__)
+    components::Factory::Instance()->Unregister(worldComponentId);
+    components::Factory::Instance()->Unregister(modelComponentId);
+  #endif
 }
 
 /////////////////////////////////////////////////
@@ -1076,22 +1087,31 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  runner.SetPaused(false);
 
-  // Get world entity
-  Entity worldEntity{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
-      {
-        EXPECT_NE(nullptr, _world);
-        worldEntity = _entity;
-        return true;
-      });
-  EXPECT_NE(kNullEntity, worldEntity);
+  // Get model entities
+  auto boxEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("box"));
+  EXPECT_NE(kNullEntity, boxEntity);
+
+  auto sphereEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("sphere"));
+  EXPECT_NE(kNullEntity, sphereEntity);
+
+  auto cylinderEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("cylinder"));
+  EXPECT_NE(kNullEntity, cylinderEntity);
+
+  // We can't access the type registered by the plugin unless we link against
+  // it, but we know its name to check
+  std::string componentName{"ModelPluginComponent"};
+  auto componentId = ignition::common::hash64(componentName);
 
   // Check there's no double component
-  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
+  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
@@ -1100,16 +1120,52 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
-  runner.EventMgr().Emit<events::LoadPlugins>(worldEntity,
-      rootWith.WorldByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadPlugins>(boxEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
 
-  // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
-      0.123);
+  // Check component registered by model plugin
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(boxEntity,
+      componentId)) << componentId;
+
+  // Emit plugin loading event again
+  runner.EventMgr().Emit<events::LoadPlugins>(sphereEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+
+  // Check component for the other model
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sphereEntity,
+      componentId)) << componentId;
+
+  // Remove entities that have plugin - this is not unloading or destroying
+  // the plugin though!
+  auto entityCount = runner.EntityCompMgr().EntityCount();
+  const_cast<EntityComponentManager &>(
+      runner.EntityCompMgr()).RequestRemoveEntity(boxEntity);
+  const_cast<EntityComponentManager &>(
+      runner.EntityCompMgr()).RequestRemoveEntity(sphereEntity);
+  EXPECT_TRUE(runner.Run(100));
+  EXPECT_GT(entityCount, runner.EntityCompMgr().EntityCount());
+
+  // Check component is still registered
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+
+  // Entities no longer exist
+  EXPECT_FALSE(runner.EntityCompMgr().HasEntity(boxEntity));
+  EXPECT_FALSE(runner.EntityCompMgr().HasEntity(sphereEntity));
+
+  // Emit plugin loading event after all previous instances have been removed
+  runner.EventMgr().Emit<events::LoadPlugins>(cylinderEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+
+  // Check component for the other model
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(cylinderEntity,
+      componentId)) << componentId;
 }
 
 /////////////////////////////////////////////////
