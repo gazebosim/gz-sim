@@ -244,7 +244,7 @@ namespace ignition
 
       /// \brief Set path to recorded states to play back
       /// \param[in] _playbackPath Path to recorded states
-      public: void SetLogPlaybackPath(const std::string _playbackPath);
+      public: void SetLogPlaybackPath(const std::string &_playbackPath);
 
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if

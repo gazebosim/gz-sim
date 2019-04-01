@@ -547,10 +547,10 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
           pluginElem->AddAttribute("path", "string", "", false);
         sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
         pathParam->SetFromString(this->serverConfig.LogPlaybackPath());
-    
+
         insertPlaybackPlugin = false;
       }
-    
+
       // If playback plugin is to be inserted, do not load physics plugin
       if ((pluginElem->Get<std::string>("filename").find(physicsFilename)
            != std::string::npos) &&

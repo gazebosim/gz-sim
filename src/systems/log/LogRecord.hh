@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
 
 #include <memory>
+#include <string>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -53,7 +54,7 @@ namespace systems
                            EventManager &_eventMgr) final;
 
     /// \brief Start recording
-    public: bool Start(const std::string _logPath=std::string(""));
+    public: bool Start(const std::string &_logPath = std::string(""));
 
     /// \brief Stop recording
     public: void Stop();

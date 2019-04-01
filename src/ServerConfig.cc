@@ -377,7 +377,7 @@ const std::string ServerConfig::LogPlaybackPath() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetLogPlaybackPath(const std::string _playbackPath)
+void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
 {
   this->dataPtr->logPlaybackPath = _playbackPath;
 }
