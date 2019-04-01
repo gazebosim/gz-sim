@@ -195,6 +195,9 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
+  /// \todo(nkoenig) Deprecated the FLAGS_distributed in ign-gazebo2, and
+  /// remove in ign-gazebo3. The FLAGS_network_role is used to indicate
+  /// if distributed simulation is enabled.
   if (FLAGS_distributed)
   {
     ignmsg << "Using the distributed simulation system\n";
