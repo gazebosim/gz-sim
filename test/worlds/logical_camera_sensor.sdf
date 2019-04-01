@@ -127,7 +127,6 @@
           </logical_camera>
           <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
-          <topic>/logical_camera</topic>
         </sensor>
       </link>
     </model>

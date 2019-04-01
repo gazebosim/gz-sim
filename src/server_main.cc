@@ -36,6 +36,10 @@ DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
 DEFINE_bool(distributed, false, "Use distributed simulation.");
+DEFINE_string(network_role, "", "Participant role used in a distributed "
+    " simulation environment. Role is one of [primary, secondary].");
+DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
+    " expected to join a distributed simulation environment. (Primary only).");
 
 //////////////////////////////////////////////////
 void help()
@@ -68,6 +72,14 @@ void help()
   << std::endl
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " and/or --network-secondaries instead."
+  << std::endl
+  << "  --network-role         Participant role used in a distributed "
+  << " simulation environment. Role is one of [primary, secondary]."
+  << std::endl
+  << "  --network-secondaries  Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl
   << std::endl
   << "Environment variables:" << std::endl
@@ -75,10 +87,13 @@ void help()
   << " resources. Can be useful with the -f option to find an SDF file."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
-  << " simulation environment. Role is one of [PRIMARY, SECONDARY]."
+  << " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will"
+  << " be deprecated in ign-gazebo2. Please use --network-role instead."
   << std::endl
   << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " instead."
   << std::endl;
 }
 
@@ -172,10 +187,23 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
+  /// \todo(nkoenig) Deprecated the FLAGS_distributed in ign-gazebo2, and
+  /// remove in ign-gazebo3. The FLAGS_network_role is used to indicate
+  /// if distributed simulation is enabled.
   if (FLAGS_distributed)
   {
     ignmsg << "Using the distributed simulation system\n";
     serverConfig.SetUseDistributedSimulation(true);
+  }
+
+  if (!FLAGS_network_role.empty())
+  {
+    // This if is here to prevent the ignmsg from being displayed twice
+    // in the case when FLAGS_distributed is used with FLAGS_network_role
+    if (!FLAGS_distributed)
+      ignmsg << "Using the distributed simulation system\n";
+    serverConfig.SetNetworkRole(FLAGS_network_role);
+    serverConfig.SetNetworkSecondaries(FLAGS_network_secondaries);
   }
 
   // Create the Gazebo server
