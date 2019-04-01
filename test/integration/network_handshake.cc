@@ -32,23 +32,6 @@ using namespace std::chrono_literals;
 uint64_t kIterations;
 
 /////////////////////////////////////////////////
-// Send a world control message.
-void worldControl(bool _paused, uint64_t _steps)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [&](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    EXPECT_TRUE(_result);
-  };
-
-  ignition::msgs::WorldControl req;
-  req.set_pause(_paused);
-  req.set_multi_step(_steps);
-  transport::Node node;
-  node.Request("/world/default/control", req, cb);
-}
-
-/////////////////////////////////////////////////
 // Get the current paused state from the world stats message
 uint64_t testPaused(bool _paused)
 {
@@ -69,31 +52,9 @@ uint64_t testPaused(bool _paused)
 
   std::unique_lock<std::mutex> lock(mutex);
   node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
+  auto success = condition.wait_for(lock, std::chrono::seconds(1));
+  EXPECT_EQ(std::cv_status::no_timeout, success);
   EXPECT_EQ(_paused, paused);
-  return iterations;
-}
-
-/////////////////////////////////////////////////
-// Get the current iteration count from the world stats message
-uint64_t iterations()
-{
-  std::condition_variable condition;
-  std::mutex mutex;
-  transport::Node node;
-  uint64_t iterations = 0;
-
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    iterations = _msg.iterations();
-    condition.notify_all();
-  };
-
-  std::unique_lock<std::mutex> lock(mutex);
-  node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
   return iterations;
 }
 
@@ -129,7 +90,8 @@ TEST_F(NetworkHandshake, Handshake)
 
   auto testFcn = [&](Server *_server)
   {
-    _server->Run(false);
+    // Run for a finite number of iterations
+    _server->Run(false, 10, true);
 
     // The server should start paused.
     uint64_t iterations = testPaused(true);
