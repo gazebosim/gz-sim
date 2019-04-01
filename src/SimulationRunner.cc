@@ -530,25 +530,46 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
       insertPlaybackPlugin = true;
   }
 
+  std::string physicsFilename = "-physics-system.so";
+  std::string physicsName = "::systems::Physics";
+
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
-    // If playback plugin specified in SDF, overwrite it with command line arg
-    if (insertPlaybackPlugin &&
-        pluginElem->Get<std::string>("filename") == playbackFilename &&
-        pluginElem->Get<std::string>("name") == playbackName)
+    if (insertPlaybackPlugin)
     {
-      // Set playback path
-      if (!pluginElem->HasAttribute("path"))
-        pluginElem->AddAttribute("path", "string", "", false);
-      sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
-      pathParam->SetFromString(this->serverConfig.LogPlaybackPath());
-
-      insertPlaybackPlugin = false;
-
-      std::cerr << this->serverConfig.LogPlaybackPath() << std::endl;
+      // If playback plugin specified in SDF, overwrite it with command line arg
+      if (pluginElem->Get<std::string>("filename") == playbackFilename &&
+        pluginElem->Get<std::string>("name") == playbackName)
+      {
+        // Set playback path
+        if (!pluginElem->HasAttribute("path"))
+          pluginElem->AddAttribute("path", "string", "", false);
+        sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
+        pathParam->SetFromString(this->serverConfig.LogPlaybackPath());
+    
+        insertPlaybackPlugin = false;
+      }
+    
+      // If playback plugin is to be inserted, do not load physics plugin
+      if ((pluginElem->Get<std::string>("filename").find(physicsFilename)
+           != std::string::npos) &&
+         (pluginElem->Get<std::string>("name").find(physicsName)
+           != std::string::npos))
+      {
+        // Skip physics
+        pluginElem = pluginElem->GetNextElement("plugin");
+        continue;
+      }
     }
 
+    // If record plugin already specified in SDF, don't insert another
+    if (insertRecordPlugin &&
+        pluginElem->Get<std::string>("filename") == recordFilename &&
+        pluginElem->Get<std::string>("name") == recordName)
+      insertRecordPlugin = false;
+
+    // Load plugin
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
@@ -557,12 +578,6 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
       this->LoadSystemPlugin(_entity, pluginElem);
-
-    // If record plugin already specified in SDF, don't insert another
-    if (insertRecordPlugin &&
-        pluginElem->Get<std::string>("filename") == recordFilename &&
-        pluginElem->Get<std::string>("name") == recordName)
-      insertRecordPlugin = false;
 
     pluginElem = pluginElem->GetNextElement("plugin");
   }
