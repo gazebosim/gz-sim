@@ -98,9 +98,17 @@ uint64_t iterations()
 }
 
 /////////////////////////////////////////////////
-// Only on Linux for the moment
-#ifdef  __linux__
-TEST(NetworkHandshake, Handshake)
+class NetworkHandshake : public ::testing::Test
+{
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
+/////////////////////////////////////////////////
+TEST_F(NetworkHandshake, Handshake)
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -150,10 +158,8 @@ TEST(NetworkHandshake, Handshake)
 }
 
 /////////////////////////////////////////////////
-TEST(NetworkHandshake, Updates)
+TEST_F(NetworkHandshake, Updates)
 {
-  common::Console::SetVerbosity(4);
-
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
   pluginElem->AddAttribute("name", "string", "required_but_ignored", true);
@@ -242,7 +248,9 @@ TEST(NetworkHandshake, Updates)
 
   // Check model was falling (physics simulated by secondary)
   if (zPos.size() >= 100u)
+  {
     EXPECT_GT(zPos[0], zPos[99]);
+  }
 
   // Finish server threads
   testRunning = false;
@@ -253,4 +261,3 @@ TEST(NetworkHandshake, Updates)
   serverPrimary.reset();
   serverSecondary1.reset();
 }
-#endif  // __linux__
