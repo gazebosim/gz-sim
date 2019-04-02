@@ -339,8 +339,8 @@ bool ServerConfig::UseDistributedSimulation() const
 {
   // We just check that network role is not empty.
   // src/network/NetworkConfig.cc checks if this value is valid.
-  // \todo(nkoenig) Deprecated "SetUseDistributedSimulation" in ign-gazebo2
-  // and remove the "|| this->dataPtr->useDistributed" in ign-gazebo3.
+  // \todo(nkoenig) Remove the "|| this->dataPtr->useDistributed"
+  // in ign-gazebo3.
   return !this->dataPtr->networkRole.empty() || this->dataPtr->useDistributed;
 }
 
