@@ -105,8 +105,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(
-      this, _config.UseLevels(), _config.UseDistributedSimulation());
+  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
