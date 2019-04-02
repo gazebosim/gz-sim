@@ -68,15 +68,19 @@ void help()
   << " The default is false, which starts simulation paused."
   << std::endl
   << "  --levels               Use the level system."
-  << " The default is false, which loads all models."
+  << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --network-role."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
   << " This will be deprecated in ign-gazebo2. Please use --network-role "
-  << " and/or --network-secondaries instead."
+  << " and/or --network-secondaries instead. It implies --levels."
   << std::endl
   << "  --network-role         Participant role used in a distributed "
   << " simulation environment. Role is one of [primary, secondary]."
+  << " It implies --levels."
   << std::endl
   << "  --network-secondaries  Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"
@@ -192,8 +196,9 @@ int main(int _argc, char **_argv)
   /// if distributed simulation is enabled.
   if (FLAGS_distributed)
   {
-    ignmsg << "Using the distributed simulation system\n";
+    ignmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetUseDistributedSimulation(true);
+    serverConfig.SetUseLevels(true);
   }
 
   if (!FLAGS_network_role.empty())
@@ -201,9 +206,10 @@ int main(int _argc, char **_argv)
     // This if is here to prevent the ignmsg from being displayed twice
     // in the case when FLAGS_distributed is used with FLAGS_network_role
     if (!FLAGS_distributed)
-      ignmsg << "Using the distributed simulation system\n";
+      ignmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(FLAGS_network_role);
     serverConfig.SetNetworkSecondaries(FLAGS_network_secondaries);
+    serverConfig.SetUseLevels(true);
   }
 
   // Create the Gazebo server
