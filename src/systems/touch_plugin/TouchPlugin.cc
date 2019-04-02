@@ -264,7 +264,9 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (this->touchStart != DurationType::zero())
     {
-      igndbg << "Not touching anything" << std::endl;
+      igndbg << "Model [" << this->model.Name(_ecm)
+             << "] not touching anything at [" << _info.simTime.count()
+             << "]" << std::endl;
     }
     this->touchStart = DurationType::zero();
     return;
