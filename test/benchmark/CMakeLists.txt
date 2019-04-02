@@ -2,8 +2,8 @@ set(TEST_TYPE "BENCHMARK")
 
 set(tests
   each.cc
+  ecm_serialize.cc
 )
-
 
 ign_build_executables(
   PREFIX "${TEST_TYPE}_"
