@@ -192,8 +192,8 @@ int main(int _argc, char **_argv)
   /// if distributed simulation is enabled.
   if (FLAGS_distributed)
   {
-    ignwarn << "Distributed simulation configuration via environment"
-      << " variables is deprecated. Please use the --network-role and"
+    ignwarn << "Distributed simulation configuration via --distributed"
+      << " is deprecated. Please use the --network-role and"
       << " --network-secondaries command line options instead.\n";
     ignmsg << "Using the distributed simulation system\n";
     serverConfig.SetUseDistributedSimulation(true);
