@@ -1,6 +1,7 @@
 set(TEST_TYPE "PERFORMANCE")
 
 set(tests
+  each.cc
   level_manager.cc
 )
 
