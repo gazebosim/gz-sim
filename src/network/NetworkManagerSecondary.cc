@@ -110,22 +110,16 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
     return false;
   }
 
-  // Only wait if we haven't received a step yet
-  if (this->currentStep == nullptr)
+  std::unique_lock<std::mutex> lock(this->stepMutex);
+  auto status = this->stepCv.wait_for(lock,
+      std::chrono::nanoseconds(100),
+      [this]()
   {
-    std::unique_lock<std::mutex> lock(this->stepMutex);
-    auto status = this->stepCv.wait_for(lock,
-        std::chrono::nanoseconds(100),
-        [this]()
-    {
-      return this->currentStep != nullptr;
-    });
+    return this->currentStep != nullptr;
+  });
 
-    if (!status)
-    {
-      return false;
-    }
-  }
+  if (!status)
+    return false;
 
   // Throttle the number of step messages going to the debug output.
   if (!this->currentStep->paused() &&
@@ -141,8 +135,8 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
   _info.simTime = std::chrono::steady_clock::duration(
       std::chrono::seconds(this->currentStep->simtime().sec()) +
       std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
-
   this->currentStep.reset();
+
   return true;
 }
 
