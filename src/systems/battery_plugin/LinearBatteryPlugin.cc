@@ -83,8 +83,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: double q;
 
   /// \brief Simulation time handled during a single update.
-  // public: std::chrono::steady_clock::duration stepSize;
-  public: double maxStepSize;
+  public: std::chrono::steady_clock::duration stepSize;
 };
 
 /////////////////////////////////////////////////
@@ -153,10 +152,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
       << std::endl;
     return;
   }
-
-  // Get max step size from SDF physics
-  const sdf::Physics * sdfPhys = sdfWorld->PhysicsByIndex(0);
-  this->dataPtr->maxStepSize = sdfPhys->MaxStepSize();
 
   // Entity worldEntity = _ecm.EntityByComponents<components::World>(
   //   components::World());
@@ -258,9 +253,10 @@ void LinearBatteryPluginPrivate::Reset()
 }
 
 //////////////////////////////////////////////////
-void LinearBatteryPlugin::Update(const UpdateInfo &/*_info*/,
+void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &/*_ecm*/)
 {
+  this->dataPtr->stepSize = _info.dt;
   this->dataPtr->battery->Update();
 }
 
@@ -270,9 +266,8 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 {
   IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
 
-  // double dt = std::chrono::duration_cast<std::chrono::seconds>(
-  //   this->dataPtr->stepSize).count();
-  double dt = this->dataPtr->maxStepSize;
+  double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
+    this->dataPtr->stepSize).count()) * 1e-9;
   double totalpower = 0.0;
   double k = dt / this->dataPtr->tau;
 
