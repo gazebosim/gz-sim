@@ -797,8 +797,8 @@ TEST_F(SdfEntityCreatorTest, CreateBatteries)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
-  // 1 x world + 1 x model + 1 x link + 1 x visual + 1 x light
-  EXPECT_EQ(5u, this->ecm.EntityCount());
+  // 1 x world + 1 x model + 1 x link + 1 x visual + 1 x light + 1 x battery
+  EXPECT_EQ(6u, this->ecm.EntityCount());
 
   // Check batteries
   unsigned int batteryCount{0};

@@ -49,7 +49,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
         {
           if (_info.role == NetworkRole::SimulationSecondary)
           {
-            ignerr << "Secondary removed, stopping simulation" << std::endl;
+            ignmsg << "Secondary removed, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
         });

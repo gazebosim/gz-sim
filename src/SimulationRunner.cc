@@ -105,21 +105,31 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(
-      this, _config.UseLevels(), _config.UseDistributedSimulation());
+  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
   // If the configuration is invalid, then networkMgr will be `nullptr`.
   if (_config.UseDistributedSimulation())
   {
-    this->networkMgr = NetworkManager::Create(&this->eventMgr);
+    if (_config.NetworkRole().empty())
+    {
+      /// \todo(nkoenig) Add deprecation warning in ign-gazebo2, and remove
+      /// part of the 'if' statement in ign-gazebo3.
+      this->networkMgr = NetworkManager::Create(&this->eventMgr);
+    }
+    else
+    {
+      this->networkMgr = NetworkManager::Create(&this->eventMgr,
+          NetworkConfig::FromValues(
+            _config.NetworkRole(), _config.NetworkSecondaries()));
+    }
 
     if (this->networkMgr->IsPrimary())
     {
       ignmsg << "Network Primary, expects ["
              << this->networkMgr->Config().numSecondariesExpected
-             << "] seondaries." << std::endl;
+             << "] secondaries." << std::endl;
     }
     else if (this->networkMgr->IsSecondary())
     {
@@ -270,6 +280,13 @@ void SimulationRunner::PublishStats()
 /////////////////////////////////////////////////
 void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 {
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  this->pendingSystems.push_back(_system);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
+{
   this->systems.push_back(SystemInternal(_system));
 
   const auto &system = this->systems.back();
@@ -282,6 +299,17 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system)
 
   if (system.postupdate)
     this->systemsPostupdate.push_back(system.postupdate);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessSystemQueue()
+{
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  for (const auto &system : this->pendingSystems)
+  {
+    this->AddSystemToRunner(system);
+  }
+  this->pendingSystems.clear();
 }
 
 /////////////////////////////////////////////////
@@ -423,7 +451,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       IGN_PROFILE("NetworkSync - SendStep");
       // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->networkMgr->Step(this->currentInfo))
+      while (this->running && !this->stopReceived &&
+          !this->networkMgr->Step(this->currentInfo))
       {
       }
     }
@@ -435,6 +464,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
     this->levelMgr->UpdateLevelsState();
+
+    // Handle pending systems
+    this->ProcessSystemQueue();
 
     // Update all the systems.
     this->UpdateSystems();
@@ -493,8 +525,11 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
     {
-      std::optional<SystemPluginPtr> system =
-        this->systemLoader->LoadPlugin(pluginElem);
+      std::optional<SystemPluginPtr> system;
+      {
+        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+        system = this->systemLoader->LoadPlugin(pluginElem);
+      }
       if (system)
       {
         auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
@@ -505,6 +540,8 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               this->eventMgr);
         }
         this->AddSystem(system.value());
+        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
+               << "] for entity [" << _entity << "]" << std::endl;
       }
     }
 
@@ -544,8 +581,13 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     if (entity != _entity)
       continue;
 
-    std::optional<SystemPluginPtr> system =
-      this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(), nullptr);
+    std::optional<SystemPluginPtr> system;
+    {
+      std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+      system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
+                                              nullptr);
+    }
+
     if (system)
     {
       auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
@@ -597,7 +639,8 @@ size_t SimulationRunner::EntityCount() const
 /////////////////////////////////////////////////
 size_t SimulationRunner::SystemCount() const
 {
-  return this->systems.size();
+  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+  return this->systems.size() + this->pendingSystems.size();
 }
 
 /////////////////////////////////////////////////
