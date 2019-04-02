@@ -38,19 +38,12 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
 
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-
-
 using namespace ignition;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
 class ignition::gazebo::systems::LogRecordPrivate
 {
-  /// \brief Ignition transport recorder
-  public: transport::log::Recorder recorder;
-
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
@@ -68,6 +61,9 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Unique directory path to not overwrite existing directory
   /// \param[in] _pathAndName Full absolute path
   public: std::string UniqueDirectoryPath(const std::string &_dir);
+
+  /// \brief Ignition transport recorder
+  public: transport::log::Recorder recorder;
 };
 
 //////////////////////////////////////////////////
@@ -152,7 +148,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   if (common::exists(logPath))
   {
     logPath = this->dataPtr->UniqueDirectoryPath(logPath);
-    ignwarn << "Log path already exist on disk! "
+    ignwarn << "Log path already exists on disk! "
       << "Recording instead to [" << logPath << "]" << std::endl;
   }
 

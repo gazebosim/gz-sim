@@ -44,6 +44,8 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check it has no type id yet
   EXPECT_EQ(0u, MyCustom::typeId);
+  EXPECT_EQ("", MyCustom::typeName);
+  EXPECT_EQ("", factory->Name(MyCustom::typeId));
 
   // Store number of registered component types
   auto registeredCount = factory->TypeIds().size();
@@ -54,19 +56,39 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
+  EXPECT_EQ("ign_gazebo_components.MyCustom", MyCustom::typeName);
+  EXPECT_EQ("ign_gazebo_components.MyCustom",
+      factory->Name(MyCustom::typeId));
 
   // Check factory knows id
   auto ids = factory->TypeIds();
   EXPECT_EQ(registeredCount + 1, ids.size());
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
 
+  // Fail to register same component twice
+  factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
+      new components::ComponentDescriptor<MyCustom>(),
+      new components::StorageDescriptor<MyCustom>());
+
+  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
+
+  // Fail to register 2 components with same name
+  using Duplicate = components::Component<components::NoData,
+      class DuplicateTag>;
+  factory->Register<Duplicate>("ign_gazebo_components.MyCustom",
+      new components::ComponentDescriptor<Duplicate>(),
+      new components::StorageDescriptor<Duplicate>());
+
+  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
+
   // Unregister
   factory->Unregister<MyCustom>();
 
   // Check it has no type id yet
   ids = factory->TypeIds();
-  EXPECT_EQ(0u, MyCustom::typeId);
   EXPECT_EQ(registeredCount, ids.size());
+  EXPECT_EQ(0u, MyCustom::typeId);
+  EXPECT_EQ("", factory->Name(MyCustom::typeId));
 }
 
 /////////////////////////////////////////////////
