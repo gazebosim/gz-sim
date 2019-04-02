@@ -130,29 +130,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     return;
   }
 
-  // Go up to root of SDF, to access physics tag
-  sdf::ElementPtr sdfParent = _sdf->GetParent();
-  while (sdfParent->GetParent() != nullptr)
-  {
-    sdfParent = sdfParent->GetParent();
-  }
-
-  sdf::Root sdfRoot;
-  sdfRoot.LoadSdfString(sdfParent->ToString(""));
-  if (sdfRoot.WorldCount() == 0)
-  {
-    ignerr << "Missing world element in SDF. Failed to initiaize." << std::endl;
-    return;
-  }
-
-  const sdf::World * sdfWorld = sdfRoot.WorldByIndex(0);
-  if (sdfWorld->PhysicsCount() == 0)
-  {
-    ignerr << "Missing physics element in SDF. Failed to initiaize."
-      << std::endl;
-    return;
-  }
-
   // Entity worldEntity = _ecm.EntityByComponents<components::World>(
   //   components::World());
   // auto worldComp = _ecm.ChildrenByComponents(worldEntity,
