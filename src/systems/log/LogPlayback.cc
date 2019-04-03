@@ -51,9 +51,12 @@ using namespace systems;
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Start log playback.
-  /// \param[in] _logPath 
-  /// \param[in] _ecm 
-  /// \param[in] _eventMgr 
+  /// \param[in] _logPath Path of recorded state to playback.
+  /// \param[in] _worldEntity The world entity this plugin is attached to.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  /// \param[in] _eventMgr The EventManager of the given simulation
+  /// instance.
   public: bool Start(const std::string &_logPath,
       const Entity &_worldEntity, EntityComponentManager &_ecm,
       EventManager &_eventMgr);
