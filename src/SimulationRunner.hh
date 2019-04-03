@@ -140,12 +140,6 @@ namespace ignition
       public: void LoadPlugins(const Entity _entity,
           const sdf::ElementPtr &_sdf);
 
-      /// \brief Load a single system plugin for a given entity.
-      /// \param[in] _entity Entity
-      /// \param[in] _pluginElem SDF plugin element
-      public: void LoadSystemPlugin(const Entity _entity,
-          const sdf::ElementPtr &_pluginElem);
-
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
       /// \return True if the server is running.

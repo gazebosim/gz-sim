@@ -514,62 +514,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  bool insertRecordPlugin = false;
-  std::string recordName = "ignition::gazebo::systems::LogRecord";
-  std::string recordFilename = "libignition-gazebo-log-system.so";
-  bool insertPlaybackPlugin = false;
-  std::string playbackName = "ignition::gazebo::systems::LogPlayback";
-  std::string playbackFilename = "libignition-gazebo-log-system.so";
-  // Only insert logging plugins at world level
-  if (_sdf->GetName() == "world")
-  {
-    // Flags passed in through command line
-    if (this->serverConfig.UseLogRecord())
-      insertRecordPlugin = true;
-    if (!this->serverConfig.LogPlaybackPath().empty())
-      insertPlaybackPlugin = true;
-  }
-
-  std::string physicsFilename = "-physics-system.so";
-  std::string physicsName = "::systems::Physics";
-
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
-    if (insertPlaybackPlugin)
-    {
-      // If playback plugin specified in SDF, overwrite it with command line arg
-      if (pluginElem->Get<std::string>("filename") == playbackFilename &&
-        pluginElem->Get<std::string>("name") == playbackName)
-      {
-        // Set playback path
-        if (!pluginElem->HasAttribute("path"))
-          pluginElem->AddAttribute("path", "string", "", false);
-        sdf::ParamPtr pathParam = pluginElem->GetAttribute("path");
-        pathParam->SetFromString(this->serverConfig.LogPlaybackPath());
-
-        insertPlaybackPlugin = false;
-      }
-
-      // If playback plugin is to be inserted, do not load physics plugin
-      if ((pluginElem->Get<std::string>("filename").find(physicsFilename)
-           != std::string::npos) &&
-         (pluginElem->Get<std::string>("name").find(physicsName)
-           != std::string::npos))
-      {
-        // Skip physics
-        pluginElem = pluginElem->GetNextElement("plugin");
-        continue;
-      }
-    }
-
-    // If record plugin already specified in SDF, don't insert another
-    if (insertRecordPlugin &&
-        pluginElem->Get<std::string>("filename") == recordFilename &&
-        pluginElem->Get<std::string>("name") == recordName)
-      insertRecordPlugin = false;
-
-    // Load plugin
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
@@ -577,36 +524,28 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     // automatically added.
     if (pluginElem->Get<std::string>("filename") != "__default__" &&
         pluginElem->Get<std::string>("name") != "__default__")
-      this->LoadSystemPlugin(_entity, pluginElem);
+    {
+      std::optional<SystemPluginPtr> system;
+      {
+        std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
+        system = this->systemLoader->LoadPlugin(pluginElem);
+      }
+      if (system)
+      {
+        auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
+        if (systemConfig != nullptr)
+        {
+          systemConfig->Configure(_entity, pluginElem,
+              this->entityCompMgr,
+              this->eventMgr);
+        }
+        this->AddSystem(system.value());
+        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
+               << "] for entity [" << _entity << "]" << std::endl;
+      }
+    }
 
     pluginElem = pluginElem->GetNextElement("plugin");
-  }
-
-  // Inject logging plugins into SDF and load them
-  if (insertRecordPlugin)
-  {
-    sdf::ElementPtr recordElem = _sdf->AddElement("plugin");
-    sdf::ParamPtr nameParam = recordElem->GetAttribute("name");
-    nameParam->SetFromString(recordName);
-    sdf::ParamPtr filenameParam = recordElem->GetAttribute("filename");
-    filenameParam->SetFromString(recordFilename);
-
-    this->LoadSystemPlugin(_entity, recordElem);
-  }
-  if (insertPlaybackPlugin)
-  {
-    sdf::ElementPtr playbackElem = _sdf->AddElement("plugin");
-    sdf::ParamPtr nameParam = playbackElem->GetAttribute("name");
-    nameParam->SetFromString(playbackName);
-    sdf::ParamPtr filenameParam = playbackElem->GetAttribute("filename");
-    filenameParam->SetFromString(playbackFilename);
-
-    // Set playback path
-    playbackElem->AddAttribute("path", "string", "", false);
-    sdf::ParamPtr pathParam = playbackElem->GetAttribute("path");
-    pathParam->SetFromString(this->serverConfig.LogPlaybackPath());
-
-    this->LoadSystemPlugin(_entity, playbackElem);
   }
 
   // \todo(nkoenig) Remove plugins from the server config after they have
@@ -659,30 +598,6 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
       }
       this->AddSystem(system.value());
     }
-  }
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::LoadSystemPlugin(const Entity _entity,
-    const sdf::ElementPtr &_pluginElem)
-{
-  std::optional<SystemPluginPtr> system;
-  {
-    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_pluginElem);
-  }
-  if (system)
-  {
-    auto systemConfig = system.value()->QueryInterface<ISystemConfigure>();
-    if (systemConfig != nullptr)
-    {
-      systemConfig->Configure(_entity, _pluginElem,
-          this->entityCompMgr,
-          this->eventMgr);
-    }
-    this->AddSystem(system.value());
-    igndbg << "Loaded system [" << _pluginElem->Get<std::string>("name")
-           << "] for entity [" << _entity << "]" << std::endl;
   }
 }
 

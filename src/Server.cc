@@ -31,32 +31,63 @@ using namespace ignition::gazebo;
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
 {
+  /// \brief Get the default plugins as a string.
+  /// \return An SDF string that contains the default plugins.
+  public: static std::string &DefaultPlugins(const ServerConfig &_config)
+  {
+    std::vector<std::string> pluginsV;
+
+    // The set of default gazebo plugins.
+    if (_config.LogPlaybackPath().empty())
+    {
+      pluginsV = {
+        {
+          std::string("<plugin filename='libignition-gazebo") +
+          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
+          "name='ignition::gazebo::systems::Physics'></plugin>"
+        },
+        {
+          std::string("<plugin filename='libignition-gazebo") +
+          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
+          "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
+        },
+        {
+          std::string("<plugin filename='libignition-gazebo") +
+          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
+          "name='ignition::gazebo::systems::UserCommands'></plugin>"
+        }};
+    }
+
+    // The set of gazebo plugins for playback. Do not load physics.
+    else
+    {
+      pluginsV = {
+        {
+          std::string("<plugin filename='libignition-gazebo") +
+          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
+          "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
+        },
+        {
+          std::string("<plugin filename='libignition-gazebo") +
+            IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so' "
+            "name='ignition::gazebo::systems::LogPlayback'><path>" +
+            _config.LogPlaybackPath() + "</path></plugin>"
+        }};
+    }
+
+    static std::string plugins = std::accumulate(pluginsV.begin(), pluginsV.end(),
+      std::string(""));
+    return plugins;
+  }
+
   /// \brief Get the default world as a string.
   /// \return An SDF string that contains the default world.
-  public: static std::string &World()
+  public: static std::string &World(const ServerConfig &_config)
   {
-    // The set of gazebo plugins.
-    static std::vector<std::string> plugins{
-      {
-        std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-        "name='ignition::gazebo::systems::Physics'></plugin>"
-      },
-      {
-        std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
-        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-      },
-      {
-        std::string("<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-        "name='ignition::gazebo::systems::UserCommands'></plugin>"
-      }};
-
     static std::string world = std::string("<?xml version='1.0'?>"
       "<sdf version='1.6'>"
         "<world name='default'>") +
-        std::accumulate(plugins.begin(), plugins.end(), std::string("")) +
+          DefaultPlugins(_config) +
           "<gui fullscreen='0'>"
           "  <plugin filename='Scene3D' name='3D View'>"
           "    <ignition-gui>"
@@ -166,7 +197,7 @@ Server::Server(const ServerConfig &_config)
     ignmsg << "Loading default world.\n";
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(_config));
   }
 
   if (!errors.empty())
@@ -174,6 +205,12 @@ Server::Server(const ServerConfig &_config)
     for (auto &err : errors)
       ignerr << err << "\n";
     return;
+  }
+
+  // Add record plugin
+  if (_config.UseLogRecord())
+  {
+    this->dataPtr->AddRecordPlugin();
   }
 
   this->dataPtr->CreateEntities();
