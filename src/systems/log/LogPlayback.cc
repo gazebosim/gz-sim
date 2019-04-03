@@ -50,6 +50,14 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
+  /// \brief Start log playback.
+  /// \param[in] _logPath 
+  /// \param[in] _ecm 
+  /// \param[in] _eventMgr 
+  public: bool Start(const std::string &_logPath,
+      const Entity &_worldEntity, EntityComponentManager &_ecm,
+      EventManager &_eventMgr);
+
   /// \brief Reads the next message in log file and updates the ECM
   /// \param[in] _ecm Mutable ECM.
   public: void ParseNext(EntityComponentManager &_ecm);
@@ -141,7 +149,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->Start(logPath, _worldEntity, _ecm, _eventMgr);
+    this->dataPtr->Start(logPath, _worldEntity, _ecm, _eventMgr);
   }
   else
   {
@@ -150,7 +158,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 }
 
-bool LogPlayback::Start(const std::string &_logPath,
+bool LogPlaybackPrivate::Start(const std::string &_logPath,
   const Entity &_worldEntity, EntityComponentManager &_ecm,
   EventManager &_eventMgr)
 {
@@ -277,15 +285,15 @@ bool LogPlayback::Start(const std::string &_logPath,
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
     sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
-  this->dataPtr->batch = log->QueryMessages(opts);
-  this->dataPtr->iter = this->dataPtr->batch.begin();
+  this->batch = log->QueryMessages(opts);
+  this->iter = this->batch.begin();
 
-  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  if (this->iter == this->batch.end())
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
 
-  this->dataPtr->instStarted = true;
+  this->instStarted = true;
   return true;
 }
 
