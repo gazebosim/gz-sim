@@ -238,6 +238,14 @@ namespace ignition
       /// \param[in] _record Value to set
       public: void SetUseLogRecord(const bool _record);
 
+      /// \brief Get path to place recorded states
+      /// \return Path to place recorded states
+      public: const std::string LogRecordPath() const;
+
+      /// \brief Set path to place recorded states
+      /// \param[in] _recordPath Path to place recorded states
+      public: void SetLogRecordPath(const std::string &_recordPath);
+
       /// \brief Get path to recorded states to play back
       /// \return Path to recorded states
       public: const std::string LogPlaybackPath() const;

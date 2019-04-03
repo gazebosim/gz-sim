@@ -41,6 +41,7 @@ DEFINE_string(network_role, "", "Participant role used in a distributed "
 DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
 DEFINE_bool(record, false, "Use logging system to record states");
+DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_string(playback, "", "Use logging system to play back states");
 
 //////////////////////////////////////////////////
@@ -90,6 +91,9 @@ void help()
   << std::endl
   << "  --record               Use logging system to record states."
   << " The default is false."
+  << std::endl
+  << "  --record-path arg      Custom path to put recorded files."
+  << " Arg is path to recorded states."
   << std::endl
   << "  --playback arg         Use logging system to play back states."
   << " Arg is path to recorded states."
@@ -228,8 +232,17 @@ int main(int _argc, char **_argv)
       return -1;
     }
 
-    ignmsg << "Recording states\n";
     serverConfig.SetUseLogRecord(true);
+
+    if (!FLAGS_record_path.empty())
+    {
+      ignmsg << "Recording states to " << FLAGS_record_path << std::endl;
+      serverConfig.SetLogRecordPath(FLAGS_record_path);
+    }
+    else
+    {
+      ignmsg << "Recording states to default path\n";
+    }
   }
 
   if (!FLAGS_playback.empty())

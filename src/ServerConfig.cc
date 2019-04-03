@@ -195,6 +195,7 @@ class ignition::gazebo::ServerConfigPrivate
             useLevels(_cfg->useLevels),
             useDistributed(_cfg->useDistributed),
             useLogRecord(_cfg->useLogRecord),
+            logRecordPath(_cfg->logRecordPath),
             logPlaybackPath(_cfg->logPlaybackPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
@@ -218,6 +219,9 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the logging system to record states
   public: bool useLogRecord{false};
+
+  /// \brief Path to place recorded states
+  public: std::string logRecordPath = "";
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -368,6 +372,18 @@ bool ServerConfig::UseLogRecord() const
 void ServerConfig::SetUseLogRecord(const bool _record)
 {
   this->dataPtr->useLogRecord = _record;
+}
+
+/////////////////////////////////////////////////
+const std::string ServerConfig::LogRecordPath() const
+{
+  return this->dataPtr->logRecordPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
+{
+  this->dataPtr->logRecordPath = _recordPath;
 }
 
 /////////////////////////////////////////////////

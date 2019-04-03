@@ -181,7 +181,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::AddRecordPlugin()
+void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 {
   const sdf::World * sdfWorld = this->sdfRoot.WorldByIndex(0);
   sdf::ElementPtr worldElem = sdfWorld->Element();
@@ -204,6 +204,14 @@ void ServerPrivate::AddRecordPlugin()
           // If record plugin already specified in SDF, no need to add
           if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
           {
+            // If a custom path is passed in through command line, overwrite
+            //   the path in SDF
+            if (!_config.LogRecordPath().empty())
+            {
+              pluginElem->AddAttribute("path", "string", "", false);
+              sdf::ParamPtr recordParam = pluginElem->GetAttribute("path");
+              recordParam->SetFromString(_config.LogRecordPath());
+            }
             return;
           }
 
@@ -227,6 +235,14 @@ void ServerPrivate::AddRecordPlugin()
   recordName->SetFromString(LoggingPlugin::RecordPluginName());
   sdf::ParamPtr recordFileName = recordElem->GetAttribute("filename");
   recordFileName->SetFromString(LoggingPlugin::LoggingPluginFileName());
+
+  // Add custom record path
+  if (!_config.LogRecordPath().empty())
+  {
+    recordElem->AddAttribute("path", "string", "", false);
+    sdf::ParamPtr recordParam = recordElem->GetAttribute("path");
+    recordParam->SetFromString(_config.LogRecordPath());
+  }
 }
 
 //////////////////////////////////////////////////

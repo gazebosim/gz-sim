@@ -210,7 +210,7 @@ Server::Server(const ServerConfig &_config)
   // Add record plugin
   if (_config.UseLogRecord())
   {
-    this->dataPtr->AddRecordPlugin();
+    this->dataPtr->AddRecordPlugin(_config);
   }
 
   this->dataPtr->CreateEntities();
