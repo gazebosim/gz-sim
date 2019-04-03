@@ -44,6 +44,9 @@ using namespace ignition::gazebo::systems;
 // Private data class.
 class ignition::gazebo::systems::LogRecordPrivate
 {
+  /// \brief Start recording
+  public: bool Start(const std::string &_logPath = std::string(""));
+
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
@@ -156,7 +159,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
   //   activate one recorder.
   if (!LogRecordPrivate::started)
   {
-    this->Start(logPath);
+    this->dataPtr->Start(logPath);
   }
   else
   {
@@ -166,7 +169,7 @@ void LogRecord::Configure(const Entity &/*_entity*/,
 }
 
 //////////////////////////////////////////////////
-bool LogRecord::Start(const std::string &_logPath)
+bool LogRecordPrivate::Start(const std::string &_logPath)
 {
   // Only start one recorder instance
   if (LogRecordPrivate::started)
@@ -183,7 +186,7 @@ bool LogRecord::Start(const std::string &_logPath)
   if (logPath.empty() ||
       (common::exists(logPath) && !common::isDirectory(logPath)))
   {
-    logPath = this->dataPtr->DefaultRecordPath();
+    logPath = this->DefaultRecordPath();
     ignmsg << "Unspecified or invalid log path to record to. "
       << "Recording to default location [" << logPath << "]" << std::endl;
   }
@@ -191,7 +194,7 @@ bool LogRecord::Start(const std::string &_logPath)
   // If directoriy already exists, do not overwrite
   if (common::exists(logPath))
   {
-    logPath = this->dataPtr->UniqueDirectoryPath(logPath);
+    logPath = this->UniqueDirectoryPath(logPath);
     ignwarn << "Log path already exists on disk! "
       << "Recording instead to [" << logPath << "]" << std::endl;
   }
@@ -215,7 +218,7 @@ bool LogRecord::Start(const std::string &_logPath)
   std::ofstream ofs(sdfPath);
 
   // Go up to root of SDF, to output entire SDF file
-  sdf::ElementPtr sdfRoot = this->dataPtr->sdf->GetParent();
+  sdf::ElementPtr sdfRoot = this->sdf->GetParent();
   while (sdfRoot->GetParent() != nullptr)
   {
     sdfRoot = sdfRoot->GetParent();
@@ -227,15 +230,15 @@ bool LogRecord::Start(const std::string &_logPath)
 
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
-  this->dataPtr->recorder.AddTopic("/world/" +
+  this->recorder.AddTopic("/world/" +
     sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
-  // this->dataPtr->recorder.AddTopic(std::regex(".*"));
+  // this->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
-  if (this->dataPtr->recorder.Start(dbPath) ==
+  if (this->recorder.Start(dbPath) ==
       ignition::transport::log::RecorderError::SUCCESS)
   {
-    this->dataPtr->instStarted = true;
+    this->instStarted = true;
     return true;
   }
   else
