@@ -206,7 +206,7 @@ void ServerPrivate::AddRecordPlugin()
           {
             return;
           }
-         
+
           // If playback plugin also specified, do not add a record plugin
           if (pluginName->GetAsString() == LoggingPlugin::PlaybackPluginName())
           {

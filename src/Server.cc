@@ -75,8 +75,8 @@ struct DefaultWorld
         }};
     }
 
-    static std::string plugins = std::accumulate(pluginsV.begin(), pluginsV.end(),
-      std::string(""));
+    static std::string plugins = std::accumulate(pluginsV.begin(),
+      pluginsV.end(), std::string(""));
     return plugins;
   }
 
