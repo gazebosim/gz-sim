@@ -27,6 +27,9 @@
 
 ### Ignition Math 5.x.x
 
+1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
+    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
+
 1. Change definition of Pose3 `*` operator to fix multiplication order
     * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/301)
     * [Issue 60](https://bitbucket.org/ignitionrobotics/ign-math/issues/60)
