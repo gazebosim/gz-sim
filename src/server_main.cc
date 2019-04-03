@@ -216,6 +216,12 @@ int main(int _argc, char **_argv)
 
   if (FLAGS_record)
   {
+    if (!FLAGS_playback.empty())
+    {
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
     ignmsg << "Recording states\n";
     serverConfig.SetUseLogRecord(true);
   }
