@@ -2,6 +2,9 @@
 
 ### Ignition Math 6.x.x
 
+1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
+    * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/311)
+
 1. Change definition of Pose3 `*` operator to fix multiplication order
     * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/301)
     * [Issue 60](https://bitbucket.org/ignitionrobotics/ign-math/issues/60)
@@ -23,6 +26,9 @@
 ## Ignition Math 5.x
 
 ### Ignition Math 5.x.x
+
+1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
+    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
 
 1. Change definition of Pose3 `*` operator to fix multiplication order
     * [Pull request 301](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/301)
@@ -85,7 +91,7 @@ specify a density.
    between two vertices.
     * [Pull request 254](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/254)
 
-1. Added multiply assign operator to Matrix4. 
+1. Added multiply assign operator to Matrix4.
     * [Pull request 252](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/252)
 
 
