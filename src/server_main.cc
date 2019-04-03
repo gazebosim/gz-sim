@@ -224,7 +224,7 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
-  if (FLAGS_record)
+  if (!FLAGS_record_path.empty() || FLAGS_record)
   {
     if (!FLAGS_playback.empty())
     {
