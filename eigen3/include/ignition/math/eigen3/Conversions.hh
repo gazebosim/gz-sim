@@ -156,7 +156,7 @@ namespace ignition
       {
         ignition::math::Pose3d pose;
         pose.Pos() = convert(Eigen::Vector3d(_tf.translation()));
-        pose.Rot() = convert(Eigen::Quaterniond(_tf.rotation()));
+        pose.Rot() = convert(Eigen::Quaterniond(_tf.linear()));
 
         return pose;
       }
