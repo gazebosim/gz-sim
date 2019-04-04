@@ -134,7 +134,7 @@ buildRepo: &buildRepo
 
 pipelines:
   default:
-    step:
-      <<: *installDeps
+    - step:
+        *installDeps
       # - <<: *buildRepo
       # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
