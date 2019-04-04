@@ -23,14 +23,12 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/Static.hh"
 
 #include "SyncManager.hh"
 #include "SimulationRunner.hh"
 
 #include "network/NetworkManagerPrimary.hh"
 #include "network/NetworkManagerSecondary.hh"
-#include "network/components/PerformerActive.hh"
 
 #include "msgs/performer_affinity.pb.h"
 
@@ -78,7 +76,6 @@ void SyncManager::DistributePerformers()
 
     auto &secondaries = mgr->Secondaries();
     auto secondaryIt = secondaries.begin();
-    auto &ecm = this->runner->entityCompMgr;
 
     private_msgs::PerformerAffinities msg;
 
@@ -96,12 +93,6 @@ void SyncManager::DistributePerformers()
         affinityMsg->mutable_entity()->set_name(parentName->Data());
         affinityMsg->mutable_entity()->set_id(_entity);
         affinityMsg->set_secondary_prefix(secondaryIt->second->prefix);
-
-        auto isStatic = ecm.Component<components::Static>(pid);
-        *isStatic = components::Static(false);
-
-        auto isActive = ecm.Component<components::PerformerActive>(_entity);
-        *isActive = components::PerformerActive(true);
 
         this->runner->entityCompMgr.CreateComponent(_entity,
         components::PerformerAffinity(secondaryIt->second->prefix));
@@ -179,27 +170,22 @@ void SyncManager::DistributePerformers()
           const auto &affinityMsg = _req.affinity(ii);
           const auto &entityId = affinityMsg.entity().id();
 
-          auto pid = ecm.Component<components::ParentEntity>(entityId);
+          auto pid = ecm.Component<components::ParentEntity>(entityId)->Data();
 
           ecm.CreateComponent(entityId,
             components::PerformerAffinity(affinityMsg.secondary_prefix()));
 
-          auto isStatic = ecm.Component<components::Static>(pid->Data());
-          auto isActive = ecm.Component<components::PerformerActive>(entityId);
-
           if (affinityMsg.secondary_prefix() == mgr->Namespace())
           {
             this->performers.push_back(entityId);
-            *isStatic = components::Static(false);
-            *isActive = components::PerformerActive(true);
             igndbg << "Secondary [" << mgr->Namespace()
                    << "] assigned affinity to performer [" << entityId << "]."
                    << std::endl;
           }
+          // Remove performers not handled by this secondary
           else
           {
-            *isStatic = components::Static(true);
-            *isActive = components::PerformerActive(false);
+            ecm.RequestRemoveEntity(pid);
           }
         }
         received = true;
