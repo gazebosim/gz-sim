@@ -24,3 +24,9 @@ in sync and displays the unified information to the GUI.
 
 1. Press play and you should see the shapes rolling down.
 
+## Standalone
+
+You can run the same world in a standalone process as follows:
+
+    ./standalone.sh
+
