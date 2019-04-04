@@ -32,8 +32,8 @@ pipelines:
           # Build some Ignition libraries from source.
           # Comment out these lines if using debians.
           # See also the docker/scripts/install_ign.sh script.
-          - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
+          - ./docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+          - ./docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           # Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
