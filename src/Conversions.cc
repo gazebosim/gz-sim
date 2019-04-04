@@ -97,12 +97,88 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
+{
+  sdf::Geometry out;
+  if (_in.type() == msgs::Geometry::BOX && _in.has_box())
+  {
+    out.SetType(sdf::GeometryType::BOX);
+
+    sdf::Box boxShape;
+    boxShape.SetSize(msgs::Convert(_in.box().size()));
+
+    out.SetBoxShape(boxShape);
+  }
+  else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
+  {
+    out.SetType(sdf::GeometryType::CYLINDER);
+
+    sdf::Cylinder cylinderShape;
+    cylinderShape.SetRadius(_in.cylinder().radius());
+    cylinderShape.SetLength(_in.cylinder().length());
+
+    out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
+  {
+    out.SetType(sdf::GeometryType::PLANE);
+
+    sdf::Plane planeShape;
+    planeShape.SetNormal(msgs::Convert(_in.plane().normal()));
+    planeShape.SetSize(msgs::Convert(_in.plane().size()));
+
+    out.SetPlaneShape(planeShape);
+  }
+  else if (_in.type() == msgs::Geometry::SPHERE && _in.has_sphere())
+  {
+    out.SetType(sdf::GeometryType::SPHERE);
+
+    sdf::Sphere sphereShape;
+    sphereShape.SetRadius(_in.sphere().radius());
+
+    out.SetSphereShape(sphereShape);
+  }
+  else if (_in.type() == msgs::Geometry::MESH && _in.has_mesh())
+  {
+    out.SetType(sdf::GeometryType::MESH);
+
+    sdf::Mesh meshShape;
+    meshShape.SetScale(msgs::Convert(_in.mesh().scale()));
+    meshShape.SetUri(_in.mesh().filename());
+    meshShape.SetSubmesh(_in.mesh().submesh());
+    meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
+
+    out.SetMeshShape(meshShape);
+  }
+  else
+  {
+    ignerr << "Geometry type [" << static_cast<int>(_in.type())
+           << "] not supported" << std::endl;
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
+  msgs::Set(out.mutable_emissive(), _in.Emissive());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
+{
+  sdf::Material out;
+  out.SetAmbient(msgs::Convert(_in.ambient()));
+  out.SetDiffuse(msgs::Convert(_in.diffuse()));
+  out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetEmissive(msgs::Convert(_in.emissive()));
   return out;
 }
 
