@@ -33,12 +33,12 @@ pipelines:
             # Build some Ignition libraries from source.
             # Comment out these lines if using debians.
             # See also the docker/scripts/install_ign.sh script.
-            # - ./docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
-            # - ./docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
-            # # Ignition Gazebo
-            # - mkdir build
-            # - cd build
-            # - cmake ..
-            # - make -j4 install
+            - ./docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+            - ./docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
+            # Ignition Gazebo
+            - mkdir build
+            - cd build
+            - cmake ..
+            - make -j4 install
             # - ./bin/BENCHMARK_each -benchmark_out_format=json --benchmark_out=each.json
             # - curl -k -X POST -d @each.json http://ignitionrobotics.org/1.0/benchmarks/gazebo --header 'authorization: Bearer $AUTH0_JWT_TOKEN'
