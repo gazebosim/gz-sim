@@ -13,7 +13,7 @@ sudo apt-get install -y \
   libignition-math6-eigen3-dev \
   libignition-msgs3-dev \
   libignition-plugin-dev \
-  libignition-physics-dev \ 
+  libignition-physics-dev \
   libignition-tools-dev \
   libignition-transport6-dev \
   libsdformat8-dev \
