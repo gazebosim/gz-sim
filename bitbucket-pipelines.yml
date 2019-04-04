@@ -4,6 +4,7 @@ pipelines:
   default:
     - step:
         script:
+          - sudo apt -y install wget lsb-release gnupg sudo
           - docker/scripts/install_all.sh
           # Build some Ignition libraries from source.
           # Comment out these lines if using debians.

@@ -4,8 +4,6 @@ set -o errexit
 set -o verbose
 
 
-sudo apt-get update
-sudo apt -y install wget lsb-release gnupg sudo
 # Install base dependencies
 ./docker/scripts/install_common_deps.sh
 ./docker/scripts/install_ign_deps.sh
