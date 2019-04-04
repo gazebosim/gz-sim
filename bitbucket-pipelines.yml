@@ -41,4 +41,4 @@ pipelines:
             - cmake ..
             - make -j4 install
             - ./bin/BENCHMARK_each --benchmark_out_format=json --benchmark_out=each.json
-            - ./docker/scripts/upload_json_benchmark.sh each.json 
+            - ../docker/scripts/upload_json_benchmark.sh each.json 
