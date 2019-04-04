@@ -130,8 +130,8 @@ buildRepo: &buildRepo
 
 pipelines:
   default:
-    - << *installDeps
-    - << *buildRepo
+    - <<: *installDeps
+    - <<: *buildRepo
       #     - step:
       #         script:
       #           # Install dependencies
