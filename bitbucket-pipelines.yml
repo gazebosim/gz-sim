@@ -1,7 +1,6 @@
 image: ubuntu:bionic
 
 installDeps: &installDeps
-  script:
     - apt-get update
     - apt -y install wget lsb-release gnupg sudo
     # Install base dependencies
@@ -120,7 +119,6 @@ installDeps: &installDeps
 # == Environment variables ==
 # 1. CODECOV_ID: Codecov ID hash.
 buildRepo: &buildRepo
-  script:
     - ./tools/clang_tidy.sh
     - mkdir build
     - cd build
@@ -135,7 +133,8 @@ buildRepo: &buildRepo
 pipelines:
   default:
     - step:
-        *installDeps
-        *buildRepo
+        script:
+          *installDeps
+          *buildRepo
       # - <<: *buildRepo
       # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
