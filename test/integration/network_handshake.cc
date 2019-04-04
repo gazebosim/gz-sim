@@ -32,23 +32,6 @@ using namespace std::chrono_literals;
 uint64_t kIterations;
 
 /////////////////////////////////////////////////
-// Send a world control message.
-void worldControl(bool _paused, uint64_t _steps)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [&](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    EXPECT_TRUE(_result);
-  };
-
-  ignition::msgs::WorldControl req;
-  req.set_pause(_paused);
-  req.set_multi_step(_steps);
-  transport::Node node;
-  node.Request("/world/default/control", req, cb);
-}
-
-/////////////////////////////////////////////////
 // Get the current paused state from the world stats message
 uint64_t testPaused(bool _paused)
 {
@@ -69,58 +52,46 @@ uint64_t testPaused(bool _paused)
 
   std::unique_lock<std::mutex> lock(mutex);
   node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
+  auto success = condition.wait_for(lock, std::chrono::seconds(1));
+  EXPECT_EQ(std::cv_status::no_timeout, success);
   EXPECT_EQ(_paused, paused);
   return iterations;
 }
 
 /////////////////////////////////////////////////
-// Get the current iteration count from the world stats message
-uint64_t iterations()
+class NetworkHandshake : public ::testing::Test
 {
-  std::condition_variable condition;
-  std::mutex mutex;
-  transport::Node node;
-  uint64_t iterations = 0;
-
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  // Documentation inherited
+  protected: void SetUp() override
   {
-    std::unique_lock<std::mutex> lock(mutex);
-    iterations = _msg.iterations();
-    condition.notify_all();
-  };
-
-  std::unique_lock<std::mutex> lock(mutex);
-  node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
-  return iterations;
-}
+    common::Console::SetVerbosity(4);
+  }
+};
 
 /////////////////////////////////////////////////
-// Only on Linux for the moment
-#ifdef  __linux__
-TEST(NetworkHandshake, Handshake)
+TEST_F(NetworkHandshake, Handshake)
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   serverConfig.SetNetworkRole("primary");
   serverConfig.SetNetworkSecondaries(2);
 
-  std::unique_ptr<Server> serverPrimary(new Server(serverConfig));
+  auto serverPrimary = std::make_unique<Server>(serverConfig);
   serverPrimary->SetUpdatePeriod(1us);
 
   serverConfig.SetNetworkRole("secondary");
-  std::unique_ptr<Server> serverSecondary1(new Server(serverConfig));
+  auto serverSecondary1 = std::make_unique<Server>(serverConfig);
   serverSecondary1->SetUpdatePeriod(1us);
 
-  std::unique_ptr<Server> serverSecondary2(new Server(serverConfig));
+  auto serverSecondary2 = std::make_unique<Server>(serverConfig);
   serverSecondary2->SetUpdatePeriod(1us);
 
   std::atomic<bool> testRunning {true};
 
-  auto testFcn = [&](Server * _server){
-    _server->Run(false);
+  auto testFcn = [&](Server *_server)
+  {
+    // Run for a finite number of iterations
+    _server->Run(false, 10, true);
 
     // The server should start paused.
     uint64_t iterations = testPaused(true);
@@ -147,4 +118,106 @@ TEST(NetworkHandshake, Handshake)
   serverSecondary2.reset();
   serverPrimary.reset();
 }
-#endif  // __linux__
+
+/////////////////////////////////////////////////
+TEST_F(NetworkHandshake, Updates)
+{
+  auto pluginElem = std::make_shared<sdf::Element>();
+  pluginElem->SetName("plugin");
+  pluginElem->AddAttribute("name", "string", "required_but_ignored", true);
+  pluginElem->AddAttribute("filename", "string", "required_but_ignored", true);
+
+  // Primary
+  ServerConfig::PluginInfo primaryPluginInfo;
+  primaryPluginInfo.SetEntityName("default");
+  primaryPluginInfo.SetEntityType("world");
+  primaryPluginInfo.SetFilename(
+      "libignition-gazebo-scene-broadcaster-system.so");
+  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  primaryPluginInfo.SetSdf(pluginElem);
+
+  ServerConfig configPrimary;
+  configPrimary.SetNetworkRole("primary");
+  // Can only test one secondary running physics, because running 2 physics in
+  // the same process causes a segfault, see
+  // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/18
+  configPrimary.SetNetworkSecondaries(1);
+  configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/performers.sdf");
+  configPrimary.AddPlugin(primaryPluginInfo);
+
+  auto serverPrimary = std::make_unique<Server>(configPrimary);
+
+  // Secondary
+  ServerConfig::PluginInfo secondaryPluginInfo;
+  secondaryPluginInfo.SetEntityName("default");
+  secondaryPluginInfo.SetEntityType("world");
+  secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
+  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetSdf(pluginElem);
+
+  ServerConfig configSecondary;
+  configSecondary.SetNetworkRole("secondary");
+  configSecondary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/performers.sdf");
+  configSecondary.AddPlugin(secondaryPluginInfo);
+
+  auto serverSecondary1 = std::make_unique<Server>(configSecondary);
+
+  // Subscribe to pose updates, which should come from the primary
+  transport::Node node;
+  std::vector<double> zPos;
+  std::function<void(const ignition::msgs::Pose_V &)> cb =
+      [&](const ignition::msgs::Pose_V &_msg)
+  {
+    for (int i = 0; i < _msg.pose().size(); ++i)
+    {
+      const auto &poseMsg = _msg.pose(i);
+
+      if (poseMsg.name() == "sphere")
+      {
+        zPos.push_back(poseMsg.position().z());
+      }
+    }
+  };
+  node.Subscribe("/world/default/pose/info", cb);
+
+  // Run
+  std::atomic<bool> testRunning{true};
+  auto testFcn = [&](Server *_server)
+  {
+    _server->Run(false, 0, false);
+
+    while (testRunning)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  auto primaryThread = std::thread(testFcn, serverPrimary.get());
+  auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
+
+  // Wait a few simulation iterations
+  int maxSleep = 30;
+  for (int sleep = 0; sleep < maxSleep && zPos.size() < 100; sleep++)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  // We don't assert because we still need to join the threads if the test fails
+  EXPECT_LE(100u, zPos.size());
+
+  // Check model was falling (physics simulated by secondary)
+  if (zPos.size() >= 100u)
+  {
+    EXPECT_GT(zPos[0], zPos[99]);
+  }
+
+  // Finish server threads
+  testRunning = false;
+
+  primaryThread.join();
+  secondaryThread1.join();
+
+  serverPrimary.reset();
+  serverSecondary1.reset();
+}

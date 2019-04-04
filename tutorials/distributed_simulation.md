@@ -70,7 +70,7 @@ The secondary instances will only read the role command line option
 
 **WARNING:** Environment variables for distributed simulation configuration
 is deprecated in version 2.x.x of Ignition Gazebo. Please use the
-command-line options instead. 
+command-line options instead.
 
 The primary instance will read several environment variables to dictate its behavior.
 
@@ -111,11 +111,13 @@ performers across the network graph. Each performer specified in the SDF file
 gets assigned to a network secondary. If there are more performers than
 secondaries, then some secondaries will receive multiple performers.
 
-When a secondary is assigned a performer, it is marked as active and not
-static (dynamic) in the physics simulation environment. For unassigned
-performers, they are treated as static objects at this point.
+Currently, every secondary is loading all performers at startup. Once it
+receives affinities from the primary, it removes the performers which it's
+not handling. So at any given time, the secondary is only calculating physics for
+its performers and other objects from the levels they're in.
 
-The primary performs no physics simulation at this point.
+The primary, on the other hand, keeps all performers loaded, but performs no
+physics simulation.
 
 ### Stepping
 

@@ -105,8 +105,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::placeholders::_2));
 
   // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(
-      this, _config.UseLevels(), _config.UseDistributedSimulation());
+  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
 
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
@@ -129,7 +128,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     {
       ignmsg << "Network Primary, expects ["
              << this->networkMgr->Config().numSecondariesExpected
-             << "] seondaries." << std::endl;
+             << "] secondaries." << std::endl;
     }
     else if (this->networkMgr->IsSecondary())
     {
@@ -451,7 +450,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       IGN_PROFILE("NetworkSync - SendStep");
       // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->networkMgr->Step(this->currentInfo))
+      while (this->running && !this->stopReceived &&
+          !this->networkMgr->Step(this->currentInfo))
       {
       }
     }
@@ -539,6 +539,8 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
               this->eventMgr);
         }
         this->AddSystem(system.value());
+        igndbg << "Loaded system [" << pluginElem->Get<std::string>("name")
+               << "] for entity [" << _entity << "]" << std::endl;
       }
     }
 
