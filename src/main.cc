@@ -75,16 +75,20 @@ void help()
   << "  -r                     Run simulation on start."
   << " The default is false, which starts simulation paused."
   << std::endl
-  << "  --levels               Use the level manager."
-  << " The default is false, which loads all models."
+  << "  --levels               Use the level system."
+  << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --network-role."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
   << " This will be deprecated in ign-gazebo2. Please use --network-role "
-  << " and/or --network-secondaries instead."
+  << " and/or --network-secondaries instead. It implies --levels."
   << std::endl
   << "  --network-role         Participant role used in a distributed "
   << " simulation environment. Role is one of [primary, secondary]."
+  << " It implies --levels."
   << std::endl
   << "  --network-secondaries  Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"

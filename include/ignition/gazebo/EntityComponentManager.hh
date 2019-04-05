@@ -36,7 +36,6 @@
 #include "ignition/gazebo/Types.hh"
 
 #include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
 
 namespace ignition
