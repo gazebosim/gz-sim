@@ -183,7 +183,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 {
-  const sdf::World * sdfWorld = this->sdfRoot.WorldByIndex(0);
+  const sdf::World *sdfWorld = this->sdfRoot.WorldByIndex(0);
   sdf::ElementPtr worldElem = sdfWorld->Element();
 
   // Check if there is already a record plugin specified
