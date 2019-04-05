@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
@@ -212,6 +213,12 @@ TEST_F(ComponentsTest, Collision)
 TEST_F(ComponentsTest, Geometry)
 {
   auto data1 = sdf::Geometry();
+  data1.SetType(sdf::GeometryType::CYLINDER);
+  sdf::Cylinder cylinderShape;
+  cylinderShape.SetRadius(1.23);
+  cylinderShape.SetLength(4.56);
+  data1.SetCylinderShape(cylinderShape);
+
   auto data2 = sdf::Geometry();
 
   // Create components
@@ -219,7 +226,18 @@ TEST_F(ComponentsTest, Geometry)
   auto comp12 = components::Geometry(data1);
   auto comp2 = components::Geometry(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Geometry comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::GeometryType::CYLINDER, comp3.Data().Type());
+  ASSERT_NE(nullptr, comp3.Data().CylinderShape());
+  EXPECT_DOUBLE_EQ(1.23, comp3.Data().CylinderShape()->Radius());
+  EXPECT_DOUBLE_EQ(4.56, comp3.Data().CylinderShape()->Length());
 }
 
 /////////////////////////////////////////////////
@@ -290,7 +308,13 @@ TEST_F(ComponentsTest, Inertial)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Inertial comp3;
+  istr >> comp3;
+  EXPECT_DOUBLE_EQ(1.0, comp3.Data().MassMatrix().Mass());
 }
 
 /////////////////////////////////////////////////
@@ -529,6 +553,7 @@ TEST_F(ComponentsTest, Link)
 TEST_F(ComponentsTest, Material)
 {
   auto data1 = sdf::Material();
+  data1.SetAmbient(math::Color(1, 0, 0, 1));
   auto data2 = sdf::Material();
 
   // Create components
@@ -536,7 +561,13 @@ TEST_F(ComponentsTest, Material)
   auto comp12 = components::Material(data1);
   auto comp2 = components::Material(data2);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Material comp3;
+  istr >> comp3;
+  EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Ambient());
 }
 
 /////////////////////////////////////////////////
