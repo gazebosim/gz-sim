@@ -18,6 +18,7 @@
 #include <ignition/msgs/contact.pb.h>
 #include <ignition/msgs/contacts.pb.h>
 #include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <iostream>
 #include <deque>
@@ -39,10 +40,11 @@
 #include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
-#include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/GetContacts.hh>
-#include <ignition/physics/RemoveEntities.hh>
+#include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
+#include <ignition/physics/Link.hh>
+#include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
 #include <ignition/physics/mesh/MeshShape.hh>
@@ -64,8 +66,8 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 // Components
-#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
+#include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -75,17 +77,19 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
 #include "ignition/gazebo/components/PendingJointForce.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -103,11 +107,13 @@ class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
           ignition::physics::LinkFrameSemantics,
+          ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::ForwardStep,
           ignition::physics::GetEntities,
           ignition::physics::GetContactsFromLastStepFeature,
           ignition::physics::RemoveEntities,
           ignition::physics::mesh::AttachMeshShapeFeature,
+          ignition::physics::GetBasicJointState,
           ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
@@ -594,6 +600,23 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 
         return true;
       });
+
+  // Link wrenches
+  _ecm.Each<components::PendingExternalWorldWrench>(
+      [&](const Entity &_entity,
+          const components::PendingExternalWorldWrench *_wrenchComp)
+      {
+        auto linkIt = this->entityLinkMap.find(_entity);
+        if (linkIt == this->entityLinkMap.end())
+          return true;
+
+        math::Vector3 force = msgs::Convert(_wrenchComp->Data().force());
+        math::Vector3 torque = msgs::Convert(_wrenchComp->Data().torque());
+        linkIt->second->AddExternalForce(math::eigen3::convert(force));
+        linkIt->second->AddExternalTorque(math::eigen3::convert(torque));
+
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -869,6 +892,19 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
       [&](const Entity &, components::PendingJointForce2 *_force) -> bool
       {
         _force->Data() = 0.0;
+        return true;
+      });
+
+  // Update joint positions
+  _ecm.Each<components::Joint, components::JointPosition>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointPosition *_jointPos) -> bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt != this->entityJointMap.end())
+        {
+        _jointPos->Data() = jointIt->second->GetPosition(0);
+        }
         return true;
       });
 
