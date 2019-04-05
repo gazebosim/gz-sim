@@ -35,44 +35,31 @@ struct DefaultWorld
   /// \return An SDF string that contains the default plugins.
   public: static std::string &DefaultPlugins(const ServerConfig &_config)
   {
-    std::vector<std::string> pluginsV;
+    std::vector<std::string> pluginsV = {
+      {
+        std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
+        "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
+      }};
 
     // The set of default gazebo plugins.
     if (_config.LogPlaybackPath().empty())
     {
-      pluginsV = {
-        {
-          std::string("<plugin filename='libignition-gazebo") +
-          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-          "name='ignition::gazebo::systems::Physics'></plugin>"
-        },
-        {
-          std::string("<plugin filename='libignition-gazebo") +
-          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
-          "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-        },
-        {
-          std::string("<plugin filename='libignition-gazebo") +
-          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
-          "name='ignition::gazebo::systems::UserCommands'></plugin>"
-        }};
+      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
+        "name='ignition::gazebo::systems::Physics'></plugin>");
+      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' " +
+        "name='ignition::gazebo::systems::UserCommands'></plugin>");
     }
 
-    // The set of gazebo plugins for playback. Do not load physics.
+    // Playback plugin
     else
     {
-      pluginsV = {
-        {
-          std::string("<plugin filename='libignition-gazebo") +
-          IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so' "
-          "name='ignition::gazebo::systems::SceneBroadcaster'></plugin>"
-        },
-        {
-          std::string("<plugin filename='libignition-gazebo") +
-            IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so' "
-            "name='ignition::gazebo::systems::LogPlayback'><path>" +
-            _config.LogPlaybackPath() + "</path></plugin>"
-        }};
+      pluginsV.push_back(std::string("<plugin filename='libignition-gazebo") +
+        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system.so' "
+        "name='ignition::gazebo::systems::LogPlayback'><path>" +
+        _config.LogPlaybackPath() + "</path></plugin>");
     }
 
     static std::string plugins = std::accumulate(pluginsV.begin(),

@@ -236,7 +236,6 @@ int main(int _argc, char **_argv)
 
     if (!FLAGS_record_path.empty())
     {
-      ignmsg << "Recording states to " << FLAGS_record_path << std::endl;
       serverConfig.SetLogRecordPath(FLAGS_record_path);
     }
     else

@@ -57,6 +57,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// instance.
   /// \param[in] _eventMgr The EventManager of the given simulation
   /// instance.
+  /// \return True if any playback has been started successfully.
   public: bool Start(const std::string &_logPath,
       const Entity &_worldEntity, EntityComponentManager &_ecm,
       EventManager &_eventMgr);
@@ -161,6 +162,7 @@ void LogPlayback::Configure(const Entity &_worldEntity,
   }
 }
 
+//////////////////////////////////////////////////
 bool LogPlaybackPrivate::Start(const std::string &_logPath,
   const Entity &_worldEntity, EntityComponentManager &_ecm,
   EventManager &_eventMgr)
@@ -171,7 +173,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
       << "Will not start another.\n";
     return true;
   }
-  LogPlaybackPrivate::started = true;
 
   if (_logPath.empty())
   {
@@ -297,6 +298,7 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   }
 
   this->instStarted = true;
+  LogPlaybackPrivate::started = true;
   return true;
 }
 

@@ -69,6 +69,7 @@ namespace ignition
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
       /// \brief Add logging record plugin.
+      /// \param[in] _config Server configuration parameters.
       public: void AddRecordPlugin(const ServerConfig &_config);
 
       /// \brief Create all entities that exist in the sdf::Root object.

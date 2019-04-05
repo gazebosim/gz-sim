@@ -45,6 +45,8 @@ using namespace ignition::gazebo::systems;
 class ignition::gazebo::systems::LogRecordPrivate
 {
   /// \brief Start recording
+  /// \param[in] _logPath Path to record to.
+  /// \return True if any recorder has been started successfully.
   public: bool Start(const std::string &_logPath = std::string(""));
 
   /// \brief Default directory to record to
@@ -65,11 +67,13 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \param[in] _pathAndName Full absolute path
   public: std::string UniqueDirectoryPath(const std::string &_dir);
 
-  /// \brief Indicator of whether any recorder instance has ever been started
+  /// \brief Indicator of whether any recorder instance has ever been started.
+  /// Currently, only one instance is allowed. This enforcement may be removed
+  /// in the future.
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted;
+  public: bool instStarted = false;
 
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
@@ -130,7 +134,6 @@ std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
 LogRecord::LogRecord()
   : System(), dataPtr(std::make_unique<LogRecordPrivate>())
 {
-  this->dataPtr->instStarted = false;
 }
 
 //////////////////////////////////////////////////
