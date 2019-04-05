@@ -284,3 +284,41 @@ TEST(Conversions, GeometryPlane)
   EXPECT_EQ(math::Vector2d(1, 2), newGeometry.PlaneShape()->Size());
   EXPECT_EQ(math::Vector3d::UnitY, newGeometry.PlaneShape()->Normal());
 }
+
+/////////////////////////////////////////////////
+TEST(Conversions, Inertial)
+{
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(1.1);
+  massMatrix.SetIxx(2.2);
+  massMatrix.SetIyy(3.3);
+  massMatrix.SetIzz(4.4);
+  massMatrix.SetIxy(5.5);
+  massMatrix.SetIxz(6.6);
+  massMatrix.SetIyz(7.7);
+
+  math::Inertiald inertial;
+  inertial.SetPose(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3));
+  inertial.SetMassMatrix(massMatrix);
+
+  auto inertialMsg = convert<msgs::Inertial>(inertial);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3),
+      msgs::Convert(inertialMsg.pose()));
+  EXPECT_DOUBLE_EQ(1.1, inertialMsg.mass());
+  EXPECT_DOUBLE_EQ(2.2, inertialMsg.ixx());
+  EXPECT_DOUBLE_EQ(3.3, inertialMsg.iyy());
+  EXPECT_DOUBLE_EQ(4.4, inertialMsg.izz());
+  EXPECT_DOUBLE_EQ(5.5, inertialMsg.ixy());
+  EXPECT_DOUBLE_EQ(6.6, inertialMsg.ixz());
+  EXPECT_DOUBLE_EQ(7.7, inertialMsg.iyz());
+
+  auto newInertial = convert<math::Inertiald>(inertialMsg);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3), newInertial.Pose());
+  EXPECT_DOUBLE_EQ(1.1, newInertial.MassMatrix().Mass());
+  EXPECT_DOUBLE_EQ(2.2, newInertial.MassMatrix().Ixx());
+  EXPECT_DOUBLE_EQ(3.3, newInertial.MassMatrix().Iyy());
+  EXPECT_DOUBLE_EQ(4.4, newInertial.MassMatrix().Izz());
+  EXPECT_DOUBLE_EQ(5.5, newInertial.MassMatrix().Ixy());
+  EXPECT_DOUBLE_EQ(6.6, newInertial.MassMatrix().Ixz());
+  EXPECT_DOUBLE_EQ(7.7, newInertial.MassMatrix().Iyz());
+}
