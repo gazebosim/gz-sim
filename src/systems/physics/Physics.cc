@@ -82,6 +82,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/PendingJointForce.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -554,13 +555,33 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (jointIt == this->entityJointMap.end())
           return true;
 
-        auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
-        if (vel1)
-          jointIt->second->SetVelocity(0, vel1->Data());
+        auto force1 = _ecm.Component<components::PendingJointForce>(_entity);
+        if (force1)
+        {
+          jointIt->second->SetForce(0, force1->Data());
+        }
+        else
+        {
+          // Only set joint velocity if joint force is not set.
+          // TODO(addisu) We should use a different component for setting
+          // velocities. This component should be used to report the current
+          // velocity of the joint.
+          auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
+          if (vel1)
+            jointIt->second->SetVelocity(0, vel1->Data());
+        }
 
-        auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
-        if (vel2)
-          jointIt->second->SetVelocity(1, vel2->Data());
+        auto force2 = _ecm.Component<components::PendingJointForce2>(_entity);
+        if (force2)
+        {
+          jointIt->second->SetForce(1, force2->Data());
+        }
+        else
+        {
+          auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
+          if (vel2)
+            jointIt->second->SetVelocity(1, vel2->Data());
+        }
 
         return true;
       });
@@ -818,6 +839,20 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
         }
 
+        return true;
+      });
+
+  // Clear pending Forces
+  _ecm.Each<components::PendingJointForce>(
+      [&](const Entity &, components::PendingJointForce *_force) -> bool
+      {
+        _force->Data() = 0.0;
+        return true;
+      });
+  _ecm.Each<components::PendingJointForce2>(
+      [&](const Entity &, components::PendingJointForce2 *_force) -> bool
+      {
+        _force->Data() = 0.0;
         return true;
       });
 
