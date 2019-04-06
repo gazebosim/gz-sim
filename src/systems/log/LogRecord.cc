@@ -25,7 +25,9 @@
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/msgs/Utility.hh>
+#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Recorder.hh>
 
@@ -64,6 +66,15 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
+
+  /// \brief Transport node for publishing SDF string to be recorded
+  public: transport::Node node;
+
+  /// \brief Publisher for SDF string
+  public: transport::Node::Publisher pub;
+
+  /// \brief Message holding SDF string of world
+  public: msgs::StringMsg sdfMsg;
 };
 
 //////////////////////////////////////////////////
@@ -158,42 +169,55 @@ void LogRecord::Configure(const Entity &/*_entity*/,
     common::createDirectories(logPath);
   }
 
-  // Append file names
-  std::string dbPath = common::joinPaths(logPath, "state.tlog");
-
-  // Temporary for recording sdf string
-  std::string sdfPath = common::joinPaths(logPath, "state.sdf");
-
-  // Record SDF as a string.
-
-  // TODO(mabelmzhang): For now, just dumping a big string to a text file,
-  // until we have a message for the SDF.
-  std::ofstream ofs(sdfPath);
-
-  // Go up to root of SDF, to output entire SDF file
+  // Go up to root of SDF, to record entire SDF file
   sdf::ElementPtr sdfRoot = _sdf->GetParent();
   while (sdfRoot->GetParent() != nullptr)
   {
     sdfRoot = sdfRoot->GetParent();
   }
-  ofs << sdfRoot->ToString("");
-  ignmsg << "Saved initial SDF file to [" << sdfPath << "]" << std::endl;
 
+  // Construct message with SDF string
+  this->dataPtr->sdfMsg.set_data(sdfRoot->ToString(""));
+
+  // Use directory basename as topic name, to be able to retrieve the SDF
+  //   at playback
+  std::string sdfTopic = "/" + common::basename(logPath) + "/sdf";
+  this->dataPtr->pub = this->dataPtr->node.Advertise(sdfTopic,
+    this->dataPtr->sdfMsg.GetTypeName());
+
+  // Append file name
+  std::string dbPath = common::joinPaths(logPath, "state.tlog");
   ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
   this->dataPtr->recorder.AddTopic("/world/" +
     sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
+  this->dataPtr->recorder.AddTopic(sdfTopic);
   // this->dataPtr->recorder.AddTopic(std::regex(".*"));
 
   // This calls Log::Open() and loads sql schema
   this->dataPtr->recorder.Start(dbPath);
 }
 
+//////////////////////////////////////////////////
+void LogRecord::Update(const UpdateInfo &_info,
+  EntityComponentManager &/*_ecm*/)
+{
+  if (_info.paused)
+    return;
+
+  if (std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count()
+    <= 1)
+  {
+    this->dataPtr->pub.Publish(this->dataPtr->sdfMsg);
+  }
+}
+
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
-                    LogRecord::ISystemConfigure)
+                    LogRecord::ISystemConfigure,
+                    LogRecord::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
                           "ignition::gazebo::systems::LogRecord")
