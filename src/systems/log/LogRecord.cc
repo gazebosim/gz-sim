@@ -75,6 +75,9 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Message holding SDF string of world
   public: msgs::StringMsg sdfMsg;
+
+  /// \brief Whether the SDF has already been published
+  public: bool sdfPublished = false;
 };
 
 //////////////////////////////////////////////////
@@ -207,10 +210,11 @@ void LogRecord::Update(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  if (std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count()
-    <= 1)
+  // Publish only once
+  if (!this->dataPtr->sdfPublished)
   {
     this->dataPtr->pub.Publish(this->dataPtr->sdfMsg);
+    this->dataPtr->sdfPublished = true;
   }
 }
 
