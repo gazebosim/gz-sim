@@ -18,6 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -25,7 +26,6 @@
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/msgs/Utility.hh>
-#include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Log.hh>
