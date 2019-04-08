@@ -132,11 +132,11 @@ void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     _ecm.CreateComponent(
         this->dataPtr->jointEntity,
-        components::PendingJointForce(this->dataPtr->jointForceCmd));
+        components::PendingJointForce({this->dataPtr->jointForceCmd}));
   }
   else
   {
-    force->Data() += this->dataPtr->jointForceCmd;
+    force->Data()[0] += this->dataPtr->jointForceCmd;
   }
 }
 
