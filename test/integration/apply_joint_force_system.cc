@@ -120,7 +120,7 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
         auto forceComp = _ecm.Component<components::PendingJointForce>(joint);
         if (forceComp)
         {
-          pendingJointForce.push_back(forceComp->Data());
+          pendingJointForce.push_back(forceComp->Data()[0]);
         }
       });
 
