@@ -29,6 +29,7 @@ add_custom_target(version_target
     -Dmajor=${PROJECT_VERSION_MAJOR}
     -Dminor=${PROJECT_VERSION_MINOR}
     -Dpatch=${PROJECT_VERSION_PATCH}
+    -Dproject_name=${PROJECT_NAME}
     -P ${CMAKE_CURRENT_SOURCE_DIR}/generate_version.cmake
 )
 

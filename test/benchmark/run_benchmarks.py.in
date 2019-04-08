@@ -2,13 +2,15 @@
 
 import argparse
 import datetime
-import json
+import glob
 import logging
 import os
 import shutil
 import subprocess
 import sys
+import tarfile
 
+PROJECT_NAME = '@PROJECT_NAME@'
 VERSION_FILE = '@VERSION_FILE@'
 BENCHMARK_TARGETS = '@BENCHMARK_TARGETS@'
 RESULTS_ROOT = '@RESULTS_ROOT@'
@@ -40,20 +42,17 @@ def run_benchmark(target, output_dir):
         logger.error('Benchmark failed')
     else:
         logger.info('Finished benchmark: {name}'.format_map(locals()))
-    return filename
 
 
 def run_benchmarks(targets, output_dir):
     """Run all benchmark targets in a list."""
-    results = {}
     for target in targets:
-        results[target] = run_benchmark(target, output_dir)
-    return results
+        run_benchmark(target, output_dir)
 
 
-def create_results_dir(time, root):
+def create_results_dir(project_name, time, root):
     time_str = str(time)[:-7].replace(' ', '_').replace(':', '-')
-    results_dir = '{root}/{time_str}'.format_map(locals())
+    results_dir = '{root}/{project_name}_{time_str}'.format_map(locals())
 
     logger.info('Creating results dir: {results_dir}'.format_map(locals()))
 
@@ -68,6 +67,14 @@ def create_results_dir(time, root):
     return results_dir
 
 
+def collect_results(project_name, results_dir):
+    path, basename = os.path.split(results_dir)
+    tarname = basename + '.tar.gz'
+
+    with tarfile.open(os.path.join(path, tarname), 'w:gz') as tar:
+        tar.add(results_dir, arcname=basename)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Run and aggregate available benchmarks')
     parser.add_argument('--results_dir')
@@ -77,5 +84,11 @@ if __name__ == '__main__':
         # Targets will be semicolon delimited from CMake.
         targets = BENCHMARK_TARGETS.split(';')
 
-        results_dir = create_results_dir(datetime.datetime.now(), RESULTS_ROOT)
-        results = run_benchmarks(targets, results_dir)
+        results_dir = create_results_dir(PROJECT_NAME,
+                                         datetime.datetime.now(),
+                                         RESULTS_ROOT)
+        run_benchmarks(targets, results_dir)
+    else:
+        results_dir = args.results_dir
+
+    collect_results(PROJECT_NAME, results_dir)
