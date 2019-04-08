@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+import argparse
+import datetime
+import json
+import logging
+import os
+import shutil
+import subprocess
+import sys
+
+VERSION_FILE = '@VERSION_FILE@'
+BENCHMARK_TARGETS = '@BENCHMARK_TARGETS@'
+RESULTS_ROOT = '@RESULTS_ROOT@'
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('run_benchmarks')
+
+def run_benchmark(target, output_dir):
+    """Run a specified benchmark target."""
+    basename = os.path.basename(target)
+    name = basename.split('BENCHMARK_')[1]
+    filename = os.path.join(output_dir, name + '.json')
+
+    logger.info('Running benchmark: {name}'.format_map(locals()))
+
+    cmd = [
+        target,
+        '--benchmark_out={filename}'.format_map(locals()),
+        '--benchmark_out_format=json'
+    ]
+
+    logger.debug(' '.join(cmd))
+    try:
+        benchmark = subprocess.call(cmd,
+                                    stdout=sys.stdout,
+                                    stderr=sys.stderr)
+    except (OSError, subprocess.CalledProcessError) as exception:
+        logger.error('Exception occurred: ' + str(exception))
+        logger.error('Benchmark failed')
+    else:
+        logger.info('Finished benchmark: {name}'.format_map(locals()))
+    return filename
+
+
+def run_benchmarks(targets, output_dir):
+    """Run all benchmark targets in a list."""
+    results = {}
+    for target in targets:
+        results[target] = run_benchmark(target, output_dir)
+    return results
+
+
+def create_results_dir(time, root):
+    time_str = str(time)[:-7].replace(' ', '_').replace(':', '-')
+    results_dir = '{root}/{time_str}'.format_map(locals())
+
+    logger.info('Creating results dir: {results_dir}'.format_map(locals()))
+
+    # Create output paths as needed.
+    if not os.path.exists(root):
+        os.mkdir(root)
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
+
+    # Copy version information over
+    shutil.copy(VERSION_FILE, os.path.join(results_dir, 'version_info.json'))
+    return results_dir
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Run and aggregate available benchmarks')
+    parser.add_argument('--results_dir')
+    args = parser.parse_args()
+
+    if not args.results_dir:
+        # Targets will be semicolon delimited from CMake.
+        targets = BENCHMARK_TARGETS.split(';')
+
+        results_dir = create_results_dir(datetime.datetime.now(), RESULTS_ROOT)
+        results = run_benchmarks(targets, results_dir)
