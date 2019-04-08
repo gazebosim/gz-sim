@@ -204,11 +204,12 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
 
         if (nullptr == _ecm.Component<components::PendingJointForce>(joint))
         {
-          _ecm.CreateComponent(joint, components::PendingJointForce(jointCmd));
+          _ecm.CreateComponent(joint,
+                               components::PendingJointForce({jointCmd}));
         }
         else
         {
-          _ecm.Component<components::PendingJointForce>(joint)->Data() =
+          _ecm.Component<components::PendingJointForce>(joint)->Data()[0] =
               jointCmd;
         }
       });
