@@ -1,0 +1,21 @@
+{
+  "hg":
+  {
+    "hash": "${HG_GLOBAL_REVISION}",
+    "revision_number": "${HG_REVISION_NUM}",
+    "branch": "${HG_BRANCH}"
+  },
+  "ignition":
+  {
+    "version": "${version}",
+    "version_full": "${version_full}",
+    "major": "${major}",
+    "minor": "${minor}",
+    "patch": "${patch}"
+  },
+  "build":
+  {
+    "cmake_build_type": "${build_type}",
+    "build_time": "${build_time}"
+  }
+}
