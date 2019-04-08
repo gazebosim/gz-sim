@@ -106,6 +106,7 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::GetContactsFromLastStepFeature,
           ignition::physics::RemoveEntities,
           ignition::physics::mesh::AttachMeshShapeFeature,
+          ignition::physics::GetBasicJointProperties,
           ignition::physics::SetBasicJointState,
           ignition::physics::sdf::ConstructSdfCollision,
           ignition::physics::sdf::ConstructSdfJoint,
@@ -548,17 +549,31 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
   // Handle joint state
-  _ecm.Each<components::Joint>(
-      [&](const Entity &_entity, const components::Joint *)
+  _ecm.Each<components::Joint, components::Name>(
+      [&](const Entity &_entity, const components::Joint *,
+          const components::Name *_name)
       {
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt == this->entityJointMap.end())
           return true;
 
-        auto force1 = _ecm.Component<components::PendingJointForce>(_entity);
-        if (force1)
+        auto force = _ecm.Component<components::PendingJointForce>(_entity);
+        if (force)
         {
-          jointIt->second->SetForce(0, force1->Data());
+          if (force->Data().size() != jointIt->second->GetDegreesOfFreedom())
+          {
+            ignwarn << "There is a mismatch in the degrees of freedom between "
+                    << "Joint [" << _name->Data() << "(Entity=" << _entity
+                    << ")] and its PendingJointForce component. The joint has "
+                    << force->Data().size() << " while the component has "
+                    << jointIt->second->GetDegreesOfFreedom() << ".\n";
+          }
+          std::size_t nDofs = std::min(force->Data().size(),
+                                       jointIt->second->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < nDofs; ++i)
+          {
+            jointIt->second->SetForce(i, force->Data()[i]);
+          }
         }
         else
         {
@@ -569,15 +584,7 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
           auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
           if (vel1)
             jointIt->second->SetVelocity(0, vel1->Data());
-        }
 
-        auto force2 = _ecm.Component<components::PendingJointForce2>(_entity);
-        if (force2)
-        {
-          jointIt->second->SetForce(1, force2->Data());
-        }
-        else
-        {
           auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
           if (vel2)
             jointIt->second->SetVelocity(1, vel2->Data());
@@ -846,13 +853,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::PendingJointForce>(
       [&](const Entity &, components::PendingJointForce *_force) -> bool
       {
-        _force->Data() = 0.0;
-        return true;
-      });
-  _ecm.Each<components::PendingJointForce2>(
-      [&](const Entity &, components::PendingJointForce2 *_force) -> bool
-      {
-        _force->Data() = 0.0;
+        std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
         return true;
       });
 

@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PENDINGJOINTFORCE_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PENDINGJOINTFORCE_HH_
 
+#include <vector>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -29,17 +31,14 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Pending joint forces (or torques) to be applied to a joint's first
-  /// axis in SI units (Nm for revolute, N for prismatic).
-  using PendingJointForce = Component<double, class PendingJointForceTag>;
+  /// \brief Pending joint forces (or torques) to be applied to a joint
+  /// in SI units (Nm for revolute, N for prismatic). The component wraps a
+  /// std::vector and systems that set this component need to ensure that the
+  /// vector has the same size as the degrees of freedom of the joint.
+  using PendingJointForce =
+      Component<std::vector<double>, class PendingJointForceTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PendingJointForce",
                                 PendingJointForce)
-
-  /// \brief Pending joint forces (or torques) to be applied to a joint's second
-  /// axis in SI units (Nm for revolute, N for prismatic).
-  using PendingJointForce2 = Component<double, class PendingJointForce2Tag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PendingJointForce2",
-                                PendingJointForce2)
 }
 }
 }
