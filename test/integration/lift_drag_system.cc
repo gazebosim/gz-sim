@@ -18,10 +18,10 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/double.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Joint.hh"
