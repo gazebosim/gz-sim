@@ -17,6 +17,8 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINTPOSITION_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINTPOSITION_HH_
 
+#include <vector>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -29,17 +31,12 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Position of a joint's first axis in SI units (rad/s for revolute,
-  /// m/s for prismatic).
-  using JointPosition = Component<double, class JointPositionTag>;
+  /// \brief Joint positions in SI units (rad/s for revolute, m/s for
+  /// prismatic). The component wraps a std::vector of size equal to the degrees
+  /// of freedom of the joint.
+  using JointPosition = Component<std::vector<double>, class JointPositionTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointPosition", JointPosition)
-
-  /// \brief Position of a joint's second axis in SI units (rad/s for revolute,
-  /// m/s for prismatic).
-  using JointPosition2 = Component<double, class JointPosition2Tag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointPosition2", JointPosition2)
 }
 }
 }

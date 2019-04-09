@@ -57,7 +57,8 @@ namespace systems
   /// cla_stall   : The ratio of coefficient of lift and alpha slope after
   ///               stall.  Slope of the second portion of the alpha-lift
   ///               coefficient curve.
-  /// cda_stall   : The ratio of coefficient of drag and alpha slope after stall.
+  /// cda_stall   : The ratio of coefficient of drag and alpha slope after
+  ///               stall.
   class IGNITION_GAZEBO_VISIBLE LiftDrag
       : public System,
         public ISystemConfigure,
