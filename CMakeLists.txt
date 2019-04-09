@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo1 VERSION 1.1.0)
+project(ignition-gazebo2 VERSION 2.0.0)
 
 #============================================================================
 # Find ignition-cmake
@@ -14,7 +14,7 @@ find_package(ignition-cmake2 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project()
+ign_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -86,8 +86,18 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors1 REQUIRED COMPONENTS camera gpu_lidar logical_camera depth_camera)
-set(IGN_SENSORS_VER ${ignition-sensors1_VERSION_MAJOR})
+ign_find_package(ignition-sensors2 REQUIRED
+  COMPONENTS
+    rendering
+    altimeter
+    camera
+    gpu_lidar
+    imu
+    logical_camera
+    magnetometer
+    depth_camera
+)
+set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
