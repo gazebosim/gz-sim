@@ -311,6 +311,10 @@
       </joint>
 
       <plugin
+        filename="libignition-gazebo-state-publisher-system.so"
+        name="ignition::gazebo::systems::StatePublisher"></plugin>
+
+      <plugin
         filename="libignition-gazebo-lift-drag-system.so"
         name="ignition::gazebo::systems::LiftDrag">
         <a0>0.1</a0>
