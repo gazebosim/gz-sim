@@ -85,9 +85,12 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
     const components::JointPosition *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
-    for (const double &pos : jointPositions->Data())
+    if (jointPositions)
     {
-      jointMsg->add_position(pos);
+      for (const double &pos : jointPositions->Data())
+      {
+        jointMsg->add_position(pos);
+      }
     }
   }
 

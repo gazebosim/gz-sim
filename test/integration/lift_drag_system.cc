@@ -18,10 +18,10 @@
 #include <gtest/gtest.h>
 
 #include <ignition/msgs/double.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <ignition/common/Console.hh>
 #include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -204,11 +204,12 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
 
         if (nullptr == _ecm.Component<components::PendingJointForce>(joint))
         {
-          _ecm.CreateComponent(joint, components::PendingJointForce(jointCmd));
+          _ecm.CreateComponent(joint,
+                               components::PendingJointForce({jointCmd}));
         }
         else
         {
-          _ecm.Component<components::PendingJointForce>(joint)->Data() =
+          _ecm.Component<components::PendingJointForce>(joint)->Data()[0] =
               jointCmd;
         }
       });

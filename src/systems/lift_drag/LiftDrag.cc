@@ -347,7 +347,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // modify cl per control joint value
   if (controlJointPosition)
   {
-    cl = cl + this->controlJointRadToCL * controlJointPosition->Data();
+    cl = cl + this->controlJointRadToCL * controlJointPosition->Data()[0];
     /// \TODO: also change cm and cd
   }
 
@@ -470,7 +470,8 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // igndbg << "sweep: " << sweep << "\n";
   // igndbg << "alpha: " << alpha << "\n";
   // igndbg << "lift: " << lift << "\n";
-  // igndbg << "drag: " << drag << " cd: " << cd << " cda: " << this->cda << "\n";
+  // igndbg << "drag: " << drag << " cd: " << cd << " cda: "
+  //        << this->cda << "\n";
   // igndbg << "moment: " << moment << "\n";
   // igndbg << "cp momentArm: " << momentArm << "\n";
   // igndbg << "force: " << force << "\n";
