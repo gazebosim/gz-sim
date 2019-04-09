@@ -31,7 +31,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Joint force in SI units (Nm for revolute, N for
+  /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
   /// prismatic).
   using JointForce = Component<std::array<double, 3>, class JointForceTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
