@@ -24,6 +24,7 @@
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "StatePublisher.hh"
 
 using namespace ignition;
@@ -41,6 +42,7 @@ void StatePublisher::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &,
     EntityComponentManager &_ecm, EventManager &)
 {
+  // Get the model.
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
@@ -49,22 +51,26 @@ void StatePublisher::Configure(
     return;
   }
 
+  // Create the position, velocity, and force components for the joint.
   std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
       this->model.Entity(), components::Joint());
   for (const Entity &joint : childJoints)
   {
+    // Create joint position component if one doesn't exist
     if (!_ecm.EntityHasComponentType(joint,
           components::JointPosition().TypeId()))
     {
       _ecm.CreateComponent(joint, components::JointPosition());
     }
 
+    // Create joint velocity component if one doesn't exist
     if (!_ecm.EntityHasComponentType(joint,
           components::JointVelocity().TypeId()))
     {
       _ecm.CreateComponent(joint, components::JointVelocity());
     }
 
+    // Create joint force component if one doesn't exist
     if (!_ecm.EntityHasComponentType(joint, components::JointForce().TypeId()))
     {
       _ecm.CreateComponent(joint, components::JointForce());
@@ -80,7 +86,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
   // because the World is not guaranteed to be accessible.
   if (!this->modelPub)
   {
-    std::string worldName = "default";
+    std::string worldName;
 
     // Get the parent entity, which is the world.
     const components::ParentEntity *parentEntity =
@@ -90,6 +96,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       worldName = _ecm.Component<components::Name>(
           parentEntity->Data())->Data();
 
+      // Advertise the state topic
       std::string topic = std::string("/world/") + worldName + "/model/"
         + this->model.Name(_ecm) + "/state";
       this->modelPub = std::make_unique<transport::Node::Publisher>(
@@ -97,17 +104,39 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     }
   }
 
+  // Skip if we couldn't create the publisher.
+  if (!this->modelPub)
+    return;
+
+  // Create the message
   msgs::Model msg;
+
+  // Set the name and ID.
   msg.set_name(this->model.Name(_ecm));
   msg.set_id(this->model.Entity());
 
+  // Set the model pose
+  const components::Pose *pose = _ecm.Component<components::Pose>(
+      this->model.Entity());
+  if (pose)
+    msgs::Set(msg.mutable_pose(), pose->Data());
+
+  // Process each joint
   std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
       this->model.Entity(), components::Joint());
   for (const Entity &joint : childJoints)
   {
+    // Add a joint message.
     msgs::Joint *jointMsg = msg.add_joint();
     jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
+    jointMsg->set_id(joint);
 
+    // Set the joint pose
+    pose = _ecm.Component<components::Pose>(joint);
+    if (pose)
+      msgs::Set(jointMsg->mutable_pose(), pose->Data());
+
+    // Set the joint position
     const components::JointPosition *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
     if (jointPositions)
@@ -118,6 +147,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       }
     }
 
+    // Set the joint velocity
     const components::JointVelocity *jointVelocity  =
       _ecm.Component<components::JointVelocity>(joint);
     if (jointVelocity)
@@ -128,6 +158,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       }
     }
 
+    // Set the joint force
     const components::JointForce *jointForce  =
       _ecm.Component<components::JointForce>(joint);
     if (jointForce)
@@ -139,6 +170,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     }
   }
 
+  // Publish the message.
   this->modelPub->Publish(msg);
 }
 

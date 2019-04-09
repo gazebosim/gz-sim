@@ -31,10 +31,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \brief The JointStatePub system publishes joint state information.
-  ///
-  /// The following parameters are used by the system:
-  ///
+  /// \brief The JointStatePub system publishes state information for
+  /// a model. The published message type is ignition::msgs::Model, and the
+  /// publication topic is "/world/<world_name>/model/<model_name>/state".
   class IGNITION_GAZEBO_VISIBLE StatePublisher
       : public System,
         public ISystemConfigure,
@@ -46,16 +45,22 @@ namespace systems
     /// \brief Destructor
     public: ~StatePublisher() override = default;
 
+    // Documentation inherited
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &,
                            EntityComponentManager &_ecm, EventManager &);
 
-    /// Documentation inherited
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
+    /// \brief The model
     private: Model model;
+
+    /// \brief The communication node
     private: transport::Node node;
+
+    /// \brief The publisher
     private: std::unique_ptr<transport::Node::Publisher> modelPub;
   };
   }
