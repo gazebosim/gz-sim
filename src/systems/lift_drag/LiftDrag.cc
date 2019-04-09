@@ -507,13 +507,28 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
     if (this->dataPtr->validConfig)
     {
-      _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
-      _ecm.CreateComponent(this->dataPtr->linkEntity,
-                           components::WorldLinearVelocity());
-      _ecm.CreateComponent(this->dataPtr->linkEntity,
-                           components::WorldAngularVelocity());
+      if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
+      {
+        _ecm.CreateComponent(this->dataPtr->linkEntity,
+                             components::WorldPose());
+      }
 
-      if (this->dataPtr->controlJointEntity != kNullEntity)
+      if (!_ecm.Component<components::WorldLinearVelocity>(
+              this->dataPtr->linkEntity))
+      {
+        _ecm.CreateComponent(this->dataPtr->linkEntity,
+                             components::WorldLinearVelocity());
+      }
+      if (!_ecm.Component<components::WorldAngularVelocity>(
+              this->dataPtr->linkEntity))
+      {
+        _ecm.CreateComponent(this->dataPtr->linkEntity,
+                             components::WorldAngularVelocity());
+      }
+
+      if ((this->dataPtr->controlJointEntity != kNullEntity) &&
+          !_ecm.Component<components::JointPosition>(
+              this->dataPtr->controlJointEntity))
       {
         _ecm.CreateComponent(this->dataPtr->controlJointEntity,
             components::JointPosition());
