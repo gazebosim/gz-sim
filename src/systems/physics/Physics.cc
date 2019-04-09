@@ -77,9 +77,11 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
+#include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -593,16 +595,15 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         else
         {
           // Only set joint velocity if joint force is not set.
-          // TODO(addisu) We should use a different component for setting
-          // velocities. This component should be used to report the current
-          // velocity of the joint.
-          auto vel1 = _ecm.Component<components::JointVelocity>(_entity);
-          if (vel1)
-            jointIt->second->SetVelocity(0, vel1->Data());
-
-          auto vel2 = _ecm.Component<components::JointVelocity2>(_entity);
-          if (vel2)
-            jointIt->second->SetVelocity(1, vel2->Data());
+          auto vel = _ecm.Component<components::JointVelocityCmd>(_entity);
+          if (vel)
+          {
+            for (size_t i = 0;
+                 i < jointIt->second->GetDegreesOfFreedom() && i < 3; ++i)
+            {
+              jointIt->second->SetVelocity(i, vel->Data()[i]);
+            }
+          }
         }
 
         return true;
@@ -901,7 +902,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
       [&](const Entity &_entity, components::Joint *,
           components::JointPosition *_jointPos) -> bool
       {
-      std::cout << "JointPosition\n";
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt != this->entityJointMap.end())
         {
@@ -910,6 +910,40 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
                ++i)
           {
             _jointPos->Data()[i] = jointIt->second->GetPosition(i);
+          }
+        }
+        return true;
+      });
+
+  // Update joint velocities
+  _ecm.Each<components::Joint, components::JointVelocity>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointVelocity *_jointVel) -> bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt != this->entityJointMap.end())
+        {
+          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom() &&
+              i < _jointVel->Data().size(); ++i)
+          {
+            _jointVel->Data()[i] = jointIt->second->GetVelocity(i);
+          }
+        }
+        return true;
+      });
+
+  // Update joint forces
+  _ecm.Each<components::Joint, components::JointForce>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointForce *_jointForce) -> bool
+      {
+        auto jointIt = this->entityJointMap.find(_entity);
+        if (jointIt != this->entityJointMap.end())
+        {
+          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom() &&
+              i < _jointForce->Data().size(); ++i)
+          {
+            _jointForce->Data()[i] = jointIt->second->GetForce(i);
           }
         }
         return true;

@@ -20,7 +20,9 @@
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "StatePublisher.hh"
 
@@ -45,6 +47,28 @@ void StatePublisher::Configure(
     ignerr << "The StatePublisher system should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
+  }
+
+  std::vector<Entity> childJoints = _ecm.ChildrenByComponents(
+      this->model.Entity(), components::Joint());
+  for (const Entity &joint : childJoints)
+  {
+    if (!_ecm.EntityHasComponentType(joint,
+          components::JointPosition().TypeId()))
+    {
+      _ecm.CreateComponent(joint, components::JointPosition());
+    }
+
+    if (!_ecm.EntityHasComponentType(joint,
+          components::JointVelocity().TypeId()))
+    {
+      _ecm.CreateComponent(joint, components::JointVelocity());
+    }
+
+    if (!_ecm.EntityHasComponentType(joint, components::JointForce().TypeId()))
+    {
+      _ecm.CreateComponent(joint, components::JointForce());
+    }
   }
 }
 
@@ -83,6 +107,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
   {
     msgs::Joint *jointMsg = msg.add_joint();
     jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
+
     const components::JointPosition *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
     if (jointPositions)
@@ -90,6 +115,26 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       for (const double &pos : jointPositions->Data())
       {
         jointMsg->add_position(pos);
+      }
+    }
+
+    const components::JointVelocity *jointVelocity  =
+      _ecm.Component<components::JointVelocity>(joint);
+    if (jointVelocity)
+    {
+      for (const double &vel : jointVelocity->Data())
+      {
+        jointMsg->add_velocity(vel);
+      }
+    }
+
+    const components::JointForce *jointForce  =
+      _ecm.Component<components::JointForce>(joint);
+    if (jointForce)
+    {
+      for (const double &force : jointForce->Data())
+      {
+        jointMsg->add_force(force);
       }
     }
   }

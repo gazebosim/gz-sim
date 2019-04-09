@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
@@ -347,7 +348,7 @@ TEST_F(ComponentsTest, JointType)
 TEST_F(ComponentsTest, JointVelocity)
 {
   // Create components
-  auto comp11 = components::JointVelocity(1.2);
+  auto comp11 = components::JointVelocity({1.2, 0, 0});
 
   // No double comparisons
 
@@ -359,7 +360,26 @@ TEST_F(ComponentsTest, JointVelocity)
   std::istringstream istr("3.4");
   components::JointVelocity comp3;
   istr >> comp3;
-  EXPECT_DOUBLE_EQ(3.4, comp3.Data());
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[0]);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointVelocityCmd)
+{
+  // Create components
+  auto comp11 = components::JointVelocityCmd({1.2, 0, 0});
+
+  // No double comparisons
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ("1.2", ostr.str());
+
+  std::istringstream istr("3.4");
+  components::JointVelocityCmd comp3;
+  istr >> comp3;
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[0]);
 }
 
 /////////////////////////////////////////////////
