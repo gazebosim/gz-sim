@@ -194,6 +194,9 @@ class ignition::gazebo::ServerConfigPrivate
             updateRate(_cfg->updateRate),
             useLevels(_cfg->useLevels),
             useDistributed(_cfg->useDistributed),
+            useLogRecord(_cfg->useLogRecord),
+            logRecordPath(_cfg->logRecordPath),
+            logPlaybackPath(_cfg->logPlaybackPath),
             resourceCache(_cfg->resourceCache),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
@@ -213,6 +216,15 @@ class ignition::gazebo::ServerConfigPrivate
 
   /// \brief Use the distributed simulation system
   public: bool useDistributed{false};
+
+  /// \brief Use the logging system to record states
+  public: bool useLogRecord{false};
+
+  /// \brief Path to place recorded states
+  public: std::string logRecordPath = "";
+
+  /// \brief Path to recorded states to play back using logging system
+  public: std::string logPlaybackPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
   /// from fuel.ignitionrobotics.org, should be stored.
@@ -348,6 +360,42 @@ bool ServerConfig::UseDistributedSimulation() const
 void ServerConfig::SetUseDistributedSimulation(const bool _distributed)
 {
   this->dataPtr->useDistributed = _distributed;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::UseLogRecord() const
+{
+  return this->dataPtr->useLogRecord;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetUseLogRecord(const bool _record)
+{
+  this->dataPtr->useLogRecord = _record;
+}
+
+/////////////////////////////////////////////////
+const std::string ServerConfig::LogRecordPath() const
+{
+  return this->dataPtr->logRecordPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
+{
+  this->dataPtr->logRecordPath = _recordPath;
+}
+
+/////////////////////////////////////////////////
+const std::string ServerConfig::LogPlaybackPath() const
+{
+  return this->dataPtr->logPlaybackPath;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogPlaybackPath(const std::string &_playbackPath)
+{
+  this->dataPtr->logPlaybackPath = _playbackPath;
 }
 
 /////////////////////////////////////////////////
