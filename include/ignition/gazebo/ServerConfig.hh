@@ -194,11 +194,15 @@ namespace ignition
       /// \brief Get whether the server is using the distributed sim system
       /// \return True if the server is set to use the distributed simulation
       /// system
+      /// \sa SetNetworkRole(const std::string &_role)
       public: bool UseDistributedSimulation() const;
 
       /// \brief Set whether the server is using the distributed sim system.
       /// \param[in] _distributeSimulation Value to set.
-      public: void SetUseDistributedSimulation(const bool _distributed);
+      /// \deprecated SetNetworkRole(const std::string &_role) is used
+      /// to indicate if distributed simulation is enabled.
+      public: void IGN_DEPRECATED(2) SetUseDistributedSimulation(
+                  const bool _distributed);
 
       /// \brief Set the number of network secondary servers that the
       /// primary server should expect. This value is valid only when
