@@ -167,6 +167,7 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_lighting(_in.Lighting());
   return out;
 }
 
@@ -179,6 +180,7 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetDiffuse(msgs::Convert(_in.diffuse()));
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetLighting(_in.lighting());
   return out;
 }
 
