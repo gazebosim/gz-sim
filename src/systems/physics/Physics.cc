@@ -904,7 +904,12 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt != this->entityJointMap.end())
         {
-        _jointPos->Data() = jointIt->second->GetPosition(0);
+          _jointPos->Data().resize(jointIt->second->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom();
+               ++i)
+          {
+            _jointPos->Data()[i] = jointIt->second->GetPosition(i);
+          }
         }
         return true;
       });
