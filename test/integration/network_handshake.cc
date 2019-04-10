@@ -144,7 +144,6 @@ TEST_F(NetworkHandshake, Updates)
   configPrimary.SetNetworkSecondaries(1);
   configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");
-  configPrimary.SetUseDistributedSimulation(true);
   configPrimary.AddPlugin(primaryPluginInfo);
 
   auto serverPrimary = std::make_unique<Server>(configPrimary);
@@ -161,7 +160,6 @@ TEST_F(NetworkHandshake, Updates)
   configSecondary.SetNetworkRole("secondary");
   configSecondary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");
-  configSecondary.SetUseDistributedSimulation(true);
   configSecondary.AddPlugin(secondaryPluginInfo);
 
   auto serverSecondary1 = std::make_unique<Server>(configSecondary);
