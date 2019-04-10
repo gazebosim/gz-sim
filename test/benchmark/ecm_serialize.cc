@@ -135,3 +135,10 @@ BENCHMARK(BM_Serialize5Component)
   ->Arg(500)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
+
+int main(int argc, char** argv)
+{
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  return 0;
+}
