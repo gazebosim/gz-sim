@@ -422,3 +422,9 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
+int main(int argc, char** argv)
+{
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  return 0;
+}

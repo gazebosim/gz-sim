@@ -1,5 +1,7 @@
 set(TEST_TYPE "BENCHMARK")
 
+find_package(benchmark REQUIRED)
+
 set(tests
   each.cc
   ecm_serialize.cc
@@ -8,7 +10,7 @@ set(tests
 ign_build_executables(
   PREFIX "${TEST_TYPE}_"
   SOURCES ${tests}
-  LIB_DEPS gbenchmark gbenchmark_main
+  LIB_DEPS benchmark::benchmark
   EXEC_LIST benchmark_list
 )
 
