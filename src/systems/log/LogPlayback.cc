@@ -290,9 +290,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     creator.SetParent(lightEntity, _worldEntity);
   }
 
-  //_eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
-
-
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
     sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
