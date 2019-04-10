@@ -2,16 +2,9 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="libignition-gazebo1-physics-system.so"
+     filename="libignition-gazebo-physics-system.so"
      name="ignition::gazebo::systems::Physics">
     </plugin>
-
-    <scene>
-      <ambient>0.8 0.8 0.8 1.0</ambient>
-      <background>0.34 0.39 0.43 1.0</background>
-      <grid>false</grid>
-      <origin_visual>false</origin_visual>
-    </scene>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

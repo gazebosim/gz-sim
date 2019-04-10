@@ -17,14 +17,18 @@
 #ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
+#include <ignition/msgs/serialized.pb.h>
+
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <typeinfo>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <vector>
+
 #include <ignition/common/Console.hh>
 #include <ignition/math/graph/Graph.hh>
 #include "ignition/gazebo/Entity.hh"
@@ -32,7 +36,6 @@
 #include "ignition/gazebo/Types.hh"
 
 #include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/detail/ComponentStorageBase.hh"
 #include "ignition/gazebo/detail/View.hh"
 
 namespace ignition
@@ -386,6 +389,28 @@ namespace ignition
       /// edges point from parent to children.
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
+
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \detail The header of the message will not be populated, it is the
+      /// responsability of the caller to timestamp it before use.
+      /// \param[in] _entities Entities to be serialized. Leave empty to get
+      /// all entities.
+      /// \param[in] _types Type ID of components to be serialized. Leave empty
+      /// to get all components.
+      msgs::SerializedState State(
+          std::unordered_set<Entity> _entities = {},
+          std::unordered_set<ComponentTypeId> _types = {}) const;
+
+      /// \brief Set the absolute state of the ECM from a serialized message.
+      /// Entities / components that are in the new state but not in the old
+      /// one will be created.
+      /// Entities / components that are marked as removed will be removed, but
+      /// they won't be removed if they're not present in the state.
+      /// \detail The header of the message will not be handled, it is the
+      /// responsability of the caller to use the timestamp.
+      /// \param[in] _stateMsg Message containing state to be set.
+      void SetState(const msgs::SerializedState &_stateMsg);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function

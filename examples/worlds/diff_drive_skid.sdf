@@ -15,15 +15,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo1-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo1-user-commands-system.so"
+      filename="libignition-gazebo-user-commands-system.so"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo1-systems.so"
+      filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
@@ -211,6 +211,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.01</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -246,6 +253,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>5</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -281,6 +295,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.01</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -316,6 +337,13 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>5</mu>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -369,7 +397,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo1-systems.so"
+        filename="libignition-gazebo-diff-drive-system.so"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>

@@ -44,7 +44,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
 
   /// \brief Register a new component type.
   /// \param[in] _typeId Type if of the new component.
-  public: void CreateComponentStorage(const ComponentTypeId _typeId);
+  /// \return True if created successfully.
+  public: bool CreateComponentStorage(const ComponentTypeId _typeId);
 
   /// \brief Map of component storage classes. The key is a component
   /// type id, and the value is a pointer to the component storage.
@@ -371,7 +372,13 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   // If type hasn't been instantiated yet, create a storage for it
   if (!this->HasComponentType(_componentTypeId))
   {
-    this->dataPtr->CreateComponentStorage(_componentTypeId);
+    if (!this->dataPtr->CreateComponentStorage(_componentTypeId))
+    {
+      ignerr << "Failed to create component of type [" << _componentTypeId
+             << "] for entity [" << _entity
+             << "]. Type has not been properly registered." << std::endl;
+      return ComponentKey();
+    }
   }
 
   // Instantiate the new component.
@@ -521,7 +528,7 @@ bool EntityComponentManager::HasComponentType(
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CreateComponentStorage(
+bool EntityComponentManagerPrivate::CreateComponentStorage(
     const ComponentTypeId _typeId)
 {
   auto storage = components::Factory::Instance()->NewStorage(_typeId);
@@ -530,11 +537,14 @@ void EntityComponentManagerPrivate::CreateComponentStorage(
   {
     ignerr << "Internal errror: failed to create storage for type [" << _typeId
            << "]" << std::endl;
-    return;
+    return false;
   }
 
   this->components[_typeId] = std::move(storage);
-  igndbg << "Created storage for component type [" << _typeId << "].\n";
+  igndbg << "Using components of type [" << _typeId << "] / ["
+         << components::Factory::Instance()->Name(_typeId) << "].\n";
+
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -633,6 +643,128 @@ void EntityComponentManager::RebuildViews()
               this->EntityComponentIdFromType(
                 entity, compTypeId));
         }
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+ignition::msgs::SerializedState EntityComponentManager::State(
+    std::unordered_set<Entity> _entities,
+    std::unordered_set<ComponentTypeId> _types) const
+{
+  ignition::msgs::SerializedState stateMsg;
+  for (const auto &[entity, components] : this->dataPtr->entityComponents)
+  {
+    if (!_entities.empty() && _entities.find(entity) == _entities.end())
+    {
+      continue;
+    }
+
+    auto entityMsg = stateMsg.add_entities();
+    entityMsg->set_id(entity);
+
+    for (const auto &comp : components)
+    {
+      if (!_types.empty() && _types.find(comp.first) == _entities.end())
+      {
+        continue;
+      }
+
+      auto compMsg = entityMsg->add_components();
+
+      auto compBase = this->ComponentImplementation(entity, comp.first);
+      compMsg->set_type(compBase->TypeId());
+
+      std::ostringstream ostr;
+      ostr << *compBase;
+
+      compMsg->set_component(ostr.str());
+    }
+  }
+
+  return stateMsg;
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::SetState(
+    const ignition::msgs::SerializedState &_stateMsg)
+{
+  // Create / remove / update entities
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  {
+    const auto &entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    // Remove entity
+    if (entityMsg.remove())
+    {
+      this->RequestRemoveEntity(entity);
+      continue;
+    }
+
+    // Create entity if it doesn't exist
+    if (!this->HasEntity(entity))
+    {
+      this->dataPtr->CreateEntityImplementation(entity);
+    }
+
+    // Create / remove / update components
+    for (int c = 0; c < entityMsg.components_size(); ++c)
+    {
+      const auto &compMsg = entityMsg.components(c);
+
+      // Skip if component not set. Note that this will also skip components
+      // setting an empty value.
+      if (compMsg.component().empty())
+      {
+        continue;
+      }
+
+      // Create component
+      auto newComp = components::Factory::Instance()->New(compMsg.type());
+
+      if (nullptr == newComp)
+      {
+        ignwarn << "Failed to deserialize component of type [" << compMsg.type()
+                << "]" << std::endl;
+        continue;
+      }
+
+      std::istringstream istr(compMsg.component());
+      istr >> *newComp.get();
+
+      // Get type id
+      auto typeId = newComp->TypeId();
+
+      // TODO(louise) Move into if, see TODO below
+      this->RemoveComponent(entity, typeId);
+
+      // Remove component
+      if (compMsg.remove())
+      {
+        continue;
+      }
+
+      // Get Component
+      auto comp = this->ComponentImplementation(entity, typeId);
+
+      // Create if new
+      if (nullptr == comp)
+      {
+        this->CreateComponentImplementation(entity, typeId, newComp.get());
+      }
+      // Update component value
+      else
+      {
+        ignerr << "Internal error" << std::endl;
+        // TODO(louise) We're shortcutting above and always  removing the
+        // component so that we don't get here, gotta figure out why this
+        // doesn't update the component. The following line prints the correct
+        // values.
+        // igndbg << *comp << "  " << *newComp.get() << std::endl;
+        // *comp = *newComp.get();
       }
     }
   }

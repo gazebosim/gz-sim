@@ -32,94 +32,194 @@ using namespace std::chrono_literals;
 uint64_t kIterations;
 
 /////////////////////////////////////////////////
-// Send a world control message.
-void worldControl(bool _paused, uint64_t _steps)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [&](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    EXPECT_TRUE(_result);
-  };
-
-  ignition::msgs::WorldControl req;
-  req.set_pause(_paused);
-  req.set_multi_step(_steps);
-  transport::Node node;
-  node.Request("/world/default/control", req, cb);
-}
-
-/////////////////////////////////////////////////
 // Get the current paused state from the world stats message
-void testPaused(bool _paused)
+uint64_t testPaused(bool _paused)
 {
   std::condition_variable condition;
   std::mutex mutex;
   transport::Node node;
   bool paused = !_paused;
-
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    paused = _msg.paused();
-    condition.notify_all();
-  };
-
-  std::unique_lock<std::mutex> lock(mutex);
-  node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
-  EXPECT_EQ(_paused, paused);
-}
-
-/////////////////////////////////////////////////
-// Get the current iteration count from the world stats message
-uint64_t iterations()
-{
-  std::condition_variable condition;
-  std::mutex mutex;
-  transport::Node node;
   uint64_t iterations = 0;
 
   std::function<void(const ignition::msgs::WorldStatistics &)> cb =
       [&](const ignition::msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
+    paused = _msg.paused();
     iterations = _msg.iterations();
     condition.notify_all();
   };
 
   std::unique_lock<std::mutex> lock(mutex);
   node.Subscribe("/world/default/stats", cb);
-  condition.wait(lock);
+  auto success = condition.wait_for(lock, std::chrono::seconds(1));
+  EXPECT_EQ(std::cv_status::no_timeout, success);
+  EXPECT_EQ(_paused, paused);
   return iterations;
 }
 
 /////////////////////////////////////////////////
-// Only on Linux for the moment
-#ifdef  __linux__
-TEST(NetworkHandshake, Handshake)
+class NetworkHandshake : public ::testing::Test
 {
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "PRIMARY", 1);
-  setenv("IGN_GAZEBO_NETWORK_SECONDARIES", "2", 1);
+  // Documentation inherited
+  protected: void SetUp() override
+  {
+    common::Console::SetVerbosity(4);
+  }
+};
+
+/////////////////////////////////////////////////
+TEST_F(NetworkHandshake, Handshake)
+{
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
-  Server serverPrimary(serverConfig);
-  serverPrimary.SetUpdatePeriod(1us);
+  serverConfig.SetNetworkRole("primary");
+  serverConfig.SetNetworkSecondaries(2);
 
-  setenv("IGN_GAZEBO_NETWORK_ROLE", "SECONDARY", 1);
-  Server serverSecondary1(serverConfig);
-  serverSecondary1.SetUpdatePeriod(1us);
+  auto serverPrimary = std::make_unique<Server>(serverConfig);
+  serverPrimary->SetUpdatePeriod(1us);
 
-  Server serverSecondary2(serverConfig);
-  serverSecondary2.SetUpdatePeriod(1us);
+  serverConfig.SetNetworkRole("secondary");
+  auto serverSecondary1 = std::make_unique<Server>(serverConfig);
+  serverSecondary1->SetUpdatePeriod(1us);
 
-  // Run the server asynchronously
-  serverPrimary.Run(false);
-  serverSecondary1.Run(false);
-  serverSecondary2.Run(false);
+  auto serverSecondary2 = std::make_unique<Server>(serverConfig);
+  serverSecondary2->SetUpdatePeriod(1us);
 
-  // The server should start paused.
-  testPaused(true);
-  EXPECT_EQ(0u, iterations());
+  std::atomic<bool> testRunning {true};
+
+  auto testFcn = [&](Server *_server)
+  {
+    // Run for a finite number of iterations
+    _server->Run(false, 10, true);
+
+    // The server should start paused.
+    uint64_t iterations = testPaused(true);
+    EXPECT_EQ(0u, iterations);
+
+    while (testRunning)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  auto primaryThread = std::thread(testFcn, serverPrimary.get());
+  auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
+  auto secondaryThread2 = std::thread(testFcn, serverSecondary2.get());
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  testRunning = false;
+
+  secondaryThread1.join();
+  secondaryThread2.join();
+  primaryThread.join();
+
+  serverSecondary1.reset();
+  serverSecondary2.reset();
+  serverPrimary.reset();
 }
-#endif  // __linux__
+
+/////////////////////////////////////////////////
+TEST_F(NetworkHandshake, Updates)
+{
+  auto pluginElem = std::make_shared<sdf::Element>();
+  pluginElem->SetName("plugin");
+  pluginElem->AddAttribute("name", "string", "required_but_ignored", true);
+  pluginElem->AddAttribute("filename", "string", "required_but_ignored", true);
+
+  // Primary
+  ServerConfig::PluginInfo primaryPluginInfo;
+  primaryPluginInfo.SetEntityName("default");
+  primaryPluginInfo.SetEntityType("world");
+  primaryPluginInfo.SetFilename(
+      "libignition-gazebo-scene-broadcaster-system.so");
+  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  primaryPluginInfo.SetSdf(pluginElem);
+
+  ServerConfig configPrimary;
+  configPrimary.SetNetworkRole("primary");
+  // Can only test one secondary running physics, because running 2 physics in
+  // the same process causes a segfault, see
+  // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/18
+  configPrimary.SetNetworkSecondaries(1);
+  configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/performers.sdf");
+  configPrimary.SetUseDistributedSimulation(true);
+  configPrimary.AddPlugin(primaryPluginInfo);
+
+  auto serverPrimary = std::make_unique<Server>(configPrimary);
+
+  // Secondary
+  ServerConfig::PluginInfo secondaryPluginInfo;
+  secondaryPluginInfo.SetEntityName("default");
+  secondaryPluginInfo.SetEntityType("world");
+  secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
+  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetSdf(pluginElem);
+
+  ServerConfig configSecondary;
+  configSecondary.SetNetworkRole("secondary");
+  configSecondary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/performers.sdf");
+  configSecondary.SetUseDistributedSimulation(true);
+  configSecondary.AddPlugin(secondaryPluginInfo);
+
+  auto serverSecondary1 = std::make_unique<Server>(configSecondary);
+
+  // Subscribe to pose updates, which should come from the primary
+  transport::Node node;
+  std::vector<double> zPos;
+  std::function<void(const ignition::msgs::Pose_V &)> cb =
+      [&](const ignition::msgs::Pose_V &_msg)
+  {
+    for (int i = 0; i < _msg.pose().size(); ++i)
+    {
+      const auto &poseMsg = _msg.pose(i);
+
+      if (poseMsg.name() == "sphere")
+      {
+        zPos.push_back(poseMsg.position().z());
+      }
+    }
+  };
+  node.Subscribe("/world/default/pose/info", cb);
+
+  // Run
+  std::atomic<bool> testRunning{true};
+  auto testFcn = [&](Server *_server)
+  {
+    _server->Run(false, 0, false);
+
+    while (testRunning)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  auto primaryThread = std::thread(testFcn, serverPrimary.get());
+  auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
+
+  // Wait a few simulation iterations
+  int maxSleep = 30;
+  for (int sleep = 0; sleep < maxSleep && zPos.size() < 100; sleep++)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  // We don't assert because we still need to join the threads if the test fails
+  EXPECT_LE(100u, zPos.size());
+
+  // Check model was falling (physics simulated by secondary)
+  if (zPos.size() >= 100u)
+  {
+    EXPECT_GT(zPos[0], zPos[99]);
+  }
+
+  // Finish server threads
+  testRunning = false;
+
+  primaryThread.join();
+  secondaryThread1.join();
+
+  serverPrimary.reset();
+  serverSecondary1.reset();
+}

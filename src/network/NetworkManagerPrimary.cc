@@ -39,7 +39,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_eventMgr, _config, _options),
   node(_options)
 {
-  this->simStepPub = this->node.Advertise<msgs::SimulationStep>("step");
+  this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
 
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
@@ -49,7 +49,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
         {
           if (_info.role == NetworkRole::SimulationSecondary)
           {
-            ignerr << "Secondary removed, stopping simulation" << std::endl;
+            ignmsg << "Secondary removed, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
         });
@@ -77,7 +77,7 @@ void NetworkManagerPrimary::Initialize()
   auto peers = this->dataPtr->tracker->SecondaryPeers();
   for (const auto &peer : peers)
   {
-    msgs::PeerControl req, resp;
+    private_msgs::PeerControl req, resp;
     req.set_enable_sim(true);
 
     auto sc = std::make_unique<SecondaryControl>();
@@ -111,12 +111,12 @@ void NetworkManagerPrimary::Initialize()
     }
 
     auto ackTopic = std::string {sc->prefix + "/stepAck"};
-    std::function<void(const msgs::SimulationStep&)> fcn =
+    std::function<void(const private_msgs::SimulationStep&)> fcn =
         std::bind(&NetworkManagerPrimary::OnStepAck, this, sc->prefix,
             std::placeholders::_1);
-    this->node.Subscribe<msgs::SimulationStep>(ackTopic, fcn);
+    this->node.Subscribe<private_msgs::SimulationStep>(ackTopic, fcn);
 
-    secondaries[sc->prefix] = std::move(sc);
+    this->secondaries[sc->prefix] = std::move(sc);
   }
 }
 
@@ -146,7 +146,7 @@ bool NetworkManagerPrimary::Step(UpdateInfo &_info)
       igndbg << "Network iterations: " << _info.iterations << std::endl;
     }
 
-    auto step = msgs::SimulationStep();
+    auto step = private_msgs::SimulationStep();
     step.set_iteration(_info.iterations);
     step.set_paused(_info.paused);
 
@@ -169,7 +169,7 @@ bool NetworkManagerPrimary::StepAck(uint64_t _iteration)
 {
   bool stepAck = true;
   bool iters = true;
-  for (const auto& secondary : this->secondaries)
+  for (const auto &secondary : this->secondaries)
   {
     stepAck &= secondary.second->recvStepAck;
     iters &= (_iteration == secondary.second->recvIter);
@@ -177,7 +177,7 @@ bool NetworkManagerPrimary::StepAck(uint64_t _iteration)
 
   if (stepAck && iters)
   {
-    for (auto & secondary : this->secondaries)
+    for (auto &secondary : this->secondaries)
     {
       secondary.second->recvStepAck = false;
     }
@@ -194,7 +194,7 @@ std::string NetworkManagerPrimary::Namespace() const
 
 //////////////////////////////////////////////////
 void NetworkManagerPrimary::OnStepAck(const std::string &_secondary,
-      const msgs::SimulationStep &_msg)
+      const private_msgs::SimulationStep &_msg)
 {
   this->secondaries[_secondary]->recvStepAck = true;
   this->secondaries[_secondary]->recvIter = _msg.iteration();
