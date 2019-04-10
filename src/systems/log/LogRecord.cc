@@ -223,7 +223,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   }
 
   // Go up to root of SDF, to record entire SDF file
-  sdf::ElementPtr sdfRoot = _sdf->GetParent();
+  sdf::ElementPtr sdfRoot = this->sdf->GetParent();
   while (sdfRoot->GetParent() != nullptr)
   {
     sdfRoot = sdfRoot->GetParent();
