@@ -86,8 +86,8 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors1 REQUIRED COMPONENTS camera gpu_lidar logical_camera depth_camera)
-set(IGN_SENSORS_VER ${ignition-sensors1_VERSION_MAJOR})
+ign_find_package(ignition-sensors2 REQUIRED COMPONENTS camera gpu_lidar logical_camera depth_camera)
+set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
@@ -108,7 +108,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
 
 #============================================================================
 # Configure the build
