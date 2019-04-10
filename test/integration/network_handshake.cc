@@ -81,38 +81,37 @@ TEST_F(NetworkHandshake, Handshake)
 
   serverConfig.SetNetworkRole("secondary");
   auto serverSecondary1 = std::make_unique<Server>(serverConfig);
-  serverSecondary1->SetUpdatePeriod(1us);
-
   auto serverSecondary2 = std::make_unique<Server>(serverConfig);
-  serverSecondary2->SetUpdatePeriod(1us);
 
-  std::atomic<bool> testRunning {true};
+  std::vector<bool> testRunning;
 
   auto testFcn = [&](Server *_server)
   {
+igndbg << "A" << std::endl;
     // Run for a finite number of iterations
-    _server->Run(false, 10, true);
+    EXPECT_TRUE(_server->Run(true, 100, false));
 
-    // The server should start paused.
-    uint64_t iterations = testPaused(true);
-    EXPECT_EQ(0u, iterations);
-
-    while (testRunning)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    testRunning.push_back(false);
+igndbg << "/A" << std::endl;
   };
 
   auto primaryThread = std::thread(testFcn, serverPrimary.get());
   auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
   auto secondaryThread2 = std::thread(testFcn, serverSecondary2.get());
+igndbg << "B" << std::endl;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  testRunning = false;
+  while (testRunning.size() < 3)
+  {
+igndbg << testRunning.size() << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
 
   secondaryThread1.join();
+igndbg << "B" << std::endl;
   secondaryThread2.join();
+igndbg << "B" << std::endl;
   primaryThread.join();
+igndbg << "B" << std::endl;
 
   serverSecondary1.reset();
   serverSecondary2.reset();
