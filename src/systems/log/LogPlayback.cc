@@ -48,6 +48,18 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
+  /// \brief Start log playback.
+  /// \param[in] _logPath Path of recorded state to playback.
+  /// \param[in] _worldEntity The world entity this plugin is attached to.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  /// \param[in] _eventMgr The EventManager of the given simulation
+  /// instance.
+  /// \return True if any playback has been started successfully.
+  public: bool Start(const std::string &_logPath,
+      const Entity &_worldEntity, EntityComponentManager &_ecm,
+      EventManager &_eventMgr);
+
   /// \brief Reads the next message in log file and updates the ECM
   /// \param[in] _ecm Mutable ECM.
   public: void ParseNext(EntityComponentManager &_ecm);
@@ -58,10 +70,17 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \brief Iterator to go through messages in Batch
   public: transport::log::MsgIter iter;
 
+  /// \brief Indicator of whether any playback instance has ever been started
+  public: static bool started;
+
+  /// \brief Indicator of whether this instance has been started
+  public: bool instStarted = false;
+
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
 };
 
+bool LogPlaybackPrivate::started = false;
 
 //////////////////////////////////////////////////
 LogPlayback::LogPlayback()
@@ -127,6 +146,30 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 {
   // Get directory paths from SDF
   auto logPath = _sdf->Get<std::string>("path");
+
+  // Enforce only one playback instance
+  if (!LogPlaybackPrivate::started)
+  {
+    this->dataPtr->Start(logPath, _worldEntity, _ecm, _eventMgr);
+  }
+  else
+  {
+    ignwarn << "A LogPlayback instance has already been started. "
+      << "Will not start another.\n";
+  }
+}
+
+//////////////////////////////////////////////////
+bool LogPlaybackPrivate::Start(const std::string &_logPath,
+  const Entity &_worldEntity, EntityComponentManager &_ecm,
+  EventManager &_eventMgr)
+{
+  if (LogPlaybackPrivate::started)
+  {
+    ignwarn << "A LogPlayback instance has already been started. "
+      << "Will not start another.\n";
+    return true;
+  }
 
   if (logPath.empty())
   {
@@ -247,19 +290,23 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     creator.SetParent(lightEntity, _worldEntity);
   }
 
-  _eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
+  //_eventMgr.Emit<events::LoadPlugins>(_worldEntity, sdfWorld->Element());
 
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
     sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
-  this->dataPtr->batch = log->QueryMessages(opts);
-  this->dataPtr->iter = this->dataPtr->batch.begin();
+  this->batch = log->QueryMessages(opts);
+  this->iter = this->batch.begin();
 
-  if (this->dataPtr->iter == this->dataPtr->batch.end())
+  if (this->iter == this->batch.end())
   {
     ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
+
+  this->instStarted = true;
+  LogPlaybackPrivate::started = true;
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -268,8 +315,11 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   if (_info.paused)
     return;
 
+  if (!this->dataPtr->instStarted)
+    return;
+
   // TODO(anyone) Support rewind
-  // Sanity check. If reached the end, done.
+  // Sanity check. If playing reached the end, done.
   if (this->dataPtr->iter == this->dataPtr->batch.end())
   {
     // Print only once
