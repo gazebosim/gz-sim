@@ -171,26 +171,26 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     return true;
   }
 
-  if (logPath.empty())
+  if (_logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
-    return;
+    return false;
   }
 
-  if (!common::isDirectory(logPath))
+  if (!common::isDirectory(_logPath))
   {
-    ignerr << "Specified log path [" << logPath << "] must be a directory.\n";
-    return;
+    ignerr << "Specified log path [" << _logPath << "] must be a directory.\n";
+    return false;
   }
 
   // Append file name
-  std::string dbPath = common::joinPaths(logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
   ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
     ignerr << "Log path invalid. File [" << dbPath << "] "
            << "does not exist. Nothing to play.\n";
-    return;
+    return false;
   }
 
   // Call Log.hh directly to load a .tlog file
@@ -201,13 +201,13 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   }
 
   // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(logPath) + "/sdf");
+  transport::log::TopicList sdfOpts("/" + common::basename(_logPath) + "/sdf");
   transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
   transport::log::MsgIter sdfIter = sdfBatch.begin();
   if (sdfIter == sdfBatch.end())
   {
     ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
-    return;
+    return false;
   }
 
   // Parse SDF message
@@ -220,7 +220,7 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   {
     ignerr << "Error loading SDF string logged in [" << dbPath << "]"
       << std::endl;
-    return;
+    return false;
   }
   const sdf::World *sdfWorld = root.WorldByIndex(0);
 
