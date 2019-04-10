@@ -26,12 +26,12 @@
 #include <ignition/common/Profiler.hh>
 
 #include "ignition/gazebo/components/PerformerAffinity.hh"
+#include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Events.hh"
 
-#include "../components/PerformerLevels.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerPrivate.hh"
 #include "PeerTracker.hh"
