@@ -53,7 +53,8 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
   std::string ackTopic { this->Namespace() + "/stepAck" };
-  this->stepAckPub = this->node.Advertise<msgs::SimulationStep>(ackTopic);
+  this->stepAckPub =
+      this->node.Advertise<private_msgs::SimulationStep>(ackTopic);
 
   auto eventMgr = this->dataPtr->eventMgr;
   if (eventMgr)
@@ -68,7 +69,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
         [this](PeerInfo _info){
           if (_info.role == NetworkRole::SimulationPrimary)
           {
-            ignerr << "Primary removed, stopping simulation" << std::endl;
+            ignmsg << "Primary removed, stopping simulation" << std::endl;
             this->dataPtr->eventMgr->Emit<events::Stop>();
           }
     });
@@ -112,33 +113,37 @@ bool NetworkManagerSecondary::Step(UpdateInfo &_info)
   std::unique_lock<std::mutex> lock(this->stepMutex);
   auto status = this->stepCv.wait_for(lock,
       std::chrono::nanoseconds(100),
-      [this](){return this->currentStep != nullptr;});
+      [this]()
+  {
+    return this->currentStep != nullptr;
+  });
 
-  if (status) {
-    // Throttle the number of step messages going to the debug output.
-    if (!this->currentStep->paused() &&
-        this->currentStep->iteration() % 1000 == 0)
-    {
-      igndbg << "Network iterations: " << this->currentStep->iteration()
-             << std::endl;
-    }
-    _info.iterations = this->currentStep->iteration();
-    _info.paused = this->currentStep->paused();
-    _info.dt = std::chrono::steady_clock::duration(
-        std::chrono::nanoseconds(this->currentStep->stepsize()));
-    _info.simTime = std::chrono::steady_clock::duration(
-        std::chrono::seconds(this->currentStep->simtime().sec()) +
-        std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
-    this->currentStep.reset();
+  if (!status)
+    return false;
+
+  // Throttle the number of step messages going to the debug output.
+  if (!this->currentStep->paused() &&
+      this->currentStep->iteration() % 1000 == 0)
+  {
+    igndbg << "Network iterations: " << this->currentStep->iteration()
+           << std::endl;
   }
+  _info.iterations = this->currentStep->iteration();
+  _info.paused = this->currentStep->paused();
+  _info.dt = std::chrono::steady_clock::duration(
+      std::chrono::nanoseconds(this->currentStep->stepsize()));
+  _info.simTime = std::chrono::steady_clock::duration(
+      std::chrono::seconds(this->currentStep->simtime().sec()) +
+      std::chrono::nanoseconds(this->currentStep->simtime().nsec()));
+  this->currentStep.reset();
 
-  return status;
+  return true;
 }
 
 //////////////////////////////////////////////////
 bool NetworkManagerSecondary::StepAck(uint64_t _iteration)
 {
-  auto step = msgs::SimulationStep();
+  auto step = private_msgs::SimulationStep();
   step.set_iteration(_iteration);
   this->stepAckPub.Publish(step);
   return true;
@@ -151,8 +156,8 @@ std::string NetworkManagerSecondary::Namespace() const
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
-                                        msgs::PeerControl& _resp)
+bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
+                                        private_msgs::PeerControl& _resp)
 {
   igndbg << "NetworkManagerSecondary::OnControl" << std::endl;
   this->enableSim = _req.enable_sim();
@@ -161,10 +166,10 @@ bool NetworkManagerSecondary::OnControl(const msgs::PeerControl &_req,
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerSecondary::OnStep(const msgs::SimulationStep &_msg)
+void NetworkManagerSecondary::OnStep(const private_msgs::SimulationStep &_msg)
 {
   std::unique_lock<std::mutex> lock(this->stepMutex);
-  this->currentStep = std::make_unique<msgs::SimulationStep>(_msg);
+  this->currentStep = std::make_unique<private_msgs::SimulationStep>(_msg);
   lock.unlock();
   this->stepCv.notify_all();
 }

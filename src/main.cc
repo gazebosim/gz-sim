@@ -25,6 +25,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/common/Util.hh>
 
 #include "ignition/gazebo/config.hh"
 
@@ -41,6 +42,10 @@ DEFINE_string(f, "", "Load an SDF file on start.");
 DEFINE_bool(r, false, "Run simulation on start. "
     "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
+DEFINE_bool(distributed, false, "Use distributed simulation.");
+DEFINE_bool(record, false, "Use logging system to record states");
+DEFINE_string(record_path, "", "Custom path to put recorded files");
+DEFINE_string(playback, "", "Use logging system to play back states");
 
 //////////////////////////////////////////////////
 void help()
@@ -73,9 +78,46 @@ void help()
   << "  -r                     Run simulation on start."
   << " The default is false, which starts simulation paused."
   << std::endl
-  << "  --levels               Use the level manager."
-  << " The default is false, which loads all models."
+  << "  --levels               Use the level system."
   << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --network-role."
+  << std::endl
+  << "  --distributed          Use the distributed simulation system."
+  << " The default is false, which disables all distributed simulation."
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " and/or --network-secondaries instead. It implies --levels."
+  << std::endl
+  << "  --network-role         Participant role used in a distributed "
+  << " simulation environment. Role is one of [primary, secondary]."
+  << " It implies --levels."
+  << std::endl
+  << "  --network-secondaries  Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
+  << std::endl
+  << "  --record               Use logging system to record states."
+  << " The default is false."
+  << std::endl
+  << "  --record-path arg      Custom path to put recorded files."
+  << " Arg is path to recorded states."
+  << std::endl
+  << "  --playback arg         Use logging system to play back states."
+  << " Arg is path to recorded states."
+  << std::endl
+  << std::endl
+  << "Environment variables:" << std::endl
+  << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
+  << " resources. Can be useful with the -f option to find an SDF file."
+  << std::endl
+  << "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed "
+  << " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will"
+  << " be deprecated in ign-gazebo2. Please use --network-role instead."
+  << std::endl
+  << "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants "
+  << " expected to join a distributed simulation environment. (Primary only)"
+  << " This will be deprecated in ign-gazebo2. Please use --network-role "
+  << " instead."
   << std::endl;
 }
 
@@ -221,9 +263,13 @@ int main(int _argc, char **_argv)
     }
   }
 
+  std::string role;
+  if (ignition::common::env("IGN_GAZEBO_NETWORK_ROLE", role))
+    std::transform(role.begin(), role.end(), role.begin(), ::toupper);
+
   // Run the GUI
-  pid_t  guiPid;
-  if (!FLAGS_s)
+  pid_t guiPid;
+  if (!FLAGS_s && (!FLAGS_distributed || role == "PRIMARY"))
   {
     guiPid = fork();
     if (guiPid == 0)

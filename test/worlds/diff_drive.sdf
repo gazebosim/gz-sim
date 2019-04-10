@@ -7,7 +7,7 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo1-physics-system.so"
+      filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
     </plugin>
 
@@ -225,7 +225,7 @@
       </joint>
 
       <plugin
-        filename="libignition-gazebo1-diff-drive-system.so"
+        filename="libignition-gazebo-diff-drive-system.so"
         name="ignition::gazebo::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>

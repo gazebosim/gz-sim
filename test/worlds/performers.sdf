@@ -1,0 +1,118 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="box">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="box_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+            <emissive>1 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere">
+      <pose>0 1.5 0.5 0 0 0</pose>
+      <link name="sphere_link">
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="sphere_visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+            <emissive>0 0 1 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <plugin name="ignition::gazebo" filename="dummy">
+
+      <performer name="perf_sphere">
+        <ref>sphere</ref>
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </performer>
+
+      <performer name="perf_box">
+        <ref>box</ref>
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </performer>
+
+    </plugin>
+
+  </world>
+</sdf>
