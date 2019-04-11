@@ -23,7 +23,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/PendingJointForce.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "ApplyJointForce.hh"
@@ -125,14 +125,14 @@ void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
 
   // Update joint force
-  auto force = _ecm.Component<components::PendingJointForce>(
+  auto force = _ecm.Component<components::JointForceCmd>(
       this->dataPtr->jointEntity);
 
   if (force == nullptr)
   {
     _ecm.CreateComponent(
         this->dataPtr->jointEntity,
-        components::PendingJointForce({this->dataPtr->jointForceCmd}));
+        components::JointForceCmd({this->dataPtr->jointForceCmd}));
   }
   else
   {
