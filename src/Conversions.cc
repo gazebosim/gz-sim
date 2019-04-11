@@ -97,12 +97,90 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
+{
+  sdf::Geometry out;
+  if (_in.type() == msgs::Geometry::BOX && _in.has_box())
+  {
+    out.SetType(sdf::GeometryType::BOX);
+
+    sdf::Box boxShape;
+    boxShape.SetSize(msgs::Convert(_in.box().size()));
+
+    out.SetBoxShape(boxShape);
+  }
+  else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
+  {
+    out.SetType(sdf::GeometryType::CYLINDER);
+
+    sdf::Cylinder cylinderShape;
+    cylinderShape.SetRadius(_in.cylinder().radius());
+    cylinderShape.SetLength(_in.cylinder().length());
+
+    out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
+  {
+    out.SetType(sdf::GeometryType::PLANE);
+
+    sdf::Plane planeShape;
+    planeShape.SetNormal(msgs::Convert(_in.plane().normal()));
+    planeShape.SetSize(msgs::Convert(_in.plane().size()));
+
+    out.SetPlaneShape(planeShape);
+  }
+  else if (_in.type() == msgs::Geometry::SPHERE && _in.has_sphere())
+  {
+    out.SetType(sdf::GeometryType::SPHERE);
+
+    sdf::Sphere sphereShape;
+    sphereShape.SetRadius(_in.sphere().radius());
+
+    out.SetSphereShape(sphereShape);
+  }
+  else if (_in.type() == msgs::Geometry::MESH && _in.has_mesh())
+  {
+    out.SetType(sdf::GeometryType::MESH);
+
+    sdf::Mesh meshShape;
+    meshShape.SetScale(msgs::Convert(_in.mesh().scale()));
+    meshShape.SetUri(_in.mesh().filename());
+    meshShape.SetSubmesh(_in.mesh().submesh());
+    meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
+
+    out.SetMeshShape(meshShape);
+  }
+  else
+  {
+    ignerr << "Geometry type [" << static_cast<int>(_in.type())
+           << "] not supported" << std::endl;
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
+  msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_lighting(_in.Lighting());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
+{
+  sdf::Material out;
+  out.SetAmbient(msgs::Convert(_in.ambient()));
+  out.SetDiffuse(msgs::Convert(_in.diffuse()));
+  out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetLighting(_in.lighting());
   return out;
 }
 
@@ -192,4 +270,39 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
     const msgs::Time &_in)
 {
   return std::chrono::seconds(_in.sec()) + std::chrono::nanoseconds(_in.nsec());
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
+{
+  msgs::Inertial out;
+  msgs::Set(out.mutable_pose(), _in.Pose());
+  out.set_mass(_in.MassMatrix().Mass());
+  out.set_ixx(_in.MassMatrix().Ixx());
+  out.set_iyy(_in.MassMatrix().Iyy());
+  out.set_izz(_in.MassMatrix().Izz());
+  out.set_ixy(_in.MassMatrix().Ixy());
+  out.set_ixz(_in.MassMatrix().Ixz());
+  out.set_iyz(_in.MassMatrix().Iyz());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
+{
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(_in.mass());
+  massMatrix.SetIxx(_in.ixx());
+  massMatrix.SetIyy(_in.iyy());
+  massMatrix.SetIzz(_in.izz());
+  massMatrix.SetIxy(_in.ixy());
+  massMatrix.SetIxz(_in.ixz());
+  massMatrix.SetIyz(_in.iyz());
+
+  math::Inertiald out;
+  out.SetMassMatrix(massMatrix);
+  out.SetPose(msgs::Convert(_in.pose()));
+  return out;
 }
