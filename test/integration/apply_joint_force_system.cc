@@ -24,7 +24,7 @@
 
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/PendingJointForce.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -111,16 +111,16 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
   const std::string jointName = "j1";
 
   Relay testSystem;
-  std::vector<double> pendingJointForce;
+  std::vector<double> jointForceCmd;
   testSystem.OnPreUpdate(
       [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
-        auto forceComp = _ecm.Component<components::PendingJointForce>(joint);
+        auto forceComp = _ecm.Component<components::JointForceCmd>(joint);
         if (forceComp)
         {
-          pendingJointForce.push_back(forceComp->Data()[0]);
+          jointForceCmd.push_back(forceComp->Data()[0]);
         }
       });
 
@@ -128,13 +128,13 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
 
   const std::size_t initIters = 10;
   server.Run(true, initIters, false);
-  EXPECT_EQ(initIters, pendingJointForce.size());
-  for (const auto &jointForce : pendingJointForce)
+  EXPECT_EQ(initIters, jointForceCmd.size());
+  for (const auto &jointForce : jointForceCmd)
   {
     EXPECT_NEAR(0, jointForce, TOL);
   }
 
-  pendingJointForce.clear();
+  jointForceCmd.clear();
 
   // Publish command and check that the joint force is set
   transport::Node node;
@@ -151,11 +151,11 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
   for (std::size_t i = 0; i < maxIters; ++i)
   {
     server.Run(true, 1, false);
-    if (std::abs(pendingJointForce.back() - testJointForce) < 1e-6)
+    if (std::abs(jointForceCmd.back() - testJointForce) < 1e-6)
     {
       break;
     }
   }
-  EXPECT_DOUBLE_EQ(pendingJointForce.back(), testJointForce);
+  EXPECT_DOUBLE_EQ(jointForceCmd.back(), testJointForce);
 }
 

@@ -88,7 +88,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
-#include "ignition/gazebo/components/PendingJointForce.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -572,14 +572,14 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (jointIt == this->entityJointMap.end())
           return true;
 
-        auto force = _ecm.Component<components::PendingJointForce>(_entity);
+        auto force = _ecm.Component<components::JointForceCmd>(_entity);
         if (force)
         {
           if (force->Data().size() != jointIt->second->GetDegreesOfFreedom())
           {
             ignwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
-                    << ")] and its PendingJointForce component. The joint has "
+                    << ")] and its JointForceCmd component. The joint has "
                     << force->Data().size() << " while the component has "
                     << jointIt->second->GetDegreesOfFreedom() << ".\n";
           }
@@ -889,8 +889,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
       });
 
   // Clear pending Forces
-  _ecm.Each<components::PendingJointForce>(
-      [&](const Entity &, components::PendingJointForce *_force) -> bool
+  _ecm.Each<components::JointForceCmd>(
+      [&](const Entity &, components::JointForceCmd *_force) -> bool
       {
         std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
         return true;
