@@ -45,6 +45,23 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
+    Out convert(const msgs::Geometry &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF geometry to a geometry
+    /// message.
+    /// \param[in] _in SDF geometry.
+    /// \return Geometry message.
+    template<>
+    sdf::Geometry convert(const msgs::Geometry &_in);
+
+    /// \brief Generic conversion from an SDF geometry to another type.
+    /// \param[in] _in SDF geometry.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
     Out convert(const sdf::Geometry &/*_in*/)
     {
       Out::ConversionNotImplemented;

@@ -18,6 +18,9 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
+#include <ignition/msgs/performer.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+
 #include <memory>
 #include <set>
 #include <string>
@@ -25,6 +28,7 @@
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -118,6 +122,14 @@ namespace ignition
       /// \return True of the level is currently active
       private: bool IsLevelActive(const Entity _entity) const;
 
+      /// \brief Service callback to create a new performer.
+      /// \param[in] _req Message that contains perfomer information.
+      /// \param[out] _rep Reply message, which is set to true when the
+      /// performer has been added.
+      /// \return True if the service call completed.
+      private: bool OnAddPerformer(const msgs::Performer &_req,
+                                   msgs::Boolean &_rep);
+
       /// \brief List of currently active levels
       private: std::vector<Entity> activeLevels;
 
@@ -142,6 +154,9 @@ namespace ignition
 
       /// \brief Entity Creator API.
       private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
+
+      /// \brief Transport node.
+      private: ignition::transport::Node node;
     };
     }
   }

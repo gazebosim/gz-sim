@@ -17,10 +17,14 @@
 
 
 #include <gtest/gtest.h>
+#include <ignition/msgs/performer.pb.h>
+#include <ignition/msgs/boolean.pb.h>
 
 #include <vector>
 
 #include <ignition/common/Console.hh>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/transport/Node.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Joint.hh>
@@ -154,6 +158,24 @@ class LevelManagerFixture : public ::testing::Test
     serverConfig.SetUseLevels(true);
 
     server = std::make_unique<gazebo::Server>(serverConfig);
+
+    // Add in the "box" performer using a service call
+    transport::Node node;
+    msgs::Performer req;
+    msgs::Boolean rep;
+
+    req.set_name("box");
+    req.mutable_geometry()->set_type(msgs::Geometry::BOX);
+    msgs::Set(req.mutable_geometry()->mutable_box()->mutable_size(),
+      ignition::math::Vector3d(2, 2, 2));
+
+    bool result;
+    unsigned int timeout = 2000;
+    bool executed = node.Request("/world/levels/level/add_performer",
+        req, timeout, rep, result);
+    EXPECT_TRUE(executed);
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(rep.data());
 
     Relay testSystem;
     // Check entities loaded on the default level

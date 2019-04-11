@@ -18,9 +18,14 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Box.hh>
+#include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Plane.hh>
 #include <sdf/Root.hh>
+#include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
 #include <ignition/msgs/Utility.hh>
@@ -128,4 +133,111 @@ TEST(Conversions, Time)
   auto duration2 = convert<std::chrono::steady_clock::duration>(msg);
   EXPECT_EQ(duration, duration2);
   EXPECT_EQ(2000000, duration2.count());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, BoxGeometry)
+{
+  msgs::Geometry msgsGeom;
+  msgsGeom.set_type(msgs::Geometry::BOX);
+  msgs::Set(msgsGeom.mutable_box()->mutable_size(),
+      ignition::math::Vector3d(1, 2, 3));
+
+  sdf::Geometry sdfGeom = convert<sdf::Geometry>(msgsGeom);
+  ASSERT_NE(nullptr, sdfGeom.BoxShape());
+  EXPECT_EQ(ignition::math::Vector3d(1, 2, 3),
+      sdfGeom.BoxShape()->Size());
+
+  msgs::Geometry convertedMsgGeom = convert<msgs::Geometry>(sdfGeom);
+  EXPECT_EQ(msgs::Geometry::BOX, convertedMsgGeom.type());
+  EXPECT_EQ(ignition::math::Vector3d(1, 2, 3),
+      msgs::Convert(convertedMsgGeom.box().size()));
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, SphereGeometry)
+{
+  msgs::Geometry msgsGeom;
+  msgsGeom.set_type(msgs::Geometry::SPHERE);
+  msgsGeom.mutable_sphere()->set_radius(1.2);
+
+  sdf::Geometry sdfGeom = convert<sdf::Geometry>(msgsGeom);
+  ASSERT_NE(nullptr, sdfGeom.SphereShape());
+  EXPECT_DOUBLE_EQ(1.2, sdfGeom.SphereShape()->Radius());
+
+  msgs::Geometry convertedMsgGeom = convert<msgs::Geometry>(sdfGeom);
+  EXPECT_EQ(msgs::Geometry::SPHERE, convertedMsgGeom.type());
+  EXPECT_DOUBLE_EQ(1.2, convertedMsgGeom.sphere().radius());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, CylinderGeometry)
+{
+  msgs::Geometry msgsGeom;
+  msgsGeom.set_type(msgs::Geometry::CYLINDER);
+  msgsGeom.mutable_cylinder()->set_radius(2.3);
+  msgsGeom.mutable_cylinder()->set_length(3.4);
+
+  sdf::Geometry sdfGeom = convert<sdf::Geometry>(msgsGeom);
+  ASSERT_NE(nullptr, sdfGeom.CylinderShape());
+  EXPECT_DOUBLE_EQ(2.3, sdfGeom.CylinderShape()->Radius());
+  EXPECT_DOUBLE_EQ(3.4, sdfGeom.CylinderShape()->Length());
+
+  msgs::Geometry convertedMsgGeom = convert<msgs::Geometry>(sdfGeom);
+  EXPECT_EQ(msgs::Geometry::CYLINDER, convertedMsgGeom.type());
+  EXPECT_DOUBLE_EQ(2.3, convertedMsgGeom.cylinder().radius());
+  EXPECT_DOUBLE_EQ(3.4, convertedMsgGeom.cylinder().length());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, PlaneGeometry)
+{
+  msgs::Geometry msgsGeom;
+  msgsGeom.set_type(msgs::Geometry::PLANE);
+  msgs::Set(msgsGeom.mutable_plane()->mutable_normal(),
+      ignition::math::Vector3d(0, 0, 1));
+  msgs::Set(msgsGeom.mutable_plane()->mutable_size(),
+      ignition::math::Vector2d(1, 2));
+
+  sdf::Geometry sdfGeom = convert<sdf::Geometry>(msgsGeom);
+  ASSERT_NE(nullptr, sdfGeom.PlaneShape());
+  EXPECT_EQ(ignition::math::Vector3d(0, 0, 1),
+      sdfGeom.PlaneShape()->Normal());
+  EXPECT_EQ(ignition::math::Vector2d(1, 2),
+      sdfGeom.PlaneShape()->Size());
+
+  msgs::Geometry convertedMsgGeom = convert<msgs::Geometry>(sdfGeom);
+  EXPECT_EQ(msgs::Geometry::PLANE, convertedMsgGeom.type());
+  EXPECT_EQ(ignition::math::Vector3d(0, 0, 1),
+      msgs::Convert(convertedMsgGeom.plane().normal()));
+  EXPECT_EQ(ignition::math::Vector2d(1, 2),
+      msgs::Convert(convertedMsgGeom.plane().size()));
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, MeshGeometry)
+{
+  msgs::Geometry msgsGeom;
+  msgsGeom.set_type(msgs::Geometry::MESH);
+  msgsGeom.mutable_mesh()->set_filename("myfile");
+  msgsGeom.mutable_mesh()->set_submesh("mysub");
+  msgsGeom.mutable_mesh()->set_center_submesh(true);
+  msgs::Set(msgsGeom.mutable_mesh()->mutable_scale(),
+      ignition::math::Vector3d(2, 4, 6));
+
+  sdf::Geometry sdfGeom = convert<sdf::Geometry>(msgsGeom);
+  ASSERT_NE(nullptr, sdfGeom.MeshShape());
+  EXPECT_EQ("myfile", sdfGeom.MeshShape()->Uri());
+  EXPECT_EQ("mysub", sdfGeom.MeshShape()->Submesh());
+  EXPECT_TRUE(sdfGeom.MeshShape()->CenterSubmesh());
+  EXPECT_EQ(ignition::math::Vector3d(2, 4, 6),
+      sdfGeom.MeshShape()->Scale());
+
+  msgs::Geometry convertedMsgGeom = convert<msgs::Geometry>(sdfGeom);
+  EXPECT_EQ(msgs::Geometry::MESH, convertedMsgGeom.type());
+  EXPECT_EQ("myfile", convertedMsgGeom.mesh().filename());
+  EXPECT_EQ("mysub", convertedMsgGeom.mesh().submesh());
+  EXPECT_TRUE(convertedMsgGeom.mesh().center_submesh());
+  EXPECT_EQ(ignition::math::Vector3d(2, 4, 6),
+      msgs::Convert(convertedMsgGeom.mesh().scale()));
 }
