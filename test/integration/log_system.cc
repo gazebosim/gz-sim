@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <ignition/msgs/pose_v.pb.h>
 
+#include <climits>
 #include <string>
 
 #include <ignition/common/Console.hh>
@@ -62,44 +63,43 @@ class LogSystemTest : public ::testing::Test
     common::createDirectories(cacheDir);
   }
 
-  public: std::string cacheDir = "";
-};
-
-/////////////////////////////////////////////////
-void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
-   const std::string &_pluginName, const std::string &_logDest)
-{
-  EXPECT_EQ(_sdfRoot.Load(_sdfPath).size(), 0lu);
-  EXPECT_GT(_sdfRoot.WorldCount(), 0lu);
-  const sdf::World * sdfWorld = _sdfRoot.WorldByIndex(0);
-  EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
-
-  sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
-  while (pluginElt != nullptr)
+  public: void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
+     const std::string &_pluginName, const std::string &_logDest)
   {
-    if (pluginElt->HasAttribute("name"))
+    EXPECT_EQ(_sdfRoot.Load(_sdfPath).size(), 0lu);
+    EXPECT_GT(_sdfRoot.WorldCount(), 0lu);
+    const sdf::World * sdfWorld = _sdfRoot.WorldByIndex(0);
+    EXPECT_TRUE(sdfWorld->Element()->HasElement("plugin"));
+
+    sdf::ElementPtr pluginElt = sdfWorld->Element()->GetElement("plugin");
+    while (pluginElt != nullptr)
     {
-      // Change log path to build directory
-      if (pluginElt->GetAttribute("name")->GetAsString().find(_pluginName)
-        != std::string::npos)
+      if (pluginElt->HasAttribute("name"))
       {
-        if (pluginElt->HasElement("path"))
+        // Change log path to build directory
+        if (pluginElt->GetAttribute("name")->GetAsString().find(_pluginName)
+          != std::string::npos)
         {
-          sdf::ElementPtr pathElt = pluginElt->GetElement("path");
-          pathElt->Set(_logDest);
-        }
-        else
-        {
-          sdf::ElementPtr pathElt = pluginElt->AddElement("path");
-          pathElt->Set(_logDest);
+          if (pluginElt->HasElement("path"))
+          {
+            sdf::ElementPtr pathElt = pluginElt->GetElement("path");
+            pathElt->Set(_logDest);
+          }
+          else
+          {
+            sdf::ElementPtr pathElt = pluginElt->AddElement("path");
+            pathElt->Set(_logDest);
+          }
         }
       }
-    }
 
-    // Go to next plugin
-    pluginElt = pluginElt->GetNextElement("plugin");
+      // Go to next plugin
+      pluginElt = pluginElt->GetNextElement("plugin");
+    }
   }
-}
+
+  public: std::string cacheDir = "";
+};
 
 /////////////////////////////////////////////////
 // This test checks that a file is created by log recorder
@@ -116,7 +116,7 @@ TEST_F(LogSystemTest, CreateLogFile)
 
   // Change log path in SDF to build directory
   sdf::Root sdfRoot;
-  ChangeLogPath(sdfRoot, sdfPath, "LogRecord", logDest);
+  this->ChangeLogPath(sdfRoot, sdfPath, "LogRecord", logDest);
 
   // Pass changed SDF to server
   serverConfig.SetSdfString(sdfRoot.Element()->ToString(""));
@@ -147,7 +147,7 @@ TEST_F(LogSystemTest, PosePlayback)
     "test", "worlds", "log_playback.sdf");
   // Change log path in world SDF to build directory
   sdf::Root sdfRoot;
-  ChangeLogPath(sdfRoot, sdfPath, "LogPlayback",  logDest);
+  this->ChangeLogPath(sdfRoot, sdfPath, "LogPlayback",  logDest);
   const sdf::World * sdfWorld = sdfRoot.WorldByIndex(0);
   // Playback pose topic
   std::string poseTopic = "/world/" +
@@ -199,12 +199,16 @@ TEST_F(LogSystemTest, PosePlayback)
     std::chrono::nanoseconds end =
       std::chrono::seconds(_msg.header().stamp().sec()) +
       std::chrono::nanoseconds(_msg.header().stamp().nsec());
-    auto timeRange = transport::log::QualifiedTimeRange(begin, end);
-    auto timeRangeOpt = transport::log::TimeRangeOption(timeRange);
 
     // Filter selective topics
-    //transport::log::TopicList topicList(logPoseTopic, timeRange);
     transport::log::TopicList topicList(logPoseTopic);
+
+    // This automatic way of filtering time hangs. So manually filtering
+    //   for now below.
+    // auto beginQT = transport::log::QualifiedTime(begin);
+    // auto endQT = transport::log::QualifiedTime(end);
+    // auto timeRange = transport::log::QualifiedTimeRange(beginQT, endQT);
+    // transport::log::TopicList topicList(logPoseTopic, timeRange);
 
     transport::log::Batch batch = log.QueryMessages(topicList);
     transport::log::MsgIter iter = batch.begin();
@@ -213,7 +217,7 @@ TEST_F(LogSystemTest, PosePlayback)
       return;
 
     int batchSize = 0;
-    double minDiff = 10000000000;
+    int64_t minDiff = LONG_MAX;
     msgs::Pose_V posevMsg;
     posevMsg.ParseFromString(iter->Data());
     // Find recorded timestamp in this batch closest to current sim time
@@ -227,27 +231,26 @@ TEST_F(LogSystemTest, PosePlayback)
       std::chrono::nanoseconds recordedStamp =
         std::chrono::seconds(currPosevMsg.header().stamp().sec()) +
         std::chrono::nanoseconds(currPosevMsg.header().stamp().nsec());
-      double diff = abs(std::chrono::duration_cast<std::chrono::nanoseconds>(
+      int64_t diff = abs(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
         end - recordedStamp).count());
       if (diff < minDiff)
       {
-        //std::cerr << diff << std::endl;
         minDiff = diff;
         posevMsg = currPosevMsg;
       }
       else
       {
-        std::cerr << "Skipping "
+        igndbg << "Skipping "
           << currPosevMsg.header().stamp().sec() * 1000000000 +
              currPosevMsg.header().stamp().nsec() << std::endl;
       }
 
       batchSize++;
     }
-    ignerr << "batch size: " << batchSize << std::endl;
 
-    std::cerr << "Playback time: " << end.count () << std::endl;
-    std::cerr << "Selected recorded pose with time: "
+    igndbg << "Playback time: " << end.count() << std::endl;
+    igndbg << "Selected recorded pose with time: "
       << posevMsg.header().stamp().sec() * 1000000000 +
          posevMsg.header().stamp().nsec() << std::endl;
 
@@ -262,16 +265,12 @@ TEST_F(LogSystemTest, PosePlayback)
     }
 
     // Loop through all links and compare played poses to recorded ones
-    //std::cerr << _msg.pose_size() << std::endl;
     for (int i = 0; i < _msg.pose_size(); ++i)
     {
-      //std::cerr << _msg.pose_size() << " links in this iter\n";
-
       math::Pose3d posePlayed = msgs::Convert(_msg.pose(i));
       math::Pose3d poseRecorded = msgs::Convert(idToPose.at(_msg.pose(i).id()));
 
       auto diff = posePlayed - poseRecorded;
-      //std::cerr << diff << std::endl;
 
       EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
       EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
@@ -290,13 +289,13 @@ TEST_F(LogSystemTest, PosePlayback)
           abs(diff.Rot().Y()) > 0.1 ||
           abs(diff.Rot().Z()) > 0.1)
       {
-        std::cerr << begin.count() << " to " << end.count() << std::endl;
+        igndbg << begin.count() << " to " << end.count() << std::endl;
         // Print difference between timestamps
-        std::cerr << posevMsg.header().stamp().sec() * 1000000000 +
+        igndbg << posevMsg.header().stamp().sec() * 1000000000 +
           posevMsg.header().stamp().nsec() << std::endl;
 
-        std::cerr << _msg.pose(i).name() << std::endl;
-        std::cerr << abs(diff.Pos().X()) << " "
+        igndbg << _msg.pose(i).name() << std::endl;
+        igndbg << abs(diff.Pos().X()) << " "
                   << abs(diff.Pos().Y()) << " "
                   << abs(diff.Pos().Z()) << " "
                   << abs(diff.Rot().X()) << " "
@@ -313,7 +312,6 @@ TEST_F(LogSystemTest, PosePlayback)
     server.SetPaused(false);
   };
 
-
   // Subscribe to ignition topic and compare to logged poses
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
@@ -323,7 +321,7 @@ TEST_F(LogSystemTest, PosePlayback)
   // Run for a few seconds to play back different poses
   server.Run(true, 1000, false);
 
-  ignerr << nDiffs << " out of " << nTotal
+  igndbg << nDiffs << " out of " << nTotal
     << " poses played back do not match those recorded\n";
 
   common::removeAll(recordCacheDir);
