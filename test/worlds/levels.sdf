@@ -1482,6 +1482,9 @@
         </box>
       </geometry>
     </performer>
+
+    <!-- This perfomer is add via a service call in
+         test/integrateion/level_manager.cc
     <performer name="perf_box">
       <ref>box</ref>
       <geometry>
@@ -1490,7 +1493,7 @@
         </box>
       <buffer>5</buffer>
       </geometry>
-    </performer>
+    </performer>-->
 
     <level name="level1">
       <pose>40 0 2.5 0 0 0</pose>

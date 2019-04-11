@@ -1,3 +1,11 @@
+## Ignition Gazebo 2.x
+
+### Ignition Gazebo 2.x.X
+
+1. Level performers can be added at runtime using a service call. See the
+   levels tutorial for more information.
+    * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/xxx)
+
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
