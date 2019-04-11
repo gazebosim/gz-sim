@@ -124,7 +124,7 @@ TEST_F(LogSystemTest, CreateLogFile)
   // Start server
   Server server(serverConfig);
   // Run for a few seconds to record different poses
-  server.Run(true, 3000, false);
+  server.Run(true, 1000, false);
 
   // Verify file is created
   EXPECT_TRUE(common::exists(common::joinPaths(logDest, "state.tlog")));
@@ -160,8 +160,9 @@ TEST_F(LogSystemTest, PosePlayback)
   transport::log::Log log;
   log.Open(logName);
 
-  // Recorded SDF world file
-  std::string logSdfName = common::joinPaths(logDest, "state.sdf");
+  // Original world file recorded by CreateLogFile test above
+  const auto logSdfName = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "log_record_dbl_pendulum.sdf");
   EXPECT_TRUE(common::exists(logSdfName));
   sdf::Root logSdfRoot;
   EXPECT_EQ(logSdfRoot.Load(logSdfName).size(), 0lu);
@@ -171,9 +172,6 @@ TEST_F(LogSystemTest, PosePlayback)
   std::string logPoseTopic = "/world/" +
     logSdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
 
-  // Set start time range
-  auto begin = std::chrono::nanoseconds(0);
-
 
   ServerConfig serverConfig;
   serverConfig.SetResourceCache(recordCacheDir);
@@ -181,38 +179,79 @@ TEST_F(LogSystemTest, PosePlayback)
   // Pass changed SDF to server
   serverConfig.SetSdfString(sdfRoot.Element()->ToString(""));
 
+  int nDiffs = 0;
+  int nTotal = 0;
+
+  // Set start time for the batch to load in initial iteration
+  auto begin = std::chrono::nanoseconds(0);
+
   // Start server
   Server server(serverConfig);
 
-
   // Callback function for entities played back
+  // Compare current pose being played back with the pose with the closest
+  //   timestamp in the recorded file.
   auto msgCb = [&](const msgs::Pose_V &_msg) -> void
   {
     server.SetPaused(true);
 
-    // Look for recorded topics with current sim time
+    // Filter recorded topics with current sim time
     std::chrono::nanoseconds end =
       std::chrono::seconds(_msg.header().stamp().sec()) +
       std::chrono::nanoseconds(_msg.header().stamp().nsec());
     auto timeRange = transport::log::QualifiedTimeRange(begin, end);
+    auto timeRangeOpt = transport::log::TimeRangeOption(timeRange);
 
-    // Access selective recorded messages in .tlog file
+    // Filter selective topics
+    //transport::log::TopicList topicList(logPoseTopic, timeRange);
     transport::log::TopicList topicList(logPoseTopic);
+
     transport::log::Batch batch = log.QueryMessages(topicList);
     transport::log::MsgIter iter = batch.begin();
     // If no messages
     if (iter == batch.end())
       return;
 
-    // Skip until last timestamp in range, closest to current time
+    int batchSize = 0;
+    double minDiff = 10000000000;
     msgs::Pose_V posevMsg;
+    posevMsg.ParseFromString(iter->Data());
+    // Find recorded timestamp in this batch closest to current sim time
     for (; iter != batch.end(); ++iter)
     {
       // Convert recorded binary bytes in string into a ign-msgs msg
-      posevMsg.ParseFromString(iter->Data());
-    }
+      msgs::Pose_V currPosevMsg;
+      currPosevMsg.ParseFromString(iter->Data());
 
-    // Maps entity to pose recorded
+      // Recorded timestamp
+      std::chrono::nanoseconds recordedStamp =
+        std::chrono::seconds(currPosevMsg.header().stamp().sec()) +
+        std::chrono::nanoseconds(currPosevMsg.header().stamp().nsec());
+      double diff = abs(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        end - recordedStamp).count());
+      if (diff < minDiff)
+      {
+        //std::cerr << diff << std::endl;
+        minDiff = diff;
+        posevMsg = currPosevMsg;
+      }
+      else
+      {
+        std::cerr << "Skipping "
+          << currPosevMsg.header().stamp().sec() * 1000000000 +
+             currPosevMsg.header().stamp().nsec() << std::endl;
+      }
+
+      batchSize++;
+    }
+    ignerr << "batch size: " << batchSize << std::endl;
+
+    std::cerr << "Playback time: " << end.count () << std::endl;
+    std::cerr << "Selected recorded pose with time: "
+      << posevMsg.header().stamp().sec() * 1000000000 +
+         posevMsg.header().stamp().nsec() << std::endl;
+
+    // Maps entity to recorded pose
     // Key: entity. Value: pose
     std::map <Entity, msgs::Pose> idToPose;
     // Loop through all recorded poses, update map
@@ -222,45 +261,50 @@ TEST_F(LogSystemTest, PosePlayback)
       idToPose.insert_or_assign(pose.id(), pose);
     }
 
-    // Loop through all played poses and compare to recorded ones
+    // Loop through all links and compare played poses to recorded ones
     //std::cerr << _msg.pose_size() << std::endl;
     for (int i = 0; i < _msg.pose_size(); ++i)
     {
+      //std::cerr << _msg.pose_size() << " links in this iter\n";
+
       math::Pose3d posePlayed = msgs::Convert(_msg.pose(i));
       math::Pose3d poseRecorded = msgs::Convert(idToPose.at(_msg.pose(i).id()));
 
-      /*
-      double dist = sqrt(pow(posePlayed.Pos().X() - poseRecorded.Pos().X(), 2) + 
-        pow(posePlayed.Pos().Y() - poseRecorded.Pos().Y(), 2) + 
-        pow(posePlayed.Pos().Z() - poseRecorded.Pos().Z(), 2));
-
-      if (dist >= 0.3)
-      {
-        std::cerr << _msg.pose(i).name() << std::endl;
-        std::cerr << posePlayed << std::endl;
-        std::cerr << poseRecorded << std::endl;
-      }
-
-      // Allow small tolerance to difference between recorded and played back
-      EXPECT_LT(dist, 0.3);
-      */
-
-
       auto diff = posePlayed - poseRecorded;
-      std::cerr << diff << std::endl;
+      //std::cerr << diff << std::endl;
 
-      EXPECT_EQ(diff, math::Pose3d());
+      EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
+      EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
+      EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
 
-      /*
-      EXPECT_NEAR(abs(diff.Pos().X()), 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Y()), 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Z()), 0.1);
+      EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
+      EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
+      EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
+      EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
 
-      EXPECT_NEAR(abs(diff.Rot().W()), 0.1);
-      EXPECT_NEAR(abs(diff.Rot().X()), 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Y()), 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Z()), 0.1);
-      */
+      // Omit comparing W of quaternion, which is 1 for identity
+      if (abs(diff.Pos().X()) > 0.1 ||
+          abs(diff.Pos().Y()) > 0.1 ||
+          abs(diff.Pos().Z()) > 0.1 ||
+          abs(diff.Rot().X()) > 0.1 ||
+          abs(diff.Rot().Y()) > 0.1 ||
+          abs(diff.Rot().Z()) > 0.1)
+      {
+        std::cerr << begin.count() << " to " << end.count() << std::endl;
+        // Print difference between timestamps
+        std::cerr << posevMsg.header().stamp().sec() * 1000000000 +
+          posevMsg.header().stamp().nsec() << std::endl;
+
+        std::cerr << _msg.pose(i).name() << std::endl;
+        std::cerr << abs(diff.Pos().X()) << " "
+                  << abs(diff.Pos().Y()) << " "
+                  << abs(diff.Pos().Z()) << " "
+                  << abs(diff.Rot().X()) << " "
+                  << abs(diff.Rot().Y()) << " "
+                  << abs(diff.Rot().Z()) << std::endl;
+        nDiffs++;
+      }
+      nTotal++;
     }
 
     // Update begin time range for next time step
@@ -277,7 +321,10 @@ TEST_F(LogSystemTest, PosePlayback)
   node.Subscribe(poseTopic, callbackFunc);
 
   // Run for a few seconds to play back different poses
-  server.Run(true, 3000, false);
+  server.Run(true, 1000, false);
+
+  ignerr << nDiffs << " out of " << nTotal
+    << " poses played back do not match those recorded\n";
 
   common::removeAll(recordCacheDir);
 }
