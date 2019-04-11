@@ -49,6 +49,14 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE scopedName(const Entity &_entity,
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
+
+    /// \brief Get all entities which are descendants of a given entity,
+    /// including the entity itself.
+    /// \param[in] _entity Entity whose descendants we want.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return All child entities recursively, including _entity.
+    std::unordered_set<Entity> IGNITION_GAZEBO_VISIBLE
+        descendants(Entity _entity, const EntityComponentManager &_ecm);
     }
   }
 }

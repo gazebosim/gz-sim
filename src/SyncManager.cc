@@ -19,6 +19,7 @@
 #include <ignition/gazebo/Events.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
@@ -221,14 +222,17 @@ bool SyncManager::Sync()
 
   if (this->role == NetworkRole::SimulationSecondary)
   {
-    // Get all the performer's models
-    std::unordered_set<Entity> models;
+    // Get all the performer's entities
+    std::unordered_set<Entity> entities;
     for (const auto &perf : this->performers)
     {
-      models.insert(ecm.Component<components::ParentEntity>(perf)->Data());
+      // Performer model
+      auto modelEntity = ecm.Component<components::ParentEntity>(perf)->Data();
+      auto children = descendants(modelEntity, ecm);
+      entities.insert(children.begin(), children.end());
     }
 
-    auto msg = ecm.State(models);
+    auto msg = ecm.State(entities);
     this->statePub.Publish(msg);
   }
   else
