@@ -122,11 +122,11 @@ void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
-
   // Update joint force
   auto force = _ecm.Component<components::JointForceCmd>(
       this->dataPtr->jointEntity);
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
 
   if (force == nullptr)
   {
