@@ -29,8 +29,8 @@
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
-#include "ignition/gazebo/components/PendingJointForce.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 #include "ignition/gazebo/Server.hh"
@@ -162,7 +162,7 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
         auto linVelComp =
             _ecm.Component<components::WorldLinearVelocity>(bodyLink);
         auto wrenchComp =
-            _ecm.Component<components::PendingExternalWorldWrench>(bladeLink);
+            _ecm.Component<components::ExternalWorldWrenchCmd>(bladeLink);
 
         if (linVelComp)
         {
@@ -202,14 +202,14 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
 
         auto jointCmd = kp * (desiredVel - linVelComp->Data().X());
 
-        if (nullptr == _ecm.Component<components::PendingJointForce>(joint))
+        if (nullptr == _ecm.Component<components::JointForceCmd>(joint))
         {
           _ecm.CreateComponent(joint,
-                               components::PendingJointForce({jointCmd}));
+                               components::JointForceCmd({jointCmd}));
         }
         else
         {
-          _ecm.Component<components::PendingJointForce>(joint)->Data()[0] =
+          _ecm.Component<components::JointForceCmd>(joint)->Data()[0] =
               jointCmd;
         }
       });

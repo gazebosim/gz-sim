@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PENDINGEXTERNALWORLDWRENCH_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PENDINGEXTERNALWORLDWRENCH_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 
 #include <ignition/msgs/wrench.pb.h>
 #include <ignition/gazebo/components/Factory.hh>
@@ -33,11 +33,10 @@ namespace components
   /// \brief A component type that contains the external wrench to be applied on
   /// an entity expressed in the world frame and represented by
   /// ignition::msgs::Wrench.
-  using PendingExternalWorldWrench =
-      Component<msgs::Wrench, class PendingExternalWorldWrenchTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.PendingExternalWorldWrench",
-      PendingExternalWorldWrench)
+  using ExternalWorldWrenchCmd =
+      Component<msgs::Wrench, class ExternalWorldWrenchCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ExternalWorldWrenchCmd",
+                                ExternalWorldWrenchCmd)
 }
 }
 }
