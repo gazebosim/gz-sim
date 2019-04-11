@@ -51,18 +51,18 @@ class LogSystemTest : public ::testing::Test
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
 
+  // Create a temporary directory in build path for recorded data
   public: void CreateCacheDir()
   {
     // Configure to use binary path as cache
-    this->cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
-      "test_cache");
-    if (common::exists(cacheDir))
+    if (common::exists(this->cacheDir))
     {
-      common::removeAll(cacheDir);
+      common::removeAll(this->cacheDir);
     }
-    common::createDirectories(cacheDir);
+    common::createDirectories(this->cacheDir);
   }
 
+  // Change path of recorded log file in SDF string loaded from file
   public: void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
      const std::string &_pluginName, const std::string &_logDest)
   {
@@ -98,7 +98,9 @@ class LogSystemTest : public ::testing::Test
     }
   }
 
-  public: std::string cacheDir = "";
+  // Temporary directory in build path for recorded data
+  public: std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+      "test_cache");
 };
 
 /////////////////////////////////////////////////
@@ -135,8 +137,7 @@ TEST_F(LogSystemTest, CreateLogFile)
 TEST_F(LogSystemTest, PosePlayback)
 {
   // Configure to use binary path as cache
-  std::string recordCacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
-    "test_cache");
+  std::string recordCacheDir = this->cacheDir;
 
   // Log file directory created by CreateLogFile test above
   EXPECT_TRUE(common::exists(recordCacheDir));
