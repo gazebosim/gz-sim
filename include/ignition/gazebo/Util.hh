@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_UTIL_HH_
 
 #include <string>
+#include <unordered_set>
 
 #include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/config.hh"
