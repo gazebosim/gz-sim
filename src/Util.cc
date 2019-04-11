@@ -137,6 +137,35 @@ std::string scopedName(const Entity &_entity,
 
   return result;
 }
+
+//////////////////////////////////////////////////
+std::unordered_set<Entity> descendants(Entity _entity,
+    const EntityComponentManager &_ecm)
+{
+  std::unordered_set<Entity> descendants;
+  descendants.insert(_entity);
+
+  auto adjacents = _ecm.Entities().AdjacentsFrom(_entity);
+  auto current = adjacents.begin();
+  while (current != adjacents.end())
+  {
+    auto id = current->first;
+
+    // Store entity
+    descendants.insert(id);
+
+    // Add adjacents to set
+    for (auto adj : _ecm.Entities().AdjacentsFrom(id))
+    {
+      adjacents.insert(adj);
+    }
+
+    // Remove from set
+    current = adjacents.erase(current);
+  }
+
+  return descendants;
+}
 }
 }
 }
