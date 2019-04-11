@@ -49,8 +49,23 @@ class LogSystemTest : public ::testing::Test
     setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }
+
+  public: void CreateCacheDir()
+  {
+    // Configure to use binary path as cache
+    this->cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+      "test_cache");
+    if (common::exists(cacheDir))
+    {
+      common::removeAll(cacheDir);
+    }
+    common::createDirectories(cacheDir);
+  }
+
+  public: std::string cacheDir = "";
 };
 
+/////////////////////////////////////////////////
 void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
    const std::string &_pluginName, const std::string &_logDest)
 {
@@ -90,18 +105,11 @@ void ChangeLogPath(sdf::Root &_sdfRoot, const std::string &_sdfPath,
 // This test checks that a file is created by log recorder
 TEST_F(LogSystemTest, CreateLogFile)
 {
-  // Configure to use binary path as cache
-  std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
-    "test_cache");
-  if (common::exists(cacheDir))
-  {
-    common::removeAll(cacheDir);
-  }
-  common::createDirectories(cacheDir);
-  std::string logDest = common::joinPaths(cacheDir, "log");
+  this->CreateCacheDir();
+  std::string logDest = common::joinPaths(this->cacheDir, "log");
 
   ServerConfig serverConfig;
-  serverConfig.SetResourceCache(cacheDir);
+  serverConfig.SetResourceCache(this->cacheDir);
 
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_record_dbl_pendulum.sdf");
@@ -127,11 +135,12 @@ TEST_F(LogSystemTest, CreateLogFile)
 TEST_F(LogSystemTest, PosePlayback)
 {
   // Configure to use binary path as cache
-  std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+  std::string recordCacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
     "test_cache");
+
   // Log file directory created by CreateLogFile test above
-  EXPECT_TRUE(common::exists(cacheDir));
-  std::string logDest = common::joinPaths(cacheDir, "log");
+  EXPECT_TRUE(common::exists(recordCacheDir));
+  std::string logDest = common::joinPaths(recordCacheDir, "log");
 
   // World file to load
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -167,7 +176,7 @@ TEST_F(LogSystemTest, PosePlayback)
 
 
   ServerConfig serverConfig;
-  serverConfig.SetResourceCache(cacheDir);
+  serverConfig.SetResourceCache(recordCacheDir);
 
   // Pass changed SDF to server
   serverConfig.SetSdfString(sdfRoot.Element()->ToString(""));
@@ -270,5 +279,5 @@ TEST_F(LogSystemTest, PosePlayback)
   // Run for a few seconds to play back different poses
   server.Run(true, 3000, false);
 
-  common::removeAll(cacheDir);
+  common::removeAll(recordCacheDir);
 }
