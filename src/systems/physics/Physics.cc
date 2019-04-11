@@ -87,7 +87,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -609,9 +609,9 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
       });
 
   // Link wrenches
-  _ecm.Each<components::PendingExternalWorldWrench>(
+  _ecm.Each<components::ExternalWorldWrenchCmd>(
       [&](const Entity &_entity,
-          const components::PendingExternalWorldWrench *_wrenchComp)
+          const components::ExternalWorldWrenchCmd *_wrenchComp)
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt == this->entityLinkMap.end())

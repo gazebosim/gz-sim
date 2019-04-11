@@ -32,7 +32,7 @@
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 #include "LiftDrag.hh"
@@ -440,10 +440,10 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto totalTorque = torque + cpWorld.Cross(force);
   msgs::Set(wrench.mutable_torque(), totalTorque);
 
-  components::PendingExternalWorldWrench newWrenchComp(wrench);
+  components::ExternalWorldWrenchCmd newWrenchComp(wrench);
 
   auto currWrenchComp =
-      _ecm.Component<components::PendingExternalWorldWrench>(this->linkEntity);
+      _ecm.Component<components::ExternalWorldWrenchCmd>(this->linkEntity);
   if (currWrenchComp)
   {
     *currWrenchComp = newWrenchComp;
