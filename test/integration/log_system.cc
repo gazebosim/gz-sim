@@ -193,59 +193,22 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       std::chrono::seconds(_msg.header().stamp().sec()) +
       std::chrono::nanoseconds(_msg.header().stamp().nsec());
 
-    // Filter selective topics
-    transport::log::TopicList topicList(logPoseTopic);
-
-    // This automatic way of filtering time hangs. So manually filtering
-    //   for now below.
-    // auto beginQT = transport::log::QualifiedTime(begin);
-    // auto endQT = transport::log::QualifiedTime(end);
-    // auto timeRange = transport::log::QualifiedTimeRange(beginQT, endQT);
-    // transport::log::TopicList topicList(logPoseTopic, timeRange);
+    auto beginQT = transport::log::QualifiedTime(begin);
+    auto endQT = transport::log::QualifiedTime(end);
+    auto timeRange = transport::log::QualifiedTimeRange(beginQT, endQT);
+    transport::log::TopicList topicList(logPoseTopic, timeRange);
 
     transport::log::Batch batch = log.QueryMessages(topicList);
     transport::log::MsgIter iter = batch.begin();
     // If no messages
     if (iter == batch.end())
-      return;
-
-    int batchSize = 0;
-    int64_t minDiff = LONG_MAX;
-    msgs::Pose_V posevMsg;
-    posevMsg.ParseFromString(iter->Data());
-    // Find recorded timestamp in this batch closest to current sim time
-    for (; iter != batch.end(); ++iter)
     {
-      // Convert recorded binary bytes in string into a ign-msgs msg
-      msgs::Pose_V currPosevMsg;
-      currPosevMsg.ParseFromString(iter->Data());
-
-      // Recorded timestamp
-      std::chrono::nanoseconds recordedStamp =
-        std::chrono::seconds(currPosevMsg.header().stamp().sec()) +
-        std::chrono::nanoseconds(currPosevMsg.header().stamp().nsec());
-      int64_t diff = abs(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-        end - recordedStamp).count());
-      if (diff < minDiff)
-      {
-        minDiff = diff;
-        posevMsg = currPosevMsg;
-      }
-      else
-      {
-        igndbg << "Skipping "
-          << currPosevMsg.header().stamp().sec() * 1000000000 +
-             currPosevMsg.header().stamp().nsec() << std::endl;
-      }
-
-      batchSize++;
+      playServer.SetPaused(false);
+      return;
     }
 
-    igndbg << "Playback time: " << end.count() << std::endl;
-    igndbg << "Selected recorded pose with time: "
-      << posevMsg.header().stamp().sec() * 1000000000 +
-         posevMsg.header().stamp().nsec() << std::endl;
+    msgs::Pose_V posevMsg;
+    posevMsg.ParseFromString(iter->Data());
 
     // Maps entity to recorded pose
     // Key: entity. Value: pose
