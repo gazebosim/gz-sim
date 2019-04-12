@@ -25,9 +25,11 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -157,6 +159,8 @@ namespace ignition
 
       /// \brief Transport node.
       private: ignition::transport::Node node;
+
+      private: std::list<std::pair<std::string, sdf::Geometry>> performersToAdd;
     };
     }
   }

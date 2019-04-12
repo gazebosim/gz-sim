@@ -15,7 +15,6 @@
  *
  */
 
-#include <sdf/Geometry.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -195,22 +194,8 @@ bool LevelManager::OnAddPerformer(const msgs::Performer &_req,
   // Check to see if the performer has already been added.
   if (this->performerMap.find(name) == this->performerMap.end())
   {
-    // Create the performer entity
-    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
-    this->performerMap[name] = performerEntity;
-
-    sdf::Geometry geometry(convert<sdf::Geometry>(_req.geometry()));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Performer());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerLevels());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Name("perf_" + name));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Geometry(geometry));
-
-    // Make the model a parent of this performer
-    this->entityCreator->SetParent(this->performerMap[name], modelEntity);
+    this->performersToAdd.push_back(
+        std::make_pair(name, convert<sdf::Geometry>(_req.geometry())));
     _rep.set_data(true);
   }
   else
@@ -381,6 +366,41 @@ void LevelManager::UpdateLevelsState()
 
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
+
+  std::list<std::pair<std::string, sdf::Geometry>>::iterator iter =
+    this->performersToAdd.begin();
+  while (iter != this->performersToAdd.end())
+  {
+    // Find the model entity
+    Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+        components::Name(iter->first));
+    if (modelEntity == kNullEntity)
+    {
+      ignwarn << "Attempting to add performer with name ["
+        << iter->first << "] "
+        << ", but the entity could not be found. Another attempt will be made "
+        << "in the next iteration.\n";
+      ++iter;
+    }
+
+    // Create the performer entity
+    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+    this->performerMap[iter->first] = performerEntity;
+
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+        components::Performer());
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+        components::PerformerLevels());
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+        components::Name("perf_" + iter->first));
+    this->runner->entityCompMgr.CreateComponent(performerEntity,
+        components::Geometry(iter->second));
+
+    // Make the model a parent of this performer
+    this->entityCreator->SetParent(
+        this->performerMap[iter->first], modelEntity);
+    iter = this->performersToAdd.erase(iter);
+  }
 
   {
     IGN_PROFILE("DefaultLevel");
