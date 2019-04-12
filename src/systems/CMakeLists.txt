@@ -75,6 +75,7 @@ function(gz_add_system system_name)
 endfunction()
 
 add_subdirectory(altimeter)
+add_subdirectory(apply_joint_force)
 add_subdirectory(contact)
 add_subdirectory(diff_drive)
 add_subdirectory(imu)
