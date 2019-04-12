@@ -47,6 +47,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
@@ -693,6 +694,32 @@ TEST_F(ComponentsTest, Performer)
   std::istringstream istr("ignored");
   components::Performer comp3;
   istr >> comp3;
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, PerformerLevels)
+{
+  // Create components
+  auto comp11 = components::PerformerLevels({1, 2, 3});
+  auto comp12 = components::PerformerLevels({1, 2, 3});
+  auto comp2 = components::PerformerLevels({4, 5});
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ("1 2 3 ", ostr.str());
+
+  std::istringstream istr("7 8 9 10");
+  components::PerformerLevels comp3;
+  istr >> comp3;
+  EXPECT_EQ(4u, comp3.Data().size());
+  EXPECT_EQ(1u, comp3.Data().count(7));
+  EXPECT_EQ(1u, comp3.Data().count(8));
+  EXPECT_EQ(1u, comp3.Data().count(9));
+  EXPECT_EQ(1u, comp3.Data().count(10));
+  EXPECT_EQ(0u, comp3.Data().count(1));
 }
 
 /////////////////////////////////////////////////
