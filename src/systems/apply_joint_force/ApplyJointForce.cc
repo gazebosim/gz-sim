@@ -14,15 +14,9 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/common/Time.hh>
-#include <ignition/math/Pose3.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
