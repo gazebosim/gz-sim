@@ -98,64 +98,57 @@ class LogSystemTest : public ::testing::Test
     }
   }
 
-  // Temporary directory in build path for recorded data
+  // Temporary directory in binary build path for recorded data
   public: std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
       "test_cache");
 };
 
 /////////////////////////////////////////////////
-// This test checks that a file is created by log recorder
-TEST_F(LogSystemTest, CreateLogFile)
+TEST_F(LogSystemTest, RecordAndPlayback)
 {
+  // Run a world and record to a log file
+
   this->CreateCacheDir();
   std::string logDest = common::joinPaths(this->cacheDir, "log");
 
-  ServerConfig serverConfig;
-  serverConfig.SetResourceCache(this->cacheDir);
+  ServerConfig recordServerConfig;
+  recordServerConfig.SetResourceCache(this->cacheDir);
 
-  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  const auto recordSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_record_dbl_pendulum.sdf");
 
   // Change log path in SDF to build directory
-  sdf::Root sdfRoot;
-  this->ChangeLogPath(sdfRoot, sdfPath, "LogRecord", logDest);
+  sdf::Root recordSdfRoot;
+  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord", logDest);
 
   // Pass changed SDF to server
-  serverConfig.SetSdfString(sdfRoot.Element()->ToString(""));
+  recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
 
   // Start server
-  Server server(serverConfig);
+  Server recordServer(recordServerConfig);
   // Run for a few seconds to record different poses
-  server.Run(true, 1000, false);
+  recordServer.Run(true, 1000, false);
 
   // Verify file is created
   EXPECT_TRUE(common::exists(common::joinPaths(logDest, "state.tlog")));
-}
 
-/////////////////////////////////////////////////
-// This test checks that poses are played back correctly
-TEST_F(LogSystemTest, PosePlayback)
-{
-  // Configure to use binary path as cache
-  std::string recordCacheDir = this->cacheDir;
 
-  // Log file directory created by CreateLogFile test above
-  EXPECT_TRUE(common::exists(recordCacheDir));
-  std::string logDest = common::joinPaths(recordCacheDir, "log");
+  // Run a world, load recorded log file, and check recorded poses are same
+  //   as poses in live physics
 
   // World file to load
-  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_playback.sdf");
   // Change log path in world SDF to build directory
-  sdf::Root sdfRoot;
-  this->ChangeLogPath(sdfRoot, sdfPath, "LogPlayback",  logDest);
-  const sdf::World * sdfWorld = sdfRoot.WorldByIndex(0);
+  sdf::Root playSdfRoot;
+  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",  logDest);
+  const sdf::World * sdfWorld = playSdfRoot.WorldByIndex(0);
   // Playback pose topic
   std::string poseTopic = "/world/" +
     sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
 
 
-  // Load log file recorded by CreateLogFile test above
+  // Load log file recorded above
   std::string logName = common::joinPaths(logDest, "state.tlog");
   EXPECT_TRUE(common::exists(logName));
   transport::log::Log log;
@@ -173,12 +166,11 @@ TEST_F(LogSystemTest, PosePlayback)
   std::string logPoseTopic = "/world/" +
     logSdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
 
-
-  ServerConfig serverConfig;
-  serverConfig.SetResourceCache(recordCacheDir);
+  ServerConfig playServerConfig;
+  playServerConfig.SetResourceCache(this->cacheDir);
 
   // Pass changed SDF to server
-  serverConfig.SetSdfString(sdfRoot.Element()->ToString(""));
+  playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
 
   int nDiffs = 0;
   int nTotal = 0;
@@ -187,14 +179,14 @@ TEST_F(LogSystemTest, PosePlayback)
   auto begin = std::chrono::nanoseconds(0);
 
   // Start server
-  Server server(serverConfig);
+  Server playServer(playServerConfig);
 
   // Callback function for entities played back
   // Compare current pose being played back with the pose with the closest
   //   timestamp in the recorded file.
   auto msgCb = [&](const msgs::Pose_V &_msg) -> void
   {
-    server.SetPaused(true);
+    playServer.SetPaused(true);
 
     // Filter recorded topics with current sim time
     std::chrono::nanoseconds end =
@@ -310,7 +302,7 @@ TEST_F(LogSystemTest, PosePlayback)
     // Update begin time range for next time step
     begin = std::chrono::nanoseconds(end);
 
-    server.SetPaused(false);
+    playServer.SetPaused(false);
   };
 
   // Subscribe to ignition topic and compare to logged poses
@@ -320,10 +312,10 @@ TEST_F(LogSystemTest, PosePlayback)
   node.Subscribe(poseTopic, callbackFunc);
 
   // Run for a few seconds to play back different poses
-  server.Run(true, 1000, false);
+  playServer.Run(true, 1000, false);
 
   igndbg << nDiffs << " out of " << nTotal
     << " poses played back do not match those recorded\n";
 
-  common::removeAll(recordCacheDir);
+  common::removeAll(this->cacheDir);
 }
