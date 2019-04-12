@@ -187,7 +187,7 @@ Example snippet:
 
 ### <performer>
 
-\note See Dynamic performers, the next section, for information about specifying performers without using the SDF `<performer>` tag.
+\note See Runtime performers, the next section, for information about specifying performers without using the SDF `<performer>` tag.
 
 The `<performer>` tag contains a reference to the performer entity (most likely
 a model). The `<ref>` tag designates the name of the performer entity. It is
@@ -214,7 +214,7 @@ Example snippet:
 </performer>
 ```
 
-### Dynamic performers
+### Runtime performers
 
 Performers can be specified at runtime using an Igntion Transport service.
 This functionality can be used when a performer is not known at load time. For
