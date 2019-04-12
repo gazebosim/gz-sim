@@ -14,6 +14,7 @@ set(tests
   joint_controller_system.cc
   lift_drag_system.cc
   level_manager.cc
+  level_manager_runtime_performers.cc
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
