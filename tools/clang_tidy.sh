@@ -21,5 +21,5 @@ run-clang-tidy-6.0.py \
   -j 6 \
   -quiet \
   "`pwd`/src/*" \
-  "`pwd`/test/*" \
+  "`pwd`/test/(benchmark|integration|performance|plugins|regression)/*" \
   "`pwd`/examples/*"
