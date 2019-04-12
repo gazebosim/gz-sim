@@ -118,7 +118,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
 
 #============================================================================
 # Configure the build
