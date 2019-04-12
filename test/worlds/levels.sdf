@@ -1482,7 +1482,6 @@
         </box>
       </geometry>
     </performer>
-
     <performer name="perf_box">
       <ref>box</ref>
       <geometry>
