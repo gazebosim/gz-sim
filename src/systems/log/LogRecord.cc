@@ -87,11 +87,11 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// header should be used.
   public: std::unique_ptr<transport::NetworkClock> clock;
 
-  /// \brief SDF of this plugin
-  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
-
   /// \brief Name of this world
   public: std::string worldName;
+
+  /// \brief SDF of this plugin
+  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
 
   /// \brief Transport node for publishing SDF string to be recorded
   public: transport::Node node;
