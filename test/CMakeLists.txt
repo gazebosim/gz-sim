@@ -14,6 +14,53 @@ target_link_libraries(gtest_main gtest)
 set(GTEST_LIBRARY "${PROJECT_BINARY_DIR}/test/libgtest.a")
 set(GTEST_MAIN_LIBRARY "${PROJECT_BINARY_DIR}/test/libgtest_main.a")
 
+# Build gbenchmark
+file(GLOB
+  GBENCHMARK_SOURCE_FILES
+    gbenchmark/src/*.cc
+    gbenchmark/src/*.h
+    gbenchmark/include/benchmark/*.h
+)
+
+add_library(gbenchmark ${GBENCHMARK_SOURCE_FILES})
+target_include_directories(gbenchmark PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gbenchmark/include>
+)
+set_property(TARGET gbenchmark PROPERTY CXX_STANDARD 17)
+target_compile_options(gbenchmark PRIVATE "-Wno-switch-default"
+  "-Wno-unused-but-set-variable"
+  "-Wno-switch-default"
+  "-Wno-deprecated-declarations"
+)
+
+if(UNIX)
+  target_link_libraries(gbenchmark pthread)
+endif()
+
+find_library(LIBRT rt)
+if(LIBRT)
+  target_link_libraries(gbenchmark ${LIBRT})
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  target_link_libraries(gbenchmark Shlwapi)
+endif()
+
+add_library(gbenchmark_main
+  gbenchmark/src/benchmark_main.cc)
+target_include_directories(gbenchmark_main PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gbenchmark/include>
+)
+set_property(TARGET gbenchmark_main PROPERTY CXX_STANDARD 17)
+target_compile_options(gbenchmark_main
+  PUBLIC
+  "-Wno-switch-default"
+  PRIVATE
+  "-Wno-unused-but-set-variable"
+  "-Wno-deprecated-declarations"
+)
+target_link_libraries(gbenchmark_main gbenchmark)
+
 execute_process(COMMAND cmake -E remove_directory ${CMAKE_BINARY_DIR}/test_results)
 execute_process(COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/test_results)
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -123,6 +170,7 @@ endfunction()
 
 FindDRI()
 
+add_subdirectory(benchmark)
 add_subdirectory(integration)
 add_subdirectory(performance)
 add_subdirectory(plugins)
