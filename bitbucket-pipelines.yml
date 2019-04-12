@@ -87,24 +87,24 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition gui (uncomment if a specific branch is needed)
-           - apt install -y
-             qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
-             qtdeclarative5-dev
-             qtquickcontrols2-5-dev
-             qml-module-qtquick2
-             qml-module-qtquick-controls
-             qml-module-qtquick-controls2
-             qml-module-qtquick-dialogs
-             qml-module-qtquick-layouts
-             qml-module-qt-labs-folderlistmodel
-             qml-module-qt-labs-settings
-           - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b update_deps
-           - cd ign-gui
-           - mkdir build
-           - cd build
-           - cmake .. -DBUILD_TESTING=false
-           - make -j4 install
-           - cd ../..
+          - apt install -y
+            qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+            qtdeclarative5-dev
+            qtquickcontrols2-5-dev
+            qml-module-qtquick2
+            qml-module-qtquick-controls
+            qml-module-qtquick-controls2
+            qml-module-qtquick-dialogs
+            qml-module-qtquick-layouts
+            qml-module-qt-labs-folderlistmodel
+            qml-module-qt-labs-settings
+          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b update_deps
+          - cd ign-gui
+          - mkdir build
+          - cd build
+          - cmake .. -DBUILD_TESTING=false
+          - make -j4 install
+          - cd ../..
           # Ignition Physics (uncomment if a specific branch is needed)
           # - apt-get -y install
           #   libdart6-dev
