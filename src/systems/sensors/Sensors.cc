@@ -161,10 +161,9 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
-  _ecm.EachNew<components::World, components::Name, components::Scene>(
+  _ecm.EachNew<components::World, components::Scene>(
       [&](const Entity & /*_entity*/,
         const components::World * /* _world */,
-        const components::Name * /*_name*/,
         const components::Scene *_scene)->bool
       {
         const sdf::Scene &sceneSdf = _scene->Data();
