@@ -60,10 +60,10 @@ namespace ignition
     {
       // Documentation inherited
       public: explicit NetworkManagerPrimary(
-                  std::function<void(const UpdateInfo &_info)> _stepFunction,
-                  EntityComponentManager &_ecm, EventManager *_eventMgr,
-                  const NetworkConfig &_config,
-                  const NodeOptions &_options);
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr,
+          const NetworkConfig &_config,
+          const NodeOptions &_options);
 
       // Documentation inherited
       public: void Handshake() override;

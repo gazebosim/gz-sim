@@ -44,7 +44,7 @@ namespace ignition
       public: PeerInfo peerInfo;
 
       /// \brief EventManager to emit/connect to
-      public: EventManager *eventMgr;
+      public: EventManager *eventMgr{nullptr};
 
       /// \brief Object to manage information about discovered peers.
       public: std::unique_ptr<PeerTracker> tracker;
@@ -55,9 +55,18 @@ namespace ignition
       /// \brief Traack connection to "PeerStale" Event
       public: ignition::common::ConnectionPtr peerStaleConn;
 
+      /// \brief Function from the SimulationRunner to call for stepping.
+      /// It will update the systems.
       public: std::function<void(const UpdateInfo &_info)> stepFunction;
 
-      public: EntityComponentManager *ecm;
+      /// \brief Pointer to ECM.
+      public: EntityComponentManager *ecm{nullptr};
+
+      /// \brief Flag to indicate if simulation server is stopping.
+      public: std::atomic<bool> stopReceived {false};
+
+      /// \brief Track connection to "events::Stop" Event
+      public: ignition::common::ConnectionPtr stoppingConn;
     };
     }
   }  // namespace gazebo
