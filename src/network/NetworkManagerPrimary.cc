@@ -41,7 +41,7 @@ using namespace gazebo;
 
 //////////////////////////////////////////////////
 NetworkManagerPrimary::NetworkManagerPrimary(
-    std::function<void(const UpdateInfo &_info)> _stepFunction,
+    const std::function<void(const UpdateInfo &_info)> &_stepFunction,
     EntityComponentManager &_ecm, EventManager *_eventMgr,
     const NetworkConfig &_config, const NodeOptions &_options):
   NetworkManager(_stepFunction, _ecm, _eventMgr, _config, _options),
@@ -50,35 +50,6 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
 
   this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
-
-  auto eventMgr = this->dataPtr->eventMgr;
-  if (eventMgr)
-  {
-    this->dataPtr->peerRemovedConn = eventMgr->Connect<PeerRemoved>(
-        [this](PeerInfo _info)
-        {
-          if (_info.role == NetworkRole::SimulationSecondary)
-          {
-            ignmsg << "Secondary removed, stopping simulation" << std::endl;
-            this->dataPtr->eventMgr->Emit<events::Stop>();
-          }
-        });
-
-    this->dataPtr->peerStaleConn = eventMgr->Connect<PeerStale>(
-        [this](PeerInfo _info)
-        {
-          if (_info.role == NetworkRole::SimulationSecondary)
-          {
-            ignerr << "Secondary went stale, stopping simulation" << std::endl;
-            this->dataPtr->eventMgr->Emit<events::Stop>();
-          }
-        });
-  }
-  else
-  {
-    ignwarn << "NetworkManager started without EventManager. "
-      << "Distributed environment may not terminate correctly" << std::endl;
-  }
 }
 
 //////////////////////////////////////////////////
@@ -180,9 +151,23 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Block until all secondaries are done
   {
     IGN_PROFILE("Waiting for secondaries");
-    while (this->secondaryStates.size() < this->secondaries.size())
+
+    int sleep = 0;
+    int maxSleep = 10 * 1000 * 1000;
+    for (; sleep < maxSleep &&
+       (this->secondaryStates.size() < this->secondaries.size()); ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    }
+
+    if (sleep == maxSleep)
+    {
+      ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
+             << " / " << this->secondaries.size()
+             << "] responses from secondaries. Stopping simulation."
+             << std::endl;
+      this->dataPtr->eventMgr->Emit<events::Stop>();
+      return false;
     }
   }
 
@@ -216,8 +201,7 @@ std::map<std::string, SecondaryControl::Ptr>
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerPrimary::OnStepAck(
-    const msgs::SerializedState &_msg)
+void NetworkManagerPrimary::OnStepAck(const msgs::SerializedState &_msg)
 {
   this->secondaryStates.push_back(_msg);
 }
@@ -225,33 +209,11 @@ void NetworkManagerPrimary::OnStepAck(
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::SecondariesCanStep() const
 {
-  IGN_PROFILE("NetworkManagerPrimary::SecondariesCanStep");
-
-  static bool allAvailable{false};
-
-  // Only check until it's true
-  if (allAvailable)
-    return true;
-
-//  std::vector<transport::Subscriber> subscribers;
-//  for (size_t i = 0; i < 50; ++i)
-//  {
-//    this->node.TopicInfo("step", subscribers);
-//    if (!subscribers.empty())
-//      break;
-//    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//  }
-//
-//  if (subscribers.size() < this->secondaries.size())
-//  {
-//    ignwarn << "Can't step, found only [" << subscribers.size()
-//            << "] subscribers to /step; expected [" << this->secondaries.size()
-//            << "]." << std::endl;
-//    return false;
-//  }
-
-  allAvailable = true;
-  return true;
+  // TODO(anyone) Ideally we'd check the number of connections against the
+  // number of expected secondaries, but there's no interface for that
+  // on ign-transport yet:
+  // https://bitbucket.org/ignitionrobotics/ign-transport/issues/39
+  return this->simStepPub.HasConnections();
 }
 
 //////////////////////////////////////////////////
@@ -303,7 +265,7 @@ void NetworkManagerPrimary::PopulateAffinities(
   {
     auto secondaryIt = this->secondaries.begin();
 
-    for (auto [level, performers] : lToPNew)
+    for (const auto &[level, performers] : lToPNew)
     {
       for (const auto &performer : performers)
       {

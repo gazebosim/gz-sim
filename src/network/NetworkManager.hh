@@ -59,7 +59,7 @@ namespace ignition
       ///   configuration will be populated from environment variables.
       /// \param[in] _options Advanced options for underlying ign-transport
       public: static std::unique_ptr<NetworkManager> Create(
-                  std::function<void(const UpdateInfo &_info)> _stepFunction,
+                  const std::function<void(const UpdateInfo &_info)> &_stepFunction,
                   EntityComponentManager &_ecm, EventManager *_eventMgr = nullptr,
                   const NetworkConfig &_config = NetworkConfig::FromEnv(),
                   const NodeOptions &_options = NodeOptions());
@@ -73,7 +73,7 @@ namespace ignition
       /// \param[in] _config configuration object to use.
       /// \param[in] _options Advanced options for underlying ign-transport
       protected: explicit NetworkManager(
-                  std::function<void(const UpdateInfo &_info)> _stepFunction,
+                  const std::function<void(const UpdateInfo &_info)> &_stepFunction,
                   EntityComponentManager &_ecm, EventManager *_eventMgr,
                   const NetworkConfig &_config,
                   const NodeOptions &_options);
@@ -93,7 +93,7 @@ namespace ignition
       /// (based on participant role), then the NetworkManager will indicate
       /// that it is ready to initialize and execute via the `Ready`.
       ///
-      /// The `Initialize` call will then set up any additional communications
+      /// The `Handshake` call will then set up any additional communications
       /// infrastructure required for distributed simulation to proceed.
       public: virtual void Handshake() = 0;
 

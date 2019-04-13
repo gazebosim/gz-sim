@@ -44,10 +44,10 @@ namespace ignition
     {
       // Documentation inherited
       public: explicit NetworkManagerSecondary(
-                  std::function<void(const UpdateInfo &_info)> _stepFunction,
-                  EntityComponentManager &_ecm, EventManager *_eventMgr,
-                  const NetworkConfig &_config,
-                  const NodeOptions &_options);
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr,
+          const NetworkConfig &_config,
+          const NodeOptions &_options);
 
       // Documentation inherited
       public: bool Ready() const override;
@@ -65,12 +65,6 @@ namespace ignition
       /// \brief Callback when step commands are received from the primary
       /// \param[in] _msg Step message.
       private: void OnStep(const private_msgs::SimulationStep &_msg);
-
-      /// \brief Track connection to "events::Stop" Event
-      public: ignition::common::ConnectionPtr stoppingConn;
-
-      /// \brief Flag to indicate if simulation server is stopping.
-      private: std::atomic<bool> stopReceived {false};
 
       /// \brief Flag to control enabling/disabling simulation secondary.
       private: std::atomic<bool> enableSim {false};
