@@ -75,47 +75,53 @@ TEST_F(NetworkHandshake, Handshake)
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   serverConfig.SetNetworkRole("primary");
   serverConfig.SetNetworkSecondaries(2);
+  serverConfig.SetUseLevels(true);
 
   auto serverPrimary = std::make_unique<Server>(serverConfig);
   serverPrimary->SetUpdatePeriod(1us);
 
   serverConfig.SetNetworkRole("secondary");
+  serverConfig.SetUseLevels(true);
   auto serverSecondary1 = std::make_unique<Server>(serverConfig);
   auto serverSecondary2 = std::make_unique<Server>(serverConfig);
 
-  std::vector<bool> testRunning;
+  int terminated{0};
 
   auto testFcn = [&](Server *_server)
   {
-igndbg << "A" << std::endl;
     // Run for a finite number of iterations
-    EXPECT_TRUE(_server->Run(true, 100, false));
+    EXPECT_TRUE(_server->Run(true, 10, false));
 
-    testRunning.push_back(false);
-igndbg << "/A" << std::endl;
+    terminated++;
   };
 
   auto primaryThread = std::thread(testFcn, serverPrimary.get());
   auto secondaryThread1 = std::thread(testFcn, serverSecondary1.get());
   auto secondaryThread2 = std::thread(testFcn, serverSecondary2.get());
-igndbg << "B" << std::endl;
 
-  while (testRunning.size() < 3)
+  // Primary ended all iterations, shut it down so secondaries also stop
+  int maxSleep = 30;
+  for (int sleep = 0; sleep < maxSleep && terminated == 0; ++sleep)
   {
-igndbg << testRunning.size() << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
+  EXPECT_EQ(1, terminated);
+
+  primaryThread.join();
+  serverPrimary.reset();
+
+  // Terminate secondaries
+  for (int sleep = 0; sleep < maxSleep && terminated < 3; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_EQ(3, terminated);
 
   secondaryThread1.join();
-igndbg << "B" << std::endl;
   secondaryThread2.join();
-igndbg << "B" << std::endl;
-  primaryThread.join();
-igndbg << "B" << std::endl;
 
   serverSecondary1.reset();
   serverSecondary2.reset();
-  serverPrimary.reset();
 }
 
 /////////////////////////////////////////////////
@@ -137,6 +143,7 @@ TEST_F(NetworkHandshake, Updates)
 
   ServerConfig configPrimary;
   configPrimary.SetNetworkRole("primary");
+  configPrimary.SetUseLevels(true);
   // Can only test one secondary running physics, because running 2 physics in
   // the same process causes a segfault, see
   // https://bitbucket.org/ignitionrobotics/ign-gazebo/issues/18
@@ -157,6 +164,7 @@ TEST_F(NetworkHandshake, Updates)
 
   ServerConfig configSecondary;
   configSecondary.SetNetworkRole("secondary");
+  configSecondary.SetUseLevels(true);
   configSecondary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");
   configSecondary.AddPlugin(secondaryPluginInfo);
