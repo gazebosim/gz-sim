@@ -30,7 +30,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component holds an entity's geometry.
+  /// \brief This component holds scene properties of the world.
   using Scene = Component<sdf::Scene, class SceneTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Scene", Scene)
