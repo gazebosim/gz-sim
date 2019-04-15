@@ -145,6 +145,10 @@ ign service -s /world/empty/remove \
 
       </plugin>
 
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+      </plugin>
+
     </gui>
 
     <light type="directional" name="sun">

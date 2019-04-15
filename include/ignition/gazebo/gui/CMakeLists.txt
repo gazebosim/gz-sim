@@ -1,5 +1,7 @@
 set (CMAKE_AUTOMOC ON)
 
+add_subdirectory(plugins)
+
 set (gui_headers
   TmpIface.hh
 )
