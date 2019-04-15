@@ -18,9 +18,14 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Box.hh>
+#include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Plane.hh>
 #include <sdf/Root.hh>
+#include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
 #include <ignition/msgs/Utility.hh>
@@ -128,4 +133,195 @@ TEST(Conversions, Time)
   auto duration2 = convert<std::chrono::steady_clock::duration>(msg);
   EXPECT_EQ(duration, duration2);
   EXPECT_EQ(2000000, duration2.count());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Material)
+{
+  sdf::Material material;
+  material.SetDiffuse(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetLighting(true);
+
+  auto materialMsg = convert<msgs::Material>(material);
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f),
+      msgs::Convert(materialMsg.diffuse()));
+  EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f),
+      msgs::Convert(materialMsg.specular()));
+  EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f),
+      msgs::Convert(materialMsg.ambient()));
+  EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
+      msgs::Convert(materialMsg.emissive()));
+  EXPECT_TRUE(materialMsg.lighting());
+
+  auto newMaterial = convert<sdf::Material>(materialMsg);
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newMaterial.Diffuse());
+  EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f), newMaterial.Specular());
+  EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
+  EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
+  EXPECT_TRUE(newMaterial.Lighting());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryBox)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::BOX);
+
+  sdf::Box boxShape;
+  boxShape.SetSize(ignition::math::Vector3d(1, 2, 3));
+  geometry.SetBoxShape(boxShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::BOX, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_box());
+  EXPECT_EQ(math::Vector3d(1, 2, 3),
+      msgs::Convert(geometryMsg.box().size()));
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::BOX, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.BoxShape());
+  EXPECT_EQ(math::Vector3d(1, 2, 3), newGeometry.BoxShape()->Size());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometrySphere)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::SPHERE);
+
+  sdf::Sphere sphereShape;
+  sphereShape.SetRadius(1.23);
+  geometry.SetSphereShape(sphereShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::SPHERE, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_sphere());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.sphere().radius());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::SPHERE, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.SphereShape());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.SphereShape()->Radius());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryCylinder)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::CYLINDER);
+
+  sdf::Cylinder cylinderShape;
+  cylinderShape.SetRadius(1.23);
+  cylinderShape.SetLength(4.56);
+  geometry.SetCylinderShape(cylinderShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::CYLINDER, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_cylinder());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.cylinder().radius());
+  EXPECT_DOUBLE_EQ(4.56, geometryMsg.cylinder().length());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::CYLINDER, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.CylinderShape());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.CylinderShape()->Radius());
+  EXPECT_DOUBLE_EQ(4.56, newGeometry.CylinderShape()->Length());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryMesh)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::MESH);
+
+  sdf::Mesh meshShape;
+  meshShape.SetScale(ignition::math::Vector3d(1, 2, 3));
+  meshShape.SetUri("file://watermelon");
+  meshShape.SetSubmesh("grape");
+  meshShape.SetCenterSubmesh(true);
+  geometry.SetMeshShape(meshShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::MESH, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_mesh());
+  EXPECT_EQ(math::Vector3d(1, 2, 3),
+      msgs::Convert(geometryMsg.mesh().scale()));
+  EXPECT_EQ("file://watermelon", geometryMsg.mesh().filename());
+  EXPECT_EQ("grape", geometryMsg.mesh().submesh());
+  EXPECT_TRUE(geometryMsg.mesh().center_submesh());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::MESH, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.MeshShape());
+  EXPECT_EQ(math::Vector3d(1, 2, 3), newGeometry.MeshShape()->Scale());
+  EXPECT_EQ("file://watermelon", newGeometry.MeshShape()->Uri());
+  EXPECT_EQ("grape", newGeometry.MeshShape()->Submesh());
+  EXPECT_TRUE(newGeometry.MeshShape()->CenterSubmesh());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryPlane)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::PLANE);
+
+  sdf::Plane planeShape;
+  planeShape.SetSize(ignition::math::Vector2d(1, 2));
+  planeShape.SetNormal(ignition::math::Vector3d::UnitY);
+  geometry.SetPlaneShape(planeShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::PLANE, geometryMsg.type());
+  EXPECT_TRUE(geometryMsg.has_plane());
+  EXPECT_EQ(math::Vector2d(1, 2),
+      msgs::Convert(geometryMsg.plane().size()));
+  EXPECT_EQ(math::Vector3d::UnitY,
+      msgs::Convert(geometryMsg.plane().normal()));
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::PLANE, newGeometry.Type());
+  ASSERT_NE(nullptr, newGeometry.PlaneShape());
+  EXPECT_EQ(math::Vector2d(1, 2), newGeometry.PlaneShape()->Size());
+  EXPECT_EQ(math::Vector3d::UnitY, newGeometry.PlaneShape()->Normal());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Inertial)
+{
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(1.1);
+  massMatrix.SetIxx(2.2);
+  massMatrix.SetIyy(3.3);
+  massMatrix.SetIzz(4.4);
+  massMatrix.SetIxy(5.5);
+  massMatrix.SetIxz(6.6);
+  massMatrix.SetIyz(7.7);
+
+  math::Inertiald inertial;
+  inertial.SetPose(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3));
+  inertial.SetMassMatrix(massMatrix);
+
+  auto inertialMsg = convert<msgs::Inertial>(inertial);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3),
+      msgs::Convert(inertialMsg.pose()));
+  EXPECT_DOUBLE_EQ(1.1, inertialMsg.mass());
+  EXPECT_DOUBLE_EQ(2.2, inertialMsg.ixx());
+  EXPECT_DOUBLE_EQ(3.3, inertialMsg.iyy());
+  EXPECT_DOUBLE_EQ(4.4, inertialMsg.izz());
+  EXPECT_DOUBLE_EQ(5.5, inertialMsg.ixy());
+  EXPECT_DOUBLE_EQ(6.6, inertialMsg.ixz());
+  EXPECT_DOUBLE_EQ(7.7, inertialMsg.iyz());
+
+  auto newInertial = convert<math::Inertiald>(inertialMsg);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0.1, 0.2, 0.3), newInertial.Pose());
+  EXPECT_DOUBLE_EQ(1.1, newInertial.MassMatrix().Mass());
+  EXPECT_DOUBLE_EQ(2.2, newInertial.MassMatrix().Ixx());
+  EXPECT_DOUBLE_EQ(3.3, newInertial.MassMatrix().Iyy());
+  EXPECT_DOUBLE_EQ(4.4, newInertial.MassMatrix().Izz());
+  EXPECT_DOUBLE_EQ(5.5, newInertial.MassMatrix().Ixy());
+  EXPECT_DOUBLE_EQ(6.6, newInertial.MassMatrix().Ixz());
+  EXPECT_DOUBLE_EQ(7.7, newInertial.MassMatrix().Iyz());
 }
