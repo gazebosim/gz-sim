@@ -54,21 +54,6 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
-  // TODO(mabelmzhang) port to ign-common Filesystem
-  /// \brief Generates a path for a file which doesn't collide with existing
-  /// files, by appending numbers to it (i.e. (0), (1), ...)
-  /// \param[in] _pathAndName Full absolute path and file name up to the
-  /// file extension.
-  /// \param[in] _extension File extension, such as "ddf".
-  /// \return Full path with name and extension, which doesn't collide with
-  /// existing files
-  public: std::string UniqueFilePath(const std::string &_pathAndName,
-    const std::string &_extension);
-
-  /// \brief Unique directory path to not overwrite existing directory
-  /// \param[in] _pathAndName Full absolute path
-  public: std::string UniqueDirectoryPath(const std::string &_dir);
-
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
   /// in the future.
@@ -110,38 +95,6 @@ std::string LogRecordPrivate::DefaultRecordPath()
     ".ignition", "gazebo", "log", std::to_string(timestamp));
 
   return path;
-}
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::UniqueFilePath(const std::string &_pathAndName,
-  const std::string &_extension)
-{
-  std::string result = _pathAndName + "." + _extension;
-  int count = 1;
-
-  // Check if file exists and change name accordingly
-  while (common::exists(result.c_str()))
-  {
-    result = _pathAndName + "(" + std::to_string(count++) + ").";
-    result += _extension;
-  }
-
-  return result;
-}
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
-{
-  std::string result = _dir;
-  int count = 1;
-
-  // Check if file exists and change name accordingly
-  while (common::exists(result.c_str()))
-  {
-    result = _dir + "(" + std::to_string(count++) + ")";
-  }
-
-  return result;
 }
 
 //////////////////////////////////////////////////
@@ -211,7 +164,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   // If directoriy already exists, do not overwrite
   if (common::exists(logPath))
   {
-    logPath = this->UniqueDirectoryPath(logPath);
+    logPath = common::uniqueDirectoryPath(logPath);
     ignwarn << "Log path already exists on disk! "
       << "Recording instead to [" << logPath << "]" << std::endl;
   }
