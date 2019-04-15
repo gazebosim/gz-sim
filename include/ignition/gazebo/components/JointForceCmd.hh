@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_COMPONENTS_PERFORMERACTIVE_HH_
-#define IGNITION_GAZEBO_NETWORK_COMPONENTS_PERFORMERACTIVE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCECMD_HH_
 
+#include <vector>
+
+#include <ignition/gazebo/components/Factory.hh>
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -31,12 +31,16 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief This component identifies an entity as being a performer.
-  using PerformerActive = Component<bool, class PerformerActiveTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerActive",
-      PerformerActive)
+  /// \brief Commanded joint forces (or torques) to be applied to a joint
+  /// in SI units (Nm for revolute, N for prismatic). The component wraps a
+  /// std::vector and systems that set this component need to ensure that the
+  /// vector has the same size as the degrees of freedom of the joint.
+  using JointForceCmd = Component<std::vector<double>, class JointForceCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.JointForceCmd",
+                                JointForceCmd)
 }
 }
 }
 }
-#endif  // IGNITION_GAZEBO_NETWORK_COMPONENTS_PERFORMERACTIVE_HH_
+
+#endif

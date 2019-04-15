@@ -39,7 +39,6 @@
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "network/components/PerformerActive.hh"
 #include "LevelManager.hh"
 #include "SimulationRunner.hh"
 
@@ -156,8 +155,6 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     geometry.Load(performer->GetElement("geometry"));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerActive(true));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -347,19 +344,12 @@ void LevelManager::UpdateLevelsState()
 
   this->runner->entityCompMgr.Each<components::Performer,
                                    components::Geometry,
-                                   components::ParentEntity,
-                                   components::PerformerActive>(
+                                   components::ParentEntity>(
       [&](const Entity &_perfEntity, const components::Performer *,
           const components::Geometry *_geometry,
-          const components::ParentEntity *_parent,
-          const components::PerformerActive *_active) -> bool
+          const components::ParentEntity *_parent) -> bool
       {
         IGN_PROFILE("EachPerformer");
-
-        if (!_active->Data())
-        {
-          return true;
-        }
 
         auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
