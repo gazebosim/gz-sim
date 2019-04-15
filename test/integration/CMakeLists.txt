@@ -13,6 +13,7 @@ set(tests
   imu_system.cc
   joint_controller_system.cc
   level_manager.cc
+  link.cc
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
