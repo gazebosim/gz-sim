@@ -75,13 +75,13 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted = false;
+  public: bool instStarted{false};
 
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
   /// \brief SDF of this plugin
-  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
+  public: std::shared_ptr<const sdf::Element> sdf{nullptr};
 
   /// \brief Transport node for publishing SDF string to be recorded
   public: transport::Node node;
@@ -93,10 +93,10 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: msgs::StringMsg sdfMsg;
 
   /// \brief Whether the SDF has already been published
-  public: bool sdfPublished = false;
+  public: bool sdfPublished{false};
 };
 
-bool LogRecordPrivate::started = false;
+bool LogRecordPrivate::started{false};
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
