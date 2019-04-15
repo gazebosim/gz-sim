@@ -74,13 +74,13 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted = false;
+  public: bool instStarted{false};
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
 };
 
-bool LogPlaybackPrivate::started = false;
+bool LogPlaybackPrivate::started{false};
 
 //////////////////////////////////////////////////
 LogPlayback::LogPlayback()
