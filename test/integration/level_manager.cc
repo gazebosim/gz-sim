@@ -41,7 +41,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 #include "plugins/MockSystem.hh"
@@ -176,6 +176,14 @@ class LevelManagerFixture : public ::testing::Test
             return true;
           });
 
+      _ecm.Each<components::PerformerLevels>(
+          [&](const Entity &_performer,
+              const components::PerformerLevels *_levels) -> bool
+          {
+            this->performerLevels[_performer] = _levels->Data();
+            return true;
+          });
+
       _ecm.EachRemoved<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
               const components::Name *_name) -> bool
@@ -203,6 +211,7 @@ class LevelManagerFixture : public ::testing::Test
   public: std::vector<std::string> loadedModels;
   public: std::vector<std::string> unloadedModels;
   public: std::vector<std::string> loadedLights;
+  public: std::map<Entity, std::set<Entity>> performerLevels;
 };
 
 /////////////////////////////////////////////////
@@ -245,6 +254,9 @@ TEST_F(LevelManagerFixture, DefaultLevel)
   // tile_1 should not be loaded
   EXPECT_EQ(0, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
+
+  // There should be 2 performers
+  EXPECT_EQ(2u, this->performerLevels.size());
 }
 
 ///////////////////////////////////////////////
@@ -274,6 +286,19 @@ TEST_F(LevelManagerFixture, LevelLoadUnload)
   // Level1 should be loaded
   EXPECT_EQ(1, std::count(this->loadedModels.begin(), this->loadedModels.end(),
                           "tile_1"));
+
+  // Check performer levels
+  EXPECT_EQ(2u, this->performerLevels.size());
+
+  auto spherePerf = *this->server->EntityByName("perf_sphere");
+  EXPECT_NE(kNullEntity, spherePerf);
+  EXPECT_NE(this->performerLevels.find(spherePerf),
+      this->performerLevels.end());
+
+  auto level1 = *this->server->EntityByName("level1");
+  EXPECT_NE(kNullEntity, level1);
+  EXPECT_EQ(1u, this->performerLevels[spherePerf].size());
+  EXPECT_EQ(1u, this->performerLevels[spherePerf].count(level1));
 
   // Move performer out of level1
   perf1.SetPose({0, 0, 0, 0, 0, 0});
