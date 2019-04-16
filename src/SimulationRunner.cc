@@ -376,7 +376,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr->IsSecondary())
     {
       igndbg << "Secondary running." << std::endl;
-      while(!this->stopReceived)
+      while (!this->stopReceived)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
@@ -449,7 +449,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
     {
-      auto netPrimary = dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
+      auto netPrimary =
+          dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
       netPrimary->Step(this->currentInfo);
     }
     else

@@ -70,7 +70,8 @@ using namespace ignition;
 using namespace gazebo;
 using namespace components;
 
-void bm_Serialize1Component(benchmark::State &_st)
+// NOLINTNEXTLINE
+void BM_Serialize1Component(benchmark::State &_st)
 {
   size_t serializedSize = 0;
   auto entityCount = _st.range(0);
@@ -93,7 +94,8 @@ void bm_Serialize1Component(benchmark::State &_st)
   _st.counters["num_components"] = 1;
 }
 
-void bm_Serialize5Component(benchmark::State &_st)
+// NOLINTNEXTLINE
+void BM_Serialize5Component(benchmark::State &_st)
 {
   size_t serializedSize = 0;
   auto entityCount = _st.range(0);
@@ -120,7 +122,8 @@ void bm_Serialize5Component(benchmark::State &_st)
   _st.counters["num_components"] = 5;
 }
 
-BENCHMARK(bm_Serialize1Component)
+// NOLINTNEXTLINE
+BENCHMARK(BM_Serialize1Component)
   ->Arg(10)
   ->Arg(50)
   ->Arg(100)
@@ -128,7 +131,8 @@ BENCHMARK(bm_Serialize1Component)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-BENCHMARK(bm_Serialize5Component)
+// NOLINTNEXTLINE
+BENCHMARK(BM_Serialize5Component)
   ->Arg(10)
   ->Arg(50)
   ->Arg(100)

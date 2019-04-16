@@ -59,10 +59,10 @@ namespace ignition
       ///   configuration will be populated from environment variables.
       /// \param[in] _options Advanced options for underlying ign-transport
       public: static std::unique_ptr<NetworkManager> Create(
-                  const std::function<void(const UpdateInfo &_info)> &_stepFunction,
-                  EntityComponentManager &_ecm, EventManager *_eventMgr = nullptr,
-                  const NetworkConfig &_config = NetworkConfig::FromEnv(),
-                  const NodeOptions &_options = NodeOptions());
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr = nullptr,
+          const NetworkConfig &_config = NetworkConfig::FromEnv(),
+          const NodeOptions &_options = NodeOptions());
 
       /// \brief Constructor with configuration passed in.
       /// \param[in] _stepFunction The `SimulationRunner`'s `Step` function,
@@ -73,10 +73,10 @@ namespace ignition
       /// \param[in] _config configuration object to use.
       /// \param[in] _options Advanced options for underlying ign-transport
       protected: explicit NetworkManager(
-                  const std::function<void(const UpdateInfo &_info)> &_stepFunction,
-                  EntityComponentManager &_ecm, EventManager *_eventMgr,
-                  const NetworkConfig &_config,
-                  const NodeOptions &_options);
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr,
+          const NetworkConfig &_config,
+          const NodeOptions &_options);
 
       /// \brief Destructor.
       public: virtual ~NetworkManager() = 0;
