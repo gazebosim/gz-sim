@@ -79,13 +79,13 @@ bool Link::Valid(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
-std::string Link::Name(const EntityComponentManager &_ecm) const
+std::optional<std::string> Link::Name(const EntityComponentManager &_ecm) const
 {
   auto comp = _ecm.Component<components::Name>(this->dataPtr->id);
-  if (comp)
-    return comp->Data();
+  if (!comp)
+    return std::nullopt;
 
-  return "";
+  return std::make_optional(comp->Data());
 }
 
 //////////////////////////////////////////////////
