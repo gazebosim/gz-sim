@@ -25,12 +25,11 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
-#include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Model.hh>
-
+#include <ignition/gazebo/Types.hh>
 
 namespace ignition
 {
