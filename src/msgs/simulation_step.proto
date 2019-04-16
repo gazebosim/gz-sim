@@ -41,7 +41,8 @@ message SimulationStep
   /// \brief Simulation paused
   bool paused = 4;
 
-  /// \brief Updated performer affinities
+  /// \brief Updated performer affinities. It will be empty if there are no
+  /// affinity changes.
   repeated PerformerAffinity affinity = 5;
 }
 

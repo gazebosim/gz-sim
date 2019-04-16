@@ -15,15 +15,15 @@
  *
 */
 
-#include "msgs/peer_control.pb.h"
-#include "msgs/simulation_step.pb.h"
-
 #include <algorithm>
 #include <string>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/common/Profiler.hh>
+
+#include "msgs/peer_control.pb.h"
+#include "msgs/simulation_step.pb.h"
 
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -300,7 +300,7 @@ void NetworkManagerPrimary::PopulateAffinities(
     return;
   }
 
-  // TODO (louise) Process level changes
+  // TODO(louise) Process level changes
 }
 
 //////////////////////////////////////////////////

@@ -110,7 +110,8 @@ TEST(NetworkManager, EstablishComms)
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr, confSecondary1);
+  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary1);
   ASSERT_NE(nullptr, nmSecondary1);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
@@ -120,7 +121,8 @@ TEST(NetworkManager, EstablishComms)
 
   NetworkConfig confSecondary2;
   confSecondary2.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr, confSecondary2);
+  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary2);
   ASSERT_NE(nullptr, nmSecondary2);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
@@ -166,7 +168,8 @@ TEST(NetworkManager, Step)
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr, confSecondary1);
+  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary1);
   ASSERT_NE(nullptr, nmSecondary1);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
@@ -176,7 +179,8 @@ TEST(NetworkManager, Step)
 
   NetworkConfig confSecondary2;
   confSecondary2.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr, confSecondary2);
+  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary2);
   ASSERT_NE(nullptr, nmSecondary2);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));

@@ -20,15 +20,16 @@
 #include <atomic>
 #include <memory>
 #include <string>
-
+#include <unordered_set>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/transport/Node.hh>
 
-#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
+
+#include "NetworkManager.hh"
 
 namespace ignition
 {
@@ -59,6 +60,9 @@ namespace ignition
       public: std::string Namespace() const override;
 
       /// \brief Callback for when PeerControl service request is received.
+      /// \param[in] _req Request
+      /// \param[in] _resp Response
+      /// \return True if successful.
       public: bool OnControl(const private_msgs::PeerControl &_req,
                              private_msgs::PeerControl &_resp);
 
