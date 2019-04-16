@@ -16,19 +16,25 @@ the GUI.
 
 1. On one terminal, start the simulation primary:
 
-        . ./primary.sh
+        ./primary.sh
 
     An empty window will appear. Simulation won't be initialized until all 2
     secondaries are initialized.
 
 1. Open 2 other terminals and run the following to start a simulation secondary for each:
 
-        . ./secondary.sh
+        ./secondary.sh
 
     Once you've started all 2 secondaries, you'll see the 2 shapes show up on the window.
 
 1. Press play and you should see the levels being loaded and unloaded as the
    shapes roll down.
+
+## Standalone
+
+You can run the same world in a standalone process as follows:
+
+    ./standalone.sh
 
 # Generating worlds
 
