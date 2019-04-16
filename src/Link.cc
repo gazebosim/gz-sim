@@ -187,9 +187,11 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
     const EntityComponentManager &_ecm) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
 
-  if (!inertial)
+  if (!worldPose || !inertial)
     return std::nullopt;
 
-  return std::make_optional(inertial->Data().Moi());
+  return std::make_optional(
+      math::Inertiald(inertial->Data().MassMatrix(), worldPose->Data()).Moi());
 }

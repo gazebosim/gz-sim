@@ -238,7 +238,13 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
   math::MassMatrix3d linkMassMatrix(1.0, {0.4, 0.4, 0.4}, math::Vector3d::Zero);
   math::Inertiald linkInertial{linkMassMatrix, math::Pose3d::Zero};
 
-  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, IGN_PI_4, IGN_PI_2);
 
-  EXPECT_EQ(linkMassMatrix.Moi(), *link.WorldInertiaMatrix(ecm));
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
+
+  math::Matrix3d linkR(linkWorldPose.Rot());
+  math::Matrix3d expMoi = linkR * linkMassMatrix.Moi() * linkR.Transposed();
+  EXPECT_EQ(expMoi, *link.WorldInertiaMatrix(ecm));
 }
