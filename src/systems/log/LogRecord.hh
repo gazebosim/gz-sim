@@ -38,8 +38,7 @@ namespace systems
   /// \brief Log state recorder
   class IGNITION_GAZEBO_VISIBLE LogRecord:
     public System,
-    public ISystemConfigure,
-    public ISystemUpdate
+    public ISystemConfigure
   {
     /// \brief Constructor
     public: explicit LogRecord();
@@ -52,10 +51,6 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
-
-    /// Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-                        EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<LogRecordPrivate> dataPtr;
