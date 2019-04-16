@@ -84,7 +84,7 @@ TEST_F(LinkIntegrationTest, Name)
   Link link(id);
 
   // No name
-  EXPECT_TRUE(link.Name(ecm).empty());
+  EXPECT_EQ(std::nullopt, link.Name(ecm));
 
   // Add name
   ecm.CreateComponent<components::Name>(id, components::Name("link_name"));

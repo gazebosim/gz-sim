@@ -98,9 +98,10 @@ namespace ignition
 
       /// \brief Get the link's unscoped name.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Link's name or empty string if the entity does not have a
+      /// \return Link's name or nullopt if the entity does not have a
       /// components::Name component
-      public: std::string Name(const EntityComponentManager &_ecm) const;
+      public: std::optional<std::string> Name(
+          const EntityComponentManager &_ecm) const;
 
       /// \brief Get the parent model
       /// \param[in] _ecm Entity-component manager.
