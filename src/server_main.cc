@@ -40,6 +40,9 @@ DEFINE_string(network_role, "", "Participant role used in a distributed "
     " simulation environment. Role is one of [primary, secondary].");
 DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
     " expected to join a distributed simulation environment. (Primary only).");
+DEFINE_bool(record, false, "Use logging system to record states");
+DEFINE_string(record_path, "", "Custom path to put recorded files");
+DEFINE_string(playback, "", "Use logging system to play back states");
 
 //////////////////////////////////////////////////
 void help()
@@ -68,19 +71,32 @@ void help()
   << " The default is false, which starts simulation paused."
   << std::endl
   << "  --levels               Use the level system."
-  << " The default is false, which loads all models."
+  << std::endl
+  << "                         The default is false, which loads all models."
+  << std::endl
+  << "                         It's always true with --network-role."
   << std::endl
   << "  --distributed          Use the distributed simulation system."
   << " The default is false, which disables all distributed simulation."
   << " This will be deprecated in ign-gazebo2. Please use --network-role "
-  << " and/or --network-secondaries instead."
+  << " and/or --network-secondaries instead. It implies --levels."
   << std::endl
   << "  --network-role         Participant role used in a distributed "
   << " simulation environment. Role is one of [primary, secondary]."
+  << " It implies --levels."
   << std::endl
   << "  --network-secondaries  Number of secondary participants "
   << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl
+  << std::endl
+  << "  --record               Use logging system to record states."
+  << " The default is false."
+  << std::endl
+  << "  --record-path arg      Custom path to put recorded files."
+  << " Arg is path to recorded states."
+  << std::endl
+  << "  --playback arg         Use logging system to play back states."
+  << " Arg is path to recorded states."
   << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
@@ -196,7 +212,7 @@ int main(int _argc, char **_argv)
       << " and environment variables is deprecated. Please use the"
       << " --network-role and --network-secondaries command line options"
       << " instead.\n";
-    ignmsg << "Using the distributed simulation system\n";
+    ignmsg << "Using the distributed simulation and levels systems\n";
 #ifndef _WIN32
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -205,6 +221,7 @@ int main(int _argc, char **_argv)
 #ifndef _WIN32
   #pragma GCC diagnostic pop
 #endif
+    serverConfig.SetUseLevels(true);
   }
 
   if (!FLAGS_network_role.empty())
@@ -212,9 +229,45 @@ int main(int _argc, char **_argv)
     // This if is here to prevent the ignmsg from being displayed twice
     // in the case when FLAGS_distributed is used with FLAGS_network_role
     if (!FLAGS_distributed)
-      ignmsg << "Using the distributed simulation system\n";
+      ignmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(FLAGS_network_role);
     serverConfig.SetNetworkSecondaries(FLAGS_network_secondaries);
+    serverConfig.SetUseLevels(true);
+  }
+
+  if (!FLAGS_record_path.empty() || FLAGS_record)
+  {
+    if (!FLAGS_playback.empty())
+    {
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
+    serverConfig.SetUseLogRecord(true);
+
+    if (!FLAGS_record_path.empty())
+    {
+      serverConfig.SetLogRecordPath(FLAGS_record_path);
+    }
+    else
+    {
+      ignmsg << "Recording states to default path\n";
+    }
+  }
+
+  if (!FLAGS_playback.empty())
+  {
+    if (!FLAGS_f.empty())
+    {
+      ignerr << "Both an SDF file and playback flag are specified. "
+        << "Only specify one.\n";
+      return -1;
+    }
+    else
+    {
+      ignmsg << "Playing back states" << FLAGS_playback << std::endl;
+      serverConfig.SetLogPlaybackPath(FLAGS_playback);
+    }
   }
 
   // Create the Gazebo server
