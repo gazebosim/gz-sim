@@ -24,6 +24,7 @@
 #include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
+#include <ignition/rendering/gziface/SceneManager.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
@@ -49,7 +50,6 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "SceneManager.hh"
 #include "Sensors.hh"
 
 using namespace ignition;
@@ -82,7 +82,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::string engineName;
 
   /// \brief Scene manager
-  public: SceneManager sceneManager;
+  public: rendering::SceneManager sceneManager;
 
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
