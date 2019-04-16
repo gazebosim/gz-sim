@@ -102,9 +102,9 @@ namespace ignition
       /// components::Name component
       public: std::string Name(const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the Entity of the parent model
+      /// \brief Get the parent model
       /// \param[in] _ecm Entity-component manager.
-      /// \return Model entity or nullopt if the entity does not have a
+      /// \return Parent Model or nullopt if the entity does not have a
       /// components::ParentEntity component.
       public: std::optional<Model> ParentModel(
           const EntityComponentManager &_ecm) const;
@@ -164,7 +164,8 @@ namespace ignition
       /// \brief Get the inertia matrix in the world frame.
       /// \param[in] _ecm Entity-component manager.
       /// \return Inertia matrix in world frame, returns nullopt if link
-      /// does not have a components::Inertial component.
+      /// does not have components components::Inertial and
+      /// components::WorldPose.
       public: std::optional<math::Matrix3d> WorldInertiaMatrix(
           const EntityComponentManager &_ecm) const;
 
