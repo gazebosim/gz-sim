@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   altimeter_system.cc
+  apply_joint_force_system.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
