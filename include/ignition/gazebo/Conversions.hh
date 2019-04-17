@@ -19,6 +19,7 @@
 
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/time.pb.h>
@@ -26,6 +27,7 @@
 #include <chrono>
 
 #include <ignition/common/Console.hh>
+#include <ignition/math/Inertial.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
@@ -57,6 +59,23 @@ namespace ignition
     template<>
     msgs::Geometry convert(const sdf::Geometry &_in);
 
+    /// \brief Generic conversion from a geometry message to another type.
+    /// \param[in] _in Geometry message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Geometry &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a geometry message to a geometry
+    /// SDF object.
+    /// \param[in] _in Geometry message.
+    /// \return SDF geometry.
+    template<>
+    sdf::Geometry convert(const msgs::Geometry &_in);
+
     /// \brief Generic conversion from an SDF material to another type.
     /// \param[in] _in SDF material.
     /// \return Conversion result.
@@ -73,6 +92,23 @@ namespace ignition
     /// \return Material message.
     template<>
     msgs::Material convert(const sdf::Material &_in);
+
+    /// \brief Generic conversion from a material message to another type.
+    /// \param[in] _in Material message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Material &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a material message to a material
+    /// SDF object.
+    /// \param[in] _in Material message.
+    /// \return SDF material.
+    template<>
+    sdf::Material convert(const msgs::Material &_in);
 
     /// \brief Generic conversion from an SDF light to another type.
     /// \param[in] _in SDF light.
@@ -140,6 +176,40 @@ namespace ignition
     /// \return Steady clock duration.
     template<>
     std::chrono::steady_clock::duration convert(const msgs::Time &_in);
+
+    /// \brief Generic conversion from a math inertial to another type.
+    /// \param[in] _in Math inertial.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const math::Inertiald &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a math inertial to an inertial
+    /// message.
+    /// \param[in] _in Math inertial.
+    /// \return Inertial message.
+    template<>
+    msgs::Inertial convert(const math::Inertiald &_in);
+
+    /// \brief Generic conversion from an inertial message to another type.
+    /// \param[in] _in Inertial message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Inertial &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an inertial message to an inertial
+    /// math object.
+    /// \param[in] _in Inertial message.
+    /// \return math inertial.
+    template<>
+    math::Inertiald convert(const msgs::Inertial &_in);
     }
   }
 }

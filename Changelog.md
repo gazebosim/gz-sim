@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. More ign-msgs <-> SDF conversions: Inertial, Geometry, Material
+    * [Pull Request 251](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/251)
+
 1. Add a basic JointController system
     * [Pull Request 246](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/246)
 
