@@ -77,7 +77,7 @@ std::string scopedName(const Entity &_entity,
     std::string prefix;
     if (_ecm.Component<components::World>(entity))
     {
-      prefix = "world";
+      prefix = "/world";
     }
     else if (_ecm.Component<components::Model>(entity))
     {

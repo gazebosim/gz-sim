@@ -126,13 +126,13 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
       {
         // create sensor
         std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
-        auto data = _magnetometer->Data()->Clone();
-        data->GetAttribute("name")->Set(sensorScopedName);
+        sdf::Sensor data = _magnetometer->Data();
+        data.SetName(sensorScopedName);
         // check topic
-        if (!data->HasElement("topic"))
+        if (data.Topic().empty())
         {
           std::string topic = scopedName(_entity, _ecm) + "/magnetometer";
-          data->GetElement("topic")->Set(topic);
+          data.SetTopic(topic);
         }
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
             this->sensorFactory.CreateSensor<

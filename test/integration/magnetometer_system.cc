@@ -96,6 +96,7 @@ std::vector<msgs::Magnetometer> magnetometerMsgs;
 /////////////////////////////////////////////////
 void magnetometerCb(const msgs::Magnetometer &_msg)
 {
+  std::cout << "magnetometerCb\n";
   mutex.lock();
   magnetometerMsgs.push_back(_msg);
   mutex.unlock();
