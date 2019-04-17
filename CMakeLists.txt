@@ -46,8 +46,8 @@ set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs3 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
+ign_find_package(ignition-msgs4 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
@@ -62,8 +62,8 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui1 REQUIRED)
-set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
+ign_find_package(ignition-gui2 REQUIRED)
+set(IGN_GUI_VER ${ignition-gui2_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
     Core
@@ -118,7 +118,7 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
 
 #============================================================================
 # Configure the build
