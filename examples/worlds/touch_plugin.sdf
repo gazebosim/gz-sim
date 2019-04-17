@@ -141,7 +141,6 @@ The output of the plugin is via
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -202,7 +201,7 @@ The output of the plugin is via
           </geometry>
           <material>
             <ambient>0 1 0 1</ambient>
-            <emissive>0 1 0 1</emissive>
+            <diffuse>0 1 0 1</diffuse>
           </material>
         </visual>
       </link>
