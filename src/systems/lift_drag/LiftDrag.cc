@@ -77,7 +77,7 @@ class ignition::gazebo::systems::LiftDragPrivate
   public: double claStall;
 
   /// \brief Cd-alpha rate after stall
-  /// TODO: what's flat plate drag?
+  /// \todo(anyone): what's flat plate drag?
   public: double cdaStall;
 
   /// \brief Cm-alpha rate after stall
@@ -344,7 +344,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   if (controlJointPosition)
   {
     cl = cl + this->controlJointRadToCL * controlJointPosition->Data()[0];
-    /// \TODO: also change cm and cd
+    /// \todo(anyone): also change cm and cd
   }
 
   // compute lift force at cp
@@ -394,7 +394,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   else
     cm = this->cma * alpha * cosSweepAngle;
 
-  /// \TODO: implement cm
+  /// \todo(anyone): implement cm
   /// for now, reset cm to zero, as cm needs testing
   cm = 0.0;
 
