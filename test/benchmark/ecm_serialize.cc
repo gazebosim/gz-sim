@@ -117,7 +117,7 @@ void BM_Serialize5Component(benchmark::State &_st)
     auto stateMsg = mgr->State();
     serializedSize = stateMsg.ByteSize();
   }
-  _st.counters["serializedSize"] = serializedSize;
+  _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
   _st.counters["num_components"] = 5;
 }
