@@ -82,7 +82,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::string engineName;
 
   /// \brief Scene manager
-  public: rendering::SceneManager sceneManager;
+  public: rendering::gziface::SceneManager sceneManager;
 
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
