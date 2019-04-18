@@ -28,8 +28,9 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/transport/Node.hh>
 
-#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
+
+#include "NetworkManager.hh"
 
 namespace ignition
 {
@@ -40,13 +41,7 @@ namespace ignition
     struct SecondaryControl
     {
       /// \brief indicate if the secondary is ready to execute
-      std::atomic<bool> ready {false};
-
-      /// \brief acknowledge received flag
-      std::atomic<bool> recvStepAck {false};
-
-      /// \brief last acknowledged iteration from secondary peer.
-      std::atomic<uint64_t> recvIter {0};
+      std::atomic<bool> ready{false};
 
       /// \brief id of the secondary peer
       std::string id;
@@ -54,16 +49,9 @@ namespace ignition
       /// \brief prefix namespace of the secondary peer
       std::string prefix;
 
-      /// \brief string identification of associated performers to this peer
-      std::vector<std::string> performers;
-
-      /// \brief entity identification of associated performers to this peer
-      std::vector<Entity> performerIds;
-
       /// \brief Convenience alias for unique_ptr.
       using Ptr = std::unique_ptr<SecondaryControl>;
     };
-
 
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
     ///   ignition/gazebo/network/NetworkManagerPrimary.hh
@@ -72,27 +60,25 @@ namespace ignition
       public NetworkManager
     {
       // Documentation inherited
-      public: explicit NetworkManagerPrimary(EventManager *_eventMgr,
-                                             const NetworkConfig &_config,
-                                             const NodeOptions &_options);
+      public: explicit NetworkManagerPrimary(
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr,
+          const NetworkConfig &_config,
+          const NodeOptions &_options);
 
       // Documentation inherited
-      public: void Initialize() override;
+      public: void Handshake() override;
 
       // Documentation inherited
       public: bool Ready() const override;
 
-      /// \brief Populate simulation step data.
-      /// On the network primary, the argument will be used to distribute
-      /// simulation state to all of the network participants.
-      /// \return True if simulation step is ready.
-      public: bool Step(UpdateInfo &_info) override;
-
-      /// \brief Acknowledge the completion of a simulation step.
-      /// On the network primary, this will aggregate the acknowledgements of
-      /// all simulation participants
-      /// \return True if all participants acknowledge the simuation step.
-      public: bool StepAck(uint64_t _iteration) override;
+      /// \brief Populate simulation step data
+      /// This method is called at the beginning of a simulation iteration.
+      /// It will populate the info argument with the appropriate values for
+      /// the simuation iteration.
+      /// \param[inout] _info current simulation update information
+      /// \return True if simulation step was successfully synced.
+      public: bool Step(const UpdateInfo &_info);
 
       // Documentation inherited
       public: std::string Namespace() const override;
@@ -101,10 +87,24 @@ namespace ignition
       /// peers.
       public: std::map<std::string, SecondaryControl::Ptr>& Secondaries();
 
-      /// \brief Called when a step acknowledgement is received from a
-      /// secondary.
-      public: void OnStepAck(const std::string &_secondary,
-                  const private_msgs::SimulationStep &_msg);
+      /// \brief Callback for step ack messages.
+      /// \param[in] _msg Message containing secondary's updated state.
+      private: void OnStepAck(const msgs::SerializedState &_msg);
+
+      /// \brief Check if the step publisher has connections.
+      private: bool SecondariesCanStep() const;
+
+      /// \brief Populate the step message with the latest affinities according
+      /// to levels.
+      /// \param[in] _msg Step message.
+      private: void PopulateAffinities(private_msgs::SimulationStep &_msg);
+
+      /// \brief Set the performer to secondary affinity.
+      /// \param[in] _performer Performer entity.
+      /// \param[in] _secondary Secondary identifier.
+      /// \param[out] _msg Message to be populated.
+      private: void SetAffinity(Entity _performer,
+          const std::string &_secondary, private_msgs::PerformerAffinity *_msg);
 
       /// \brief Container of currently used secondary peers
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
@@ -112,8 +112,11 @@ namespace ignition
       /// \brief Transport node
       private: ignition::transport::Node node;
 
-      /// \brief Publisher for network clock sync
+      /// \brief Publisher for network step sync
       private: ignition::transport::Node::Publisher simStepPub;
+
+      /// \brief Keep track of states received from secondaries.
+      private: std::vector<msgs::SerializedState> secondaryStates;
     };
     }
   }  // namespace gazebo

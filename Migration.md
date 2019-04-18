@@ -10,6 +10,11 @@ release will remove the deprecated code.
 * The `entity_name` field in the messages published by the imu system is
 updated to report its scoped name.
 
+* Log files generated from Ignition Gazebo 1.X are no longer compatible with
+Gazebo 2+ for playback. [Pull request
+#257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+added an SDF message to the start of log files.
+
 ## Ignition Gazebo 1.0.2 to 1.1.0
 
 * All headers in `gazebo/network` are no longer installed.
