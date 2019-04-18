@@ -27,6 +27,7 @@ set(tests
   touch_plugin.cc
   user_commands.cc
   log_system.cc
+  wind_effects.cc
 )
 
 # Tests that require a valid display

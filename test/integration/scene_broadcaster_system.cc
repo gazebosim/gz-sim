@@ -49,7 +49,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -97,7 +97,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -143,7 +143,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -160,15 +160,15 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
-  EXPECT_NE(res.data().find("box (3)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_link (4)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_visual (5)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder (7)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_link (8)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_visual (9)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere (11)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_link (12)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_visual (13)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (4)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (5)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (8)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (9)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (12)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (13)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (14)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -183,7 +183,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -228,7 +228,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 15;
+  const std::size_t initEntityCount = 16;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
