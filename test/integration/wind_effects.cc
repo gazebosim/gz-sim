@@ -184,7 +184,7 @@ class BlockingPublisher
 };
 
 /////////////////////////////////////////////////
-///Check if 'enable_wind' set only in <model> works
+/// Check if 'enable_wind' set only in <model> works
 TEST_F(WindEffectsTest, WindEnabledInModel)
 {
   this->StartServer("/test/worlds/wind_effects.sdf");
@@ -201,7 +201,7 @@ TEST_F(WindEffectsTest, WindEnabledInModel)
 }
 
 /////////////////////////////////////////////////
-///Check if 'enable_wind' set only in <link> works
+/// Check if 'enable_wind' set only in <link> works
 TEST_F(WindEffectsTest, WindEnabledInLink)
 {
   this->StartServer("/test/worlds/wind_effects.sdf");

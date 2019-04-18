@@ -511,7 +511,8 @@ void WindEffects::Configure(const Entity &_entity,
     auto windLinVelSeed = _ecm.Component<components::WorldLinearVelocitySeed>(
         this->dataPtr->windEntity);
 
-    if (windLinVelSeed){
+    if (windLinVelSeed)
+    {
       // Update current wind velocity seed
       std::lock_guard lock(this->dataPtr->windInfoMutex);
       msgs::Set(this->dataPtr->currentWindInfo.mutable_linear_velocity(),
