@@ -1,6 +1,9 @@
 set(TEST_TYPE "BENCHMARK")
 
-find_package(benchmark REQUIRED)
+find_package(benchmark)
+if (NOT benchmark_FOUND)
+  message(FATAL_ERROR "Unable to find google benchmark (libbenchmark-dev).")
+endif()
 
 set(tests
   each.cc
