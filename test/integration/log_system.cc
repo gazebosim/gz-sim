@@ -24,8 +24,8 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
 #include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Batch.hh>
+#include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/MsgIter.hh>
 #include <ignition/transport/log/QualifiedTime.hh>
 #include <ignition/math/Pose3.hh>
