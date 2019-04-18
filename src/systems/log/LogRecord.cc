@@ -161,7 +161,7 @@ LogRecord::~LogRecord()
 //////////////////////////////////////////////////
 void LogRecord::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm, EventManager &_eventMgr)
+    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   this->dataPtr->sdf = _sdf;
 
