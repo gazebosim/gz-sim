@@ -33,10 +33,13 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "LevelManager.hh"
@@ -82,6 +85,19 @@ void LevelManager::ReadLevelPerformerInfo()
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
 
   auto worldElem = this->runner->sdfWorld->Element();
+
+  // Create Wind
+  auto windEntity = this->runner->entityCompMgr.CreateEntity();
+  this->runner->entityCompMgr.CreateComponent(windEntity, components::Wind());
+  this->runner->entityCompMgr.CreateComponent(
+      windEntity, components::WorldLinearVelocity(
+                      this->runner->sdfWorld->WindLinearVelocity()));
+  // Initially the wind linear velocity is used as the seed velocity
+  this->runner->entityCompMgr.CreateComponent(
+      windEntity, components::WorldLinearVelocitySeed(
+                      this->runner->sdfWorld->WindLinearVelocity()));
+
+  this->entityCreator->SetParent(windEntity, this->worldEntity);
 
   // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.

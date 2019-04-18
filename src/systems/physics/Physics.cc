@@ -896,6 +896,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
+  _ecm.Each<components::ExternalWorldWrenchCmd >(
+      [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
+      {
+        _wrench->Data().Clear();
+        return true;
+      });
+
+
   // Update joint positions
   _ecm.Each<components::Joint, components::JointPosition>(
       [&](const Entity &_entity, components::Joint *,
