@@ -58,64 +58,64 @@ class ignition::gazebo::systems::LiftDragPrivate
   /// \brief Coefficient of Lift / alpha slope.
   /// Lift = C_L * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cla;
+  public: double cla = 1.0;
 
   /// \brief Coefficient of Drag / alpha slope.
   /// Drag = C_D * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cda;
+  public: double cda = 0.01;
 
   /// \brief Coefficient of Moment / alpha slope.
   /// Moment = C_M * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cma;
+  public: double cma = 0.01;
 
   /// \brief angle of attach when airfoil stalls
-  public: double alphaStall;
+  public: double alphaStall = IGN_PI_2;
 
   /// \brief Cl-alpha rate after stall
-  public: double claStall;
+  public: double claStall = 0.0;
 
   /// \brief Cd-alpha rate after stall
   /// \todo(anyone): what's flat plate drag?
-  public: double cdaStall;
+  public: double cdaStall = 1.0;
 
   /// \brief Cm-alpha rate after stall
-  public: double cmaStall;
+  public: double cmaStall = 0.0;
 
   /// \brief air density
   /// at 25 deg C it's about 1.1839 kg/m^3
   /// At 20 °C and 101.325 kPa, dry air has a density of 1.2041 kg/m3.
-  public: double rho;
+  public: double rho = 1.2041;
 
   /// \brief if the shape is aerodynamically radially symmetric about
   /// the forward direction. Defaults to false for wing shapes.
   /// If set to true, the upward direction is determined by the
   /// angle of attack.
-  public: bool radialSymmetry;
+  public: bool radialSymmetry = false;
 
   /// \brief effective planeform surface area
-  public: double area;
+  public: double area = 1.0;
 
   /// \brief initial angle of attack
-  public: double alpha0;
+  public: double alpha0 = 0.0;
 
   /// \brief center of pressure in link local coordinates with respect to the
   /// link's center of mass
-  public: ignition::math::Vector3d cp;
+  public: ignition::math::Vector3d cp = math::Vector3d::Zero;
 
   /// \brief Normally, this is taken as a direction parallel to the chord
   /// of the airfoil in zero angle of attack forward flight.
-  public: ignition::math::Vector3d forward;
+  public: ignition::math::Vector3d forward = math::Vector3d::UnitX;
 
   /// \brief A vector in the lift/drag plane, perpendicular to the forward
   /// vector. Inflow velocity orthogonal to forward and upward vectors
   /// is considered flow in the wing sweep direction.
-  public: ignition::math::Vector3d upward;
+  public: ignition::math::Vector3d upward = math::Vector3d::UnitZ;
 
   /// \brief how much to change CL per radian of control surface joint
   /// value.
-  public: double controlJointRadToCL;
+  public: double controlJointRadToCL = 4.0;
 
   /// \brief Link entity targeted this plugin.
   public: Entity linkEntity;
@@ -138,30 +138,32 @@ class ignition::gazebo::systems::LiftDragPrivate
 void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                            const sdf::ElementPtr &_sdf)
 {
-  this->cla = _sdf->Get<double>("cla", 1.0).first;
-  this->cda = _sdf->Get<double>("cda", 0.01).first;
-  this->cma = _sdf->Get<double>("cma", 0.01).first;
-  this->alphaStall = _sdf->Get<double>("alpha_stall", IGN_PI_2).first;
-  this->claStall = _sdf->Get<double>("cla_stall", 0.0).first;
-  this->cdaStall = _sdf->Get<double>("cda_stall", 1.0).first;
-  this->cmaStall = _sdf->Get<double>("cma_stall", 0.0).first;
-  this->rho = _sdf->Get<double>("air_density", 1.2041).first;
-  this->radialSymmetry = _sdf->Get<bool>("radial_symmetry", false).first;
-  this->area = _sdf->Get<double>("area", 1.0).first;
-  this->alpha0 = _sdf->Get<double>("a0", 0.0).first;
-  this->cp = _sdf->Get<ignition::math::Vector3d>("cp", {0, 0, 0}).first;
+  this->cla = _sdf->Get<double>("cla", this->cla).first;
+  this->cda = _sdf->Get<double>("cda", this->cda).first;
+  this->cma = _sdf->Get<double>("cma", this->cma).first;
+  this->alphaStall = _sdf->Get<double>("alpha_stall", this->alphaStall).first;
+  this->claStall = _sdf->Get<double>("cla_stall", this->claStall).first;
+  this->cdaStall = _sdf->Get<double>("cda_stall", this->cdaStall).first;
+  this->cmaStall = _sdf->Get<double>("cma_stall", this->cmaStall).first;
+  this->rho = _sdf->Get<double>("air_density", this->rho).first;
+  this->radialSymmetry = _sdf->Get<bool>("radial_symmetry",
+      this->radialSymmetry).first;
+  this->area = _sdf->Get<double>("area", this->area).first;
+  this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
+  this->cp = _sdf->Get<ignition::math::Vector3d>("cp", this->cp).first;
 
   // blade forward (-drag) direction in link frame
   this->forward =
-      _sdf->Get<ignition::math::Vector3d>("forward", {1, 0, 0}).first;
+      _sdf->Get<ignition::math::Vector3d>("forward", this->forward).first;
   this->forward.Normalize();
 
   // blade upward (+lift) direction in link frame
-  this->upward = _sdf->Get<ignition::math::Vector3d>("upward", {0, 0, 1}).first;
+  this->upward = _sdf->Get<ignition::math::Vector3d>(
+      "upward", this->upward) .first;
   this->upward.Normalize();
 
-  this->controlJointRadToCL =
-      _sdf->Get<double>("control_joint_rad_to_cl", 4.0).first;
+  this->controlJointRadToCL = _sdf->Get<double>(
+      "control_joint_rad_to_cl", this->controlJointRadToCL).first;
 
   if (_sdf->HasElement("link_name"))
   {
