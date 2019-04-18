@@ -120,6 +120,7 @@ void BM_Serialize5Component(benchmark::State &_st)
   _st.counters["num_components"] = 5;
 }
 
+
 BENCHMARK(BM_Serialize1Component)
   ->Arg(10)
   ->Arg(50)
@@ -136,9 +137,4 @@ BENCHMARK(BM_Serialize5Component)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-int main(int argc, char** argv)
-{
-  benchmark::Initialize(&argc, argv);
-  benchmark::RunSpecifiedBenchmarks();
-  return 0;
-}
+BENCHMARK_MAIN()
