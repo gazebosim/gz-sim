@@ -28,8 +28,8 @@ pipelines:
             libignition-transport6-dev
             libsdformat8-dev
             libignition-fuel-tools3-dev
+            libignition-sensors-dev
           #  libignition-rendering-dev
-          #  libignition-sensors-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
           #   libxml2-utils
@@ -69,13 +69,13 @@ pipelines:
           - make -j4 install
           - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
-          - cd ign-sensors
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          - make -j4 install
-          - cd ../..
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - cd ign-sensors
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
+          # - make -j4 install
+          # - cd ../..
           # Ignition fuel-tools (uncomment if a specific branch is needed)
           # - apt install -y
           #   libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
