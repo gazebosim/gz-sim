@@ -21,6 +21,7 @@
 
 #include "ignition/common/Console.hh"
 #include "ignition/common/Util.hh"
+#include "ignition/gazebo/Events.hh"
 
 #include "NetworkManager.hh"
 #include "NetworkManagerPrivate.hh"
@@ -55,7 +56,9 @@ bool validateConfig(const NetworkConfig &_config)
 
 //////////////////////////////////////////////////
 std::unique_ptr<NetworkManager> NetworkManager::Create(
-    EventManager *_eventMgr, const NetworkConfig &_config,
+    const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+    EntityComponentManager &_ecm, EventManager *_eventMgr,
+    const NetworkConfig &_config,
     const NodeOptions &_options)
 {
   std::unique_ptr<NetworkManager> ret;
@@ -69,11 +72,11 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
   {
     case NetworkRole::SimulationPrimary:
       ret = std::make_unique<NetworkManagerPrimary>(
-          _eventMgr, _config, _options);
+          _stepFunction, _ecm, _eventMgr, _config, _options);
       break;
     case NetworkRole::SimulationSecondary:
       ret = std::make_unique<NetworkManagerSecondary>(
-          _eventMgr, _config, _options);
+          _stepFunction, _ecm, _eventMgr, _config, _options);
       break;
     case NetworkRole::ReadOnly:
       // \todo(mjcarroll): Enable ReadOnly
@@ -90,15 +93,54 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
 
 //////////////////////////////////////////////////
 NetworkManager::NetworkManager(
-    EventManager *_eventMgr, const NetworkConfig &_config,
-    const NodeOptions &_options):
+    const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+    EntityComponentManager &_ecm, EventManager *_eventMgr,
+    const NetworkConfig &_config, const NodeOptions &_options):
   dataPtr(new NetworkManagerPrivate)
 {
+  this->dataPtr->ecm = &_ecm;
+  this->dataPtr->stepFunction = _stepFunction;
   this->dataPtr->config = _config;
   this->dataPtr->peerInfo = PeerInfo(this->dataPtr->config.role);
   this->dataPtr->eventMgr = _eventMgr;
   this->dataPtr->tracker = std::make_unique<PeerTracker>(
       this->dataPtr->peerInfo, _eventMgr, _options);
+
+  if (_eventMgr)
+  {
+    // Set a flag when the executable is stopping to cleanly exit.
+    this->dataPtr->stoppingConn = _eventMgr->Connect<events::Stop>([this]()
+    {
+      this->dataPtr->stopReceived = true;
+    });
+
+    this->dataPtr->peerRemovedConn = _eventMgr->Connect<PeerRemoved>(
+        [this](PeerInfo _info)
+    {
+      if (_info.Namespace() != this->Namespace())
+      {
+        ignmsg << "Peer [" << _info.Namespace()
+               << "] removed, stopping simulation" << std::endl;
+        this->dataPtr->eventMgr->Emit<events::Stop>();
+      }
+    });
+
+    this->dataPtr->peerStaleConn = _eventMgr->Connect<PeerStale>(
+        [this](PeerInfo _info)
+    {
+      if (_info.Namespace() != this->Namespace())
+      {
+        ignerr << "Peer [" << _info.Namespace()
+               << "] went stale, stopping simulation" << std::endl;
+        this->dataPtr->eventMgr->Emit<events::Stop>();
+      }
+    });
+  }
+  else
+  {
+    ignwarn << "NetworkManager started without EventManager. "
+      << "Distributed environment may not terminate correctly" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
