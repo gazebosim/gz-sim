@@ -151,12 +151,12 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     const components::JointVelocity *jointVelocity  =
       _ecm.Component<components::JointVelocity>(joint);
     if (jointVelocity)
-    {
-      for (const double &vel : jointVelocity->Data())
-      {
-        jointMsg->add_velocity(vel);
-      }
-    }
+      jointMsg->add_velocity(jointVelocity->Data());
+
+    const components::JointVelocity2 *jointVelocity2  =
+      _ecm.Component<components::JointVelocity2>(joint);
+    if (jointVelocity2)
+      jointMsg->add_velocity(jointVelocity2->Data());
 
     // Set the joint force
     const components::JointForce *jointForce  =

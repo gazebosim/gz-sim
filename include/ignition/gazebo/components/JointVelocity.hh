@@ -29,12 +29,17 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Velocity of a joint's axes in SI units (rad/s for revolute,
+  /// \brief Velocity of a joint's first axis in SI units (rad/s for revolute,
   /// m/s for prismatic).
-  using JointVelocity = Component<std::array<double, 3>,
-        class JointVelocityTag>;
+  using JointVelocity = Component<double, class JointVelocityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocity", JointVelocity)
+
+  /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
+  /// m/s for prismatic).
+  using JointVelocity2 = Component<double, class JointVelocity2Tag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointVelocity2", JointVelocity2)
 }
 }
 }

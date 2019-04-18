@@ -349,7 +349,7 @@ TEST_F(ComponentsTest, JointType)
 TEST_F(ComponentsTest, JointVelocity)
 {
   // Create components
-  auto comp11 = components::JointVelocity({1.2, 0, 0});
+  auto comp11 = components::JointVelocity(1.2);
 
   // No double comparisons
 
@@ -361,7 +361,7 @@ TEST_F(ComponentsTest, JointVelocity)
   std::istringstream istr("3.4");
   components::JointVelocity comp3;
   istr >> comp3;
-  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data());
 }
 
 /////////////////////////////////////////////////
