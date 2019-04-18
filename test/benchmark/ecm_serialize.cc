@@ -70,9 +70,10 @@ using namespace ignition;
 using namespace gazebo;
 using namespace components;
 
+// NOLINTNEXTLINE
 void BM_Serialize1Component(benchmark::State &_st)
 {
-  size_t serialized_size = 0;
+  size_t serializedSize = 0;
   auto entityCount = _st.range(0);
   for (auto _: _st)
   {
@@ -86,16 +87,17 @@ void BM_Serialize1Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
-    serialized_size = stateMsg.ByteSize();
+    serializedSize = stateMsg.ByteSize();
   }
-  _st.counters["serialized_size"] = serialized_size;
+  _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
   _st.counters["num_components"] = 1;
 }
 
+// NOLINTNEXTLINE
 void BM_Serialize5Component(benchmark::State &_st)
 {
-  size_t serialized_size = 0;
+  size_t serializedSize = 0;
   auto entityCount = _st.range(0);
   for (auto _: _st)
   {
@@ -113,13 +115,14 @@ void BM_Serialize5Component(benchmark::State &_st)
     _st.ResumeTiming();
 
     auto stateMsg = mgr->State();
-    serialized_size = stateMsg.ByteSize();
+    serializedSize = stateMsg.ByteSize();
   }
-  _st.counters["serialized_size"] = serialized_size;
+  _st.counters["serialized_size"] = serializedSize;
   _st.counters["num_entities"] = entityCount;
   _st.counters["num_components"] = 5;
 }
 
+// NOLINTNEXTLINE
 BENCHMARK(BM_Serialize1Component)
   ->Arg(10)
   ->Arg(50)
@@ -128,6 +131,7 @@ BENCHMARK(BM_Serialize1Component)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
+// NOLINTNEXTLINE
 BENCHMARK(BM_Serialize5Component)
   ->Arg(10)
   ->Arg(50)
