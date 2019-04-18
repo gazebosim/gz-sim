@@ -226,7 +226,6 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
   const std::size_t testIters = 1000;
   server.Run(true, testIters , false);
 
-  // It takes a few iterations before the
   EXPECT_EQ(testIters, forces.size());
 
   const double v = linearVelocities.back().X();
