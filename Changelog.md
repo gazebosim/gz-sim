@@ -1,3 +1,10 @@
+## Ignition Gazebo 2.x
+
+### Ignition Gazebo 2.X.X
+
+1. Added an SDF message to the start of log files.
+    * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
