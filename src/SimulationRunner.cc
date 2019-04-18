@@ -24,6 +24,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "network/NetworkManagerPrimary.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -115,11 +116,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     if (_config.NetworkRole().empty())
     {
       /// \todo(nkoenig) Remove part of the 'if' statement in ign-gazebo3.
-      this->networkMgr = NetworkManager::Create(&this->eventMgr);
+      this->networkMgr = NetworkManager::Create(
+          std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
+          this->entityCompMgr, &this->eventMgr);
     }
     else
     {
-      this->networkMgr = NetworkManager::Create(&this->eventMgr,
+      this->networkMgr = NetworkManager::Create(
+          std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
+          this->entityCompMgr, &this->eventMgr,
           NetworkConfig::FromValues(
             _config.NetworkRole(), _config.NetworkSecondaries()));
     }
@@ -135,9 +140,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       ignmsg << "Network Secondary, with namespace ["
              << this->networkMgr->Namespace() << "]." << std::endl;
     }
-
-    // Create the sync manager
-    this->syncMgr = std::make_unique<SyncManager>(this);
   }
 
   // Load the active levels
@@ -366,21 +368,22 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Initialize network communications.
   if (this->networkMgr)
   {
-    // todo(mjcarroll) improve guard conditions around the busy loops.
     igndbg << "Initializing network configuration" << std::endl;
-    this->networkMgr->Initialize();
+    this->networkMgr->Handshake();
 
-    if (!this->stopReceived)
+    // Secondaries are stepped through the primary, just keep alive until
+    // simulation is over
+    if (this->networkMgr->IsSecondary())
     {
-      this->syncMgr->DistributePerformers();
-    }
-    else
-    {
-      this->running = false;
-      return false;
+      igndbg << "Secondary running." << std::endl;
+      while (!this->stopReceived)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+      igndbg << "Secondary finished run." << std::endl;
+      return true;
     }
   }
-
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
   if (!this->currentInfo.paused)
@@ -418,12 +421,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     sleepTime = 0ns;
     actualSleep = 0ns;
 
-    if (!this->networkMgr || this->networkMgr->IsPrimary())
-    {
-      sleepTime = std::max(0ns, this->prevUpdateRealTime +
-          this->updatePeriod - std::chrono::steady_clock::now() -
-          this->sleepOffset);
-    }
+    sleepTime = std::max(0ns, this->prevUpdateRealTime +
+        this->updatePeriod - std::chrono::steady_clock::now() -
+        this->sleepOffset);
 
     // Only sleep if needed.
     if (sleepTime > 0ns)
@@ -446,67 +446,63 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // and other values.
     this->UpdateCurrentInfo();
 
+    // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
     {
-      IGN_PROFILE("NetworkSync - SendStep");
-      // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->stopReceived &&
-          !this->networkMgr->Step(this->currentInfo))
-      {
-      }
+      auto netPrimary =
+          dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
+      netPrimary->Step(this->currentInfo);
     }
-
-    // Publish info
-    this->PublishStats();
-
-    // Record when the update step starts.
-    this->prevUpdateRealTime = std::chrono::steady_clock::now();
-
-    this->levelMgr->UpdateLevelsState();
-
-    // Handle pending systems
-    this->ProcessSystemQueue();
-
-    // Update all the systems.
-    this->UpdateSystems();
-
-    if (!this->Paused() && this->pendingSimIterations > 0)
+    else
     {
-      // Decrement the pending sim iterations, if there are any.
-      --this->pendingSimIterations;
-      // If this is was the last sim iterations, then re-pause simulation.
-      if (this->pendingSimIterations <= 0)
-      {
-        this->SetPaused(true);
-      }
-    }
-
-    // Process world control messages.
-    this->ProcessMessages();
-
-    // Clear all new entities
-    this->entityCompMgr.ClearNewlyCreatedEntities();
-
-    // Process entity removals.
-    this->entityCompMgr.ProcessRemoveEntityRequests();
-
-
-    if (this->networkMgr)
-    {
-      IGN_PROFILE("NetworkSync - SecondaryAck");
-
-      this->syncMgr->Sync();
-
-      // \todo(anyone) Replace busy loop with a condition.
-      while (this->running && !this->networkMgr->StepAck(
-            this->currentInfo.iterations))
-      {
-      }
+      this->Step(this->currentInfo);
     }
   }
 
   this->running = false;
   return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::Step(const UpdateInfo &_info)
+{
+  IGN_PROFILE("SimulationRunner::Step");
+  this->currentInfo = _info;
+
+  // Publish info
+  this->PublishStats();
+
+  // Record when the update step starts.
+  this->prevUpdateRealTime = std::chrono::steady_clock::now();
+
+  this->levelMgr->UpdateLevelsState();
+
+  // Handle pending systems
+  this->ProcessSystemQueue();
+
+  // Update all the systems.
+  this->UpdateSystems();
+
+  if (!this->Paused() && this->pendingSimIterations > 0)
+  {
+    // Decrement the pending sim iterations, if there are any.
+    --this->pendingSimIterations;
+
+    // If this is was the last sim iterations, then re-pause simulation.
+    if (this->pendingSimIterations <= 0)
+    {
+      this->SetPaused(true);
+    }
+  }
+
+  // Process world control messages.
+  this->ProcessMessages();
+
+  // Clear all new entities
+  this->entityCompMgr.ClearNewlyCreatedEntities();
+
+  // Process entity removals.
+  this->entityCompMgr.ProcessRemoveEntityRequests();
 }
 
 //////////////////////////////////////////////////
@@ -596,6 +592,8 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
                                 this->eventMgr);
       }
       this->AddSystem(system.value());
+      igndbg << "Loaded system [" << plugin.Name()
+             << "] for entity [" << _entity << "]" << std::endl;
     }
   }
 }
