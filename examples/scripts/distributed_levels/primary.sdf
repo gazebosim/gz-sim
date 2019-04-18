@@ -143,7 +143,6 @@
             <ambient>0 1 0 1</ambient>
             <diffuse>0 1 0 1</diffuse>
             <specular>0 1 0 1</specular>
-            <emissive>0 1 0 1</emissive>
           </material>
         </visual>
       </link>
@@ -178,7 +177,6 @@
             <ambient>1 1 0 1</ambient>
             <diffuse>1 1 0 1</diffuse>
             <specular>1 1 0 1</specular>
-            <emissive>1 1 0 1</emissive>
           </material>
         </visual>
       </link>
@@ -207,7 +205,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -227,7 +224,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -244,7 +240,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -271,7 +266,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -291,7 +285,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -308,7 +301,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -335,7 +327,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -355,7 +346,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -372,7 +362,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -399,7 +388,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -419,7 +407,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -436,7 +423,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -463,7 +449,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -483,7 +468,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -500,7 +484,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -527,7 +510,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -547,7 +529,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -564,7 +545,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -591,7 +571,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -611,7 +590,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -628,7 +606,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -655,7 +632,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -675,7 +651,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -692,7 +667,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -719,7 +693,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -739,7 +712,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -756,7 +728,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -783,7 +754,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -803,7 +773,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -820,7 +789,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -847,7 +815,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -867,7 +834,6 @@
             <ambient>0 0 0.8 0.2</ambient>
             <diffuse>0 0 0.8 0.2</diffuse>
             <specular>0 0 0.8 0.2</specular>
-            <emissive>0 0 0.8 0.2</emissive>
           </material>
         </visual>
         <visual name="visual_buffer">
@@ -884,7 +850,6 @@
             <ambient>0 0.8 0.8 0.2</ambient>
             <diffuse>0 0.8 0.8 0.2</diffuse>
             <specular>0 0.8 0.8 0.2</specular>
-            <emissive>0 0.8 0.8 0.2</emissive>
           </material>
         </visual>
       </link>
@@ -919,7 +884,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -953,7 +917,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
