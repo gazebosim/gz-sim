@@ -192,6 +192,8 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
   if (!worldPose || !inertial)
     return std::nullopt;
 
+  const math::Pose3d &comWorldPose =
+      worldPose->Data() * inertial->Data().Pose();
   return std::make_optional(
-      math::Inertiald(inertial->Data().MassMatrix(), worldPose->Data()).Moi());
+      math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
 }
