@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. Add Wind Plugin (Ported from Gazebo classic)
+    * [Pull Request 273](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/273/)
+
 1. More ign-msgs <-> SDF conversions: Inertial, Geometry, Material
     * [Pull Request 251](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/251)
 
