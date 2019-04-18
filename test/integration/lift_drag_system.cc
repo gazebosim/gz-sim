@@ -228,6 +228,7 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
   const double rho = 1.2041;
   const double area = 10;
 
+  // It takes a few iterations before the system reaches a steady state
   const std::size_t testIters = 1000;
   server.Run(true, testIters , false);
 
