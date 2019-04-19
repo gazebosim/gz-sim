@@ -39,8 +39,6 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Name.hh"  // For debug only
-#include "ignition/gazebo/components/World.hh"  // For debug only
 
 
 using namespace ignition;
@@ -76,19 +74,18 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted;
+  public: bool instStarted{false};
 
   /// \brief Flag to print finish message once
   public: bool printedEnd{false};
 };
 
-bool LogPlaybackPrivate::started = false;
+bool LogPlaybackPrivate::started{false};
 
 //////////////////////////////////////////////////
 LogPlayback::LogPlayback()
   : System(), dataPtr(std::make_unique<LogPlaybackPrivate>())
 {
-  this->dataPtr->instStarted = false;
 }
 
 //////////////////////////////////////////////////
