@@ -19,6 +19,7 @@ syntax = "proto3";
 
 package ignition.gazebo.private_msgs;
 
+import "performer_affinity.proto";
 import "ignition/msgs/time.proto";
 
 /// \brief Message to contain simulation step information for distributed
@@ -39,5 +40,9 @@ message SimulationStep
 
   /// \brief Simulation paused
   bool paused = 4;
+
+  /// \brief Updated performer affinities. It will be empty if there are no
+  /// affinity changes.
+  repeated PerformerAffinity affinity = 5;
 }
 
