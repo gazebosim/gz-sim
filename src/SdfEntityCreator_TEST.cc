@@ -390,7 +390,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Vector3d(1, 2, 3),
                   _geometry->Data().BoxShape()->Size());
 
-        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Specular());
@@ -410,7 +410,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
 
-        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
@@ -429,7 +429,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
 
-        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
