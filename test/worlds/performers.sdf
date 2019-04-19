@@ -48,7 +48,6 @@
             <ambient>1 0 0 1</ambient>
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
-            <emissive>1 0 0 1</emissive>
           </material>
         </visual>
       </link>
@@ -86,7 +85,6 @@
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
             <specular>0 0 1 1</specular>
-            <emissive>0 0 1 1</emissive>
           </material>
         </visual>
       </link>
