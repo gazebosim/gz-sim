@@ -77,6 +77,11 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief The set of all views.
   public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
 
+  /// \brief Cache of previously queried descendants. The key is the parent
+  /// entity for which descendants were queried, and the value are all its
+  /// descendants.
+  public: mutable std::map<Entity, std::unordered_set<Entity>> descendantCache;
+
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 };
@@ -121,6 +126,9 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
     std::lock_guard<std::mutex> lock(this->entityCreatedMutex);
     this->newlyCreatedEntities.insert(_entity);
   }
+
+  // Reset descendants cache
+  this->descendantCache.clear();
 
   return _entity;
 }
@@ -244,6 +252,9 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     // Clear the set of entities to remove.
     this->dataPtr->toRemoveEntities.clear();
   }
+
+  // Reset descendants cache
+  this->dataPtr->descendantCache.clear();
 }
 
 /////////////////////////////////////////////////
@@ -769,3 +780,44 @@ void EntityComponentManager::SetState(
     }
   }
 }
+
+//////////////////////////////////////////////////
+std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
+{
+  // Check cache
+  if (this->dataPtr->descendantCache.find(_entity) !=
+      this->dataPtr->descendantCache.end())
+  {
+    return this->dataPtr->descendantCache[_entity];
+  }
+
+  std::unordered_set<Entity> descendants;
+
+  if (!this->HasEntity(_entity))
+    return descendants;
+
+  descendants.insert(_entity);
+
+  auto adjacents = this->dataPtr->entities.AdjacentsFrom(_entity);
+  auto current = adjacents.begin();
+  while (current != adjacents.end())
+  {
+    auto id = current->first;
+
+    // Store entity
+    descendants.insert(id);
+
+    // Add adjacents to set
+    for (auto adj : this->dataPtr->entities.AdjacentsFrom(id))
+    {
+      adjacents.insert(adj);
+    }
+
+    // Remove from set
+    current = adjacents.erase(current);
+  }
+
+  this->dataPtr->descendantCache[_entity] = descendants;
+  return descendants;
+}
+

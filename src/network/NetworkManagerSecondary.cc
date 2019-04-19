@@ -29,7 +29,6 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Util.hh"
 
 #include "NetworkManagerPrivate.hh"
 #include "NetworkManagerSecondary.hh"
@@ -166,7 +165,7 @@ void NetworkManagerSecondary::OnStep(
     }
     auto modelEntity = parent->Data();
 
-    auto children = descendants(modelEntity, *this->dataPtr->ecm);
+    auto children = this->dataPtr->ecm->Descendants(modelEntity);
     entities.insert(children.begin(), children.end());
   }
 

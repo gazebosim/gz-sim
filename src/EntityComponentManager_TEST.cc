@@ -1615,6 +1615,217 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 }
 
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, Descendants)
+{
+  // - 1
+  //   - 2
+  //   - 3
+  //     - 4
+  //       - 5
+  //       - 6
+  // - 7
+  //   - 8
+
+  auto e1 = manager.CreateEntity();
+
+  auto e2 = manager.CreateEntity();
+  manager.SetParentEntity(e2, e1);
+
+  auto e3 = manager.CreateEntity();
+  manager.SetParentEntity(e3, e1);
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(3u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+  }
+
+  auto e4 = manager.CreateEntity();
+  manager.SetParentEntity(e4, e3);
+
+  auto e5 = manager.CreateEntity();
+  manager.SetParentEntity(e5, e4);
+
+  auto e6 = manager.CreateEntity();
+  manager.SetParentEntity(e6, e4);
+
+  auto e7 = manager.CreateEntity();
+
+  auto e8 = manager.CreateEntity();
+  manager.SetParentEntity(e8, e7);
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(6u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    // cached values
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(6u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_EQ(4u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e4);
+    EXPECT_EQ(3u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e5);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e6);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e7);
+    EXPECT_EQ(2u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_NE(ds.end(), ds.find(e7));
+    EXPECT_NE(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e8);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_NE(ds.end(), ds.find(e8));
+  }
+
+  manager.RequestRemoveEntity(e3);
+  manager.ProcessEntityRemovals();
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(2u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_TRUE(ds.empty());
+  }
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(EntityComponentManagerRepeat,
