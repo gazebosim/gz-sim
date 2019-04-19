@@ -212,7 +212,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
-  // get linear velocity at cp in inertial frame
+  // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
   const auto worldAngVel =
@@ -239,7 +239,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto velI = vel.Normalized();
 
-  // rotate forward and upward vectors into inertial frame
+  // rotate forward and upward vectors into world frame
   const auto forwardI = pose.Rot().RotateVector(this->forward);
 
   ignition::math::Vector3d upwardI;
@@ -255,7 +255,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     upwardI = pose.Rot().RotateVector(this->upward);
   }
 
-  // spanwiseI: a vector normal to lift-drag-plane described in inertial frame
+  // spanwiseI: a vector normal to lift-drag-plane described in world frame
   const auto spanwiseI = forwardI.Cross(upwardI).Normalize();
 
   const double minRatio = -1.0;
@@ -405,7 +405,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   ignition::math::Vector3d moment = cm * q * this->area * spanwiseI;
 
 
-  // force and torque about cg in inertial frame
+  // force and torque about cg in world frame
   ignition::math::Vector3d force = lift + drag;
   ignition::math::Vector3d torque = moment;
   // Correct for nan or inf
