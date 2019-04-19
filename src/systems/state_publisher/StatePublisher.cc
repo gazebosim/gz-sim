@@ -141,9 +141,14 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       _ecm.Component<components::JointPosition>(joint);
     if (jointPositions)
     {
-      for (const double &pos : jointPositions->Data())
+      for (size_t i = 0; i < jointPositions->Data().size(); ++i)
       {
-        jointMsg->add_position(pos);
+        if (i == 0)
+          jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
+        else if (i==1)
+          jointMsg->mutable_axis2()->set_position(jointPositions->Data()[i]);
+        else
+          ignwarn << "Joint state publisher only supports two joint axis\n";
       }
     }
 
@@ -151,21 +156,26 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     const components::JointVelocity *jointVelocity  =
       _ecm.Component<components::JointVelocity>(joint);
     if (jointVelocity)
-      jointMsg->add_velocity(jointVelocity->Data());
+      jointMsg->mutable_axis1()->set_velocity(jointVelocity->Data());
 
     const components::JointVelocity2 *jointVelocity2  =
       _ecm.Component<components::JointVelocity2>(joint);
     if (jointVelocity2)
-      jointMsg->add_velocity(jointVelocity2->Data());
+      jointMsg->mutable_axis2()->set_velocity(jointVelocity2->Data());
 
     // Set the joint force
     const components::JointForce *jointForce  =
       _ecm.Component<components::JointForce>(joint);
     if (jointForce)
     {
-      for (const double &force : jointForce->Data())
+      for (size_t i = 0; i < jointForce->Data().size(); ++i)
       {
-        jointMsg->add_force(force);
+        if (i == 0)
+          jointMsg->mutable_axis1()->set_force(jointForce->Data()[i]);
+        else if (i==1)
+          jointMsg->mutable_axis2()->set_force(jointForce->Data()[i]);
+        else
+          ignwarn << "Joint state publisher only supports two joint axis\n";
       }
     }
   }
