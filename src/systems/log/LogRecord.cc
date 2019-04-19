@@ -73,16 +73,26 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted = false;
+  public: bool instStarted{false};
 
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
+  /// \brief Clock used to timestamp recorded messages with sim time
+  /// coming from /clock topic. This is not the timestamp on the header,
+  /// rather a logging-specific stamp.
+  /// In case there's disagreement between these stamps, the one in the
+  /// header should be used.
+  public: std::unique_ptr<transport::NetworkClock> clock;
+
+  /// \brief Name of this world
+  public: std::string worldName;
+
   /// \brief SDF of this plugin
-  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
+  public: std::shared_ptr<const sdf::Element> sdf{nullptr};
 };
 
-bool LogRecordPrivate::started = false;
+bool LogRecordPrivate::started{false};
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
@@ -149,14 +159,16 @@ LogRecord::~LogRecord()
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const Entity &/*_entity*/,
+void LogRecord::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
+    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   this->dataPtr->sdf = _sdf;
 
   // Get directory paths from SDF params
   auto logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -236,6 +248,13 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->recorder.AddTopic("/world/" +
     sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
   // this->recorder.AddTopic(std::regex(".*"));
+
+  // Timestamp messages with sim time from clock topic
+  // Note that the message headers should also have a timestamp
+  auto clockTopic = "/world/" + this->worldName + "/clock";
+  this->clock = std::make_unique<transport::NetworkClock>(clockTopic,
+      transport::NetworkClock::TimeBase::SIM);
+  this->recorder.Sync(this->clock.get());
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
