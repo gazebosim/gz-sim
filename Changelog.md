@@ -2,6 +2,8 @@
 
 ### Ignition Math 6.x.x
 
+### Ignition Math 6.2.0
+
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
     * [Pull request 311](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/311)
 
