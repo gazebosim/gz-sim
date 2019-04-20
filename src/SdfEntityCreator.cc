@@ -17,14 +17,12 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
-#include <ignition/common/Battery.hh>
 
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Battery.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
@@ -277,16 +275,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     this->SetParent(sensorEntity, linkEntity);
   }
 
-  // Battery
-  for (uint64_t batteryIndex = 0; batteryIndex < _link->BatteryCount();
-      ++batteryIndex)
-  {
-    auto battery = _link->BatteryByIndex(batteryIndex);
-    auto batteryEntity = this->CreateEntities(battery);
-
-    this->SetParent(batteryEntity, linkEntity);
-  }
-
   return linkEntity;
 }
 
@@ -492,57 +480,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
 
   return sensorEntity;
-}
-
-//////////////////////////////////////////////////
-Entity SdfEntityCreator::CreateEntities(const sdf::Battery *_batterySdf)
-{
-  IGN_PROFILE("SdfEntityCreator::CreateEtties(sdf::Battery)");
-
-  // Entity
-  Entity batteryEntity = this->dataPtr->ecm->CreateEntity();
-
-  bool batExists = false;
-  // Temporary battery if the same one already exists
-  auto tmpBattery = common::Battery(_batterySdf->Name(),
-    _batterySdf->Voltage());
-
-  // Check if a common::Battery with the name already exists
-  this->dataPtr->ecm->Each<components::Battery>(
-      [&](const Entity & /*_batEntity*/, components::Battery *_batComp) -> bool
-      {
-        // If an existing battery is the same as the one to be created, point
-        //   the new battery component to the existing common::Battery
-        if (*(_batComp->Data()) == tmpBattery)
-        {
-          batExists = true;
-
-          // Use existing battery
-          this->dataPtr->ecm->CreateComponent(batteryEntity,
-              components::Battery(_batComp->Data()));
-          this->dataPtr->ecm->CreateComponent(batteryEntity,
-              components::Name(_batterySdf->Name()));
-        }
-        return true;
-      });
-
-  // If battery does not already exist, use a new battery
-  if (!batExists)
-  {
-    auto battery = new common::Battery(_batterySdf->Name(),
-      _batterySdf->Voltage());
-
-    // Initialize new battery
-    battery->Init();
-
-    // Components
-    this->dataPtr->ecm->CreateComponent(batteryEntity, components::Battery(
-        common::BatteryPtr(battery)));
-    this->dataPtr->ecm->CreateComponent(batteryEntity,
-        components::Name(_batterySdf->Name()));
-  }
-
-  return batteryEntity;
 }
 
 //////////////////////////////////////////////////
