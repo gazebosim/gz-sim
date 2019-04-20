@@ -247,7 +247,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     this->dataPtr->battery->Update();
 
     // Update component
-    components::BatterySoC* batteryComp =
+    components::BatterySoC *batteryComp =
       _ecm.Component<components::BatterySoC>(this->dataPtr->batteryCompKey);
     batteryComp->Data() = this->dataPtr->battery->Voltage();
   }
