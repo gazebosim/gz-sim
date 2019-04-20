@@ -653,10 +653,6 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (linkIt == this->entityLinkMap.end())
           return true;
 
-        // Model is out of battery
-        if (this->entityOffMap[_ecm.ParentEntity(_entity)])
-          return true;
-
         math::Vector3 force = msgs::Convert(_wrenchComp->Data().force());
         math::Vector3 torque = msgs::Convert(_wrenchComp->Data().torque());
         linkIt->second->AddExternalForce(math::eigen3::convert(force));
