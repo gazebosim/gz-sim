@@ -26,15 +26,13 @@
 #include <ignition/common/Time.hh>
 #include <ignition/common/Battery.hh>
 
-#include <sdf/Battery.hh>
 #include <sdf/Element.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
 #include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/Battery.hh"
-#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -55,6 +53,16 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Pointer to battery contained in link.
   public: common::BatteryPtr battery;
+
+  /// \brief Battery consumer identifier.
+  /// Current implementation limits one consumer (Model) per battery.
+  public: int32_t consumerId;
+
+  /// \brief Battery entity
+  public: Entity batteryEntity{kNullEntity};
+
+  /// \brief Battery component identifier
+  public: ComponentKey batteryCompKey;
 
   /// \brief Open-circuit voltage.
   /// E(t) = e0 + e1 * Q(t) / c
@@ -109,10 +117,19 @@ LinearBatteryPlugin::~LinearBatteryPlugin()
 {
   this->dataPtr->Reset();
 
-  // This is needed so that common::Battery stops calling the callback function
-  //   of this object, when this object is destroyed. Else seg fault in test,
-  //   though no seg fault in actual run.
-  this->dataPtr->battery->ResetUpdateFunc();
+  if (this->dataPtr->battery)
+  {
+    // Consumer-specific
+    if (this->dataPtr->consumerId != -1)
+    {
+      this->dataPtr->battery->RemoveConsumer(this->dataPtr->consumerId);
+    }
+
+    // This is needed so that common::Battery stops calling the update function
+    //   of this object, when this object is destroyed. Else seg fault in test,
+    //   though no seg fault in actual run.
+    this->dataPtr->battery->ResetUpdateFunc();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -121,7 +138,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
                EntityComponentManager &_ecm,
                EventManager &/*_eventMgr*/)
 {
-  // Store the pointer to the model
+  // Store the pointer to the model this battery is under
   Model model = Model(_entity);
   if (!model.Valid(_ecm))
   {
@@ -134,22 +151,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   //   components::World());
   // auto worldComp = _ecm.ChildrenByComponents(worldEntity,
   //   components::World());
-
-
-  // Pointer to link that this plugin targets
-  Entity linkEntity = kNullEntity;
-  if (_sdf->HasElement("link_name"))
-  {
-    auto linkName = _sdf->Get<std::string>("link_name");
-
-    linkEntity = model.LinkByName(_ecm, linkName);
-    IGN_ASSERT(linkEntity != kNullEntity, "Link was NULL");
-  }
-  else
-  {
-    ignerr << "link_name not supplied, ignoring LinearBatteryPlugin.\n";
-    return;
-  }
 
   if (_sdf->HasElement("open_circuit_voltage_constant_coef"))
     this->dataPtr->e0 = _sdf->Get<double>("open_circuit_voltage_constant_coef");
@@ -169,47 +170,51 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("smooth_current_tau"))
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
 
-  if (_sdf->HasElement("battery_name"))
+  if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
     auto batteryName = _sdf->Get<std::string>("battery_name");
+    auto initVoltage = _sdf->Get<double>("voltage");
 
-    _ecm.Each<components::Battery, components::Name>(
-        [&](const Entity &_batEntity, const components::Battery *_batComp,
-            const components::Name *_nameComp) -> bool
-        {
-          // If parent link matches the target link, and battery name matches
-          //   the target battery
-          if ((_ecm.ParentEntity(_batEntity) == linkEntity) &&
-            (_nameComp->Data() == batteryName))
-          {
-            this->dataPtr->battery = _batComp->Data();
-            return true;
-          }
-          return true;
-        });
+    // Create battery entity and component
+    this->dataPtr->batteryEntity = _ecm.CreateEntity();
+    // Initialize with initial voltage
+    // TODO(anyone) This may be changed to capacity in the future
+    this->dataPtr->batteryCompKey = _ecm.CreateComponent(
+      this->dataPtr->batteryEntity, components::BatterySoC());
+    _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
 
-    IGN_ASSERT(this->dataPtr->battery, "Battery was NULL");
-
-    if (!this->dataPtr->battery)
-    {
-      ignerr << "Battery with name[" << batteryName << "] not found. "
-            << "The LinearBatteryPlugin will not update its voltage\n";
-    }
-    else
-    {
-      this->dataPtr->battery->SetUpdateFunc(
-        std::bind(&LinearBatteryPlugin::OnUpdateVoltage, this,
-          std::placeholders::_1));
-    }
+    // Create actual battery and assign update function
+    this->dataPtr->battery = std::make_shared<common::Battery>(batteryName,
+      initVoltage);
+    this->dataPtr->battery->Init();
+    this->dataPtr->battery->SetUpdateFunc(
+      std::bind(&LinearBatteryPlugin::OnUpdateVoltage, this,
+        std::placeholders::_1));
   }
   else
   {
-    ignerr << "No <battery_name> specified.\n";
+    ignerr << "No <battery_name> or <voltage> specified. Both are required.\n";
+  }
+
+  // Consumer-specific
+  if (_sdf->HasElement("power_load"))
+  {
+    auto powerLoad = _sdf->Get<double>("power_load");
+    this->dataPtr->consumerId = this->dataPtr->battery->AddConsumer();
+    bool success = this->dataPtr->battery->SetPowerLoad(
+      this->dataPtr->consumerId, powerLoad);
+    if (!success)
+      ignerr << "Failed to set consumer power load." << std::endl;
+  }
+  else
+  {
+    ignwarn << "Required attribute power_load missing "
+            << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
   igndbg << "Battery name: " << this->dataPtr->battery->Name()
          << std::endl;
-  igndbg << "Battery voltage: " << this->dataPtr->battery->Voltage()
+  igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
 
   ignmsg << "LinearBatteryPlugin configured\n";
@@ -231,10 +236,19 @@ void LinearBatteryPluginPrivate::Reset()
 
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
-                                 EntityComponentManager &/*_ecm*/)
+                                 EntityComponentManager &_ecm)
 {
+  // Update actual battery
   this->dataPtr->stepSize = _info.dt;
-  this->dataPtr->battery->Update();
+  if (this->dataPtr->battery)
+  {
+    this->dataPtr->battery->Update();
+
+    // Update component
+    components::BatterySoC* batteryComp =
+      _ecm.Component<components::BatterySoC>(this->dataPtr->batteryCompKey);
+    batteryComp->Data() = this->dataPtr->battery->Voltage();
+  }
 }
 
 /////////////////////////////////////////////////
