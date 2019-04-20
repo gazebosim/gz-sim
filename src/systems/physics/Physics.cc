@@ -68,6 +68,7 @@
 // Components
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
@@ -197,9 +198,13 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// in the ECM. This is the reverse map of entityCollisionMap.
   public: std::unordered_map<ShapePtrType, Entity> collisionEntityMap;
 
-  /// \brief a map between joint entity ids in the ECM to Joint Entities in
+  /// \brief A map between joint entity ids in the ECM to Joint Entities in
   /// ign-physics
   public: std::unordered_map<Entity, JointPtrType> entityJointMap;
+
+  /// \brief A map between model entity ids in the ECM to whether its battery
+  /// has drained.
+  public: std::unordered_map<Entity, bool> entityOffMap;
 
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
@@ -508,6 +513,15 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
         this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
         return true;
       });
+
+  _ecm.EachNew<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *)->bool
+      {
+        // Parent entity of battery is model entity
+        this->entityOffMap.insert(std::make_pair(
+          _ecm.ParentEntity(_entity), false));
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -563,6 +577,17 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
+  // Battery state
+  _ecm.Each<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *_bat)
+      {
+        if (_bat->Data() <= 0)
+          entityOffMap[_ecm.ParentEntity(_entity)] = true;
+        else
+          entityOffMap[_ecm.ParentEntity(_entity)] = false;
+        return true;
+      });
+
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
       [&](const Entity &_entity, const components::Joint *,
@@ -571,6 +596,17 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt == this->entityJointMap.end())
           return true;
+
+        // Model is out of battery
+        if (this->entityOffMap[_ecm.ParentEntity(_entity)])
+        {
+          igndbg << "Joint " << _name->Data() << " out of battery.\n";
+
+          std::size_t nDofs = jointIt->second->GetDegreesOfFreedom();
+          for (std::size_t i = 0; i < nDofs; ++i)
+            jointIt->second->SetForce(i, 0);
+          return true;
+        }
 
         auto force = _ecm.Component<components::JointForceCmd>(_entity);
         if (force)
@@ -615,6 +651,10 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt == this->entityLinkMap.end())
+          return true;
+
+        // Model is out of battery
+        if (this->entityOffMap[_ecm.ParentEntity(_entity)])
           return true;
 
         math::Vector3 force = msgs::Convert(_wrenchComp->Data().force());
