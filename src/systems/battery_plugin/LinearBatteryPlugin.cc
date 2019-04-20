@@ -181,6 +181,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     // TODO(anyone) This may be changed to capacity in the future
     this->dataPtr->batteryCompKey = _ecm.CreateComponent(
       this->dataPtr->batteryEntity, components::BatterySoC());
+    _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
+      batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
 
     // Create actual battery and assign update function

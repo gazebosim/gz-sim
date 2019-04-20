@@ -353,7 +353,8 @@
         <capacity>1.2009</capacity>
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
-        <power_load>500</power_load> <!-- high load to quickly drain battery. mother board consumer power load = 6.6 W -->
+        <!-- Consumer-specific -->
+        <power_load>500</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
       </plugin>
 
     </model>

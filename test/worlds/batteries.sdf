@@ -40,27 +40,20 @@
             </box>
           </geometry>
         </visual>
-        <battery name="linear_battery">
-          <voltage>12.592</voltage>
-        </battery>
       </link>
 
       <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
         name="ignition::gazebo::systems::LinearBatteryPlugin">
-        <link_name>body</link_name>
         <battery_name>linear_battery</battery_name>
+        <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
         <open_circuit_voltage_linear_coef>-3.1424</open_circuit_voltage_linear_coef>
         <initial_charge>1.1665</initial_charge>
         <capacity>1.2009</capacity>
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
-      </plugin>
-      <plugin filename="libignition-gazebo-linearbatteryconsumerplugin-system.so"
-         name="ignition::gazebo::systems::LinearBatteryConsumerPlugin">
-        <link_name>body</link_name>
-        <battery_name>linear_battery</battery_name>
-        <power_load>6.6</power_load>
+        <!-- Consumer-specific -->
+        <power_load>500</power_load>  <!-- high load to quickly drain battery -->
       </plugin>
 
     </model>
