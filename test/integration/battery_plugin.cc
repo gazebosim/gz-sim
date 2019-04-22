@@ -74,7 +74,7 @@ class BatteryPluginTest : public ::testing::Test
 TEST_F(BatteryPluginTest, SingleBattery)
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "batteries.sdf");
+    "test", "worlds", "battery.sdf");
   sdf::Root root;
   EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
   EXPECT_GT(root.WorldCount(), 0lu);
