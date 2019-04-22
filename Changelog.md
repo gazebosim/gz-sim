@@ -9,6 +9,12 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. Added LiftDragPlugin (ported from Gazebo classic)
+    * [Pull Request 256](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/256)
+
+1. Added test for log record and playback.
+    * [Pull Request 263](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/263)
+
 1. More ign-msgs <-> SDF conversions: Inertial, Geometry, Material
     * [Pull Request 251](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/251)
 
