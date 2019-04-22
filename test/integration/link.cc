@@ -152,7 +152,7 @@ TEST_F(LinkIntegrationTest, LinkPoses)
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
 
   EXPECT_EQ(linkWorldPose, link.WorldPose(ecm));
-  EXPECT_EQ(inertiaPose + linkWorldPose, link.WorldInertialPose(ecm));
+  EXPECT_EQ(linkWorldPose * inertiaPose, link.WorldInertialPose(ecm));
 }
 
 //////////////////////////////////////////////////
