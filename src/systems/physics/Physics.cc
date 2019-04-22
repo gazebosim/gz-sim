@@ -600,11 +600,14 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         // Model is out of battery
         if (this->entityOffMap[_ecm.ParentEntity(_entity)])
         {
-          igndbg << "Joint " << _name->Data() << " out of battery.\n";
-
           std::size_t nDofs = jointIt->second->GetDegreesOfFreedom();
           for (std::size_t i = 0; i < nDofs; ++i)
+          {
             jointIt->second->SetForce(i, 0);
+            // TODO(anyone): Only for diff drive, which does not use
+            //   JointForceCmd. Remove when it does.
+            jointIt->second->SetVelocity(i, 0);
+          }
           return true;
         }
 

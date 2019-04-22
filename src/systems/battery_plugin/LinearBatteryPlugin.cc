@@ -48,11 +48,14 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Reset the plugin
   public: void Reset();
 
-  /// \brief Pointer to world.
-  // public: physics::WorldPtr world;
+  /// \brief Name of model, only used for printing warning when battery drains.
+  public: std::string modelName;
 
   /// \brief Pointer to battery contained in link.
   public: common::BatteryPtr battery;
+
+  /// \brief Whether warning that battery has drained has been printed once.
+  public: bool drainPrinted{false};
 
   /// \brief Battery consumer identifier.
   /// Current implementation limits one consumer (Model) per battery.
@@ -146,11 +149,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
            << "Failed to initialize." << std::endl;
     return;
   }
-
-  // Entity worldEntity = _ecm.EntityByComponents<components::World>(
-  //   components::World());
-  // auto worldComp = _ecm.ChildrenByComponents(worldEntity,
-  //   components::World());
+  this->dataPtr->modelName = model.Name(_ecm);
 
   if (_sdf->HasElement("open_circuit_voltage_constant_coef"))
     this->dataPtr->e0 = _sdf->Get<double>("open_circuit_voltage_constant_coef");
@@ -278,15 +277,20 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
 
-  igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
-         << std::endl;
-  igndbg << "voltage: " << (this->dataPtr->e0 + this->dataPtr->e1 * (
-    1 - this->dataPtr->q / this->dataPtr->c)
-      - this->dataPtr->r * this->dataPtr->ismooth) << std::endl;
-
-  return this->dataPtr->e0 + this->dataPtr->e1 * (
+  double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
+
+  igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
+         << std::endl;
+  igndbg << "voltage: " << voltage << std::endl;
+  if (voltage < 0 && !this->dataPtr->drainPrinted)
+  {
+    ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
+    this->dataPtr->drainPrinted = true;
+  }
+
+  return voltage;
 }
 
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
