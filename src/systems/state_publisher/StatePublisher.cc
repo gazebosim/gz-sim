@@ -145,7 +145,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       {
         if (i == 0)
           jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
-        else if (i==1)
+        else if (i == 1)
           jointMsg->mutable_axis2()->set_position(jointPositions->Data()[i]);
         else
           ignwarn << "Joint state publisher only supports two joint axis\n";
@@ -172,7 +172,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       {
         if (i == 0)
           jointMsg->mutable_axis1()->set_force(jointForce->Data()[i]);
-        else if (i==1)
+        else if (i == 1)
           jointMsg->mutable_axis2()->set_force(jointForce->Data()[i]);
         else
           ignwarn << "Joint state publisher only supports two joint axis\n";
