@@ -120,7 +120,7 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
   if (!worldPose || !inertial)
     return std::nullopt;
 
-  return std::make_optional(inertial->Data().Pose() + worldPose->Data());
+  return std::make_optional(worldPose->Data() * inertial->Data().Pose());
 }
 
 //////////////////////////////////////////////////
