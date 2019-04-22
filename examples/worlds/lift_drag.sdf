@@ -2,6 +2,8 @@
 <!--
   Ignition Gazebo lift-drag system demo
 
+  This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
+
   Try sending commands:
 
     ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 0.7"

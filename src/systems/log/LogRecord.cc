@@ -52,37 +52,32 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
 
-  // TODO(mabelmzhang) port to ign-common Filesystem
-  /// \brief Generates a path for a file which doesn't collide with existing
-  /// files, by appending numbers to it (i.e. (0), (1), ...)
-  /// \param[in] _pathAndName Full absolute path and file name up to the
-  /// file extension.
-  /// \param[in] _extension File extension, such as "ddf".
-  /// \return Full path with name and extension, which doesn't collide with
-  /// existing files
-  public: std::string UniqueFilePath(const std::string &_pathAndName,
-    const std::string &_extension);
-
-  /// \brief Unique directory path to not overwrite existing directory
-  /// \param[in] _pathAndName Full absolute path
-  public: std::string UniqueDirectoryPath(const std::string &_dir);
-
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
   /// in the future.
   public: static bool started;
 
   /// \brief Indicator of whether this instance has been started
-  public: bool instStarted = false;
+  public: bool instStarted{false};
 
   /// \brief Ignition transport recorder
   public: transport::log::Recorder recorder;
 
+  /// \brief Clock used to timestamp recorded messages with sim time
+  /// coming from /clock topic. This is not the timestamp on the header,
+  /// rather a logging-specific stamp.
+  /// In case there's disagreement between these stamps, the one in the
+  /// header should be used.
+  public: std::unique_ptr<transport::NetworkClock> clock;
+
+  /// \brief Name of this world
+  public: std::string worldName;
+
   /// \brief SDF of this plugin
-  public: std::shared_ptr<const sdf::Element> sdf = nullptr;
+  public: std::shared_ptr<const sdf::Element> sdf{nullptr};
 };
 
-bool LogRecordPrivate::started = false;
+bool LogRecordPrivate::started{false};
 
 //////////////////////////////////////////////////
 std::string LogRecordPrivate::DefaultRecordPath()
@@ -96,38 +91,6 @@ std::string LogRecordPrivate::DefaultRecordPath()
     ".ignition", "gazebo", "log", std::to_string(timestamp));
 
   return path;
-}
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::UniqueFilePath(const std::string &_pathAndName,
-  const std::string &_extension)
-{
-  std::string result = _pathAndName + "." + _extension;
-  int count = 1;
-
-  // Check if file exists and change name accordingly
-  while (common::exists(result.c_str()))
-  {
-    result = _pathAndName + "(" + std::to_string(count++) + ").";
-    result += _extension;
-  }
-
-  return result;
-}
-
-//////////////////////////////////////////////////
-std::string LogRecordPrivate::UniqueDirectoryPath(const std::string &_dir)
-{
-  std::string result = _dir;
-  int count = 1;
-
-  // Check if file exists and change name accordingly
-  while (common::exists(result.c_str()))
-  {
-    result = _dir + "(" + std::to_string(count++) + ")";
-  }
-
-  return result;
 }
 
 //////////////////////////////////////////////////
@@ -149,14 +112,16 @@ LogRecord::~LogRecord()
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Configure(const Entity &/*_entity*/,
+void LogRecord::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &/*_ecm*/, EventManager &/*_eventMgr*/)
+    EntityComponentManager &_ecm, EventManager &/*_eventMgr*/)
 {
   this->dataPtr->sdf = _sdf;
 
   // Get directory paths from SDF params
   auto logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->worldName = _ecm.Component<components::Name>(_entity)->Data();
 
   // If plugin is specified in both the SDF tag and on command line, only
   //   activate one recorder.
@@ -197,7 +162,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   // If directoriy already exists, do not overwrite
   if (common::exists(logPath))
   {
-    logPath = this->UniqueDirectoryPath(logPath);
+    logPath = common::uniqueDirectoryPath(logPath);
     ignwarn << "Log path already exists on disk! "
       << "Recording instead to [" << logPath << "]" << std::endl;
   }
@@ -236,6 +201,13 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   this->recorder.AddTopic("/world/" +
     sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
   // this->recorder.AddTopic(std::regex(".*"));
+
+  // Timestamp messages with sim time from clock topic
+  // Note that the message headers should also have a timestamp
+  auto clockTopic = "/world/" + this->worldName + "/clock";
+  this->clock = std::make_unique<transport::NetworkClock>(clockTopic,
+      transport::NetworkClock::TimeBase::SIM);
+  this->recorder.Sync(this->clock.get());
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
