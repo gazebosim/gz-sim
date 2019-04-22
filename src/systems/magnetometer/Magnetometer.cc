@@ -173,7 +173,7 @@ void MagnetometerPrivate::Update(
         if (it != this->entitySensorMap.end())
         {
           // Get the magnetometer physical position
-          const auto &magnetometerWorldPose = _worldPose->Data();
+          const math::Pose3d &magnetometerWorldPose = _worldPose->Data();
           it->second->SetWorldPose(magnetometerWorldPose);
         }
         else
