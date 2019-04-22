@@ -58,67 +58,64 @@ class ignition::gazebo::systems::LiftDragPrivate
   /// \brief Coefficient of Lift / alpha slope.
   /// Lift = C_L * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cla;
+  public: double cla = 1.0;
 
   /// \brief Coefficient of Drag / alpha slope.
   /// Drag = C_D * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cda;
+  public: double cda = 0.01;
 
   /// \brief Coefficient of Moment / alpha slope.
   /// Moment = C_M * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cma;
+  public: double cma = 0.01;
 
   /// \brief angle of attach when airfoil stalls
-  public: double alphaStall;
+  public: double alphaStall = IGN_PI_2;
 
   /// \brief Cl-alpha rate after stall
-  public: double claStall;
+  public: double claStall = 0.0;
 
   /// \brief Cd-alpha rate after stall
-  /// TODO: what's flat plate drag?
-  public: double cdaStall;
+  /// \todo(anyone): what's flat plate drag?
+  public: double cdaStall = 1.0;
 
   /// \brief Cm-alpha rate after stall
-  public: double cmaStall;
+  public: double cmaStall = 0.0;
 
   /// \brief air density
   /// at 25 deg C it's about 1.1839 kg/m^3
   /// At 20 °C and 101.325 kPa, dry air has a density of 1.2041 kg/m3.
-  public: double rho;
+  public: double rho = 1.2041;
 
   /// \brief if the shape is aerodynamically radially symmetric about
   /// the forward direction. Defaults to false for wing shapes.
   /// If set to true, the upward direction is determined by the
   /// angle of attack.
-  public: bool radialSymmetry;
+  public: bool radialSymmetry = false;
 
   /// \brief effective planeform surface area
-  public: double area;
+  public: double area = 1.0;
 
   /// \brief initial angle of attack
-  public: double alpha0;
-
-  /// \brief angle of attack
-  public: double alpha;
+  public: double alpha0 = 0.0;
 
   /// \brief center of pressure in link local coordinates with respect to the
   /// link's center of mass
-  public: ignition::math::Vector3d cp;
+  public: ignition::math::Vector3d cp = math::Vector3d::Zero;
 
   /// \brief Normally, this is taken as a direction parallel to the chord
   /// of the airfoil in zero angle of attack forward flight.
-  public: ignition::math::Vector3d forward;
+  public: ignition::math::Vector3d forward = math::Vector3d::UnitX;
 
   /// \brief A vector in the lift/drag plane, perpendicular to the forward
   /// vector. Inflow velocity orthogonal to forward and upward vectors
   /// is considered flow in the wing sweep direction.
-  public: ignition::math::Vector3d upward;
+  public: ignition::math::Vector3d upward = math::Vector3d::UnitZ;
 
   /// \brief how much to change CL per radian of control surface joint
   /// value.
-  public: double controlJointRadToCL;
+  public: double controlJointRadToCL = 4.0;
 
   /// \brief Link entity targeted this plugin.
   public: Entity linkEntity;
@@ -141,30 +138,32 @@ class ignition::gazebo::systems::LiftDragPrivate
 void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                            const sdf::ElementPtr &_sdf)
 {
-  this->cla = _sdf->Get<double>("cla", 1.0).first;
-  this->cda = _sdf->Get<double>("cda", 0.01).first;
-  this->cma = _sdf->Get<double>("cma", 0.01).first;
-  this->alphaStall = _sdf->Get<double>("alpha_stall", IGN_PI_2).first;
-  this->claStall = _sdf->Get<double>("cla_stall", 0.0).first;
-  this->cdaStall = _sdf->Get<double>("cda_stall", 1.0).first;
-  this->cmaStall = _sdf->Get<double>("cma_stall", 0.0).first;
-  this->rho = _sdf->Get<double>("air_density", 1.2041).first;
-  this->radialSymmetry = _sdf->Get<bool>("radial_symmetry", false).first;
-  this->area = _sdf->Get<double>("area", 1.0).first;
-  this->alpha0 = _sdf->Get<double>("a0", 0.0).first;
-  this->cp = _sdf->Get<ignition::math::Vector3d>("cp", {0, 0, 0}).first;
+  this->cla = _sdf->Get<double>("cla", this->cla).first;
+  this->cda = _sdf->Get<double>("cda", this->cda).first;
+  this->cma = _sdf->Get<double>("cma", this->cma).first;
+  this->alphaStall = _sdf->Get<double>("alpha_stall", this->alphaStall).first;
+  this->claStall = _sdf->Get<double>("cla_stall", this->claStall).first;
+  this->cdaStall = _sdf->Get<double>("cda_stall", this->cdaStall).first;
+  this->cmaStall = _sdf->Get<double>("cma_stall", this->cmaStall).first;
+  this->rho = _sdf->Get<double>("air_density", this->rho).first;
+  this->radialSymmetry = _sdf->Get<bool>("radial_symmetry",
+      this->radialSymmetry).first;
+  this->area = _sdf->Get<double>("area", this->area).first;
+  this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
+  this->cp = _sdf->Get<ignition::math::Vector3d>("cp", this->cp).first;
 
   // blade forward (-drag) direction in link frame
   this->forward =
-      _sdf->Get<ignition::math::Vector3d>("forward", {1, 0, 0}).first;
+      _sdf->Get<ignition::math::Vector3d>("forward", this->forward).first;
   this->forward.Normalize();
 
   // blade upward (+lift) direction in link frame
-  this->upward = _sdf->Get<ignition::math::Vector3d>("upward", {0, 0, 1}).first;
+  this->upward = _sdf->Get<ignition::math::Vector3d>(
+      "upward", this->upward) .first;
   this->upward.Normalize();
 
-  this->controlJointRadToCL =
-      _sdf->Get<double>("control_joint_rad_to_cl", 4.0).first;
+  this->controlJointRadToCL = _sdf->Get<double>(
+      "control_joint_rad_to_cl", this->controlJointRadToCL).first;
 
   if (_sdf->HasElement("link_name"))
   {
@@ -213,7 +212,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
-  // get linear velocity at cp in inertial frame
+  // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
   const auto worldAngVel =
@@ -240,7 +239,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto velI = vel.Normalized();
 
-  // rotate forward and upward vectors into inertial frame
+  // rotate forward and upward vectors into world frame
   const auto forwardI = pose.Rot().RotateVector(this->forward);
 
   ignition::math::Vector3d upwardI;
@@ -256,7 +255,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     upwardI = pose.Rot().RotateVector(this->upward);
   }
 
-  // spanwiseI: a vector normal to lift-drag-plane described in inertial frame
+  // spanwiseI: a vector normal to lift-drag-plane described in world frame
   const auto spanwiseI = forwardI.Cross(upwardI).Normalize();
 
   const double minRatio = -1.0;
@@ -308,15 +307,14 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // forwardI points toward zero alpha
   // if forwardI is in the same direction as lift, alpha is positive.
   // liftI is in the same direction as forwardI?
+  double alpha = this->alpha0 - std::acos(cosAlpha);
   if (liftI.Dot(forwardI) >= 0.0)
-    this->alpha = this->alpha0 + std::acos(cosAlpha);
-  else
-    this->alpha = this->alpha0 - std::acos(cosAlpha);
+    alpha = this->alpha0 + std::acos(cosAlpha);
 
   // normalize to within +/-90 deg
-  while (fabs(this->alpha) > 0.5 * IGN_PI)
+  while (fabs(alpha) > 0.5 * IGN_PI)
   {
-    this->alpha = this->alpha > 0 ? this->alpha - IGN_PI : this->alpha + IGN_PI;
+    alpha = alpha > 0 ? alpha - IGN_PI : alpha + IGN_PI;
   }
 
   // compute dynamic pressure
@@ -325,30 +323,30 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // compute cl at cp, check for stall, correct for sweep
   double cl;
-  if (this->alpha > this->alphaStall)
+  if (alpha > this->alphaStall)
   {
     cl = (this->cla * this->alphaStall +
-          this->claStall * (this->alpha - this->alphaStall)) *
+          this->claStall * (alpha - this->alphaStall)) *
          cosSweepAngle;
     // make sure cl is still great than 0
     cl = std::max(0.0, cl);
   }
-  else if (this->alpha < -this->alphaStall)
+  else if (alpha < -this->alphaStall)
   {
     cl = (-this->cla * this->alphaStall +
-          this->claStall * (this->alpha + this->alphaStall))
+          this->claStall * (alpha + this->alphaStall))
          * cosSweepAngle;
     // make sure cl is still less than 0
     cl = std::min(0.0, cl);
   }
   else
-    cl = this->cla * this->alpha * cosSweepAngle;
+    cl = this->cla * alpha * cosSweepAngle;
 
   // modify cl per control joint value
   if (controlJointPosition)
   {
     cl = cl + this->controlJointRadToCL * controlJointPosition->Data()[0];
-    /// \TODO: also change cm and cd
+    /// \todo(anyone): also change cm and cd
   }
 
   // compute lift force at cp
@@ -356,20 +354,20 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // compute cd at cp, check for stall, correct for sweep
   double cd;
-  if (this->alpha > this->alphaStall)
+  if (alpha > this->alphaStall)
   {
     cd = (this->cda * this->alphaStall +
-          this->cdaStall * (this->alpha - this->alphaStall))
+          this->cdaStall * (alpha - this->alphaStall))
          * cosSweepAngle;
   }
-  else if (this->alpha < -this->alphaStall)
+  else if (alpha < -this->alphaStall)
   {
     cd = (-this->cda * this->alphaStall +
-          this->cdaStall * (this->alpha + this->alphaStall))
+          this->cdaStall * (alpha + this->alphaStall))
          * cosSweepAngle;
   }
   else
-    cd = (this->cda * this->alpha) * cosSweepAngle;
+    cd = (this->cda * alpha) * cosSweepAngle;
 
   // make sure drag is positive
   cd = std::fabs(cd);
@@ -379,26 +377,26 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // compute cm at cp, check for stall, correct for sweep
   double cm;
-  if (this->alpha > this->alphaStall)
+  if (alpha > this->alphaStall)
   {
     cm = (this->cma * this->alphaStall +
-          this->cmaStall * (this->alpha - this->alphaStall))
+          this->cmaStall * (alpha - this->alphaStall))
          * cosSweepAngle;
     // make sure cm is still great than 0
     cm = std::max(0.0, cm);
   }
-  else if (this->alpha < -this->alphaStall)
+  else if (alpha < -this->alphaStall)
   {
     cm = (-this->cma * this->alphaStall +
-          this->cmaStall * (this->alpha + this->alphaStall))
+          this->cmaStall * (alpha + this->alphaStall))
          * cosSweepAngle;
     // make sure cm is still less than 0
     cm = std::min(0.0, cm);
   }
   else
-    cm = this->cma * this->alpha * cosSweepAngle;
+    cm = this->cma * alpha * cosSweepAngle;
 
-  /// \TODO: implement cm
+  /// \todo(anyone): implement cm
   /// for now, reset cm to zero, as cm needs testing
   cm = 0.0;
 
@@ -406,14 +404,8 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // spanwiseI used to be momentDirection
   ignition::math::Vector3d moment = cm * q * this->area * spanwiseI;
 
-  // moment arm from cg to cp in inertial plane
-  // This assumes that the Pose of the inertial is given relative to the link
-  // frame
-  auto inertial = _ecm.Component<components::Inertial>(this->linkEntity);
-  ignition::math::Vector3d momentArm = pose.Rot().RotateVector(
-      this->cp - inertial->Data().Pose().Pos());
 
-  // force and torque about cg in inertial frame
+  // force and torque about cg in world frame
   ignition::math::Vector3d force = lift + drag;
   ignition::math::Vector3d torque = moment;
   // Correct for nan or inf
@@ -473,7 +465,6 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // igndbg << "drag: " << drag << " cd: " << cd << " cda: "
   //        << this->cda << "\n";
   // igndbg << "moment: " << moment << "\n";
-  // igndbg << "cp momentArm: " << momentArm << "\n";
   // igndbg << "force: " << force << "\n";
   // igndbg << "torque: " << torque << "\n";
   // igndbg << "totalTorque: " << totalTorque << "\n";

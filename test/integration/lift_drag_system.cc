@@ -140,7 +140,7 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
         if (nullptr ==
             _ecm.Component<components::WorldLinearVelocity>(bodyLink))
         {
-          _ecm.CreateComponent(bladeLink, components::WorldLinearVelocity());
+          _ecm.CreateComponent(bodyLink, components::WorldLinearVelocity());
         }
         if (nullptr ==
             _ecm.Component<components::WorldLinearAcceleration>(bodyLink))
@@ -151,38 +151,6 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
-
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
-      {
-        auto bladeLink = _ecm.EntityByComponents(components::Link(),
-                                                 components::Name(bladeName));
-        auto bodyLink = _ecm.EntityByComponents(components::Link(),
-                                                components::Name(bodyName));
-        auto linVelComp =
-            _ecm.Component<components::WorldLinearVelocity>(bodyLink);
-        auto wrenchComp =
-            _ecm.Component<components::ExternalWorldWrenchCmd>(bladeLink);
-
-        if (linVelComp)
-        {
-          linearVelocities.push_back(linVelComp->Data());
-        }
-        else
-        {
-          linearVelocities.push_back(math::Vector3d::Zero);
-        }
-
-        if (wrenchComp)
-        {
-          math::Vector3d force = msgs::Convert(wrenchComp->Data().force());
-          forces.push_back(force);
-        }
-        else
-        {
-          forces.push_back(math::Vector3d::Zero);
-        }
-      });
 
   const double kp = 100.0;
   // Set a constant velocity to the prismatic joint
@@ -214,6 +182,43 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
         }
       });
 
+  // \todo(addisu) This assumes that the this system will run after the lift
+  // drag system. This is needed to capture the wrench set by the lift drag
+  // system. This assumption may not hold when systems are run in parallel.
+  Relay wrenchRecorder;
+  wrenchRecorder.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                              const gazebo::EntityComponentManager &_ecm)
+      {
+        auto bladeLink = _ecm.EntityByComponents(components::Link(),
+                                                 components::Name(bladeName));
+        auto bodyLink = _ecm.EntityByComponents(components::Link(),
+                                                components::Name(bodyName));
+        auto linVelComp =
+            _ecm.Component<components::WorldLinearVelocity>(bodyLink);
+        auto wrenchComp =
+            _ecm.Component<components::ExternalWorldWrenchCmd>(bladeLink);
+
+        if (linVelComp)
+        {
+          linearVelocities.push_back(linVelComp->Data());
+        }
+        else
+        {
+          linearVelocities.push_back(math::Vector3d::Zero);
+        }
+
+        if (wrenchComp)
+        {
+          math::Vector3d force = msgs::Convert(wrenchComp->Data().force());
+          forces.push_back(force);
+        }
+        else
+        {
+          forces.push_back(math::Vector3d::Zero);
+        }
+      });
+  server.AddSystem(wrenchRecorder.systemPtr);
+
   // parameters from SDF
   const double a0 = 0.1;
   const double cla = 4.0;
@@ -223,19 +228,26 @@ TEST_F(LiftDragTestFixture, VerifyVerticalForce)
   const double rho = 1.2041;
   const double area = 10;
 
+  // It takes a few iterations before the system reaches a steady state
   const std::size_t testIters = 1000;
   server.Run(true, testIters , false);
 
-  // It takes a few iterations before the
   EXPECT_EQ(testIters, forces.size());
+  EXPECT_EQ(testIters, linearVelocities.size());
 
-  const double v = linearVelocities.back().X();
-  const double q = 0.5 * rho * v * v;
-  const double cl = cla * a0 * q * area;
-  const double vertForce = forces.back().Z();
+  for (std::size_t i = forces.size() - 15; i < forces.size(); ++i)
+  {
+    const double v = linearVelocities[i].X();
+    const double q = 0.5 * rho * v * v;
+    const double cl = cla * a0 * q * area;
+    const double vertForce = forces[i].Z();
 
-  const double expVertForce = cl * cos(dihedral);
-  EXPECT_NEAR(expVertForce, vertForce, TOL);
+    const double expVertForce = cl * cos(dihedral);
+    EXPECT_NEAR(expVertForce, vertForce, TOL);
+
+    // The test above passes if the force is zero (which can happen if the
+    // system is not functioning properly), so we check here to make sure it's
+    // not zero
+    EXPECT_GT(vertForce, 0);
+  }
 }
-
-
