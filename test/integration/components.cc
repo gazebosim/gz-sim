@@ -336,7 +336,7 @@ TEST_F(ComponentsTest, Joint)
   EXPECT_TRUE(ostr.str().empty());
 
   std::istringstream istr("ignored");
-  components::CanonicalLink comp3;
+  components::Joint comp3;
   istr >> comp3;
 }
 
@@ -344,6 +344,15 @@ TEST_F(ComponentsTest, Joint)
 TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
+  data1.SetXyz(math::Vector3d(1, 2, 3));
+  data1.SetUseParentModelFrame(true);
+  data1.SetDamping(0.1);
+  data1.SetFriction(0.2);
+  data1.SetLower(0.3);
+  data1.SetUpper(0.4);
+  data1.SetEffort(0.5);
+  data1.SetMaxVelocity(0.6);
+
   auto data2 = sdf::JointAxis();
 
   // Create components
@@ -351,21 +360,56 @@ TEST_F(ComponentsTest, JointAxis)
   auto comp12 = components::JointAxis(data1);
   auto comp2 = components::JointAxis(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+
+  components::JointAxis comp3;
+  istr >> comp3;
+
+  EXPECT_EQ(math::Vector3d(1, 2, 3), comp3.Data().Xyz());
+  EXPECT_DOUBLE_EQ(0.1, comp3.Data().Damping());
+  EXPECT_DOUBLE_EQ(0.2, comp3.Data().Friction());
+  EXPECT_DOUBLE_EQ(0.3, comp3.Data().Lower());
+  EXPECT_DOUBLE_EQ(0.4, comp3.Data().Upper());
+  EXPECT_DOUBLE_EQ(0.5, comp3.Data().Effort());
+  EXPECT_DOUBLE_EQ(0.6, comp3.Data().MaxVelocity());
+  EXPECT_TRUE(comp3.Data().UseParentModelFrame());
 }
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, JointType)
 {
-  auto data1 = sdf::JointType();
-  auto data2 = sdf::JointType();
+  auto data1 = sdf::JointType::FIXED;
+  auto data2 = sdf::JointType::REVOLUTE;
 
   // Create components
   auto comp11 = components::JointType(data1);
   auto comp12 = components::JointType(data1);
   auto comp2 = components::JointType(data2);
 
-  // TODO(anyone) Stream operator
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ(std::to_string(static_cast<int>(sdf::JointType::FIXED)),
+      ostr.str());
+
+  std::istringstream istr(std::to_string(static_cast<int>(
+      sdf::JointType::SCREW)));
+  components::JointType comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::JointType::SCREW, comp3.Data());
 }
 
 /////////////////////////////////////////////////
