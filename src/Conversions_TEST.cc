@@ -22,6 +22,7 @@
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
+#include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
@@ -324,4 +325,44 @@ TEST(Conversions, Inertial)
   EXPECT_DOUBLE_EQ(5.5, newInertial.MassMatrix().Ixy());
   EXPECT_DOUBLE_EQ(6.6, newInertial.MassMatrix().Ixz());
   EXPECT_DOUBLE_EQ(7.7, newInertial.MassMatrix().Iyz());
+}
+
+/////////////////////////////////////////////////
+TEST(CONVERSIONS, MagnetometerSensor)
+{
+  sdf::Sensor sensor;
+  sensor.SetName("my_sensor");
+  sensor.SetType(sdf::SensorType::MAGNETOMETER);
+  sensor.SetUpdateRate(12.4);
+  sensor.SetTopic("my_topic");
+  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Noise noise;
+  noise.SetType(sdf::NoiseType::GAUSSIAN);
+  noise.SetMean(1.2);
+  noise.SetStdDev(2.6);
+  noise.SetBiasMean(0.2);
+  noise.SetBiasStdDev(12.16);
+  noise.SetPrecision(0.01);
+
+  sdf::Magnetometer mag;
+  mag.SetXNoise(noise);
+  sensor.SetMagnetometerSensor(mag);
+
+  msgs::Sensor msg = convert<msgs::Sensor>(sensor);
+  EXPECT_EQ(sensor.Name(), msg.name());
+  EXPECT_EQ(sensor.TypeStr(), msg.type());
+  EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
+  EXPECT_EQ(sensor.Topic(), msg.topic());
+  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+
+  ASSERT_TRUE(msg.has_magnetometer());
+
+  sdf::Noise defaultNoise;
+  sdf::Noise convertedNoise;
+  convertedNoise = convert<sdf::Noise>(msg.magnetometer().x_noise());
+  EXPECT_EQ(noise, convertedNoise);
+
+  EXPECT_FALSE(msg.magnetometer().has_y_noise());
+  EXPECT_FALSE(msg.magnetometer().has_z_noise());
 }
