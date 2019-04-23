@@ -39,7 +39,6 @@ set (sources
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
-  SyncManager.cc
   System.cc
   SystemLoader.cc
   Util.cc

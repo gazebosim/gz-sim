@@ -20,22 +20,29 @@
 #include <cstdlib>
 #include <ignition/common/Console.hh>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "NetworkManager.hh"
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 
 using namespace ignition::gazebo;
 
+void step(const UpdateInfo &)
+{
+}
+
 //////////////////////////////////////////////////
 TEST(NetworkManager, ConfigConstructor)
 {
   ignition::common::Console::SetVerbosity(4);
 
+  EntityComponentManager ecm;
+
   {
     // Primary without number of secondaries is invalid
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
-    auto nm = NetworkManager::Create(nullptr, conf);
+    auto nm = NetworkManager::Create(step, ecm, nullptr, conf);
     ASSERT_EQ(nullptr, nm);
     // Expect console warning as well
   }
@@ -45,7 +52,7 @@ TEST(NetworkManager, ConfigConstructor)
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationPrimary;
     conf.numSecondariesExpected = 5;
-    auto nm = NetworkManager::Create(nullptr, conf);
+    auto nm = NetworkManager::Create(step, ecm, nullptr, conf);
     ASSERT_NE(nullptr, nm);
     EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nm.get()));
     EXPECT_TRUE(nm->IsPrimary());
@@ -57,7 +64,7 @@ TEST(NetworkManager, ConfigConstructor)
     // Secondary is always valid
     NetworkConfig conf;
     conf.role = NetworkRole::SimulationSecondary;
-    auto nm = NetworkManager::Create(nullptr, conf);
+    auto nm = NetworkManager::Create(step, ecm, nullptr, conf);
     ASSERT_NE(nullptr, nm);
     EXPECT_NE(nullptr, static_cast<NetworkManagerSecondary *>(nm.get()));
     EXPECT_FALSE(nm->IsPrimary());
@@ -69,7 +76,7 @@ TEST(NetworkManager, ConfigConstructor)
     // Readonly is always invalid
     NetworkConfig conf;
     conf.role = NetworkRole::ReadOnly;
-    auto nm = NetworkManager::Create(nullptr, conf);
+    auto nm = NetworkManager::Create(step, ecm, nullptr, conf);
     ASSERT_EQ(nullptr, nm);
   }
 
@@ -77,7 +84,7 @@ TEST(NetworkManager, ConfigConstructor)
     // None is always invalid
     NetworkConfig conf;
     conf.role = NetworkRole::None;
-    auto nm = NetworkManager::Create(nullptr, conf);
+    auto nm = NetworkManager::Create(step, ecm, nullptr, conf);
     ASSERT_EQ(nullptr, nm);
   }
 }
@@ -85,12 +92,16 @@ TEST(NetworkManager, ConfigConstructor)
 //////////////////////////////////////////////////
 TEST(NetworkManager, EstablishComms)
 {
+  ignition::common::Console::SetVerbosity(4);
+
+  EntityComponentManager ecm;
+
   // Create a primary and two secondaries
   NetworkConfig confPrimary;
   confPrimary.role = NetworkRole::SimulationPrimary;
   confPrimary.numSecondariesExpected = 2;
 
-  auto nmPrimary = NetworkManager::Create(nullptr, confPrimary);
+  auto nmPrimary = NetworkManager::Create(step, ecm, nullptr, confPrimary);
   ASSERT_NE(nullptr, nmPrimary);
   EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
   EXPECT_TRUE(nmPrimary->IsPrimary());
@@ -99,7 +110,8 @@ TEST(NetworkManager, EstablishComms)
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary1 = NetworkManager::Create(nullptr, confSecondary1);
+  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary1);
   ASSERT_NE(nullptr, nmSecondary1);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
@@ -109,7 +121,8 @@ TEST(NetworkManager, EstablishComms)
 
   NetworkConfig confSecondary2;
   confSecondary2.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary2 = NetworkManager::Create(nullptr, confSecondary2);
+  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary2);
   ASSERT_NE(nullptr, nmSecondary2);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
@@ -137,12 +150,16 @@ TEST(NetworkManager, EstablishComms)
 //////////////////////////////////////////////////
 TEST(NetworkManager, Step)
 {
+  ignition::common::Console::SetVerbosity(4);
+
+  EntityComponentManager ecm;
+
   // Create a primary and two secondaries
   NetworkConfig confPrimary;
   confPrimary.role = NetworkRole::SimulationPrimary;
   confPrimary.numSecondariesExpected = 2;
 
-  auto nmPrimary = NetworkManager::Create(nullptr, confPrimary);
+  auto nmPrimary = NetworkManager::Create(step, ecm, nullptr, confPrimary);
   ASSERT_NE(nullptr, nmPrimary);
   EXPECT_NE(nullptr, static_cast<NetworkManagerPrimary *>(nmPrimary.get()));
   EXPECT_TRUE(nmPrimary->IsPrimary());
@@ -151,7 +168,8 @@ TEST(NetworkManager, Step)
 
   NetworkConfig confSecondary1;
   confSecondary1.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary1 = NetworkManager::Create(nullptr, confSecondary1);
+  auto nmSecondary1 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary1);
   ASSERT_NE(nullptr, nmSecondary1);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary1.get()));
@@ -161,7 +179,8 @@ TEST(NetworkManager, Step)
 
   NetworkConfig confSecondary2;
   confSecondary2.role = NetworkRole::SimulationSecondary;
-  auto nmSecondary2 = NetworkManager::Create(nullptr, confSecondary2);
+  auto nmSecondary2 = NetworkManager::Create(step, ecm, nullptr,
+      confSecondary2);
   ASSERT_NE(nullptr, nmSecondary2);
   EXPECT_NE(nullptr,
       static_cast<NetworkManagerSecondary *>(nmSecondary2.get()));
@@ -188,21 +207,21 @@ TEST(NetworkManager, Step)
 
   std::atomic<bool> running {true};
 
-  auto primaryThread = std::thread([&nmPrimary, &running](){
+  auto primaryThread = std::thread([&nmPrimary, &running]()
+  {
     auto info = UpdateInfo();
     info.iterations = 0;
     info.dt = std::chrono::steady_clock::duration{2ms};
     info.simTime = std::chrono::steady_clock::duration{0};
     info.paused = false;
 
-    nmPrimary->Initialize();
-    nmPrimary->Step(info);
+    nmPrimary->Handshake();
 
+    auto primary = static_cast<NetworkManagerPrimary *>(nmPrimary.get());
     while (info.iterations <= 100)
     {
-      while (!nmPrimary->Step(info)) {}
-
-      while (!nmPrimary->StepAck(info.iterations)) {}
+      // If step doesn't block, network is working
+      EXPECT_TRUE(primary->Step(info));
 
       info.iterations++;
       info.simTime += info.dt;
@@ -211,41 +230,28 @@ TEST(NetworkManager, Step)
     running = false;
   });
 
-  auto secondaryInfo1 = UpdateInfo();
-  secondaryInfo1.iterations = 0;
-  secondaryInfo1.dt = std::chrono::steady_clock::duration{2ms};
-  secondaryInfo1.simTime = std::chrono::steady_clock::duration{0};
-  secondaryInfo1.paused = true;
+  auto secondaryThread1 = std::thread([&nmSecondary1, &running]()
+  {
+    nmSecondary1->Handshake();
 
-
-  auto secondaryThread1 = std::thread([&nmSecondary1, &secondaryInfo1](){
-    nmSecondary1->Initialize();
-
-    while (secondaryInfo1.iterations < 100)
+    while (running)
     {
-      while (!nmSecondary1->Step(secondaryInfo1)) {}
-      EXPECT_FALSE(secondaryInfo1.paused);
-      while (!nmSecondary1->StepAck(secondaryInfo1.iterations)) {}
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   });
 
-  auto secondaryInfo2 = UpdateInfo();
-  secondaryInfo2.iterations = 0;
-  secondaryInfo2.dt = std::chrono::steady_clock::duration{2ms};
-  secondaryInfo2.simTime = std::chrono::steady_clock::duration{0};
-  secondaryInfo2.paused = true;
+  auto secondaryThread2 = std::thread([&nmSecondary2, &running]()
+  {
+    nmSecondary2->Handshake();
 
-  auto secondaryThread2 = std::thread([&nmSecondary2, &secondaryInfo2](){
-    nmSecondary2->Initialize();
-
-    while (secondaryInfo2.iterations < 100)
+    while (running)
     {
-      while (!nmSecondary2->Step(secondaryInfo2)) {}
-      while (!nmSecondary2->StepAck(secondaryInfo2.iterations)) {}
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   });
 
-  while (running) {
+  while (running)
+  {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
@@ -254,6 +260,4 @@ TEST(NetworkManager, Step)
   secondaryThread2.join();
 
   EXPECT_FALSE(running);
-  EXPECT_EQ(100u, secondaryInfo1.iterations);
-  EXPECT_EQ(100u, secondaryInfo2.iterations);
 }

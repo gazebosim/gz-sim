@@ -19,17 +19,17 @@ pipelines:
           - apt-get -y install
             libignition-cmake2-dev
             libignition-common3-dev
-            libignition-gui-dev
+            libignition-fuel-tools3-dev
+            libignition-gui2-dev
             libignition-math6-eigen3-dev
-            libignition-msgs3-dev
+            libignition-msgs4-dev
             libignition-plugin-dev
             libignition-physics-dev
+            libignition-rendering2-dev
+            libignition-sensors2-dev
             libignition-tools-dev
-            libignition-transport6-dev
+            libignition-transport7-dev
             libsdformat8-dev
-            libignition-fuel-tools3-dev
-          #  libignition-rendering-dev
-          #  libignition-sensors-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
           #   libxml2-utils
@@ -59,23 +59,23 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition rendering (uncomment if a specific branch is needed)
-          - apt-get -y install
-            libogre-1.9-dev libogre-2.1-dev libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
-          - cd ign-rendering
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          - make -j4 install
-          - cd ../..
+          # - apt-get -y install
+          #   libogre-1.9-dev libogre-2.1-dev libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          # - cd ign-rendering
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
+          # - make -j4 install
+          # - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
-          - cd ign-sensors
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          - make -j4 install
-          - cd ../..
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
+          # - cd ign-sensors
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
+          # - make -j4 install
+          # - cd ../..
           # Ignition fuel-tools (uncomment if a specific branch is needed)
           # - apt install -y
           #   libcurl4-openssl-dev libjsoncpp-dev libzip-dev libgflags-dev curl libyaml-dev
@@ -123,9 +123,10 @@ pipelines:
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
+          # run codecheck before tests so flaky tests don't obscure codecheck failures
+          - make codecheck
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov
-          - make codecheck
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
