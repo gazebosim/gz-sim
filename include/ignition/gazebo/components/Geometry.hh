@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_GEOMETRY_HH_
 
-#include <sdf/Geometry.hh>
 #include <ignition/msgs/geometry.pb.h>
+
+#include <sdf/Geometry.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>

@@ -20,15 +20,16 @@
 #include <atomic>
 #include <memory>
 #include <string>
-
+#include <unordered_set>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/transport/Node.hh>
 
-#include "NetworkManager.hh"
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
+
+#include "NetworkManager.hh"
 
 namespace ignition
 {
@@ -44,58 +45,42 @@ namespace ignition
     {
       // Documentation inherited
       public: explicit NetworkManagerSecondary(
-                  EventManager *_eventMgr,
-                  const NetworkConfig &_config,
-                  const NodeOptions &_options);
+          const std::function<void(const UpdateInfo &_info)> &_stepFunction,
+          EntityComponentManager &_ecm, EventManager *_eventMgr,
+          const NetworkConfig &_config,
+          const NodeOptions &_options);
 
       // Documentation inherited
       public: bool Ready() const override;
 
       // Documentation inherited
-      public: void Initialize() override;
-
-      // Documentation inherited
-      public: bool Step(UpdateInfo &_info) override;
-
-      // Documentation inherited
-      public: bool StepAck(uint64_t _iteration) override;
+      public: void Handshake() override;
 
       // Documentation inherited
       public: std::string Namespace() const override;
 
       /// \brief Callback for when PeerControl service request is received.
+      /// \param[in] _req Request
+      /// \param[in] _resp Response
+      /// \return True if successful.
       public: bool OnControl(const private_msgs::PeerControl &_req,
                              private_msgs::PeerControl &_resp);
 
-      /// \brief Callback for when SimulationStep message is received.
-      public: void OnStep(const private_msgs::SimulationStep &_msg);
-
-      /// \brief Hold the data from the most current simulation step.
-      private: std::unique_ptr<private_msgs::SimulationStep> currentStep;
-
-      /// \brief Mutex to protect currentStep data.
-      private: std::mutex stepMutex;
-
-      /// \brief Condition variable to signal changes of currentStep data.
-      private: std::condition_variable stepCv;
-
-      /// \brief Track connection to "events::Stop" Event
-      public: ignition::common::ConnectionPtr stoppingConn;
-
-      /// \brief Flag to indicate if simulation server is stopping.
-      private: std::atomic<bool> stopReceived {false};
+      /// \brief Callback when step commands are received from the primary
+      /// \param[in] _msg Step message.
+      private: void OnStep(const private_msgs::SimulationStep &_msg);
 
       /// \brief Flag to control enabling/disabling simulation secondary.
       private: std::atomic<bool> enableSim {false};
 
-      /// \brief Flag to control pausing/unpausing simulation secondary.
-      private: std::atomic<bool> pauseSim {true};
-
       /// \brief Transport node used for communication with simulation graph.
       private: ignition::transport::Node node;
 
-      /// \brief Publisher for communication simulation step acknowledgement.
+      /// \brief Publish step acknowledgement messages.
       private: ignition::transport::Node::Publisher stepAckPub;
+
+      /// \brief Collection of performers associated with this secondary.
+      private: std::unordered_set<Entity> performers;
     };
     }
   }  // namespace gazebo

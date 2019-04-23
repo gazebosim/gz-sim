@@ -19,6 +19,8 @@ pipelines:
           - apt-get -y install
             libignition-cmake2-dev
             libignition-common3-dev
+            libignition-fuel-tools3-dev
+            libignition-gui2-dev
             libignition-math6-eigen3-dev
             libignition-msgs4-dev
             libignition-plugin-dev
@@ -28,8 +30,6 @@ pipelines:
             libignition-tools-dev
             libignition-transport7-dev
             libsdformat8-dev
-            libignition-fuel-tools3-dev
-          # libignition-gui2-dev
           # SDFormat (uncomment if a specific branch is needed)
           # - apt install -y
           #   libxml2-utils
@@ -87,24 +87,24 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition gui (uncomment if a specific branch is needed)
-          - apt install -y
-            qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
-            qtdeclarative5-dev
-            qtquickcontrols2-5-dev
-            qml-module-qtquick2
-            qml-module-qtquick-controls
-            qml-module-qtquick-controls2
-            qml-module-qtquick-dialogs
-            qml-module-qtquick-layouts
-            qml-module-qt-labs-folderlistmodel
-            qml-module-qt-labs-settings
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b update_deps
-          - cd ign-gui
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false
-          - make -j4 install
-          - cd ../..
+          # - apt install -y
+          #   qtbase5-dev libtinyxml2-dev libprotoc-dev libprotobuf-dev
+          #   qtdeclarative5-dev
+          #   qtquickcontrols2-5-dev
+          #   qml-module-qtquick2
+          #   qml-module-qtquick-controls
+          #   qml-module-qtquick-controls2
+          #   qml-module-qtquick-dialogs
+          #   qml-module-qtquick-layouts
+          #   qml-module-qt-labs-folderlistmodel
+          #   qml-module-qt-labs-settings
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-gui -b gz11
+          # - cd ign-gui
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false
+          # - make -j4 install
+          # - cd ../..
           # Ignition Physics (uncomment if a specific branch is needed)
           # - apt-get -y install
           #   libdart6-dev
@@ -123,9 +123,10 @@ pipelines:
           - cd build
           - cmake .. -DCMAKE_BUILD_TYPE=coverage
           - make -j4 install
+          # run codecheck before tests so flaky tests don't obscure codecheck failures
+          - make codecheck
           - make test ARGS="-VV"
           - make coverage
           # Use a special version of codecov for handling gcc8 output.
           - bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/4678d212cce2078bbaaf5027af0c0dafaad6a095/codecov) -X gcovout -X gcov
-          - make codecheck
           # - valgrind --tool=memcheck --memcheck:leak-check=full --memcheck:error-exitcode=1 ./bin/ign-gazebo -iterations 10
