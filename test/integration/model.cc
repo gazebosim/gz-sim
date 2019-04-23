@@ -28,7 +28,7 @@
 
 using namespace ignition::gazebo;
 
-class ModelIntegrationTest : public ::testing::TestWithParam<int>
+class ModelIntegrationTest : public ::testing::Test
 {
   public: void SetUp() override
   {
@@ -37,7 +37,7 @@ class ModelIntegrationTest : public ::testing::TestWithParam<int>
 };
 
 //////////////////////////////////////////////////
-TEST(ModelIntegrationTest, Valid)
+TEST_F(ModelIntegrationTest, Valid)
 {
   EntityComponentManager ecm;
 
@@ -65,7 +65,7 @@ TEST(ModelIntegrationTest, Valid)
 }
 
 //////////////////////////////////////////////////
-TEST(ModelIntegrationTest, Name)
+TEST_F(ModelIntegrationTest, Name)
 {
   EntityComponentManager ecm;
 
@@ -83,7 +83,7 @@ TEST(ModelIntegrationTest, Name)
 }
 
 //////////////////////////////////////////////////
-TEST(ModelIntegrationTest, LinkByName)
+TEST_F(ModelIntegrationTest, LinkByName)
 {
   EntityComponentManager ecm;
 
@@ -105,7 +105,7 @@ TEST(ModelIntegrationTest, LinkByName)
 }
 
 //////////////////////////////////////////////////
-TEST(ModelIntegrationTest, JointByName)
+TEST_F(ModelIntegrationTest, JointByName)
 {
   EntityComponentManager ecm;
 
