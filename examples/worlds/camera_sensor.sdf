@@ -27,6 +27,11 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <scene>
+      <ambient>0.4 0.4 0.4</ambient>
+      <background>0.8 0.8 0.8</background>
+    </scene>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
