@@ -44,8 +44,15 @@ namespace gazebo::gui
     public: QHash<int, QByteArray> roleNames() const override;
 
     /// \brief Add an entity to the tree.
-    private: void AddEntity(Entity _entity, const QString &_entityName,
+    /// \param[in] _entity Entity to be added
+    /// \param[in] _entityName Name of entity to be added
+    /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
+    /// means it's a root entity.
+    public: void AddEntity(Entity _entity, const QString &_entityName,
         Entity _parentEntity = kNullEntity);
+
+    /// \brief Keep track of which item corresponds to which entity.
+    private: std::map<Entity, QStandardItem *> entityItems;
   };
 
   /// \brief TODO

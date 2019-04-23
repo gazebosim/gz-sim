@@ -39,51 +39,43 @@ using namespace ignition::gui;
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
 {
-  this->AddEntity(1u, "ground_plane");
-  this->AddEntity(2u, "sun");
-  this->AddEntity(3u, "link", 1u);
-  this->AddEntity(4u, "visual", 3u);
 }
 
 /////////////////////////////////////////////////
 void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
     Entity _parentEntity)
 {
-  auto entityItem = new QStandardItem(_entityName);
-  entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
+  QStandardItem *parentItem{nullptr};
 
   // Root
   if (_parentEntity == kNullEntity)
   {
-    this->appendRow(entityItem);
-    return;
+    parentItem = this->invisibleRootItem();
   }
 
   // Nested
-  // TODO(louise) Better way to find item by entity?
-  for (int r = 0; r < this->rowCount(); ++r)
+  // TODO(louise) There should be a way to easily access these from
+  // QStandardItemModel instead of keeping our own map
+  auto item = this->entityItems.find(_parentEntity);
+  if (item != this->entityItems.end())
   {
-    auto parentIndex = this->index(r, 0);
-    auto entity = this->data(parentIndex, Qt::ToolTipRole);
-
-    if (entity == QString::number(_parentEntity))
-    {
-      this->itemFromIndex(parentIndex)->appendRow(entityItem);
-      return;
-    }
+    parentItem = item->second;
   }
 
-  // TODO(louise) deeper nesting
-  auto items = this->findItems("link");
-  if (items.count() > 0)
+  if (nullptr == parentItem)
   {
-    items.at(0)->appendRow(entityItem);
+    ignerr << "Failed to find parent entity [" << _parentEntity << "]"
+           << std::endl;
     return;
   }
 
-  delete entityItem;
-  ignerr << "Failed to find parent entity [" << _parentEntity << "]"
-         << std::endl;
+  // New entity item
+  auto entityItem = new QStandardItem(_entityName);
+  entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
+
+  parentItem->appendRow(entityItem);
+
+  this->entityItems[_entity] = entityItem;
 }
 
 /////////////////////////////////////////////////
@@ -112,6 +104,11 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "EntityTree";
+
+  this->dataPtr->treeModel.AddEntity(1u, "ground_plane");
+  this->dataPtr->treeModel.AddEntity(2u, "sun");
+  this->dataPtr->treeModel.AddEntity(3u, "link", 1u);
+  this->dataPtr->treeModel.AddEntity(4u, "visual", 3u);
 }
 
 // Register this plugin
