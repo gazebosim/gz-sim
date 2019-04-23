@@ -50,8 +50,8 @@ class ContactSensor
   /// \param[in] _topic string with topic name
   /// \param[in] _collisionEntities A list of entities that act as contact
   /// sensors
-  public: void Load(const sdf::ElementPtr &_sdf, std::string _topic,
-                    std::vector<Entity> _collisionEntities);
+  public: void Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
+                    const std::vector<Entity> &_collisionEntities);
 
   /// \brief Add contacts to the list to be published
   /// \param[in] _stamp Time stamp of the sensor measurement
@@ -100,8 +100,8 @@ class ignition::gazebo::systems::ContactPrivate
 };
 
 //////////////////////////////////////////////////
-void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
-                         std::vector<Entity> _collisionEntities)
+void ContactSensor::Load(const sdf::ElementPtr &_sdf,
+    const std::string &_topic, const std::vector<Entity> &_collisionEntities)
 {
   this->collisionEntities = std::move(_collisionEntities);
 

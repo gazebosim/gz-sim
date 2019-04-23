@@ -46,7 +46,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -78,7 +77,6 @@
             <ambient>0.5 0.5 1.0 1</ambient>
             <diffuse>0.5 0.5 1.0 1</diffuse>
             <specular>0.0 0.0 1.0 1</specular>
-            <emissive>0.0 0.0 1.0 1</emissive>
           </material>
         </visual>
         <collision name='collision'>
@@ -113,7 +111,6 @@
             <ambient>0.2 0.2 0.2 1</ambient>
             <diffuse>0.2 0.2 0.2 1</diffuse>
             <specular>0.2 0.2 0.2 1</specular>
-            <emissive>0.2 0.2 0.2 1</emissive>
           </material>
         </visual>
         <collision name='collision'>
@@ -148,7 +145,6 @@
             <ambient>0.2 0.2 0.2 1</ambient>
             <diffuse>0.2 0.2 0.2 1</diffuse>
             <specular>0.2 0.2 0.2 1</specular>
-            <emissive>0.2 0.2 0.2 1</emissive>
           </material>
         </visual>
         <collision name='collision'>
@@ -183,7 +179,6 @@
             <ambient>0.2 0.2 0.2 1</ambient>
             <diffuse>0.2 0.2 0.2 1</diffuse>
             <specular>0.2 0.2 0.2 1</specular>
-            <emissive>0.2 0.2 0.2 1</emissive>
           </material>
         </visual>
         <collision name='collision'>

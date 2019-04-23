@@ -50,6 +50,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -113,6 +114,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Name(_world->Name()));
+
+  // scene
+  if (_world->Scene())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Scene(*_world->Scene()));
+  }
 
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
