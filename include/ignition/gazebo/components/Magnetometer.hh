@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 
+#include <ignition/msgs/sensor.pb.h>
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
@@ -24,6 +25,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include "ignition/gazebo/components/Component.hh"
+#include <ignition/gazebo/Conversions.hh>
 
 namespace ignition
 {
@@ -35,7 +37,39 @@ namespace components
 {
   /// \brief A component type that contains a magnetometer sensor,
   /// sdf::Magnetometer, information.
-  using Magnetometer = Component<sdf::Sensor, class MagnetometerTag>;
+  using MagnetometerBase = Component<sdf::Sensor, class MagnetometerTag>;
+
+  /// \brief This component holds a magnetometer sensor.
+  class Magnetometer : public MagnetometerBase
+  {
+    // Documentation inherited
+    public: Magnetometer() : MagnetometerBase()
+    {
+    }
+
+    // Documentation inherited
+    public: explicit Magnetometer(const sdf::Sensor &_data)
+      : MagnetometerBase(_data)
+    {
+    }
+
+    // Documentation inherited
+    public: void Serialize(std::ostream &_out) const override
+    {
+      auto msg = convert<msgs::Sensor>(this->Data());
+      msg.SerializeToOstream(&_out);
+    }
+
+    // Documentation inherited
+    public: void Deserialize(std::istream &_in) override
+    {
+      msgs::Sensor msg;
+      msg.ParseFromIstream(&_in);
+
+      this->Data() = convert<sdf::Sensor>(msg);
+    }
+  };
+
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Magnetometer", Magnetometer)
 }
