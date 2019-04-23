@@ -234,6 +234,30 @@ namespace ignition
       /// \sa SetNetworkRole(const std::string &_role)
       public: std::string NetworkRole() const;
 
+      /// \brief Get whether the server is recording states
+      /// \return True if the server is set to record states
+      public: bool UseLogRecord() const;
+
+      /// \brief Set whether the server is recording states
+      /// \param[in] _record Value to set
+      public: void SetUseLogRecord(const bool _record);
+
+      /// \brief Get path to place recorded states
+      /// \return Path to place recorded states
+      public: const std::string LogRecordPath() const;
+
+      /// \brief Set path to place recorded states
+      /// \param[in] _recordPath Path to place recorded states
+      public: void SetLogRecordPath(const std::string &_recordPath);
+
+      /// \brief Get path to recorded states to play back
+      /// \return Path to recorded states
+      public: const std::string LogPlaybackPath() const;
+
+      /// \brief Set path to recorded states to play back
+      /// \param[in] _playbackPath Path to recorded states
+      public: void SetLogPlaybackPath(const std::string &_playbackPath);
+
       /// \brief Get the update period duration.
       /// \return The desired update period, or nullopt if
       /// an UpdateRate has not been set.

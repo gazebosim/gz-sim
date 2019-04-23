@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   altimeter_system.cc
+  apply_joint_force_system.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -11,6 +12,7 @@ set(tests
   examples_build.cc
   imu_system.cc
   joint_controller_system.cc
+  lift_drag_system.cc
   level_manager.cc
   logical_camera_system.cc
   magnetometer_system.cc

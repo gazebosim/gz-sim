@@ -143,6 +143,7 @@ TEST(Conversions, Material)
   material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetLighting(true);
 
   auto materialMsg = convert<msgs::Material>(material);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f),
@@ -153,12 +154,14 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.ambient()));
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
       msgs::Convert(materialMsg.emissive()));
+  EXPECT_TRUE(materialMsg.lighting());
 
   auto newMaterial = convert<sdf::Material>(materialMsg);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newMaterial.Diffuse());
   EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f), newMaterial.Specular());
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
+  EXPECT_TRUE(newMaterial.Lighting());
 }
 
 /////////////////////////////////////////////////

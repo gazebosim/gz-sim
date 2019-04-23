@@ -17,8 +17,10 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MATERIAL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MATERIAL_HH_
 
-#include <sdf/Material.hh>
 #include <ignition/msgs/material.pb.h>
+
+#include <sdf/Material.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
