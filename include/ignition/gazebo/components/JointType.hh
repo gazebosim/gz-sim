@@ -31,9 +31,39 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
+  /// \brief Base class which can be extended to add serialization
+  using JointTypeBase = Component<sdf::JointType, class JointTypeTag>;
+
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
-  using JointType = Component<sdf::JointType, class JointTypeTag>;
+  class JointType : public JointTypeBase
+  {
+    // Documentation inherited
+    public: JointType() : JointTypeBase()
+    {
+    }
+
+    // Documentation inherited
+    public: explicit JointType(const sdf::JointType &_data)
+      : JointTypeBase(_data)
+    {
+    }
+
+    // Documentation inherited
+    public: void Serialize(std::ostream &_out) const override
+    {
+      _out << static_cast<int>(this->Data());
+    }
+
+    // Documentation inherited
+    public: void Deserialize(std::istream &_in) override
+    {
+      int type;
+      _in >> type;
+      this->Data() = sdf::JointType(type);
+    }
+  };
+
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointType", JointType)
 }
