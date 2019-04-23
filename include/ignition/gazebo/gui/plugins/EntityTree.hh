@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <ignition/gazebo/Entity.hh>
 #include <ignition/gui/Plugin.hh>
 
 namespace ignition
@@ -27,6 +28,25 @@ namespace ignition
 namespace gazebo::gui
 {
   class EntityTreePrivate;
+
+  /// \brief TODO
+  class TreeModel : public QStandardItemModel
+  {
+    Q_OBJECT
+
+    /// \brief Constructor
+    public: explicit TreeModel();
+
+    /// \brief Destructor
+    public: virtual ~TreeModel() = default;
+
+    // Documentation inherited
+    public: QHash<int, QByteArray> roleNames() const override;
+
+    /// \brief Add an entity to the tree.
+    private: void AddEntity(Entity _entity, const QString &_entityName,
+        Entity _parentEntity = kNullEntity);
+  };
 
   /// \brief TODO
   ///
