@@ -46,9 +46,10 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-
     /// \brief Helper function that sets a mutable msgs::SensorNoise object
-    /// to the values contained in a sdf::Noise objec;t
+    /// to the values contained in a sdf::Noise object.
+    /// \param[out] _msg SensorNoise message to set.
+    /// \param[in] _sdf SDF Noise object.
     void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Generic conversion from an SDF geometry to another type.

@@ -379,12 +379,21 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     if (_in.MagnetometerSensor())
     {
       msgs::MagnetometerSensor *sensor = out.mutable_magnetometer();
-      ignition::gazebo::set(sensor->mutable_x_noise(),
-          _in.MagnetometerSensor()->XNoise());
-      ignition::gazebo::set(sensor->mutable_y_noise(),
-          _in.MagnetometerSensor()->YNoise());
-      ignition::gazebo::set(sensor->mutable_z_noise(),
-          _in.MagnetometerSensor()->ZNoise());
+      if (_in.MagnetometerSensor()->XNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_x_noise(),
+            _in.MagnetometerSensor()->XNoise());
+      }
+      if (_in.MagnetometerSensor()->YNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_y_noise(),
+            _in.MagnetometerSensor()->YNoise());
+      }
+      if (_in.MagnetometerSensor()->ZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_z_noise(),
+            _in.MagnetometerSensor()->ZNoise());
+      }
     }
     else
     {
