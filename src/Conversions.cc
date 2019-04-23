@@ -306,3 +306,48 @@ math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
   out.SetPose(msgs::Convert(_in.pose()));
   return out;
 }
+
+//////////////////////////////////////////////////
+template<>
+msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
+{
+  msgs::Axis out;
+  msgs::Set(out.mutable_xyz(), _in.Xyz());
+  out.set_use_parent_model_frame(_in.UseParentModelFrame());
+  out.set_damping(_in.Damping());
+  out.set_friction(_in.Friction());
+  out.set_limit_lower(_in.Lower());
+  out.set_limit_upper(_in.Upper());
+  out.set_limit_effort(_in.Effort());
+  out.set_limit_velocity(_in.MaxVelocity());
+
+  // TODO(anyone) Only on SDF:
+  // * initial position
+  // * spring reference
+  // * spring stiffness
+  // * stiffness
+  // * dissipation
+  // Only on msg:
+  // * position
+  // * velocity
+  // * force
+  // * acceleration
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
+{
+  sdf::JointAxis out;
+  out.SetXyz(msgs::Convert(_in.xyz()));
+  out.SetUseParentModelFrame(_in.use_parent_model_frame());
+  out.SetDamping(_in.damping());
+  out.SetFriction(_in.friction());
+  out.SetLower(_in.limit_lower());
+  out.SetUpper(_in.limit_upper());
+  out.SetEffort(_in.limit_effort());
+  out.SetMaxVelocity(_in.limit_velocity());
+  return out;
+}
