@@ -395,7 +395,7 @@ namespace ignition
       /// \param[in] _entity Entity whose descendants we want.
       /// \return All child entities recursively, including _entity. It will be
       /// empty if the entity doesn't exist.
-      public: std::unordered_set<Entity> Descendants(Entity _entity);
+      public: std::unordered_set<Entity> Descendants(Entity _entity) const;
 
       /// \brief Get a message with the serialized state of the given entities
       /// and components.

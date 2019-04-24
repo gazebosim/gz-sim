@@ -19,7 +19,8 @@
 #include <set>
 #include <vector>
 
-#include "ignition/common/Profiler.hh"
+#include <ignition/common/Profiler.hh>
+#include <ignition/math/graph/GraphAlgorithms.hh>
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -783,6 +784,7 @@ void EntityComponentManager::SetState(
 
 //////////////////////////////////////////////////
 std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
+    const
 {
   // Check cache
   if (this->dataPtr->descendantCache.find(_entity) !=
@@ -796,25 +798,11 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
   if (!this->HasEntity(_entity))
     return descendants;
 
-  descendants.insert(_entity);
-
-  auto adjacents = this->dataPtr->entities.AdjacentsFrom(_entity);
-  auto current = adjacents.begin();
-  while (current != adjacents.end())
+  auto descVector = math::graph::BreadthFirstSort(this->dataPtr->entities,
+      _entity);
+  for (const auto &desc : descVector)
   {
-    auto id = current->first;
-
-    // Store entity
-    descendants.insert(id);
-
-    // Add adjacents to set
-    for (auto adj : this->dataPtr->entities.AdjacentsFrom(id))
-    {
-      adjacents.insert(adj);
-    }
-
-    // Remove from set
-    current = adjacents.erase(current);
+    descendants.insert(desc);
   }
 
   this->dataPtr->descendantCache[_entity] = descendants;
