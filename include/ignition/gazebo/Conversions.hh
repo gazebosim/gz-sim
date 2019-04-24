@@ -308,7 +308,6 @@ namespace ignition
     /// \return SDF noise.
     template<>
     sdf::Noise convert(const msgs::SensorNoise &_in);
-    }
   }
 }
 #endif
