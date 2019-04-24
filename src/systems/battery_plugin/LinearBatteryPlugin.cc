@@ -87,6 +87,12 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Instantaneous battery charge in Ah.
   public: double q{0.0};
 
+  /// \brief State of charge
+  public: double soc{1.0};
+
+  /// \brief Battery current for a historic time frame
+  public: std::list<double> ilist;
+
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
 };
@@ -225,7 +231,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     // Update component
     auto batteryComp =
       _ecm.Component<components::BatterySoC>(this->dataPtr->batteryEntity);
-    batteryComp->Data() = this->dataPtr->battery->Voltage();
+    batteryComp->Data() = this->dataPtr->soc;
   }
 }
 
@@ -235,13 +241,16 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 {
   IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
 
+  if (fabs(_battery->Voltage()) < 1e-3)
+    return 0.0;
+  if (this->dataPtr->soc < 0)
+    return _battery->Voltage();
+
+  // Seconds
   double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
     this->dataPtr->stepSize).count()) * 1e-9;
   double totalpower = 0.0;
   double k = dt / this->dataPtr->tau;
-
-  if (fabs(_battery->Voltage()) < 1e-3)
-    return 0.0;
 
   for (auto powerLoad : _battery->PowerLoads())
     totalpower += powerLoad.second;
@@ -251,6 +260,12 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
+  // Keep a list of historic currents
+  if (this->dataPtr->ilist.size() >= 100)
+    this->dataPtr->ilist.pop_front();
+  this->dataPtr->ilist.push_back(this->dataPtr->ismooth);
+
+  // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
 
@@ -258,10 +273,18 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
 
+  // Estimate state of charge
+  double isum = 0.0;
+  for (const auto &i : this->dataPtr->ilist)
+    isum += (i * dt / 3600.0);
+  this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
+
   igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
          << std::endl;
   igndbg << "voltage: " << voltage << std::endl;
-  if (voltage < 0 && !this->dataPtr->drainPrinted)
+  igndbg << "state of charge: " << this->dataPtr->soc
+         << " (q " << this->dataPtr->q << ")" << std::endl;
+  if (this->dataPtr->soc < 0 && !this->dataPtr->drainPrinted)
   {
     ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
     this->dataPtr->drainPrinted = true;
