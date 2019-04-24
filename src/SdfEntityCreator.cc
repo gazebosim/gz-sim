@@ -424,10 +424,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
-     auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Altimeter(elem));
+        components::Altimeter(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,

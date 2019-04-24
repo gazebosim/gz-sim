@@ -30,9 +30,40 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
-  /// This is currently the whole <sensor> element.
-  using Altimeter = Component<sdf::ElementPtr, class AltimeterTag>;
+  /// \brief A component type that contains an altimeter sensor,
+  /// sdf::Altimeter, information.
+  using AltimeterBase = Component<sdf::Sensor, class AltimeterTag>;
+
+  /// \brief This component holds a magnetometer sensor.
+  class Altimeter : public AltimeterBase
+  {
+    // Documentation inherited
+    public: Altimeter() : AltimeterBase()
+    {
+    }
+
+    // Documentation inherited
+    public: explicit Altimeter(const sdf::Sensor &_data)
+      : AltimeterBase(_data)
+    {
+    }
+
+    // Documentation inherited
+    public: void Serialize(std::ostream &_out) const override
+    {
+      auto msg = convert<msgs::Sensor>(this->Data());
+      msg.SerializeToOstream(&_out);
+    }
+
+    // Documentation inherited
+    public: void Deserialize(std::istream &_in) override
+    {
+      msgs::Sensor msg;
+      msg.ParseFromIstream(&_in);
+
+      this->Data() = convert<sdf::Sensor>(msg);
+    }
+  };
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
 }
 }
