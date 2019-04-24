@@ -30,6 +30,7 @@
 
 #include <ignition/common/Console.hh>
 
+#include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
