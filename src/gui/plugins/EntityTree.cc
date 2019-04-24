@@ -20,21 +20,21 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/plugins/EntityTree.hh"
 
-namespace ignition
-{
-namespace gazebo::gui
+namespace ignition::gazebo
 {
   class EntityTreePrivate
   {
     public: TreeModel treeModel;
   };
 }
-}
 
-using namespace ignition::gazebo::gui;
-using namespace ignition::gui;
+using namespace ignition;
+using namespace gazebo;
 
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
@@ -42,7 +42,7 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
+void TreeModel::AddEntity(Entity _entity, const std::string &_entityName,
     Entity _parentEntity)
 {
   QStandardItem *parentItem{nullptr};
@@ -70,7 +70,7 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
   }
 
   // New entity item
-  auto entityItem = new QStandardItem(_entityName);
+  auto entityItem = new QStandardItem(QString::fromStdString(_entityName));
   entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
 
   parentItem->appendRow(entityItem);
@@ -87,10 +87,10 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 
 /////////////////////////////////////////////////
 EntityTree::EntityTree()
-  : Plugin(), dataPtr(std::make_unique<EntityTreePrivate>())
+  : GuiPlugin(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
-  App()->Engine()->rootContext()->setContextProperty("EntityTreeModel",
+  gui::App()->Engine()->rootContext()->setContextProperty("EntityTreeModel",
       &this->dataPtr->treeModel);
 }
 
@@ -104,13 +104,22 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "EntityTree";
+}
 
-  this->dataPtr->treeModel.AddEntity(1u, "ground_plane");
-  this->dataPtr->treeModel.AddEntity(2u, "sun");
-  this->dataPtr->treeModel.AddEntity(3u, "link", 1u);
-  this->dataPtr->treeModel.AddEntity(4u, "visual", 3u);
+//////////////////////////////////////////////////
+void EntityTree::PostUpdate(const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+{
+  _ecm.EachNew<components::Name, components::ParentEntity>(
+    [&](const Entity &_entity,
+        const components::Name *_name,
+        const components::ParentEntity *_parent)->bool
+  {
+    this->dataPtr->treeModel.AddEntity(_entity, _name->Data(), _parent->Data());
+    return true;
+  });
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::gui::EntityTree,
+IGNITION_ADD_PLUGIN(ignition::gazebo::EntityTree,
                     ignition::gui::Plugin)

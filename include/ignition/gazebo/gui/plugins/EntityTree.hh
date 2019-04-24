@@ -21,11 +21,11 @@
 #include <memory>
 
 #include <ignition/gazebo/Entity.hh>
-#include <ignition/gui/Plugin.hh>
+#include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
 {
-namespace gazebo::gui
+namespace gazebo
 {
   class EntityTreePrivate;
 
@@ -48,7 +48,7 @@ namespace gazebo::gui
     /// \param[in] _entityName Name of entity to be added
     /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
     /// means it's a root entity.
-    public: void AddEntity(Entity _entity, const QString &_entityName,
+    public: void AddEntity(Entity _entity, const std::string &_entityName,
         Entity _parentEntity = kNullEntity);
 
     /// \brief Keep track of which item corresponds to which entity.
@@ -59,7 +59,7 @@ namespace gazebo::gui
   ///
   /// ## Configuration
   /// TODO
-  class EntityTree : public ignition::gui::Plugin
+  class EntityTree : public ignition::gazebo::GuiPlugin
   {
     Q_OBJECT
 
@@ -70,7 +70,12 @@ namespace gazebo::gui
     public: virtual ~EntityTree();
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem);
+    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+        override;
+
+    // Documentation inherited
+    public: virtual void PostUpdate(const UpdateInfo &,
+                                    const EntityComponentManager &) override;
 
     /// \internal
     /// \brief Pointer to private data.
