@@ -42,9 +42,6 @@ using namespace systems;
 
 class ignition::gazebo::systems::LinearBatteryPluginPrivate
 {
-  /// \brief Initialize the plugin
-  public: void Init();
-
   /// \brief Reset the plugin
   public: void Reset();
 
@@ -64,34 +61,31 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Battery entity
   public: Entity batteryEntity{kNullEntity};
 
-  /// \brief Battery component identifier
-  public: ComponentKey batteryCompKey;
-
   /// \brief Open-circuit voltage.
   /// E(t) = e0 + e1 * Q(t) / c
-  public: double e0;
-  public: double e1;
+  public: double e0{0.0};
+  public: double e1{0.0};
 
   /// \brief Initial battery charge in Ah.
-  public: double q0;
+  public: double q0{0.0};
 
   /// \brief Battery capacity in Ah.
-  public: double c;
+  public: double c{0.0};
 
   /// \brief Battery inner resistance in Ohm.
-  public: double r;
+  public: double r{0.0};
 
   /// \brief Current low-pass filter characteristic time in seconds.
-  public: double tau;
+  public: double tau{0.0};
 
   /// \brief Raw battery current in A.
-  public: double iraw;
+  public: double iraw{0.0};
 
   /// \brief Smoothed battery current in A.
-  public: double ismooth;
+  public: double ismooth{0.0};
 
   /// \brief Instantaneous battery charge in Ah.
-  public: double q;
+  public: double q{0.0};
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
@@ -101,18 +95,6 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 LinearBatteryPlugin::LinearBatteryPlugin()
     : System(), dataPtr(std::make_unique<LinearBatteryPluginPrivate>())
 {
-  this->dataPtr->iraw = 0.0;
-  this->dataPtr->ismooth = 0.0;
-
-  this->dataPtr->e0 = 0.0;
-  this->dataPtr->e1 = 0.0;
-
-  this->dataPtr->q0 = 0.0;
-  this->dataPtr->q = this->dataPtr->q0;
-
-  this->dataPtr->c = 0.0;
-  this->dataPtr->r = 0.0;
-  this->dataPtr->tau = 0.0;
 }
 
 /////////////////////////////////////////////////
@@ -178,8 +160,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
     // Initialize with initial voltage
     // TODO(anyone) This may be changed to capacity in the future
-    this->dataPtr->batteryCompKey = _ecm.CreateComponent(
-      this->dataPtr->batteryEntity, components::BatterySoC());
+    _ecm.CreateComponent(this->dataPtr->batteryEntity,
+      components::BatterySoC());
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
       batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
@@ -213,18 +195,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
-  igndbg << "Battery name: " << this->dataPtr->battery->Name()
-         << std::endl;
+  ignmsg << "LinearBatteryPlugin configured. Battery name: "
+         << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
-
-  ignmsg << "LinearBatteryPlugin configured\n";
-}
-
-/////////////////////////////////////////////////
-void LinearBatteryPluginPrivate::Init()
-{
-  this->q = this->q0;
 }
 
 /////////////////////////////////////////////////
@@ -232,13 +206,16 @@ void LinearBatteryPluginPrivate::Reset()
 {
   this->iraw = 0.0;
   this->ismooth = 0.0;
-  this->Init();
+  this->q = this->q0;
 }
 
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
 {
+  if (_info.paused)
+    return;
+
   // Update actual battery
   this->dataPtr->stepSize = _info.dt;
   if (this->dataPtr->battery)
@@ -247,7 +224,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 
     // Update component
     auto batteryComp =
-      _ecm.Component<components::BatterySoC>(this->dataPtr->batteryCompKey);
+      _ecm.Component<components::BatterySoC>(this->dataPtr->batteryEntity);
     batteryComp->Data() = this->dataPtr->battery->Voltage();
   }
 }
