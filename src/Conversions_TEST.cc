@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
@@ -439,5 +440,5 @@ TEST(CONVERSIONS, AltimeterSensor)
       msg.altimeter().vertical_position_noise());
   EXPECT_EQ(noise, convertedNoise);
 
-  EXPECT_FALSE(msg.magnetometer().has_vertical_velocity_noise());
+  EXPECT_FALSE(msg.altimeter().has_vertical_velocity_noise());
 }

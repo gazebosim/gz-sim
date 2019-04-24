@@ -17,9 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 
-#include <sdf/Element.hh>
+#include <ignition/msgs/sensor.pb.h>
+#include <sdf/Sensor.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
