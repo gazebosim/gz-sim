@@ -110,12 +110,19 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 void EntityTree::PostUpdate(const UpdateInfo &,
     const EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<components::Name, components::ParentEntity>(
+  _ecm.EachNew<components::Name>(
     [&](const Entity &_entity,
-        const components::Name *_name,
-        const components::ParentEntity *_parent)->bool
+        const components::Name *_name)->bool
   {
-    this->dataPtr->treeModel.AddEntity(_entity, _name->Data(), _parent->Data());
+    Entity parentEntity{kNullEntity};
+
+    auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
+    if (parentComp)
+    {
+      parentEntity = parentComp->Data();
+    }
+
+    this->dataPtr->treeModel.AddEntity(_entity, _name->Data(), parentEntity);
     return true;
   });
 }
