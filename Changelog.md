@@ -8,14 +8,11 @@
 
 1. Added an SDF message to the start of log files.
     * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+    
+1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
 
 ## Ignition Gazebo 1.x
-
-### Ignition Gazebo 2.X.X
-
-1. Update Magnetometer component to use sdf::Sensor object instead of an
-   sdf::ElementPtr.
-    * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
 
 ### Ignition Gazebo 1.X.X
 
