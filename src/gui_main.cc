@@ -257,6 +257,8 @@ int main(int _argc, char **_argv)
     {
       plugin->PostUpdate(_info, ecm);
     }
+
+    ecm.ClearNewlyCreatedEntities();
   };
 
   // TODO(louise) Enable network on server
@@ -264,16 +266,6 @@ int main(int _argc, char **_argv)
   auto networkManager = ignition::gazebo::NetworkManager::Create(
       step, ecm, nullptr,
       ignition::gazebo::NetworkConfig::FromValues("secondary"));
-
-  // Debug
-  auto e2 = ecm.CreateEntity();
-  ecm.CreateComponent(e2, ignition::gazebo::components::Name("ground_plane"));
-  ecm.CreateComponent(e2, ignition::gazebo::components::ParentEntity(ignition::gazebo::kNullEntity));
-  auto e3 = ecm.CreateEntity();
-  ecm.CreateComponent(e3, ignition::gazebo::components::Name("link"));
-  ecm.CreateComponent(e3, ignition::gazebo::components::ParentEntity(e2));
-
-  step(ignition::gazebo::UpdateInfo());
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT

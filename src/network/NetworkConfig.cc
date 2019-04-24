@@ -65,13 +65,6 @@ NetworkConfig NetworkConfig::FromValues(const std::string &_role,
   if (config.role == NetworkRole::SimulationPrimary)
   {
     config.numSecondariesExpected = _secondaries;
-    if (config.numSecondariesExpected == 0)
-    {
-      config.role = NetworkRole::None;
-      ignwarn << "Detected IGN_GAZEBO_NETWORK_ROLE=PRIMARY, but "
-        << "IGN_GAZEBO_NETWORK_SECONDARIES not set, "
-        << "no distributed sim available" << std::endl;
-    }
   }
 
   return config;

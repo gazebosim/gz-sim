@@ -38,11 +38,6 @@ bool validateConfig(const NetworkConfig &_config)
   switch (_config.role)
   {
     case NetworkRole::SimulationPrimary:
-      if (_config.numSecondariesExpected <= 0)
-      {
-        valid = false;
-      }
-      break;
     case NetworkRole::SimulationSecondary:
       break;
     case NetworkRole::ReadOnly:
