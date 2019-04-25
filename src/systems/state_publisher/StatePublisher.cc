@@ -156,12 +156,17 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
     const components::JointVelocity *jointVelocity  =
       _ecm.Component<components::JointVelocity>(joint);
     if (jointVelocity)
-      jointMsg->mutable_axis1()->set_velocity(jointVelocity->Data());
-
-    const components::JointVelocity2 *jointVelocity2  =
-      _ecm.Component<components::JointVelocity2>(joint);
-    if (jointVelocity2)
-      jointMsg->mutable_axis2()->set_velocity(jointVelocity2->Data());
+    {
+      for (size_t i = 0; i < jointVelocity->Data().size(); ++i)
+      {
+        if (i == 0)
+          jointMsg->mutable_axis1()->set_velocity(jointVelocity->Data()[i]);
+        else if (i==1)
+          jointMsg->mutable_axis2()->set_velocity(jointVelocity->Data()[i]);
+        else
+          ignwarn << "Joint state publisher only supports two joint axis\n";
+      }
+    }
 
     // Set the joint force
     const components::JointForce *jointForce  =

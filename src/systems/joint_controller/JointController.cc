@@ -120,9 +120,9 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   if (vel == nullptr)
   {
-    _ecm.CreateComponent(this->dataPtr->jointEntity,
-                         components::JointVelocityCmd({
-                           this->dataPtr->jointVelCmd, 0.0, 0.0}));
+    _ecm.CreateComponent(
+        this->dataPtr->jointEntity,
+        components::JointVelocityCmd({this->dataPtr->jointVelCmd}));
   }
   else
   {
