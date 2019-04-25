@@ -130,7 +130,7 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
   if (!worldPose || !inertial)
     return std::nullopt;
 
-  return std::make_optional(inertial->Data().Pose() + worldPose->Data());
+  return std::make_optional(worldPose->Data() * inertial->Data().Pose());
 }
 
 //////////////////////////////////////////////////
@@ -202,8 +202,10 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
   if (!worldPose || !inertial)
     return std::nullopt;
 
+  const math::Pose3d &comWorldPose =
+      worldPose->Data() * inertial->Data().Pose();
   return std::make_optional(
-      math::Inertiald(inertial->Data().MassMatrix(), worldPose->Data()).Moi());
+      math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
 }
 
 //////////////////////////////////////////////////

@@ -168,7 +168,7 @@ TEST_F(LinkIntegrationTest, LinkPoses)
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
 
   EXPECT_EQ(linkWorldPose, link.WorldPose(ecm));
-  EXPECT_EQ(inertiaPose + linkWorldPose, link.WorldInertialPose(ecm));
+  EXPECT_EQ(linkWorldPose * inertiaPose, link.WorldInertialPose(ecm));
 }
 
 //////////////////////////////////////////////////
@@ -251,8 +251,10 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
   // Before we add components, pose functions should return nullopt
   EXPECT_EQ(std::nullopt, link.WorldInertiaMatrix(ecm));
 
-  math::MassMatrix3d linkMassMatrix(1.0, {0.4, 0.4, 0.4}, math::Vector3d::Zero);
-  math::Inertiald linkInertial{linkMassMatrix, math::Pose3d::Zero};
+  math::MassMatrix3d linkMassMatrix(1.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
+  math::Pose3d linkComPose;
+  linkComPose.Set(0.2, 0.1, 0.0, IGN_PI_4, 0, 0);
+  math::Inertiald linkInertial{linkMassMatrix, linkComPose};
 
   math::Pose3d linkWorldPose;
   linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, IGN_PI_4, IGN_PI_2);
@@ -260,7 +262,8 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
 
-  math::Matrix3d linkR(linkWorldPose.Rot());
-  math::Matrix3d expMoi = linkR * linkMassMatrix.Moi() * linkR.Transposed();
+  math::Matrix3d comWorldRot(linkWorldPose.Rot() * linkComPose.Rot());
+  math::Matrix3d expMoi =
+      comWorldRot * linkMassMatrix.Moi() * comWorldRot.Transposed();
   EXPECT_EQ(expMoi, *link.WorldInertiaMatrix(ecm));
 }

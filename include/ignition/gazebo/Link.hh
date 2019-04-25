@@ -59,7 +59,8 @@ namespace ignition
     ///    Link link(entity);
     ///    std::string name = link.Name(ecm);
     ///
-    class IGNITION_GAZEBO_VISIBLE Link {
+    class IGNITION_GAZEBO_VISIBLE Link
+    {
       /// \brief Constructor
       /// \param[in] _entity Link entity
       public: explicit Link(gazebo::Entity _entity = kNullEntity);
