@@ -168,7 +168,6 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     // Create battery entity and component
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
     // Initialize with initial voltage
-    // TODO(anyone) This may be changed to capacity in the future
     _ecm.CreateComponent(this->dataPtr->batteryEntity,
       components::BatterySoC());
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
