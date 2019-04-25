@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_CONVERSIONS_HH_
 #define IGNITION_GAZEBO_CONVERSIONS_HH_
 
+#include <ignition/msgs/axis.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/inertial.pb.h>
@@ -30,6 +31,7 @@
 #include <ignition/math/Inertial.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/JointAxis.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
 
@@ -210,6 +212,40 @@ namespace ignition
     /// \return math inertial.
     template<>
     math::Inertiald convert(const msgs::Inertial &_in);
+
+    /// \brief Generic conversion from an SDF joint axis to another type.
+    /// \param[in] _in SDF joint axis.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::JointAxis &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF joint axis to an axis
+    /// message.
+    /// \param[in] _in SDF joint axis.
+    /// \return Axis message.
+    template<>
+    msgs::Axis convert(const sdf::JointAxis &_in);
+
+    /// \brief Generic conversion from an axis message to another type.
+    /// \param[in] _in Axis message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Axis &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an axis message to a joint axis
+    /// SDF object.
+    /// \param[in] _in Axis message.
+    /// \return SDF joint axis.
+    template<>
+    sdf::JointAxis convert(const msgs::Axis &_in);
     }
   }
 }
