@@ -250,6 +250,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         return true;
       });
 
+  // Only offer scene services once the message has been populated at least once
   if (!this->dataPtr->node)
     this->dataPtr->SetupTransport(this->dataPtr->worldName);
 
