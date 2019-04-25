@@ -159,13 +159,12 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     if (vel == nullptr)
     {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->leftJointSpeed, 0, 0}));
+      _ecm.CreateComponent(
+          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocityCmd(
-          {this->dataPtr->leftJointSpeed, 0, 0});
+      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
     }
   }
 
@@ -177,12 +176,11 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     if (vel == nullptr)
     {
       _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed, 0, 0}));
+          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocityCmd(
-          {this->dataPtr->rightJointSpeed, 0, 0});
+      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
     }
   }
 }
