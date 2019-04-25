@@ -661,10 +661,13 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     entityMsg->set_remove(true);
   }
 
+  // Empty means all types
+  bool allTypes = _types.empty();
+
   auto components = this->dataPtr->entityComponents[_entity];
   for (const auto &comp : components)
   {
-    if (!_types.empty() && _types.find(comp.first) == _types.end())
+    if (!allTypes && _types.find(comp.first) == _types.end())
     {
       continue;
     }
