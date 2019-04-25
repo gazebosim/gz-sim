@@ -185,15 +185,13 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 
   // Append file name
   std::string dbPath = common::joinPaths(_logPath, "state.tlog");
-
+  ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
     ignerr << "Log path invalid. File [" << dbPath << "] "
       << "does not exist. Nothing to play.\n";
     return false;
   }
-
-  ignmsg << "Loading log file: " << dbPath << std::endl;
 
   // Call Log.hh directly to load a .tlog file
   auto log = std::make_unique<transport::log::Log>();
@@ -220,7 +218,7 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   sdf::Root root;
   if (root.LoadSdfString(sdfMsg.data()).size() != 0 || root.WorldCount() <= 0)
   {
-    ignerr << "Error loading SDF string loggin in file [" << dbPath << "]"
+    ignerr << "Error loading SDF string logged in file [" << dbPath << "]"
       << std::endl;
     return false;
   }
