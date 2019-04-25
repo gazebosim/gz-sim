@@ -77,7 +77,7 @@ ign service -s /world/empty/remove \
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="RenderWindow" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
