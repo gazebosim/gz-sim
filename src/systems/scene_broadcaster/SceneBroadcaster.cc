@@ -250,10 +250,6 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         return true;
       });
 
-  // Only offer scene services once the message has been populated at least once
-  if (!this->dataPtr->node)
-    this->dataPtr->SetupTransport(this->dataPtr->worldName);
-
   this->dataPtr->posePub.Publish(poseMsg);
 
   // call SceneGraphRemoveEntities at the end of this update cycle so that
@@ -480,6 +476,11 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   if (newEntity)
   {
+    // Only offer scene services once the message has been populated at least
+    // once
+    if (!this->node)
+      this->SetupTransport(this->worldName);
+
     msgs::Scene sceneMsg;
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
