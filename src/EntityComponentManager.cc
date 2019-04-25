@@ -800,10 +800,8 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 
   auto descVector = math::graph::BreadthFirstSort(this->dataPtr->entities,
       _entity);
-  for (const auto &desc : descVector)
-  {
-    descendants.insert(desc);
-  }
+  std::move(descVector.begin(), descVector.end(), std::inserter(descendants,
+      descendants.end()));
 
   this->dataPtr->descendantCache[_entity] = descendants;
   return descendants;
