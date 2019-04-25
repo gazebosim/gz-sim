@@ -25,8 +25,17 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/EventManager.hh"
+#include "ignition/gazebo/System.hh"
+#include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
+#include "network/NetworkConfig.hh"
+#include "network/NetworkManagerSecondary.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -131,6 +140,7 @@ int main(int _argc, char **_argv)
 
   // Initialize Qt app
   ignition::gui::Application app(_argc, _argv);
+  app.AddPluginPath(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
@@ -229,6 +239,33 @@ int main(int _argc, char **_argv)
           pluginDoc.FirstChildElement("plugin"));
     }
   }
+
+  // Update ECM with state from network
+  ignition::gazebo::EntityComponentManager ecm;
+  auto step = [&app, &ecm](const ignition::gazebo::UpdateInfo &_info)
+  {
+    auto plugins = app.findChildren<ignition::gazebo::GuiPlugin *>();
+    for (auto plugin : plugins)
+    {
+      plugin->PreUpdate(_info, ecm);
+    }
+    for (auto plugin : plugins)
+    {
+      plugin->Update(_info, ecm);
+    }
+    for (auto plugin : plugins)
+    {
+      plugin->PostUpdate(_info, ecm);
+    }
+
+    ecm.ClearNewlyCreatedEntities();
+  };
+
+  // TODO(louise) Enable network on server
+//  ignition::gazebo::EventManager *eventManager;
+  auto networkManager = ignition::gazebo::NetworkManager::Create(
+      step, ecm, nullptr,
+      ignition::gazebo::NetworkConfig::FromValues("secondary"));
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT

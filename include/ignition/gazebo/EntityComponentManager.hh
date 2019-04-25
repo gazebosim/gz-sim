@@ -415,12 +415,12 @@ namespace ignition
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
-      protected: void ClearNewlyCreatedEntities();
+      public: void ClearNewlyCreatedEntities();
 
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
-      protected: void ProcessRemoveEntityRequests();
+      public: void ProcessRemoveEntityRequests();
 
       /// \brief Get whether an Entity exists and is new.
       ///
