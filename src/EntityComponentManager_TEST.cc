@@ -1479,13 +1479,27 @@ TEST_P(EntityComponentManagerFixture, State)
     EXPECT_EQ(e3c0, std::stoi(e3c0Msg.component()));
   }
 
+  // Serialize changed state into a message, it should be the same
+  {
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(3, changedStateMsg.entities_size());
+  }
+
+  // Mark entities as not new
+  manager.RunClearNewlyCreatedEntities();
+
+  // Changed state should be empty
+  {
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(0, changedStateMsg.entities_size());
+  }
+
   // Deserialize into a new ECM
   EntityComponentManager newEcm;
+  newEcm.SetState(stateMsg);
 
   // Check ECM
   {
-    newEcm.SetState(stateMsg);
-
     EXPECT_EQ(3u, newEcm.EntityCount());
 
     EXPECT_TRUE(newEcm.HasEntity(e1));
@@ -1545,9 +1559,24 @@ TEST_P(EntityComponentManagerFixture, State)
     e4c0Msg->set_component(std::to_string(e4c0));
   }
 
-  // Set new state on top of previous one and check ECM was properly updated
+  // Set new state on top of previous one
+  manager.SetState(stateMsg);
+
+  // Check ECM was properly updated
   {
-    manager.SetState(stateMsg);
+    // Check the changed state
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(2, changedStateMsg.entities_size());
+
+    const auto &e4Msg = changedStateMsg.entities(0);
+    EXPECT_EQ(e4, e4Msg.id());
+    EXPECT_FALSE(e4Msg.remove());
+    EXPECT_EQ(1, e4Msg.components().size());
+
+    const auto &e2Msg = changedStateMsg.entities(1);
+    EXPECT_EQ(e2, e2Msg.id());
+    EXPECT_TRUE(e2Msg.remove());
+    EXPECT_EQ(2, e2Msg.components().size());
 
     // Check that e2 has been marked for removal
     EXPECT_EQ(4u, manager.EntityCount());
@@ -1591,10 +1620,9 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 
   // Serialize into a message with selected entities and components
-  stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
-
-  // Check message
   {
+    stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
+
     ASSERT_EQ(2, stateMsg.entities_size());
 
     const auto &e3Msg = stateMsg.entities(0);
