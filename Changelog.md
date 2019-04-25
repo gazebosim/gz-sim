@@ -13,6 +13,9 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. Add `Link`: a convenience class for interfacing with link entities
+    * [Pull Request 269](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/269)
+
 1. Added LiftDragPlugin (ported from Gazebo classic)
     * [Pull Request 256](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/256)
 
