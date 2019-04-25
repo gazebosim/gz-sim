@@ -167,7 +167,6 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
 
-  this->dataPtr->SetupTransport(this->dataPtr->worldName);
 
   // Add to graph
   {
@@ -250,6 +249,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         pose->set_id(_entity);
         return true;
       });
+
+  if (!this->dataPtr->node)
+    this->dataPtr->SetupTransport(this->dataPtr->worldName);
 
   this->dataPtr->posePub.Publish(poseMsg);
 
