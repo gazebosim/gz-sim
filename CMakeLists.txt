@@ -128,6 +128,11 @@ ign_find_package(IgnProtobuf
                  PRETTY Protobuf)
 set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
 
+# Plugin install dir
+set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+)
+
 #============================================================================
 # Configure the build
 #============================================================================
