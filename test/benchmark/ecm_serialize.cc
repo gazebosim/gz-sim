@@ -139,3 +139,5 @@ BENCHMARK(BM_Serialize5Component)
   ->Arg(500)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_MAIN()
