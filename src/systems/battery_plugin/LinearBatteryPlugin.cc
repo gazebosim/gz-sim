@@ -90,8 +90,11 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief State of charge
   public: double soc{1.0};
 
-  /// \brief Battery current for a historic time frame
-  public: std::list<double> ilist;
+  /// \brief Battery current for a historic time window
+  public: std::deque<double> iList;
+
+  /// \brief Time interval for a historic time window
+  public: std::deque<double> dtList;
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
@@ -260,10 +263,14 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
-  // Keep a list of historic currents
-  if (this->dataPtr->ilist.size() >= 100)
-    this->dataPtr->ilist.pop_front();
-  this->dataPtr->ilist.push_back(this->dataPtr->ismooth);
+  // Keep a list of historic currents and time intervals
+  if (this->dataPtr->iList.size() >= 100)
+  {
+    this->dataPtr->iList.pop_front();
+    this->dataPtr->dtList.pop_front();
+  }
+  this->dataPtr->iList.push_back(this->dataPtr->ismooth);
+  this->dataPtr->dtList.push_back(dt);
 
   // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
@@ -275,8 +282,8 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
   // Estimate state of charge
   double isum = 0.0;
-  for (const auto &i : this->dataPtr->ilist)
-    isum += (i * dt / 3600.0);
+  for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
+    isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
   this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
 
   igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
