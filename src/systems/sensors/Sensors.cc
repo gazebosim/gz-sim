@@ -96,6 +96,8 @@ class ignition::gazebo::systems::SensorsPrivate
   public: rendering::ScenePtr scene;
 };
 
+#include <unistd.h>
+
 //////////////////////////////////////////////////
 Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 {
@@ -115,6 +117,8 @@ void Sensors::Configure(const Entity &_id,
       _sdf->Get<std::string>("render_engine", "ogre").first;
 
   this->dataPtr->sceneManager.SetWorldId(_id);
+
+  std::cerr << " sensors pid " << ::getpid() << std::endl;
 }
 
 //////////////////////////////////////////////////
