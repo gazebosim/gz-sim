@@ -185,27 +185,41 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 
   // Append file name
   std::string dbPath = common::joinPaths(_logPath, "state.tlog");
-
-  // Temporary. Name of recorded SDF file
-  std::string sdfPath = common::joinPaths(_logPath, "state.sdf");
-
-  if (!common::exists(dbPath) ||
-      !common::exists(sdfPath))
+  ignmsg << "Loading log file [" + dbPath + "]\n";
+  if (!common::exists(dbPath))
   {
-    ignerr << "Log path invalid. File(s) [" << dbPath << "] / [" << sdfPath
-           << "] do not exist. Nothing to play.\n";
+    ignerr << "Log path invalid. File [" << dbPath << "] "
+      << "does not exist. Nothing to play.\n";
     return false;
   }
 
-  ignmsg << "Loading log files:"  << std::endl
-         << "* " << dbPath << std::endl
-         << "* " << sdfPath << std::endl;
+  // Call Log.hh directly to load a .tlog file
+  auto log = std::make_unique<transport::log::Log>();
+  if (!log->Open(dbPath))
+  {
+    ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
+  }
+
+  // Find SDF string in .tlog file
+  transport::log::TopicList sdfOpts("/" + common::basename(_logPath) + "/sdf");
+  transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
+  transport::log::MsgIter sdfIter = sdfBatch.begin();
+  if (sdfIter == sdfBatch.end())
+  {
+    ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
+    return false;
+  }
+
+  // Parse SDF message
+  msgs::StringMsg sdfMsg;
+  sdfMsg.ParseFromString(sdfIter->Data());
 
   // Load recorded SDF file
   sdf::Root root;
-  if (root.Load(sdfPath).size() != 0 || root.WorldCount() <= 0)
+  if (root.LoadSdfString(sdfMsg.data()).size() != 0 || root.WorldCount() <= 0)
   {
-    ignerr << "Error loading SDF file [" << sdfPath << "]" << std::endl;
+    ignerr << "Error loading SDF string logged in file [" << dbPath << "]"
+      << std::endl;
     return false;
   }
   const sdf::World *sdfWorld = root.WorldByIndex(0);
@@ -274,13 +288,6 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     auto lightEntity = creator.CreateEntities(light);
 
     creator.SetParent(lightEntity, _worldEntity);
-  }
-
-  // Call Log.hh directly to load a .tlog file
-  auto log = std::make_unique<transport::log::Log>();
-  if (!log->Open(dbPath))
-  {
-    ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
   // Access messages in .tlog file
