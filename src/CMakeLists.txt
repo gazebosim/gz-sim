@@ -33,6 +33,7 @@ set (sources
   EntityComponentManager.cc
   EventManager.cc
   LevelManager.cc
+  Link.cc
   Model.cc
   SdfEntityCreator.cc
   Server.cc
@@ -55,6 +56,7 @@ set (gtest_sources
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
   ign_TEST.cc
+  Link_TEST.cc
   Model_TEST.cc
   SdfEntityCreator_TEST.cc
   Server_TEST.cc

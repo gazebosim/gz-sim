@@ -649,38 +649,80 @@ void EntityComponentManager::RebuildViews()
 }
 
 //////////////////////////////////////////////////
-ignition::msgs::SerializedState EntityComponentManager::State(
-    std::unordered_set<Entity> _entities,
-    std::unordered_set<ComponentTypeId> _types) const
+void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
+    Entity _entity, const std::unordered_set<ComponentTypeId> &_types) const
+{
+  auto entityMsg = _msg.add_entities();
+  entityMsg->set_id(_entity);
+
+  if (this->dataPtr->toRemoveEntities.find(_entity) !=
+      this->dataPtr->toRemoveEntities.end())
+  {
+    entityMsg->set_remove(true);
+  }
+
+  // Empty means all types
+  bool allTypes = _types.empty();
+
+  auto components = this->dataPtr->entityComponents[_entity];
+  for (const auto &comp : components)
+  {
+    if (!allTypes && _types.find(comp.first) == _types.end())
+    {
+      continue;
+    }
+
+    auto compMsg = entityMsg->add_components();
+
+    auto compBase = this->ComponentImplementation(_entity, comp.first);
+    compMsg->set_type(compBase->TypeId());
+
+    std::ostringstream ostr;
+    ostr << *compBase;
+
+    compMsg->set_component(ostr.str());
+
+    // TODO(anyone) Set component being removed once we have a way to queue it
+  }
+}
+
+//////////////////////////////////////////////////
+ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 {
   ignition::msgs::SerializedState stateMsg;
-  for (const auto &[entity, components] : this->dataPtr->entityComponents)
+
+  // New entities
+  for (const auto &entity : this->dataPtr->newlyCreatedEntities)
   {
+    this->AddEntityToMessage(stateMsg, entity);
+  }
+
+  // Entities being removed
+  for (const auto &entity : this->dataPtr->toRemoveEntities)
+  {
+    this->AddEntityToMessage(stateMsg, entity);
+  }
+
+  // TODO(anyone) New / removed / changed components
+
+  return stateMsg;
+}
+
+//////////////////////////////////////////////////
+ignition::msgs::SerializedState EntityComponentManager::State(
+    const std::unordered_set<Entity> &_entities,
+    const std::unordered_set<ComponentTypeId> &_types) const
+{
+  ignition::msgs::SerializedState stateMsg;
+  for (const auto &it : this->dataPtr->entityComponents)
+  {
+    auto entity = it.first;
     if (!_entities.empty() && _entities.find(entity) == _entities.end())
     {
       continue;
     }
 
-    auto entityMsg = stateMsg.add_entities();
-    entityMsg->set_id(entity);
-
-    for (const auto &comp : components)
-    {
-      if (!_types.empty() && _types.find(comp.first) == _entities.end())
-      {
-        continue;
-      }
-
-      auto compMsg = entityMsg->add_components();
-
-      auto compBase = this->ComponentImplementation(entity, comp.first);
-      compMsg->set_type(compBase->TypeId());
-
-      std::ostringstream ostr;
-      ostr << *compBase;
-
-      compMsg->set_component(ostr.str());
-    }
+    this->AddEntityToMessage(stateMsg, entity, _types);
   }
 
   return stateMsg;
