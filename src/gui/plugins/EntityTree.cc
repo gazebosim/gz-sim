@@ -42,8 +42,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
-void TreeModel::AddEntity(Entity _entity, const std::string &_entityName,
-    Entity _parentEntity)
+void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
+    unsigned int _parentEntity)
 {
   QStandardItem *parentItem{nullptr};
 
@@ -70,7 +70,7 @@ void TreeModel::AddEntity(Entity _entity, const std::string &_entityName,
   }
 
   // New entity item
-  auto entityItem = new QStandardItem(QString::fromStdString(_entityName));
+  auto entityItem = new QStandardItem(_entityName);
   entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
 
   parentItem->appendRow(entityItem);
@@ -87,7 +87,7 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 
 /////////////////////////////////////////////////
 EntityTree::EntityTree()
-  : GuiPlugin(), dataPtr(std::make_unique<EntityTreePrivate>())
+  : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
   gui::App()->Engine()->rootContext()->setContextProperty("EntityTreeModel",
@@ -107,8 +107,7 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 //////////////////////////////////////////////////
-void EntityTree::PostUpdate(const UpdateInfo &,
-    const EntityComponentManager &_ecm)
+void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   _ecm.EachNew<components::Name>(
     [&](const Entity &_entity,
@@ -122,7 +121,11 @@ void EntityTree::PostUpdate(const UpdateInfo &,
       parentEntity = parentComp->Data();
     }
 
-    this->dataPtr->treeModel.AddEntity(_entity, _name->Data(), parentEntity);
+    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
+        Qt::QueuedConnection,
+        Q_ARG(unsigned int, _entity),
+        Q_ARG(QString, QString::fromStdString(_name->Data())),
+        Q_ARG(unsigned int, parentEntity));
     return true;
   });
 }
