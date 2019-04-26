@@ -17,13 +17,11 @@
 #ifndef IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
 #define IGNITION_GAZEBO_GUI_GUISYSTEM_HH_
 
-#include <memory>
 #include <QtCore>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/EntityComponentManager.hh>
 #include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
 #include <ignition/gui/Plugin.hh>
 
 #include <sdf/Element.hh>
@@ -34,43 +32,27 @@ namespace gazebo
 {
   // Inline bracket to help doxygen filtering.
   inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-  /// \class System System.hh ignition/gazebo/System.hh
-  /// \brief Base class for a System.
+  /// \brief Base class for a GUI System.
   ///
   /// A System operates on Entities that have certain Components. A System
   /// will only operate on an Entity if it has all of the required
   /// Components.
   ///
-  /// Systems are executed in three phases:
-  ///  * PreUpdate
-  ///    * Has read-write access to world entities and components
-  ///    * Executed with simulation time at (t0)
-  ///    * Can be used to modify state before physics runs, for example for
-  ///      applying control signals or performing network syncronization.
-  ///  * Update
-  ///    * Has read-write access to world entities and components
-  ///    * Responsible for propagating time from (t0) to (t0 + dt)
-  ///    * Used for physics simulation step
-  ///  * PostUpdate
-  ///    * Has read-only access to world entities and components
-  ///    * Executed with simulation time at (t0 + dt)
-  ///    * Used to read out results at the end of a simulation step to be used
-  ///      for sensor or controller updates.
-
-  /// \class GuiSystemPreUpdate GuiSystem.hh ignition/gazebo/System.hh
-  /// \brief Interface for a system that uses the PreUpdate phase
-  class IGNITION_GAZEBO_VISIBLE GuiPlugin : public ignition::gui::Plugin
+  /// GUI systems are different from `ignition::gazebo::System`s because they
+  /// don't run in the same process as the physics. Instead, they run in a
+  /// separate process that is stepped by updates coming through the network
+  class IGNITION_GAZEBO_VISIBLE GuiSystem : public ignition::gui::Plugin
   {
     Q_OBJECT
 
-    public: virtual void PreUpdate(const UpdateInfo &,
-                                   EntityComponentManager &){};
-
-    public: virtual void Update(const UpdateInfo &,
-                                EntityComponentManager &){};
-
-    public: virtual void PostUpdate(const UpdateInfo &,
-                                    const EntityComponentManager &){};
+    /// \brief Update callback called every time the system is stepped.
+    /// This is called at an Ignition transport thread, so any interaction
+    /// with Qt should be done through signals and slots.
+    /// \param[in] _info Current simulation information, such as time.
+    /// \param[in] _ecm Mutable reference to the ECM, so the system can read
+    /// and write entities and their components.
+    public: virtual void Update(const UpdateInfo &/*_info*/,
+                                EntityComponentManager &/*_ecm*/){};
   };
 }
 }
