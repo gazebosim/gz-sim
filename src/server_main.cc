@@ -28,14 +28,15 @@
 // This flag is an abbreviation for the longer gflags built-in help flag.
 DEFINE_bool(h, false, "");
 DEFINE_int32(verbose, 1, "");
-DEFINE_int32(v, 1, "");
+ DEFINE_int32(v, 1, "");
 DEFINE_double(z, -1, "Update rate in Hertz.");
 DEFINE_uint64(iterations, 0, "Number of iterations to execute.");
 DEFINE_string(f, "", "Load an SDF file on start.");
 DEFINE_bool(r, false, "Run simulation on start. "
-    "The default is false, which starts simulation paused.");
+   "The default is false, which starts simulation paused.");
 DEFINE_bool(levels, false, "Use levels");
 DEFINE_bool(distributed, false, "Use distributed simulation.");
+
 DEFINE_string(network_role, "", "Participant role used in a distributed "
     " simulation environment. Role is one of [primary, secondary].");
 DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
@@ -54,50 +55,50 @@ void help()
   << std::endl
   << std::endl
   << "Options:" << std::endl
-  << "  -h [ --help ]          Print help message."
-  << std::endl
-  << "  --version              Print version information."
-  << std::endl
-  << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
-  << " The default verbosity is 1"
-  << std::endl
-  << "  --iterations arg       Number of iterations to execute."
-  << std::endl
-  << "  -f arg                 Load an SDF file on start. "
-  << std::endl
-  << "  -z arg                 Update rate in Hertz."
-  << std::endl
-  << "  -r                     Run simulation on start."
-  << " The default is false, which starts simulation paused."
-  << std::endl
-  << "  --levels               Use the level system."
-  << std::endl
-  << "                         The default is false, which loads all models."
-  << std::endl
-  << "                         It's always true with --network-role."
-  << std::endl
-  << "  --distributed          Use the distributed simulation system."
-  << " The default is false, which disables all distributed simulation."
-  << " This will be deprecated in ign-gazebo2. Please use --network-role "
-  << " and/or --network-secondaries instead. It implies --levels."
-  << std::endl
-  << "  --network-role         Participant role used in a distributed "
-  << " simulation environment. Role is one of [primary, secondary]."
-  << " It implies --levels."
-  << std::endl
-  << "  --network-secondaries  Number of secondary participants "
-  << " expected to join a distributed simulation environment. (Primary only)"
-  << std::endl
-  << std::endl
-  << "  --record               Use logging system to record states."
-  << " The default is false."
-  << std::endl
-  << "  --record-path arg      Custom path to put recorded files."
-  << " Arg is path to recorded states."
-  << std::endl
-  << "  --playback arg         Use logging system to play back states."
-  << " Arg is path to recorded states."
-  << std::endl
+  // << "  -h [ --help ]          Print help message."
+  // << std::endl
+  // << "  --version              Print version information."
+  // << std::endl
+  // << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
+  // << " The default verbosity is 1"
+  // << std::endl
+  // << "  --iterations arg       Number of iterations to execute."
+  // << std::endl
+  // << "  -f arg                 Load an SDF file on start. "
+  // << std::endl
+  // << "  -z arg                 Update rate in Hertz."
+  // << std::endl
+  // << "  -r                     Run simulation on start."
+  // << " The default is false, which starts simulation paused."
+  // << std::endl
+  // << "  --levels               Use the level system."
+  // << std::endl
+  //<< "                         The default is false, which loads all models."
+  //<< std::endl
+  // << "                         It's always true with --network-role."
+  // << std::endl
+  //<< "  --distributed          Use the distributed simulation system."
+  //<< " The default is false, which disables all distributed simulation."
+  //<< " This will be deprecated in ign-gazebo2. Please use --network-role "
+  //<< " and/or --network-secondaries instead. It implies --levels."
+  //<< std::endl
+  // << "  --network-role         Participant role used in a distributed "
+  // << " simulation environment. Role is one of [primary, secondary]."
+  // << " It implies --levels."
+  // << std::endl
+  // << "  --network-secondaries  Number of secondary participants "
+  // << " expected to join a distributed simulation environment. (Primary only)"
+  // << std::endl
+  // << std::endl
+  //<< "  --record               Use logging system to record states."
+  //<< " The default is false."
+  //<< std::endl
+  //<< "  --record-path arg      Custom path to put recorded files."
+  //<< " Arg is path to recorded states."
+  //<< std::endl
+  //<< "  --playback arg         Use logging system to play back states."
+  //<< " Arg is path to recorded states."
+  //<< std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
   << " resources. Can be useful with the -f option to find an SDF file."
