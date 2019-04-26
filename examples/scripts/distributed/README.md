@@ -3,9 +3,13 @@
 This demo shows how to run a simulation that is distributed across several
 processes or even machines.
 
-The demo world consists of 3 shapes rolling downhill. Each shape's physics is
-calculated by a "secondary" simulator, while one "primary" simulator keeps them
-in sync and displays the unified information to the GUI.
+The demo world consists of 4 shapes rolling downhill. The sphere and box models
+have one link each, and the cylinder model has 2 cylinder links, making a total of
+3 models.
+
+Each model's physics is calculated by a "secondary" simulator, while one
+"primary" simulator keeps them in sync and displays the unified information to
+the GUI.
 
 ## Try it out
 
