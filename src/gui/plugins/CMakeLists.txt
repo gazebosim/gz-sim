@@ -7,7 +7,7 @@ foreach (src ${qt_headers_local})
   QT5_WRAP_CPP(${src}_MOC ${src}.hh)
   QT5_ADD_RESOURCES(${src}_RCC ${src}.qrc)
   add_library(${src} SHARED
-    ${PROJECT_SOURCE_DIR}/src/gui/plugins/${src}.cc
+    ${src}.cc
     ${${src}_MOC}
     ${${src}_RCC}
   )

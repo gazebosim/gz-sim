@@ -23,7 +23,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/plugins/EntityTree.hh"
+
+#include "EntityTree.hh"
 
 namespace ignition::gazebo
 {
