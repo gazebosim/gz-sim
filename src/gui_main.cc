@@ -140,7 +140,7 @@ int main(int _argc, char **_argv)
 
   // Initialize Qt app
   ignition::gui::Application app(_argc, _argv);
-  app.AddPluginPath(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
+  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(

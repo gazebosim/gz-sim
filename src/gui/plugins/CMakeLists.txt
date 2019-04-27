@@ -18,5 +18,5 @@ foreach (src ${qt_headers_local})
     PRIVATE
       ignition-plugin${IGN_PLUGIN_VER}::register
   )
-  install (TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+  install (TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
 endforeach (src ${qt_headers_local})
