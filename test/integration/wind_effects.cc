@@ -138,6 +138,7 @@ class LinkComponentRecorder
 template <typename T>
 class BlockingPublisher
 {
+  // cppcheck-suppress passedByValue
   public: BlockingPublisher(std::string _topic,
                     std::chrono::milliseconds _timeOut)
         : topic(std::move(_topic)), timeOut(_timeOut)
