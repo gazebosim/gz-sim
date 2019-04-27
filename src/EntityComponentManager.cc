@@ -19,7 +19,8 @@
 #include <set>
 #include <vector>
 
-#include "ignition/common/Profiler.hh"
+#include <ignition/common/Profiler.hh>
+#include <ignition/math/graph/GraphAlgorithms.hh>
 #include "ignition/gazebo/components/Component.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -77,6 +78,11 @@ class ignition::gazebo::EntityComponentManagerPrivate
   /// \brief The set of all views.
   public: mutable std::map<detail::ComponentTypeKey, detail::View> views;
 
+  /// \brief Cache of previously queried descendants. The key is the parent
+  /// entity for which descendants were queried, and the value are all its
+  /// descendants.
+  public: mutable std::map<Entity, std::unordered_set<Entity>> descendantCache;
+
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 };
@@ -121,6 +127,9 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
     std::lock_guard<std::mutex> lock(this->entityCreatedMutex);
     this->newlyCreatedEntities.insert(_entity);
   }
+
+  // Reset descendants cache
+  this->descendantCache.clear();
 
   return _entity;
 }
@@ -244,6 +253,9 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     // Clear the set of entities to remove.
     this->dataPtr->toRemoveEntities.clear();
   }
+
+  // Reset descendants cache
+  this->dataPtr->descendantCache.clear();
 }
 
 /////////////////////////////////////////////////
@@ -811,3 +823,29 @@ void EntityComponentManager::SetState(
     }
   }
 }
+
+//////////////////////////////////////////////////
+std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
+    const
+{
+  // Check cache
+  if (this->dataPtr->descendantCache.find(_entity) !=
+      this->dataPtr->descendantCache.end())
+  {
+    return this->dataPtr->descendantCache[_entity];
+  }
+
+  std::unordered_set<Entity> descendants;
+
+  if (!this->HasEntity(_entity))
+    return descendants;
+
+  auto descVector = math::graph::BreadthFirstSort(this->dataPtr->entities,
+      _entity);
+  std::move(descVector.begin(), descVector.end(), std::inserter(descendants,
+      descendants.end()));
+
+  this->dataPtr->descendantCache[_entity] = descendants;
+  return descendants;
+}
+

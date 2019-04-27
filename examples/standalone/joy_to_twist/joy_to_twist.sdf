@@ -24,9 +24,9 @@
       <scale_linear>2 0 0</scale_linear>
 
       <!-- Scale for angular RPY, defaults to 0.5 on Yaw-->
-      <scale_linear>0 0 2</scale_linear>
+      <scale_angular>0 0 2</scale_angular>
 
-     <!-- Turbo mode -->
+      <!-- Turbo mode -->
 
       <!-- Button which must be pressed to enable turbo, defaults to invalid (-1) -->
       <enable_turbo_button>1</enable_turbo_button>
@@ -35,7 +35,7 @@
       <scale_linear_turbo>5 0 0</scale_linear_turbo>
 
       <!-- Scale for angular RPY, defaults to the normal mode scale -->
-      <scale_linear>0 0 5</scale_linear>
+      <scale_angular_turbo>0 0 5</scale_angular_turbo>
     </plugin>
   </world>
 </sdf>
