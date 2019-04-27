@@ -100,7 +100,9 @@ class ignition::gazebo::systems::ContactPrivate
 };
 
 //////////////////////////////////////////////////
+// cppcheck-suppress passedByValue
 void ContactSensor::Load(const sdf::ElementPtr &_sdf, std::string _topic,
+// cppcheck-suppress passedByValue
                          std::vector<Entity> _collisionEntities)
 {
   this->collisionEntities = std::move(_collisionEntities);
