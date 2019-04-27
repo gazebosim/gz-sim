@@ -396,25 +396,11 @@ namespace components
     /// \return False.
     public: bool operator!=(const Component<NoData, Identifier> &) const;
 
-    /// \brief Components with no data are always serialize to an empty string.
-    /// \param[in] _out Out stream.
-    /// \param[in] _component Component to stream
-    /// \return The same _out stream, unchanged.
-    public: friend std::ostream &operator<<(std::ostream &_out,
-        const Component<NoData, Identifier> &)
-    {
-      return _out;
-    }
+    // Documentation inherited
+    public: void Serialize(std::ostream &_out) const override;
 
-    /// \brief Components with no data are always serialize to an empty string.
-    /// \param[in] _out In stream.
-    /// \param[in] _component Component to stream
-    /// \return The same _in stream, unchanged.
-    public: friend std::istream &operator>>(std::istream &_in,
-        Component<NoData, Identifier> &)
-    {
-      return _in;
-    }
+    // Documentation inherited
+    public: void Deserialize(std::istream &_in) override;
 
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
@@ -556,6 +542,19 @@ namespace components
   ComponentTypeId Component<NoData, Identifier>::TypeId() const
   {
     return typeId;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  void Component<NoData, Identifier>::Serialize(std::ostream &_out) const
+  {
+    _out << "-";
+  }
+
+  //////////////////////////////////////////////////
+  template <typename Identifier>
+  void Component<NoData, Identifier>::Deserialize(std::istream &)
+  {
   }
 }
 }

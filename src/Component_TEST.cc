@@ -219,21 +219,33 @@ TEST_F(ComponentTest, OStream)
     using Custom = components::Component<math::Inertiald, class CustomTag>;
 
     auto data = math::Inertiald();
-    Custom comp(data);
+    auto comp = new Custom(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    ostr << *comp;
     EXPECT_EQ("Mass: 0", ostr.str());
+
+    // Serializable from base class
+    auto compBase = dynamic_cast<components::BaseComponent *>(comp);
+    std::ostringstream ostrBase;
+    ostrBase << *compBase;
+    EXPECT_EQ("Mass: 0", ostrBase.str());
   }
 
   // Component with data which has custom Serialize function
   {
     auto data = math::Inertiald();
-    InertialWrapper comp(data);
+    auto comp = new InertialWrapper(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    ostr << *comp;
     EXPECT_EQ("Wrapper mass: 0", ostr.str());
+
+    // Serializable from base class
+    auto compBase = dynamic_cast<components::BaseComponent *>(comp);
+    std::ostringstream ostrBase;
+    ostrBase << *compBase;
+    EXPECT_EQ("Wrapper mass: 0", ostrBase.str());
   }
 
   // Component with shared_ptr data which has stream operator
