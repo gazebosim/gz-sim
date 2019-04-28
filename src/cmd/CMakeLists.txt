@@ -2,9 +2,9 @@
 # Note that the major version of the library is included in the name.
 # Ex: cmdgazebo0.rb
 if (APPLE)
-  set(IGN_LIBRARY_NAME lib${PROJECT_LIBRARY_TARGET_NAME}.dylib)
+  set(IGN_LIBRARY_NAME lib${PROJECT_LIBRARY_TARGET_NAME}-ign.dylib)
 else()
-  set(IGN_LIBRARY_NAME lib${PROJECT_LIBRARY_TARGET_NAME}.so)
+  set(IGN_LIBRARY_NAME lib${PROJECT_LIBRARY_TARGET_NAME}-ign.so)
 endif()
 
 configure_file(
@@ -36,7 +36,7 @@ set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
 # Set the library_location variable to the full path of the library file within
 # the build directory.
-set(IGN_LIBRARY_NAME "$<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>")
+set(IGN_LIBRARY_NAME "$<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>-ign")
 
 configure_file(
   "cmdgazebo.rb.in"

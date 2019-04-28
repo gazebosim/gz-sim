@@ -29,8 +29,9 @@
 #include "ign.hh"
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionVersion()
+extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
 {
+  std::cout << "HERE[" << IGNITION_GAZEBO_VERSION_FULL << "]\n";
   return strdup(IGNITION_GAZEBO_VERSION_FULL);
 }
 
