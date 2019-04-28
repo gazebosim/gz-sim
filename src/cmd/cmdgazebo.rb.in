@@ -199,11 +199,11 @@ class Cmd
     end
 
     # Read the library version.
-    Importer.extern 'char *ignitionVersion()'
+    Importer.extern 'char *ignitionGazeboVersion()'
     begin
-      plugin_version = Importer.ignitionVersion.to_s
+      plugin_version = Importer.ignitionGazeboVersion.to_s
     rescue DLError
-      puts "Library error: Problem running 'ignitionVersion()' from #{plugin}."
+      puts "Library error: Problem running 'ignitionGazeboVersion()' from #{plugin}."
       exit(-1)
     end
 

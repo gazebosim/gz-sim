@@ -56,7 +56,7 @@ std::string customExecStr(std::string _cmd)
 TEST(CmdLine, Server)
 {
   std::string cmd = kIgnCommand +
-    "ign-gazebo-server -r -v 4 --iterations 5 -f " +
+    "ign gazebo -s -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -73,7 +73,7 @@ TEST(CmdLine, Server)
   // through the -f argument
   cmd = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kIgnCommand +
-    "ign-gazebo-server -r -v 4 --iterations 5 -f plugins.sdf";
+    "ign gazebo -s -r -v 4 --iterations 5 -f plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -90,7 +90,7 @@ TEST(CmdLine, Server)
 TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kIgnCommand +
-    "ign-gazebo -s -r -v 4 --iterations 5 -f " +
+    "ign gazebo -s -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -108,7 +108,7 @@ TEST(CmdLine, GazeboServer)
 TEST(CmdLine, Gazebo)
 {
   std::string cmd = kIgnCommand +
-    "ign-gazebo -r -v 4 --iterations 5 -f " +
+    "ign gazebo -r -v 4 --iterations 5 -f " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
