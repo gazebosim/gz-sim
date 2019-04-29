@@ -8,11 +8,11 @@ state information will be supported.
 
 Run the example world with `--record` flag. This records data to a default path, i.e. `~/.ignition/gazebo/log/<timestamp>`:
 
-`ign-gazebo -v 4 -r -f pose_publisher.sdf --record`
+`ign gazebo -v 4 -r -f pose_publisher.sdf --record`
 
 A custom path can be specified for recorded files through the `--record-path` flag. When `--record-path` is specified, `--record` does not need to be separately specified:
 
-`ign-gazebo -v 4 -r -f pose_publisher.sdf --record-path ./foo`
+`ign gazebo -v 4 -r -f pose_publisher.sdf --record-path ./foo`
 
 
 ## Record by specifying plugin in SDF
@@ -39,14 +39,14 @@ path (`~/.ignition/gazebo/log/<timestamp>`).
 Currently, it is enforced that only one recording instance is allowed to
 start during a Gazebo run.
 
-\note If both a record plugin and a record command line flag are specified, e.g. `ign-gazebo -v 4 -r -f log_record_shapes.sdf --record`, the command line flag will be ignored, and recorded files will be placed in the path specified in the plugin SDF (or default if none specified).
+\note If both a record plugin and a record command line flag are specified, e.g. `ign gazebo -v 4 -r -f log_record_shapes.sdf --record`, the command line flag will be ignored, and recorded files will be placed in the path specified in the plugin SDF (or default if none specified).
 
 ## Playback from command line
 
 Playback can be triggered by `--playback` command line flag. `<path>` is the
 directory specified to record:
 
-`ign-gazebo -r -v 4 --playback <path>`
+`ign gazebo -r -v 4 --playback <path>`
 
 
 ## Playback by specifying plugin in SDF
