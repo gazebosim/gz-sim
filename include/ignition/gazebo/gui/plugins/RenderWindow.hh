@@ -40,9 +40,12 @@ namespace ignition
 {
 namespace gazebo
 {
+// Inline bracket to help doxygen filtering.
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class IgnRendererPrivate;
   class RenderWindowItemPrivate;
   class RenderWindowPrivate;
+  class RenderUtil;
 
   /// \brief Creates a new ignition rendering scene or adds a user-camera to an
   /// existing scene. It is possible to orbit the camera around the scene with
@@ -106,6 +109,9 @@ namespace gazebo
     /// \brief Destroy camera associated with this renderer
     public: void Destroy();
 
+    /// \brief Set the renderer
+    public: void SetRenderUtil(RenderUtil *_renderer);
+
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
     /// \param[in] _drag Mouse move distance
@@ -125,7 +131,7 @@ namespace gazebo
     /// \brief Render texture id
     public: GLuint textureId = 0u;
 
-    /// \brief Render engine to use
+/*    /// \brief Render engine to use
     public: std::string engineName = "ogre";
 
     /// \brief Unique scene name
@@ -139,6 +145,7 @@ namespace gazebo
 
     /// \brief Ambient color
     public: math::Color ambientLight = math::Color(0.3, 0.3, 0.3, 1.0);
+*/
 
     /// \brief True if engine has been initialized;
     public: bool initialized = false;
@@ -217,7 +224,10 @@ namespace gazebo
     /// \brief Destructor
     public: virtual ~RenderWindowItem();
 
-    /// \brief Set background color of render window
+    /// \brief Set the renderer
+    public: void SetRenderUtil(RenderUtil *_renderer);
+
+/*    /// \brief Set background color of render window
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
 
@@ -259,6 +269,7 @@ namespace gazebo
     /// The renderer will subscribe to this topic to get updates scene messages
     /// \param[in] _topic Scene topic
     public: void SetSceneTopic(const std::string &_topic);
+*/
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
@@ -334,6 +345,7 @@ namespace gazebo
     /// \brief Qt quick window
     public: QQuickWindow *window = nullptr;
   };
+}
 }
 }
 
