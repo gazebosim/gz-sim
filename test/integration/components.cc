@@ -154,7 +154,7 @@ TEST_F(ComponentsTest, CanonicalLink)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::CanonicalLink comp3;
@@ -203,7 +203,7 @@ TEST_F(ComponentsTest, Collision)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Collision comp3;
@@ -333,7 +333,7 @@ TEST_F(ComponentsTest, Joint)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Joint comp3;
@@ -446,7 +446,7 @@ TEST_F(ComponentsTest, Level)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Level comp3;
@@ -587,7 +587,7 @@ TEST_F(ComponentsTest, Link)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Link comp3;
@@ -630,7 +630,7 @@ TEST_F(ComponentsTest, Model)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Model comp3;
@@ -733,7 +733,7 @@ TEST_F(ComponentsTest, Performer)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Performer comp3;
@@ -808,7 +808,7 @@ TEST_F(ComponentsTest, Sensor)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Sensor comp3;
@@ -866,7 +866,7 @@ TEST_F(ComponentsTest, Visual)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Visual comp3;
@@ -888,7 +888,7 @@ TEST_F(ComponentsTest, World)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::World comp3;
