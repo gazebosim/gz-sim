@@ -42,8 +42,9 @@
 #include <ignition/gui/Application.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/plugins/RenderWindow.hh"
-#include "ignition/gazebo/gui/plugins/Rendering.hh"
+
+#include "RenderWindow.hh"
+#include "Rendering.hh"
 
 
 ////////////////// remove me
@@ -1318,7 +1319,7 @@ void RenderWindowItem::SetSceneTopic(const std::string &_topic)
 
 /////////////////////////////////////////////////
 RenderWindow::RenderWindow()
-  : GuiPlugin(), dataPtr(new RenderWindowPrivate)
+  : GuiSystem(), dataPtr(new RenderWindowPrivate)
 {
   qmlRegisterType<RenderWindowItem>("RenderWindow", 1, 0, "RenderWindow");
 }
@@ -1431,17 +1432,17 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 }
 
 //////////////////////////////////////////////////
-void RenderWindow::PostUpdate(const UpdateInfo &_info,
-    const EntityComponentManager &_ecm)
+void RenderWindow::Update(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   // todo(anyone)
   // populate the scene using ecm
-  _ecm.EachNew</*components::Model,*/ components::Name, /*components::Pose,*/
+/*  _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
-//          const components::Model *,
+          const components::Model *,
           const components::Name *_name,
-//          const components::Pose *_pose,
+          const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
 
@@ -1464,13 +1465,14 @@ void RenderWindow::PostUpdate(const UpdateInfo &_info,
       parentEntity = parentComp->Data();
     }
 
-    std::cerr << "each new entities model " << _name->Data() << std::endl;
+    std::cerr << "each new entities model " << _entity << " " <<  _name->Data() << std::endl;
     return true;
   });
+*/
 
 
 
-//  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 }
 
 

@@ -63,7 +63,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///                          (0.3, 0.3, 0.3, 1.0)
   /// * \<camera_pose\> : Optional starting pose for the camera, defaults to
   ///                     (0, 0, 5, 0, 0, 0)
-  class RenderWindow : public GuiPlugin
+  class RenderWindow : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -77,8 +77,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
         override;
 
-    public: void PostUpdate(const UpdateInfo &_info,
-        const EntityComponentManager &_ecm) override;
+    // Documentation inherited
+    public: void Update(const UpdateInfo &_info,
+        EntityComponentManager &_ecm) override;
 
 
     /// \internal
