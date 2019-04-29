@@ -34,6 +34,7 @@
 #include <ignition/msgs.hh>
 
 #include <ignition/rendering.hh>
+#include <ignition/rendering/gziface/SceneManager.hh>
 
 #include <ignition/transport/Node.hh>
 
@@ -42,12 +43,34 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/plugins/RenderWindow.hh"
+#include "ignition/gazebo/gui/plugins/Rendering.hh"
+
+
+////////////////// remove me
+#include "ignition/gazebo/components/Camera.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/Light.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Material.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
+////////////////// remove me
+
 
 namespace ignition
 {
 namespace gazebo
 {
-  /// \brief Scene manager class for loading and managing objects in the scene
+inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+/*  /// \brief Scene manager class for loading and managing objects in the scene
   class SceneManager
   {
     /// \brief Constructor
@@ -184,6 +207,7 @@ namespace gazebo
     /// pose topic
     private: ignition::transport::Node node;
   };
+*/
 
   /// \brief Private data class for IgnRenderer
   class IgnRendererPrivate
@@ -210,10 +234,12 @@ namespace gazebo
     public: rendering::RayQueryPtr rayQuery;
 
     /// \brief Scene requester to get scene info
-    public: SceneManager sceneManager;
+    // public: SceneManager sceneManager;
 
     /// \brief View control focus target
     public: math::Vector3d target;
+
+    public: RenderUtil *renderUtil = nullptr;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -232,8 +258,9 @@ namespace gazebo
   /// \brief Private data class for RenderWindow
   class RenderWindowPrivate
   {
-//    public: Rendering rendering;
+    public: RenderUtil renderUtil;
   };
+}
 }
 }
 
@@ -242,6 +269,7 @@ using namespace gazebo;
 
 QList<QThread *> RenderWindowItemPrivate::threads;
 
+/*
 /////////////////////////////////////////////////
 SceneManager::SceneManager()
 {
@@ -798,6 +826,7 @@ void SceneManager::DeleteEntity(const unsigned int _entity)
     this->lights.erase(_entity);
   }
 }
+*/
 
 /////////////////////////////////////////////////
 IgnRenderer::IgnRenderer()
@@ -809,6 +838,12 @@ IgnRenderer::IgnRenderer()
 /////////////////////////////////////////////////
 IgnRenderer::~IgnRenderer()
 {
+}
+
+////////////////////////////////////////////////
+void IgnRenderer::SetRenderUtil(RenderUtil *_renderer)
+{
+  this->dataPtr->renderUtil = _renderer;
 }
 
 /////////////////////////////////////////////////
@@ -827,7 +862,8 @@ void IgnRenderer::Render()
   }
 
   // update the scene
-  this->dataPtr->sceneManager.Update();
+//  this->dataPtr->sceneManager.Update();
+  this->dataPtr->renderUtil->Update();
 
   // view control
   this->HandleMouseEvent();
@@ -897,32 +933,22 @@ void IgnRenderer::Initialize()
   if (this->initialized)
     return;
 
-  std::map<std::string, std::string> params;
-  params["useCurrentGLContext"] = "1";
-  auto engine = rendering::engine(this->engineName, params);
-  if (!engine)
+  if (!this->dataPtr->renderUtil)
   {
-    ignerr << "Engine [" << this->engineName << "] is not supported"
-           << std::endl;
+    ignerr << "Renderer not set " << std::endl;
     return;
   }
 
-  // Scene
-  auto scene = engine->SceneByName(this->sceneName);
-  if (!scene)
-  {
-    igndbg << "Create scene [" << this->sceneName << "]" << std::endl;
-    scene = engine->CreateScene(this->sceneName);
-    scene->SetAmbientLight(this->ambientLight);
-    scene->SetBackgroundColor(this->backgroundColor);
-  }
+  this->dataPtr->renderUtil->SetUseCurrentGLContext(true);
+  this->dataPtr->renderUtil->Init();
 
+  rendering::ScenePtr scene = this->dataPtr->renderUtil->Scene();
   auto root = scene->RootVisual();
 
   // Camera
   this->dataPtr->camera = scene->CreateCamera();
   root->AddChild(this->dataPtr->camera);
-  this->dataPtr->camera->SetLocalPose(this->cameraPose);
+  this->dataPtr->camera->SetLocalPose(this->dataPtr->renderUtil->CameraPose());
   this->dataPtr->camera->SetImageWidth(this->textureSize.width());
   this->dataPtr->camera->SetImageHeight(this->textureSize.height());
   this->dataPtr->camera->SetAntiAliasing(8);
@@ -932,7 +958,7 @@ void IgnRenderer::Initialize()
   this->dataPtr->camera->PreRender();
   this->textureId = this->dataPtr->camera->RenderTextureGLId();
 
-  // Make service call to populate scene
+/*  // Make service call to populate scene
   if (!this->sceneService.empty())
   {
     this->dataPtr->sceneManager.Load(this->sceneService, this->poseTopic,
@@ -940,6 +966,7 @@ void IgnRenderer::Initialize()
                                      scene);
     this->dataPtr->sceneManager.Request();
   }
+*/
   std::cerr << "loading gazebo scene " <<  ::getpid() << std::endl;
 
   // Ray Query
@@ -951,10 +978,10 @@ void IgnRenderer::Initialize()
 /////////////////////////////////////////////////
 void IgnRenderer::Destroy()
 {
-  auto engine = rendering::engine(this->engineName);
+  auto engine = rendering::engine(this->dataPtr->renderUtil->EngineName());
   if (!engine)
     return;
-  auto scene = engine->SceneByName(this->sceneName);
+  auto scene = engine->SceneByName(this->dataPtr->renderUtil->SceneName());
   if (!scene)
     return;
   scene->DestroySensor(this->dataPtr->camera);
@@ -1162,7 +1189,7 @@ void RenderWindowItem::Ready()
 
 /////////////////////////////////////////////////
 QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
-    QQuickItem::UpdatePaintNodeData */*_data*/)
+    QQuickItem::UpdatePaintNodeData *)
 {
   TextureNode *node = static_cast<TextureNode *>(_node);
 
@@ -1227,6 +1254,13 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
   return node;
 }
 
+////////////////////////////////////////////////
+void RenderWindowItem::SetRenderUtil(RenderUtil *_renderer)
+{
+  this->dataPtr->renderThread->ignRenderer.SetRenderUtil(_renderer);
+}
+
+/*
 /////////////////////////////////////////////////
 void RenderWindowItem::SetBackgroundColor(const math::Color &_color)
 {
@@ -1280,6 +1314,7 @@ void RenderWindowItem::SetSceneTopic(const std::string &_topic)
 {
   this->dataPtr->renderThread->ignRenderer.sceneTopic = _topic;
 }
+*/
 
 /////////////////////////////////////////////////
 RenderWindow::RenderWindow()
@@ -1314,16 +1349,26 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   {
     if (auto elem = _pluginElem->FirstChildElement("engine"))
     {
-      renderWindow->SetEngineName(elem->GetText());
-      // there is a problem with displaying ogre2 render textures that are in
-      // sRGB format. Workaround for now is to apply gamma correction manually.
-      // There maybe a better way to solve the problem by making OpenGL calls..
-      if (elem->GetText() == std::string("ogre2"))
-        this->PluginItem()->setProperty("gammaCorrect", true);
+      //renderWindow->SetEngineName(elem->GetText());
+      std::string engineName = elem->GetText();
+      if (!engineName.empty())
+      {
+        this->dataPtr->renderUtil.SetEngineName(engineName);
+
+        // there is a problem with displaying ogre2 render textures that are in
+        // sRGB format. Workaround for now is to apply gamma correction
+        // manually. There maybe a better way to solve the problem by making
+        // OpenGL calls..
+        if (engineName == std::string("ogre2"))
+          this->PluginItem()->setProperty("gammaCorrect", true);
+      }
     }
 
     if (auto elem = _pluginElem->FirstChildElement("scene"))
-      renderWindow->SetSceneName(elem->GetText());
+    {
+      //renderWindow->SetSceneName(elem->GetText());
+      this->dataPtr->renderUtil.SetSceneName(elem->GetText());
+    }
 
     if (auto elem = _pluginElem->FirstChildElement("ambient_light"))
     {
@@ -1331,7 +1376,8 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
       colorStr >> ambient;
-      renderWindow->SetAmbientLight(ambient);
+      // renderWindow->SetAmbientLight(ambient);
+      this->dataPtr->renderUtil.SetAmbientLight(ambient);
     }
 
     if (auto elem = _pluginElem->FirstChildElement("background_color"))
@@ -1340,7 +1386,8 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
       colorStr >> bgColor;
-      renderWindow->SetBackgroundColor(bgColor);
+      // renderWindow->SetBackgroundColor(bgColor);
+      this->dataPtr->renderUtil.SetBackgroundColor(bgColor);
     }
 
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
@@ -1349,9 +1396,11 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream poseStr;
       poseStr << std::string(elem->GetText());
       poseStr >> pose;
-      renderWindow->SetCameraPose(pose);
+      // renderWindow->SetCameraPose(pose);
+      this->dataPtr->renderUtil.SetCameraPose(pose);
     }
 
+/*
     if (auto elem = _pluginElem->FirstChildElement("service"))
     {
       std::string service = elem->GetText();
@@ -1375,7 +1424,10 @@ void RenderWindow::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::string topic = elem->GetText();
       renderWindow->SetSceneTopic(topic);
     }
+*/
   }
+
+  renderWindow->SetRenderUtil(&this->dataPtr->renderUtil);
 }
 
 //////////////////////////////////////////////////
@@ -1384,7 +1436,41 @@ void RenderWindow::PostUpdate(const UpdateInfo &_info,
 {
   // todo(anyone)
   // populate the scene using ecm
-//  this->dataPtr->rendering.PostUpdate(_info, ecm);
+  _ecm.EachNew</*components::Model,*/ components::Name, /*components::Pose,*/
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+//          const components::Model *,
+          const components::Name *_name,
+//          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+
+        auto modelComp = _ecm.Component<components::Model>(_entity);
+        if (modelComp)
+          std::cerr << "creating render entities model " << _name->Data() << std::endl;
+        else std::cerr << "not a model: " << _name->Data() << std::endl;
+        return true;
+      });
+
+ _ecm.EachNew<components::Name>(
+    [&](const Entity &_entity,
+        const components::Name *_name)->bool
+  {
+    Entity parentEntity{kNullEntity};
+
+    auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
+    if (parentComp)
+    {
+      parentEntity = parentComp->Data();
+    }
+
+    std::cerr << "each new entities model " << _name->Data() << std::endl;
+    return true;
+  });
+
+
+
+//  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 }
 
 

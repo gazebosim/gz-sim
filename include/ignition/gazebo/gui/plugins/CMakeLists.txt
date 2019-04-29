@@ -40,7 +40,8 @@ foreach (src ${qt_headers_local_rendering})
       TINYXML2::TINYXML2
     PRIVATE
       ignition-plugin${IGN_PLUGIN_VER}::register
-      ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+      #ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+      ignition-rendering${IGN_RENDERING_VER}::gziface
   )
   install (TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
 endforeach (src ${qt_headers_local})
