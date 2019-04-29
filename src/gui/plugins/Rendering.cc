@@ -44,7 +44,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "ignition/gazebo/gui/plugins/Rendering.hh"
+#include "Rendering.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -134,12 +134,6 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                               const EntityComponentManager &_ecm)
 {
-  if (!this->dataPtr->initialized)
-    return;
-
-  if (!this->dataPtr->scene)
-    return;
-
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
   this->dataPtr->UpdateRenderingEntities(_ecm);
@@ -149,6 +143,12 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
+  if (!this->dataPtr->initialized)
+    return;
+
+  if (!this->dataPtr->scene)
+    return;
+
   this->dataPtr->updateMutex.lock();
   auto newScenes = std::move(this->dataPtr->newScenes);
   auto newModels = std::move(this->dataPtr->newModels);
@@ -194,6 +194,7 @@ void RenderUtil::Update()
   for (auto &model : newModels)
   {
     std::cerr << "creating model " << std::get<0>(model) << std::endl;
+    sdf::Model m = std::get<1>(model);
     this->dataPtr->sceneManager.CreateModel(
         std::get<0>(model), std::get<1>(model), std::get<2>(model));
   }
@@ -212,6 +213,7 @@ void RenderUtil::Update()
 
   for (auto &light : newLights)
   {
+    std::cerr << "creating light " << std::get<0>(light) << std::endl;
     this->dataPtr->sceneManager.CreateLight(
         std::get<0>(light), std::get<1>(light), std::get<2>(light));
   }
@@ -309,14 +311,16 @@ void RenderUtilPrivate::CreateRenderingEntities(const EntityComponentManager &_e
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
   _ecm.EachNew<components::World, components::Scene>(
-      [&](const Entity & /*_entity*/,
-        const components::World * /* _world */,
+      [&](const Entity & _entity,
+        const components::World * /* _world */ ,
         const components::Scene *_scene)->bool
       {
+        this->sceneManager.SetWorldId(_entity);
+        std::cerr << "each new world / scene  " << _entity << std::endl;
         const sdf::Scene &sceneSdf = _scene->Data();
+        this->newScenes.push_back(sceneSdf);
         // this->scene->SetAmbientLight(sceneSdf.Ambient());
         // this->scene->SetBackgroundColor(sceneSdf.Background());
-        this->newScenes.push_back(sceneSdf);
         return true;
       });
 
@@ -335,7 +339,6 @@ void RenderUtilPrivate::CreateRenderingEntities(const EntityComponentManager &_e
         // this->sceneManager.CreateModel(_entity, model, _parent->Data());
         this->newModels.push_back(
             std::make_tuple(_entity, model, _parent->Data()));
-        std::cerr << "creating renderutil entities model " << _name->Data() << std::endl;
         return true;
       });
 
@@ -593,7 +596,8 @@ void RenderUtil::Init()
   }
 
   // Scene
-  this->dataPtr->scene = this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
+  this->dataPtr->scene =
+      this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
   if (!this->dataPtr->scene)
   {
     igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
@@ -602,6 +606,7 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
+  this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   this->dataPtr->initialized = true;
 }
 
