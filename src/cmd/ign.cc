@@ -17,6 +17,7 @@
 #include <tinyxml2.h>
 #include <cstring>
 #include <ignition/common/Console.hh>
+#include <ignition/common/SignalHandler.hh>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -166,6 +167,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
 {
+  ignition::common::SignalHandler sigHandler;
+  bool sigKilled = false;
+  sigHandler.AddCallback([&](const int /*_sig*/)
+  {
+    sigKilled = true;
+  });
+
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
@@ -227,17 +235,21 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   // \todo(nkoenig) Async resource download. Search for "Async resource
   // download in `src/Server.cc` for corresponding todo item. This todo is
   // resolved when this while loop can be removed.
-  while (!executed)
+  while (!sigKilled && !executed)
   {
     igndbg << "Requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
 
-  if (!executed)
-    ignerr << "Timed out when getting world names." << std::endl;
-  else if (!result)
-    ignerr << "Failed to get world names." << std::endl;
+  // Only print error message if a sigkill was not received.
+  if (!sigKilled)
+  {
+    if (!executed)
+      ignerr << "Timed out when getting world names." << std::endl;
+    else if (!result)
+      ignerr << "Failed to get world names." << std::endl;
+  }
 
   if (!executed || !result)
     return -1;
