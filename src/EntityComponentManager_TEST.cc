@@ -121,20 +121,36 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   {
     EXPECT_EQ(poses[i], *(manager.Component<components::Pose>(keys[i])));
   }
-
-  uintptr_t poseSize = sizeof(components::Pose);
-  const components::Pose *pose = nullptr, *prevPose = nullptr;
-
-  // Check that each component is adjacent in memory
-  for (int i = 0; i < count; ++i)
   {
-    pose = manager.Component<components::Pose>(keys[i]);
-    if (prevPose != nullptr)
+    uintptr_t poseSize = sizeof(components::Pose);
+    const components::Pose *pose = nullptr, *prevPose = nullptr;
+
+    // Check that each component is adjacent in memory
+    for (int i = 0; i < count; ++i)
     {
-      EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
-                          reinterpret_cast<uintptr_t>(prevPose));
+      pose = manager.Component<components::Pose>(keys[i]);
+      if (prevPose != nullptr)
+      {
+        EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
+                            reinterpret_cast<uintptr_t>(prevPose));
+      }
+      prevPose = pose;
     }
-    prevPose = pose;
+  }
+  {
+    // Check that the data member of each Component is adjacent in memory
+    const math::Pose3d *poseData = nullptr, *prevPoseData = nullptr;
+    for (int i = 0; i < count; ++i)
+    {
+      poseData = &(manager.Component<components::Pose>(keys[i])->Data());
+      uintptr_t poseDataSize = sizeof(math::Pose3d) + sizeof(uintptr_t);
+      if (prevPoseData != nullptr)
+      {
+        EXPECT_EQ(poseDataSize, reinterpret_cast<uintptr_t>(poseData) -
+                                reinterpret_cast<uintptr_t>(prevPoseData));
+      }
+      prevPoseData = poseData;
+    }
   }
 }
 
