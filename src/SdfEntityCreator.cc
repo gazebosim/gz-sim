@@ -245,12 +245,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
   this->dataPtr->ecm->CreateComponent(linkEntity,
       components::Inertial(_link->Inertial()));
 
-  if (_link->Element()->HasElement("enable_wind"))
+  if (_link->EnableWind())
   {
-    // \todo(addisu) Add a DOM function to Link to get enable_wind
     this->dataPtr->ecm->CreateComponent(
-        linkEntity,
-        components::WindMode(_link->Element()->Get<bool>("enable_wind")));
+        linkEntity, components::WindMode(_link->EnableWind()));
   }
 
   // Visuals
