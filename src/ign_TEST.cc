@@ -27,8 +27,7 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " +
-  "LD_LIBRARY_PATH=" + kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} " +
-  kBinPath + "/bin/");
+  "LD_LIBRARY_PATH=" + kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
