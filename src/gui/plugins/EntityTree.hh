@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
@@ -48,8 +47,8 @@ namespace gazebo
     /// \param[in] _entityName Name of entity to be added
     /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
     /// means it's a root entity.
-    public: void AddEntity(Entity _entity, const std::string &_entityName,
-        Entity _parentEntity = kNullEntity);
+    public slots: void AddEntity(unsigned int _entity, const QString &_entityName,
+        unsigned int _parentEntity = kNullEntity);
 
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
@@ -59,7 +58,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// TODO
-  class EntityTree : public ignition::gazebo::GuiPlugin
+  class EntityTree : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
@@ -74,8 +73,8 @@ namespace gazebo
         override;
 
     // Documentation inherited
-    public: virtual void PostUpdate(const UpdateInfo &,
-                                    const EntityComponentManager &) override;
+    public: virtual void Update(const UpdateInfo &,
+                                EntityComponentManager &) override;
 
     /// \internal
     /// \brief Pointer to private data.

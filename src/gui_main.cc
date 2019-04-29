@@ -140,7 +140,7 @@ int main(int _argc, char **_argv)
 
   // Initialize Qt app
   ignition::gui::Application app(_argc, _argv);
-  app.AddPluginPath(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
+  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
@@ -244,27 +244,18 @@ int main(int _argc, char **_argv)
   ignition::gazebo::EntityComponentManager ecm;
   auto step = [&app, &ecm](const ignition::gazebo::UpdateInfo &_info)
   {
-    auto plugins = app.findChildren<ignition::gazebo::GuiPlugin *>();
-    for (auto plugin : plugins)
-    {
-      plugin->PreUpdate(_info, ecm);
-    }
+    auto plugins = app.findChildren<ignition::gazebo::GuiSystem *>();
     for (auto plugin : plugins)
     {
       plugin->Update(_info, ecm);
     }
-    for (auto plugin : plugins)
-    {
-      plugin->PostUpdate(_info, ecm);
-    }
-
     ecm.ClearNewlyCreatedEntities();
   };
 
-  // TODO(louise) Enable network on server
-//  ignition::gazebo::EventManager *eventManager;
+
+  auto eventManager = std::make_unique<ignition::gazebo::EventManager>();
   auto networkManager = ignition::gazebo::NetworkManager::Create(
-      step, ecm, nullptr,
+      step, ecm, eventManager.get(),
       ignition::gazebo::NetworkConfig::FromValues("secondary"));
 
   // Run main window.
