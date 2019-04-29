@@ -31,16 +31,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains linear velocity seed of an entity
-  /// represented by ignition::math::Vector3d. This seed can used to generate
-  /// linear velocities by applying transformations and adding noise.
+  /// expressed in the local frame of the entity and represented by
+  /// ignition::math::Vector3d. This seed can used to generate linear velocities
+  /// by applying transformations and adding noise.
   using LinearVelocitySeed =
       Component<math::Vector3d, class LinearVelocitySeedTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LinearVelocitySeed",
                                 LinearVelocitySeed)
 
   /// \brief A component type that contains linear velocity seed of an entity in
-  /// the world frame represented by ignition::math::Vector3d.This seed can used
-  /// to generate linear velocities by applying transformations and adding
+  /// the world frame represented by ignition::math::Vector3d. This seed can
+  /// used to generate linear velocities by applying transformations and adding
   /// noise.
   using WorldLinearVelocitySeed =
       Component<math::Vector3d, class WorldLinearVelocitySeedTag>;
