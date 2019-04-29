@@ -121,7 +121,6 @@ ign_build_tests(TYPE UNIT
     ignition-gazebo${PROJECT_VERSION_MAJOR}
 )
 
-
 # Create the gazebo executable
 ign_add_executable(ign-gazebo-exec main.cc)
 set_property(TARGET ign-gazebo-exec PROPERTY OUTPUT_NAME ign-gazebo)
