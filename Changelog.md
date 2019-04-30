@@ -14,7 +14,7 @@
 
 1. Update Altimeter component to use sdf::Sensor object instead of an
    sdf::ElementPtr.
-    * [Pull Request XXX](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
+    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
 
 ## Ignition Gazebo 1.x
 
