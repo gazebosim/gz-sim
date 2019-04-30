@@ -25,6 +25,33 @@
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::Material`.
+/// \param[in] _out Output stream.
+/// \param[in] _material Material to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const Material &_material)
+{
+  auto msg = ignition::gazebo::convert<ignition::msgs::Material>(_material);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::Material`.
+/// \param[in] _in Input stream.
+/// \param[out] _material Material to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, Material &_material)
+{
+  ignition::msgs::Material msg;
+  msg.ParseFromIstream(&_in);
+
+  _material = ignition::gazebo::convert<sdf::Material>(msg);
+  return _in;
+}
+}
+
 namespace ignition
 {
 namespace gazebo
@@ -33,42 +60,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
-  using MaterialBase = Component<sdf::Material, class MaterialTag>;
-
-  /// \brief This component holds an entity's geometry.
-  class Material : public MaterialBase
-  {
-    // Documentation inherited
-    public: Material() : MaterialBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit Material(const sdf::Material &_data)
-      : MaterialBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      auto msg = convert<msgs::Material>(this->Data());
-      msg.SerializeToOstream(&_out);
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      msgs::Material msg;
-      msg.ParseFromIstream(&_in);
-
-      this->Data() = convert<sdf::Material>(msg);
-    }
-  };
-
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Material", Material)
+  /// \brief This component holds an entity's material.
+  using Material = Component<sdf::Material, class MaterialTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Material", Material)
 }
 }
 }
