@@ -149,7 +149,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->e1 = _sdf->Get<double>("open_circuit_voltage_linear_coef");
 
   if (_sdf->HasElement("initial_charge"))
+  {
     this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
+    this->dataPtr->q = this->dataPtr->q0;
+  }
 
   if (_sdf->HasElement("capacity"))
     this->dataPtr->c = _sdf->Get<double>("capacity");
