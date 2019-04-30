@@ -25,6 +25,7 @@
 #include <ctime>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/Util.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -99,10 +100,10 @@ std::string LogRecordPrivate::DefaultRecordPath()
   std::string home;
   common::env(IGN_HOMEDIR, home);
 
-  std::time_t timestamp = std::time(nullptr);
+  std::string timestamp = common::systemTimeISO();
 
   std::string path = common::joinPaths(home,
-    ".ignition", "gazebo", "log", std::to_string(timestamp));
+    ".ignition", "gazebo", "log", timestamp);
 
   return path;
 }
