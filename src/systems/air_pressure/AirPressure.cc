@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/air_pressure.pb.h>
+#include <ignition/msgs/air_pressure_sensor.pb.h>
 
 #include <ignition/plugin/Register.hh>
 
