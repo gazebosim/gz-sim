@@ -257,10 +257,9 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        auto data = _camera->Data()->Clone();
-        std::string scopedName = parent->Name() + "::"
-            + data->Get<std::string>("name");
-        data->GetAttribute("name")->Set(scopedName);
+        sdf::Sensor data = _camera->Data();
+        std::string scopedName = parent->Name() + "::" + data.Name();
+        data.SetName(scopedName);
 
         // Create within ign-sensors
         auto sensor =
@@ -309,10 +308,9 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        auto data = _depthCamera->Data()->Clone();
-        std::string scopedName = parent->Name() + "::"
-            + data->Get<std::string>("name");
-        data->GetAttribute("name")->Set(scopedName);
+        sdf::Sensor data = _depthCamera->Data();
+        std::string scopedName = parent->Name() + "::" + data.Name();
+        data.SetName(scopedName);
 
         // Create within ign-sensors
         auto sensor =

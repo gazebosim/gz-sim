@@ -403,10 +403,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 
   if (_sensor->Type() == sdf::SensorType::CAMERA)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Camera(elem));
+        components::Camera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
   {
@@ -417,10 +415,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::DepthCamera(elem));
+        components::DepthCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
