@@ -27,6 +27,33 @@
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/Conversions.hh>
 
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::Sensor`.
+/// \param[in] _out Output stream.
+/// \param[in] _sensor Sensor to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const Sensor &_sensor)
+{
+  auto msg = ignition::gazebo::convert<ignition::msgs::Sensor>(_sensor);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::Sensor`.
+/// \param[in] _in Input stream.
+/// \param[out] _sensor Sensor to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, Sensor &_sensor)
+{
+  ignition::msgs::Sensor msg;
+  msg.ParseFromIstream(&_in);
+
+  _sensor = ignition::gazebo::convert<sdf::Sensor>(msg);
+  return _in;
+}
+}
+
 namespace ignition
 {
 namespace gazebo
@@ -37,38 +64,7 @@ namespace components
 {
   /// \brief A component type that contains a magnetometer sensor,
   /// sdf::Magnetometer, information.
-  using MagnetometerBase = Component<sdf::Sensor, class MagnetometerTag>;
-
-  /// \brief This component holds a magnetometer sensor.
-  class Magnetometer : public MagnetometerBase
-  {
-    // Documentation inherited
-    public: Magnetometer() : MagnetometerBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit Magnetometer(const sdf::Sensor &_data)
-      : MagnetometerBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      auto msg = convert<msgs::Sensor>(this->Data());
-      msg.SerializeToOstream(&_out);
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      msgs::Sensor msg;
-      msg.ParseFromIstream(&_in);
-
-      this->Data() = convert<sdf::Sensor>(msg);
-    }
-  };
+  using Magnetometer = Component<sdf::Sensor, class MagnetometerTag>;
 
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Magnetometer", Magnetometer)
