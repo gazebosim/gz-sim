@@ -21,6 +21,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#include "ignition/gazebo/components/AirPressure.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -421,6 +422,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::DepthCamera(elem));
+  }
+  else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::AirPressure(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
