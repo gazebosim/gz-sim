@@ -230,8 +230,8 @@ namespace components
     }
 
     /// \brief Fills a stream with a serialized version of the component.
-    /// By default, it will leave the stream empty. Derived classes should
-    /// override this function to support serialization.
+    /// By default, the stream will contain a single dash "-". Derived classes
+    /// should override this function to support serialization.
     ///
     /// \internal This function is used by `operator<<`, which can't be
     /// overridden by derived classes.
