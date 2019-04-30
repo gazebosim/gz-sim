@@ -63,7 +63,7 @@ that can be controlled using a joystick. You can run it as follows:
    consume the twist messages:
 
         cd ign-gazebo/examples/worlds
-        ign gazebo -v 4 -f diff_drive.sdf
+        ign gazebo -v 4 diff_drive.sdf
 
 1. Now hold your joystick's A button (or equivalent) and move the directional
    stick to control the vehicle.

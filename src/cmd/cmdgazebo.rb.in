@@ -33,82 +33,83 @@ LIBRARY_NAME = '@IGN_LIBRARY_NAME@'
 LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
 
 COMMON_OPTIONS =
-               "  -h [--help]              Print this help message.\n"\
+               "  -h [--help]                Print this help message.\n"\
                "                                                    \n"        +
                "  --force-version <VERSION>  Use a specific library version.\n"\
                "                                                    \n"        +
                '  --versions                 Show the available versions.'
 
 COMMANDS = { 'gazebo' =>
-  "Run and manage Gazebo simulation.                                       \n"\
-  "                                                                        \n"\
-  "  ign gazebo [options]                                                  \n"\
-  "                                                                        \n"\
-  "                                                                        \n"\
-  "Available Options:                                                      \n"\
-  "  --distributed            Use the distributed simulation system.       \n"\
-  "                           The default is false, which disables all     \n"\
-  "                           distributed simulation. This will be         \n"\
-  "                           deprecated in ign-gazebo2. Please use        \n"\
-  "                           --network-role and/or --network-secondaries  \n"\
-  "                           instead. It implies --levels.                \n"\
+  "Run and manage Gazebo simulations.                                       \n"\
+  "                                                                         \n"\
+  "  ign gazebo [options] [file]                                            \n"\
+  "                                                                         \n"\
+  "                                                                         \n"\
+  "Available Options:                                                       \n"\
+  "  --distributed               Use the distributed simulation system.     \n"\
+  "                              The default is false, which disables all   \n"\
+  "                              distributed simulation. This is deprecated \n"\
+  "                              in ign-gazebo2. Please use                 \n"\
+  "                              --network-role and/or --network-secondaries\n"\
+  "                              instead. It implies --levels.              \n"\
   "\n"\
-  "  -f [ --file ] [arg]      Load an SDF file on start.                   \n"\
+  "  -f [ --file ] [arg]         Load an SDF file on start. The flag can be \n"\
+  "                              ommitted if the file is the last argument. \n"\
   "\n"\
-  "  -g                       Run only the GUI.                            \n"\
+  "  -g                          Run only the GUI.                          \n"\
   "\n"\
-  "  --iterations [arg]       Number of iterations to execute.             \n"\
+  "  --iterations [arg]          Number of iterations to execute.           \n"\
   "\n"\
-  "  --levels                 Use the level system. The default is false,  \n"\
-  "                           which loads all models. It's always true     \n"\
-  "                           with --network-role.                         \n"\
+  "  --levels                    Use the level system. The default is false,\n"\
+  "                              which loads all models. It's always true   \n"\
+  "                              with --network-role.                       \n"\
   "\n"\
-  "  --network-role           Participant role used in a distributed       \n"\
-  "                           simulation environment. Role is one of       \n"\
-  "                           [primary, secondary]. It implies --levels.   \n"\
+  "  --network-role [arg]        Participant role used in a distributed     \n"\
+  "                              simulation environment. Role is one of     \n"\
+  "                              [primary, secondary]. It implies --levels. \n"\
   "\n"\
-  "  --network-secondaries    Number of secondary participants expected to \n"\
-  "                           join a distributed simulation environment.   \n"\
-  "                           (Primary only).                              \n"\
+  "  --network-secondaries [arg] Number of secondary participants expected  \n"\
+  "                              to join a distributed simulation           \n"\
+  "                              environment. (Primary only).               \n"\
   "\n"\
-  "  --playback [arg]         Use logging system to play back states. Arg  \n"\
-  "                           is path to recorded states.                  \n"\
+  "  --playback [arg]            Use logging system to play back states.    \n"\
+  "                              Argument is path to recorded states.       \n"\
   "\n"\
-  "  -r                       Run simulation on start. The default is      \n"\
-  "                           false, which starts simulation paused.       \n"\
+  "  -r                          Run simulation on start. The default       \n"\
+  "                              without this flag is to start simulation   \n"\
+  "                              paused.                                    \n"\
   "\n"\
-  "  --record                 Use logging system to record states. The     \n"\
-  "                           default is false                             \n"\
+  "  --record                    Use logging system to record states. The   \n"\
+  "                              default without this flag is not to record.\n"\
   "\n"\
-  "  --record-path [arg]      Custom path to put recorded files. Arg is    \n"\
-  "                           path to recorded states.                     \n"\
+  "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
+  "                              is path to record states.                  \n"\
   "\n"\
-  "  -s                       Run only the server (headless mode). This    \n"\
-  "                           override -g, if it is also present.          \n"\
+  "  -s                          Run only the server (headless mode). This  \n"\
+  "                              overrides -g, if it is also present.       \n"\
   "\n"\
-  "  -v [ --verbose ] [arg]   Adjust the level of console output (0~4).    \n"\
-  "                           The default verbosity is 1, use -v without   \n"\
-  "                           arguments for level 3.                       \n"\
+  "  -v [ --verbose ] [arg]      Adjust the level of console output (0~4).  \n"\
+  "                              The default verbosity is 1, use -v without \n"\
+  "                              arguments for level 3.                     \n"\
   "\n"\
-  "  --version                Print Gazebo version information.            \n"\
+  "  --version                   Print Gazebo version information.          \n"\
   "\n"\
-  "  -z [arg]                 Update rate in Hertz.                        \n"\
+  "  -z [arg]                    Update rate in Hertz.                      \n"\
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
   "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
   " resources. Can be useful with the -f option to find an SDF file.     \n\n"\
   "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
-  " simulation environment. Role is one of [PRIMARY, SECONDARY]. This will \n"\
-  " be deprecated in ign-gazebo2. Please use --network-role instead.     \n\n"\
+  " simulation environment. Role is one of [PRIMARY, SECONDARY]. This is   \n"\
+  " deprecated in ign-gazebo2. Please use --network-role instead.        \n\n"\
   "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants    \n"\
   " expected to join a distributed simulation environment. (Primary only)  \n"\
-  " This will be deprecated in ign-gazebo2. Please use --network-role      \n"\
-  " instead.                                                               \n"
+  " This is deprecated in ign-gazebo2. Please use --network-role instead.  \n"
 }
 
 #
-# Class for the Ignition Fuel command line tools.
+# Class for the Ignition Gazebo command line tools.
 #
 class Cmd
 
@@ -132,7 +133,7 @@ class Cmd
       sleep sleepSecs
       i = i + 1
     end
-   
+
     if killedPid != pid
       puts "Escalating to SIGKILL on [#{name}]"
       Process.kill("-KILL", pid)
@@ -154,7 +155,7 @@ class Cmd
       'record' => 0,
       'record-path' => '',
       'playback' => '',
-      'run' => 0.0,
+      'run' => 0,
       'server' => 0,
       'verbose' => '1'
     }
@@ -168,8 +169,8 @@ class Cmd
         puts usage
         exit
       end
-      opts.on('-f [sdf]', '--file', String, 'Run an SDF file') do |cfg|
-        options['file'] = cfg
+      opts.on('-f [sdf]', '--file', String, 'Run an SDF file') do |file|
+        options['file'] = file
       end
       opts.on('--iterations [arg]', Integer,
               'Number of iterations to execute') do |i|
@@ -187,14 +188,12 @@ class Cmd
       opts.on('-r') do
         options['run'] = 1
       end
-
       opts.on('-g') do
         options['gui'] = 1
       end
       opts.on('-s') do
         options['server'] = 1
       end
-
       opts.on('--levels') do
         options['levels'] = 1
       end
@@ -220,6 +219,12 @@ class Cmd
     end # opt_parser do
 
     opt_parser.parse!(args)
+
+    # SDF file as positional argument
+    filename = args.pop
+    if filename and filename != 'gazebo' and not options.key?('file')
+      options['file'] = filename
+    end
 
     options['command'] = args[0]
 
@@ -275,7 +280,7 @@ class Cmd
 
       parsed = ''
       if options.key?('file')
-        # Check if the passed in file exists. 
+        # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
@@ -289,7 +294,7 @@ class Cmd
           else
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
-            if !File.exists?(path) 
+            if !File.exists?(path)
               puts "Unable to find file " + options['file']
               exit(-1)
             end
