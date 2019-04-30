@@ -321,7 +321,7 @@ namespace components
 
     /// \brief Move Constructor
     /// \param[in] _component Component component to move.
-    public: Component(Component &&_component) = default;
+    public: Component(Component &&_component) noexcept = default;
 
     /// \brief Destructor.
     public: ~Component() override = default;
@@ -329,7 +329,7 @@ namespace components
     /// \brief Move assignment operator.
     /// \param[in] _component Component component to move.
     /// \return Reference to this.
-    public: Component &operator=(Component &&_component) = default;
+    public: Component &operator=(Component &&_component) noexcept = default;
 
     /// \brief Copy assignment operator.
     /// \param[in] _component Component component to copy.
