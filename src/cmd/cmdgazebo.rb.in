@@ -75,12 +75,9 @@ COMMANDS = { 'gazebo' =>
   "  --playback [arg]            Use logging system to play back states.    \n"\
   "                              Argument is path to recorded states.       \n"\
   "\n"\
-  "  -r                          Run simulation on start. The default       \n"\
-  "                              without this flag is to start simulation   \n"\
-  "                              paused.                                    \n"\
+  "  -r                          Run simulation on start.                   \n"\
   "\n"\
-  "  --record                    Use logging system to record states. The   \n"\
-  "                              default without this flag is not to record.\n"\
+  "  --record                 Use logging system to record states.          \n"\
   "\n"\
   "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
   "                              is path to record states.                  \n"\
