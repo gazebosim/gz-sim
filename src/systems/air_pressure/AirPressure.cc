@@ -27,7 +27,6 @@
 #include <ignition/sensors/AirPressureSensor.hh>
 
 #include "ignition/gazebo/components/AirPressure.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -143,12 +142,10 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
-  _ecm.Each<components::AirPressure, components::WorldPose,
-            components::WorldLinearVelocity>(
+  _ecm.Each<components::AirPressure, components::WorldPose>(
     [&](const Entity &_entity,
         const components::AirPressure * /*_airPressure*/,
-        const components::WorldPose *_worldPose,
-        const components::WorldLinearVelocity *_worldLinearVel)->bool
+        const components::WorldPose *_worldPose)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
