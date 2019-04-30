@@ -30,6 +30,7 @@ namespace ignition::gazebo
 {
   class EntityTreePrivate
   {
+    /// \brief Model holding all the current entities in the world.
     public: TreeModel treeModel;
   };
 }
@@ -80,6 +81,39 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 }
 
 /////////////////////////////////////////////////
+void TreeModel::RemoveEntity(unsigned int _entity)
+{
+  QStandardItem *item{nullptr};
+  auto itemIt = this->entityItems.find(_entity);
+  if (itemIt != this->entityItems.end())
+  {
+    item = itemIt->second;
+  }
+
+  if (nullptr == item || nullptr == item->parent())
+  {
+    return;
+  }
+
+  // Remove all children from our custom map
+  std::function<void(const QStandardItem *)> removeChildren =
+      [&](const QStandardItem *_item)
+  {
+    for (int i = 0; i < _item->rowCount(); ++i)
+    {
+      auto childItem = _item->child(i);
+      removeChildren(childItem);
+      this->entityItems.erase(childItem->data(Qt::ToolTipRole).toUInt());
+    }
+  };
+  this->entityItems.erase(_entity);
+  removeChildren(item);
+
+  // Remove from the view
+  item->parent()->removeRow(item->row());
+}
+
+/////////////////////////////////////////////////
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(Qt::DisplayRole, "entityName"),
@@ -127,6 +161,16 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         Q_ARG(unsigned int, _entity),
         Q_ARG(QString, QString::fromStdString(_name->Data())),
         Q_ARG(unsigned int, parentEntity));
+    return true;
+  });
+
+  _ecm.EachRemoved<components::Name>(
+    [&](const Entity &_entity,
+        const components::Name *)->bool
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->treeModel, "RemoveEntity",
+        Qt::QueuedConnection,
+        Q_ARG(unsigned int, _entity));
     return true;
   });
 }

@@ -200,6 +200,9 @@ int main(int _argc, char **_argv)
   if (!executed || !result)
     return -1;
 
+  // Use a single ECM for multiple worlds
+  ignition::gazebo::EntityComponentManager ecm;
+
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
   for (int w = 0; w < worldsMsg.data_size(); ++w)
@@ -236,7 +239,6 @@ int main(int _argc, char **_argv)
     }
 
     // Update ECM with state from network
-    ignition::gazebo::EntityComponentManager ecm;
     std::function<void(const ignition::msgs::SerializedState &)> onUpdate =
         [&](const ignition::msgs::SerializedState &_msg)
     {
