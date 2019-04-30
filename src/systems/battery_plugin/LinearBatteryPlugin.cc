@@ -45,6 +45,10 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Reset the plugin
   public: void Reset();
 
+  /// \brief Get the current state of charge of the battery.
+  /// \return State of charge of the battery in range [0.0, 1.0].
+  public: double StateOfCharge() const;
+
   /// \brief Name of model, only used for printing warning when battery drains.
   public: std::string modelName;
 
@@ -86,15 +90,6 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Instantaneous battery charge in Ah.
   public: double q{0.0};
-
-  /// \brief State of charge
-  public: double soc{1.0};
-
-  /// \brief Battery current for a historic time window
-  public: std::deque<double> iList;
-
-  /// \brief Time interval for a historic time window
-  public: std::deque<double> dtList;
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
@@ -220,6 +215,12 @@ void LinearBatteryPluginPrivate::Reset()
   this->q = this->q0;
 }
 
+/////////////////////////////////////////////////
+double LinearBatteryPluginPrivate::StateOfCharge() const
+{
+  return this->q / this->c;
+}
+
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
@@ -236,7 +237,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     // Update component
     auto batteryComp =
       _ecm.Component<components::BatterySoC>(this->dataPtr->batteryEntity);
-    batteryComp->Data() = this->dataPtr->soc;
+    batteryComp->Data() = this->dataPtr->StateOfCharge();
   }
 }
 
@@ -248,7 +249,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
   if (fabs(_battery->Voltage()) < 1e-3)
     return 0.0;
-  if (this->dataPtr->soc < 0)
+  if (this->dataPtr->StateOfCharge() < 0)
     return _battery->Voltage();
 
   // Seconds
@@ -265,15 +266,6 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
-  // Keep a list of historic currents and time intervals
-  if (this->dataPtr->iList.size() >= 100)
-  {
-    this->dataPtr->iList.pop_front();
-    this->dataPtr->dtList.pop_front();
-  }
-  this->dataPtr->iList.push_back(this->dataPtr->ismooth);
-  this->dataPtr->dtList.push_back(dt);
-
   // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
@@ -282,18 +274,12 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
 
-  // Estimate state of charge
-  double isum = 0.0;
-  for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
-    isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
-  this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
-
   igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
          << std::endl;
   igndbg << "voltage: " << voltage << std::endl;
-  igndbg << "state of charge: " << this->dataPtr->soc
+  igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
          << " (q " << this->dataPtr->q << ")" << std::endl;
-  if (this->dataPtr->soc < 0 && !this->dataPtr->drainPrinted)
+  if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)
   {
     ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
     this->dataPtr->drainPrinted = true;
