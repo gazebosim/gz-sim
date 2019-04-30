@@ -186,3 +186,4 @@ TEST(UtilTest, ScopedName)
   EXPECT_EQ(scopedName(linkCCEntity, ecm, "/", false),
     "world_name/modelC_name/modelCC_name/linkCC_name");
 }
+

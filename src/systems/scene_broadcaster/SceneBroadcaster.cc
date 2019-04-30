@@ -167,7 +167,6 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
 
-  this->dataPtr->SetupTransport(this->dataPtr->worldName);
 
   // Add to graph
   {
@@ -477,6 +476,11 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   if (newEntity)
   {
+    // Only offer scene services once the message has been populated at least
+    // once
+    if (!this->node)
+      this->SetupTransport(this->worldName);
+
     msgs::Scene sceneMsg;
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
