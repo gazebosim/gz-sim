@@ -15,6 +15,9 @@
  *
 */
 
+#include <chrono>
+#include <condition_variable>
+
 #include <ignition/msgs/scene.pb.h>
 
 #include <ignition/common/Profiler.hh>
@@ -36,6 +39,8 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "SceneBroadcaster.hh"
+
+using namespace std::chrono_literals;
 
 using namespace ignition;
 using namespace gazebo;
@@ -61,6 +66,11 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
   public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+
+  /// \brief Callback for state service.
+  /// \param[out] _res Response containing the latest full state.
+  /// \return True if successful.
+  public: bool StateService(ignition::msgs::SerializedState &_res);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -125,6 +135,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// This is used to request entities to be removed
   public: transport::Node::Publisher deletionPub;
 
+  /// \brief State publisher
+  public: transport::Node::Publisher statePub;
+
   /// \brief Graph containing latest information from entities.
   /// The data in each node is the message associated with that entity only.
   /// i.e, a model node only has a message about the model. It will not
@@ -142,6 +155,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
+
+  /// \brief Protects stateMsg.
+  public: std::mutex stateMutex;
+
+  /// \brief Used to coordinate the state service response.
+  public: std::condition_variable stateCv;
+
+  /// \brief Filled on demand for the state service.
+  public: msgs::SerializedState stateMsg;
 };
 
 //////////////////////////////////////////////////
@@ -167,7 +189,6 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
 
-
   // Add to graph
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->graphMutex);
@@ -180,6 +201,8 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
+  // TODO(anyone) Throttle scene broadcasts
+
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
   // Update scene graph with added entities before populating pose message
   this->dataPtr->SceneGraphAddEntities(_manager);
@@ -255,6 +278,18 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // call SceneGraphRemoveEntities at the end of this update cycle so that
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
+
+  // Full state on demand
+  if (this->dataPtr->stateMsg.entities().empty())
+  {
+    this->dataPtr->stateMsg = _manager.State();
+    this->dataPtr->stateCv.notify_all();
+  }
+
+  // Changed state periodically
+  auto stateMsg = _manager.ChangedState();
+  if (!stateMsg.entities().empty())
+    this->dataPtr->statePub.Publish(stateMsg);
 }
 
 //////////////////////////////////////////////////
@@ -282,12 +317,22 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
          << graphService << "]" << std::endl;
 
+  // State service
+  std::string stateService{"state"};
+
+  this->node->Advertise(stateService, &SceneBroadcasterPrivate::StateService,
+      this);
+
+  ignmsg << "Serving full state on [" << opts.NameSpace() << "/"
+         << stateService << "]" << std::endl;
+
   // Scene info topic
   std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
 
   this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
 
-  ignmsg << "Serving scene information on [" << sceneTopic << "]" << std::endl;
+  ignmsg << "Publishing scene information on [" << sceneTopic
+         << "]" << std::endl;
 
   // Entity deletion publisher
   std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
@@ -297,6 +342,15 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
+
+  // State topic
+  std::string stateTopic{"/world/" + _worldName + "/state"};
+
+  this->statePub =
+      this->node->Advertise<ignition::msgs::SerializedState>(stateTopic);
+
+  ignmsg << "Publishing state changes on [" << stateTopic << "]"
+      << std::endl;
 
   // Pose info publisher
   std::string topic{"pose/info"};
@@ -325,6 +379,28 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   AddLights(&_res, this->worldEntity, this->sceneGraph);
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool SceneBroadcasterPrivate::StateService(
+    ignition::msgs::SerializedState &_res)
+{
+  _res.Clear();
+
+  std::unique_lock<std::mutex> lock(this->stateMutex);
+  this->stateMsg.Clear();
+  auto success = this->stateCv.wait_for(lock, 5s, [&]
+  {
+    // It should have at a minimum the world entity
+    return !this->stateMsg.entities().empty();
+  });
+
+  if (success)
+    _res.CopyFrom(this->stateMsg);
+  else
+    ignerr << "Timed out waiting for state" << std::endl;
+
+  return success;
 }
 
 //////////////////////////////////////////////////

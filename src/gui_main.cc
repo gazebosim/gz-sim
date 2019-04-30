@@ -25,17 +25,11 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
-#include "network/NetworkConfig.hh"
-#include "network/NetworkManagerSecondary.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -210,9 +204,11 @@ int main(int _argc, char **_argv)
   // case.
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
+    auto worldName = worldsMsg.data(w);
+
     // Request GUI info for each world
     result = false;
-    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
+    service = std::string("/world/" + worldName + "/gui/info");
 
     igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
@@ -238,25 +234,45 @@ int main(int _argc, char **_argv)
       ignition::gui::App()->LoadPlugin(fileName,
           pluginDoc.FirstChildElement("plugin"));
     }
-  }
 
-  // Update ECM with state from network
-  ignition::gazebo::EntityComponentManager ecm;
-  auto step = [&app, &ecm](const ignition::gazebo::UpdateInfo &_info)
-  {
-    auto plugins = app.findChildren<ignition::gazebo::GuiSystem *>();
-    for (auto plugin : plugins)
+    // Update ECM with state from network
+    ignition::gazebo::EntityComponentManager ecm;
+    std::function<void(const ignition::msgs::SerializedState &)> onUpdate =
+        [&](const ignition::msgs::SerializedState &_msg)
     {
-      plugin->Update(_info, ecm);
+      ignition::gazebo::UpdateInfo updateInfo;
+      ecm.SetState(_msg);
+
+      auto plugins = app.findChildren<ignition::gazebo::GuiSystem *>();
+      for (auto plugin : plugins)
+      {
+        plugin->Update(updateInfo, ecm);
+      }
+      ecm.ClearNewlyCreatedEntities();
+      ecm.ProcessRemoveEntityRequests();
+    };
+
+    std::string stateTopic{"/world/" + worldName + "/state"};
+    igndbg << "Requesting initial state from [" << stateTopic << "]..."
+           << std::endl;
+
+    result = false;
+    ignition::msgs::SerializedState stateMsg;
+    executed = node.Request(stateTopic, timeout, stateMsg, result);
+
+    if (!executed)
+    {
+      ignerr << "Service call timed out for [" << stateTopic << "]"
+             << std::endl;
     }
-    ecm.ClearNewlyCreatedEntities();
-  };
+    else if (!result)
+      ignerr << "Service call failed for [" << stateTopic << "]" << std::endl;
 
+    if (executed && result)
+      onUpdate(stateMsg);
 
-  auto eventManager = std::make_unique<ignition::gazebo::EventManager>();
-  auto networkManager = ignition::gazebo::NetworkManager::Create(
-      step, ecm, eventManager.get(),
-      ignition::gazebo::NetworkConfig::FromValues("secondary"));
+    node.Subscribe(stateTopic, onUpdate);
+  }
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
