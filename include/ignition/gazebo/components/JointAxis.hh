@@ -23,6 +23,33 @@
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::JointAxis`.
+/// \param[in] _out Output stream.
+/// \param[in] _set Set to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const JointAxis &_axis)
+{
+  auto msg = ignition::gazebo::convert<ignition::msgs::Axis>(_axis);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::JointAxis`.
+/// \param[in] _in Input stream.
+/// \param[out] _set Set to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, JointAxis &_axis)
+{
+  ignition::msgs::Axis msg;
+  msg.ParseFromIstream(&_in);
+
+  _axis = ignition::gazebo::convert<sdf::JointAxis>(msg);
+  return _in;
+}
+}
+
 namespace ignition
 {
 namespace gazebo
@@ -31,40 +58,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
-  using JointAxisBase = Component<sdf::JointAxis, class JointAxisTag>;
-
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
-  class JointAxis : public JointAxisBase
-  {
-    // Documentation inherited
-    public: JointAxis() : JointAxisBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit JointAxis(const sdf::JointAxis &_data)
-      : JointAxisBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      auto msg = convert<msgs::Axis>(this->Data());
-      msg.SerializeToOstream(&_out);
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      msgs::Axis msg;
-      msg.ParseFromIstream(&_in);
-
-      this->Data() = convert<sdf::JointAxis>(msg);
-    }
-  };
+  using JointAxis = Component<sdf::JointAxis, class JointAxisTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis", JointAxis)
 

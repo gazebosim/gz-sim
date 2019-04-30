@@ -23,6 +23,31 @@
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::JointType`.
+/// \param[in] _out Output stream.
+/// \param[in] _type JointType to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const JointType &_type)
+{
+  _out << static_cast<int>(_type);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::JointType`.
+/// \param[in] _in Input stream.
+/// \param[out] _type JointType to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, JointType &_type)
+{
+  int type;
+  _in >> type;
+  _type = sdf::JointType(type);
+  return _in;
+}
+}
+
 namespace ignition
 {
 namespace gazebo
@@ -31,39 +56,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
-  using JointTypeBase = Component<sdf::JointType, class JointTypeTag>;
-
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
-  class JointType : public JointTypeBase
-  {
-    // Documentation inherited
-    public: JointType() : JointTypeBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit JointType(const sdf::JointType &_data)
-      : JointTypeBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      _out << static_cast<int>(this->Data());
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      int type;
-      _in >> type;
-      this->Data() = sdf::JointType(type);
-    }
-  };
-
+  using JointType = Component<sdf::JointType, class JointTypeTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointType", JointType)
 }
