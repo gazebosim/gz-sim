@@ -224,9 +224,6 @@ int main(int _argc, char **_argv)
     serverConfig.SetUseLevels(true);
   }
 
-  // Primary by default
-  serverConfig.SetNetworkRole("primary");
-
   if (!FLAGS_network_role.empty())
   {
     // This if is here to prevent the ignmsg from being displayed twice
