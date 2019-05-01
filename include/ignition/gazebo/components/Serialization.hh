@@ -35,7 +35,6 @@ inline std::ostream &operator<<(std::ostream &_out, const Sensor &_sensor)
 {
   auto msg = ignition::gazebo::convert<ignition::msgs::Sensor>(_sensor);
   msg.SerializeToOstream(&_out);
-std::cout << "BBB " << _sensor.UpdateRate() << "  " << msg.update_rate() << std::endl;
   return _out;
 }
 
@@ -49,7 +48,6 @@ inline std::istream &operator>>(std::istream &_in, Sensor &_sensor)
   msg.ParseFromIstream(&_in);
 
   _sensor = ignition::gazebo::convert<sdf::Sensor>(msg);
-std::cout << "CCC " << _sensor.UpdateRate() << "  " << msg.update_rate() << std::endl;
   return _in;
 }
 }
