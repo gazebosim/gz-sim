@@ -454,7 +454,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     {
       const sdf::Camera *sdfCam = _in.CameraSensor();
       msgs::CameraSensor *sensor = out.mutable_camera();
-      sensor->set_horizontal_fov(sdfCam->HorizontalFov());
+      sensor->set_horizontal_fov(sdfCam->HorizontalFov().Radian());
       sensor->mutable_image_size()->set_x(sdfCam->ImageWidth());
       sensor->mutable_image_size()->set_y(sdfCam->ImageHeight());
       sensor->set_near_clip(sdfCam->NearClip());
