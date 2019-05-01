@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_RENDERING_HH_
-#define IGNITION_GAZEBO_RENDERING_HH_
+#ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
+#define IGNITION_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -88,7 +89,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// The callback function args are: entity id, sensor sdf, and parent name,
     /// and returns the id of the rendering senosr created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string (sdf::ElementPtr, const std::string &)>
+        std::string(sdf::ElementPtr, const std::string &)>
         _createSensorCb = {});
 
     /// \brief Private data pointer.

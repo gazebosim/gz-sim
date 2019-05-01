@@ -32,9 +32,10 @@
 #include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/OrbitViewController.hh>
 
+#include <ignition/gazebo/gui/GuiSystem.hh>
+
 #include "ignition/gui/qt.h"
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
 {

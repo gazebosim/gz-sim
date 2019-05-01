@@ -22,7 +22,6 @@
 #include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
-#include <ignition/rendering/gziface/SceneManager.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/Scene.hh>
@@ -45,6 +44,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "ignition/gazebo/rendering/SceneManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -83,7 +83,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
 
   /// \brief Scene manager
-  public: rendering::gziface::SceneManager sceneManager;
+  public: SceneManager sceneManager;
 
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
@@ -266,7 +266,8 @@ void RenderUtil::Update()
        }
        sdf::ElementPtr data = sdfParsed->Root()->GetElement("sensor");
 
-       // two sensors with the same name cause conflicts. We'll need to use scoped names
+       // two sensors with the same name cause conflicts. We'll need to use
+       // scoped names
        // TODO(anyone) do this in ign-sensors?
        auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
        if (!parentNode)
@@ -294,7 +295,7 @@ void RenderUtil::Update()
 
   // remove existing entities
   // \todo(anyone) Remove sensors
-  for (auto &entity: removeEntities)
+  for (auto &entity : removeEntities)
   {
     this->dataPtr->sceneManager.RemoveEntity(entity);
   }
@@ -310,7 +311,8 @@ void RenderUtil::Update()
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
+void RenderUtilPrivate::CreateRenderingEntities(
+    const EntityComponentManager &_ecm)
 {
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -439,7 +441,8 @@ void RenderUtilPrivate::CreateRenderingEntities(const EntityComponentManager &_e
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_ecm)
+void RenderUtilPrivate::UpdateRenderingEntities(
+    const EntityComponentManager &_ecm)
 {
   _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
@@ -517,7 +520,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_e
 }
 
 //////////////////////////////////////////////////
-void RenderUtilPrivate::RemoveRenderingEntities(const EntityComponentManager &_ecm)
+void RenderUtilPrivate::RemoveRenderingEntities(
+    const EntityComponentManager &_ecm)
 {
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
@@ -647,7 +651,7 @@ void RenderUtil::SetUseCurrentGLContext(bool _enable)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string (sdf::ElementPtr, const std::string &)>
+    std::function<std::string(sdf::ElementPtr, const std::string &)>
     _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;

@@ -1,5 +1,6 @@
 set (rendering_comp_sources
   RenderUtil.cc
+  SceneManager.cc
 )
 
 ign_add_component(rendering
@@ -9,7 +10,7 @@ ign_add_component(rendering
 
 target_link_libraries(${rendering_target}
   PUBLIC
-    ignition-rendering${IGN_RENDERING_VER}::gziface
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
   PRIVATE
     ignition-plugin${IGN_PLUGIN_VER}::register
 )
