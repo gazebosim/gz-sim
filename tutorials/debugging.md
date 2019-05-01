@@ -22,7 +22,7 @@ gdb ruby
    `-s` argument. The following example runs the `shapes.sdf` world.
 
 ```
-(gdb) r /usr/bin/ign gazebo -s -f shapes.sdf
+(gdb) r /usr/bin/ign gazebo -s shapes.sdf
 ```
 
 3. Use GDB as normal
@@ -45,7 +45,7 @@ gdb ruby
 3. In another terminal run the Gazebo server.
 
 ```
-ign gazebo -s -v 4 -r -f shapes.sdf
+ign gazebo -s -v 4 -r shapes.sdf
 ```
 
 4. Use GDB as normal.
