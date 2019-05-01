@@ -28,6 +28,7 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
@@ -200,11 +201,9 @@ int main(int _argc, char **_argv)
   if (!executed || !result)
     return -1;
 
-  // Use a single ECM for multiple worlds
-  ignition::gazebo::EntityComponentManager ecm;
-
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
+  std::vector<ignition::gazebo::GuiRunner *> runners;
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
     auto worldName = worldsMsg.data(w);
@@ -238,47 +237,20 @@ int main(int _argc, char **_argv)
           pluginDoc.FirstChildElement("plugin"));
     }
 
-    // Update ECM with state from network
-    std::function<void(const ignition::msgs::SerializedState &)> onUpdate =
-        [&](const ignition::msgs::SerializedState &_msg)
-    {
-      ignition::gazebo::UpdateInfo updateInfo;
-      ecm.SetState(_msg);
-
-      auto plugins = app.findChildren<ignition::gazebo::GuiSystem *>();
-      for (auto plugin : plugins)
-      {
-        plugin->Update(updateInfo, ecm);
-      }
-      ecm.ClearNewlyCreatedEntities();
-      ecm.ProcessRemoveEntityRequests();
-    };
-
-    std::string stateTopic{"/world/" + worldName + "/state"};
-    igndbg << "Requesting initial state from [" << stateTopic << "]..."
-           << std::endl;
-
-    result = false;
-    ignition::msgs::SerializedState stateMsg;
-    executed = node.Request(stateTopic, timeout, stateMsg, result);
-
-    if (!executed)
-    {
-      ignerr << "Service call timed out for [" << stateTopic << "]"
-             << std::endl;
-    }
-    else if (!result)
-      ignerr << "Service call failed for [" << stateTopic << "]" << std::endl;
-
-    if (executed && result)
-      onUpdate(stateMsg);
-
-    node.Subscribe(stateTopic, onUpdate);
+    // GUI runner
+    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+      &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runners.push_back(runner);
   }
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
   app.exec();
+
+  for (auto runner : runners)
+    delete runner;
+  runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
   return 0;
