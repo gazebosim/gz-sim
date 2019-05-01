@@ -1,49 +1,56 @@
-set (qt_headers_local
-  EntityTree
-)
+#################################################
+# gz_add_gui_plugin(<plugin_name>
+#              SOURCES <sources>
+#              [PUBLIC_LINK_LIBS <libraries...>]
+#              [PRIVATE_LINK_LIBS <libraries...>])
+#
+# Add a gui plugin to Ignition Gazebo.
+#
+# <plugin_name> Required. Name of the gui plugin.
+#
+# [SOURCES]: Specify the source files for the system.
+#
+# [QT_HEADERS]: Qt headers that need to be moc'ed
+#
+# [PUBLIC_LINK_LIBS]: Specify a list of libraries to be publicly linked.
+#
+# [PRIVATE_LINK_LIBS]: Specify a list of libraries to be privately linked.
+#
+function(gz_add_gui_plugin plugin_name)
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs SOURCES QT_HEADERS PUBLIC_LINK_LIBS PRIVATE_LINK_LIBS)
 
-set (qt_headers_local_rendering
-  RenderWindow
-)
+  cmake_parse_arguments(gz_add_gui_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-# Plugin shared libraries
-foreach (src ${qt_headers_local})
-  QT5_WRAP_CPP(${src}_MOC ${src}.hh)
-  QT5_ADD_RESOURCES(${src}_RCC ${src}.qrc)
-  add_library(${src} SHARED
-    ${src}.cc
-    ${${src}_MOC}
-    ${${src}_RCC}
+  QT5_WRAP_CPP(${plugin_name}_headers_MOC ${gz_add_gui_plugin_QT_HEADERS})
+  QT5_ADD_RESOURCES(${plugin_name}_RCC ${plugin_name}.qrc)
+
+  add_library(${plugin_name} SHARED
+    ${gz_add_gui_plugin_SOURCES}
+    ${${plugin_name}_headers_MOC}
+    ${${plugin_name}_RCC}
   )
-  target_link_libraries(${src}
+  target_link_libraries(${plugin_name}
     PUBLIC
       ${PROJECT_LIBRARY_TARGET_NAME}
       TINYXML2::TINYXML2
+      ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
     PRIVATE
       ignition-plugin${IGN_PLUGIN_VER}::register
+      ${gz_add_gui_plugin_PRIVATE_LINK_LIBS}
   )
-  install (TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
-endforeach (src ${qt_headers_local})
+  install (TARGETS ${plugin_name} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
 
-foreach (src ${qt_headers_local_rendering})
-  QT5_WRAP_CPP(${src}_MOC ${src}.hh)
-  QT5_ADD_RESOURCES(${src}_RCC ${src}.qrc)
-  add_library(${src} SHARED
-    ${PROJECT_SOURCE_DIR}/src/gui/plugins/${src}.cc
-    ${${src}_MOC}
-    ${${src}_RCC}
-    ${PROJECT_SOURCE_DIR}/src/gui/plugins/Rendering.cc
-  )
-  target_link_libraries(${src}
-    PUBLIC
-      ${PROJECT_LIBRARY_TARGET_NAME}
-      TINYXML2::TINYXML2
-    PRIVATE
-      ignition-plugin${IGN_PLUGIN_VER}::register
-      #ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
-      ignition-rendering${IGN_RENDERING_VER}::gziface
-  )
-  install (TARGETS ${src} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
-endforeach (src ${qt_headers_local_rendering})
+endfunction()
 
+gz_add_gui_plugin(EntityTree
+  SOURCES EntityTree.cc
+  QT_HEADERS EntityTree.hh
+)
 
+gz_add_gui_plugin(Scene3D
+  SOURCES Scene3D.cc
+  QT_HEADERS Scene3D.hh
+  PRIVATE_LINK_LIBS ${PROJECT_LIBRARY_TARGET_NAME}-rendering
+)

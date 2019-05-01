@@ -1,3 +1,4 @@
+add_subdirectory(rendering)
 add_subdirectory(gui)
 add_subdirectory(systems)
 add_subdirectory(msgs)
