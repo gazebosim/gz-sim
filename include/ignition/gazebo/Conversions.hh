@@ -25,6 +25,7 @@
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/time.pb.h>
+#include <ignition/msgs/world_stats.pb.h>
 
 #include <chrono>
 
@@ -39,6 +40,7 @@
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Types.hh"
 
 namespace ignition
 {
@@ -299,6 +301,41 @@ namespace ignition
     /// \return SDF scene.
     template<>
     sdf::Scene convert(const msgs::Scene &_in);
+
+    /// \brief Generic conversion from a world statistics message to another
+    /// type.
+    /// \param[in] _in WorldStatistics message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::WorldStatistics &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a world statistics message to an
+    /// `ignition::gazebo::UpdateInfo` object.
+    /// \param[in] _in WorldStatistics message.
+    /// \return Update info.
+    template<>
+    UpdateInfo convert(const msgs::WorldStatistics &_in);
+
+    /// \brief Generic conversion from update info to another type.
+    /// \param[in] _in Update info.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const UpdateInfo &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from update info to a world statistics
+    /// message.
+    /// \param[in] _in Update info.
+    /// \return World statistics message.
+    template<>
+    msgs::WorldStatistics convert(const UpdateInfo &_in);
     }
   }
 }

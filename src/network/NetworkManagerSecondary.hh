@@ -39,7 +39,7 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \class NetworkManagerSecondary NetworkManagerSecondary.hh
     ///   ignition/gazebo/network/NetworkManagerSecondary.hh
-    /// \brief Secondaryspecific behaviors
+    /// \brief Secondary specific behaviors
     class IGNITION_GAZEBO_VISIBLE NetworkManagerSecondary:
       public NetworkManager
     {

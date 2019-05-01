@@ -38,6 +38,7 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "msgs/simulation_step.pb.h"
 #include "SceneBroadcaster.hh"
 
 using namespace std::chrono_literals;
@@ -70,7 +71,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedState &_res);
+  public: bool StateService(ignition::msgs::SerializedStep &_res);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -156,14 +157,14 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Protects scene graph.
   public: std::mutex graphMutex;
 
-  /// \brief Protects stateMsg.
+  /// \brief Protects stepMsg.
   public: std::mutex stateMutex;
 
   /// \brief Used to coordinate the state service response.
   public: std::condition_variable stateCv;
 
   /// \brief Filled on demand for the state service.
-  public: msgs::SerializedState stateMsg;
+  public: msgs::SerializedStep stepMsg;
 
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
@@ -284,20 +285,22 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
   // State
-  auto shouldServe = this->dataPtr->stateMsg.entities().empty();
+  auto shouldServe = this->dataPtr->stepMsg.has_state();
 
   auto now = std::chrono::system_clock::now();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (now - this->dataPtr->lastStatePubTime >
-       std::chrono::seconds(1/60));
+       std::chrono::milliseconds(1000/60));
   if (shouldServe || shouldPublish)
   {
-    auto stateMsg = _manager.State();
+    msgs::SerializedStep stepMsg;
+    stepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
+    stepMsg.mutable_state()->CopyFrom(_manager.State());
 
     // Full state on demand
     if (shouldServe)
     {
-      this->dataPtr->stateMsg = stateMsg;
+      this->dataPtr->stepMsg = stepMsg;
       this->dataPtr->stateCv.notify_all();
     }
 
@@ -306,7 +309,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      this->dataPtr->statePub.Publish(stateMsg);
+      this->dataPtr->statePub.Publish(stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
   }
@@ -367,7 +370,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{"/world/" + _worldName + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedState>(stateTopic);
+      this->node->Advertise<ignition::msgs::SerializedStep>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -403,20 +406,20 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedState &_res)
+    ignition::msgs::SerializedStep &_res)
 {
   _res.Clear();
 
   std::unique_lock<std::mutex> lock(this->stateMutex);
-  this->stateMsg.Clear();
+  this->stepMsg.Clear();
   auto success = this->stateCv.wait_for(lock, 5s, [&]
   {
     // It should have at a minimum the world entity
-    return !this->stateMsg.entities().empty();
+    return !this->stepMsg.has_state();
   });
 
   if (success)
-    _res.CopyFrom(this->stateMsg);
+    _res.CopyFrom(this->stepMsg);
   else
     ignerr << "Timed out waiting for state" << std::endl;
 

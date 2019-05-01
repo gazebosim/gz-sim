@@ -18,6 +18,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 
+#include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
@@ -36,8 +37,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   bool result{false};
   unsigned int timeout{5000};
 
-  ignition::msgs::SerializedState stateMsg;
-  bool executed = this->node.Request(stateTopic, timeout, stateMsg, result);
+  ignition::msgs::SerializedStep stepMsg;
+  bool executed = this->node.Request(stateTopic, timeout, stepMsg, result);
 
   if (!executed)
   {
@@ -50,7 +51,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   }
   else
   {
-    this->OnState(stateMsg);
+    this->OnState(stepMsg);
 
     // Periodic change updates
     this->node.Subscribe(stateTopic, &GuiRunner::OnState, this);
@@ -79,14 +80,12 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnState(const msgs::SerializedState &_msg)
+void GuiRunner::OnState(const msgs::SerializedStep &_msg)
 {
-  this->ecm.SetState(_msg);
-
-  // TODO(louise) get update info from message header
-  UpdateInfo updateInfo;
+  this->ecm.SetState(_msg.state());
 
   // Update all plugins
+  auto updateInfo = convert<UpdateInfo>(_msg.stats());
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {

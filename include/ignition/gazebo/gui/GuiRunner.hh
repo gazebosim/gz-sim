@@ -20,7 +20,8 @@
 #include <string>
 #include <QtCore>
 
-#include <ignition/transport.hh>
+#include <ignition/msgs/serialized.pb.h>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -49,7 +50,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Callback when a new state is received from the server.
   /// \param[in] _msg New state message.
-  private: void OnState(const msgs::SerializedState &_msg);
+  private: void OnState(const msgs::SerializedStep &_msg);
 
   /// \brief Entity-component manager.
   private: gazebo::EntityComponentManager ecm;

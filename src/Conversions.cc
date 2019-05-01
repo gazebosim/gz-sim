@@ -463,3 +463,29 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetOriginVisual(_in.origin_visual());
   return out;
 }
+
+//////////////////////////////////////////////////
+template<>
+msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
+{
+  msgs::WorldStatistics out;
+  out.set_iterations(_in.iterations);
+  out.set_paused(_in.paused);
+  out.mutable_sim_time()->CopyFrom(convert<msgs::Time>(_in.simTime));
+  out.mutable_real_time()->CopyFrom(convert<msgs::Time>(_in.realTime));
+  out.mutable_step_size()->CopyFrom(convert<msgs::Time>(_in.dt));
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
+{
+  gazebo::UpdateInfo out;
+  out.iterations = _in.iterations();
+  out.paused = _in.paused();
+  out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());
+  out.realTime = convert<std::chrono::steady_clock::duration>(_in.real_time());
+  out.dt = convert<std::chrono::steady_clock::duration>(_in.step_size());
+  return out;
+}
