@@ -164,6 +164,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief Filled on demand for the state service.
   public: msgs::SerializedState stateMsg;
+
+  /// \brief Last time the state was published.
+  public: std::chrono::time_point<std::chrono::system_clock>
+      lastStatePubTime{std::chrono::system_clock::now()};
 };
 
 //////////////////////////////////////////////////
@@ -279,17 +283,33 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
-  // Full state on demand
-  if (this->dataPtr->stateMsg.entities().empty())
-  {
-    this->dataPtr->stateMsg = _manager.State();
-    this->dataPtr->stateCv.notify_all();
-  }
+  // State
+  auto shouldServe = this->dataPtr->stateMsg.entities().empty();
 
-  // Changed state periodically
-  auto stateMsg = _manager.ChangedState();
-  if (!stateMsg.entities().empty())
-    this->dataPtr->statePub.Publish(stateMsg);
+  auto now = std::chrono::system_clock::now();
+  auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
+       (now - this->dataPtr->lastStatePubTime >
+       std::chrono::seconds(1/60));
+  if (shouldServe || shouldPublish)
+  {
+    auto stateMsg = _manager.State();
+
+    // Full state on demand
+    if (shouldServe)
+    {
+      this->dataPtr->stateMsg = stateMsg;
+      this->dataPtr->stateCv.notify_all();
+    }
+
+    // Full state periodically
+    // TODO(louise) Send changed state periodically instead, once it reflects
+    // changed components
+    if (shouldPublish)
+    {
+      this->dataPtr->statePub.Publish(stateMsg);
+      this->dataPtr->lastStatePubTime = now;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
