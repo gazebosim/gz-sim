@@ -19,6 +19,7 @@
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/imu_sensor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -35,6 +36,7 @@
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Imu.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
@@ -504,6 +506,70 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::IMU)
+  {
+    if (_in.ImuSensor())
+    {
+      const sdf::Imu *sdfImu = _in.ImuSensor();
+      msgs::IMUSensor *sensor = out.mutable_imu();
+
+      if (sdfImu->LinearAccelerationXNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_x_noise(),
+            sdfImu->LinearAccelerationXNoise());
+      }
+      if (sdfImu->LinearAccelerationYNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_y_noise(),
+            sdfImu->LinearAccelerationYNoise());
+      }
+      if (sdfImu->LinearAccelerationZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_z_noise(),
+            sdfImu->LinearAccelerationZNoise());
+      }
+
+      if (sdfImu->AngularVelocityXNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_x_noise(),
+            sdfImu->AngularVelocityXNoise());
+      }
+      if (sdfImu->AngularVelocityYNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_y_noise(),
+            sdfImu->AngularVelocityYNoise());
+      }
+      if (sdfImu->AngularVelocityZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_z_noise(),
+            sdfImu->AngularVelocityZNoise());
+      }
+      sensor->mutable_orientation_ref_frame()->set_localization(
+          sdfImu->Localization());
+
+      msgs::Set(sensor->mutable_orientation_ref_frame()->mutable_custom_rpy(),
+        sdfImu->CustomRpy());
+      sensor->mutable_orientation_ref_frame()->set_custom_rpy_parent_frame(
+          sdfImu->CustomRpyParentFrame());
+
+      msgs::Set(
+          sensor->mutable_orientation_ref_frame()->mutable_gravity_dir_x(),
+          sdfImu->GravityDirX());
+      sensor->mutable_orientation_ref_frame()->set_gravity_dir_x_parent_frame(
+          sdfImu->GravityDirXParentFrame());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an magnetometer SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
 
   return out;
 }
@@ -549,6 +615,84 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
     out.SetMagnetometerSensor(sensor);
   }
+  else if (out.Type() == sdf::SensorType::IMU)
+  {
+    sdf::Imu sensor;
+    if (_in.has_imu())
+    {
+      if (_in.imu().has_linear_acceleration())
+      {
+        if (_in.imu().linear_acceleration().has_x_noise())
+        {
+          sensor.SetLinearAccelerationXNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().x_noise()));
+        }
+        if (_in.imu().linear_acceleration().has_y_noise())
+        {
+          sensor.SetLinearAccelerationYNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().y_noise()));
+        }
+        if (_in.imu().linear_acceleration().has_z_noise())
+        {
+          sensor.SetLinearAccelerationZNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().z_noise()));
+        }
+      }
 
+      if (_in.imu().has_angular_velocity())
+      {
+        if (_in.imu().angular_velocity().has_x_noise())
+        {
+          sensor.SetAngularVelocityXNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().x_noise()));
+        }
+        if (_in.imu().angular_velocity().has_y_noise())
+        {
+          sensor.SetAngularVelocityYNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().y_noise()));
+        }
+        if (_in.imu().angular_velocity().has_z_noise())
+        {
+          sensor.SetAngularVelocityZNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().z_noise()));
+        }
+      }
+
+      if (_in.imu().has_orientation_ref_frame())
+      {
+        sensor.SetLocalization(
+            _in.imu().orientation_ref_frame().localization());
+
+        if (_in.imu().orientation_ref_frame().has_custom_rpy())
+        {
+          sensor.SetCustomRpy(
+              msgs::Convert(_in.imu().orientation_ref_frame().custom_rpy()));
+          sensor.SetCustomRpyParentFrame(
+              _in.imu().orientation_ref_frame().custom_rpy_parent_frame());
+        }
+
+        if (_in.imu().orientation_ref_frame().has_gravity_dir_x())
+        {
+          sensor.SetGravityDirX(msgs::Convert(
+                _in.imu().orientation_ref_frame().gravity_dir_x()));
+          sensor.SetGravityDirXParentFrame(
+              _in.imu().orientation_ref_frame().gravity_dir_x_parent_frame());
+        }
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an IMU sensor message, but the "
+        << "message does not have an IMU nested message.\n";
+    }
+
+    out.SetImuSensor(sensor);
+  }
   return out;
 }

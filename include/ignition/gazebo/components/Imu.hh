@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_IMU_HH_
 #define IGNITION_GAZEBO_COMPONENTS_IMU_HH_
 
-#include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -33,9 +33,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::Imu once that exists?
-  /// This is currently the whole <sensor> element.
-  using Imu = Component<sdf::ElementPtr, class ImuTag>;
+  /// \brief A component type that contains a magnetometer sensor,
+  /// sdf::Magnetometer, information.
+  using Imu = Component<sdf::Sensor, class ImuTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Imu", Imu)
 }
 }
