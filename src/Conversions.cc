@@ -436,6 +436,8 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
   _msg->set_bias_mean(_sdf.BiasMean());
   _msg->set_bias_stddev(_sdf.BiasStdDev());
   _msg->set_precision(_sdf.Precision());
+  _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
+  _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
 }
 
 //////////////////////////////////////////////////
@@ -464,6 +466,8 @@ sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
   out.SetBiasMean(_in.bias_mean());
   out.SetBiasStdDev(_in.bias_stddev());
   out.SetPrecision(_in.precision());
+  out.SetDynamicBiasStdDev(_in.dynamic_bias_stddev());
+  out.SetDynamicBiasCorrelationTime(_in.dynamic_bias_correlation_time());
   return out;
 }
 
