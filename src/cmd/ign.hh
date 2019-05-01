@@ -35,10 +35,19 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
 extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 
 /// \brief External hook to run simulation server.
-/// \param[in] _sdf SDF string to run.
+/// \param[in] _sdfString SDF file to run, as a string.
+/// \param[in] _iterations --iterations option
+/// \param[in] _run -r option
+/// \param[in] _hz -z option
+/// \param[in] _levels --levels option
+/// \param[in] _networkRole --network-role option
+/// \param[in] _networkSecondaries --network-secondaries option
+/// \param[in] _record --record option
+/// \param[in] _recordPath --record-path option
+/// \param[in] _playback --playback option
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, int _levels, int _distributed,
+    int _iterations, int _run, float _hz, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, const char *_playback);
 
