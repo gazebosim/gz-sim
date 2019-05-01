@@ -274,6 +274,7 @@ TEST_F(ComponentsTest, Imu)
 {
   sdf::Sensor data1;
   sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Imu(data1);
