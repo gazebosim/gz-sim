@@ -446,8 +446,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_e
         const components::Model *,
         const components::Pose *_pose)->bool
       {
-        if (!this->enableSensors)
-          std::cerr << "model pose data " << _pose->Data() << std::endl;
+//        if (!this->enableSensors)
+//          std::cerr << "model pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -457,8 +457,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_e
         const components::Link *,
         const components::Pose *_pose)->bool
       {
-        if (!this->enableSensors)
-          std::cerr << "link pose data " << _pose->Data() << std::endl;
+//        if (!this->enableSensors)
+//          std::cerr << "link pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
