@@ -44,7 +44,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   class IgnRendererPrivate;
   class RenderWindowItemPrivate;
-  class RenderWindowPrivate;
+  class Scene3DPrivate;
   class RenderUtil;
 
   /// \brief Creates a new ignition rendering scene or adds a user-camera to an
@@ -63,15 +63,15 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///                          (0.3, 0.3, 0.3, 1.0)
   /// * \<camera_pose\> : Optional starting pose for the camera, defaults to
   ///                     (0, 0, 5, 0, 0, 0)
-  class RenderWindow : public ignition::gazebo::GuiSystem
+  class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 
     /// \brief Constructor
-    public: RenderWindow();
+    public: Scene3D();
 
     /// \brief Destructor
-    public: virtual ~RenderWindow();
+    public: virtual ~Scene3D();
 
     // Documentation inherited
     public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
@@ -84,7 +84,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<RenderWindowPrivate> dataPtr;
+    private: std::unique_ptr<Scene3DPrivate> dataPtr;
   };
 
   /// \brief Ign-rendering renderer.
@@ -132,21 +132,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Render texture id
     public: GLuint textureId = 0u;
 
-/*    /// \brief Render engine to use
-    public: std::string engineName = "ogre";
-
-    /// \brief Unique scene name
-    public: std::string sceneName = "scene";
-
     /// \brief Initial Camera pose
     public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
-
-    /// \brief Scene background color
-    public: math::Color backgroundColor = math::Color::Black;
-
-    /// \brief Ambient color
-    public: math::Color ambientLight = math::Color(0.3, 0.3, 0.3, 1.0);
-*/
 
     /// \brief True if engine has been initialized;
     public: bool initialized = false;
@@ -156,23 +143,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Flag to indicate texture size has changed.
     public: bool textureDirty = false;
-
-    /// \brief Scene service. If not empty, a request will be made to get the
-    /// scene information using this service and the renderer will populate the
-    /// scene based on the response data
-    public: std::string sceneService;
-
-    /// \brief Scene pose topic. If not empty, a node will subcribe to this
-    /// topic to get pose updates of objects in the scene
-    public: std::string poseTopic;
-
-    /// \brief Ign-transport deletion topic name
-    public: std::string deletionTopic;
-
-    /// \brief Ign-transport scene topic name
-    /// New scene messages will be published to this topic when an entities are
-    /// added
-    public: std::string sceneTopic;
 
     /// \internal
     /// \brief Pointer to private data.
@@ -228,49 +198,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the renderer
     public: void SetRenderUtil(RenderUtil *_renderer);
 
-/*    /// \brief Set background color of render window
-    /// \param[in] _color Color of render window background
-    public: void SetBackgroundColor(const math::Color &_color);
-
-    /// \brief Set ambient light of render window
-    /// \param[in] _ambient Color of ambient light
-    public: void SetAmbientLight(const math::Color &_ambient);
-
-    /// \brief Set engine name used to create the render window
-    /// \param[in] _name Name of render engine
-    public: void SetEngineName(const std::string &_name);
-
-    /// \brief Set name of scene created inside the render window
-    /// \param[in] _name Name of scene
-    public: void SetSceneName(const std::string &_name);
-
-    /// \brief Set the initial pose the render window camera
-    /// \param[in] _pose Initical camera pose
+    /// \brief Set the initial user camera pose
+    /// \param[in] _pose Pose to set the camera to
     public: void SetCameraPose(const math::Pose3d &_pose);
-
-    /// \brief Set scene service to use in this render window
-    /// A service call will be made using ign-transport to get scene
-    /// data using this service
-    /// \param[in] _service Scene service name
-    public: void SetSceneService(const std::string &_service);
-
-    /// \brief Set pose topic to use for updating objects in the scene
-    /// The renderer will subscribe to this topic to get pose messages of
-    /// visuals in the scene
-    /// \param[in] _topic Pose topic
-    public: void SetPoseTopic(const std::string &_topic);
-
-    /// \brief Set deletion topic to use for deleting objects from the scene
-    /// The renderer will subscribe to this topic to get notified when entities
-    /// in the scene get deleted
-    /// \param[in] _topic Deletion topic
-    public: void SetDeletionTopic(const std::string &_topic);
-
-    /// \brief Set the scene topic to use for updating objects in the scene
-    /// The renderer will subscribe to this topic to get updates scene messages
-    /// \param[in] _topic Scene topic
-    public: void SetSceneTopic(const std::string &_topic);
-*/
 
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();

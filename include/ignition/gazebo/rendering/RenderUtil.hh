@@ -57,11 +57,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.
     public: void SetEngineName(const std::string &_engineName);
+
+    /// \brief Get the name of the rendering engine used
+    /// \return Name of the rendering engine
     public: std::string EngineName() const;
 
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.
     public: void SetSceneName(const std::string &_sceneName);
+
+    /// \brief Get the name of the rendering scene used
+    /// \return Name of the rendering scene.
     public: std::string SceneName() const;
 
     /// \brief Set background color of render window
@@ -72,20 +78,18 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
-    /// \brief Set the initial pose the render window camera
-    /// \param[in] _pose Initical camera pose
-    public: void SetCameraPose(const math::Pose3d &_pose);
-    public: math::Pose3d CameraPose() const;
-
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
 
-    /// \brief Get a pointer to the scene
-    /// \return Pointer to the scene
-    public: void SetEnableSensors(bool _enable, const std::function<
-        unsigned int(uint64_t, sdf::ElementPtr, std::string)>
-        &_createSensorCb = {});
+    /// \brief Set whether to create rendering sensors
+    /// \param[in] _enable True to create rendering sensors
+    /// \param[in] _createSensorCb Callback function for creating the sensors
+    /// The callback function args are: entity id, sensor sdf, and parent name,
+    /// and returns the id of the rendering senosr created.
+    public: void SetEnableSensors(bool _enable, std::function<
+        std::string (sdf::ElementPtr, const std::string &)>
+        _createSensorCb = {});
 
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;
