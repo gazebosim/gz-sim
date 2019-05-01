@@ -19,8 +19,8 @@ syntax = "proto3";
 
 package ignition.gazebo.private_msgs;
 
+import "ignition/msgs/world_stats.proto";
 import "performer_affinity.proto";
-import "ignition/msgs/time.proto";
 
 /// \brief Message to contain simulation step information for distributed
 /// simulation.
@@ -28,21 +28,11 @@ import "ignition/msgs/time.proto";
 /// at the beginning of each simulation iteration.
 message SimulationStep
 {
-  /// \brief Simulation iteration number.
-  uint64 iteration = 1;
-
-  /// \brief Simulation step size in nanoseconds
-  /// This is how much simulation time is going to increment.
-  uint64 stepSize = 2;
-
-  /// \brief Current simulation time.
-  ignition.msgs.Time simTime = 3;
-
-  /// \brief Simulation paused
-  bool paused = 4;
+  /// \brief Iteration information, such as sim time and paused state.
+  ignition.msgs.WorldStatistics stats = 1;
 
   /// \brief Updated performer affinities. It will be empty if there are no
   /// affinity changes.
-  repeated PerformerAffinity affinity = 5;
+  repeated PerformerAffinity affinity = 2;
 }
 
