@@ -11,6 +11,5 @@ ign gazebo -v 4 -z 100000000 --network-role primary --network-secondaries 3 $DIR
 
 # export IGN_GAZEBO_NETWORK_ROLE="PRIMARY"
 # export IGN_GAZEBO_NETWORK_SECONDARIES=3
-# ign gazebo -v 4 --distributed $DIR/primary.sdf
-
+# ign-gazebo -v 4 --distributed -f $DIR/primary.sdf
 

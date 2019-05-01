@@ -56,9 +56,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, int _levels, int _distributed,
-    const char *_networkRole, int _networkSecondaries, int _record,
-    const char *_recordPath, const char *_playback)
+    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _networkSecondaries, int _record, const char *_recordPath,
+    const char *_playback)
 {
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
@@ -86,33 +86,9 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     serverConfig.SetUseLevels(true);
   }
 
-  /// \todo(nkoenig) Deprecated _distributed in ign-gazebo2, and
-  /// remove in ign-gazebo3. The _networkRole is used to indicate
-  /// if distributed simulation is enabled.
-  if (_distributed > 0)
-  {
-    ignwarn << "Distributed simulation configuration via --distributed"
-      << " and environment variables is deprecated. Please use the"
-      << " --network-role and --network-secondaries command line options"
-      << " instead.\n";
-    ignmsg << "Using the distributed simulation and levels systems\n";
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-    serverConfig.SetUseDistributedSimulation(true);
-#ifndef _WIN32
-  #pragma GCC diagnostic pop
-#endif
-    serverConfig.SetUseLevels(true);
-  }
-
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    // This if is here to prevent the ignmsg from being displayed twice
-    // in the case when _distributed is used with _networkRole
-    if (_distributed <= 0)
-      ignmsg << "Using the distributed simulation and levels systems\n";
+    ignmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);

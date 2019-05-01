@@ -11,4 +11,4 @@ ign gazebo -s -v 4 -z 100000000 --network-role secondary $DIR/secondary.sdf
 # --network-role and --network-secondaries command line options instead.
 
 # export IGN_GAZEBO_NETWORK_ROLE="SECONDARY"
-# ign gazebo -v 4 --distributed $DIR/secondary.sdf
+# ign-gazebo -v 4 --distributed -f $DIR/secondary.sdf
