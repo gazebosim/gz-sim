@@ -26,46 +26,40 @@
 
 namespace ignition
 {
+namespace math
+{
+/// \brief Stream insertion operator for `math::Inertiald`.
+/// \param[in] _out Output stream.
+/// \param[in] _inertial Inertiald to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const Inertiald &_inertial)
+{
+  auto msg = gazebo::convert<msgs::Inertial>(_inertial);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `math::Inertiald`.
+/// \param[in] _in Input stream.
+/// \param[out] _inertial Inertiald to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, Inertiald &_inertial)
+{
+  msgs::Inertial msg;
+  msg.ParseFromIstream(&_in);
+
+  _inertial = gazebo::convert<math::Inertiald>(msg);
+  return _in;
+}
+}
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
-  using InertialBase = Component<ignition::math::Inertiald, class InertialTag>;
-
-  /// \brief This component holds an entity's geometry.
-  class Inertial : public InertialBase
-  {
-    // Documentation inherited
-    public: Inertial() : InertialBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit Inertial(const math::Inertiald &_data)
-      : InertialBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      auto msg = convert<msgs::Inertial>(this->Data());
-      msg.SerializeToOstream(&_out);
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      msgs::Inertial msg;
-      msg.ParseFromIstream(&_in);
-
-      this->Data() = convert<math::Inertiald>(msg);
-    }
-  };
-
+  /// \brief This component holds an entity's inertial.
+  using Inertial = Component<math::Inertiald, class InertialTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Inertial", Inertial)
 }
 }

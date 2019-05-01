@@ -26,6 +26,7 @@
 #include <ignition/msgs/spheregeom.pb.h>
 #include <ignition/msgs/Utility.hh>
 
+#include <ignition/math/Angle.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/common/Console.hh>
@@ -215,6 +216,33 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
+sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
+{
+  sdf::Light out;
+  out.SetName(_in.name());
+  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetDiffuse(msgs::Convert(_in.diffuse()));
+  out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetConstantAttenuationFactor(_in.attenuation_constant());
+  out.SetLinearAttenuationFactor(_in.attenuation_linear());
+  out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
+  out.SetAttenuationRange(_in.range());
+  out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetCastShadows(_in.cast_shadows());
+  out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
+  out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
+  out.SetSpotFalloff(_in.spot_falloff());
+  if (_in.type() == msgs::Light_LightType_POINT)
+    out.SetType(sdf::LightType::POINT);
+  else if (_in.type() == msgs::Light_LightType_SPOT)
+    out.SetType(sdf::LightType::SPOT);
+  else if (_in.type() == msgs::Light_LightType_DIRECTIONAL)
+    out.SetType(sdf::LightType::DIRECTIONAL);
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
@@ -355,6 +383,36 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 }
 
 //////////////////////////////////////////////////
+template<>
+msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
+{
+  msgs::Scene out;
+  // todo(anyone) add Name to sdf::Scene?
+  // out.set_name(_in.Name());
+  msgs::Set(out.mutable_ambient(), _in.Ambient());
+  msgs::Set(out.mutable_background(), _in.Background());
+  out.set_shadows(_in.Shadows());
+  out.set_grid(_in.Grid());
+  out.set_origin_visual(_in.OriginVisual());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
+{
+  sdf::Scene out;
+  // todo(anyone) add SetName to sdf::Scene?
+  // out.SetName(_in.name());
+  out.SetAmbient(msgs::Convert(_in.ambient()));
+  out.SetBackground(msgs::Convert(_in.background()));
+  out.SetShadows(_in.shadows());
+  out.SetGrid(_in.grid());
+  out.SetOriginVisual(_in.origin_visual());
+  return out;
+}
+
+//////////////////////////////////////////////////
 void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
@@ -377,6 +435,8 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
   _msg->set_bias_mean(_sdf.BiasMean());
   _msg->set_bias_stddev(_sdf.BiasStdDev());
   _msg->set_precision(_sdf.Precision());
+  _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
+  _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
 }
 
 //////////////////////////////////////////////////
@@ -405,6 +465,8 @@ sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
   out.SetBiasMean(_in.bias_mean());
   out.SetBiasStdDev(_in.bias_stddev());
   out.SetPrecision(_in.precision());
+  out.SetDynamicBiasStdDev(_in.dynamic_bias_stddev());
+  out.SetDynamicBiasCorrelationTime(_in.dynamic_bias_correlation_time());
   return out;
 }
 

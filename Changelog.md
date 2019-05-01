@@ -5,8 +5,11 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
 
+1. Support conversion and serialization of scene and light components
+    * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
+
 1. Use scene ambient and background color information in sensor
-   configuration. 
+   configuration.
     * [Pull Request 268](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/268)
 
 1. Added an SDF message to the start of log files.
