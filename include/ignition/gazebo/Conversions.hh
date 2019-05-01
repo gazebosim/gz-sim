@@ -23,6 +23,7 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/scene.pb.h>
 #include <ignition/msgs/time.pb.h>
 
 #include <chrono>
@@ -34,6 +35,7 @@
 #include <sdf/JointAxis.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
+#include <sdf/Scene.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
@@ -128,6 +130,24 @@ namespace ignition
     /// \return Light message.
     template<>
     msgs::Light convert(const sdf::Light &_in);
+
+
+    /// \brief Generic conversion from a light message to another type.
+    /// \param[in] _in Light message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Light& /*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a light message to a light
+    /// SDF object.
+    /// \param[in] _in Light message.
+    /// \return Light SDF object.
+    template<>
+    sdf::Light convert(const msgs::Light &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
@@ -246,6 +266,39 @@ namespace ignition
     /// \return SDF joint axis.
     template<>
     sdf::JointAxis convert(const msgs::Axis &_in);
+
+    /// \brief Generic conversion from an SDF scene to another type.
+    /// \param[in] _in SDF scene.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Scene &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF scene to a scene message
+    /// \param[in] _in SDF scene.
+    /// \return Scene message.
+    template<>
+    msgs::Scene convert(const sdf::Scene &_in);
+
+    /// \brief Generic conversion from a scene message to another type.
+    /// \param[in] _in Scene  message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Scene &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a scene message to a scene
+    /// SDF object.
+    /// \param[in] _in Scene message.
+    /// \return SDF scene.
+    template<>
+    sdf::Scene convert(const msgs::Scene &_in);
     }
   }
 }
