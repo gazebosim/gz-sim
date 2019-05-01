@@ -46,16 +46,6 @@ COMMANDS = { 'gazebo' =>
   "                                                                         \n"\
   "                                                                         \n"\
   "Available Options:                                                       \n"\
-  "  --distributed               Use the distributed simulation system.     \n"\
-  "                              The default is false, which disables all   \n"\
-  "                              distributed simulation. This is deprecated \n"\
-  "                              in ign-gazebo2. Please use                 \n"\
-  "                              --network-role and/or --network-secondaries\n"\
-  "                              instead. It implies --levels.              \n"\
-  "\n"\
-  "  -f [ --file ] [arg]         Load an SDF file on start. The flag can be \n"\
-  "                              ommitted if the file is the last argument. \n"\
-  "\n"\
   "  -g                          Run only the GUI.                          \n"\
   "\n"\
   "  --iterations [arg]          Number of iterations to execute.           \n"\
@@ -142,7 +132,6 @@ class Cmd
   #
   def parse(args)
     options = {
-      'distributed' => 0,
       'gui' => 0,
       'hz' => -1,
       'iterations' => 0,
@@ -165,9 +154,6 @@ class Cmd
       opts.on('-h', '--help') do
         puts usage
         exit
-      end
-      opts.on('-f [sdf]', '--file', String, 'Run an SDF file') do |file|
-        options['file'] = file
       end
       opts.on('--iterations [arg]', Integer,
               'Number of iterations to execute') do |i|
@@ -202,9 +188,6 @@ class Cmd
       end
       opts.on('--playback [arg]', String) do |p|
         options['playback'] = p
-      end
-      opts.on('--distributed') do
-        options['distributed'] = 1
       end
       opts.on('-v [verbose]', '--verbose [verbose]', String) do |v|
         options['verbose'] = v || '3'
@@ -317,9 +300,9 @@ class Cmd
         serverPid = Process.fork do
           Process.setpgid(0, 0)
           Importer.runServer(parsed, options['iterations'], options['run'],
-            options['hz'], options['levels'], options['distributed'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['recordPath'], options['playback'])
+            options['hz'], options['levels'], options['network_role'],
+            options['network_secondaries'], options['record'],
+            options['recordPath'], options['playback'])
         end
 
         guiPid = Process.fork do
@@ -345,9 +328,9 @@ class Cmd
       # If the -s option was specified, then run only the server
       elsif options['server'] == 1
         Importer.runServer(parsed, options['iterations'], options['run'],
-            options['hz'], options['levels'], options['distributed'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['recordPath'], options['playback'])
+            options['hz'], options['levels'], options['network_role'],
+            options['network_secondaries'], options['record'],
+            options['recordPath'], options['playback'])
       # Otherwise run the gui
       else options['gui']
         Importer.runGui
