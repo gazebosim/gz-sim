@@ -148,9 +148,6 @@ void NetworkManagerSecondary::OnStep(
       std::chrono::nanoseconds(_msg.stepsize()));
   info.simTime = convert<std::chrono::steady_clock::duration>(_msg.simtime());
 
-  // Update state
-  this->dataPtr->ecm->SetState(_msg.state());
-
   // Step runner
   this->dataPtr->stepFunction(info);
 

@@ -405,7 +405,7 @@ namespace ignition
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
       /// to get all components.
-      msgs::SerializedState State(
+      public: msgs::SerializedState State(
           const std::unordered_set<Entity> &_entities = {},
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
 
@@ -423,7 +423,7 @@ namespace ignition
       ///
       /// \detail The header of the message will not be populated, it is the
       /// responsability of the caller to timestamp it before use.
-      msgs::SerializedState ChangedState() const;
+      public: msgs::SerializedState ChangedState() const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -433,7 +433,7 @@ namespace ignition
       /// \detail The header of the message will not be handled, it is the
       /// responsability of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
-      void SetState(const msgs::SerializedState &_stateMsg);
+      public: void SetState(const msgs::SerializedState &_stateMsg);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
