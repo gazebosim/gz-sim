@@ -17,10 +17,41 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
 #define IGNITION_GAZEBO_COMPONENTS_LIGHT_HH_
 
+#include <ignition/msgs/light.pb.h>
+
 #include <sdf/Light.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
+
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::Light`.
+/// \param[in] _out Output stream.
+/// \param[in] _light Light to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const Light &_light)
+{
+  auto msg = ignition::gazebo::convert<ignition::msgs::Light>(_light);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::Light`.
+/// \param[in] _in Input stream.
+/// \param[out] _light Light to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, Light &_light)
+{
+  ignition::msgs::Light msg;
+  msg.ParseFromIstream(&_in);
+
+  _light = ignition::gazebo::convert<sdf::Light>(msg);
+  return _in;
+}
+}
 
 namespace ignition
 {
