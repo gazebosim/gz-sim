@@ -50,6 +50,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -526,6 +527,21 @@ TEST_F(ComponentsTest, LevelEntityNames)
 TEST_F(ComponentsTest, Light)
 {
   auto data1 = sdf::Light();
+  data1.SetType(sdf::LightType::POINT);
+  data1.SetName("light_test");
+  data1.SetPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
+  data1.SetDiffuse(math::Color(1, 0, 0, 1));
+  data1.SetSpecular(math::Color(0, 1, 0, 1));
+  data1.SetCastShadows(true);
+  data1.SetAttenuationRange(1.3);
+  data1.SetLinearAttenuationFactor(0.3);
+  data1.SetQuadraticAttenuationFactor(0.1);
+  data1.SetConstantAttenuationFactor(0.05);
+  data1.SetDirection(math::Vector3d(2, 3, 4));
+  data1.SetSpotInnerAngle(math::Angle(0.3));
+  data1.SetSpotOuterAngle(math::Angle(2.3));
+  data1.SetSpotFalloff(5.15);
+
   auto data2 = sdf::Light();
 
   // Create components
@@ -533,7 +549,28 @@ TEST_F(ComponentsTest, Light)
   auto comp12 = components::Light(data1);
   auto comp2 = components::Light(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Light comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
+  EXPECT_EQ("light_test", comp3.Data().Name());
+  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().Pose());
+  EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
+  EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
+  EXPECT_TRUE(comp3.Data().CastShadows());
+  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
+  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
+  EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
+  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
 }
 
 /////////////////////////////////////////////////
@@ -913,3 +950,30 @@ TEST_F(ComponentsTest, World)
   istr >> comp3;
 }
 
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, Scene)
+{
+  auto data1 = sdf::Scene();
+  data1.SetAmbient(math::Color(1, 0, 1, 1));
+  data1.SetBackground(math::Color(1, 1, 0, 1));
+  data1.SetShadows(true);
+  data1.SetGrid(false);
+  data1.SetOriginVisual(true);
+
+  // Create components
+  auto comp11 = components::Scene(data1);
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Scene comp3;
+  istr >> comp3;
+  EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Ambient());
+  EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Background());
+  EXPECT_TRUE(comp3.Data().Shadows());
+  EXPECT_FALSE(comp3.Data().Grid());
+  EXPECT_TRUE(comp3.Data().OriginVisual());
+}
