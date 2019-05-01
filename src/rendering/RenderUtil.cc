@@ -80,17 +80,13 @@ class ignition::gazebo::RenderUtilPrivate
   public: math::Color backgroundColor = math::Color::Black;
 
   /// \brief Ambient color
-  public: math::Color ambientLight = math::Color(0.3, 0.3, 0.3, 1.0);
+  public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
 
   /// \brief Scene manager
   public: rendering::gziface::SceneManager sceneManager;
 
   /// \brief Pointer to rendering engine.
   public: ignition::rendering::RenderEngine *engine{nullptr};
-
-  /// \brief Map of Gazebo entities to their respective IDs within ign-sensors.
-  /// Note that both of these are different from node's ID in ign-rendering.
-  public: std::map<Entity, uint64_t> entityToSensorId;
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -450,8 +446,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_e
         const components::Model *,
         const components::Pose *_pose)->bool
       {
-//        if (!this->enableSensors)
-//          std::cerr << "model pose data " << _pose->Data() << std::endl;
+        if (!this->enableSensors)
+          std::cerr << "model pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -461,6 +457,8 @@ void RenderUtilPrivate::UpdateRenderingEntities(const EntityComponentManager &_e
         const components::Link *,
         const components::Pose *_pose)->bool
       {
+        if (!this->enableSensors)
+          std::cerr << "link pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });

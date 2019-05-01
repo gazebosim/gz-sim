@@ -28,7 +28,7 @@
     </plugin>
 
     <scene>
-      <ambient>0.4 0.4 0.4</ambient>
+      <ambient>1.0 1.0 1.0</ambient>
       <background>0.8 0.8 0.8</background>
     </scene>
 
@@ -44,7 +44,7 @@
 
         <engine>ogre2</engine>
         <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
         <service>/world/camera_sensor/scene/info</service>
@@ -113,7 +113,7 @@
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+      <specular>0.8 0.8 0.8 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>

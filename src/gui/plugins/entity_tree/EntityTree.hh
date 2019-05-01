@@ -50,14 +50,18 @@ namespace gazebo
     public slots: void AddEntity(unsigned int _entity, const QString &_entityName,
         unsigned int _parentEntity = kNullEntity);
 
+    /// \brief Remove an entity from the tree.
+    /// \param[in] _entity Entity to be removed
+    public slots: void RemoveEntity(unsigned int _entity);
+
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
   };
 
-  /// \brief TODO
+  /// \brief Displays a tree view with all the entities in the world.
   ///
   /// ## Configuration
-  /// TODO
+  /// None
   class EntityTree : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT

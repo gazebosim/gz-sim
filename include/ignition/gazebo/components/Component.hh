@@ -183,9 +183,6 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  // Forward declarations.
-  template<typename DataType> class ComponentPrivate;
-
   /// \brief Convenient type to be used by components that don't wrap any data.
   /// I.e. they act as tags and their presence is enough to infer something
   /// about the entity.
@@ -298,11 +295,17 @@ namespace components
   /// \tparam DataType Type of the data being wrapped by this component.
   /// \tparam Identifier Unique identifier for the component class, to avoid
   /// collision.
+  ///
+  // Dev Note: Copy and move constructors/assignment operators should not be
+  // removed even though it may seem possible to do so. Removing them will
+  // result in a segfault when a copy or move is used with DataType set to a
+  // type that is incomplete during construction of the component
+  // (eg.  sdf::Geometry).
   template <typename DataType, typename Identifier>
   class Component: public BaseComponent
   {
     /// \brief Default constructor
-    public: Component();
+    public: Component() = default;
 
     /// \brief Constructor
     /// \param[in] _data Data to copy
@@ -314,11 +317,11 @@ namespace components
 
     /// \brief Copy Constructor
     /// \param[in] _component Component component to copy.
-    public: Component(const Component &_component);
+    public: Component(const Component &_component) = default;
 
     /// \brief Move Constructor
     /// \param[in] _component Component component to move.
-    public: Component(Component &&_component) noexcept = default;
+    public: Component(Component &&_component) = default;
 
     /// \brief Destructor.
     public: ~Component() override = default;
@@ -326,13 +329,12 @@ namespace components
     /// \brief Move assignment operator.
     /// \param[in] _component Component component to move.
     /// \return Reference to this.
-    public: Component &operator=(
-                Component &&_component) noexcept = default;
+    public: Component &operator=(Component &&_component) = default;
 
     /// \brief Copy assignment operator.
     /// \param[in] _component Component component to copy.
     /// \return Reference to this.
-    public: Component &operator=(const Component &_component);
+    public: Component &operator=(const Component &_component) = default;
 
     /// \brief Equality operator.
     /// \param[in] _component Component to compare to.
@@ -362,7 +364,7 @@ namespace components
     public: const DataType &Data() const;
 
     /// \brief Private data pointer.
-    private: std::unique_ptr<ComponentPrivate<DataType>> dataPtr;
+    private: DataType data;
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
@@ -414,50 +416,17 @@ namespace components
     public: inline static std::string typeName;
   };
 
-  template <typename DataType>
-  class ComponentPrivate
-  {
-    /// \brief Default constructor
-    public: ComponentPrivate() = default;
-
-    /// \brief Constructor.
-    /// \param[in] _component Component data.
-    public: explicit ComponentPrivate(DataType _data)
-            : data(std::move(_data))
-    {
-    }
-
-    /// \brief The data being wrapped.
-    public: DataType data;
-  };
-
-  //////////////////////////////////////////////////
-  template <typename DataType, typename Identifier>
-  Component<DataType, Identifier>::Component()
-    : dataPtr(std::make_unique<ComponentPrivate<DataType>>())
-  {
-  }
-
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(const DataType &_data)
-    : dataPtr(std::make_unique<ComponentPrivate<DataType>>(_data))
+    : data(_data)
   {
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   Component<DataType, Identifier>::Component(DataType &&_data)
-    : dataPtr(std::make_unique<ComponentPrivate<DataType>>(std::move(_data)))
-  {
-  }
-
-  //////////////////////////////////////////////////
-  template <typename DataType, typename Identifier>
-  Component<DataType, Identifier>::Component(
-      const Component<DataType, Identifier> &_component)
-      : dataPtr(std::make_unique<ComponentPrivate<DataType>>(
-            _component.Data()))
+    : data(std::move(_data))
   {
   }
 
@@ -465,23 +434,14 @@ namespace components
   template <typename DataType, typename Identifier>
   DataType &Component<DataType, Identifier>::Data()
   {
-    return this->dataPtr->data;
+    return this->data;
   }
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
   const DataType &Component<DataType, Identifier>::Data() const
   {
-    return this->dataPtr->data;
-  }
-
-  //////////////////////////////////////////////////
-  template <typename DataType, typename Identifier>
-  Component<DataType, Identifier> &Component<DataType, Identifier>::
-  operator=(const Component<DataType, Identifier> &_component)
-  {
-    this->dataPtr->data = _component.Data();
-    return *this;
+    return this->data;
   }
 
   //////////////////////////////////////////////////
@@ -489,7 +449,7 @@ namespace components
   bool Component<DataType, Identifier>::
   operator==(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data == _component.Data();
+    return this->data == _component.Data();
   }
 
   //////////////////////////////////////////////////
@@ -497,7 +457,7 @@ namespace components
   bool Component<DataType, Identifier>::
   operator!=(const Component<DataType, Identifier> &_component) const
   {
-    return this->dataPtr->data != _component.Data();
+    return this->data != _component.Data();
   }
 
   //////////////////////////////////////////////////

@@ -25,17 +25,12 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
-#include "network/NetworkConfig.hh"
-#include "network/NetworkManagerSecondary.hh"
 
 // Gflag command line argument definitions
 // This flag is an abbreviation for the longer gflags built-in help flag.
@@ -208,11 +203,14 @@ int main(int _argc, char **_argv)
 
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
+  std::vector<ignition::gazebo::GuiRunner *> runners;
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
+    auto worldName = worldsMsg.data(w);
+
     // Request GUI info for each world
     result = false;
-    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
+    service = std::string("/world/" + worldName + "/gui/info");
 
     igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
@@ -238,29 +236,21 @@ int main(int _argc, char **_argv)
       ignition::gui::App()->LoadPlugin(fileName,
           pluginDoc.FirstChildElement("plugin"));
     }
+
+    // GUI runner
+    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+      &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runners.push_back(runner);
   }
-
-  // Update ECM with state from network
-  ignition::gazebo::EntityComponentManager ecm;
-  auto step = [&app, &ecm](const ignition::gazebo::UpdateInfo &_info)
-  {
-    auto plugins = app.findChildren<ignition::gazebo::GuiSystem *>();
-    for (auto plugin : plugins)
-    {
-      plugin->Update(_info, ecm);
-    }
-    ecm.ClearNewlyCreatedEntities();
-  };
-
-
-  auto eventManager = std::make_unique<ignition::gazebo::EventManager>();
-  auto networkManager = ignition::gazebo::NetworkManager::Create(
-      step, ecm, eventManager.get(),
-      ignition::gazebo::NetworkConfig::FromValues("secondary"));
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
   app.exec();
+
+  for (auto runner : runners)
+    delete runner;
+  runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
   return 0;

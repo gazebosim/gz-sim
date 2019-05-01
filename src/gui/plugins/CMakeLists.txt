@@ -44,13 +44,5 @@ function(gz_add_gui_plugin plugin_name)
 
 endfunction()
 
-gz_add_gui_plugin(EntityTree
-  SOURCES EntityTree.cc
-  QT_HEADERS EntityTree.hh
-)
-
-gz_add_gui_plugin(Scene3D
-  SOURCES Scene3D.cc
-  QT_HEADERS Scene3D.hh
-  PRIVATE_LINK_LIBS ${PROJECT_LIBRARY_TARGET_NAME}-rendering
-)
+add_subdirectory(entity_tree)
+add_subdirectory(scene3d)
