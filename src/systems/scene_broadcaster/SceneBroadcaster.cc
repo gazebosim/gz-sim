@@ -38,7 +38,6 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-#include "msgs/simulation_step.pb.h"
 #include "SceneBroadcaster.hh"
 
 using namespace std::chrono_literals;
@@ -206,8 +205,6 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  // TODO(anyone) Throttle scene broadcasts
-
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
   // Update scene graph with added entities before populating pose message
   this->dataPtr->SceneGraphAddEntities(_manager);
@@ -285,7 +282,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
   // State
-  auto shouldServe = this->dataPtr->stepMsg.has_state();
+  auto shouldServe = !this->dataPtr->stepMsg.has_state();
 
   auto now = std::chrono::system_clock::now();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
@@ -410,12 +407,12 @@ bool SceneBroadcasterPrivate::StateService(
 {
   _res.Clear();
 
+  // Lock and wait for an iteration to be run and fill the state
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stepMsg.Clear();
   auto success = this->stateCv.wait_for(lock, 5s, [&]
   {
-    // It should have at a minimum the world entity
-    return !this->stepMsg.has_state();
+    return this->stepMsg.has_state();
   });
 
   if (success)
