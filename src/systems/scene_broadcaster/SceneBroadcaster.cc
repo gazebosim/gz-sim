@@ -455,6 +455,14 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
   auto worldVertex = this->sceneGraph.VertexFromId(this->worldEntity);
   newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(), worldVertex.Id());
 
+  // Worlds: check this in case we're loading a world without models
+  _manager.EachNew<components::World>(
+      [&](const Entity &, const components::World *) -> bool
+      {
+        newEntity = true;
+        return false;
+      });
+
   // Models
   _manager.EachNew<components::Model, components::Name,
                    components::ParentEntity, components::Pose>(
