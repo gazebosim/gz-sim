@@ -18,8 +18,8 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
-#include <ignition/msgs/performer.pb.h>
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <memory>
 #include <set>
@@ -129,7 +129,7 @@ namespace ignition
       /// \param[out] _rep Reply message, which is set to true when the
       /// performer has been added.
       /// \return True if the service call completed.
-      private: bool OnAddPerformer(const msgs::Performer &_req,
+      private: bool OnAddPerformer(const msgs::StringMsg &_req,
                                    msgs::Boolean &_rep);
 
       /// \brief List of currently active levels
