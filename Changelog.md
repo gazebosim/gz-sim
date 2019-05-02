@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Add rendering component
+    * [Pull Request 306](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/306)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
 
