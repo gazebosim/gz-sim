@@ -25,10 +25,10 @@ pipelines:
             libignition-msgs4-dev
             libignition-plugin-dev
             libignition-physics-dev
+            libignition-rendering2-dev
             libignition-sensors2-dev
             libignition-tools-dev
             libignition-transport7-dev
-          # libignition-rendering2-dev
           # libsdformat8-dev
           # SDFormat (uncomment if a specific branch is needed)
           - apt install -y
@@ -59,15 +59,15 @@ pipelines:
           # - make -j4 install
           # - cd ../..
           # Ignition rendering (uncomment if a specific branch is needed)
-          - apt-get -y install
-            libogre-1.9-dev libogre-2.1-dev libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
-          - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b gziface
-          - cd ign-rendering
-          - mkdir build
-          - cd build
-          - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
-          - make -j4 install
-          - cd ../..
+          # - apt-get -y install
+          #   libogre-1.9-dev libogre-2.1-dev libglew-dev libfreeimage-dev freeglut3-dev libxmu-dev libxi-dev
+          # - hg clone http://bitbucket.org/ignitionrobotics/ign-rendering -b default
+          # - cd ign-rendering
+          # - mkdir build
+          # - cd build
+          # - cmake .. -DBUILD_TESTING=false -DCMAKE_INSTALL_PREFIX=/usr
+          # - make -j4 install
+          # - cd ../..
           # Ignition sensors (uncomment if a specific branch is needed)
           # - hg clone http://bitbucket.org/ignitionrobotics/ign-sensors -b default
           # - cd ign-sensors
