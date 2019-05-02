@@ -17,10 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
 
+#include <ignition/msgs/double_v.pb.h>
+#include <vector>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/msgs/double_v.pb.h>
 
 namespace ignition
 {
