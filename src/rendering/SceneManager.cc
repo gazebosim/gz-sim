@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,32 @@
  *
  */
 
-#include "SceneManager.hh"
+
+#include <map>
+
+#include <sdf/Box.hh>
+#include <sdf/Cylinder.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Pbr.hh>
+#include <sdf/Plane.hh>
+#include <sdf/Sphere.hh>
+
+#include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
+
+#include <ignition/rendering/Geometry.hh>
+#include <ignition/rendering/Light.hh>
+#include <ignition/rendering/Material.hh>
+#include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/Visual.hh>
+
+#include "ignition/gazebo/rendering/SceneManager.hh"
 
 using namespace ignition;
 using namespace gazebo;
-using namespace systems;
 
 /// \brief Private data class.
-class ignition::gazebo::systems::SceneManagerPrivate
+class ignition::gazebo::SceneManagerPrivate
 {
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
@@ -56,6 +74,12 @@ SceneManager::~SceneManager() = default;
 void SceneManager::SetScene(rendering::ScenePtr _scene)
 {
   this->dataPtr->scene = std::move(_scene);
+}
+
+/////////////////////////////////////////////////
+rendering::ScenePtr SceneManager::Scene() const
+{
+  return this->dataPtr->scene;
 }
 
 /////////////////////////////////////////////////
@@ -174,6 +198,7 @@ rendering::VisualPtr SceneManager::CreateVisual(uint64_t _id,
   if (parent)
     name = parent->Name() + "::" + name;
   rendering::VisualPtr visualVis = this->dataPtr->scene->CreateVisual(name);
+  visualVis->SetLocalPose(_visual.Pose());
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
@@ -226,11 +251,6 @@ rendering::VisualPtr SceneManager::CreateVisual(uint64_t _id,
 
     // TODO(anyone) set transparency)
     // material->SetTransparency(_visual.Transparency());
-
-    // TODO(anyone) Get roughness and metalness from message instead
-    // of giving a default value.
-    material->SetRoughness(0.3);
-    material->SetMetalness(0.3);
 
     geom->SetMaterial(material);
   }
@@ -321,6 +341,86 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   material->SetDiffuse(_material.Diffuse());
   material->SetSpecular(_material.Specular());
   material->SetEmissive(_material.Emissive());
+
+  // parse PBR params
+  const sdf::Pbr *pbr = _material.PbrMaterial();
+  if (pbr)
+  {
+    sdf::PbrWorkflow *workflow = nullptr;
+    const sdf::PbrWorkflow *metal =
+        pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    if (metal)
+    {
+      double roughness = metal->Roughness();
+      double metalness = metal->Metalness();
+      material->SetRoughness(roughness);
+      material->SetMetalness(metalness);
+
+      // roughness map
+      std::string roughnessMap = metal->RoughnessMap();
+      if (!roughnessMap.empty())
+      {
+        std::string fullPath = common::findFile(roughnessMap);
+        if (!fullPath.empty())
+          material->SetRoughnessMap(fullPath);
+        else
+          ignerr << "Unable to find file [" << roughnessMap << "]\n";
+      }
+
+      // metalness map
+      std::string metalnessMap = metal->MetalnessMap();
+      if (!metalnessMap.empty())
+      {
+        std::string fullPath = common::findFile(metalnessMap);
+        if (!fullPath.empty())
+          material->SetMetalnessMap(fullPath);
+        else
+          ignerr << "Unable to find file [" << metalnessMap << "]\n";
+      }
+      workflow = const_cast<sdf::PbrWorkflow *>(metal);
+    }
+    else
+    {
+      ignerr << "PBR material: currently only metal workflow is supported"
+             << std::endl;
+    }
+
+    // albedo map
+    std::string albedoMap = workflow->AlbedoMap();
+    if (!albedoMap.empty())
+    {
+      std::string fullPath = common::findFile(albedoMap);
+      if (!fullPath.empty())
+      {
+        material->SetTexture(fullPath);
+      }
+      else
+        ignerr << "Unable to find file [" << albedoMap << "]\n";
+    }
+
+    // normal map
+    std::string normalMap = workflow->NormalMap();
+    if (!normalMap.empty())
+    {
+      std::string fullPath = common::findFile(normalMap);
+      if (!fullPath.empty())
+        material->SetNormalMap(fullPath);
+      else
+        ignerr << "Unable to find file [" << normalMap << "]\n";
+    }
+
+
+    // environment map
+    std::string environmentMap = workflow->EnvironmentMap();
+    if (!environmentMap.empty())
+    {
+      std::string fullPath = common::findFile(environmentMap);
+      if (!fullPath.empty())
+        material->SetEnvironmentMap(fullPath);
+      else
+        ignerr << "Unable to find file [" << environmentMap << "]\n";
+    }
+  }
   return material;
 }
 
@@ -348,15 +448,20 @@ rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
     parent = it->second;
   }
 
+  std::string name = _light.Name().empty() ? std::to_string(_id) :
+      _light.Name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
+
   rendering::LightPtr light;
   switch (_light.Type())
   {
     case sdf::LightType::POINT:
-      light = this->dataPtr->scene->CreatePointLight();
+      light = this->dataPtr->scene->CreatePointLight(name);
       break;
     case sdf::LightType::SPOT:
     {
-      light = this->dataPtr->scene->CreateSpotLight();
+      light = this->dataPtr->scene->CreateSpotLight(name);
       rendering::SpotLightPtr spotLight =
           std::dynamic_pointer_cast<rendering::SpotLight>(light);
       spotLight->SetInnerAngle(_light.SpotInnerAngle());
@@ -366,7 +471,7 @@ rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
     }
     case sdf::LightType::DIRECTIONAL:
     {
-      light = this->dataPtr->scene->CreateDirectionalLight();
+      light = this->dataPtr->scene->CreateDirectionalLight(name);
       rendering::DirectionalLightPtr dirLight =
           std::dynamic_pointer_cast<rendering::DirectionalLight>(light);
 
@@ -398,7 +503,7 @@ rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
 }
 
 /////////////////////////////////////////////////
-bool SceneManager::AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
+bool SceneManager::AddSensor(uint64_t _gazeboId, const std::string &_sensorName,
     uint64_t _parentGazeboId)
 {
   if (this->dataPtr->sensors.find(_gazeboId) != this->dataPtr->sensors.end())
@@ -421,10 +526,10 @@ bool SceneManager::AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
     parent = it->second;
   }
 
-  rendering::SensorPtr sensor = this->dataPtr->scene->SensorById(_renderingId);
+  rendering::SensorPtr sensor = this->dataPtr->scene->SensorByName(_sensorName);
   if (!sensor)
   {
-    ignerr << "Unable to find sensor [" << _renderingId << "]" << std::endl;
+    ignerr << "Unable to find sensor [" << _sensorName << "]" << std::endl;
     return false;
   }
 
