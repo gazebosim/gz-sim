@@ -26,20 +26,20 @@
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "StatePublisher.hh"
+#include "JointStatePublisher.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
 //////////////////////////////////////////////////
-StatePublisher::StatePublisher()
+JointStatePublisher::JointStatePublisher()
     : System()
 {
 }
 
 //////////////////////////////////////////////////
-void StatePublisher::Configure(
+void JointStatePublisher::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &,
     EntityComponentManager &_ecm, EventManager &)
 {
@@ -47,8 +47,8 @@ void StatePublisher::Configure(
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "The StatePublisher system should be attached to a model entity. "
-           << "Failed to initialize." << std::endl;
+    ignerr << "The JointStatePublisher system should be attached to a model "
+      << "entity. Failed to initialize." << std::endl;
     return;
   }
 
@@ -80,7 +80,7 @@ void StatePublisher::Configure(
 }
 
 //////////////////////////////////////////////////
-void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
+void JointStatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
                                 const EntityComponentManager &_ecm)
 {
   // Create the model state publisher. This can't be done in ::Configure
@@ -99,7 +99,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
 
       // Advertise the state topic
       std::string topic = std::string("/world/") + worldName + "/model/"
-        + this->model.Name(_ecm) + "/state";
+        + this->model.Name(_ecm) + "/joint_state";
       this->modelPub = std::make_unique<transport::Node::Publisher>(
           this->node.Advertise<msgs::Model>(topic));
     }
@@ -162,7 +162,7 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
       {
         if (i == 0)
           jointMsg->mutable_axis1()->set_velocity(jointVelocity->Data()[i]);
-        else if (i==1)
+        else if (i == 1)
           jointMsg->mutable_axis2()->set_velocity(jointVelocity->Data()[i]);
         else
           ignwarn << "Joint state publisher only supports two joint axis\n";
@@ -190,10 +190,10 @@ void StatePublisher::PostUpdate(const UpdateInfo & /*_info*/,
   this->modelPub->Publish(msg);
 }
 
-IGNITION_ADD_PLUGIN(StatePublisher,
+IGNITION_ADD_PLUGIN(JointStatePublisher,
                     ignition::gazebo::System,
-                    StatePublisher::ISystemConfigure,
-                    StatePublisher::ISystemPostUpdate)
+                    JointStatePublisher::ISystemConfigure,
+                    JointStatePublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(StatePublisher,
-    "ignition::gazebo::systems::StatePublisher")
+IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+    "ignition::gazebo::systems::JointStatePublisher")

@@ -612,7 +612,6 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
               jointIt->second->SetVelocity(i, velCmd->Data()[i]);
             }
           }
-
         }
 
         return true;
