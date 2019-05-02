@@ -183,11 +183,11 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 }
 
 /////////////////////////////////////////////////
-bool LevelManager::OnAddPerformer(const msgs::Performer &_req,
+bool LevelManager::OnAddPerformer(const msgs::StringMsg &_req,
                                   msgs::Boolean &_rep)
 {
   _rep.set_data(false);
-  std::string name = _req.name();
+  std::string name = _req.data();
 
   // Find the model entity
   Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
@@ -202,8 +202,12 @@ bool LevelManager::OnAddPerformer(const msgs::Performer &_req,
   // Check to see if the performer has already been added.
   if (this->performerMap.find(name) == this->performerMap.end())
   {
-    this->performersToAdd.push_back(
-        std::make_pair(name, convert<sdf::Geometry>(_req.geometry())));
+    sdf::Geometry geom;
+    geom.SetType(sdf::GeometryType::BOX);
+    sdf::Box boxShape;
+    boxShape.SetSize({2, 2, 2});
+    geom.SetBoxShape(boxShape);
+    this->performersToAdd.push_back(std::make_pair(name, geom));
     _rep.set_data(true);
   }
   else

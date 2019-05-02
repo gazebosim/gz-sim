@@ -17,8 +17,8 @@
 
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/performer.pb.h>
 #include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <vector>
 
@@ -161,13 +161,10 @@ class LevelManagerFixture : public ::testing::Test
 
     // Add in the "box" performer using a service call
     transport::Node node;
-    msgs::Performer req;
+    msgs::StringMsg req;
     msgs::Boolean rep;
 
-    req.set_name("box");
-    req.mutable_geometry()->set_type(msgs::Geometry::BOX);
-    msgs::Set(req.mutable_geometry()->mutable_box()->mutable_size(),
-      ignition::math::Vector3d(2, 2, 2));
+    req.set_data("box");
 
     bool result;
     unsigned int timeout = 2000;
@@ -177,11 +174,7 @@ class LevelManagerFixture : public ::testing::Test
     EXPECT_TRUE(result);
     EXPECT_TRUE(rep.data());
 
-    req.set_name("sphere");
-    req.mutable_geometry()->set_type(msgs::Geometry::BOX);
-    msgs::Set(req.mutable_geometry()->mutable_box()->mutable_size(),
-      ignition::math::Vector3d(2, 2, 2));
-
+    req.set_data("sphere");
     executed = node.Request("/world/levels/level/add_performer",
         req, timeout, rep, result);
     EXPECT_TRUE(executed);
