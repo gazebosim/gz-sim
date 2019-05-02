@@ -19,6 +19,7 @@
 
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
+#include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Pbr.hh>
 
@@ -43,6 +44,7 @@
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Magnetometer.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -634,6 +636,37 @@ TEST_F(ComponentsTest, Link)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, Magnetometer)
+{
+  sdf::Sensor data1;
+  data1.SetName("banana");
+  data1.SetType(sdf::SensorType::MAGNETOMETER);
+  data1.SetUpdateRate(12.4);
+  data1.SetTopic("grape");
+  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Magnetometer mag1;
+  data1.SetMagnetometerSensor(mag1);
+
+  // Create components
+  auto comp11 = components::Magnetometer(data1);
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Magnetometer comp3;
+  istr >> comp3;
+  EXPECT_EQ("banana", comp3.Data().Name());
+  EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
+  EXPECT_EQ("grape", comp3.Data().Topic());
+  EXPECT_DOUBLE_EQ(12.4, comp3.Data().UpdateRate());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, Material)
 {
   auto data1 = sdf::Material();
@@ -664,8 +697,9 @@ TEST_F(ComponentsTest, Material)
 
   // Create components
   auto comp11 = components::Material(data1);
-  auto comp12 = components::Material(data1);
   auto comp2 = components::Material(data2);
+
+  // TODO(anyone) Equality operators
 
   // Stream operators
   std::ostringstream ostr;
