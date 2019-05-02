@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,20 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_SCENEMANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SCENEMANAGER_HH_
+#ifndef IGNITION_GAZEBO_SCENEMANAGER_HH_
+#define IGNITION_GAZEBO_SCENEMANAGER_HH_
 
-#include <map>
 #include <memory>
 #include <string>
 
-#include <sdf/Box.hh>
-#include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
 #include <sdf/Material.hh>
-#include <sdf/Mesh.hh>
 #include <sdf/Model.hh>
-#include <sdf/Plane.hh>
-#include <sdf/Sphere.hh>
 #include <sdf/Visual.hh>
 
-#include <ignition/common/MeshManager.hh>
-#include <ignition/rendering.hh>
+#include <ignition/rendering/RenderTypes.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
@@ -46,8 +39,6 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace systems
-{
   // Forward declaration
   class SceneManagerPrivate;
 
@@ -63,6 +54,10 @@ namespace systems
     /// \brief Set the scene to manage
     /// \param[in] _scene Scene pointer.
     public: void SetScene(rendering::ScenePtr _scene);
+
+    /// \brief Get the scene
+    /// \return Pointer to scene
+    public: rendering::ScenePtr Scene() const;
 
     /// \brief Set the world's ID.
     /// \param[in] _id World ID.
@@ -93,18 +88,18 @@ namespace systems
         const sdf::Visual &_visual, uint64_t _parentId = 0);
 
     /// \brief Load a geometry
-    /// \param[in] __geom Geometry sdf dom
+    /// \param[in] _geom Geometry sdf dom
     /// \param[out] _scale Geometry scale that will be set based on sdf
     /// \param[out] _localPose Additional local pose to be applied after the
     /// visual's pose
     /// \return Geometry object loaded from the sdf dom
-    public: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
+    protected: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
         math::Vector3d &_scale, math::Pose3d &_localPose);
 
     /// \brief Load a material
     /// \param[in] _material Material sdf dom
     /// \return Material object loaded from the sdf dom
-    public: rendering::MaterialPtr LoadMaterial(
+    protected: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
 
     /// \brief Create a light
@@ -119,10 +114,10 @@ namespace systems
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
-    /// \param[in] _renderingId ID of sensor node in Ignition Rendering.
+    /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
     /// \param[in] _parentId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
-    public: bool AddSensor(uint64_t _gazeboId, uint64_t _renderingId,
+    public: bool AddSensor(uint64_t _gazeboId, const std::string &_sensorName,
         uint64_t _parentGazeboId = 0);
 
     /// \brief Check if entity exists
@@ -143,7 +138,6 @@ namespace systems
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
   };
-  }
 }
 }
 }

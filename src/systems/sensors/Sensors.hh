@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
 
 #include <memory>
+#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -53,9 +54,15 @@ namespace systems
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
 
-    /// Documentation inherited
+    // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
+
+    /// \brief Create a rendering sensor from sdf
+    /// \param[in] _sdf SDF description of the sensor
+    /// \_parentName Name of parent that the sensor is attached to
+    private : std::string CreateSensor(sdf::ElementPtr _sdf,
+        const std::string &_parentName);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SensorsPrivate> dataPtr;
