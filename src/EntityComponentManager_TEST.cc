@@ -121,20 +121,36 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   {
     EXPECT_EQ(poses[i], *(manager.Component<components::Pose>(keys[i])));
   }
-
-  uintptr_t poseSize = sizeof(components::Pose);
-  const components::Pose *pose = nullptr, *prevPose = nullptr;
-
-  // Check that each component is adjacent in memory
-  for (int i = 0; i < count; ++i)
   {
-    pose = manager.Component<components::Pose>(keys[i]);
-    if (prevPose != nullptr)
+    uintptr_t poseSize = sizeof(components::Pose);
+    const components::Pose *pose = nullptr, *prevPose = nullptr;
+
+    // Check that each component is adjacent in memory
+    for (int i = 0; i < count; ++i)
     {
-      EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
-                          reinterpret_cast<uintptr_t>(prevPose));
+      pose = manager.Component<components::Pose>(keys[i]);
+      if (prevPose != nullptr)
+      {
+        EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
+                            reinterpret_cast<uintptr_t>(prevPose));
+      }
+      prevPose = pose;
     }
-    prevPose = pose;
+  }
+  {
+    // Check that the data member of each Component is adjacent in memory
+    const math::Pose3d *poseData = nullptr, *prevPoseData = nullptr;
+    for (int i = 0; i < count; ++i)
+    {
+      poseData = &(manager.Component<components::Pose>(keys[i])->Data());
+      uintptr_t poseDataSize = sizeof(math::Pose3d) + sizeof(uintptr_t);
+      if (prevPoseData != nullptr)
+      {
+        EXPECT_EQ(poseDataSize, reinterpret_cast<uintptr_t>(poseData) -
+                                reinterpret_cast<uintptr_t>(prevPoseData));
+      }
+      prevPoseData = poseData;
+    }
   }
 }
 
@@ -1479,13 +1495,27 @@ TEST_P(EntityComponentManagerFixture, State)
     EXPECT_EQ(e3c0, std::stoi(e3c0Msg.component()));
   }
 
+  // Serialize changed state into a message, it should be the same
+  {
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(3, changedStateMsg.entities_size());
+  }
+
+  // Mark entities as not new
+  manager.RunClearNewlyCreatedEntities();
+
+  // Changed state should be empty
+  {
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(0, changedStateMsg.entities_size());
+  }
+
   // Deserialize into a new ECM
   EntityComponentManager newEcm;
+  newEcm.SetState(stateMsg);
 
   // Check ECM
   {
-    newEcm.SetState(stateMsg);
-
     EXPECT_EQ(3u, newEcm.EntityCount());
 
     EXPECT_TRUE(newEcm.HasEntity(e1));
@@ -1545,9 +1575,24 @@ TEST_P(EntityComponentManagerFixture, State)
     e4c0Msg->set_component(std::to_string(e4c0));
   }
 
-  // Set new state on top of previous one and check ECM was properly updated
+  // Set new state on top of previous one
+  manager.SetState(stateMsg);
+
+  // Check ECM was properly updated
   {
-    manager.SetState(stateMsg);
+    // Check the changed state
+    auto changedStateMsg = manager.ChangedState();
+    EXPECT_EQ(2, changedStateMsg.entities_size());
+
+    const auto &e4Msg = changedStateMsg.entities(0);
+    EXPECT_EQ(e4, e4Msg.id());
+    EXPECT_FALSE(e4Msg.remove());
+    EXPECT_EQ(1, e4Msg.components().size());
+
+    const auto &e2Msg = changedStateMsg.entities(1);
+    EXPECT_EQ(e2, e2Msg.id());
+    EXPECT_TRUE(e2Msg.remove());
+    EXPECT_EQ(2, e2Msg.components().size());
 
     // Check that e2 has been marked for removal
     EXPECT_EQ(4u, manager.EntityCount());
@@ -1591,10 +1636,9 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 
   // Serialize into a message with selected entities and components
-  stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
-
-  // Check message
   {
+    stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
+
     ASSERT_EQ(2, stateMsg.entities_size());
 
     const auto &e3Msg = stateMsg.entities(0);
@@ -1612,6 +1656,217 @@ TEST_P(EntityComponentManagerFixture, State)
     const auto &e4c0Msg = e4Msg.components(0);
     EXPECT_EQ(IntComponent::typeId, e4c0Msg.type());
     EXPECT_EQ(e4c0, std::stoi(e4c0Msg.component()));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, Descendants)
+{
+  // - 1
+  //   - 2
+  //   - 3
+  //     - 4
+  //       - 5
+  //       - 6
+  // - 7
+  //   - 8
+
+  auto e1 = manager.CreateEntity();
+
+  auto e2 = manager.CreateEntity();
+  manager.SetParentEntity(e2, e1);
+
+  auto e3 = manager.CreateEntity();
+  manager.SetParentEntity(e3, e1);
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(3u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+  }
+
+  auto e4 = manager.CreateEntity();
+  manager.SetParentEntity(e4, e3);
+
+  auto e5 = manager.CreateEntity();
+  manager.SetParentEntity(e5, e4);
+
+  auto e6 = manager.CreateEntity();
+  manager.SetParentEntity(e6, e4);
+
+  auto e7 = manager.CreateEntity();
+
+  auto e8 = manager.CreateEntity();
+  manager.SetParentEntity(e8, e7);
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(6u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    // cached values
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(6u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_EQ(4u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_NE(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e4);
+    EXPECT_EQ(3u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_NE(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e5);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_NE(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e6);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_NE(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e7);
+    EXPECT_EQ(2u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_NE(ds.end(), ds.find(e7));
+    EXPECT_NE(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e8);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_EQ(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_NE(ds.end(), ds.find(e8));
+  }
+
+  manager.RequestRemoveEntity(e3);
+  manager.ProcessEntityRemovals();
+
+  {
+    auto ds = manager.Descendants(e1);
+    EXPECT_EQ(2u, ds.size());
+    EXPECT_NE(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e2);
+    EXPECT_EQ(1u, ds.size());
+    EXPECT_EQ(ds.end(), ds.find(e1));
+    EXPECT_NE(ds.end(), ds.find(e2));
+    EXPECT_EQ(ds.end(), ds.find(e3));
+    EXPECT_EQ(ds.end(), ds.find(e4));
+    EXPECT_EQ(ds.end(), ds.find(e5));
+    EXPECT_EQ(ds.end(), ds.find(e6));
+    EXPECT_EQ(ds.end(), ds.find(e7));
+    EXPECT_EQ(ds.end(), ds.find(e8));
+  }
+
+  {
+    auto ds = manager.Descendants(e3);
+    EXPECT_TRUE(ds.empty());
   }
 }
 

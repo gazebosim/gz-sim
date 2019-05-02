@@ -26,6 +26,7 @@
 #include <ignition/msgs/spheregeom.pb.h>
 #include <ignition/msgs/Utility.hh>
 
+#include <ignition/math/Angle.hh>
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/common/Console.hh>
@@ -155,12 +156,90 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
+sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
+{
+  sdf::Geometry out;
+  if (_in.type() == msgs::Geometry::BOX && _in.has_box())
+  {
+    out.SetType(sdf::GeometryType::BOX);
+
+    sdf::Box boxShape;
+    boxShape.SetSize(msgs::Convert(_in.box().size()));
+
+    out.SetBoxShape(boxShape);
+  }
+  else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
+  {
+    out.SetType(sdf::GeometryType::CYLINDER);
+
+    sdf::Cylinder cylinderShape;
+    cylinderShape.SetRadius(_in.cylinder().radius());
+    cylinderShape.SetLength(_in.cylinder().length());
+
+    out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
+  {
+    out.SetType(sdf::GeometryType::PLANE);
+
+    sdf::Plane planeShape;
+    planeShape.SetNormal(msgs::Convert(_in.plane().normal()));
+    planeShape.SetSize(msgs::Convert(_in.plane().size()));
+
+    out.SetPlaneShape(planeShape);
+  }
+  else if (_in.type() == msgs::Geometry::SPHERE && _in.has_sphere())
+  {
+    out.SetType(sdf::GeometryType::SPHERE);
+
+    sdf::Sphere sphereShape;
+    sphereShape.SetRadius(_in.sphere().radius());
+
+    out.SetSphereShape(sphereShape);
+  }
+  else if (_in.type() == msgs::Geometry::MESH && _in.has_mesh())
+  {
+    out.SetType(sdf::GeometryType::MESH);
+
+    sdf::Mesh meshShape;
+    meshShape.SetScale(msgs::Convert(_in.mesh().scale()));
+    meshShape.SetUri(_in.mesh().filename());
+    meshShape.SetSubmesh(_in.mesh().submesh());
+    meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
+
+    out.SetMeshShape(meshShape);
+  }
+  else
+  {
+    ignerr << "Geometry type [" << static_cast<int>(_in.type())
+           << "] not supported" << std::endl;
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
   msgs::Set(out.mutable_diffuse(), _in.Diffuse());
   msgs::Set(out.mutable_specular(), _in.Specular());
+  msgs::Set(out.mutable_emissive(), _in.Emissive());
+  out.set_lighting(_in.Lighting());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
+{
+  sdf::Material out;
+  out.SetAmbient(msgs::Convert(_in.ambient()));
+  out.SetDiffuse(msgs::Convert(_in.diffuse()));
+  out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetEmissive(msgs::Convert(_in.emissive()));
+  out.SetLighting(_in.lighting());
   return out;
 }
 
@@ -188,6 +267,33 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
     out.set_type(msgs::Light_LightType_SPOT);
   else if (_in.Type() == sdf::LightType::DIRECTIONAL)
     out.set_type(msgs::Light_LightType_DIRECTIONAL);
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
+{
+  sdf::Light out;
+  out.SetName(_in.name());
+  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetDiffuse(msgs::Convert(_in.diffuse()));
+  out.SetSpecular(msgs::Convert(_in.specular()));
+  out.SetConstantAttenuationFactor(_in.attenuation_constant());
+  out.SetLinearAttenuationFactor(_in.attenuation_linear());
+  out.SetQuadraticAttenuationFactor(_in.attenuation_quadratic());
+  out.SetAttenuationRange(_in.range());
+  out.SetDirection(msgs::Convert(_in.direction()));
+  out.SetCastShadows(_in.cast_shadows());
+  out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
+  out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
+  out.SetSpotFalloff(_in.spot_falloff());
+  if (_in.type() == msgs::Light_LightType_POINT)
+    out.SetType(sdf::LightType::POINT);
+  else if (_in.type() == msgs::Light_LightType_SPOT)
+    out.SetType(sdf::LightType::SPOT);
+  else if (_in.type() == msgs::Light_LightType_DIRECTIONAL)
+    out.SetType(sdf::LightType::DIRECTIONAL);
   return out;
 }
 
@@ -250,4 +356,114 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
     const msgs::Time &_in)
 {
   return std::chrono::seconds(_in.sec()) + std::chrono::nanoseconds(_in.nsec());
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
+{
+  msgs::Inertial out;
+  msgs::Set(out.mutable_pose(), _in.Pose());
+  out.set_mass(_in.MassMatrix().Mass());
+  out.set_ixx(_in.MassMatrix().Ixx());
+  out.set_iyy(_in.MassMatrix().Iyy());
+  out.set_izz(_in.MassMatrix().Izz());
+  out.set_ixy(_in.MassMatrix().Ixy());
+  out.set_ixz(_in.MassMatrix().Ixz());
+  out.set_iyz(_in.MassMatrix().Iyz());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
+{
+  math::MassMatrix3d massMatrix;
+  massMatrix.SetMass(_in.mass());
+  massMatrix.SetIxx(_in.ixx());
+  massMatrix.SetIyy(_in.iyy());
+  massMatrix.SetIzz(_in.izz());
+  massMatrix.SetIxy(_in.ixy());
+  massMatrix.SetIxz(_in.ixz());
+  massMatrix.SetIyz(_in.iyz());
+
+  math::Inertiald out;
+  out.SetMassMatrix(massMatrix);
+  out.SetPose(msgs::Convert(_in.pose()));
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
+{
+  msgs::Axis out;
+  msgs::Set(out.mutable_xyz(), _in.Xyz());
+  out.set_use_parent_model_frame(_in.UseParentModelFrame());
+  out.set_damping(_in.Damping());
+  out.set_friction(_in.Friction());
+  out.set_limit_lower(_in.Lower());
+  out.set_limit_upper(_in.Upper());
+  out.set_limit_effort(_in.Effort());
+  out.set_limit_velocity(_in.MaxVelocity());
+
+  // TODO(anyone) Only on SDF:
+  // * initial position
+  // * spring reference
+  // * spring stiffness
+  // * stiffness
+  // * dissipation
+  // Only on msg:
+  // * position
+  // * velocity
+  // * force
+  // * acceleration
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
+{
+  sdf::JointAxis out;
+  out.SetXyz(msgs::Convert(_in.xyz()));
+  out.SetUseParentModelFrame(_in.use_parent_model_frame());
+  out.SetDamping(_in.damping());
+  out.SetFriction(_in.friction());
+  out.SetLower(_in.limit_lower());
+  out.SetUpper(_in.limit_upper());
+  out.SetEffort(_in.limit_effort());
+  out.SetMaxVelocity(_in.limit_velocity());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
+{
+  msgs::Scene out;
+  // todo(anyone) add Name to sdf::Scene?
+  // out.set_name(_in.Name());
+  msgs::Set(out.mutable_ambient(), _in.Ambient());
+  msgs::Set(out.mutable_background(), _in.Background());
+  out.set_shadows(_in.Shadows());
+  out.set_grid(_in.Grid());
+  out.set_origin_visual(_in.OriginVisual());
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
+{
+  sdf::Scene out;
+  // todo(anyone) add SetName to sdf::Scene?
+  // out.SetName(_in.name());
+  out.SetAmbient(msgs::Convert(_in.ambient()));
+  out.SetBackground(msgs::Convert(_in.background()));
+  out.SetShadows(_in.shadows());
+  out.SetGrid(_in.grid());
+  out.SetOriginVisual(_in.origin_visual());
+  return out;
 }

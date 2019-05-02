@@ -42,7 +42,6 @@
             <ambient>0.8 0.8 0.8 1</ambient>
             <diffuse>0.8 0.8 0.8 1</diffuse>
             <specular>0.8 0.8 0.8 1</specular>
-            <emissive>0.8 0.8 0.8 1</emissive>
           </material>
         </visual>
       </link>
@@ -80,7 +79,6 @@
             <ambient>1 0 0 1</ambient>
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
-            <emissive>1 0 0 1</emissive>
           </material>
         </visual>
       </link>
@@ -120,7 +118,43 @@
             <ambient>0 1 0 1</ambient>
             <diffuse>0 1 0 1</diffuse>
             <specular>0 1 0 1</specular>
-            <emissive>0 1 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name="cylinder_link2">
+        <pose>0 -1.5 0 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>0.01</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.01</iyy>
+            <iyz>0</iyz>
+            <izz>0.01</izz>
+          </inertia>
+          <mass>0.1</mass>
+        </inertial>
+        <collision name="cylinder_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="cylinder_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+            <emissive>1 1 0 1</emissive>
           </material>
         </visual>
       </link>
@@ -158,7 +192,6 @@
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
             <specular>0 0 1 1</specular>
-            <emissive>0 0 1 1</emissive>
           </material>
         </visual>
       </link>

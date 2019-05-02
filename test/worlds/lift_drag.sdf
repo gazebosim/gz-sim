@@ -1,4 +1,5 @@
 <?xml version="1.0" ?>
+<!-- Adapted from osrf/gazebo/test/worlds/lift_drag_plugin.world  -->
 <sdf version="1.6">
   <world name="default">
 

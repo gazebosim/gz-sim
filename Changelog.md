@@ -1,14 +1,36 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.x.X
+### Ignition Gazebo 2.X.X
 
 1. Level performers can be added at runtime using a service call. See the
    levels tutorial for more information.
     * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/xxx)
+1. Support conversion and serialization of scene and light components
+
+    * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
+
+1. Use scene ambient and background color information in sensor
+   configuration.
+    * [Pull Request 268](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/268)
+
+1. Added an SDF message to the start of log files.
+    * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
 
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
+
+1. Add `Link`: a convenience class for interfacing with link entities
+    * [Pull Request 269](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/269)
+
+1. Added LiftDragPlugin (ported from Gazebo classic)
+    * [Pull Request 256](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/256)
+
+1. Added test for log record and playback.
+    * [Pull Request 263](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/263)
+
+1. More ign-msgs <-> SDF conversions: Inertial, Geometry, Material
+    * [Pull Request 251](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/251)
 
 1. Add a basic JointController system
     * [Pull Request 246](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/246)
