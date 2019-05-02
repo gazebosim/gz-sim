@@ -60,7 +60,8 @@ namespace systems
 
     /// \brief Create a rendering sensor from sdf
     /// \param[in] _sdf SDF description of the sensor
-    /// \_parentName Name of parent that the sensor is attached to
+    /// \param[in] _parentName Name of parent that the sensor is attached to
+    /// \return Sensor name
     private : std::string CreateSensor(sdf::ElementPtr _sdf,
         const std::string &_parentName);
 

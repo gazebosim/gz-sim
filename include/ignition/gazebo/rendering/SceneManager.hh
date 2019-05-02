@@ -31,6 +31,7 @@
 #include <ignition/rendering/RenderTypes.hh>
 
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/Export.hh>
 
 namespace ignition
@@ -61,31 +62,31 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Set the world's ID.
     /// \param[in] _id World ID.
-    public: void SetWorldId(uint64_t _id);
+    public: void SetWorldId(Entity _id);
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
     /// \param[in] _model Model sdf dom
     /// \param[in] _parentId Parent id
     /// \return Model visual created from the sdf dom
-    public: rendering::VisualPtr CreateModel(uint64_t _id,
-        const sdf::Model &_model, uint64_t _parentId = 0);
+    public: rendering::VisualPtr CreateModel(Entity _id,
+        const sdf::Model &_model, Entity _parentId = 0);
 
     /// \brief Create a link
     /// \param[in] _id Unique link id
     /// \param[in] _link Link sdf dom
     /// \param[in] _parentId Parent id
     /// \return Link visual created from the sdf dom
-    public: rendering::VisualPtr CreateLink(uint64_t _id,
-        const sdf::Link &_link, uint64_t _parentId = 0);
+    public: rendering::VisualPtr CreateLink(Entity _id,
+        const sdf::Link &_link, Entity _parentId = 0);
 
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom
     /// \param[in] _parentId Parent id
     /// \return Visual object created from the sdf dom
-    public: rendering::VisualPtr CreateVisual(uint64_t _id,
-        const sdf::Visual &_visual, uint64_t _parentId = 0);
+    public: rendering::VisualPtr CreateVisual(Entity _id,
+        const sdf::Visual &_visual, Entity _parentId = 0);
 
     /// \brief Load a geometry
     /// \param[in] _geom Geometry sdf dom
@@ -107,8 +108,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
-    public: rendering::LightPtr CreateLight(uint64_t _id,
-        const sdf::Light &_light, uint64_t _parentId);
+    public: rendering::LightPtr CreateLight(Entity _id,
+        const sdf::Light &_light, Entity _parentId);
 
     /// \brief Ignition sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
@@ -117,22 +118,22 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
     /// \param[in] _parentId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
-    public: bool AddSensor(uint64_t _gazeboId, const std::string &_sensorName,
-        uint64_t _parentGazeboId = 0);
+    public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
+        Entity _parentGazeboId = 0);
 
     /// \brief Check if entity exists
     /// \param[in] _id Unique entity id
     /// \return true if exists, false otherwise
-    public: bool HasEntity(uint64_t _id) const;
+    public: bool HasEntity(Entity _id) const;
 
     /// \brief Get a rendering node given an id
     /// \param[in] _id Entity's unique id
     /// \return Pointer to requested entity's node
-    public: rendering::NodePtr NodeById(uint64_t _id) const;
+    public: rendering::NodePtr NodeById(Entity _id) const;
 
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
-    public: void RemoveEntity(uint64_t _id);
+    public: void RemoveEntity(Entity _id);
 
     /// \internal
     /// \brief Pointer to private data class
