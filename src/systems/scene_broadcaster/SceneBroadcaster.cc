@@ -361,7 +361,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       [&](const Entity &, const components::World *) -> bool
       {
         newEntity = true;
-        return true;
+        return false;
       });
 
   // Models
