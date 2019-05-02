@@ -15,6 +15,7 @@
  *
 */
 
+#include <thread>
 #include <gtest/gtest.h>
 #include <google/protobuf/util/message_differencer.h>
 
@@ -274,6 +275,87 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
         return _val == cylinderModelId;
       }));
 }
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest, State)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(15u, *server.EntityCount());
+  transport::Node node;
+
+  // Run server
+  server.Run(true, 1, false);
+
+  bool received{false};
+  auto checkMsg = [&](const msgs::SerializedStep &_msg)
+  {
+    // Stats
+    ASSERT_TRUE(_msg.has_stats());
+    EXPECT_FALSE(_msg.stats().paused());
+    EXPECT_LT(1u, _msg.stats().iterations());
+    EXPECT_EQ(0, _msg.stats().step_size().sec());
+    EXPECT_EQ(1000000, _msg.stats().step_size().nsec());
+    EXPECT_LT(0, _msg.stats().sim_time().nsec());
+    EXPECT_LT(0, _msg.stats().real_time().nsec());
+
+    // State
+    ASSERT_TRUE(_msg.has_state());
+    EXPECT_EQ(15, _msg.state().entities().size());
+
+    received = true;
+  };
+
+  std::function<void(const msgs::SerializedStep &, const bool)> cb =
+      [&](const msgs::SerializedStep &_res, const bool _success)
+  {
+    EXPECT_TRUE(_success);
+    checkMsg(_res);
+  };
+  std::function<void(const msgs::SerializedStep &)> cb2 =
+      [&](const msgs::SerializedStep &_res)
+  {
+    checkMsg(_res);
+  };
+
+  // The request is blocking even though it's meant to be async, so we spin a
+  // thread
+  auto request = [&]()
+  {
+    EXPECT_TRUE(node.Request("/world/default/state", cb));
+  };
+  auto requestThread = std::thread(request);
+
+  // Run server
+  unsigned int sleep{0u};
+  unsigned int maxSleep{10u};
+  while (!received && sleep++ < maxSleep)
+  {
+    IGN_SLEEP_MS(100);
+    server.Run(true, 1, false);
+  }
+
+  EXPECT_TRUE(received);
+  requestThread.join();
+
+  received = false;
+  EXPECT_TRUE(node.Subscribe("/world/default/state", cb2));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  sleep = 0;
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+}
+
 // Run multiple times
 INSTANTIATE_TEST_CASE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));
