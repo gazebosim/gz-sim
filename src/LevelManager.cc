@@ -37,6 +37,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/World.hh"
 
 #include "LevelManager.hh"
@@ -84,6 +85,13 @@ void LevelManager::ReadLevelPerformerInfo()
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::MagneticField(this->runner->sdfWorld->MagneticField()));
+
+  // scene
+  if (this->runner->sdfWorld->Scene())
+  {
+    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+        components::Scene(*this->runner->sdfWorld->Scene()));
+  }
 
   auto worldElem = this->runner->sdfWorld->Element();
 

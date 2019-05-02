@@ -17,10 +17,38 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 
+#include <ignition/msgs/axis.pb.h>
 #include <sdf/JointAxis.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
+
+namespace sdf
+{
+/// \brief Stream insertion operator for `sdf::JointAxis`.
+/// \param[in] _out Output stream.
+/// \param[in] _set Set to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out, const JointAxis &_axis)
+{
+  auto msg = ignition::gazebo::convert<ignition::msgs::Axis>(_axis);
+  msg.SerializeToOstream(&_out);
+  return _out;
+}
+
+/// \brief Stream extraction operator for `sdf::JointAxis`.
+/// \param[in] _in Input stream.
+/// \param[out] _set Set to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in, JointAxis &_axis)
+{
+  ignition::msgs::Axis msg;
+  msg.ParseFromIstream(&_in);
+
+  _axis = ignition::gazebo::convert<sdf::JointAxis>(msg);
+  return _in;
+}
+}
 
 namespace ignition
 {

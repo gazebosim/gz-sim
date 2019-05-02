@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PENDINGJOINTFORCE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PENDINGJOINTFORCE_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 
-#include <vector>
-
+#include <ignition/msgs/wrench.pb.h>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
@@ -31,17 +30,18 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Pending joint forces (or torques) to be applied to a joint
-  /// in SI units (Nm for revolute, N for prismatic). The component wraps a
-  /// std::vector and systems that set this component need to ensure that the
-  /// vector has the same size as the degrees of freedom of the joint.
-  using PendingJointForce =
-      Component<std::vector<double>, class PendingJointForceTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PendingJointForce",
-                                PendingJointForce)
+  /// \brief A component type that contains the external wrench to be applied on
+  /// an entity expressed in the world frame and represented by
+  /// ignition::msgs::Wrench.
+  /// The wrench uses SI units (N for force and N⋅m for torque).
+  using ExternalWorldWrenchCmd =
+      Component<msgs::Wrench, class ExternalWorldWrenchCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.ExternalWorldWrenchCmd",
+                                ExternalWorldWrenchCmd)
 }
 }
 }
 }
 
 #endif
+

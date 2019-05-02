@@ -390,6 +390,13 @@ namespace ignition
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
 
+      /// \brief Get all entities which are descendants of a given entity,
+      /// including the entity itself.
+      /// \param[in] _entity Entity whose descendants we want.
+      /// \return All child entities recursively, including _entity. It will be
+      /// empty if the entity doesn't exist.
+      public: std::unordered_set<Entity> Descendants(Entity _entity) const;
+
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \detail The header of the message will not be populated, it is the
@@ -399,8 +406,24 @@ namespace ignition
       /// \param[in] _types Type ID of components to be serialized. Leave empty
       /// to get all components.
       msgs::SerializedState State(
-          std::unordered_set<Entity> _entities = {},
-          std::unordered_set<ComponentTypeId> _types = {}) const;
+          const std::unordered_set<Entity> &_entities = {},
+          const std::unordered_set<ComponentTypeId> &_types = {}) const;
+
+      /// \brief Get a message with the serialized state of all entities and
+      /// components that are changing in the current iteration
+      ///
+      /// Currently supported:
+      /// * New entities and all of their components
+      /// * Removed entities and all of their components
+      ///
+      /// Future work:
+      /// * Entities which had a component added
+      /// * Entities which had a component removed
+      /// * Entities which had a component modified
+      ///
+      /// \detail The header of the message will not be populated, it is the
+      /// responsability of the caller to timestamp it before use.
+      msgs::SerializedState ChangedState() const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -543,8 +566,20 @@ namespace ignition
       /// \param[in] _entity The entity.
       private: void UpdateViews(const Entity _entity);
 
+      /// \brief Get a component ID based on an entity and the component's type.
+      /// \param[in] _entity The entity.
+      /// \param[in] _type Component type ID.
       private: ComponentId EntityComponentIdFromType(
           const Entity _entity, const ComponentTypeId _type) const;
+
+      /// \brief Add an entity and its components to a serialized state message.
+      /// \param[out] _msg The state message.
+      /// \param[in] _entity The entity to be added.
+      /// \param[in] _types Component types to be added. Leave empty for all
+      /// components.
+      private: void AddEntityToMessage(msgs::SerializedState &_msg,
+          Entity _entity,
+          const std::unordered_set<ComponentTypeId> &_types = {}) const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

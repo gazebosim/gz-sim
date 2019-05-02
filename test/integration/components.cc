@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
@@ -49,6 +50,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -154,7 +156,7 @@ TEST_F(ComponentsTest, CanonicalLink)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::CanonicalLink comp3;
@@ -203,7 +205,7 @@ TEST_F(ComponentsTest, Collision)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Collision comp3;
@@ -214,6 +216,12 @@ TEST_F(ComponentsTest, Collision)
 TEST_F(ComponentsTest, Geometry)
 {
   auto data1 = sdf::Geometry();
+  data1.SetType(sdf::GeometryType::CYLINDER);
+  sdf::Cylinder cylinderShape;
+  cylinderShape.SetRadius(1.23);
+  cylinderShape.SetLength(4.56);
+  data1.SetCylinderShape(cylinderShape);
+
   auto data2 = sdf::Geometry();
 
   // Create components
@@ -221,7 +229,18 @@ TEST_F(ComponentsTest, Geometry)
   auto comp12 = components::Geometry(data1);
   auto comp2 = components::Geometry(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Geometry comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::GeometryType::CYLINDER, comp3.Data().Type());
+  ASSERT_NE(nullptr, comp3.Data().CylinderShape());
+  EXPECT_DOUBLE_EQ(1.23, comp3.Data().CylinderShape()->Radius());
+  EXPECT_DOUBLE_EQ(4.56, comp3.Data().CylinderShape()->Length());
 }
 
 /////////////////////////////////////////////////
@@ -292,7 +311,13 @@ TEST_F(ComponentsTest, Inertial)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Inertial comp3;
+  istr >> comp3;
+  EXPECT_DOUBLE_EQ(1.0, comp3.Data().MassMatrix().Mass());
 }
 
 /////////////////////////////////////////////////
@@ -310,10 +335,10 @@ TEST_F(ComponentsTest, Joint)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
-  components::CanonicalLink comp3;
+  components::Joint comp3;
   istr >> comp3;
 }
 
@@ -321,6 +346,15 @@ TEST_F(ComponentsTest, Joint)
 TEST_F(ComponentsTest, JointAxis)
 {
   auto data1 = sdf::JointAxis();
+  data1.SetXyz(math::Vector3d(1, 2, 3));
+  data1.SetUseParentModelFrame(true);
+  data1.SetDamping(0.1);
+  data1.SetFriction(0.2);
+  data1.SetLower(0.3);
+  data1.SetUpper(0.4);
+  data1.SetEffort(0.5);
+  data1.SetMaxVelocity(0.6);
+
   auto data2 = sdf::JointAxis();
 
   // Create components
@@ -328,21 +362,56 @@ TEST_F(ComponentsTest, JointAxis)
   auto comp12 = components::JointAxis(data1);
   auto comp2 = components::JointAxis(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+
+  components::JointAxis comp3;
+  istr >> comp3;
+
+  EXPECT_EQ(math::Vector3d(1, 2, 3), comp3.Data().Xyz());
+  EXPECT_DOUBLE_EQ(0.1, comp3.Data().Damping());
+  EXPECT_DOUBLE_EQ(0.2, comp3.Data().Friction());
+  EXPECT_DOUBLE_EQ(0.3, comp3.Data().Lower());
+  EXPECT_DOUBLE_EQ(0.4, comp3.Data().Upper());
+  EXPECT_DOUBLE_EQ(0.5, comp3.Data().Effort());
+  EXPECT_DOUBLE_EQ(0.6, comp3.Data().MaxVelocity());
+  EXPECT_TRUE(comp3.Data().UseParentModelFrame());
 }
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, JointType)
 {
-  auto data1 = sdf::JointType();
-  auto data2 = sdf::JointType();
+  auto data1 = sdf::JointType::FIXED;
+  auto data2 = sdf::JointType::REVOLUTE;
 
   // Create components
   auto comp11 = components::JointType(data1);
   auto comp12 = components::JointType(data1);
   auto comp2 = components::JointType(data2);
 
-  // TODO(anyone) Stream operator
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  EXPECT_EQ(std::to_string(static_cast<int>(sdf::JointType::FIXED)),
+      ostr.str());
+
+  std::istringstream istr(std::to_string(static_cast<int>(
+      sdf::JointType::SCREW)));
+  components::JointType comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::JointType::SCREW, comp3.Data());
 }
 
 /////////////////////////////////////////////////
@@ -351,17 +420,16 @@ TEST_F(ComponentsTest, JointVelocity)
   // Create components
   auto comp11 = components::JointVelocity({1.2, 0, 0});
 
-  // No double comparisons
-
   // Stream operators
   std::ostringstream ostr;
   ostr << comp11;
-  EXPECT_EQ("1.2", ostr.str());
 
-  std::istringstream istr("3.4");
+  std::istringstream istr(ostr.str());
   components::JointVelocity comp3;
   istr >> comp3;
-  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(0, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(0, comp3.Data()[2]);
 }
 
 /////////////////////////////////////////////////
@@ -370,17 +438,16 @@ TEST_F(ComponentsTest, JointVelocityCmd)
   // Create components
   auto comp11 = components::JointVelocityCmd({1.2, 0, 0});
 
-  // No double comparisons
-
   // Stream operators
   std::ostringstream ostr;
   ostr << comp11;
-  EXPECT_EQ("1.2", ostr.str());
 
-  std::istringstream istr("3.4");
+  std::istringstream istr(ostr.str());
   components::JointVelocityCmd comp3;
   istr >> comp3;
-  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(0, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(0, comp3.Data()[2]);
 }
 
 /////////////////////////////////////////////////
@@ -398,7 +465,7 @@ TEST_F(ComponentsTest, Level)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Level comp3;
@@ -460,6 +527,21 @@ TEST_F(ComponentsTest, LevelEntityNames)
 TEST_F(ComponentsTest, Light)
 {
   auto data1 = sdf::Light();
+  data1.SetType(sdf::LightType::POINT);
+  data1.SetName("light_test");
+  data1.SetPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
+  data1.SetDiffuse(math::Color(1, 0, 0, 1));
+  data1.SetSpecular(math::Color(0, 1, 0, 1));
+  data1.SetCastShadows(true);
+  data1.SetAttenuationRange(1.3);
+  data1.SetLinearAttenuationFactor(0.3);
+  data1.SetQuadraticAttenuationFactor(0.1);
+  data1.SetConstantAttenuationFactor(0.05);
+  data1.SetDirection(math::Vector3d(2, 3, 4));
+  data1.SetSpotInnerAngle(math::Angle(0.3));
+  data1.SetSpotOuterAngle(math::Angle(2.3));
+  data1.SetSpotFalloff(5.15);
+
   auto data2 = sdf::Light();
 
   // Create components
@@ -467,7 +549,28 @@ TEST_F(ComponentsTest, Light)
   auto comp12 = components::Light(data1);
   auto comp2 = components::Light(data2);
 
-  // TODO(anyone) Stream operator
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Light comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
+  EXPECT_EQ("light_test", comp3.Data().Name());
+  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().Pose());
+  EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
+  EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
+  EXPECT_TRUE(comp3.Data().CastShadows());
+  EXPECT_FLOAT_EQ(1.3, comp3.Data().AttenuationRange());
+  EXPECT_FLOAT_EQ(0.3, comp3.Data().LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1, comp3.Data().QuadraticAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.05, comp3.Data().ConstantAttenuationFactor());
+  EXPECT_EQ(math::Angle(0.3), comp3.Data().SpotInnerAngle());
+  EXPECT_EQ(math::Angle(2.3), comp3.Data().SpotOuterAngle());
+  EXPECT_FLOAT_EQ(5.15, comp3.Data().SpotFalloff());
+  EXPECT_EQ(math::Vector3d(2, 3, 4), comp3.Data().Direction());
 }
 
 /////////////////////////////////////////////////
@@ -539,7 +642,7 @@ TEST_F(ComponentsTest, Link)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Link comp3;
@@ -550,6 +653,7 @@ TEST_F(ComponentsTest, Link)
 TEST_F(ComponentsTest, Material)
 {
   auto data1 = sdf::Material();
+  data1.SetAmbient(math::Color(1, 0, 0, 1));
   auto data2 = sdf::Material();
 
   // Create components
@@ -557,7 +661,13 @@ TEST_F(ComponentsTest, Material)
   auto comp12 = components::Material(data1);
   auto comp2 = components::Material(data2);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Material comp3;
+  istr >> comp3;
+  EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Ambient());
 }
 
 /////////////////////////////////////////////////
@@ -575,7 +685,7 @@ TEST_F(ComponentsTest, Model)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Model comp3;
@@ -678,7 +788,7 @@ TEST_F(ComponentsTest, Performer)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Performer comp3;
@@ -753,7 +863,7 @@ TEST_F(ComponentsTest, Sensor)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Sensor comp3;
@@ -811,7 +921,7 @@ TEST_F(ComponentsTest, Visual)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Visual comp3;
@@ -833,10 +943,37 @@ TEST_F(ComponentsTest, World)
   // Stream operators
   std::ostringstream ostr;
   ostr << comp1;
-  EXPECT_TRUE(ostr.str().empty());
+  EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::World comp3;
   istr >> comp3;
 }
 
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, Scene)
+{
+  auto data1 = sdf::Scene();
+  data1.SetAmbient(math::Color(1, 0, 1, 1));
+  data1.SetBackground(math::Color(1, 1, 0, 1));
+  data1.SetShadows(true);
+  data1.SetGrid(false);
+  data1.SetOriginVisual(true);
+
+  // Create components
+  auto comp11 = components::Scene(data1);
+
+  // TODO(anyone) Equality operators
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Scene comp3;
+  istr >> comp3;
+  EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Ambient());
+  EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Background());
+  EXPECT_TRUE(comp3.Data().Shadows());
+  EXPECT_FALSE(comp3.Data().Grid());
+  EXPECT_TRUE(comp3.Data().OriginVisual());
+}

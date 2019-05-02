@@ -77,7 +77,6 @@
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
@@ -89,8 +88,8 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/PendingExternalWorldWrench.hh"
-#include "ignition/gazebo/components/PendingJointForce.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -574,14 +573,14 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         if (jointIt == this->entityJointMap.end())
           return true;
 
-        auto force = _ecm.Component<components::PendingJointForce>(_entity);
+        auto force = _ecm.Component<components::JointForceCmd>(_entity);
         if (force)
         {
           if (force->Data().size() != jointIt->second->GetDegreesOfFreedom())
           {
             ignwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
-                    << ")] and its PendingJointForce component. The joint has "
+                    << ")] and its JointForceCmd component. The joint has "
                     << force->Data().size() << " while the component has "
                     << jointIt->second->GetDegreesOfFreedom() << ".\n";
           }
@@ -595,24 +594,34 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         else
         {
           // Only set joint velocity if joint force is not set.
-          auto vel = _ecm.Component<components::JointVelocityCmd>(_entity);
-          if (vel)
+          auto velCmd = _ecm.Component<components::JointVelocityCmd>(_entity);
+          if (velCmd)
           {
-            for (size_t i = 0;
-                 i < jointIt->second->GetDegreesOfFreedom() && i < 3; ++i)
+            if (velCmd->Data().size() != jointIt->second->GetDegreesOfFreedom())
             {
-              jointIt->second->SetVelocity(i, vel->Data()[i]);
+              ignwarn << "There is a mismatch in the degrees of freedom between"
+                      << " Joint [" << _name->Data() << "(Entity=" << _entity
+                      << ")] and its JointVelocityCmd component. The joint has "
+                      << velCmd->Data().size() << " while the component has "
+                      << jointIt->second->GetDegreesOfFreedom() << ".\n";
+            }
+            std::size_t nDofs = std::min(velCmd->Data().size(),
+                jointIt->second->GetDegreesOfFreedom());
+            for (std::size_t i = 0; i < nDofs; ++i)
+            {
+              jointIt->second->SetVelocity(i, velCmd->Data()[i]);
             }
           }
+
         }
 
         return true;
       });
 
   // Link wrenches
-  _ecm.Each<components::PendingExternalWorldWrench>(
+  _ecm.Each<components::ExternalWorldWrenchCmd>(
       [&](const Entity &_entity,
-          const components::PendingExternalWorldWrench *_wrenchComp)
+          const components::ExternalWorldWrenchCmd *_wrenchComp)
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt == this->entityLinkMap.end())
@@ -889,11 +898,18 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-  // Clear pending Forces
-  _ecm.Each<components::PendingJointForce>(
-      [&](const Entity &, components::PendingJointForce *_force) -> bool
+  // Clear pending commands
+  _ecm.Each<components::JointForceCmd>(
+      [&](const Entity &, components::JointForceCmd *_force) -> bool
       {
         std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
+        return true;
+      });
+
+  _ecm.Each<components::JointVelocityCmd>(
+      [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
+      {
+        std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
         return true;
       });
 
@@ -915,7 +931,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-  // Update joint velocities
+  // Update joint Velocities
   _ecm.Each<components::Joint, components::JointVelocity>(
       [&](const Entity &_entity, components::Joint *,
           components::JointVelocity *_jointVel) -> bool
@@ -923,32 +939,15 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         auto jointIt = this->entityJointMap.find(_entity);
         if (jointIt != this->entityJointMap.end())
         {
-          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom() &&
-              i < _jointVel->Data().size(); ++i)
+          _jointVel->Data().resize(jointIt->second->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom();
+               ++i)
           {
             _jointVel->Data()[i] = jointIt->second->GetVelocity(i);
           }
         }
         return true;
       });
-
-  // Update joint forces
-  _ecm.Each<components::Joint, components::JointForce>(
-      [&](const Entity &_entity, components::Joint *,
-          components::JointForce *_jointForce) -> bool
-      {
-        auto jointIt = this->entityJointMap.find(_entity);
-        if (jointIt != this->entityJointMap.end())
-        {
-          for (std::size_t i = 0; i < jointIt->second->GetDegreesOfFreedom() &&
-              i < _jointForce->Data().size(); ++i)
-          {
-            _jointForce->Data()[i] = jointIt->second->GetForce(i);
-          }
-        }
-        return true;
-      });
-
   this->UpdateCollisions(_ecm);
 }
 
