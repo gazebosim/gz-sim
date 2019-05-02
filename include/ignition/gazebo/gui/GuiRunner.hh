@@ -17,10 +17,11 @@
 #ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
 #define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
 
-#include <string>
-#include <QtCore>
-
 #include <ignition/msgs/serialized.pb.h>
+
+#include <QtCore>
+#include <string>
+
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -39,7 +40,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Constructor
   /// \param[in] _worldName World name.
-  public: GuiRunner(const std::string &_worldName);
+  public: explicit GuiRunner(const std::string &_worldName);
 
   /// \brief Destructor
   public: ~GuiRunner();
