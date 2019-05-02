@@ -22,9 +22,11 @@
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
+#include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
@@ -77,6 +79,24 @@ TEST(Conversions, Light)
   EXPECT_EQ(math::Angle(1.9), lightMsg.spot_inner_angle());
   EXPECT_EQ(math::Angle(3.3), lightMsg.spot_outer_angle());
   EXPECT_FLOAT_EQ(0.9, lightMsg.spot_falloff());
+
+  auto newLight = convert<sdf::Light>(lightMsg);
+  EXPECT_EQ("test_convert_light", newLight.Name());
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL, newLight.Type());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0), newLight.Pose());
+  /// \todo(anyone) add pose frame fields in ign-msgs?
+  // EXPECT_EQ("world", newLight.PoseFrame());
+  EXPECT_TRUE(newLight.CastShadows());
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f, 1.0f), newLight.Diffuse());
+  EXPECT_EQ(math::Color(0.8f, 0.9f, 0.1f, 1.0f), newLight.Specular());
+  EXPECT_FLOAT_EQ(3.2, newLight.AttenuationRange());
+  EXPECT_FLOAT_EQ(0.5, newLight.ConstantAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.1, newLight.LinearAttenuationFactor());
+  EXPECT_FLOAT_EQ(0.01, newLight.QuadraticAttenuationFactor());
+  EXPECT_EQ(math::Vector3d(0.1, 0.2, 1), newLight.Direction());
+  EXPECT_EQ(math::Angle(1.9), newLight.SpotInnerAngle());
+  EXPECT_EQ(math::Angle(3.3), newLight.SpotOuterAngle());
+  EXPECT_FLOAT_EQ(0.9, newLight.SpotFalloff());
 }
 
 /////////////////////////////////////////////////
@@ -358,4 +378,71 @@ TEST(Conversions, JointAxis)
   EXPECT_DOUBLE_EQ(0.5, newJointAxis.Effort());
   EXPECT_DOUBLE_EQ(0.6, newJointAxis.MaxVelocity());
   EXPECT_TRUE(newJointAxis.UseParentModelFrame());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Scene)
+{
+  sdf::Scene scene;
+  scene.SetAmbient(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetShadows(true);
+  scene.SetGrid(true);
+  scene.SetOriginVisual(true);
+
+  auto sceneMsg = convert<msgs::Scene>(scene);
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f),
+      msgs::Convert(sceneMsg.ambient()));
+  EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f),
+      msgs::Convert(sceneMsg.background()));
+  EXPECT_TRUE(sceneMsg.shadows());
+  EXPECT_TRUE(sceneMsg.grid());
+  EXPECT_TRUE(sceneMsg.origin_visual());
+
+  auto newScene = convert<sdf::Scene>(sceneMsg);
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newScene.Ambient());
+  EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f), newScene.Background());
+  EXPECT_TRUE(newScene.Shadows());
+  EXPECT_TRUE(newScene.Grid());
+  EXPECT_TRUE(newScene.OriginVisual());
+}
+
+/////////////////////////////////////////////////
+TEST(CONVERSIONS, MagnetometerSensor)
+{
+  sdf::Sensor sensor;
+  sensor.SetName("my_sensor");
+  sensor.SetType(sdf::SensorType::MAGNETOMETER);
+  sensor.SetUpdateRate(12.4);
+  sensor.SetTopic("my_topic");
+  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Noise noise;
+  noise.SetType(sdf::NoiseType::GAUSSIAN);
+  noise.SetMean(1.2);
+  noise.SetStdDev(2.6);
+  noise.SetBiasMean(0.2);
+  noise.SetBiasStdDev(12.16);
+  noise.SetPrecision(0.01);
+
+  sdf::Magnetometer mag;
+  mag.SetXNoise(noise);
+  sensor.SetMagnetometerSensor(mag);
+
+  msgs::Sensor msg = convert<msgs::Sensor>(sensor);
+  EXPECT_EQ(sensor.Name(), msg.name());
+  EXPECT_EQ(sensor.TypeStr(), msg.type());
+  EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
+  EXPECT_EQ(sensor.Topic(), msg.topic());
+  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+
+  ASSERT_TRUE(msg.has_magnetometer());
+
+  sdf::Noise defaultNoise;
+  sdf::Noise convertedNoise;
+  convertedNoise = convert<sdf::Noise>(msg.magnetometer().x_noise());
+  EXPECT_EQ(noise, convertedNoise);
+
+  EXPECT_FALSE(msg.magnetometer().has_y_noise());
+  EXPECT_FALSE(msg.magnetometer().has_z_noise());
 }

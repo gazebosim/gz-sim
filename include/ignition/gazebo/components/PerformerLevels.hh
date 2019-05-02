@@ -25,6 +25,42 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Component.hh"
 
+namespace std
+{
+/// \brief Stream insertion operator for `std::set<Entity>`.
+/// \param[in] _out Output stream.
+/// \param[in] _set Set to stream
+/// \return The stream.
+inline std::ostream &operator<<(std::ostream &_out,
+      const std::set<ignition::gazebo::Entity> &_set)
+{
+  for (const auto &level : _set)
+  {
+    _out << level << " ";
+  }
+  return _out;
+}
+
+/// \brief Stream extraction operator for `std::set<Entity>`.
+/// \param[in] _in Input stream.
+/// \param[out] _set Set to populate
+/// \return The stream.
+inline std::istream &operator>>(std::istream &_in,
+    std::set<ignition::gazebo::Entity> &_set)
+{
+  _in.setf(std::ios_base::skipws);
+
+  _set.clear();
+
+  for (auto it = std::istream_iterator<ignition::gazebo::Entity>(_in);
+      it != std::istream_iterator<ignition::gazebo::Entity>(); ++it)
+  {
+    _set.insert(*it);
+  }
+  return _in;
+}
+}
+
 namespace ignition
 {
 namespace gazebo
@@ -33,47 +69,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
-  using PerformerLevelsBase =
+  /// \brief Holds all the levels which a performer is in.
+  using PerformerLevels =
       Component<std::set<Entity>, class PerformerLevelsTag>;
-
-  /// \brief This component holds an entity's geometry.
-  class PerformerLevels : public PerformerLevelsBase
-  {
-    // Documentation inherited
-    public: PerformerLevels() : PerformerLevelsBase()
-    {
-    }
-
-    // Documentation inherited
-    public: explicit PerformerLevels(const std::set<Entity> &_data)
-      : PerformerLevelsBase(_data)
-    {
-    }
-
-    // Documentation inherited
-    public: void Serialize(std::ostream &_out) const override
-    {
-      for (const auto &level : this->Data())
-      {
-        _out << level << " ";
-      }
-    }
-
-    // Documentation inherited
-    public: void Deserialize(std::istream &_in) override
-    {
-      _in.setf(std::ios_base::skipws);
-
-      this->Data().clear();
-
-      for (auto it = std::istream_iterator<Entity>(_in);
-          it != std::istream_iterator<Entity>(); ++it)
-      {
-        this->Data().insert(*it);
-      }
-    }
-  };
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerLevels",
       PerformerLevels)
 }

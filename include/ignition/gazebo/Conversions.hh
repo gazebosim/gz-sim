@@ -23,6 +23,9 @@
 #include <ignition/msgs/inertial.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/scene.pb.h>
+#include <ignition/msgs/sensor.pb.h>
+#include <ignition/msgs/sensor_noise.pb.h>
 #include <ignition/msgs/time.pb.h>
 
 #include <chrono>
@@ -34,6 +37,9 @@
 #include <sdf/JointAxis.hh>
 #include <sdf/Light.hh>
 #include <sdf/Material.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
+#include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Export.hh"
@@ -44,6 +50,12 @@ namespace ignition
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    /// \brief Helper function that sets a mutable msgs::SensorNoise object
+    /// to the values contained in a sdf::Noise object.
+    /// \param[out] _msg SensorNoise message to set.
+    /// \param[in] _sdf SDF Noise object.
+    void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
+
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
     /// \return Conversion result.
@@ -128,6 +140,24 @@ namespace ignition
     /// \return Light message.
     template<>
     msgs::Light convert(const sdf::Light &_in);
+
+
+    /// \brief Generic conversion from a light message to another type.
+    /// \param[in] _in Light message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Light& /*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a light message to a light
+    /// SDF object.
+    /// \param[in] _in Light message.
+    /// \return Light SDF object.
+    template<>
+    sdf::Light convert(const msgs::Light &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
     /// \param[in] _in SDF gui.
@@ -246,7 +276,91 @@ namespace ignition
     /// \return SDF joint axis.
     template<>
     sdf::JointAxis convert(const msgs::Axis &_in);
+
+    /// \brief Generic conversion from an SDF scene to another type.
+    /// \param[in] _in SDF scene.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Scene &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
     }
+
+    /// \brief Specialized conversion from an SDF scene to a scene message
+    /// \param[in] _in SDF scene.
+    /// \return Scene message.
+    template<>
+    msgs::Scene convert(const sdf::Scene &_in);
+
+    /// \brief Generic conversion from a scene message to another type.
+    /// \param[in] _in Scene  message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Scene &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a scene message to a scene
+    /// SDF object.
+    /// \param[in] _in Scene message.
+    /// \return SDF scene.
+    template<>
+    sdf::Scene convert(const msgs::Scene &_in);
+
+    /// \brief Generic conversion from an SDF Sensor to another type.
+    /// \param[in] _in SDF Sensor.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Sensor &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF sensor to a sensor
+    /// message.
+    /// \param[in] _in SDF geometry.
+    /// \return Sensor message.
+    template<>
+    msgs::Sensor convert(const sdf::Sensor &_in);
+
+    /// \brief Generic conversion from a sensor message to another type.
+    /// \param[in] _in Sensor message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Sensor &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a sensor message to a sensor
+    /// SDF object.
+    /// \param[in] _in Sensor message.
+    /// \return SDF sensor.
+    template<>
+    sdf::Sensor convert(const msgs::Sensor &_in);
+    }
+
+    /// \brief Generic conversion from a sensor noise message to another type.
+    /// \param[in] _in SensorNoise message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::SensorNoise &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a sensor noise message to a noise
+    /// SDF object.
+    /// \param[in] _in Sensor noise message.
+    /// \return SDF noise.
+    template<>
+    sdf::Noise convert(const msgs::SensorNoise &_in);
   }
 }
 #endif
