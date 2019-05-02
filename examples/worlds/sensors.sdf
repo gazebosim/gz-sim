@@ -193,6 +193,26 @@
           <update_rate>100</update_rate>
           <visualize>true</visualize>
           <topic>magnetometer</topic>
+          <magnetometer>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </z>
+          </magnetometer>
         </sensor>
       </link>
     </model>
