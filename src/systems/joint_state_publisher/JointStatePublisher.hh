@@ -34,16 +34,16 @@ namespace systems
   /// \brief The JointStatePub system publishes state information for
   /// a model. The published message type is ignition::msgs::Model, and the
   /// publication topic is "/world/<world_name>/model/<model_name>/state".
-  class IGNITION_GAZEBO_VISIBLE StatePublisher
+  class IGNITION_GAZEBO_VISIBLE JointStatePublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: StatePublisher();
+    public: JointStatePublisher();
 
     /// \brief Destructor
-    public: ~StatePublisher() override = default;
+    public: ~JointStatePublisher() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
