@@ -17,40 +17,9 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SENSOR_HH_
 
-#include <ignition/msgs/sensor.pb.h>
-#include <sdf/Sensor.hh>
-
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace sdf
-{
-/// \brief Stream insertion operator for `sdf::Sensor`.
-/// \param[in] _out Output stream.
-/// \param[in] _sensor Sensor to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out, const Sensor &_sensor)
-{
-  auto msg = ignition::gazebo::convert<ignition::msgs::Sensor>(_sensor);
-  msg.SerializeToOstream(&_out);
-  return _out;
-}
-
-/// \brief Stream extraction operator for `sdf::Sensor`.
-/// \param[in] _in Input stream.
-/// \param[out] _sensor Sensor to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in, Sensor &_sensor)
-{
-  ignition::msgs::Sensor msg;
-  msg.ParseFromIstream(&_in);
-
-  _sensor = ignition::gazebo::convert<sdf::Sensor>(msg);
-  return _in;
-}
-}
 
 namespace ignition
 {
