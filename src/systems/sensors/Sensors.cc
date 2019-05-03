@@ -66,7 +66,7 @@ Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 Sensors::~Sensors() = default;
 
 //////////////////////////////////////////////////
-void Sensors::Configure(const Entity & /*_id*/,
+void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
@@ -89,7 +89,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
-        _ecm.HasComponentType(components::GpuLidar::typeId)))
+       _ecm.HasComponentType(components::GpuLidar::typeId)))
   {
     this->dataPtr->renderUtil.Init();
     this->dataPtr->scene = this->dataPtr->renderUtil.Scene();
