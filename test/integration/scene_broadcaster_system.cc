@@ -15,9 +15,10 @@
  *
 */
 
-#include <thread>
 #include <gtest/gtest.h>
 #include <google/protobuf/util/message_differencer.h>
+
+#include <thread>
 
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
@@ -351,6 +352,7 @@ TEST_P(SceneBroadcasterTest, State)
   server.Run(true, 1, false);
 
   sleep = 0;
+  // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
   EXPECT_TRUE(received);
