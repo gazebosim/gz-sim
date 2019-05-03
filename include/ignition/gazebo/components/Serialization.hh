@@ -55,7 +55,7 @@ inline std::istream &operator>>(std::istream &_in, Sensor &_sensor)
 }
 }
 
-/// \brief Stream insertion operator for `sdf::Sensor`.
+/// \brief Stream insertion operator for std::vector<double>.
 /// \param[in] _out Output stream.
 /// \param[in] _sensor Sensor to stream
 /// \return The stream.
@@ -68,7 +68,7 @@ inline std::ostream &operator<<(std::ostream &_out,
   return _out;
 }
 
-/// \brief Stream extraction operator for `sdf::Sensor`.
+/// \brief Stream extraction operator for std::vector<double>.
 /// \param[in] _in Input stream.
 /// \param[out] _sensor Sensor to populate
 /// \return The stream.
