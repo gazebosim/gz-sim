@@ -10,7 +10,7 @@
 
 ## High-Level design
 
-Each ign-gazebo instance has the ability to run with the `--network-role` flag.
+Each `ign gazebo` instance has the ability to run with the `--network-role` flag.
 When the flag is present, the instance attempts to join a distributed simulation
 environment by utilizing `ign-transport`. Ign-transport is used to register and
 track available peers, as well as synchronize clock and state among multiple
@@ -34,7 +34,7 @@ active than instances, multiple levels will be allocated to each secondary.
 
 ## Assumptions
 
-* When executing in a distributed environment, each `ign-gazebo` instance only
+* When executing in a distributed environment, each `ign gazebo` instance only
   has one `SimulationRunner` instance, which means that instance is incapable
   of simulating multiple worlds.
 
@@ -50,7 +50,7 @@ active than instances, multiple levels will be allocated to each secondary.
 
 ### Configuration and launch
 
-Multiple `ign-gazebo` executables are started on the same local area network,
+Multiple `ign gazebo` executables are started on the same local area network,
 each with the `--distributed` flag set.
 
 #### Command line options
@@ -89,7 +89,7 @@ The secondary instances will only read the role environment variable
 
 ### Discovery
 
-Once the `ign-gazebo` instance is started, it will begin a process of
+Once the `ign gazebo` instance is started, it will begin a process of
 discovering peers in the network. Each peer will send an announcement in
 the `/announce` topic when it joins or leaves the network, and also
 periodically sends a heartbeat on `/heartbeat`.
