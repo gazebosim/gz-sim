@@ -81,7 +81,6 @@ void Link::ResetEntity(gazebo::Entity _newEntity)
   this->dataPtr->id = _newEntity;
 }
 
-
 //////////////////////////////////////////////////
 bool Link::Valid(const EntityComponentManager &_ecm) const
 {

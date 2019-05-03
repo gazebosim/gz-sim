@@ -37,11 +37,9 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
 
 #include "ignition/gazebo/Link.hh"
 
