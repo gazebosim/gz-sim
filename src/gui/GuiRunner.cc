@@ -74,9 +74,7 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
     return;
   }
 
-  // TODO(louise) get update info
-  UpdateInfo updateInfo;
-  plugin->Update(updateInfo, this->ecm);
+  plugin->Update(this->updateInfo, this->ecm);
 }
 
 /////////////////////////////////////////////////
@@ -85,11 +83,11 @@ void GuiRunner::OnState(const msgs::SerializedStep &_msg)
   this->ecm.SetState(_msg.state());
 
   // Update all plugins
-  auto updateInfo = convert<UpdateInfo>(_msg.stats());
+  this->updateInfo = convert<UpdateInfo>(_msg.stats());
   auto plugins = gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
-    plugin->Update(updateInfo, this->ecm);
+    plugin->Update(this->updateInfo, this->ecm);
   }
   this->ecm.ClearNewlyCreatedEntities();
   this->ecm.ProcessRemoveEntityRequests();

@@ -14,6 +14,7 @@ Rectangle {
 
   property int tooltipDelay: 500
   property int tooltipTimeout: 1000
+  property int itemHeight: 30
 
   property color even: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade100) :
@@ -33,11 +34,12 @@ Rectangle {
       }
 
       branchDelegate: Rectangle {
-        height: 20
-        width: 20
+        height: itemHeight
+        width: itemHeight*0.5
         color: "transparent"
         Text {
           font.pointSize: 18
+          font.family: "Roboto"
           anchors.verticalCenter: parent.verticalCenter
           anchors.horizontalCenter: parent.horizontalCenter
           text: styleData.isExpanded ? "\uFF0D" : "\uFF0B"
@@ -46,25 +48,38 @@ Rectangle {
       }
 
       rowDelegate: Rectangle {
-        height: 20
+        height: itemHeight
         color: (styleData.row % 2 == 0) ? even : odd
       }
 
       itemDelegate: Rectangle {
         id: itemDel
         color: (styleData.row % 2 == 0) ? even : odd
-        height: 20
+        height: itemHeight
+
+        Image {
+          id: icon
+          sourceSize.height: itemHeight
+          sourceSize.width: itemHeight
+          fillMode: Image.PreserveAspectFit
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignLeft
+          source: model === null || model.icon === undefined ? "" : model.icon
+        }
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: model === null || model.entityName === null ? "" : model.entityName
+          anchors.left: icon.right
+          leftPadding: 2
+          text: model === null || model.entityName === undefined ? "" : model.entityName
           color: Material.theme == Material.Light ? "black" : "white"
+          font.pointSize: 12
 
           ToolTip {
             visible: ma.containsMouse
             delay: tooltipDelay
             timeout: tooltipTimeout
-            text: model === null || model.entity === null ? "" : model.entity
+            text: model === null || model.entity === undefined ? "" : model.entity
             y: itemDel.z - 30
           }
           MouseArea {
