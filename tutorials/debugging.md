@@ -12,40 +12,47 @@ following two sections for instructions concerning each case.
 
 ### Debugging the server
 
-1. Launch `gdb`
+1. Find the `ign` executable:
 
-```
-gdb ruby
-```
+    `which ign`
 
-2. Run the Gazebo server with the desired arguments. Make sure to use the
+    The following instructions will assume the output was `/usr/bin/ign`, be
+    sure to change it accordingly.
+
+2. Launch `gdb`
+
+    ```
+    gdb ruby
+    ```
+
+3. Run the Gazebo server with the desired arguments. Make sure to use the
    `-s` argument. The following example runs the `shapes.sdf` world.
 
-```
-(gdb) r /usr/bin/ign gazebo -s shapes.sdf
-```
+    ```
+    (gdb) r /usr/bin/ign gazebo -s shapes.sdf
+    ```
 
-3. Use GDB as normal
+4. Use GDB as normal
 
 ### Debugging the GUI
 
 1. Launch `gdb`
 
-```
-gdb ruby
-```
+    ```
+    gdb ruby
+    ```
 
 2. Run the Gazebo GUI with the desired arguments. Make sure to use the
    `-g` argument.
 
-```
-(gdb) r /usr/bin/ign gazebo -g 
-```
+    ```
+    (gdb) r /usr/bin/ign gazebo -g
+    ```
 
 3. In another terminal run the Gazebo server.
 
-```
-ign gazebo -s -v 4 -r shapes.sdf
-```
+    ```
+    ign gazebo -s -v 4 -r shapes.sdf
+    ```
 
 4. Use GDB as normal.
