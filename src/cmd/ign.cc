@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,128 +14,152 @@
  * limitations under the License.
  *
 */
-
-#include <gflags/gflags.h>
 #include <tinyxml2.h>
-
-#include <csignal>
-#include <iostream>
-
+#include <cstring>
 #include <ignition/common/Console.hh>
+#include <ignition/common/SignalHandler.hh>
+
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
-
-// Gflag command line argument definitions
-// This flag is an abbreviation for the longer gflags built-in help flag.
-DEFINE_bool(h, false, "");
-DEFINE_int32(verbose, 1, "");
-DEFINE_int32(v, 1, "");
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/ServerConfig.hh"
+#include "ign.hh"
 
 //////////////////////////////////////////////////
-void help()
+extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
 {
-  std::cout
-  << "DEPRECATED: Use the 'ign gazebo' command line tool."
-  << std::endl
-  << std::endl
-  << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
-  << std::endl
-  << "`ign-gazebo-gui` [options]" << std::endl
-  << std::endl
-  << std::endl
-  << "Options:" << std::endl
-  << "  -h [ --help ]          Print help message."
-  << std::endl
-  << "  --version              Print version information."
-  << std::endl
-  << "  -v [--verbose] arg     Adjust the level of console output (0~4)."
-  << " The default verbosity is 1"
-  << std::endl
-  << std::endl;
+  return strdup(IGNITION_GAZEBO_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
-void version()
+extern "C" IGNITION_GAZEBO_VISIBLE char *gazeboVersionHeader()
 {
-  std::cout << IGNITION_GAZEBO_VERSION_HEADER << std::endl;
+  return strdup(IGNITION_GAZEBO_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
-static bool VerbosityValidator(const char */*_flagname*/, int _value)
+extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
+    const char *_verbosity)
 {
-  return _value >= 0 && _value <= 4;
+  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
-int main(int _argc, char **_argv)
+extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir()
 {
-  // Register validators
-  gflags::RegisterFlagValidator(&FLAGS_verbose, &VerbosityValidator);
-  gflags::RegisterFlagValidator(&FLAGS_v, &VerbosityValidator);
+  return IGN_GAZEBO_WORLD_INSTALL_DIR;
+}
 
-  // Parse command line
-  gflags::AllowCommandLineReparsing();
-  gflags::ParseCommandLineNonHelpFlags(&_argc, &_argv, true);
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
+    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _networkSecondaries, int _record, const char *_recordPath,
+    const char *_playback)
+{
+  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
+         << std::endl;
 
-  // Hold info as we parse it
-  gflags::CommandLineFlagInfo info;
+  ignition::gazebo::ServerConfig serverConfig;
 
-  // Help
-  // Parse out the help flag in such a way that the full help text
-  // is suppressed: if --help* or -h is specified, override the default
-  // help behavior and turn on --helpmatch, to only shows help for the
-  // current executable (instead of showing a huge list of gflags built-ins).
-  gflags::GetCommandLineFlagInfo("help", &info);
-  bool showHelp = FLAGS_h || (info.current_value == "true");
-
-  // Version
-  gflags::GetCommandLineFlagInfo("version", &info);
-  bool showVersion = (info.current_value == "true");
-
-  // Verbosity
-  gflags::GetCommandLineFlagInfo("verbose", &info);
-  if (info.is_default)
+  // Set the SDF string to user
+  if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
   {
-    gflags::GetCommandLineFlagInfo("v", &info);
-    if (!info.is_default)
-      FLAGS_verbose = FLAGS_v;
+    if (!serverConfig.SetSdfString(_sdfString))
+    {
+      ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
+      return -1;
+    }
+  }
+
+  // Set the update rate.
+  if (_hz > 0.0)
+    serverConfig.SetUpdateRate(_hz);
+
+  // Set whether levels should be used.
+  if (_levels > 0)
+  {
+    ignmsg << "Using the level system\n";
+    serverConfig.SetUseLevels(true);
+  }
+
+  if (_networkRole && std::strlen(_networkRole) > 0)
+  {
+    ignmsg << "Using the distributed simulation and levels systems\n";
+    serverConfig.SetNetworkRole(_networkRole);
+    serverConfig.SetNetworkSecondaries(_networkSecondaries);
+    serverConfig.SetUseLevels(true);
+  }
+
+  if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) || _record > 0)
+  {
+    if (_playback != nullptr && std::strlen(_playback) > 0)
+    {
+      ignerr << "Both record and playback are specified. Only specify one.\n";
+      return -1;
+    }
+
+    serverConfig.SetUseLogRecord(true);
+
+    if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
+    {
+      serverConfig.SetLogRecordPath(_recordPath);
+    }
     else
-      FLAGS_verbose = 1;
+    {
+      ignmsg << "Recording states to default path\n";
+    }
   }
 
-  // If help message is requested, substitute in the override help function.
-  if (showHelp)
+  if (_playback != nullptr && std::strlen(_playback) > 0)
   {
-    gflags::SetCommandLineOption("help", "false");
-    gflags::SetCommandLineOption("helpshort", "false");
-    gflags::SetCommandLineOption("helpfull", "false");
-    gflags::SetCommandLineOption("helpmatch", "");
-    help();
-    return 0;
+    if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
+    {
+      ignerr << "Both an SDF file and playback flag are specified. "
+        << "Only specify one.\n";
+      return -1;
+    }
+    else
+    {
+      ignmsg << "Playing back states" << _playback << std::endl;
+      serverConfig.SetLogPlaybackPath(_playback);
+    }
   }
 
-  // If version is requested, override with custom version print function.
-  if (showVersion)
+  // Create the Gazebo server
+  ignition::gazebo::Server server(serverConfig);
+
+  // Run the server
+  server.Run(true, _iterations, _run == 0);
+
+  igndbg << "Shutting down ign-gazebo-server" << std::endl;
+  return 0;
+}
+
+//////////////////////////////////////////////////
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
+{
+  ignition::common::SignalHandler sigHandler;
+  bool sigKilled = false;
+  sigHandler.AddCallback([&](const int /*_sig*/)
   {
-    gflags::SetCommandLineOption("version", "false");
-    version();
-    return 0;
-  }
+    sigKilled = true;
+  });
 
-  ignition::common::Console::SetVerbosity(FLAGS_verbose);
-  ignerr << "The ign-gazebo-gui tool is deprecated, and is replaced by "
-    << "`ign gazebo`\n";
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Temporary transport interface
   auto tmp = std::make_unique<ignition::gazebo::TmpIface>();
 
+  int argc = 0;
+  char **argv = nullptr;
+
   // Initialize Qt app
-  ignition::gui::Application app(_argc, _argv);
+  ignition::gui::Application app(argc, argv);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
@@ -186,17 +210,21 @@ int main(int _argc, char **_argv)
   // \todo(nkoenig) Async resource download. Search for "Async resource
   // download in `src/Server.cc` for corresponding todo item. This todo is
   // resolved when this while loop can be removed.
-  while (!executed)
+  while (!sigKilled && !executed)
   {
     igndbg << "Requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
 
-  if (!executed)
-    ignerr << "Timed out when getting world names." << std::endl;
-  else if (!result)
-    ignerr << "Failed to get world names." << std::endl;
+  // Only print error message if a sigkill was not received.
+  if (!sigKilled)
+  {
+    if (!executed)
+      ignerr << "Timed out when getting world names." << std::endl;
+    else if (!result)
+      ignerr << "Failed to get world names." << std::endl;
+  }
 
   if (!executed || !result)
     return -1;
