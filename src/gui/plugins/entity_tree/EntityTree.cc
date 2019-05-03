@@ -22,6 +22,7 @@
 
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "EntityTree.hh"
@@ -33,7 +34,11 @@ namespace ignition::gazebo
     /// \brief Model holding all the current entities in the world.
     public: TreeModel treeModel;
 
+    /// \brief True if initialized
     public: bool initialized{false};
+
+    /// \brief World entity
+    public: Entity worldEntity{kNullEntity};
   };
 }
 
@@ -123,6 +128,22 @@ QHash<int, QByteArray> TreeModel::roleNames() const
 }
 
 /////////////////////////////////////////////////
+QVariantMap TreeModel::Data(int row)
+{
+  QHash<int, QByteArray> names = roleNames();
+  QHashIterator<int, QByteArray> i(names);
+  QVariantMap res;
+  while (i.hasNext())
+  {
+    i.next();
+    QModelIndex idx = index(row, 0);
+    QVariant data = idx.data(i.key());
+    res[i.value()] = data;
+  }
+  return res;
+}
+
+/////////////////////////////////////////////////
 EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
@@ -153,12 +174,29 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
       [&](const Entity &_entity,
           const components::Name *_name)->bool
     {
+      auto worldComp = _ecm.Component<components::World>(_entity);
+      if (worldComp)
+      {
+        this->dataPtr->worldEntity = _entity;
+
+        // Skipping the world for now to keep the tree shallow
+        return true;
+      }
+
+      // Parent
       Entity parentEntity{kNullEntity};
 
       auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
       if (parentComp)
       {
         parentEntity = parentComp->Data();
+      }
+
+      // World children are top-level
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
       }
 
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
@@ -172,23 +210,18 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
   }
   else
   {
-    _ecm.EachNew<components::Name>(
+    // Requiring a parent entity because we're not adding the world, which is
+    // parentless, to the tree
+    _ecm.EachNew<components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
-          const components::Name *_name)->bool
+          const components::Name *_name,
+          const components::ParentEntity *_parentEntity)->bool
     {
-      Entity parentEntity{kNullEntity};
-
-      auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
-      if (parentComp)
-      {
-        parentEntity = parentComp->Data();
-      }
-
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity));
+          Q_ARG(unsigned int, _parentEntity->Data()));
       return true;
     });
   }

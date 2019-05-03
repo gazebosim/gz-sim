@@ -56,6 +56,8 @@ namespace gazebo
     /// \param[in] _entity Entity to be removed
     public slots: void RemoveEntity(unsigned int _entity);
 
+    public: Q_INVOKABLE QVariantMap Data(int row);
+
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
   };
