@@ -71,7 +71,7 @@ class LinkComponentRecorder
   /// is useful if other systems are expected to populate the component but they
   /// require the component to be created first.
   public: LinkComponentRecorder(const std::string &_linkName,
-                                bool _createComp = false)
+                                bool _createComp = false) : linkName(_linkName)
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
                                     "ignition::gazebo::MockSystem", nullptr);
@@ -86,10 +86,10 @@ class LinkComponentRecorder
     if (_createComp)
     {
       this->mockSystem->preUpdateCallback =
-        [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+        [this](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
-              components::Link(), components::Name(_linkName));
+              components::Link(), components::Name(this->linkName));
           if (linkEntity != kNullEntity)
           {
             // Create component on the link if it doesn't already exist
@@ -102,11 +102,11 @@ class LinkComponentRecorder
     }
 
     this->mockSystem->postUpdateCallback =
-        [&](const gazebo::UpdateInfo &,
-            const gazebo::EntityComponentManager &_ecm)
+        [this](const gazebo::UpdateInfo &,
+              const gazebo::EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
-              components::Link(), components::Name(_linkName));
+              components::Link(), components::Name(this->linkName));
 
           if (linkEntity != kNullEntity)
           {
@@ -123,6 +123,7 @@ class LinkComponentRecorder
 
   /// \brief The recorded component values
   public: std::vector<ComponentType> values;
+  public: std::string linkName;
 
   protected: SystemLoader loader;
   protected: MockSystem *mockSystem;
@@ -163,7 +164,7 @@ class BlockingPublisher
     {
       // wait for onMsgCount to reach 2
       this->cv.wait_for(lk, this->timeOut,
-                        [&]() { return this->onMsgCount == 2; });
+                        [this]() { return this->onMsgCount == 2; });
     }
     return (this->onMsgCount == 2);
   }
