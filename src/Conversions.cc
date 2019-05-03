@@ -36,6 +36,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Light.hh>
+#include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Plane.hh>
@@ -407,5 +408,151 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
   out.SetShadows(_in.shadows());
   out.SetGrid(_in.grid());
   out.SetOriginVisual(_in.origin_visual());
+  return out;
+}
+
+//////////////////////////////////////////////////
+void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
+{
+  switch (_sdf.Type())
+  {
+    case sdf::NoiseType::GAUSSIAN:
+      _msg->set_type(msgs::SensorNoise::GAUSSIAN);
+      break;
+    case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+      _msg->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+      break;
+
+    case sdf::NoiseType::NONE:
+    default:
+      _msg->set_type(msgs::SensorNoise::NONE);
+      break;
+  }
+
+  _msg->set_mean(_sdf.Mean());
+  _msg->set_stddev(_sdf.StdDev());
+  _msg->set_bias_mean(_sdf.BiasMean());
+  _msg->set_bias_stddev(_sdf.BiasStdDev());
+  _msg->set_precision(_sdf.Precision());
+  _msg->set_dynamic_bias_stddev(_sdf.DynamicBiasStdDev());
+  _msg->set_dynamic_bias_correlation_time(_sdf.DynamicBiasCorrelationTime());
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
+{
+  sdf::Noise out;
+
+  switch (_in.type())
+  {
+    case msgs::SensorNoise::GAUSSIAN:
+      out.SetType(sdf::NoiseType::GAUSSIAN);
+      break;
+    case msgs::SensorNoise::GAUSSIAN_QUANTIZED:
+      out.SetType(sdf::NoiseType::GAUSSIAN_QUANTIZED);
+      break;
+
+    case msgs::SensorNoise::NONE:
+    default:
+      out.SetType(sdf::NoiseType::NONE);
+      break;
+  }
+
+  out.SetMean(_in.mean());
+  out.SetStdDev(_in.stddev());
+  out.SetBiasMean(_in.bias_mean());
+  out.SetBiasStdDev(_in.bias_stddev());
+  out.SetPrecision(_in.precision());
+  out.SetDynamicBiasStdDev(_in.dynamic_bias_stddev());
+  out.SetDynamicBiasCorrelationTime(_in.dynamic_bias_correlation_time());
+  return out;
+}
+
+
+//////////////////////////////////////////////////
+template<>
+msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
+{
+  msgs::Sensor out;
+  out.set_name(_in.Name());
+  out.set_type(_in.TypeStr());
+  out.set_update_rate(_in.UpdateRate());
+  out.set_topic(_in.Topic());
+  msgs::Set(out.mutable_pose(), _in.Pose());
+
+  if (_in.Type() == sdf::SensorType::MAGNETOMETER)
+  {
+    if (_in.MagnetometerSensor())
+    {
+      msgs::MagnetometerSensor *sensor = out.mutable_magnetometer();
+      if (_in.MagnetometerSensor()->XNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_x_noise(),
+            _in.MagnetometerSensor()->XNoise());
+      }
+      if (_in.MagnetometerSensor()->YNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_y_noise(),
+            _in.MagnetometerSensor()->YNoise());
+      }
+      if (_in.MagnetometerSensor()->ZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_z_noise(),
+            _in.MagnetometerSensor()->ZNoise());
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an magnetometer SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
+{
+  sdf::Sensor out;
+  out.SetName(_in.name());
+  if (!out.SetType(_in.type()))
+    ignerr << "Failed to set the sensor type from [" << _in.type() << "]\n";
+
+  out.SetUpdateRate(_in.update_rate());
+  out.SetTopic(_in.topic());
+  out.SetPose(msgs::Convert(_in.pose()));
+  if (out.Type() == sdf::SensorType::MAGNETOMETER)
+  {
+    sdf::Magnetometer sensor;
+    if (_in.has_magnetometer())
+    {
+      if (_in.magnetometer().has_x_noise())
+      {
+        sensor.SetXNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.magnetometer().x_noise()));
+      }
+      if (_in.magnetometer().has_y_noise())
+      {
+        sensor.SetYNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.magnetometer().y_noise()));
+      }
+      if (_in.magnetometer().has_z_noise())
+      {
+        sensor.SetZNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.magnetometer().z_noise()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an magnetometer sensor message, but the "
+        << "message does not have a magnetometer nested message.\n";
+    }
+
+    out.SetMagnetometerSensor(sensor);
+  }
+
   return out;
 }

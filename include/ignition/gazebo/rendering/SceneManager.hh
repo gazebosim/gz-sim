@@ -88,22 +88,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
-    /// \brief Load a geometry
-    /// \param[in] _geom Geometry sdf dom
-    /// \param[out] _scale Geometry scale that will be set based on sdf
-    /// \param[out] _localPose Additional local pose to be applied after the
-    /// visual's pose
-    /// \return Geometry object loaded from the sdf dom
-    protected: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
-        math::Vector3d &_scale, math::Pose3d &_localPose);
-
-    /// \brief Load a material
-    /// \param[in] _material Material sdf dom
-    /// \return Material object loaded from the sdf dom
-    protected: rendering::MaterialPtr LoadMaterial(
-        const sdf::Material &_material);
-
-    /// \brief Create a light
+   /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id
@@ -134,6 +119,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Remove an entity by id
     /// \param[in] _id Entity's unique id
     public: void RemoveEntity(Entity _id);
+
+    /// \brief Load a geometry
+    /// \param[in] _geom Geometry sdf dom
+    /// \param[out] _scale Geometry scale that will be set based on sdf
+    /// \param[out] _localPose Additional local pose to be applied after the
+    /// visual's pose
+    /// \return Geometry object loaded from the sdf dom
+    private: rendering::GeometryPtr LoadGeometry(const sdf::Geometry &_geom,
+        math::Vector3d &_scale, math::Pose3d &_localPose);
+
+    /// \brief Load a material
+    /// \param[in] _material Material sdf dom
+    /// \return Material object loaded from the sdf dom
+    private: rendering::MaterialPtr LoadMaterial(
+        const sdf::Material &_material);
 
     /// \internal
     /// \brief Pointer to private data class
