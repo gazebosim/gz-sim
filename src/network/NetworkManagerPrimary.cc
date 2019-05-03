@@ -125,14 +125,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   }
 
   private_msgs::SimulationStep step;
-
-  // Step time
-  step.set_iteration(_info.iterations);
-  step.set_paused(_info.paused);
-  step.mutable_simtime()->CopyFrom(convert<msgs::Time>(_info.simTime));
-
-  auto stepSizeSecNsec = math::durationToSecNsec(_info.dt);
-  step.set_stepsize(stepSizeSecNsec.second);
+  step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
 
   // Affinities that changed this step
   this->PopulateAffinities(step);
