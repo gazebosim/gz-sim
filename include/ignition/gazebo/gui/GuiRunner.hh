@@ -61,6 +61,9 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
 
   /// \brief Topic to request state
   private: std::string stateTopic;
+
+  /// \brief Latest update info
+  private: UpdateInfo updateInfo;
 };
 }
 }

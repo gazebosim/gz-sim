@@ -20,8 +20,13 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
@@ -45,6 +50,28 @@ namespace ignition::gazebo
 using namespace ignition;
 using namespace gazebo;
 
+//////////////////////////////////////////////////
+QString entityType(Entity _entity,
+    const EntityComponentManager &_ecm)
+{
+  if (nullptr != _ecm.Component<components::Model>(_entity))
+    return QString("model");
+
+  if (nullptr != _ecm.Component<components::Link>(_entity))
+    return QString("link");
+
+  if (nullptr != _ecm.Component<components::Joint>(_entity))
+    return QString("joint");
+
+  if (nullptr != _ecm.Component<components::Collision>(_entity))
+    return QString("collision");
+
+  if (nullptr != _ecm.Component<components::Visual>(_entity))
+    return QString("visual");
+
+  return QString();
+}
+
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
 {
@@ -52,7 +79,7 @@ TreeModel::TreeModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
-    unsigned int _parentEntity)
+    unsigned int _parentEntity, const QString &_type)
 {
   QStandardItem *parentItem{nullptr};
 
@@ -81,6 +108,11 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   // New entity item
   auto entityItem = new QStandardItem(_entityName);
   entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
+  if (!_type.isEmpty())
+  {
+    entityItem->setData(QUrl("qrc:/Gazebo/images/" + _type + ".png"),
+        Qt::DecorationRole);
+  }
 
   parentItem->appendRow(entityItem);
 
@@ -124,7 +156,8 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(Qt::DisplayRole, "entityName"),
-          std::pair(Qt::ToolTipRole, "entity")};
+          std::pair(Qt::ToolTipRole, "entity"),
+          std::pair(Qt::DecorationRole, "icon")};
 }
 
 /////////////////////////////////////////////////
@@ -203,7 +236,8 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity));
+          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
     this->dataPtr->initialized = true;
@@ -221,7 +255,8 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, _parentEntity->Data()));
+          Q_ARG(unsigned int, _parentEntity->Data()),
+          Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
   }

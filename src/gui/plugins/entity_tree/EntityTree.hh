@@ -48,9 +48,11 @@ namespace gazebo
     /// \param[in] _entityName Name of entity to be added
     /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
     /// means it's a root entity.
+    /// \param[in] _type Entity type
     public slots: void AddEntity(unsigned int _entity,
         const QString &_entityName,
-        unsigned int _parentEntity = kNullEntity);
+        unsigned int _parentEntity = kNullEntity,
+        const QString &_type = QString());
 
     /// \brief Remove an entity from the tree.
     /// \param[in] _entity Entity to be removed
