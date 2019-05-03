@@ -115,7 +115,7 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
         sdf::Sensor data = _altimeter->Data();
         data.SetName(sensorScopedName);
         // check topic
-        if (!data.Topic().empty())
+        if (data.Topic().empty())
         {
           std::string topic = scopedName(_entity, _ecm) + "/altimeter";
           data.SetTopic(topic);

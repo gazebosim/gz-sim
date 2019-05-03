@@ -114,7 +114,7 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         sdf::Sensor data = _airPressure->Data();
         data.SetName(sensorScopedName);
         // check topic
-        if (!data.Topic().empty())
+        if (data.Topic().empty())
         {
           std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
           data.SetTopic(topic);
