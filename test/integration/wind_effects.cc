@@ -70,8 +70,9 @@ class LinkComponentRecorder
   /// \param[in] _createComp Whether to create the component on the link. This
   /// is useful if other systems are expected to populate the component but they
   /// require the component to be created first.
-  public: LinkComponentRecorder(const std::string &_linkName,
-                                bool _createComp = false) : linkName(_linkName)
+  // cppcheck-suppress passedByValue
+  public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
+      : linkName(std::move(_linkName))
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
                                     "ignition::gazebo::MockSystem", nullptr);
