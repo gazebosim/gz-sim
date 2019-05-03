@@ -127,10 +127,12 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
             _parent->Data())->Data();
         sensor->SetParent(parentName);
 
-        // Get initial pose of sensor and set the reference z pos
         // The WorldPose component was just created and so it's empty
         // We'll compute the world pose manually here
-        sensor->SetVerticalPosition(worldPose(_entity, _ecm).Pos().Z());
+        // set sensor world pose
+        math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
+        sensor->SetPose(sensorWorldPose);
+
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -150,7 +152,8 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          it->second->SetVerticalPosition(_worldPose->Data().Pos().Z());
+          const math::Pose3d &worldPose = _worldPose->Data();
+          it->second->SetPose(worldPose);
         }
         else
         {
