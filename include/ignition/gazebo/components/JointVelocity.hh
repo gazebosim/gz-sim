@@ -36,9 +36,15 @@ namespace components
   /// \brief Base class which can be extended to add serialization
   using JointVelocity = Component<std::vector<double>,
         class JointVelocityTag>;
-
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocity", JointVelocity)
+
+  /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
+  /// m/s for prismatic).
+  /// \deprecated Use JointVelocity.
+  using JointVelocity2 = Component<double, class JointVelocity2Tag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointVelocity2", JointVelocity2)
 }
 }
 }
