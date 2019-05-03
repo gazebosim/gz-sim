@@ -147,6 +147,9 @@ ign service -s /world/empty/remove \
 
       <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <title>Entity tree</title>
+        </ignition-gui>
       </plugin>
 
     </gui>

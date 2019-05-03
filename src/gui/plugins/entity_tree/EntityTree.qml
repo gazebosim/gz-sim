@@ -1,27 +1,30 @@
 import QtQuick 2.9
 import QtQuick.Controls 1.4
+import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 Rectangle {
+  id: entityTree
   color: "transparent"
   Layout.minimumWidth: 250
   Layout.minimumHeight: 375
-  Material.theme: Material.theme
+  anchors.fill: parent
 
-  // TODO(louise) It's not responding to theme changes
+  property int tooltipDelay: 500
+  property int tooltipTimeout: 1000
+
   property color even: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade100) :
-    Material.color(Material.Grey, Material.Shade600)
-
-  property color odd: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade300) :
     Material.color(Material.Grey, Material.Shade800)
 
+  property color odd: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade200) :
+    Material.color(Material.Grey, Material.Shade900)
+
   TreeView {
-    width: 300
-    height: 500
+    anchors.fill: entityTree
     model: EntityTreeModel
 
     style: TreeViewStyle {
@@ -48,13 +51,27 @@ Rectangle {
       }
 
       itemDelegate: Rectangle {
+        id: itemDel
         color: (styleData.row % 2 == 0) ? even : odd
         height: 20
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: styleData.value === undefined ? "" : styleData.value
+          text: model === null || model.entityName === null ? "" : model.entityName
           color: Material.theme == Material.Light ? "black" : "white"
+
+          ToolTip {
+            visible: ma.containsMouse
+            delay: tooltipDelay
+            timeout: tooltipTimeout
+            text: model === null || model.entity === null ? "" : model.entity
+            y: itemDel.z - 30
+          }
+          MouseArea {
+            id: ma
+            anchors.fill: parent
+            hoverEnabled: true
+          }
         }
       }
     }
