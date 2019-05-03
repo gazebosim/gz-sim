@@ -106,7 +106,7 @@ TEST(CmdLine, GazeboServer)
 TEST(CmdLine, Gazebo)
 {
   std::string cmd = kIgnCommand +
-    "ign gazebo -r -v 4 --iterations 5 " +
+    "ign gazebo -s -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
