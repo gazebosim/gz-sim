@@ -422,4 +422,4 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
