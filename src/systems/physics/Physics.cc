@@ -942,7 +942,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
         return true;
       });
 
-
   // Update joint positions
   _ecm.Each<components::Joint, components::JointPosition>(
       [&](const Entity &_entity, components::Joint *,
