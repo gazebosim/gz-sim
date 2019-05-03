@@ -452,7 +452,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {
-     auto elem = _sensor->Element();
+    auto elem = _sensor->Element();
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::LogicalCamera(elem));
@@ -463,10 +463,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::MAGNETOMETER)
   {
-     auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Magnetometer(elem));
+        components::Magnetometer(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
