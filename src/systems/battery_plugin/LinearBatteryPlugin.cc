@@ -23,7 +23,6 @@
 #include <ignition/plugin/Register.hh>
 
 #include <ignition/common/Util.hh>
-#include <ignition/common/Time.hh>
 #include <ignition/common/Battery.hh>
 
 #include <sdf/Element.hh>
@@ -252,6 +251,8 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   if (this->dataPtr->StateOfCharge() < 0)
     return _battery->Voltage();
 
+  auto prevSocInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
+
   // Seconds
   double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
     this->dataPtr->stepSize).count()) * 1e-9;
@@ -274,11 +275,17 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
 
-  igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
-         << std::endl;
-  igndbg << "voltage: " << voltage << std::endl;
-  igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
-         << " (q " << this->dataPtr->q << ")" << std::endl;
+  // Throttle debug messages
+  auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
+  if (socInt % 10 == 0 && socInt != prevSocInt)
+  {
+    igndbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
+    igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
+           << std::endl;
+    igndbg << "voltage: " << voltage << std::endl;
+    igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
+           << " (q " << this->dataPtr->q << ")" << std::endl << std::endl;
+  }
   if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)
   {
     ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";

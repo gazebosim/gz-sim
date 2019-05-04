@@ -1,9 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Log record demo.
+  Linear battery demo
 
-  Running this world will record log files to /tmp/log. You can playback
-  running the log_playback.sdf file.
+  Move both vehicles:
+
+    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 3.0}"
+    ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 3.0}"
+
 -->
 <sdf version="1.6">
   <world name="default">
@@ -512,7 +515,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
-        <power_load>50</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
+        <power_load>500</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
       </plugin>
 
     </model>

@@ -35,7 +35,7 @@ This has been added to a demo world, which can be run using:
 
 ```
 cd ign-gazebo/examples/worlds
-ign-gazebo -f linear_battery_demo.sdf -v 4 -r
+ign gazebo -v 4 -r linear_battery_demo.sdf
 ```
 
 The blue vehicle on the left has a battery, while the one on the right does not. When the battery drains, the corresponding vehicle stops moving.
