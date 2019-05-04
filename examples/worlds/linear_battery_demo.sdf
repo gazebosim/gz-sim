@@ -2,10 +2,14 @@
 <!--
   Linear battery demo
 
+  This demo has 2 vehicles: a green one without a battery, and blue one with a battery.
+
   Move both vehicles:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 3.0}"
-    ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 3.0}"
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+
+  The blue vehicle should stop when it runs out of battery.
 
 -->
 <sdf version="1.6">
