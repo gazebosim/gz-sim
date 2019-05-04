@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/config.hh"
@@ -131,11 +132,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       components::Material::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       components::Inertial::typeId));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      components::Wind::typeId));
 
   // Check entities
-  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
-  // x visual + 1 x light
-  EXPECT_EQ(15u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
+  // collision + 3 x visual + 1 x light
+  EXPECT_EQ(16u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -518,9 +521,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check entities
-  // 1 x world + 1 x (default) level + 1 x model + 1 x link + 1 x visual + 4 x
-  // light
-  EXPECT_EQ(9u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 1 x model + 1 x link + 1 x
+  // visual + 4 x light
+  EXPECT_EQ(10u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
