@@ -386,9 +386,9 @@ TEST_F(UserCommandsTest, Remove)
   EXPECT_NE(nullptr, ecm);
 
   // Check entities
-  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
-  // x visual + 1 x light
-  EXPECT_EQ(15u, ecm->EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
+  // collision + 3 x visual + 1 x light
+  EXPECT_EQ(16u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -411,7 +411,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(11u, ecm->EntityCount());
+  EXPECT_EQ(12u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -434,7 +434,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(7u, ecm->EntityCount());
+  EXPECT_EQ(8u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -453,7 +453,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(7u, ecm->EntityCount());
+  EXPECT_EQ(8u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -474,7 +474,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(4u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -493,7 +493,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(4u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -507,7 +507,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(4u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -520,7 +520,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(3u, ecm->EntityCount());
+  EXPECT_EQ(4u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -535,7 +535,7 @@ TEST_F(UserCommandsTest, Remove)
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(2u, ecm->EntityCount());
+  EXPECT_EQ(3u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 }
