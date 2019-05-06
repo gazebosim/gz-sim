@@ -55,6 +55,7 @@
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
 class ignition::gazebo::SdfEntityCreatorPrivate
@@ -172,6 +173,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       components::Name(_model->Name()));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(_model->Static()));
+  this->dataPtr->ecm->CreateComponent(
+      modelEntity, components::WindMode(_model->EnableWind()));
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -188,6 +191,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     {
       this->dataPtr->ecm->CreateComponent(linkEntity,
           components::CanonicalLink());
+    }
+
+    // Set wind mode if the link didn't override it
+    if (!this->dataPtr->ecm->Component<components::WindMode>(linkEntity))
+    {
+      this->dataPtr->ecm->CreateComponent(
+          linkEntity, components::WindMode(_model->EnableWind()));
     }
   }
 
@@ -242,6 +252,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
       components::Name(_link->Name()));
   this->dataPtr->ecm->CreateComponent(linkEntity,
       components::Inertial(_link->Inertial()));
+
+  if (_link->EnableWind())
+  {
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::WindMode(_link->EnableWind()));
+  }
 
   // Visuals
   for (uint64_t visualIndex = 0; visualIndex < _link->VisualCount();
@@ -424,10 +440,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
-     auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Altimeter(elem));
+        components::Altimeter(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
@@ -452,7 +466,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {
-     auto elem = _sensor->Element();
+    auto elem = _sensor->Element();
 
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::LogicalCamera(elem));
@@ -463,10 +477,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::MAGNETOMETER)
   {
-     auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Magnetometer(elem));
+        components::Magnetometer(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,

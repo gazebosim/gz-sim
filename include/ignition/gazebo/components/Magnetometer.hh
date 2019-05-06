@@ -17,13 +17,14 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 
-#include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
+#include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <ignition/gazebo/components/Serialization.hh>
 
 namespace ignition
 {
@@ -33,9 +34,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::Magnetometer once that exists?
-  /// This is currently the whole <sensor> element.
-  using Magnetometer = Component<sdf::ElementPtr, class MagnetometerTag>;
+  /// \brief A component type that contains a magnetometer sensor,
+  /// sdf::Magnetometer, information.
+  using Magnetometer = Component<sdf::Sensor, class MagnetometerTag>;
+
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Magnetometer", Magnetometer)
 }

@@ -1,27 +1,48 @@
 import QtQuick 2.9
 import QtQuick.Controls 1.4
+import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 
 Rectangle {
+  id: entityTree
   color: "transparent"
   Layout.minimumWidth: 250
   Layout.minimumHeight: 375
-  Material.theme: Material.theme
+  anchors.fill: parent
 
-  // TODO(louise) It's not responding to theme changes
+  /**
+   * Time delay for tooltip to show, in ms
+   */
+  property int tooltipDelay: 500
+
+  /**
+   * Timeout for tooltip to disappear, in ms
+   */
+  property int tooltipTimeout: 1000
+
+  /**
+   * Height of each item in pixels
+   */
+  property int itemHeight: 30
+
+  /**
+   * Color for even-numbered rows, according to current theme
+   */
   property color even: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade100) :
-    Material.color(Material.Grey, Material.Shade600)
-
-  property color odd: (Material.theme == Material.Light) ?
-    Material.color(Material.Grey, Material.Shade300) :
     Material.color(Material.Grey, Material.Shade800)
 
+  /**
+   * Color for odd-numbered rows, according to current theme
+   */
+  property color odd: (Material.theme == Material.Light) ?
+    Material.color(Material.Grey, Material.Shade200) :
+    Material.color(Material.Grey, Material.Shade900)
+
   TreeView {
-    width: 300
-    height: 500
+    anchors.fill: entityTree
     model: EntityTreeModel
 
     style: TreeViewStyle {
@@ -30,11 +51,12 @@ Rectangle {
       }
 
       branchDelegate: Rectangle {
-        height: 20
-        width: 20
+        height: itemHeight
+        width: itemHeight*0.5
         color: "transparent"
         Text {
           font.pointSize: 18
+          font.family: "Roboto"
           anchors.verticalCenter: parent.verticalCenter
           anchors.horizontalCenter: parent.horizontalCenter
           text: styleData.isExpanded ? "\uFF0D" : "\uFF0B"
@@ -43,18 +65,45 @@ Rectangle {
       }
 
       rowDelegate: Rectangle {
-        height: 20
+        height: itemHeight
         color: (styleData.row % 2 == 0) ? even : odd
       }
 
       itemDelegate: Rectangle {
+        id: itemDel
         color: (styleData.row % 2 == 0) ? even : odd
-        height: 20
+        height: itemHeight
+
+        Image {
+          id: icon
+          sourceSize.height: itemHeight
+          sourceSize.width: itemHeight
+          fillMode: Image.PreserveAspectFit
+          horizontalAlignment: Image.AlignHCenter
+          verticalAlignment: Image.AlignLeft
+          source: model === null || model.icon === undefined ? "" : model.icon
+        }
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: styleData.value === undefined ? "" : styleData.value
+          anchors.left: icon.right
+          leftPadding: 2
+          text: model === null || model.entityName === undefined ? "" : model.entityName
           color: Material.theme == Material.Light ? "black" : "white"
+          font.pointSize: 12
+
+          ToolTip {
+            visible: ma.containsMouse
+            delay: tooltipDelay
+            timeout: tooltipTimeout
+            text: model === null || model.entity === undefined ? "" : model.entity
+            y: itemDel.z - 30
+          }
+          MouseArea {
+            id: ma
+            anchors.fill: parent
+            hoverEnabled: true
+          }
         }
       }
     }
