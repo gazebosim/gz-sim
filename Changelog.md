@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Port Scene3D gui plugin from ign-gui
+    * [Pull Request 315](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/315)
+
 1. Add rendering component
     * [Pull Request 306](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/306)
 
