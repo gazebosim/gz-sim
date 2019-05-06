@@ -129,16 +129,19 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
             _config.NetworkRole(), _config.NetworkSecondaries()));
     }
 
-    if (this->networkMgr->IsPrimary())
+    if (this->networkMgr)
     {
-      ignmsg << "Network Primary, expects ["
-             << this->networkMgr->Config().numSecondariesExpected
-             << "] secondaries." << std::endl;
-    }
-    else if (this->networkMgr->IsSecondary())
-    {
-      ignmsg << "Network Secondary, with namespace ["
-             << this->networkMgr->Namespace() << "]." << std::endl;
+      if (this->networkMgr->IsPrimary())
+      {
+        ignmsg << "Network Primary, expects ["
+          << this->networkMgr->Config().numSecondariesExpected
+          << "] secondaries." << std::endl;
+      }
+      else if (this->networkMgr->IsSecondary())
+      {
+        ignmsg << "Network Secondary, with namespace ["
+          << this->networkMgr->Namespace() << "]." << std::endl;
+      }
     }
   }
 
