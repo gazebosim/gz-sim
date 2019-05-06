@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-
-#include <sdf/Sensor.hh>
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_WIND_HH_
+#define IGNITION_GAZEBO_COMPONENTS_WIND_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -32,10 +29,9 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains an altimeter sensor,
-  /// sdf::Altimeter, information.
-  using Altimeter = Component<sdf::Sensor, class AltimeterTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
+  /// \brief A component that identifies an entity as being a wind.
+  using Wind = Component<NoData, class WindTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Wind", Wind)
 }
 }
 }

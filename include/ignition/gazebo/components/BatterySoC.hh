@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2018 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-
-#include <sdf/Sensor.hh>
+#ifndef IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
+#define IGNITION_GAZEBO_COMPONENTS_BATTERY_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -32,10 +29,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains an altimeter sensor,
-  /// sdf::Altimeter, information.
-  using Altimeter = Component<sdf::Sensor, class AltimeterTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
+  /// A component that identifies an entity as being a battery.
+  ///   Float value indicates state of charge.
+  using BatterySoC = Component<float, class BatterySoCTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BatterySoC", BatterySoC)
 }
 }
 }
