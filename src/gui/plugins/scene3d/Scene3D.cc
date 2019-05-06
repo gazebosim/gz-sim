@@ -31,18 +31,20 @@
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
 
-#include <ignition/msgs.hh>
-
-#include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/OrbitViewController.hh>
 #include <ignition/rendering/RayQuery.hh>
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
+#include <ignition/rendering/Scene.hh>
+#include <ignition/rendering/TransformController.hh>
 
 #include <ignition/transport/Node.hh>
 
 #include <ignition/gui/Conversions.hh>
 #include <ignition/gui/Application.hh>
 
+#include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
@@ -74,6 +76,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Camera orbit controller
     public: rendering::OrbitViewController viewControl;
 
+    /// \brief Transform controller for models
+    public: rendering::TransformController transformControl;
+
+    /// \brief Transform space: local or world
+    public: rendering::TransformSpace transformSpace =
+        rendering::TransformSpace::TS_LOCAL;
+
+    /// \brief Transform mode: none, translation, rotation, or scale
+    public: rendering::TransformMode transformMode =
+        rendering::TransformMode::TM_NONE;
+
     /// \brief Ray query for mouse clicks
     public: rendering::RayQueryPtr rayQuery;
 
@@ -100,8 +113,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Private data class for Scene3D
   class Scene3DPrivate
   {
+    /// \brief Transport node
+    public: transport::Node node;
+
+    /// \brief Name of the world
+    public: std::string worldName;
+
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief Rendering utility
+    public: std::string transformModeService;
   };
 }
 }
@@ -157,6 +179,178 @@ void IgnRenderer::Render()
 
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseEvent()
+{
+  this->HandleMouseTransformControl();
+  this->HandleMouseViewControl();
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleMouseTransformControl()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+  // set transform configuration
+  this->dataPtr->transformControl.SetTransformSpace(
+      this->dataPtr->transformSpace);
+  this->dataPtr->transformControl.SetTransformMode(
+      this->dataPtr->transformMode);
+
+  if (!this->dataPtr->transformControl.Camera())
+    this->dataPtr->transformControl.SetCamera(this->dataPtr->camera);
+
+  if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE)
+  {
+    if (this->dataPtr->transformControl.Active())
+      this->dataPtr->transformControl.Stop();
+
+    this->dataPtr->transformControl.Detach();
+    this->dataPtr->renderUtil->SetSelectedEntity(
+        rendering::VisualPtr());
+  }
+  else
+  {
+    // shift indicates world space transformation
+    this->dataPtr->transformSpace = (this->dataPtr->mouseEvent.Shift()) ?
+        rendering::TransformSpace::TS_WORLD :
+        rendering::TransformSpace::TS_LOCAL;
+  }
+
+  // update gizmo visual
+  this->dataPtr->transformControl.Update();
+
+  // check for mouse events
+  if (!this->dataPtr->mouseDirty)
+    return;
+
+  //// handle entity selection
+  //if (!this->dataPtr->transformControl.Node()
+  //    && this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+  //{
+  //}
+
+  // handle transform control
+  if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
+  {
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS
+        && this->dataPtr->transformControl.Node())
+    {
+      // get the visual at mouse position
+      rendering::VisualPtr visual = this->dataPtr->camera->VisualAt(
+            this->dataPtr->mouseEvent.PressPos());
+
+      std::cerr << " mouse press visual " << visual << std::endl;
+      if (visual)
+      {
+        // check if the visual is an axis in the gizmo visual
+        math::Vector3d axis =
+            this->dataPtr->transformControl.AxisById(visual->Id());
+        if (axis != ignition::math::Vector3d::Zero)
+        {
+          // start the transform process
+          this->dataPtr->transformControl.SetActiveAxis(axis);
+          this->dataPtr->transformControl.Start();
+          this->dataPtr->mouseDirty = false;
+        }
+        else
+          return;
+      }
+    }
+    else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
+    {
+      if (this->dataPtr->transformControl.Active())
+      {
+        this->dataPtr->transformControl.Stop();
+        this->dataPtr->mouseDirty = false;
+      }
+      else
+      {
+        std::cerr << " mouse release selecting " << this->dataPtr->mouseEvent.Pos() << std::endl;
+
+        rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
+              this->dataPtr->mouseEvent.Pos());
+
+        std::cerr << " === selection buffer visual " << v << std::endl;
+
+        rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
+              this->dataPtr->camera,
+              this->dataPtr->mouseEvent.Pos());
+
+        if (!visual)
+          return;
+
+        // check if the visual is an axis in the gizmo visual
+        math::Vector3d axis =
+            this->dataPtr->transformControl.AxisById(visual->Id());
+        if (axis == ignition::math::Vector3d::Zero)
+        {
+          rendering::VisualPtr model =
+              this->dataPtr->renderUtil->SceneManager().ModelVisual(visual);
+          // TODO(anyone) Check plane geometry instead of hardcoded name!
+          if (model && model->Name() != "ground_plane")
+          {
+            this->dataPtr->transformControl.Attach(model);
+            std::cerr << "selected " << model->Name() << std::endl;
+            this->dataPtr->renderUtil->SetSelectedEntity(model);
+            this->dataPtr->mouseDirty = false;
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE
+      && this->dataPtr->transformControl.Active())
+  {
+
+    std::cerr << " mouse move " << std::endl;
+    // compute the the start and end mouse positions in normalized coordinates
+    double imageWidth = static_cast<double>(
+        this->dataPtr->camera->ImageWidth());
+    double imageHeight = static_cast<double>(
+        this->dataPtr->camera->ImageHeight());
+    double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() / imageWidth - 1.0;
+    double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() / imageHeight;
+    double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() / imageWidth - 1.0;
+    double nyEnd = 1.0 - 2.0 * this->dataPtr->mouseEvent.Pos().Y() / imageHeight;
+    math::Vector2d start(nx, ny);
+    math::Vector2d end(nxEnd, nyEnd);
+
+    // get the current active axis
+    math::Vector3d axis = this->dataPtr->transformControl.ActiveAxis();
+    std::cerr << "active axis " << axis << std::endl;
+
+    // compute 3d transformation from 2d mouse movement
+    if (this->dataPtr->transformControl.Mode() ==
+        rendering::TransformMode::TM_TRANSLATION)
+    {
+      math::Vector3d distance =
+          this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
+      this->dataPtr->transformControl.Translate(distance);
+    }
+    else if (this->dataPtr->transformControl.Mode() ==
+        rendering::TransformMode::TM_ROTATION)
+    {
+      math::Quaterniond rotation =
+          this->dataPtr->transformControl.RotationFrom2d(axis, start, end);
+      this->dataPtr->transformControl.Rotate(rotation);
+    }
+    else if (this->dataPtr->transformControl.Mode() ==
+        rendering::TransformMode::TM_SCALE)
+    {
+      // note: scaling is limited to local space
+      math::Vector3d scale =
+          this->dataPtr->transformControl.ScaleFrom2d(axis, start, end);
+      this->dataPtr->transformControl.Scale(scale);
+    }
+    this->dataPtr->drag = 0;
+    this->dataPtr->mouseDirty = false;
+  }
+}
+
+
+/////////////////////////////////////////////////
+void IgnRenderer::HandleMouseViewControl()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   if (!this->dataPtr->mouseDirty)
@@ -266,6 +460,22 @@ void IgnRenderer::Destroy()
 
     // TODO(anyone) If that was the last scene, terminate engine?
   }
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::SetTransformMode(const std::string &_mode)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  if (_mode == "select")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_NONE;
+  else if (_mode == "translate")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_TRANSLATION;
+  else if (_mode == "rotate")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_ROTATION;
+  else if (_mode == "scale")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
+  else
+    ignerr << "Unknown transform mode: [" << _mode << "]" << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -619,7 +829,45 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (this->dataPtr->transformModeService.empty())
+  {
+    // TODO(anyone) Only one scene is supported for now
+    _ecm.EachNew<components::World, components::Name>(
+        [&](const Entity &/*_entity*/,
+          const components::World * /* _world */ ,
+          const components::Name *_name)->bool
+        {
+          this->dataPtr->worldName = _name->Data();
+          return true;
+        });
+
+    this->dataPtr->transformModeService =
+        "/world/" + this->dataPtr->worldName + "/gui/transform_mode";
+    this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
+        &Scene3D::OnTransformMode, this);
+    ignmsg << "Transform mode service on ["
+           << this->dataPtr->transformModeService << "]" << std::endl;
+  }
+
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+}
+
+/////////////////////////////////////////////////
+bool Scene3D::OnTransformMode(const msgs::StringMsg &_msg,
+  msgs::Boolean &_res)
+{
+  RenderWindowItem *renderWindow =
+      this->PluginItem()->findChild<RenderWindowItem *>();
+  renderWindow->SetTransformMode(_msg.data());
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetTransformMode(const std::string &_mode)
+{
+  this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
 }
 
 /////////////////////////////////////////////////
@@ -634,6 +882,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
   auto event = gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
+  this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
 
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent);
@@ -643,6 +892,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
   this->dataPtr->mouseEvent = gui::convert(*_e);
+  this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent);
@@ -660,8 +910,11 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
 
-  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(event, dragDistance);
+  std::cerr << "qt mouse move " << std::endl;
   this->dataPtr->mouseEvent = event;
+  this->dataPtr->mouseEvent.SetType(common::MouseEvent::MOVE);
+  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
+      this->dataPtr->mouseEvent, dragDistance);
 }
 
 ////////////////////////////////////////////////
