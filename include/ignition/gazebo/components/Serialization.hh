@@ -55,6 +55,8 @@ inline std::istream &operator>>(std::istream &_in, Sensor &_sensor)
 }
 }
 
+namespace std
+{
 /// \brief Stream insertion operator for `std::vector<double>`.
 /// \param[in] _out Output stream.
 /// \param[in] _vec Vector to stream
@@ -79,6 +81,7 @@ inline std::istream &operator>>(std::istream &_in, std::vector<double> &_vec)
 
   _vec = {msg.data().begin(), msg.data().end()};
   return _in;
+}
 }
 
 #endif
