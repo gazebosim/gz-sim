@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
@@ -445,6 +446,46 @@ TEST(CONVERSIONS, MagnetometerSensor)
 
   EXPECT_FALSE(msg.magnetometer().has_y_noise());
   EXPECT_FALSE(msg.magnetometer().has_z_noise());
+}
+
+/////////////////////////////////////////////////
+TEST(CONVERSIONS, AltimeterSensor)
+{
+  sdf::Sensor sensor;
+  sensor.SetName("my_sensor");
+  sensor.SetType(sdf::SensorType::ALTIMETER);
+  sensor.SetUpdateRate(12.4);
+  sensor.SetTopic("my_topic");
+  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Noise noise;
+  noise.SetType(sdf::NoiseType::GAUSSIAN);
+  noise.SetMean(1.2);
+  noise.SetStdDev(2.6);
+  noise.SetBiasMean(0.2);
+  noise.SetBiasStdDev(12.16);
+  noise.SetPrecision(0.01);
+
+  sdf::Altimeter alt;
+  alt.SetVerticalPositionNoise(noise);
+  sensor.SetAltimeterSensor(alt);
+
+  msgs::Sensor msg = convert<msgs::Sensor>(sensor);
+  EXPECT_EQ(sensor.Name(), msg.name());
+  EXPECT_EQ(sensor.TypeStr(), msg.type());
+  EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
+  EXPECT_EQ(sensor.Topic(), msg.topic());
+  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+
+  ASSERT_TRUE(msg.has_altimeter());
+
+  sdf::Noise defaultNoise;
+  sdf::Noise convertedNoise;
+  convertedNoise = convert<sdf::Noise>(
+      msg.altimeter().vertical_position_noise());
+  EXPECT_EQ(noise, convertedNoise);
+
+  EXPECT_FALSE(msg.altimeter().has_vertical_velocity_noise());
 }
 
 /////////////////////////////////////////////////

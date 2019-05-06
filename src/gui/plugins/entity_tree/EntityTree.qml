@@ -12,14 +12,31 @@ Rectangle {
   Layout.minimumHeight: 375
   anchors.fill: parent
 
+  /**
+   * Time delay for tooltip to show, in ms
+   */
   property int tooltipDelay: 500
+
+  /**
+   * Timeout for tooltip to disappear, in ms
+   */
   property int tooltipTimeout: 1000
+
+  /**
+   * Height of each item in pixels
+   */
   property int itemHeight: 30
 
+  /**
+   * Color for even-numbered rows, according to current theme
+   */
   property color even: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade100) :
     Material.color(Material.Grey, Material.Shade800)
 
+  /**
+   * Color for odd-numbered rows, according to current theme
+   */
   property color odd: (Material.theme == Material.Light) ?
     Material.color(Material.Grey, Material.Shade200) :
     Material.color(Material.Grey, Material.Shade900)
