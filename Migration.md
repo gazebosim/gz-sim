@@ -7,6 +7,23 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 1.x to 2.x
 
+* Changed component data types:
+    * `Altimeter` now uses `sdf::Sensor`
+    * `JointVelocity` now uses `std::vector<double>`
+
+* Deprecated components:
+    * `JointVelocity2`: use `JointVelocity`'s vector instead.
+
+* The `--distributed` command line argument has been deprecated. Use
+  `--network-role` instead.
+
+* The `-f`/`--file` command line argument has been deprecated. The SDF
+  file can now be loaded without a flag.
+
+* The `ign-gazebo` command line tool is deprecated. The new tool is
+  `ign gazebo`, which has all the same options, except for
+  `--distributed` and `--file`/`-f`, which have been removed.
+
 * The `entity_name` field in the messages published by the imu system is
 updated to report its scoped name.
 
