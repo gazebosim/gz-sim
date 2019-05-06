@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
 
-#include <sdf/Sensor.hh>
+#include <vector>
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
@@ -32,10 +32,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains an altimeter sensor,
-  /// sdf::Altimeter, information.
-  using Altimeter = Component<sdf::Sensor, class AltimeterTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
+  /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
+  /// prismatic).
+  using JointForce = Component<std::vector<double>, class JointForceTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointForce", JointForce)
 }
 }
 }

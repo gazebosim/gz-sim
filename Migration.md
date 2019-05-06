@@ -7,6 +7,13 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 1.x to 2.x
 
+* Changed component data types:
+    * `Altimeter` now uses `sdf::Sensor`
+    * `JointVelocity` now uses `std::vector<double>`
+
+* Deprecated components:
+    * `JointVelocity2`: use `JointVelocity`'s vector instead.
+
 * The `--distributed` command line argument has been deprecated. Use
   `--network-role` instead.
 

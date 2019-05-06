@@ -19,7 +19,10 @@
 
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
+#include <sdf/Altimeter.hh>
 #include <sdf/Magnetometer.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
@@ -35,6 +38,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
@@ -74,8 +78,23 @@ class ComponentsTest : public ::testing::Test
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Altimeter)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  sdf::Altimeter altimeter;
+  sdf::Noise noise;
+  noise.SetType(sdf::NoiseType::GAUSSIAN);
+  noise.SetMean(0.3);
+  altimeter.SetVerticalVelocityNoise(noise);
+  data1.SetAltimeterSensor(altimeter);
+  data1.SetType(sdf::SensorType::ALTIMETER);
+
+  sdf::Sensor data2;
+  sdf::Altimeter altimeter2;
+  sdf::Noise noise2;
+  noise2.SetType(sdf::NoiseType::GAUSSIAN);
+  noise2.SetMean(0.2);
+  altimeter2.SetVerticalVelocityNoise(noise2);
+  data2.SetAltimeterSensor(altimeter2);
+  data1.SetType(sdf::SensorType::ALTIMETER);
 
   // Create components
   auto comp11 = components::Altimeter(data1);
@@ -90,7 +109,17 @@ TEST_F(ComponentsTest, Altimeter)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // TODO(anyone) Stream operator
+  // Stream operator
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Altimeter comp3;
+  istr >> comp3;
+  EXPECT_EQ(sdf::SensorType::ALTIMETER, comp3.Data().Type());
+  EXPECT_EQ(sdf::NoiseType::GAUSSIAN,
+      comp3.Data().AltimeterSensor()->VerticalVelocityNoise().Type());
+  EXPECT_DOUBLE_EQ(0.3,
+      comp3.Data().AltimeterSensor()->VerticalVelocityNoise().Mean());
 }
 
 /////////////////////////////////////////////////
@@ -419,19 +448,38 @@ TEST_F(ComponentsTest, JointType)
 TEST_F(ComponentsTest, JointVelocity)
 {
   // Create components
-  auto comp11 = components::JointVelocity(1.2);
-
-  // No double comparisons
+  auto comp11 = components::JointVelocity({1.2, 2.3, 3.4});
 
   // Stream operators
   std::ostringstream ostr;
   ostr << comp11;
-  EXPECT_EQ("1.2", ostr.str());
 
-  std::istringstream istr("3.4");
+  std::istringstream istr(ostr.str());
   components::JointVelocity comp3;
   istr >> comp3;
-  EXPECT_DOUBLE_EQ(3.4, comp3.Data());
+  ASSERT_EQ(3u, comp3.Data().size());
+  EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[2]);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, JointVelocityCmd)
+{
+  // Create components
+  auto comp11 = components::JointVelocityCmd({1.2, 2.3, 3.4});
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+
+  std::istringstream istr(ostr.str());
+  components::JointVelocityCmd comp3;
+  istr >> comp3;
+  ASSERT_EQ(3u, comp3.Data().size());
+  EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
+  EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[2]);
 }
 
 /////////////////////////////////////////////////
@@ -646,10 +694,20 @@ TEST_F(ComponentsTest, Magnetometer)
   sdf::Magnetometer mag1;
   data1.SetMagnetometerSensor(mag1);
 
+  sdf::Sensor data2;
+
   // Create components
   auto comp11 = components::Magnetometer(data1);
+  auto comp12 = components::Magnetometer(data1);
+  auto comp2 = components::Magnetometer(data2);
 
-  // TODO(anyone) Equality operators
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
 
   // Stream operators
   std::ostringstream ostr;

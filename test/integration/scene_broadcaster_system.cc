@@ -288,7 +288,7 @@ TEST_P(SceneBroadcasterTest, State)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
   transport::Node node;
 
   // Run server
@@ -308,7 +308,7 @@ TEST_P(SceneBroadcasterTest, State)
 
     // State
     ASSERT_TRUE(_msg.has_state());
-    EXPECT_EQ(15, _msg.state().entities().size());
+    EXPECT_EQ(16, _msg.state().entities().size());
 
     received = true;
   };
