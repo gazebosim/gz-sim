@@ -7,6 +7,12 @@ release will remove the deprecated code.
 
 ## Ignition Gazebo 1.x to 2.x
 
+* Changed component data types:
+    * `JointVelocity` now uses `std::vector<double>`
+
+* Deprecated components:
+    * `JointVelocity2`: use `JointVelocity`'s vector instead.
+
 * The `entity_name` field in the messages published by the imu system is
 updated to report its scoped name.
 
