@@ -137,6 +137,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::function<
       std::string(sdf::ElementPtr, const std::string &)>
       createSensorCb;
+
+  /// \brief Entity currently being selected.
+  public: rendering::NodePtr selectedEntity;
 };
 
 //////////////////////////////////////////////////
@@ -305,7 +308,8 @@ void RenderUtil::Update()
   for (auto &pose : entityPoses)
   {
     auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (node)
+    if (node && node != this->dataPtr->selectedEntity &&
+        node->Parent() != this->dataPtr->selectedEntity)
       node->SetLocalPose(pose.second);
   }
 }
@@ -449,8 +453,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Model *,
         const components::Pose *_pose)->bool
       {
-//        if (!this->enableSensors)
-//          std::cerr << "model pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -460,8 +462,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Link *,
         const components::Pose *_pose)->bool
       {
-//        if (!this->enableSensors)
-//          std::cerr << "link pose data " << _pose->Data() << std::endl;
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -472,8 +472,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Visual *,
         const components::Pose *_pose)->bool
       {
-//          std::cerr << "visual pose data " << _pose->Data() << std::endl;
-        this->entityPoses[_entity] = _pose->Data();
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -656,4 +654,16 @@ void RenderUtil::SetEnableSensors(bool _enable,
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = _createSensorCb;
+}
+
+/////////////////////////////////////////////////
+SceneManager &RenderUtil::SceneManager()
+{
+  return this->dataPtr->sceneManager;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
+{
+  this->dataPtr->selectedEntity = _node;
 }

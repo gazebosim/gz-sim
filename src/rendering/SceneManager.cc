@@ -612,3 +612,20 @@ void SceneManager::RemoveEntity(uint64_t _id)
     }
   }
 }
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::ModelVisual(
+    rendering::VisualPtr _visual) const
+{
+  rendering::VisualPtr rootVisual =
+      this->dataPtr->scene->RootVisual();
+
+  rendering::VisualPtr visual = _visual;
+  while (visual && visual->Parent() != rootVisual)
+  {
+    visual =
+      std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+  }
+
+  return visual;
+}
