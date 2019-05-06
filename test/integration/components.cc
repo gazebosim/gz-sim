@@ -420,7 +420,7 @@ TEST_F(ComponentsTest, JointType)
 TEST_F(ComponentsTest, JointVelocity)
 {
   // Create components
-  auto comp11 = components::JointVelocity({1.2, 0, 0});
+  auto comp11 = components::JointVelocity({1.2, 2.3, 3.4});
 
   // Stream operators
   std::ostringstream ostr;
@@ -429,16 +429,17 @@ TEST_F(ComponentsTest, JointVelocity)
   std::istringstream istr(ostr.str());
   components::JointVelocity comp3;
   istr >> comp3;
+  ASSERT_EQ(3u, comp3.Data().size());
   EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
-  EXPECT_DOUBLE_EQ(0, comp3.Data()[1]);
-  EXPECT_DOUBLE_EQ(0, comp3.Data()[2]);
+  EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[2]);
 }
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, JointVelocityCmd)
 {
   // Create components
-  auto comp11 = components::JointVelocityCmd({1.2, 0, 0});
+  auto comp11 = components::JointVelocityCmd({1.2, 2.3, 3.4});
 
   // Stream operators
   std::ostringstream ostr;
@@ -447,9 +448,10 @@ TEST_F(ComponentsTest, JointVelocityCmd)
   std::istringstream istr(ostr.str());
   components::JointVelocityCmd comp3;
   istr >> comp3;
+  ASSERT_EQ(3u, comp3.Data().size());
   EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
-  EXPECT_DOUBLE_EQ(0, comp3.Data()[1]);
-  EXPECT_DOUBLE_EQ(0, comp3.Data()[2]);
+  EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
+  EXPECT_DOUBLE_EQ(3.4, comp3.Data()[2]);
 }
 
 /////////////////////////////////////////////////
