@@ -52,7 +52,5 @@ See more about the usage of the keyboard plugin in `examples/standalone/keyboard
 
 ## Known Issues
 
-* Currently, battery charge is modeled by voltage. The battery drains completely when voltage falls below 0. In the future, the charge should be modeled by capacity calculated from voltage.
-
 * The rate of consumption should be affected by torque. For example, going uphill should consume more power than going downhill.
 

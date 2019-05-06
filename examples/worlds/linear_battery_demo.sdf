@@ -523,7 +523,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
-        <power_load>50</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
+        <power_load>6.6</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
       </plugin>
 
     </model>
