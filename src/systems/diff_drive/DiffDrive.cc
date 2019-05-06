@@ -23,7 +23,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "DiffDrive.hh"
@@ -155,32 +155,32 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   for (Entity joint : this->dataPtr->leftJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocity>(joint);
+    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
     if (vel == nullptr)
     {
-      _ecm.CreateComponent(joint,
-          components::JointVelocity(this->dataPtr->leftJointSpeed));
+      _ecm.CreateComponent(
+          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocity(this->dataPtr->leftJointSpeed);
+      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
     }
   }
 
   for (Entity joint : this->dataPtr->rightJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocity>(joint);
+    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
     if (vel == nullptr)
     {
       _ecm.CreateComponent(joint,
-          components::JointVelocity(this->dataPtr->rightJointSpeed));
+          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
     }
     else
     {
-      *vel = components::JointVelocity(this->dataPtr->rightJointSpeed);
+      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
     }
   }
 }
