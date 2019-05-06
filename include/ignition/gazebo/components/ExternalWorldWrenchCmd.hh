@@ -33,6 +33,9 @@ namespace components
   /// \brief A component type that contains the external wrench to be applied on
   /// an entity expressed in the world frame and represented by
   /// ignition::msgs::Wrench.
+  /// Currently this is used for applying wrenches on links. Although the
+  /// msg::Wrench type has a force_offset member, the value is currently
+  /// ignored. Instead, the force is applied at the link origin.
   /// The wrench uses SI units (N for force and N⋅m for torque).
   using ExternalWorldWrenchCmd =
       Component<msgs::Wrench, class ExternalWorldWrenchCmdTag>;
