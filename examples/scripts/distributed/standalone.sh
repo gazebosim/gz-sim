@@ -2,4 +2,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-ign-gazebo -v 4 -z 100000000 -f $DIR/standalone.sdf
+ign gazebo -v 4 -z 100000000 $DIR/standalone.sdf
