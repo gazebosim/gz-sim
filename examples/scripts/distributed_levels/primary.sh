@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # --levels is implied by --network-role
-ign-gazebo -v 4 -z 100000000 --network-role=primary --network-secondaries=2 -f $DIR/primary.sdf
+ign gazebo -v 4 -z 100000000 --network-role primary --network-secondaries 2 $DIR/primary.sdf
 
 # Ignition Gazebo 1.x.x and 2.x.x support using environment variables to
 # configure distributed simulation. This capability is deprecated in

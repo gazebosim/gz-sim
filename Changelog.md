@@ -26,6 +26,9 @@
 
 ### Ignition Gazebo 1.X.X
 
+1. Add Wind Plugin (Ported from Gazebo classic)
+    * [Pull Request 273](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/273/)
+
 1. Add `Link`: a convenience class for interfacing with link entities
     * [Pull Request 269](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/269)
 
