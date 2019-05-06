@@ -90,6 +90,15 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Instantaneous battery charge in Ah.
   public: double q{0.0};
 
+  /// \brief State of charge
+  public: double soc{1.0};
+
+  /// \brief Battery current for a historic time window
+  public: std::deque<double> iList;
+
+  /// \brief Time interval for a historic time window
+  public: std::deque<double> dtList;
+
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
 };
@@ -217,7 +226,7 @@ void LinearBatteryPluginPrivate::Reset()
 /////////////////////////////////////////////////
 double LinearBatteryPluginPrivate::StateOfCharge() const
 {
-  return this->q / this->c;
+  return this->soc;
 }
 
 //////////////////////////////////////////////////
@@ -267,6 +276,15 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
 
+  // Keep a list of historic currents and time intervals
+  if (this->dataPtr->iList.size() >= 100)
+  {
+    this->dataPtr->iList.pop_front();
+    this->dataPtr->dtList.pop_front();
+  }
+  this->dataPtr->iList.push_back(this->dataPtr->ismooth);
+  this->dataPtr->dtList.push_back(dt);
+
   // Convert dt to hours
   this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
     3600.0);
@@ -274,6 +292,12 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
     1 - this->dataPtr->q / this->dataPtr->c)
       - this->dataPtr->r * this->dataPtr->ismooth;
+
+  // Estimate state of charge
+  double isum = 0.0;
+  for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
+    isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
+  this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
 
   // Throttle debug messages
   auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
