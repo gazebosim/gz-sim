@@ -438,12 +438,12 @@ namespace ignition
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
-      public: void ClearNewlyCreatedEntities();
+      protected: void ClearNewlyCreatedEntities();
 
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components. This function is protected to
       /// facilitate testing.
-      public: void ProcessRemoveEntityRequests();
+      protected: void ProcessRemoveEntityRequests();
 
       /// \brief Get whether an Entity exists and is new.
       ///
@@ -584,12 +584,13 @@ namespace ignition
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
-      /// Make simulation runner a friend so that it can trigger entity
-      /// removals. This should be safe since SimulationRunner is internal
-      /// to Gazebo.
+      // Make runners friends so that they can manage entity creation and
+      // removal. This should be safe since runners are internal
+      // to Gazebo.
+      friend class GuiRunner;
       friend class SimulationRunner;
 
-      /// Make View a friend so that it can access components.
+      // Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
       friend class detail::View;
     };
