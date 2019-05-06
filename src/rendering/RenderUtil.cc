@@ -100,30 +100,30 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief New models to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<uint64_t, sdf::Model, uint64_t>> newModels;
+  public: std::vector<std::tuple<Entity, sdf::Model, Entity>> newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<uint64_t, sdf::Link, uint64_t>> newLinks;
+  public: std::vector<std::tuple<Entity, sdf::Link, Entity>> newLinks;
 
   /// \brief New visuals to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<uint64_t, sdf::Visual, uint64_t>> newVisuals;
+  public: std::vector<std::tuple<Entity, sdf::Visual, Entity>> newVisuals;
 
   /// \brief New lights to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<uint64_t, sdf::Light, uint64_t>> newLights;
+  public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
 
   /// \brief New sensors to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<uint64_t, std::string, uint64_t>>
+  public: std::vector<std::tuple<Entity, std::string, Entity>>
       newSensors;
 
   /// \brief Ids of entities to be removed
-  public: std::set<uint64_t> removeEntities;
+  public: std::set<Entity> removeEntities;
 
   /// \brief A map of entity ids and pose updates.
-  public: std::map<uint64_t, math::Pose3d> entityPoses;
+  public: std::map<Entity, math::Pose3d> entityPoses;
 
   /// \brief Mutex to protect updates
   public: std::mutex updateMutex;
@@ -192,7 +192,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
 
-  std::vector<std::tuple<uint64_t, std::string, uint64_t>> newSensors;
+  std::vector<std::tuple<Entity, std::string, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
   {
     // todo(anyone) switch to use std::move once sensors have been updated
@@ -246,9 +246,9 @@ void RenderUtil::Update()
   {
     for (auto &sensor : newSensors)
     {
-       uint64_t entity = std::get<0>(sensor);
+       Entity entity = std::get<0>(sensor);
        std::string dataStr = std::get<1>(sensor);
-       uint64_t parent = std::get<2>(sensor);
+       Entity parent = std::get<2>(sensor);
 
        static sdf::SDFPtr sdfParsed;
        if (!sdfParsed)
@@ -295,14 +295,12 @@ void RenderUtil::Update()
     }
   }
 
-
   // remove existing entities
   // \todo(anyone) Remove sensors
   for (auto &entity : removeEntities)
   {
     this->dataPtr->sceneManager.RemoveEntity(entity);
   }
-
 
   // update entities' pose
   for (auto &pose : entityPoses)
@@ -323,7 +321,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
   // extend the sensor system to support mutliple scenes in the future
   _ecm.EachNew<components::World, components::Scene>(
       [&](const Entity & _entity,
-        const components::World * /* _world */ ,
+        const components::World *,
         const components::Scene *_scene)->bool
       {
         this->sceneManager.SetWorldId(_entity);
@@ -488,7 +486,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 
   // Update cameras
   _ecm.Each<components::Camera, components::Pose>(
-    [&](const Entity &_entity,
+      [&](const Entity &_entity,
         const components::Camera *,
         const components::Pose *_pose)->bool
       {
@@ -498,7 +496,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 
   // Update depth cameras
   _ecm.Each<components::DepthCamera, components::Pose>(
-    [&](const Entity &_entity,
+      [&](const Entity &_entity,
         const components::DepthCamera *,
         const components::Pose *_pose)->bool
       {
@@ -508,7 +506,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 
   // Update gpu_lidar
   _ecm.Each<components::GpuLidar, components::Pose>(
-    [&](const Entity &_entity,
+      [&](const Entity &_entity,
         const components::GpuLidar *,
         const components::Pose *_pose)->bool
       {
