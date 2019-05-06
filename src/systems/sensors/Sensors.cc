@@ -89,7 +89,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
-        _ecm.HasComponentType(components::GpuLidar::typeId)))
+       _ecm.HasComponentType(components::GpuLidar::typeId)))
   {
     this->dataPtr->renderUtil.Init();
     this->dataPtr->scene = this->dataPtr->renderUtil.Scene();
