@@ -15,7 +15,10 @@
  *
  */
 
+#include <ignition/msgs/Utility.hh>
+
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
@@ -70,6 +73,12 @@ Link &Link::operator=(Link &&_link) noexcept = default;
 Entity Link::Entity() const
 {
   return this->dataPtr->id;
+}
+
+//////////////////////////////////////////////////
+void Link::ResetEntity(gazebo::Entity _newEntity)
+{
+  this->dataPtr->id = _newEntity;
 }
 
 //////////////////////////////////////////////////
@@ -197,3 +206,44 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
   return std::make_optional(
       math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
 }
+
+//////////////////////////////////////////////////
+void Link::AddWorldForce(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial || !worldPose)
+    return;
+
+  // We want the force to be applied at the center of mass, but
+  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
+  // compute the resulting force and torque on the link origin.
+  auto posComWorldCoord =
+      worldPose->Data().Rot().RotateVector(inertial->Data().Pose().Pos());
+
+  math::Vector3d torque = posComWorldCoord.Cross(_force);
+
+  auto linkWrenchComp =
+      _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
+
+  components::ExternalWorldWrenchCmd wrench;
+
+  if (!linkWrenchComp)
+  {
+    msgs::Set(wrench.Data().mutable_force(), _force);
+    msgs::Set(wrench.Data().mutable_torque(), torque);
+    _ecm.CreateComponent(this->dataPtr->id, wrench);
+  }
+  else
+  {
+    msgs::Set(linkWrenchComp->Data().mutable_force(),
+              msgs::Convert(linkWrenchComp->Data().force()) + _force);
+
+    msgs::Set(linkWrenchComp->Data().mutable_torque(),
+              msgs::Convert(linkWrenchComp->Data().torque()) + torque);
+  }
+}
+
