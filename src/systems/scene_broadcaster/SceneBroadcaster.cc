@@ -15,10 +15,10 @@
  *
 */
 
+#include <ignition/msgs/scene.pb.h>
+
 #include <chrono>
 #include <condition_variable>
-
-#include <ignition/msgs/scene.pb.h>
 
 #include <ignition/common/Profiler.hh>
 #include <ignition/math/graph/Graph.hh>
@@ -281,9 +281,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
-  // State
+  // Whether the state service has been requested
   auto shouldServe = !this->dataPtr->stepMsg.has_state();
 
+  // Publish state only if there are subscribers, and throttle rate to 60 Hz.
+  // Throttle here instead of using transport::AdvertiseMessageOptions so that
+  // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (now - this->dataPtr->lastStatePubTime >
@@ -451,6 +454,14 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
   SceneGraphType newGraph;
   auto worldVertex = this->sceneGraph.VertexFromId(this->worldEntity);
   newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(), worldVertex.Id());
+
+  // Worlds: check this in case we're loading a world without models
+  _manager.EachNew<components::World>(
+      [&](const Entity &, const components::World *) -> bool
+      {
+        newEntity = true;
+        return false;
+      });
 
   // Models
   _manager.EachNew<components::Model, components::Name,
