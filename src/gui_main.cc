@@ -26,10 +26,6 @@
 #include <ignition/gui/MainWindow.hh>
 
 #include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
 // Gflag command line argument definitions
@@ -42,6 +38,9 @@ DEFINE_int32(v, 1, "");
 void help()
 {
   std::cout
+  << "DEPRECATED: Use the 'ign gazebo' command line tool."
+  << std::endl
+  << std::endl
   << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
   << std::endl
   << "`ign-gazebo-gui` [options]" << std::endl
@@ -127,6 +126,8 @@ int main(int _argc, char **_argv)
   }
 
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
+  ignerr << "The ign-gazebo-gui tool is deprecated, and is replaced by "
+    << "`ign gazebo`\n";
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
@@ -135,7 +136,6 @@ int main(int _argc, char **_argv)
 
   // Initialize Qt app
   ignition::gui::Application app(_argc, _argv);
-  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
@@ -203,14 +203,11 @@ int main(int _argc, char **_argv)
 
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
-  std::vector<ignition::gazebo::GuiRunner *> runners;
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
-    auto worldName = worldsMsg.data(w);
-
     // Request GUI info for each world
     result = false;
-    service = std::string("/world/" + worldName + "/gui/info");
+    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
 
     igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
@@ -236,21 +233,11 @@ int main(int _argc, char **_argv)
       ignition::gui::App()->LoadPlugin(fileName,
           pluginDoc.FirstChildElement("plugin"));
     }
-
-    // GUI runner
-    auto runner = new ignition::gazebo::GuiRunner(worldName);
-    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-      &ignition::gazebo::GuiRunner::OnPluginAdded);
-    runners.push_back(runner);
   }
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
   app.exec();
-
-  for (auto runner : runners)
-    delete runner;
-  runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
   return 0;

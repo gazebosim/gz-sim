@@ -76,7 +76,6 @@ void help()
   << "  -z arg                 Update rate in Hertz."
   << std::endl
   << "  -r                     Run simulation on start."
-  << " The default is false, which starts simulation paused."
   << std::endl
   << "  --levels               Use the level system."
   << std::endl
@@ -97,7 +96,6 @@ void help()
   << " expected to join a distributed simulation environment. (Primary only)"
   << std::endl
   << "  --record               Use logging system to record states."
-  << " The default is false."
   << std::endl
   << "  --record-path arg      Custom path to put recorded files."
   << " Arg is path to recorded states."

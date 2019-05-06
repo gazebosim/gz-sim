@@ -20,8 +20,14 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/Collision.hh"
+#include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "EntityTree.hh"
@@ -33,12 +39,38 @@ namespace ignition::gazebo
     /// \brief Model holding all the current entities in the world.
     public: TreeModel treeModel;
 
+    /// \brief True if initialized
     public: bool initialized{false};
+
+    /// \brief World entity
+    public: Entity worldEntity{kNullEntity};
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
+
+//////////////////////////////////////////////////
+QString entityType(Entity _entity,
+    const EntityComponentManager &_ecm)
+{
+  if (nullptr != _ecm.Component<components::Model>(_entity))
+    return QString("model");
+
+  if (nullptr != _ecm.Component<components::Link>(_entity))
+    return QString("link");
+
+  if (nullptr != _ecm.Component<components::Joint>(_entity))
+    return QString("joint");
+
+  if (nullptr != _ecm.Component<components::Collision>(_entity))
+    return QString("collision");
+
+  if (nullptr != _ecm.Component<components::Visual>(_entity))
+    return QString("visual");
+
+  return QString();
+}
 
 /////////////////////////////////////////////////
 TreeModel::TreeModel() : QStandardItemModel()
@@ -47,7 +79,7 @@ TreeModel::TreeModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
-    unsigned int _parentEntity)
+    unsigned int _parentEntity, const QString &_type)
 {
   QStandardItem *parentItem{nullptr};
 
@@ -76,6 +108,11 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
   // New entity item
   auto entityItem = new QStandardItem(_entityName);
   entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
+  if (!_type.isEmpty())
+  {
+    entityItem->setData(QUrl("qrc:/Gazebo/images/" + _type + ".png"),
+        Qt::DecorationRole);
+  }
 
   parentItem->appendRow(entityItem);
 
@@ -119,7 +156,8 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
   return {std::pair(Qt::DisplayRole, "entityName"),
-          std::pair(Qt::ToolTipRole, "entity")};
+          std::pair(Qt::ToolTipRole, "entity"),
+          std::pair(Qt::DecorationRole, "icon")};
 }
 
 /////////////////////////////////////////////////
@@ -153,6 +191,16 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
       [&](const Entity &_entity,
           const components::Name *_name)->bool
     {
+      auto worldComp = _ecm.Component<components::World>(_entity);
+      if (worldComp)
+      {
+        this->dataPtr->worldEntity = _entity;
+
+        // Skipping the world for now to keep the tree shallow
+        return true;
+      }
+
+      // Parent
       Entity parentEntity{kNullEntity};
 
       auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
@@ -161,34 +209,38 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         parentEntity = parentComp->Data();
       }
 
+      // World children are top-level
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
+      }
+
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity));
+          Q_ARG(unsigned int, parentEntity),
+          Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
     this->dataPtr->initialized = true;
   }
   else
   {
-    _ecm.EachNew<components::Name>(
+    // Requiring a parent entity because we're not adding the world, which is
+    // parentless, to the tree
+    _ecm.EachNew<components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
-          const components::Name *_name)->bool
+          const components::Name *_name,
+          const components::ParentEntity *_parentEntity)->bool
     {
-      Entity parentEntity{kNullEntity};
-
-      auto parentComp = _ecm.Component<components::ParentEntity>(_entity);
-      if (parentComp)
-      {
-        parentEntity = parentComp->Data();
-      }
-
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, parentEntity));
+          Q_ARG(unsigned int, _parentEntity->Data()),
+          Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });
   }

@@ -181,6 +181,20 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>altimeter</topic>
+          <altimeter>
+            <vertical_position>
+              <noise type="gaussian">
+                <mean>0.1</mean>
+                <stddev>0.2</stddev>
+              </noise>
+            </vertical_position>
+            <vertical_velocity>
+              <noise type="gaussian">
+                <mean>0.2</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </vertical_velocity>
+          </altimeter>
         </sensor>
         <sensor name="imu" type="imu">
           <always_on>1</always_on>
@@ -193,6 +207,26 @@
           <update_rate>100</update_rate>
           <visualize>true</visualize>
           <topic>magnetometer</topic>
+          <magnetometer>
+            <x>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </x>
+            <y>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </y>
+            <z>
+              <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </z>
+          </magnetometer>
         </sensor>
       </link>
     </model>
