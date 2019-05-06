@@ -222,12 +222,6 @@ void IgnRenderer::HandleMouseTransformControl()
   if (!this->dataPtr->mouseDirty)
     return;
 
-  //// handle entity selection
-  //if (!this->dataPtr->transformControl.Node()
-  //    && this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
-  //{
-  //}
-
   // handle transform control
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT)
   {
@@ -238,7 +232,6 @@ void IgnRenderer::HandleMouseTransformControl()
       rendering::VisualPtr visual = this->dataPtr->camera->VisualAt(
             this->dataPtr->mouseEvent.PressPos());
 
-      std::cerr << " mouse press visual " << visual << std::endl;
       if (visual)
       {
         // check if the visual is an axis in the gizmo visual
@@ -264,12 +257,8 @@ void IgnRenderer::HandleMouseTransformControl()
       }
       else
       {
-        std::cerr << " mouse release selecting " << this->dataPtr->mouseEvent.Pos() << std::endl;
-
         rendering::VisualPtr v = this->dataPtr->camera->VisualAt(
               this->dataPtr->mouseEvent.Pos());
-
-        std::cerr << " === selection buffer visual " << v << std::endl;
 
         rendering::VisualPtr visual = this->dataPtr->camera->Scene()->VisualAt(
               this->dataPtr->camera,
@@ -289,7 +278,6 @@ void IgnRenderer::HandleMouseTransformControl()
           if (model && model->Name() != "ground_plane")
           {
             this->dataPtr->transformControl.Attach(model);
-            std::cerr << "selected " << model->Name() << std::endl;
             this->dataPtr->renderUtil->SetSelectedEntity(model);
             this->dataPtr->mouseDirty = false;
             return;
@@ -302,8 +290,6 @@ void IgnRenderer::HandleMouseTransformControl()
   if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::MOVE
       && this->dataPtr->transformControl.Active())
   {
-
-    std::cerr << " mouse move " << std::endl;
     // compute the the start and end mouse positions in normalized coordinates
     double imageWidth = static_cast<double>(
         this->dataPtr->camera->ImageWidth());
@@ -318,7 +304,6 @@ void IgnRenderer::HandleMouseTransformControl()
 
     // get the current active axis
     math::Vector3d axis = this->dataPtr->transformControl.ActiveAxis();
-    std::cerr << "active axis " << axis << std::endl;
 
     // compute 3d transformation from 2d mouse movement
     if (this->dataPtr->transformControl.Mode() ==
@@ -910,7 +895,6 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
   auto dragInt = event.Pos() - this->dataPtr->mouseEvent.Pos();
   auto dragDistance = math::Vector2d(dragInt.X(), dragInt.Y());
 
-  std::cerr << "qt mouse move " << std::endl;
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::MOVE);
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
