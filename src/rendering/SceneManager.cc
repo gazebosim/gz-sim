@@ -45,19 +45,19 @@ class ignition::gazebo::SceneManagerPrivate
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
   /// Defaults to zero, which is considered invalid by Ignition Gazebo.
-  public: uint64_t worldId{0};
+  public: Entity worldId{0};
 
   //// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene;
 
   /// \brief Map of visual entity in Gazebo to visual pointers.
-  public: std::map<uint64_t, rendering::VisualPtr> visuals;
+  public: std::map<Entity, rendering::VisualPtr> visuals;
 
   /// \brief Map of light entity in Gazebo to light pointers.
-  public: std::map<uint64_t, rendering::LightPtr> lights;
+  public: std::map<Entity, rendering::LightPtr> lights;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
-  public: std::map<uint64_t, rendering::SensorPtr> sensors;
+  public: std::map<Entity, rendering::SensorPtr> sensors;
 };
 
 
@@ -83,14 +83,14 @@ rendering::ScenePtr SceneManager::Scene() const
 }
 
 /////////////////////////////////////////////////
-void SceneManager::SetWorldId(uint64_t _id)
+void SceneManager::SetWorldId(Entity _id)
 {
   this->dataPtr->worldId = _id;
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateModel(uint64_t _id,
-    const sdf::Model &_model, uint64_t _parentId)
+rendering::VisualPtr SceneManager::CreateModel(Entity _id,
+    const sdf::Model &_model, Entity _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -129,8 +129,8 @@ rendering::VisualPtr SceneManager::CreateModel(uint64_t _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateLink(uint64_t _id,
-    const sdf::Link &_link, uint64_t _parentId)
+rendering::VisualPtr SceneManager::CreateLink(Entity _id,
+    const sdf::Link &_link, Entity _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -167,8 +167,8 @@ rendering::VisualPtr SceneManager::CreateLink(uint64_t _id,
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::CreateVisual(uint64_t _id,
-    const sdf::Visual &_visual, uint64_t _parentId)
+rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
+    const sdf::Visual &_visual, Entity _parentId)
 {
   if (this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end())
   {
@@ -425,8 +425,8 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
 }
 
 /////////////////////////////////////////////////
-rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
-    const sdf::Light &_light, uint64_t _parentId)
+rendering::LightPtr SceneManager::CreateLight(Entity _id,
+    const sdf::Light &_light, Entity _parentId)
 {
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
@@ -503,8 +503,8 @@ rendering::LightPtr SceneManager::CreateLight(uint64_t _id,
 }
 
 /////////////////////////////////////////////////
-bool SceneManager::AddSensor(uint64_t _gazeboId, const std::string &_sensorName,
-    uint64_t _parentGazeboId)
+bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
+    Entity _parentGazeboId)
 {
   if (this->dataPtr->sensors.find(_gazeboId) != this->dataPtr->sensors.end())
   {
@@ -544,7 +544,7 @@ bool SceneManager::AddSensor(uint64_t _gazeboId, const std::string &_sensorName,
 }
 
 /////////////////////////////////////////////////
-bool SceneManager::HasEntity(uint64_t _id) const
+bool SceneManager::HasEntity(Entity _id) const
 {
   return this->dataPtr->visuals.find(_id) != this->dataPtr->visuals.end() ||
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
@@ -552,7 +552,7 @@ bool SceneManager::HasEntity(uint64_t _id) const
 }
 
 /////////////////////////////////////////////////
-rendering::NodePtr SceneManager::NodeById(uint64_t _id) const
+rendering::NodePtr SceneManager::NodeById(Entity _id) const
 {
   auto vIt = this->dataPtr->visuals.find(_id);
   if (vIt != this->dataPtr->visuals.end())
@@ -579,7 +579,7 @@ rendering::NodePtr SceneManager::NodeById(uint64_t _id) const
 }
 
 /////////////////////////////////////////////////
-void SceneManager::RemoveEntity(uint64_t _id)
+void SceneManager::RemoveEntity(Entity _id)
 {
   {
     auto it = this->dataPtr->visuals.find(_id);
