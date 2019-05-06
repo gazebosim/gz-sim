@@ -21,7 +21,6 @@
 #include <sdf/Sensor.hh>
 
 #include <ignition/math/Helpers.hh>
-#include <ignition/transport/Node.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/AirPressureSensor.hh>
@@ -30,7 +29,6 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
@@ -82,7 +80,7 @@ void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
 
 //////////////////////////////////////////////////
 void AirPressure::PostUpdate(const UpdateInfo &_info,
-                           const EntityComponentManager &_ecm)
+                             const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -133,7 +131,6 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
         math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
         sensor->SetPose(sensorWorldPose);
 
-
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
 
@@ -146,7 +143,7 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
   _ecm.Each<components::AirPressure, components::WorldPose>(
     [&](const Entity &_entity,
-        const components::AirPressure * /*_airPressure*/,
+        const components::AirPressure *,
         const components::WorldPose *_worldPose)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
