@@ -33,7 +33,7 @@ Gazebo ships with an example world that demos the levels feature. Try it as foll
 
 1. Run the example world with the `--levels` flag:
 
-    `ign-gazebo -f levels.sdf --levels`
+    `ign gazebo levels.sdf --levels`
 
     Gazebo will open with a world that has 2 vehicles, one red and one blue.
 

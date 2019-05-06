@@ -47,8 +47,8 @@ namespace systems
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
-                           const std::shared_ptr<const sdf::Element> &,
-                           EntityComponentManager &_ecm, EventManager &);
+        const std::shared_ptr<const sdf::Element> &,
+        EntityComponentManager &_ecm, EventManager &) override;
 
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,

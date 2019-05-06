@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
+#include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Gui.hh>
@@ -552,4 +553,69 @@ TEST(CONVERSIONS, MagnetometerSensor)
 
   EXPECT_FALSE(msg.magnetometer().has_y_noise());
   EXPECT_FALSE(msg.magnetometer().has_z_noise());
+}
+
+/////////////////////////////////////////////////
+TEST(CONVERSIONS, AltimeterSensor)
+{
+  sdf::Sensor sensor;
+  sensor.SetName("my_sensor");
+  sensor.SetType(sdf::SensorType::ALTIMETER);
+  sensor.SetUpdateRate(12.4);
+  sensor.SetTopic("my_topic");
+  sensor.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Noise noise;
+  noise.SetType(sdf::NoiseType::GAUSSIAN);
+  noise.SetMean(1.2);
+  noise.SetStdDev(2.6);
+  noise.SetBiasMean(0.2);
+  noise.SetBiasStdDev(12.16);
+  noise.SetPrecision(0.01);
+
+  sdf::Altimeter alt;
+  alt.SetVerticalPositionNoise(noise);
+  sensor.SetAltimeterSensor(alt);
+
+  msgs::Sensor msg = convert<msgs::Sensor>(sensor);
+  EXPECT_EQ(sensor.Name(), msg.name());
+  EXPECT_EQ(sensor.TypeStr(), msg.type());
+  EXPECT_DOUBLE_EQ(sensor.UpdateRate(), msg.update_rate());
+  EXPECT_EQ(sensor.Topic(), msg.topic());
+  EXPECT_EQ(sensor.Pose(), msgs::Convert(msg.pose()));
+
+  ASSERT_TRUE(msg.has_altimeter());
+
+  sdf::Noise defaultNoise;
+  sdf::Noise convertedNoise;
+  convertedNoise = convert<sdf::Noise>(
+      msg.altimeter().vertical_position_noise());
+  EXPECT_EQ(noise, convertedNoise);
+
+  EXPECT_FALSE(msg.altimeter().has_vertical_velocity_noise());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, UpdateInfo)
+{
+  UpdateInfo info;
+  info.simTime = 1234ms;
+  info.realTime = 2345ms;
+  info.dt = 3456ms;
+  info.iterations = 1234;
+  info.paused = true;
+
+  auto statsMsg = convert<msgs::WorldStatistics>(info);
+  EXPECT_EQ(1, statsMsg.sim_time().sec());
+  EXPECT_EQ(234000000, statsMsg.sim_time().nsec());
+  EXPECT_EQ(2, statsMsg.real_time().sec());
+  EXPECT_EQ(345000000, statsMsg.real_time().nsec());
+  EXPECT_EQ(3, statsMsg.step_size().sec());
+  EXPECT_EQ(456000000, statsMsg.step_size().nsec());
+  EXPECT_EQ(1234u, statsMsg.iterations());
+  EXPECT_TRUE(statsMsg.paused());
+
+  auto newInfo = convert<UpdateInfo>(statsMsg);
+  EXPECT_EQ(1234000000, newInfo.simTime.count());
+  EXPECT_TRUE(newInfo.paused);
 }

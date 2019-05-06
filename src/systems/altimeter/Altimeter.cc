@@ -112,13 +112,13 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
       {
         // create sensor
         std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
-        auto data = _altimeter->Data()->Clone();
-        data->GetAttribute("name")->Set(sensorScopedName);
+        sdf::Sensor data = _altimeter->Data();
+        data.SetName(sensorScopedName);
         // check topic
-        if (!data->HasElement("topic"))
+        if (data.Topic().empty())
         {
           std::string topic = scopedName(_entity, _ecm) + "/altimeter";
-          data->GetElement("topic")->Set(topic);
+          data.SetTopic(topic);
         }
         std::unique_ptr<sensors::AltimeterSensor> sensor =
             this->sensorFactory.CreateSensor<
