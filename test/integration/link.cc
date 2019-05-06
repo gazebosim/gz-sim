@@ -74,6 +74,22 @@ TEST_F(LinkIntegrationTest, Valid)
 }
 
 //////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, ResetEntity)
+{
+  EntityComponentManager ecm;
+  auto eLink1 = ecm.CreateEntity();
+  ecm.CreateComponent(eLink1, components::Link());
+  auto eLink2 = ecm.CreateEntity();
+  ecm.CreateComponent(eLink2, components::Link());
+
+  Link link(eLink1);
+  EXPECT_EQ(eLink1, link.Entity());
+
+  link.ResetEntity(eLink2);
+  EXPECT_EQ(eLink2, link.Entity());
+}
+
+//////////////////////////////////////////////////
 TEST_F(LinkIntegrationTest, Name)
 {
   EntityComponentManager ecm;

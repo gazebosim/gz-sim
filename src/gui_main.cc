@@ -38,6 +38,9 @@ DEFINE_int32(v, 1, "");
 void help()
 {
   std::cout
+  << "DEPRECATED: Use the 'ign gazebo' command line tool."
+  << std::endl
+  << std::endl
   << "ign-gazebo-gui -- Run the Gazebo GUI." << std::endl
   << std::endl
   << "`ign-gazebo-gui` [options]" << std::endl
@@ -123,6 +126,8 @@ int main(int _argc, char **_argv)
   }
 
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
+  ignerr << "The ign-gazebo-gui tool is deprecated, and is replaced by "
+    << "`ign gazebo`\n";
   ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
