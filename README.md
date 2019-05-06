@@ -198,13 +198,13 @@ for dependency installation instructions for each supported operating system.
 Gazebo can be run from the command line, once [installed](#markdown-header-install), using:
 
 ```
-ign-gazebo
+ign gazebo
 ```
 
 For help, and command line options use:
 
 ```
-ign-gazebo -h
+ign gazebo -h
 ```
 
 # Documentation

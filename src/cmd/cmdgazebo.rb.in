@@ -1,0 +1,346 @@
+#!/usr/bin/ruby
+
+# Copyright (C) 2019 Open Source Robotics Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < '2'
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
+require 'optparse'
+require 'erb'
+
+# Constants.
+LIBRARY_NAME = '@IGN_LIBRARY_NAME@'
+LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+
+COMMON_OPTIONS =
+               "  -h [--help]                Print this help message.\n"\
+               "                                                    \n"        +
+               "  --force-version <VERSION>  Use a specific library version.\n"\
+               "                                                    \n"        +
+               '  --versions                 Show the available versions.'
+
+COMMANDS = { 'gazebo' =>
+  "Run and manage Gazebo simulations.                                       \n"\
+  "                                                                         \n"\
+  "  ign gazebo [options] [file]                                            \n"\
+  "                                                                         \n"\
+  "                                                                         \n"\
+  "Available Options:                                                       \n"\
+  "  -g                          Run only the GUI.                          \n"\
+  "\n"\
+  "  --iterations [arg]          Number of iterations to execute.           \n"\
+  "\n"\
+  "  --levels                    Use the level system. The default is false,\n"\
+  "                              which loads all models. It's always true   \n"\
+  "                              with --network-role.                       \n"\
+  "\n"\
+  "  --network-role [arg]        Participant role used in a distributed     \n"\
+  "                              simulation environment. Role is one of     \n"\
+  "                              [primary, secondary]. It implies --levels. \n"\
+  "\n"\
+  "  --network-secondaries [arg] Number of secondary participants expected  \n"\
+  "                              to join a distributed simulation           \n"\
+  "                              environment. (Primary only).               \n"\
+  "\n"\
+  "  --playback [arg]            Use logging system to play back states.    \n"\
+  "                              Argument is path to recorded states.       \n"\
+  "\n"\
+  "  -r                          Run simulation on start.                   \n"\
+  "\n"\
+  "  --record                 Use logging system to record states.          \n"\
+  "\n"\
+  "  --record-path [arg]         Custom path to put recorded files. Argument\n"\
+  "                              is path to record states.                  \n"\
+  "\n"\
+  "  -s                          Run only the server (headless mode). This  \n"\
+  "                              overrides -g, if it is also present.       \n"\
+  "\n"\
+  "  -v [ --verbose ] [arg]      Adjust the level of console output (0~4).  \n"\
+  "                              The default verbosity is 1, use -v without \n"\
+  "                              arguments for level 3.                     \n"\
+  "\n"\
+  "  --version                   Print Gazebo version information.          \n"\
+  "\n"\
+  "  -z [arg]                    Update rate in Hertz.                      \n"\
+  "\n"+
+  COMMON_OPTIONS + "\n\n" +
+  "Environment variables:                                                  \n"\
+  "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
+  " resources. Can be useful with the -f option to find an SDF file.     \n\n"\
+  "  IGN_GAZEBO_NETWORK_ROLE     Participant role used in a distributed    \n"\
+  " simulation environment. Role is one of [PRIMARY, SECONDARY]. This is   \n"\
+  " deprecated in ign-gazebo2. Please use --network-role instead.        \n\n"\
+  "  IGN_GAZEBO_NETWORK_SECONDARIES    Number of secondary participants    \n"\
+  " expected to join a distributed simulation environment. (Primary only)  \n"\
+  " This is deprecated in ign-gazebo2. Please use --network-role instead.  \n"
+}
+
+#
+# Class for the Ignition Gazebo command line tools.
+#
+class Cmd
+
+  def killProcess(pid, name, timeout)
+    Process.kill("-INT", pid)
+
+    sleepSecs = 0.001
+    iterations = (timeout / sleepSecs).to_i
+    i = 0
+    killedPid = 0
+    while killedPid != pid && i < iterations
+      begin
+        killedPid = Process.waitpid(pid, Process::WNOHANG)
+      rescue
+        # The process has exited, so return.
+        return
+      end
+
+      break if killedPid == pid
+
+      sleep sleepSecs
+      i = i + 1
+    end
+
+    if killedPid != pid
+      puts "Escalating to SIGKILL on [#{name}]"
+      Process.kill("-KILL", pid)
+    end
+  end
+
+  #
+  # Return a structure describing the options.
+  #
+  def parse(args)
+    options = {
+      'gui' => 0,
+      'hz' => -1,
+      'iterations' => 0,
+      'levels' => 0,
+      'network_role' => '',
+      'network_secondaries' => 0,
+      'record' => 0,
+      'record-path' => '',
+      'playback' => '',
+      'run' => 0,
+      'server' => 0,
+      'verbose' => '1'
+    }
+
+    usage = COMMANDS[args[0]]
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = usage
+
+      opts.on('-h', '--help') do
+        puts usage
+        exit
+      end
+      opts.on('--iterations [arg]', Integer,
+              'Number of iterations to execute') do |i|
+        options['iterations'] = i
+      end
+      opts.on('--network-role [arg]', String) do |role|
+        options['network_role'] = role
+      end
+      opts.on('--network-secondaries [arg]', Integer) do |i|
+        options['network_secondaries'] = i
+      end
+      opts.on('-z [arg]', Float, 'Update rate in Hertz') do |h|
+        options['hz'] = h
+      end
+      opts.on('-r') do
+        options['run'] = 1
+      end
+      opts.on('-g') do
+        options['gui'] = 1
+      end
+      opts.on('-s') do
+        options['server'] = 1
+      end
+      opts.on('--levels') do
+        options['levels'] = 1
+      end
+      opts.on('--record') do
+        options['record'] = 1
+      end
+      opts.on('--record-path [arg]', String) do |r|
+        options['record-path'] = r
+      end
+      opts.on('--playback [arg]', String) do |p|
+        options['playback'] = p
+      end
+      opts.on('-v [verbose]', '--verbose [verbose]', String) do |v|
+        options['verbose'] = v || '3'
+      end
+      opts.on('--version') do
+        options['version'] = '1'
+      end
+
+    end # opt_parser do
+
+    opt_parser.parse!(args)
+
+    # SDF file as positional argument
+    filename = args.pop
+    if filename and filename != 'gazebo' and not options.key?('file')
+      options['file'] = filename
+    end
+
+    options['command'] = args[0]
+
+    options
+  end # parse()
+
+  def execute(args)
+    options = parse(args)
+
+    # Read the plugin that handles the command.
+    plugin = LIBRARY_NAME
+    conf_version = LIBRARY_VERSION
+
+    begin
+      Importer.dlload plugin
+    rescue DLError
+      puts "Library error: [#{plugin}] not found."
+      exit(-1)
+    end
+
+    # Read the library version.
+    Importer.extern 'char *ignitionGazeboVersion()'
+    begin
+      plugin_version = Importer.ignitionGazeboVersion.to_s
+    rescue DLError
+      puts "Library error: Problem running 'ignitionGazeboVersion()' from #{plugin}."
+      exit(-1)
+    end
+
+    # Sanity check: Verify that the version of the yaml file matches the version
+    # of the library that we are using.
+    unless plugin_version.eql? conf_version
+      puts "Error: Version mismatch. Your configuration file version is
+            [#{conf_version}] but #{plugin} version is [#{plugin_version}]."
+      exit(-1)
+    end
+
+    usage = COMMANDS[args[0]]
+
+    begin
+
+      if options.key?('version')
+        Importer.extern 'char *gazeboVersionHeader()'
+        puts Importer.gazeboVersionHeader.to_s
+        exit
+      end
+
+      # Global configurations
+      if options.key?('verbose')
+        Importer.extern 'void cmdVerbosity(const char *)'
+        Importer.cmdVerbosity(options['verbose'])
+      end
+
+      parsed = ''
+      if options.key?('file')
+        # Check if the passed in file exists.
+        if File.exists?(options['file'])
+          path = options['file']
+        # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
+        # variable, then the configuration path from the launch library.
+        else
+          configPathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+          # todo: IGN_GAZEBO_RESOURCE_PATH is colon separated.
+          if !configPathEnv.nil? &&
+              File.exists?(File.join(configPathEnv, options['file']))
+            path = File.join(configPathEnv, options['file'])
+          else
+            Importer.extern 'char *worldInstallDir()'
+            path = File.join(Importer.worldInstallDir().to_s, options['file'])
+            if !File.exists?(path)
+              puts "Unable to find file " + options['file']
+              exit(-1)
+            end
+          end
+        end
+
+        # ERB parse the file, and then run the result
+        parsed = ERB.new(File.read(path)).result()
+      end
+
+      # Import the runServer function
+      Importer.extern 'int runServer(const char *, int, int, float, int,
+                               const char *, int, int, const char *,
+                               const char *)'
+
+      # Import the runGui function
+      Importer.extern 'int runGui()'
+
+      # Neither the -s nor -g options were used, so run both the server
+      # and gui.
+      if options['server'] == 0 && options['gui'] == 0
+
+        serverPid = Process.fork do
+          Process.setpgid(0, 0)
+          Importer.runServer(parsed, options['iterations'], options['run'],
+            options['hz'], options['levels'], options['network_role'],
+            options['network_secondaries'], options['record'],
+            options['recordPath'], options['playback'])
+        end
+
+        guiPid = Process.fork do
+          Process.setpgid(0, 0)
+          Importer.runGui()
+        end
+
+        Signal.trap("INT") {
+          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+          return 1
+        }
+
+        # Wait for a child process to end
+        pid, status = Process.wait2
+
+        if pid == serverPid
+          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+        else
+          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+        end
+
+      # If the -s option was specified, then run only the server
+      elsif options['server'] == 1
+        Importer.runServer(parsed, options['iterations'], options['run'],
+            options['hz'], options['levels'], options['network_role'],
+            options['network_secondaries'], options['record'],
+            options['recordPath'], options['playback'])
+      # Otherwise run the gui
+      else options['gui']
+        Importer.runGui
+      end
+    rescue
+      puts "Library error: Problem running [#{options['command']}]() "\
+        "from @IGN_LIBRARY_NAME@."
+    # begin
+    end
+  # execute
+  end
+# class
+end
