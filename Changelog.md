@@ -15,6 +15,10 @@
 1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
 
+1. Update Altimeter component to use sdf::Sensor object instead of an
+   sdf::ElementPtr.
+    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
+
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
