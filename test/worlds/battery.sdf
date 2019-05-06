@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="batteries">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="linear_battery_demo_model">
+      <pose>0 0 0 0 0 0</pose>
+      <static>false</static>
+      <link name="body">
+        <pose>0 0 0.5 0 0 0</pose>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <plugin filename="libignition-gazebo-linearbatteryplugin-system.so"
+        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        <battery_name>linear_battery</battery_name>
+        <voltage>12.592</voltage>
+        <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
+        <open_circuit_voltage_linear_coef>-3.1424</open_circuit_voltage_linear_coef>
+        <initial_charge>1.1665</initial_charge>
+        <capacity>1.2009</capacity>
+        <resistance>0.061523</resistance>
+        <smooth_current_tau>1.9499</smooth_current_tau>
+        <!-- Consumer-specific -->
+        <power_load>500</power_load>  <!-- high load to quickly drain battery -->
+      </plugin>
+
+    </model>
+
+  </world>
+</sdf>
