@@ -5,6 +5,9 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
 
+1. Support conversion and serialization of PBR parameters in a material component
+    * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
 
@@ -18,9 +21,16 @@
 1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
 
+1. Update Altimeter component to use sdf::Sensor object instead of an
+   sdf::ElementPtr.
+    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
+
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
+
+1. Add Wind Plugin (Ported from Gazebo classic)
+    * [Pull Request 273](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/273/)
 
 1. Add `Link`: a convenience class for interfacing with link entities
     * [Pull Request 269](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/269)
