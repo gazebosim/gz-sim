@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYCMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYCMD_HH_
 
 #include <vector>
 
@@ -34,26 +34,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Base class which can be extended to add serialization
-  using JointVelocity = Component<std::vector<double>,
-        class JointVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointVelocity", JointVelocity)
+  using JointVelocityCmd = Component<std::vector<double>,
+        class JointVelocityCmdTag>;
 
-  /// \brief Velocity of a joint's second axis in SI units (rad/s for revolute,
-  /// m/s for prismatic).
-  /// \deprecated Use JointVelocity.
-  using JointVelocity2 IGN_DEPRECATED(2) =
-  Component<double, class JointVelocity2Tag>;
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
   IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointVelocity2", JointVelocity2)
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#endif
-
+      "ign_gazebo_components.JointVelocityCmd", JointVelocityCmd)
 }
 }
 }
