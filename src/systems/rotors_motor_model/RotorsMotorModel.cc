@@ -115,9 +115,13 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     if (motor_type == "velocity")
       this->dataPtr->motor_type_ = MotorType::kVelocity;
     else if (motor_type == "position")
+    {
       this->dataPtr->motor_type_ = MotorType::kPosition;
+      ignerr << "motorType 'position' not supported" << std::endl;
+    }
     else if (motor_type == "force") {
       this->dataPtr->motor_type_ = MotorType::kForce;
+      ignerr << "motorType 'force' not supported" << std::endl;
     } else
       ignerr << "[gazebo_motor_model] Please only use 'velocity', 'position' or "
                "'force' as motorType.\n";
@@ -183,13 +187,13 @@ void RotorsMotorModelPrivate::OnCmdForce(const msgs::Double &_msg)
 void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
   switch (motor_type_) {
     case (MotorType::kPosition): {
-      double err = joint_->GetAngle(0).Radian() - ref_motor_input_;
-      double force = pids_.Update(err, sampling_time_);
-      joint_->SetForce(0, force);
+      // double err = joint_->GetAngle(0).Radian() - ref_motor_input_;
+      // double force = pids_.Update(err, sampling_time_);
+      // joint_->SetForce(0, force);
       break;
     }
     case (MotorType::kForce): {
-      joint_->SetForce(0, ref_motor_input_);
+      // joint_->SetForce(0, ref_motor_input_);
       break;
     }
     default:  // MotorType::kVelocity
