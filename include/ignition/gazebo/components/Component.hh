@@ -237,23 +237,24 @@ namespace components
   /// aliases can be used to create new components. However the type does not
   /// need to be defined anywhere
   /// eg.
-  ///     using Static = Component<bool, class StaticTag>;
+  /// \code
+  ///     using Static = Component<bool, class StaticTag, BoolSerializer>;
+  /// \endcode
   ///
   /// Note, however, that this scheme does not have a mechanism to stop someone
   /// accidentally defining another component that wraps a bool as such:
-  ///     using AnotherComp = Component<bool, class StaticTag>;
+  /// \code
+  ///     using AnotherComp = Component<bool, class StaticTag, BoolSerializer>;
+  /// \endcode
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
   ///
   /// \tparam DataType Type of the data being wrapped by this component.
   /// \tparam Identifier Unique identifier for the component class, to avoid
   /// collision.
-  ///
-  // Dev Note: Copy and move constructors/assignment operators should not be
-  // removed even though it may seem possible to do so. Removing them will
-  // result in a segfault when a copy or move is used with DataType set to a
-  // type that is incomplete during construction of the component
-  // (eg.  sdf::Geometry).
+  /// \tparam Serialzer A class that can serialize `DataType`. Defaults to a
+  /// serializer that uses stream operators `<<` and `>>` on the data if they
+  /// exist.
   template <typename DataType, typename Identifier,
             typename Serializer = DefaultSerializer<DataType>>
   class Component : public BaseComponent
