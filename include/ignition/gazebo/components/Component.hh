@@ -309,32 +309,10 @@ namespace components
 
     /// \brief Constructor
     /// \param[in] _data Data to copy
-    public: explicit Component(const DataType &_data);
-
-    /// \brief Constructor data to be moved
-    /// \param[in] _data Data to moved
-    public: explicit Component(DataType &&_data);
-
-    /// \brief Copy Constructor
-    /// \param[in] _component Component component to copy.
-    public: Component(const Component &_component) = default;
-
-    /// \brief Move Constructor
-    /// \param[in] _component Component component to move.
-    public: Component(Component &&_component) = default;
+    public: explicit Component(DataType _data);
 
     /// \brief Destructor.
     public: ~Component() override = default;
-
-    /// \brief Move assignment operator.
-    /// \param[in] _component Component component to move.
-    /// \return Reference to this.
-    public: Component &operator=(Component &&_component) = default;
-
-    /// \brief Copy assignment operator.
-    /// \param[in] _component Component component to copy.
-    /// \return Reference to this.
-    public: Component &operator=(const Component &_component) = default;
 
     /// \brief Equality operator.
     /// \param[in] _component Component to compare to.
@@ -418,14 +396,7 @@ namespace components
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier>
-  Component<DataType, Identifier>::Component(const DataType &_data)
-    : data(_data)
-  {
-  }
-
-  //////////////////////////////////////////////////
-  template <typename DataType, typename Identifier>
-  Component<DataType, Identifier>::Component(DataType &&_data)
+  Component<DataType, Identifier>::Component(DataType _data)
     : data(std::move(_data))
   {
   }
