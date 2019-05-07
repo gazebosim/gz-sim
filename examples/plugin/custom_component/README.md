@@ -29,5 +29,5 @@ export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then run a world that loads the plugin as follows:
 
-    ign-gazebo-server -v 4 -f custom_component.sdf
+    ign gazebo -s -v 4 custom_component.sdf
 

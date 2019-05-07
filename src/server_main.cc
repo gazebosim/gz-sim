@@ -48,6 +48,9 @@ DEFINE_string(playback, "", "Use logging system to play back states");
 void help()
 {
   std::cout
+  << "DEPRECATED: Use the 'ign gazebo' command line tool."
+  << std::endl
+  << std::endl
   << "ign-gazebo-server -- Run the Gazebo server (headless mode)." << std::endl
   << std::endl
   << "`ign-gazebo-server` [options]" << std::endl
@@ -68,7 +71,6 @@ void help()
   << "  -z arg                 Update rate in Hertz."
   << std::endl
   << "  -r                     Run simulation on start."
-  << " The default is false, which starts simulation paused."
   << std::endl
   << "  --levels               Use the level system."
   << std::endl
@@ -90,7 +92,6 @@ void help()
   << std::endl
   << std::endl
   << "  --record               Use logging system to record states."
-  << " The default is false."
   << std::endl
   << "  --record-path arg      Custom path to put recorded files."
   << " Arg is path to recorded states."
@@ -183,6 +184,8 @@ int main(int _argc, char **_argv)
 
   // Set verbosity
   ignition::common::Console::SetVerbosity(FLAGS_verbose);
+  ignerr << "The ign-gazebo-server tool is deprecated, and is replaced by "
+    << "`ign gazebo`\n";
   ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
