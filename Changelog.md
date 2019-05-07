@@ -5,6 +5,9 @@
 1. Added system for ignition::sensors::AirPressureSensor.
     * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
 
+1. Support conversion and serialization of PBR parameters in a material component
+    * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
 
@@ -13,8 +16,8 @@
     * [Pull Request 268](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/268)
 
 1. Added an SDF message to the start of log files.
-   * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
-
+    * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+    
 1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
 
