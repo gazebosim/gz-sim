@@ -596,7 +596,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an magnetometer SDF sensor, but the "
+      ignerr << "Attempting to convert an IMU SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
