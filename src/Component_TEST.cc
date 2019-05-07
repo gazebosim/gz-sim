@@ -166,15 +166,6 @@ class InertialWrapper : public InertialBase
   }
 };
 
-// Component without De/Serialize
-class NoSerialize : public components::BaseComponent
-{
-  public: ComponentTypeId TypeId() const override
-  {
-    return 0;
-  }
-};
-
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, OStream)
 {
@@ -186,7 +177,7 @@ TEST_F(ComponentTest, OStream)
     Custom comp(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("banana", ostr.str());
   }
 
@@ -200,7 +191,7 @@ TEST_F(ComponentTest, OStream)
 
     // Returns empty string and prints warning
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("", ostr.str());
   }
 
@@ -210,7 +201,7 @@ TEST_F(ComponentTest, OStream)
     CustomOperator comp(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("simple_operator", ostr.str());
   }
 
@@ -222,13 +213,13 @@ TEST_F(ComponentTest, OStream)
     auto comp = new Custom(data);
 
     std::ostringstream ostr;
-    ostr << *comp;
+    comp->Serialize(ostr);
     EXPECT_EQ("Mass: 0", ostr.str());
 
     // Serializable from base class
     auto compBase = dynamic_cast<components::BaseComponent *>(comp);
     std::ostringstream ostrBase;
-    ostrBase << *compBase;
+    compBase->Serialize(ostrBase);
     EXPECT_EQ("Mass: 0", ostrBase.str());
   }
 
@@ -238,13 +229,13 @@ TEST_F(ComponentTest, OStream)
     auto comp = new InertialWrapper(data);
 
     std::ostringstream ostr;
-    ostr << *comp;
+    comp->Serialize(ostr);
     EXPECT_EQ("Wrapper mass: 0", ostr.str());
 
     // Serializable from base class
     auto compBase = dynamic_cast<components::BaseComponent *>(comp);
     std::ostringstream ostrBase;
-    ostrBase << *compBase;
+    compBase->Serialize(ostrBase);
     EXPECT_EQ("Wrapper mass: 0", ostrBase.str());
   }
 
@@ -258,7 +249,7 @@ TEST_F(ComponentTest, OStream)
 
     // Check the value is streamed, not the pointer address
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("123", ostr.str());
   }
 
@@ -273,7 +264,7 @@ TEST_F(ComponentTest, OStream)
 
     // Returns empty string and prints warning
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("", ostr.str());
   }
 
@@ -287,7 +278,7 @@ TEST_F(ComponentTest, OStream)
 
     // Check the value is streamed, not the pointer address
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("simple_operator", ostr.str());
   }
 
@@ -304,7 +295,7 @@ TEST_F(ComponentTest, OStream)
     Custom comp(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("<element test='foo'>val</element>\n", ostr.str());
   }
 
@@ -317,16 +308,21 @@ TEST_F(ComponentTest, OStream)
     Custom comp(data);
 
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("Mass: 0", ostr.str());
   }
 
   // Component without Serialize function
   {
+    struct NoSerializeData
+    {
+    };
+    using NoSerialize = components::Component<NoSerializeData, class CustomTag>;
+
     NoSerialize comp;
 
     std::ostringstream ostr;
-    ostr << comp;
+    comp.Serialize(ostr);
     EXPECT_EQ("", ostr.str());
   }
 }
@@ -340,7 +336,7 @@ TEST_F(ComponentTest, IStream)
 
     std::istringstream istr("banana");
     Custom comp;
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_EQ("banana", comp.Data());
   }
 
@@ -352,7 +348,7 @@ TEST_F(ComponentTest, IStream)
     // Prints warning and doesn't modify the component
     std::istringstream istr("banana");
     Custom comp;
-    istr >> comp;
+    comp.Deserialize(istr);
   }
 
   // Component with data which has custom stream operator
@@ -361,7 +357,7 @@ TEST_F(ComponentTest, IStream)
     CustomOperator comp(data);
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_EQ(456, comp.Data().data);
   }
 
@@ -373,7 +369,7 @@ TEST_F(ComponentTest, IStream)
     Custom comp(data);
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_DOUBLE_EQ(200, comp.Data().MassMatrix().Mass());
   }
 
@@ -383,7 +379,7 @@ TEST_F(ComponentTest, IStream)
     InertialWrapper comp(data);
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_DOUBLE_EQ(2000, comp.Data().MassMatrix().Mass());
   }
 
@@ -397,7 +393,7 @@ TEST_F(ComponentTest, IStream)
 
     // Check the value is streamed, not the pointer address
     std::istringstream istr("456");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_EQ(456, *comp.Data());
   }
 
@@ -412,7 +408,7 @@ TEST_F(ComponentTest, IStream)
 
     // Prints warning and doesn't modify the component
     std::istringstream istr("ignored");
-    istr >> comp;
+    comp.Deserialize(istr);
   }
 
   // Component with shared_ptr data which has custom stream operator
@@ -425,7 +421,7 @@ TEST_F(ComponentTest, IStream)
 
     // Check the value is changed, not the pointer address
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_EQ(456, comp.Data()->data);
   }
 
@@ -438,7 +434,7 @@ TEST_F(ComponentTest, IStream)
     Custom comp(data);
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_EQ("<new_name/>\n", comp.Data()->ToString(""));
   }
 
@@ -451,16 +447,21 @@ TEST_F(ComponentTest, IStream)
     Custom comp(data);
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
     EXPECT_DOUBLE_EQ(200, comp.Data()->MassMatrix().Mass());
   }
 
   // Component without Deserialize function
   {
+    struct NoSerializeData
+    {
+    };
+    using NoSerialize = components::Component<NoSerializeData, class CustomTag>;
+
     NoSerialize comp;
 
     std::istringstream istr("not used");
-    istr >> comp;
+    comp.Deserialize(istr);
   }
 }
 
