@@ -112,7 +112,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Destroy();
 
     /// \brief Set the renderer
-    public: void SetRenderUtil(RenderUtil *_renderer);
+    public: class RenderUtil *RenderUtil() const;
 
     /// \brief New mouse event triggered
     /// \param[in] _e New mouse event
@@ -197,7 +197,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: virtual ~RenderWindowItem();
 
     /// \brief Set the renderer
-    public: void SetRenderUtil(RenderUtil *_renderer);
+    public: class RenderUtil *RenderUtil() const;
 
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
