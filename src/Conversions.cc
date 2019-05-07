@@ -33,6 +33,7 @@
 
 #include <ignition/common/Console.hh>
 
+#include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -43,6 +44,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
 
@@ -174,6 +176,35 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
   msgs::Set(out.mutable_specular(), _in.Specular());
   msgs::Set(out.mutable_emissive(), _in.Emissive());
   out.set_lighting(_in.Lighting());
+
+  sdf::Pbr *pbr = _in.PbrMaterial();
+  if (pbr)
+  {
+    msgs::Material::PBR *pbrMsg = out.mutable_pbr();
+    sdf::PbrWorkflow *workflow = pbr->Workflow(sdf::PbrWorkflowType::METAL);
+    if (workflow)
+      pbrMsg->set_type(msgs::Material_PBR_WorkflowType_METAL);
+    else
+    {
+      workflow = pbr->Workflow(sdf::PbrWorkflowType::SPECULAR);
+      if (workflow)
+        pbrMsg->set_type(msgs::Material_PBR_WorkflowType_SPECULAR);
+    }
+    if (workflow)
+    {
+      pbrMsg->set_metalness(workflow->Metalness());
+      pbrMsg->set_metalness_map(workflow->MetalnessMap());
+      pbrMsg->set_roughness(workflow->Roughness());
+      pbrMsg->set_roughness_map(workflow->RoughnessMap());
+      pbrMsg->set_glossiness(workflow->Glossiness());
+      pbrMsg->set_glossiness_map(workflow->GlossinessMap());
+      pbrMsg->set_specular_map(workflow->SpecularMap());
+      pbrMsg->set_albedo_map(workflow->AlbedoMap());
+      pbrMsg->set_normal_map(workflow->NormalMap());
+      pbrMsg->set_ambient_occlusion_map(workflow->AmbientOcclusionMap());
+      pbrMsg->set_environment_map(workflow->EnvironmentMap());
+    }
+  }
   return out;
 }
 
@@ -187,6 +218,30 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
   out.SetSpecular(msgs::Convert(_in.specular()));
   out.SetEmissive(msgs::Convert(_in.emissive()));
   out.SetLighting(_in.lighting());
+
+  if (_in.has_pbr())
+  {
+    msgs::Material_PBR pbrMsg = _in.pbr();
+    sdf::Pbr pbr;
+    sdf::PbrWorkflow workflow;
+    if (pbrMsg.type() == msgs::Material_PBR_WorkflowType_METAL)
+      workflow.SetType(sdf::PbrWorkflowType::METAL);
+    else if (pbrMsg.type() == msgs::Material_PBR_WorkflowType_SPECULAR)
+      workflow.SetType(sdf::PbrWorkflowType::SPECULAR);
+    workflow.SetAlbedoMap(pbrMsg.albedo_map());
+    workflow.SetNormalMap(pbrMsg.normal_map());
+    workflow.SetMetalness(pbrMsg.metalness());
+    workflow.SetMetalnessMap(pbrMsg.metalness_map());
+    workflow.SetRoughness(pbrMsg.roughness());
+    workflow.SetRoughnessMap(pbrMsg.roughness_map());
+    workflow.SetGlossiness(pbrMsg.glossiness());
+    workflow.SetGlossinessMap(pbrMsg.glossiness_map());
+    workflow.SetSpecularMap(pbrMsg.specular_map());
+    workflow.SetEnvironmentMap(pbrMsg.environment_map());
+    workflow.SetAmbientOcclusionMap(pbrMsg.ambient_occlusion_map());
+    pbr.SetWorkflow(workflow.Type(), workflow);
+    out.SetPbrMaterial(pbr);
+  }
   return out;
 }
 
@@ -512,6 +567,31 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::ALTIMETER)
+  {
+    if (_in.AltimeterSensor())
+    {
+      msgs::AltimeterSensor *sensor = out.mutable_altimeter();
+
+      if (_in.AltimeterSensor()->VerticalPositionNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_vertical_position_noise(),
+            _in.AltimeterSensor()->VerticalPositionNoise());
+      }
+      if (_in.AltimeterSensor()->VerticalVelocityNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_vertical_velocity_noise(),
+            _in.AltimeterSensor()->VerticalVelocityNoise());
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an altimeter SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -654,6 +734,31 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
     out.SetMagnetometerSensor(sensor);
   }
+  else if (out.Type() == sdf::SensorType::ALTIMETER)
+  {
+    sdf::Altimeter sensor;
+    if (_in.has_altimeter())
+    {
+      if (_in.altimeter().has_vertical_position_noise())
+      {
+        sensor.SetVerticalPositionNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.altimeter().vertical_position_noise()));
+      }
+
+      if (_in.altimeter().has_vertical_velocity_noise())
+      {
+        sensor.SetVerticalVelocityNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.altimeter().vertical_velocity_noise()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an altimeter sensor message, but the "
+        << "message does not have a altimeter nested message.\n";
+    }
+
+    out.SetAltimeterSensor(sensor);
+  }
   else if (out.Type() == sdf::SensorType::IMU)
   {
     sdf::Imu sensor;
@@ -767,5 +872,31 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
     out.SetLidarSensor(sensor);
   }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
+{
+  msgs::WorldStatistics out;
+  out.set_iterations(_in.iterations);
+  out.set_paused(_in.paused);
+  out.mutable_sim_time()->CopyFrom(convert<msgs::Time>(_in.simTime));
+  out.mutable_real_time()->CopyFrom(convert<msgs::Time>(_in.realTime));
+  out.mutable_step_size()->CopyFrom(convert<msgs::Time>(_in.dt));
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
+{
+  gazebo::UpdateInfo out;
+  out.iterations = _in.iterations();
+  out.paused = _in.paused();
+  out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());
+  out.realTime = convert<std::chrono::steady_clock::duration>(_in.real_time());
+  out.dt = convert<std::chrono::steady_clock::duration>(_in.step_size());
   return out;
 }
