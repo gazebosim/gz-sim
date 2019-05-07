@@ -48,38 +48,48 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
   };
 
-  template <typename S, typename T>
+  /// \brief Type trait that determines if a operator<< is defined on `Stream`
+  /// and `DataType`, i.e, it checks if the function
+  /// `Stream& operator<<(Stream&, const DataType&)` exists.
+  /// Example:
+  ///    constexpr bool isDoubleOutStreamable =
+  ///       IsOutStreamable<std::ostream, double>::value
+  ///
+  template <typename Stream, typename DataType>
   class IsOutStreamable
   {
-    private:
-    template <typename SS, typename TT>
-    static auto Test(int)
-        -> decltype(std::declval<SS &>() << std::declval<TT>(),
+    private: template <typename StreamArg, typename DataTypeArg>
+    static auto Test(int _test)
+        -> decltype(std::declval<StreamArg &>() << std::declval<DataTypeArg>(),
                     std::true_type());
 
-    private:
-    template <typename, typename>
+    private: template <typename, typename>
     static auto Test(...) -> std::false_type;
 
-    public:
-    static const bool value = decltype(Test<S, T>(0))::value;  // NOLINT
+    public: static constexpr bool value =  // NOLINT
+                decltype(Test<Stream, DataType>(true))::value;
   };
 
-  template <typename S, typename T>
+  /// \brief Type trait that determines if a operator>> is defined on `Stream`
+  /// and `DataType`, i.e, it checks if the function
+  /// `Stream& operator>>(Stream&, DataType&)` exists.
+  /// Example:
+  ///    constexpr bool isDoubleInStreamable =
+  ///       IsInStreamable<std::istream, double>::value
+  ///
+  template <typename Stream, typename DataType>
   class IsInStreamable
   {
-    private:
-    template <typename SS, typename TT>
-    static auto Test(int)
-        -> decltype(std::declval<SS>() >> std::declval<TT &>(), void(),
-                    std::true_type());
+    private: template <typename StreamArg, typename DataTypeArg>
+    static auto Test(int _test)
+      -> decltype(std::declval<StreamArg>() >> std::declval<DataTypeArg &>(),
+                  std::true_type());
 
-    private:
-    template <typename, typename>
+    private: template <typename, typename>
     static auto Test(...) -> std::false_type;
 
-    public:
-    static const bool value = decltype(Test<S, T>(0))::value;  // NOLINT
+    public: static constexpr bool value =  // NOLINT
+                decltype(Test<Stream, DataType>(0))::value;
   };
 
 namespace components
@@ -103,7 +113,8 @@ namespace components
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const DataType &_data)
     {
-      if constexpr (IsSharedPtr<DataType>::value)
+      // cppcheck-suppress syntaxError
+      if constexpr (IsSharedPtr<DataType>::value) // NOLINT
       {
         if constexpr (IsOutStreamable<std::ostream,
                                    typename DataType::element_type>::value)
