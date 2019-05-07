@@ -33,8 +33,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains a magnetometer sensor,
-  /// sdf::Magnetometer, information.
+  /// \brief A component type that contains an IMU sensor,
+  /// sdf::IMU, information.
   using Imu = Component<sdf::Sensor, class ImuTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Imu", Imu)
 }
