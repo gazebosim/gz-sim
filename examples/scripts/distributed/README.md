@@ -13,18 +13,16 @@ the GUI.
 
 ## Try it out
 
-1. On one terminal, start the simulation primary:
-
-        ./primary.sh
-
-    An empty window will appear. Simulation won't be initialized until all 3
-    secondaries are initialized.
-
-1. Open 3 other terminals and run the following to start a simulation secondary for each:
+1. Open 3 terminals and run the following to start a simulation secondary for
+   each performer:
 
         ./secondary.sh
 
-    Once you've started all 3 secondaries, you'll see the 3 shapes show up on the window.
+1. On another terminal, start the simulation primary:
+
+        ./primary.sh
+
+    A window will pop up displaying the 3 shapes.
 
 1. Press play and you should see the shapes rolling down.
 
