@@ -35,6 +35,13 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+/// \brief Type of input command to motor.
+enum class MotorType {
+  kVelocity,
+  kPosition,
+  kForce
+};
+
 class ignition::gazebo::systems::RotorsMotorModelPrivate
 {
   /// \brief Callback for joint force subscription
@@ -61,6 +68,9 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief Type of input command to motor.
+  public: MotorType motor_type_ = MotorType::kVelocity;
 };
 
 //////////////////////////////////////////////////
@@ -98,6 +108,22 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     ignerr << "RotorsMotorModel found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
+  }
+
+  if (sdfClone->HasElement("motorType")) {
+    std::string motor_type = sdfClone->GetElement("motorType")->Get<std::string>();
+    if (motor_type == "velocity")
+      this->dataPtr->motor_type_ = MotorType::kVelocity;
+    else if (motor_type == "position")
+      this->dataPtr->motor_type_ = MotorType::kPosition;
+    else if (motor_type == "force") {
+      this->dataPtr->motor_type_ = MotorType::kForce;
+    } else
+      ignerr << "[gazebo_motor_model] Please only use 'velocity', 'position' or "
+               "'force' as motorType.\n";
+  } else {
+    ignwarn << "[gazebo_motor_model] motorType not specified, using velocity.\n";
+    this->dataPtr->motor_type_ = MotorType::kVelocity;
   }
 
   // Subscribe to commands
