@@ -25,7 +25,7 @@
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
 
-#include "ignition/gazebo/components/AirPressure.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -77,7 +77,7 @@ class ComponentsTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(ComponentsTest, AirPressure)
+TEST_F(ComponentsTest, AirPressureSensor)
 {
   sdf::Sensor data1;
   data1.SetName("abc");
@@ -90,9 +90,9 @@ TEST_F(ComponentsTest, AirPressure)
   sdf::Sensor data2;
 
   // Create components
-  auto comp11 = components::AirPressure(data1);
-  auto comp12 = components::AirPressure(data1);
-  auto comp2 = components::AirPressure(data2);
+  auto comp11 = components::AirPressureSensor(data1);
+  auto comp12 = components::AirPressureSensor(data1);
+  auto comp2 = components::AirPressureSensor(data2);
 
   // Equality operators
   EXPECT_EQ(comp11, comp12);
@@ -106,7 +106,7 @@ TEST_F(ComponentsTest, AirPressure)
   std::ostringstream ostr;
   ostr << comp11;
   std::istringstream istr(ostr.str());
-  components::AirPressure comp3;
+  components::AirPressureSensor comp3;
   istr >> comp3;
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());

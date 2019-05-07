@@ -69,8 +69,8 @@ TEST_F(AirPressureTest, AirPressure)
   };
 
   transport::Node node;
-  node.Subscribe(std::string("/world/air_pressure_sensor/") +
-      "model/air_pressure_model/link/link/sensor/air_pressure_sensor/air_pressure",
+  node.Subscribe(std::string("/world/air_pressure_sensor/model/") +
+      "air_pressure_model/link/link/sensor/air_pressure_sensor/air_pressure",
       cb);
 
   // Run server

@@ -25,7 +25,7 @@
 #include <ignition/sensors/SensorFactory.hh>
 #include <ignition/sensors/AirPressureSensor.hh>
 
-#include "ignition/gazebo/components/AirPressure.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -102,9 +102,9 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 {
   // Create air pressure sensors
-  _ecm.EachNew<components::AirPressure, components::ParentEntity>(
+  _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::AirPressure *_airPressure,
+        const components::AirPressureSensor *_airPressure,
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
@@ -141,9 +141,9 @@ void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
-  _ecm.Each<components::AirPressure, components::WorldPose>(
+  _ecm.Each<components::AirPressureSensor, components::WorldPose>(
     [&](const Entity &_entity,
-        const components::AirPressure *,
+        const components::AirPressureSensor *,
         const components::WorldPose *_worldPose)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
@@ -166,9 +166,9 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 void AirPressurePrivate::RemoveAirPressureEntities(
     const EntityComponentManager &_ecm)
 {
-  _ecm.EachRemoved<components::AirPressure>(
+  _ecm.EachRemoved<components::AirPressureSensor>(
     [&](const Entity &_entity,
-        const components::AirPressure *)->bool
+        const components::AirPressureSensor *)->bool
       {
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())

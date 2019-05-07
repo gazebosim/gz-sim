@@ -34,9 +34,9 @@ namespace components
 {
   /// \brief A component type that contains an air pressure sensor,
   /// sdf::AirPressure, information.
-  using AirPressure = Component<sdf::Sensor, class AirPressureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AirPressure",
-      AirPressure)
+  using AirPressureSensor = Component<sdf::Sensor, class AirPressureSensorTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AirPressureSensor",
+      AirPressureSensor)
 }
 }
 }
