@@ -21,7 +21,9 @@
 #include <sdf/Element.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Magnetometer.hh>
+#include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Pbr.hh>
 #include <sdf/Sensor.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
@@ -727,6 +729,28 @@ TEST_F(ComponentsTest, Material)
 {
   auto data1 = sdf::Material();
   data1.SetAmbient(math::Color(1, 0, 0, 1));
+  data1.SetDiffuse(math::Color(1, 0, 1, 1));
+  data1.SetSpecular(math::Color(1, 1, 0, 1));
+  data1.SetEmissive(math::Color(1, 1, 1, 1));
+  data1.SetLighting(false);
+
+  sdf::Pbr pbr;
+  sdf::PbrWorkflow workflow;
+  workflow.SetType(sdf::PbrWorkflowType::METAL);
+  workflow.SetAlbedoMap("albedo_map.png");
+  workflow.SetNormalMap("normal_map.png");
+  workflow.SetEnvironmentMap("environment_map.png");
+  workflow.SetAmbientOcclusionMap("ambient_occlusion_map.png");
+  workflow.SetMetalnessMap("metalness_map.png");
+  workflow.SetRoughnessMap("roughness_map.png");
+  workflow.SetGlossinessMap("dummy_glossiness_map.png");
+  workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetMetalness(0.3);
+  workflow.SetRoughness(0.9);
+  workflow.SetGlossiness(0.1);
+  pbr.SetWorkflow(workflow.Type(), workflow);
+  data1.SetPbrMaterial(pbr);
+
   auto data2 = sdf::Material();
 
   // Create components
@@ -742,6 +766,27 @@ TEST_F(ComponentsTest, Material)
   components::Material comp3;
   istr >> comp3;
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Ambient());
+  EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Diffuse());
+  EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Specular());
+  EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
+  EXPECT_FALSE(comp3.Data().Lighting());
+
+  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  ASSERT_NE(nullptr, newPbrMaterial);
+  sdf::PbrWorkflow *newWorkflow =
+      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  ASSERT_NE(nullptr, newWorkflow);
+  EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
+  EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
+  EXPECT_EQ("roughness_map.png", newWorkflow->RoughnessMap());
+  EXPECT_EQ("metalness_map.png", newWorkflow->MetalnessMap());
+  EXPECT_EQ("environment_map.png", newWorkflow->EnvironmentMap());
+  EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
+  EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
+  EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
+  EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
+  EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
 }
 
 /////////////////////////////////////////////////
