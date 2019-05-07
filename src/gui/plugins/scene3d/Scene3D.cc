@@ -94,7 +94,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: math::Vector3d target;
 
     /// \brief Rendering utility
-    public: RenderUtil *renderUtil = nullptr;
+    public: RenderUtil renderUtil;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -120,9 +120,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string worldName;
 
     /// \brief Rendering utility
-    public: RenderUtil renderUtil;
+    public: RenderUtil *renderUtil = nullptr;
 
-    /// \brief Rendering utility
+    /// \brief Transform mode service
     public: std::string transformModeService;
   };
 }
@@ -147,9 +147,9 @@ IgnRenderer::~IgnRenderer()
 }
 
 ////////////////////////////////////////////////
-void IgnRenderer::SetRenderUtil(RenderUtil *_renderer)
+RenderUtil *IgnRenderer::RenderUtil() const
 {
-  this->dataPtr->renderUtil = _renderer;
+  return &this->dataPtr->renderUtil;
 }
 
 /////////////////////////////////////////////////
@@ -168,7 +168,7 @@ void IgnRenderer::Render()
   }
 
   // update the scene
-  this->dataPtr->renderUtil->Update();
+  this->dataPtr->renderUtil.Update();
 
   // view control
   this->HandleMouseEvent();
@@ -204,7 +204,7 @@ void IgnRenderer::HandleMouseTransformControl()
       this->dataPtr->transformControl.Stop();
 
     this->dataPtr->transformControl.Detach();
-    this->dataPtr->renderUtil->SetSelectedEntity(
+    this->dataPtr->renderUtil.SetSelectedEntity(
         rendering::VisualPtr());
   }
   else
@@ -273,12 +273,12 @@ void IgnRenderer::HandleMouseTransformControl()
         if (axis == ignition::math::Vector3d::Zero)
         {
           rendering::VisualPtr model =
-              this->dataPtr->renderUtil->SceneManager().ModelVisual(visual);
+              this->dataPtr->renderUtil.SceneManager().ModelVisual(visual);
           // TODO(anyone) Check plane geometry instead of hardcoded name!
           if (model && model->Name() != "ground_plane")
           {
             this->dataPtr->transformControl.Attach(model);
-            this->dataPtr->renderUtil->SetSelectedEntity(model);
+            this->dataPtr->renderUtil.SetSelectedEntity(model);
             this->dataPtr->mouseDirty = false;
             return;
           }
@@ -395,16 +395,10 @@ void IgnRenderer::Initialize()
   if (this->initialized)
     return;
 
-  if (!this->dataPtr->renderUtil)
-  {
-    ignerr << "Renderer not set " << std::endl;
-    return;
-  }
+  this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
+  this->dataPtr->renderUtil.Init();
 
-  this->dataPtr->renderUtil->SetUseCurrentGLContext(true);
-  this->dataPtr->renderUtil->Init();
-
-  rendering::ScenePtr scene = this->dataPtr->renderUtil->Scene();
+  rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   auto root = scene->RootVisual();
 
   // Camera
@@ -429,10 +423,10 @@ void IgnRenderer::Initialize()
 /////////////////////////////////////////////////
 void IgnRenderer::Destroy()
 {
-  auto engine = rendering::engine(this->dataPtr->renderUtil->EngineName());
+  auto engine = rendering::engine(this->dataPtr->renderUtil.EngineName());
   if (!engine)
     return;
-  auto scene = engine->SceneByName(this->dataPtr->renderUtil->SceneName());
+  auto scene = engine->SceneByName(this->dataPtr->renderUtil.SceneName());
   if (!scene)
     return;
   scene->DestroySensor(this->dataPtr->camera);
@@ -722,9 +716,9 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
 }
 
 ////////////////////////////////////////////////
-void RenderWindowItem::SetRenderUtil(RenderUtil *_renderer)
+RenderUtil *RenderWindowItem::RenderUtil() const
 {
-  this->dataPtr->renderThread->ignRenderer.SetRenderUtil(_renderer);
+  return this->dataPtr->renderThread->ignRenderer.RenderUtil();
 }
 
 /////////////////////////////////////////////////
@@ -755,6 +749,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   if (this->title.empty())
     this->title = "3D Scene";
 
+  this->dataPtr->renderUtil = renderWindow->RenderUtil();
+
   // Custom parameters
   if (_pluginElem)
   {
@@ -763,7 +759,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::string engineName = elem->GetText();
       if (!engineName.empty())
       {
-        this->dataPtr->renderUtil.SetEngineName(engineName);
+        this->dataPtr->renderUtil->SetEngineName(engineName);
 
         // there is a problem with displaying ogre2 render textures that are in
         // sRGB format. Workaround for now is to apply gamma correction
@@ -776,7 +772,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 
     if (auto elem = _pluginElem->FirstChildElement("scene"))
     {
-      this->dataPtr->renderUtil.SetSceneName(elem->GetText());
+      this->dataPtr->renderUtil->SetSceneName(elem->GetText());
     }
 
     if (auto elem = _pluginElem->FirstChildElement("ambient_light"))
@@ -785,7 +781,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
       colorStr >> ambient;
-      this->dataPtr->renderUtil.SetAmbientLight(ambient);
+      this->dataPtr->renderUtil->SetAmbientLight(ambient);
     }
 
     if (auto elem = _pluginElem->FirstChildElement("background_color"))
@@ -794,7 +790,7 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       std::stringstream colorStr;
       colorStr << std::string(elem->GetText());
       colorStr >> bgColor;
-      this->dataPtr->renderUtil.SetBackgroundColor(bgColor);
+      this->dataPtr->renderUtil->SetBackgroundColor(bgColor);
     }
 
     if (auto elem = _pluginElem->FirstChildElement("camera_pose"))
@@ -806,8 +802,6 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       renderWindow->SetCameraPose(pose);
     }
   }
-
-  renderWindow->SetRenderUtil(&this->dataPtr->renderUtil);
 }
 
 //////////////////////////////////////////////////
@@ -834,7 +828,7 @@ void Scene3D::Update(const UpdateInfo &_info,
            << this->dataPtr->transformModeService << "]" << std::endl;
   }
 
-  this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+  this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
 }
 
 /////////////////////////////////////////////////

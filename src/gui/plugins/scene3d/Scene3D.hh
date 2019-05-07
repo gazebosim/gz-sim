@@ -120,7 +120,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void Destroy();
 
     /// \brief Set the renderer
-    public: void SetRenderUtil(RenderUtil *_renderer);
+    public: class RenderUtil *RenderUtil() const;
 
     /// \brief Set the transform mode
     /// \param[in] _mode New transform mode to set to
@@ -215,7 +215,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: virtual ~RenderWindowItem();
 
     /// \brief Set the renderer
-    public: void SetRenderUtil(RenderUtil *_renderer);
+    public: class RenderUtil *RenderUtil() const;
 
     /// \brief Set the initial user camera pose
     /// \param[in] _pose Pose to set the camera to
