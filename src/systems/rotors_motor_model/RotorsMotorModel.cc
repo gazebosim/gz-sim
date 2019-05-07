@@ -23,13 +23,44 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector3.hh>
 
+#include <sdf/sdf.hh>
+
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "RotorsMotorModel.hh"
+
+// from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
+/// \brief      Obtains a parameter from sdf.
+/// \param[in]  _sdf           Pointer to the sdf object.
+/// \param[in]  _name          Name of the parameter.
+/// \param[out] _param         Param Variable to write the parameter to.
+/// \param[in]  _default_value Default value, if the parameter not available.
+/// \param[in]  _verbose       If true, ignerr if parameter is not available.
+template<class T>
+bool getSdfParam(
+    sdf::ElementPtr _sdf,
+    const std::string& _name,
+    T& _param,
+    const T& _default_value,
+    const bool& _verbose = false)
+{
+  if (_sdf->HasElement(_name)) {
+    _param = _sdf->GetElement(_name)->Get<T>();
+    return true;
+  }
+  else {
+    _param = _default_value;
+    if (_verbose)
+      ignerr << "Please specify a value for parameter \"" << _name << "\".\n";
+  }
+  return false;
+}
 
 using namespace ignition;
 using namespace gazebo;
@@ -49,7 +80,7 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   public: void OnCmdForce(const ignition::msgs::Double &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
-  public: void UpdateForcesAndMoments();
+  public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -69,8 +100,26 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief Sampling time (from motor_model.hpp).
+  public: double sampling_time_ = 0.01;
+
+  /// \brief Index of motor on multirotor_base.
+  public: int motor_number_ = 0;
+
   /// \brief Type of input command to motor.
   public: MotorType motor_type_ = MotorType::kVelocity;
+
+  /// \brief Thrust coefficient for propeller with units of N / (rad/s)^2.
+  /// The default value is taken from gazebo_motor_model.h
+  double motor_constant_ = 8.54858e-06;
+
+  /// \brief Large joint velocities can cause problems with aliasing,
+  /// so the joint velocity used by the physics engine is reduced
+  /// this factor, while the larger value is used for computing
+  /// propeller thrust.
+  /// The default value is taken from
+  /// rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
+  double rotor_velocity_slowdown_sim_ = 10.0;
 };
 
 //////////////////////////////////////////////////
@@ -110,6 +159,11 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     return;
   }
 
+  if (sdfClone->HasElement("motorNumber"))
+    this->dataPtr->motor_number_ = sdfClone->GetElement("motorNumber")->Get<int>();
+  else
+    ignerr << "Please specify a motorNumber.\n";
+
   if (sdfClone->HasElement("motorType")) {
     std::string motor_type = sdfClone->GetElement("motorType")->Get<std::string>();
     if (motor_type == "velocity")
@@ -123,12 +177,19 @@ void RotorsMotorModel::Configure(const Entity &_entity,
       this->dataPtr->motor_type_ = MotorType::kForce;
       ignerr << "motorType 'force' not supported" << std::endl;
     } else
-      ignerr << "[gazebo_motor_model] Please only use 'velocity', 'position' or "
+      ignerr << "Please only use 'velocity', 'position' or "
                "'force' as motorType.\n";
   } else {
-    ignwarn << "[gazebo_motor_model] motorType not specified, using velocity.\n";
+    ignwarn << "motorType not specified, using velocity.\n";
     this->dataPtr->motor_type_ = MotorType::kVelocity;
   }
+
+  getSdfParam<double>(sdfClone, "motorConstant",
+      this->dataPtr->motor_constant_, this->dataPtr->motor_constant_);
+
+  getSdfParam<double>(
+      sdfClone, "rotorVelocitySlowdownSim",
+      this->dataPtr->rotor_velocity_slowdown_sim_, 10);
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
@@ -158,6 +219,9 @@ void RotorsMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
+  this->dataPtr->sampling_time_ =
+    std::chrono::duration<double>(_info.dt).count();
+
   // Update joint force
   auto force = _ecm.Component<components::JointForceCmd>(
       this->dataPtr->jointEntity);
@@ -184,7 +248,9 @@ void RotorsMotorModelPrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 //////////////////////////////////////////////////
-void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
+void RotorsMotorModelPrivate::UpdateForcesAndMoments(
+    EntityComponentManager &_ecm)
+{
   switch (motor_type_) {
     case (MotorType::kPosition): {
       // double err = joint_->GetAngle(0).Radian() - ref_motor_input_;
@@ -198,8 +264,10 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
     }
     default:  // MotorType::kVelocity
     {
-      motor_rot_vel_ = joint_->GetVelocity(0);
-      if (motor_rot_vel_ / (2 * M_PI) > 1 / (2 * sampling_time_)) {
+      auto jointVelocity = _ecm.Component<components::JointVelocity>(
+          this->jointEntity);
+      double motor_rot_vel_ = jointVelocity->Data()[0];
+      if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * sampling_time_)) {
         ignerr << "Aliasing on motor [" << motor_number_
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotor_velocity_slowdown_sim_ param.\n";
