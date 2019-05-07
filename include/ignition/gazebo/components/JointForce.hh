@@ -30,11 +30,17 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using JointForceSerialzer = serializers::VectorDoubleSerializer;
+}
+
 namespace components
 {
   /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
   /// prismatic).
-  using JointForce = Component<std::vector<double>, class JointForceTag>;
+  using JointForce = Component<std::vector<double>, class JointForceTag,
+                               serializers::JointForceSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointForce", JointForce)
 }

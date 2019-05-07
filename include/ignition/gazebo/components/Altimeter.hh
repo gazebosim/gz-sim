@@ -30,11 +30,17 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using AltimeterSerialzer = serializers::SensorSerializer;
+}
+
 namespace components
 {
   /// \brief A component type that contains an altimeter sensor,
   /// sdf::Altimeter, information.
-  using Altimeter = Component<sdf::Sensor, class AltimeterTag>;
+  using Altimeter = Component<sdf::Sensor, class AltimeterTag,
+                              serializers::AltimeterSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
 }
 }

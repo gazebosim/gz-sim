@@ -23,6 +23,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Conversions.hh>
 
@@ -32,40 +33,18 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using GeometrySerialzer =
+      serializers::ComponentToMsgSerializer<sdf::Geometry, msgs::Geometry>;
+}
+
 namespace components
 {
-  class GeometrySerializer
-  {
-    /// \brief Serialization for `sdf::Geometry`.
-    /// \param[in] _out Output stream.
-    /// \param[in] _geometry Geometry to stream
-    /// \return The stream.
-    public: static std::ostream &Serialize(std::ostream &_out,
-                                           const sdf::Geometry &_geometry)
-    {
-      auto msg = ignition::gazebo::convert<ignition::msgs::Geometry>(_geometry);
-      msg.SerializeToOstream(&_out);
-      return _out;
-    }
-
-    /// \brief Deserialize for `sdf::Geometry`.
-    /// \param[in] _in Input stream.
-    /// \param[out] _geometry Geometry to populate
-    /// \return The stream.
-    public: static std::istream &Deserialize(std::istream &_in,
-                                             sdf::Geometry &_geometry)
-    {
-      ignition::msgs::Geometry msg;
-      msg.ParseFromIstream(&_in);
-
-      _geometry = ignition::gazebo::convert<sdf::Geometry>(msg);
-      return _in;
-    }
-  };
-
   /// \brief This component holds an entity's geometry.
-  using Geometry =
-      Component<sdf::Geometry, class GeometryTag, GeometrySerializer>;
+  using Geometry = Component<sdf::Geometry, class GeometryTag,
+                             serializers::GeometrySerialzer>;
+
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Geometry", Geometry)
 
 }
