@@ -66,6 +66,13 @@ using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
+/// \brief Constants for specifying clockwise (CW) and counter-clockwise (CCW)
+/// directions of rotation.
+namespace turning_direction {
+const static int CCW = 1;
+const static int CW = -1;
+} // namespace turning_direction
+
 /// \brief Type of input command to motor.
 enum class MotorType {
   kVelocity,
@@ -105,6 +112,9 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
 
   /// \brief Index of motor on multirotor_base.
   public: int motor_number_ = 0;
+
+  /// \brief Turning direction of the motor.
+  public: int turning_direction_ = turning_direction::CW;
 
   /// \brief Type of input command to motor.
   public: MotorType motor_type_ = MotorType::kVelocity;
@@ -163,6 +173,18 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     this->dataPtr->motor_number_ = sdfClone->GetElement("motorNumber")->Get<int>();
   else
     ignerr << "Please specify a motorNumber.\n";
+
+  if (sdfClone->HasElement("turningDirection")) {
+    std::string turning_direction =
+        sdfClone->GetElement("turningDirection")->Get<std::string>();
+    if (turning_direction == "cw")
+      this->dataPtr->turning_direction_ = turning_direction::CW;
+    else if (turning_direction == "ccw")
+      this->dataPtr->turning_direction_ = turning_direction::CCW;
+    else
+      ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
+  } else
+    ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
 
   if (sdfClone->HasElement("motorType")) {
     std::string motor_type = sdfClone->GetElement("motorType")->Get<std::string>();
