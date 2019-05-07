@@ -90,6 +90,10 @@ namespace ignition
       /// \return Link entity.
       public: gazebo::Entity Entity() const;
 
+      /// \brief Reset Entity to a new one
+      /// \param[in] _newEntity New link entity.
+      public: void ResetEntity(gazebo::Entity _newEntity);
+
       /// \brief Check whether this link correctly refers to an entity that
       /// has a components::Link.
       /// \param[in] _ecm Entity-component manager.
@@ -169,6 +173,13 @@ namespace ignition
       /// components::WorldPose.
       public: std::optional<math::Matrix3d> WorldInertiaMatrix(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Add a force expressed in world coordinates and applied at the
+      /// center of mass of the link.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      public: void AddWorldForce(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force) const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;
