@@ -190,7 +190,7 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
       // Apply a force to the link.
       link_->AddRelativeForce(Vector3(0, 0, thrust));
 
-      // Forces from Philppe Martin's and Erwan Sala<FC>n's
+      // Forces from Philppe Martin's and Erwan Salaün's
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
