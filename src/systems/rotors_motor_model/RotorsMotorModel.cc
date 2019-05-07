@@ -170,7 +170,7 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
     {
       motor_rot_vel_ = joint_->GetVelocity(0);
       if (motor_rot_vel_ / (2 * M_PI) > 1 / (2 * sampling_time_)) {
-        gzerr << "Aliasing on motor [" << motor_number_
+        ignerr << "Aliasing on motor [" << motor_number_
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotor_velocity_slowdown_sim_ param.\n";
       }
@@ -217,7 +217,7 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments() {
       // Transforming the drag torque into the parent frame to handle
       // arbitrary rotor orientations.
       Vector3 drag_torque_parent_frame =
-          pose_difference.rot.RotateVector(drag_torque);
+          pose_difference.Rot().RotateVector(drag_torque);
       parent_links.at(0)->AddRelativeTorque(drag_torque_parent_frame);
 
       Vector3 rolling_moment;
