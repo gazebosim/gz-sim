@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Support conversion and serialization of PBR parameters in a material component
+    * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
 
