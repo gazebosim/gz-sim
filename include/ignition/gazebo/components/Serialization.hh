@@ -33,6 +33,25 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+/// \brief A Serializer class is used to serialize and deserialize a component.
+/// It is passed in as the third template parameter to components::Component.
+/// Eg.
+/// \code
+///   using Geometry = components::Component<sdf::Geometry, GeometryTag,
+///         serializers::GeometrySerializer>
+/// \endcode
+/// A serializer class implements two static functions: `Serialize` and
+/// `Deserialize` with the following signatures
+/// \code
+///     class ExampleSerializer
+///     {
+///       public: static std::ostream &Serialize(std::ostream &_out,
+///                                              const DataType &_data);
+///       public: static std::istream &Deserialize(std::istream &_in,
+///                                                DataType &_data)
+///     };
+/// \endcode
+
 namespace serializers
 {
   /// \brief Serialization for that converts components data types to
@@ -46,6 +65,7 @@ namespace serializers
   /// \code
   ///   using Geometry = Component<sdf::Geometry, class GeometryTag,
   ///           ComponentToMsgSerializer<sdf::Geometry, msgs::Geometry>>
+  /// \endcode
   template <typename DataType, typename MsgType>
   class ComponentToMsgSerializer
   {
@@ -77,8 +97,7 @@ namespace serializers
   };
 
   /// \brief Common serializer for sensors
-  using SensorSerializer =
-      serializers::ComponentToMsgSerializer<sdf::Sensor, msgs::Sensor>;
+  using SensorSerializer = ComponentToMsgSerializer<sdf::Sensor, msgs::Sensor>;
 
   /// \brief Serializer for components that hold `std::vector<double>`.
   class VectorDoubleSerializer
