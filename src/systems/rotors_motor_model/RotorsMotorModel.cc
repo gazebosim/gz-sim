@@ -417,26 +417,50 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       link.AddWorldForce(_ecm, air_drag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
+      msgs::Wrench wrench;
+      Vector3 parentWorldTorque;
       auto parentWrenchComp =
         _ecm.Component<components::ExternalWorldWrenchCmd>(
           this->parentLinkEntity);
+      // gazebo_motor_model.cpp subtracts the GetWorldCoGPose() of the
+      // child link from the parent but only uses the rotation component.
+      // Since GetWorldCoGPose() uses the link frame orientation, it
+      // is equivalent to use WorldPose().Rot().
+      Link parentLink(this->parentLinkEntity);
+      const auto parentWorldPose = parentLink.WorldPose(_ecm);
+      if (!parentWorldPose)
+      {
+        ignerr << "link " << this->parentLinkName << " has no WorldPose component"
+               << std::endl;
+      }
       // The tansformation from the parent_link to the link_.
-      Pose pose_difference =
-          link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
+      // Pose pose_difference =
+      //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
+      Pose pose_difference = *worldPose - *parentWorldPose;
       Vector3 drag_torque(
           0, 0, -turning_direction_ * thrust * moment_constant_);
       // Transforming the drag torque into the parent frame to handle
       // arbitrary rotor orientations.
       Vector3 drag_torque_parent_frame =
           pose_difference.Rot().RotateVector(drag_torque);
-      parent_links.at(0)->AddRelativeTorque(drag_torque_parent_frame);
+      parentWorldTorque = parentWorldPose->Rot() * drag_torque_parent_frame;
 
       Vector3 rolling_moment;
       // - \omega * \mu_1 * V_A^{\perp}
       rolling_moment = -std::abs(real_motor_velocity) *
                        rolling_moment_coefficient_ *
                        body_velocity_perpendicular;
-      parent_links.at(0)->AddTorque(rolling_moment);
+      parentWorldTorque += rolling_moment;
+      msgs::Set(wrench.mutable_torque(), parentWorldTorque);
+      components::ExternalWorldWrenchCmd newWrenchComp(wrench);
+      if (parentWrenchComp)
+      {
+        *parentWrenchComp = newWrenchComp;
+      }
+      else
+      {
+        _ecm.CreateComponent(this->parentLinkEntity, newWrenchComp);
+      }
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
       ref_motor_rot_vel = rotor_velocity_filter_->updateFilter(
