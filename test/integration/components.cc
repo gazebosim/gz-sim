@@ -108,10 +108,10 @@ TEST_F(ComponentsTest, AirPressureSensor)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::AirPressureSensor comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
   EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
@@ -374,10 +374,10 @@ TEST_F(ComponentsTest, Imu)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Imu comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("imu_sensor", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());

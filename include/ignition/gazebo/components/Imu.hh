@@ -24,6 +24,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include "ignition/gazebo/components/Component.hh"
+#include <ignition/gazebo/components/Serialization.hh>
 
 namespace ignition
 {
@@ -35,7 +36,8 @@ namespace components
 {
   /// \brief A component type that contains an IMU sensor,
   /// sdf::IMU, information.
-  using Imu = Component<sdf::Sensor, class ImuTag>;
+  using Imu = Component<sdf::Sensor, class ImuTag,
+      serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Imu", Imu)
 }
 }
