@@ -39,8 +39,6 @@ Rectangle {
   TreeView {
     id: tree
     anchors.fill: parent
-    //anchors.left: parent.left
-    //anchors.right: parent.right
     model: EntityTreeModel
 
     // Hacky: the sibling of listView is the background(Rectangle) of TreeView
