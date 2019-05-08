@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ROTORSMOTORMODEL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ROTORSMOTORMODEL_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
+#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 
 #include <ignition/gazebo/System.hh>
 #include <memory>
@@ -29,20 +29,20 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class RotorsMotorModelPrivate;
+  class MulticopterMotorModelPrivate;
 
   /// \brief This system applies a thrust force to models with spinning
   /// propellers.
-  class IGNITION_GAZEBO_VISIBLE RotorsMotorModel
+  class IGNITION_GAZEBO_VISIBLE MulticopterMotorModel
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: RotorsMotorModel();
+    public: MulticopterMotorModel();
 
     /// \brief Destructor
-    public: ~RotorsMotorModel() override = default;
+    public: ~MulticopterMotorModel() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -56,7 +56,7 @@ namespace systems
                 ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<RotorsMotorModelPrivate> dataPtr;
+    private: std::unique_ptr<MulticopterMotorModelPrivate> dataPtr;
   };
   }
 }
