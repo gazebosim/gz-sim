@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Add rendering component
+    * [Pull Request 306](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/306)
+
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
 
