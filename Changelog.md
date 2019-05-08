@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Throttle sensors update rate
+    * [Pull Request 323](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/323)
+
 1. Added system for ignition::sensors::AirPressureSensor.
     * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
 
