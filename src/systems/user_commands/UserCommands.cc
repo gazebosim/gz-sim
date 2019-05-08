@@ -568,6 +568,9 @@ bool PoseCommand::Execute()
     ignerr << "Internal error, null create message" << std::endl;
     return false;
   }
+
+  std::cerr << poseMsg->DebugString() << std::endl;
+
   // Check the name of the entity being spawned
   std::string entityName = poseMsg->name();
   Entity entity = kNullEntity;
@@ -575,8 +578,6 @@ bool PoseCommand::Execute()
   {
     entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
       components::ParentEntity(this->iface->worldEntity));
-    {
-    }
   }
   else if (poseMsg->id() > 0)
   {
@@ -590,11 +591,11 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  auto poseCmdComp = this->iface->ecm->Component<components::PoseCmd>(entity);
+  auto poseCmdComp = this->iface->ecm->Component<components::WorldPoseCmd>(entity);
   if (!poseCmdComp)
   {
     this->iface->ecm->CreateComponent(
-        entity, components::PoseCmd(msgs::Convert(*poseMsg)));
+        entity, components::WorldPoseCmd(msgs::Convert(*poseMsg)));
   }
   else
   {
