@@ -20,6 +20,7 @@
 #include <sdf/Sensor.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -32,7 +33,8 @@ namespace components
 {
   /// \brief A component type that contains a Lidar sensor,
   /// sdf::Lidar, information.
-  using Lidar = Component<sdf::Sensor, class LidarTag>;
+  using Lidar = Component<sdf::Sensor, class LidarTag,
+      serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Lidar", Lidar)
 }
 }
