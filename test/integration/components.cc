@@ -108,10 +108,10 @@ TEST_F(ComponentsTest, AirPressureSensor)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::AirPressureSensor comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
   EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
@@ -153,10 +153,10 @@ TEST_F(ComponentsTest, Altimeter)
 
   // Stream operator
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Altimeter comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(sdf::SensorType::ALTIMETER, comp3.Data().Type());
   EXPECT_EQ(sdf::NoiseType::GAUSSIAN,
       comp3.Data().AltimeterSensor()->VerticalVelocityNoise().Type());
@@ -182,12 +182,12 @@ TEST_F(ComponentsTest, AngularVelocity)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3", ostr.str());
 
   std::istringstream istr("3 2 1");
   components::AngularVelocity comp3(math::Vector3d::Zero);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Vector3d(3, 2, 1), comp3.Data());
 }
 
@@ -228,12 +228,12 @@ TEST_F(ComponentsTest, CanonicalLink)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::CanonicalLink comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -254,12 +254,12 @@ TEST_F(ComponentsTest, ChildLinkName)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("comp1", ostr.str());
 
   std::istringstream istr("comp3");
   components::ChildLinkName comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("comp3", comp3.Data());
 }
 
@@ -277,12 +277,12 @@ TEST_F(ComponentsTest, Collision)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Collision comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -306,10 +306,10 @@ TEST_F(ComponentsTest, Geometry)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Geometry comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(sdf::GeometryType::CYLINDER, comp3.Data().Type());
   ASSERT_NE(nullptr, comp3.Data().CylinderShape());
   EXPECT_DOUBLE_EQ(1.23, comp3.Data().CylinderShape()->Radius());
@@ -334,12 +334,12 @@ TEST_F(ComponentsTest, Gravity)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3", ostr.str());
 
   std::istringstream istr("3 2 1");
   components::Gravity comp3(math::Vector3d::Zero);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Vector3d(3, 2, 1), comp3.Data());
 }
 
@@ -374,10 +374,10 @@ TEST_F(ComponentsTest, Imu)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Imu comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("imu_sensor", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());
@@ -406,10 +406,10 @@ TEST_F(ComponentsTest, Inertial)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Inertial comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_DOUBLE_EQ(1.0, comp3.Data().MassMatrix().Mass());
 }
 
@@ -427,12 +427,12 @@ TEST_F(ComponentsTest, Joint)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Joint comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -459,11 +459,11 @@ TEST_F(ComponentsTest, JointAxis)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
 
   components::JointAxis comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 
   EXPECT_EQ(math::Vector3d(1, 2, 3), comp3.Data().Xyz());
   EXPECT_DOUBLE_EQ(0.1, comp3.Data().Damping());
@@ -496,14 +496,14 @@ TEST_F(ComponentsTest, JointType)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ(std::to_string(static_cast<int>(sdf::JointType::FIXED)),
       ostr.str());
 
   std::istringstream istr(std::to_string(static_cast<int>(
       sdf::JointType::SCREW)));
   components::JointType comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(sdf::JointType::SCREW, comp3.Data());
 }
 
@@ -515,11 +515,11 @@ TEST_F(ComponentsTest, JointVelocity)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
 
   std::istringstream istr(ostr.str());
   components::JointVelocity comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   ASSERT_EQ(3u, comp3.Data().size());
   EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
   EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
@@ -534,11 +534,11 @@ TEST_F(ComponentsTest, JointVelocityCmd)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
 
   std::istringstream istr(ostr.str());
   components::JointVelocityCmd comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   ASSERT_EQ(3u, comp3.Data().size());
   EXPECT_DOUBLE_EQ(1.2, comp3.Data()[0]);
   EXPECT_DOUBLE_EQ(2.3, comp3.Data()[1]);
@@ -559,12 +559,12 @@ TEST_F(ComponentsTest, Level)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Level comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -577,12 +577,12 @@ TEST_F(ComponentsTest, LevelBuffer)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1.5", ostr.str());
 
   std::istringstream istr("3.3");
   components::LevelBuffer comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_DOUBLE_EQ(3.3, comp3.Data());
 }
 
@@ -607,12 +607,12 @@ TEST_F(ComponentsTest, LevelEntityNames)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("level1 level2 ", ostr.str());
 
   std::istringstream istr("level3 level4");
   components::LevelEntityNames comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 
   std::set<std::string> data3({"level3", "level4"});
   EXPECT_EQ(data3, comp3.Data());
@@ -648,10 +648,10 @@ TEST_F(ComponentsTest, Light)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Light comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
   EXPECT_EQ("light_test", comp3.Data().Name());
   EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().Pose());
@@ -686,12 +686,12 @@ TEST_F(ComponentsTest, LinearAcceleration)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3", ostr.str());
 
   std::istringstream istr("3 2 1");
   components::LinearAcceleration comp3(math::Vector3d::Zero);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Vector3d(3, 2, 1), comp3.Data());
 }
 
@@ -713,12 +713,12 @@ TEST_F(ComponentsTest, LinearVelocity)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3", ostr.str());
 
   std::istringstream istr("3 2 1");
   components::LinearVelocity comp3(math::Vector3d::Zero);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Vector3d(3, 2, 1), comp3.Data());
 }
 
@@ -736,12 +736,12 @@ TEST_F(ComponentsTest, Link)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Link comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -774,10 +774,10 @@ TEST_F(ComponentsTest, Magnetometer)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Magnetometer comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("banana", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
   EXPECT_EQ("grape", comp3.Data().Topic());
@@ -822,10 +822,10 @@ TEST_F(ComponentsTest, Material)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Material comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Ambient());
   EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Specular());
@@ -864,12 +864,12 @@ TEST_F(ComponentsTest, Model)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Model comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -890,12 +890,12 @@ TEST_F(ComponentsTest, Name)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("comp1", ostr.str());
 
   std::istringstream istr("comp3");
   components::Name comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("comp3", comp3.Data());
 }
 
@@ -917,12 +917,12 @@ TEST_F(ComponentsTest, ParentEntity)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1", ostr.str());
 
   std::istringstream istr("3");
   components::ParentEntity comp3(kNullEntity);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(3u, comp3.Data());
 }
 
@@ -944,12 +944,12 @@ TEST_F(ComponentsTest, ParentLinkName)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("comp1", ostr.str());
 
   std::istringstream istr("comp3");
   components::ParentLinkName comp3(std::string(""));
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ("comp3", comp3.Data());
 }
 
@@ -967,12 +967,12 @@ TEST_F(ComponentsTest, Performer)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Performer comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -987,12 +987,12 @@ TEST_F(ComponentsTest, PerformerLevels)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3 ", ostr.str());
 
   std::istringstream istr("7 8 9 10");
   components::PerformerLevels comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(4u, comp3.Data().size());
   EXPECT_EQ(1u, comp3.Data().count(7));
   EXPECT_EQ(1u, comp3.Data().count(8));
@@ -1019,12 +1019,12 @@ TEST_F(ComponentsTest, Pose)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1 2 3 0.1 0.2 0.3", ostr.str());
 
   std::istringstream istr("3 2 1 0.3 0.2 0.1");
   components::Pose comp3(math::Pose3d::Zero);
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0.3, 0.2, 0.1), comp3.Data());
 }
 
@@ -1042,12 +1042,12 @@ TEST_F(ComponentsTest, Sensor)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Sensor comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -1077,12 +1077,12 @@ TEST_F(ComponentsTest, ThreadPitch)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   EXPECT_EQ("1.2", ostr.str());
 
   std::istringstream istr("3.4");
   components::ThreadPitch comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_DOUBLE_EQ(3.4, comp3.Data());
 }
 
@@ -1100,12 +1100,12 @@ TEST_F(ComponentsTest, Visual)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::Visual comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -1122,12 +1122,12 @@ TEST_F(ComponentsTest, World)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp1;
+  comp1.Serialize(ostr);
   EXPECT_EQ("-", ostr.str());
 
   std::istringstream istr("ignored");
   components::World comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
 }
 
 /////////////////////////////////////////////////
@@ -1147,10 +1147,10 @@ TEST_F(ComponentsTest, Scene)
 
   // Stream operators
   std::ostringstream ostr;
-  ostr << comp11;
+  comp11.Serialize(ostr);
   std::istringstream istr(ostr.str());
   components::Scene comp3;
-  istr >> comp3;
+  comp3.Deserialize(istr);
   EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Ambient());
   EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Background());
   EXPECT_TRUE(comp3.Data().Shadows());
