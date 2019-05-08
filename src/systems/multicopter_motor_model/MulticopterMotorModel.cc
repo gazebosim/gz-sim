@@ -31,7 +31,6 @@
 
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -62,7 +61,8 @@ bool getSdfParam(
     _param = _sdf->GetElement(_name)->Get<T>();
     return true;
   }
-  else {
+  else
+  {
     _param = _default_value;
     if (_verbose)
       ignerr << "Please specify a value for parameter \"" << _name << "\".\n";
@@ -74,46 +74,44 @@ bool getSdfParam(
 /// \brief    This class can be used to apply a first order filter on a signal.
 ///           It allows different acceleration and deceleration time constants.
 /// \details
-///           Short reveiw of discrete time implementation of first order system:
+///           Short reveiw of discrete time implementation of first order system
 ///           Laplace:
 ///             X(s)/U(s) = 1/(tau*s + 1)
 ///           continous time system:
 ///             dx(t) = (-1/tau)*x(t) + (1/tau)*u(t)
 ///           discretized system (ZoH):
-///             x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau))) * u(k)
+///             x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau))) * u(k) // NOLINT
 template <typename T>
 class FirstOrderFilter {
-
- public:
-  FirstOrderFilter(double timeConstantUp, double timeConstantDown, T initialState):
+  public:
+  FirstOrderFilter(double timeConstantUp, double timeConstantDown, T initialState): // NOLINT
       timeConstantUp_(timeConstantUp),
       timeConstantDown_(timeConstantDown),
       previousState_(initialState) {}
 
   /// \brief    This method will apply a first order filter on the inputState.
-  T updateFilter(T inputState, double samplingTime) {
-
+  T updateFilter(T inputState, double samplingTime)
+  {
     T outputState;
     if (inputState > previousState_) {
       // Calcuate the outputState if accelerating.
       double alphaUp = exp(-samplingTime / timeConstantUp_);
       // x(k+1) = Ad*x(k) + Bd*u(k)
       outputState = alphaUp * previousState_ + (1 - alphaUp) * inputState;
-
     }
-    else {
+    else
+    {
       // Calculate the outputState if decelerating.
       double alphaDown = exp(-samplingTime / timeConstantDown_);
       outputState = alphaDown * previousState_ + (1 - alphaDown) * inputState;
     }
     previousState_ = outputState;
     return outputState;
-
   }
 
   ~FirstOrderFilter() {}
 
- protected:
+  protected:
   double timeConstantUp_;
   double timeConstantDown_;
   T previousState_;
@@ -126,9 +124,9 @@ using namespace systems;
 /// \brief Constants for specifying clockwise (CW) and counter-clockwise (CCW)
 /// directions of rotation.
 namespace turning_direction {
-const static int CCW = 1;
-const static int CW = -1;
-} // namespace turning_direction
+static const int CCW = 1;
+static const int CW = -1;
+}  // namespace turning_direction
 
 /// \brief Type of input command to motor.
 enum class MotorType {
@@ -139,10 +137,6 @@ enum class MotorType {
 
 class ignition::gazebo::systems::MulticopterMotorModelPrivate
 {
-  /// \brief Callback for joint force subscription
-  /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const ignition::msgs::Double &_msg);
-
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
 
@@ -166,12 +160,6 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
 
   /// \brief Parent link name
   public: std::string parentLinkName;
-
-  /// \brief Commanded joint force
-  public: double jointForceCmd;
-
-  /// \brief mutex to protect jointForceCmd
-  public: std::mutex jointForceCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -245,8 +233,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "MulticopterMotorModel plugin should be attached to a model entity. "
-           << "Failed to initialize." << std::endl;
+    ignerr << "MulticopterMotorModel plugin should be attached to a model "
+           << "entity. Failed to initialize." << std::endl;
     return;
   }
 
@@ -292,8 +280,11 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->turning_direction_ = turning_direction::CCW;
     else
       ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
-  } else
+  }
+  else
+  {
     ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
+  }
 
   if (sdfClone->HasElement("motorType")) {
     std::string motor_type =
@@ -305,13 +296,19 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->motor_type_ = MotorType::kPosition;
       ignerr << "motorType 'position' not supported" << std::endl;
     }
-    else if (motor_type == "force") {
+    else if (motor_type == "force")
+    {
       this->dataPtr->motor_type_ = MotorType::kForce;
       ignerr << "motorType 'force' not supported" << std::endl;
-    } else
+    }
+    else
+    {
       ignerr << "Please only use 'velocity', 'position' or "
                "'force' as motorType.\n";
-  } else {
+    }
+  }
+  else
+  {
     ignwarn << "motorType not specified, using velocity.\n";
     this->dataPtr->motor_type_ = MotorType::kVelocity;
   }
@@ -343,15 +340,6 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       new FirstOrderFilter<double>(
           this->dataPtr->time_constant_up_, this->dataPtr->time_constant_down_,
           this->dataPtr->ref_motor_input_));
-
-  // Subscribe to commands
-  std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
-                    this->dataPtr->jointName + "/cmd_force"};
-  this->dataPtr->node.Subscribe(topic, &MulticopterMotorModelPrivate::OnCmdForce,
-                                this->dataPtr.get());
-
-  ignmsg << "MulticopterMotorModel subscribing to Double messages on [" << topic
-         << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -392,30 +380,6 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   this->dataPtr->sampling_time_ =
     std::chrono::duration<double>(_info.dt).count();
-
-  // Update joint force
-  auto force = _ecm.Component<components::JointForceCmd>(
-      this->dataPtr->jointEntity);
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
-
-  if (force == nullptr)
-  {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity,
-        components::JointForceCmd({this->dataPtr->jointForceCmd}));
-  }
-  else
-  {
-    force->Data()[0] += this->dataPtr->jointForceCmd;
-  }
-}
-
-//////////////////////////////////////////////////
-void MulticopterMotorModelPrivate::OnCmdForce(const msgs::Double &_msg)
-{
-  std::lock_guard<std::mutex> lock(this->jointForceCmdMutex);
-  this->jointForceCmd = _msg.data();
 }
 
 //////////////////////////////////////////////////
