@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
+*/
+#ifndef IGNITION_GAZEBO_COMPONENTS_AIRPRESSURE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_AIRPRESSURE_HH_
 
-#include <vector>
+#include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
@@ -32,12 +32,12 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
-  /// prismatic).
-  using JointForce = Component<std::vector<double>, class JointForceTag,
-                               serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.JointForce", JointForce)
+  /// \brief A component type that contains an air pressure sensor,
+  /// sdf::AirPressure, information.
+  using AirPressureSensor = Component<sdf::Sensor, class AirPressureSensorTag,
+      serializers::SensorSerializer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AirPressureSensor",
+      AirPressureSensor)
 }
 }
 }

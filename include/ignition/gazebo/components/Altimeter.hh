@@ -34,7 +34,8 @@ namespace components
 {
   /// \brief A component type that contains an altimeter sensor,
   /// sdf::Altimeter, information.
-  using Altimeter = Component<sdf::Sensor, class AltimeterTag>;
+  using Altimeter =
+      Component<sdf::Sensor, class AltimeterTag, serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
 }
 }
