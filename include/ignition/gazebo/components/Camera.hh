@@ -21,6 +21,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -33,7 +34,8 @@ namespace components
 {
   /// \brief A component type that contains a camera sensor,
   /// sdf::Camera, information.
-  using Camera = Component<sdf::Sensor, class CameraTag>;
+  using Camera = Component<sdf::Sensor, class CameraTag,
+      serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
 }
 }
