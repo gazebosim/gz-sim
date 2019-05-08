@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/Link.hh"
@@ -211,7 +212,8 @@ void RotorsMotorModel::Configure(const Entity &_entity,
   }
 
   if (sdfClone->HasElement("motorNumber"))
-    this->dataPtr->motor_number_ = sdfClone->GetElement("motorNumber")->Get<int>();
+    this->dataPtr->motor_number_ =
+      sdfClone->GetElement("motorNumber")->Get<int>();
   else
     ignerr << "Please specify a motorNumber.\n";
 
@@ -228,7 +230,8 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
 
   if (sdfClone->HasElement("motorType")) {
-    std::string motor_type = sdfClone->GetElement("motorType")->Get<std::string>();
+    std::string motor_type =
+      sdfClone->GetElement("motorType")->Get<std::string>();
     if (motor_type == "velocity")
       this->dataPtr->motor_type_ = MotorType::kVelocity;
     else if (motor_type == "position")
@@ -439,14 +442,9 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       ref_motor_rot_vel = rotor_velocity_filter_->updateFilter(
           ref_motor_input_, sampling_time_);
 
-      // Make sure max force is set, as it may be reset to 0 by a world reset any
-      // time. (This cannot be done during Reset() because the change will be undone
-      // by the Joint's reset function afterwards.)
-      #if GAZEBO_MAJOR_VERSION < 5
-            joint_->SetMaxForce(0, max_force_);
-      #endif
-            joint_->SetVelocity(
-                0, turning_direction_ * ref_motor_rot_vel /
+      const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
+          this->jointEntity);
+      jointVelCmd->Data()[0] = (turning_direction_ * ref_motor_rot_vel /
                        rotor_velocity_slowdown_sim_);
     }
   }
