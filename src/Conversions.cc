@@ -33,6 +33,7 @@
 
 #include <ignition/common/Console.hh>
 
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
@@ -592,6 +593,27 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    if (_in.AirPressureSensor())
+    {
+      msgs::AirPressureSensor *sensor = out.mutable_air_pressure();
+
+      if (_in.AirPressureSensor()->PressureNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_pressure_noise(),
+            _in.AirPressureSensor()->PressureNoise());
+      }
+      sensor->set_reference_altitude(
+          _in.AirPressureSensor()->ReferenceAltitude());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an air pressure SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -758,6 +780,27 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
 
     out.SetAltimeterSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    sdf::AirPressure sensor;
+    if (_in.has_air_pressure())
+    {
+      if (_in.air_pressure().has_pressure_noise())
+      {
+        sensor.SetPressureNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.air_pressure().pressure_noise()));
+      }
+
+      sensor.SetReferenceAltitude(_in.air_pressure().reference_altitude());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an air pressure sensor message, but the "
+        << "message does not have an air pressure nested message.\n";
+    }
+
+    out.SetAirPressureSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::IMU)
   {
