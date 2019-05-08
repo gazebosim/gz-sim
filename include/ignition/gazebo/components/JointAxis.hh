@@ -21,34 +21,8 @@
 #include <sdf/JointAxis.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace sdf
-{
-/// \brief Stream insertion operator for `sdf::JointAxis`.
-/// \param[in] _out Output stream.
-/// \param[in] _set Set to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out, const JointAxis &_axis)
-{
-  auto msg = ignition::gazebo::convert<ignition::msgs::Axis>(_axis);
-  msg.SerializeToOstream(&_out);
-  return _out;
-}
-
-/// \brief Stream extraction operator for `sdf::JointAxis`.
-/// \param[in] _in Input stream.
-/// \param[out] _set Set to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in, JointAxis &_axis)
-{
-  ignition::msgs::Axis msg;
-  msg.ParseFromIstream(&_in);
-
-  _axis = ignition::gazebo::convert<sdf::JointAxis>(msg);
-  return _in;
-}
-}
 
 namespace ignition
 {
@@ -56,17 +30,24 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using JointAxisSerialzer =
+      serializers::ComponentToMsgSerializer<sdf::JointAxis, msgs::Axis>;
+}
 namespace components
 {
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
-  using JointAxis = Component<sdf::JointAxis, class JointAxisTag>;
+  using JointAxis = Component<sdf::JointAxis, class JointAxisTag,
+                              serializers::JointAxisSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
-  using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag>;
+  using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag,
+                               serializers::JointAxisSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis2", JointAxis2)
 }

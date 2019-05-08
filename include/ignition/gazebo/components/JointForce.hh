@@ -34,7 +34,8 @@ namespace components
 {
   /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
   /// prismatic).
-  using JointForce = Component<std::vector<double>, class JointForceTag>;
+  using JointForce = Component<std::vector<double>, class JointForceTag,
+                               serializers::VectorDoubleSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointForce", JointForce)
 }

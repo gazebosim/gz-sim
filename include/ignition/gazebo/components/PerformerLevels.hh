@@ -25,53 +25,56 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Component.hh"
 
-namespace std
-{
-/// \brief Stream insertion operator for `std::set<Entity>`.
-/// \param[in] _out Output stream.
-/// \param[in] _set Set to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out,
-      const std::set<ignition::gazebo::Entity> &_set)
-{
-  for (const auto &level : _set)
-  {
-    _out << level << " ";
-  }
-  return _out;
-}
-
-/// \brief Stream extraction operator for `std::set<Entity>`.
-/// \param[in] _in Input stream.
-/// \param[out] _set Set to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in,
-    std::set<ignition::gazebo::Entity> &_set)
-{
-  _in.setf(std::ios_base::skipws);
-
-  _set.clear();
-
-  for (auto it = std::istream_iterator<ignition::gazebo::Entity>(_in);
-      it != std::istream_iterator<ignition::gazebo::Entity>(); ++it)
-  {
-    _set.insert(*it);
-  }
-  return _in;
-}
-}
-
 namespace ignition
 {
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  class PerformerLevelsSerializer
+  {
+    /// \brief Serialization for `std::set<Entity>`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _set Set to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                                           const std::set<Entity> &_set)
+    {
+      for (const auto &level : _set)
+      {
+        _out << level << " ";
+      }
+      return _out;
+    }
+
+    /// \brief Deserialization for `std::set<Entity>`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _set Set to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                                             std::set<Entity> &_set)
+    {
+      _in.setf(std::ios_base::skipws);
+
+      _set.clear();
+
+      for (auto it = std::istream_iterator<Entity>(_in);
+           it != std::istream_iterator<Entity>(); ++it)
+      {
+        _set.insert(*it);
+      }
+      return _in;
+    }
+  };
+}
+
 namespace components
 {
   /// \brief Holds all the levels which a performer is in.
-  using PerformerLevels =
-      Component<std::set<Entity>, class PerformerLevelsTag>;
+  using PerformerLevels = Component<std::set<Entity>, class PerformerLevelsTag,
+                                    serializers::PerformerLevelsSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PerformerLevels",
       PerformerLevels)
 }

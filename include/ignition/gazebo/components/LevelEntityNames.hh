@@ -26,53 +26,58 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Component.hh"
 
-namespace std
-{
-/// \brief Stream insertion operator for `std::set<std::string>`.
-/// \param[in] _out Output stream.
-/// \param[in] _set Set to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out,
-      const std::set<std::string> &_set)
-{
-  for (const auto &entity : _set)
-  {
-    _out << entity << " ";
-  }
-  return _out;
-}
-
-/// \brief Stream extraction operator for `std::set<std::string>`.
-/// \param[in] _in Input stream.
-/// \param[out] _set Set to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in, std::set<std::string> &_set)
-{
-  _in.setf(std::ios_base::skipws);
-
-  _set.clear();
-
-  for (auto it = std::istream_iterator<std::string>(_in);
-      it != std::istream_iterator<std::string>(); ++it)
-  {
-    _set.insert(*it);
-  }
-  return _in;
-}
-}
-
 namespace ignition
 {
 namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  class LevelEntityNamesSerializer
+  {
+    /// \brief Serialization for `std::set<std::string>`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _set Set to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                                           const std::set<std::string> &_set)
+    {
+      for (const auto &entity : _set)
+      {
+        _out << entity << " ";
+      }
+      return _out;
+    }
+
+    /// \brief Deserialization for `std::set<std::string>`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _set Set to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                                             std::set<std::string> &_set)
+    {
+      _in.setf(std::ios_base::skipws);
+
+      _set.clear();
+
+      for (auto it = std::istream_iterator<std::string>(_in);
+           it != std::istream_iterator<std::string>(); ++it)
+      {
+        _set.insert(*it);
+      }
+      return _in;
+    }
+  };
+}
+
 namespace components
 {
   /// \brief A component that holds a list of names of entities to be loaded in
   /// a level.
   using LevelEntityNames =
-      Component<std::set<std::string>, class LevelEntityNamesTag>;
+      Component<std::set<std::string>, class LevelEntityNamesTag,
+                serializers::LevelEntityNamesSerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.LevelEntityNames",
       LevelEntityNames)

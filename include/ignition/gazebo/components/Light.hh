@@ -23,35 +23,9 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace sdf
-{
-/// \brief Stream insertion operator for `sdf::Light`.
-/// \param[in] _out Output stream.
-/// \param[in] _light Light to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out, const Light &_light)
-{
-  auto msg = ignition::gazebo::convert<ignition::msgs::Light>(_light);
-  msg.SerializeToOstream(&_out);
-  return _out;
-}
-
-/// \brief Stream extraction operator for `sdf::Light`.
-/// \param[in] _in Input stream.
-/// \param[out] _light Light to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in, Light &_light)
-{
-  ignition::msgs::Light msg;
-  msg.ParseFromIstream(&_in);
-
-  _light = ignition::gazebo::convert<sdf::Light>(msg);
-  return _in;
-}
-}
 
 namespace ignition
 {
@@ -59,12 +33,19 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using LightSerialzer =
+      serializers::ComponentToMsgSerializer<sdf::Light, msgs::Light>;
+}
+
 namespace components
 {
   /// \brief This component contains light source information. For more
   /// information on lights, see [SDF's Light
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
-  using Light = Component<sdf::Light, class LightTag>;
+  using Light =
+      Component<sdf::Light, class LightTag, serializers::LightSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Light", Light)
 }
 }
