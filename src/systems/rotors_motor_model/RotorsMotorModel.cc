@@ -29,8 +29,12 @@
 
 #include <sdf/sdf.hh>
 
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
+#include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "RotorsMotorModel.hh"
@@ -98,6 +102,18 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   /// \brief Joint name
   public: std::string jointName;
 
+  /// \brief Link Entity
+  public: Entity linkEntity;
+
+  /// \brief Link name
+  public: std::string linkName;
+
+  /// \brief Parent link Entity
+  public: Entity parentLinkEntity;
+
+  /// \brief Parent link name
+  public: std::string parentLinkName;
+
   /// \brief Commanded joint force
   public: double jointForceCmd;
 
@@ -156,15 +172,26 @@ void RotorsMotorModel::Configure(const Entity &_entity,
   auto sdfClone = _sdf->Clone();
 
   // Get params from SDF
-  auto sdfElem = sdfClone->GetElement("joint_name");
-  if (sdfElem)
+  if (sdfClone->HasElement("jointName"))
   {
-    this->dataPtr->jointName = sdfElem->Get<std::string>();
+    this->dataPtr->jointName = sdfClone->Get<std::string>("jointName");
   }
 
-  if (this->dataPtr->jointName == "")
+  if (this->dataPtr->jointName.empty())
   {
     ignerr << "RotorsMotorModel found an empty jointName parameter. "
+           << "Failed to initialize.";
+    return;
+  }
+
+  if (sdfClone->HasElement("linkName"))
+  {
+    this->dataPtr->linkName = sdfClone->Get<std::string>("linkName");
+  }
+
+  if (this->dataPtr->linkName.empty())
+  {
+    ignerr << "RotorsMotorModel found an empty linkName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -227,14 +254,32 @@ void RotorsMotorModel::Configure(const Entity &_entity,
 void RotorsMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
-  // If the joint hasn't been identified yet, look for it
+  // If the joint or links haven't been identified yet, look for them
   if (this->dataPtr->jointEntity == kNullEntity)
   {
     this->dataPtr->jointEntity =
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
+
+    const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
+        this->dataPtr->jointEntity);
+    this->dataPtr->parentLinkName = parentLinkName->Data();
   }
 
-  if (this->dataPtr->jointEntity == kNullEntity)
+  if (this->dataPtr->linkEntity == kNullEntity)
+  {
+    this->dataPtr->linkEntity =
+        this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
+  }
+
+  if (this->dataPtr->parentLinkEntity == kNullEntity)
+  {
+    this->dataPtr->parentLinkEntity =
+        this->dataPtr->model.LinkByName(_ecm, this->dataPtr->parentLinkName);
+  }
+
+  if (this->dataPtr->jointEntity == kNullEntity ||
+      this->dataPtr->linkEntity == kNullEntity ||
+      this->dataPtr->parentLinkEntity == kNullEntity)
     return;
 
   // Nothing left to do if paused.
@@ -286,7 +331,7 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
     }
     default:  // MotorType::kVelocity
     {
-      auto jointVelocity = _ecm.Component<components::JointVelocity>(
+      const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
       double motor_rot_vel_ = jointVelocity->Data()[0];
       if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * sampling_time_)) {
@@ -307,8 +352,16 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       using Pose = ignition::math::Pose3d;
       using Vector3 = ignition::math::Vector3d;
 
+      Link link(this->linkEntity);
+      const auto worldPose = link.WorldPose(_ecm);
+      if (!worldPose)
+      {
+        ignerr << "link " << this->linkName << " has no WorldPose component"
+               << std::endl;
+      }
+
       // Apply a force to the link.
-      link_->AddRelativeForce(Vector3(0, 0, thrust));
+      link.AddWorldForce(_ecm, *worldPose.Rot() * Vector3(0, 0, thrust));
 
       // Forces from Philppe Martin's and Erwan Salaün's
       // 2010 IEEE Conference on Robotics and Automation paper
@@ -325,10 +378,12 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
                                body_velocity_perpendicular;
 
       // Apply air_drag to link.
-      link_->AddForce(air_drag);
+      link.AddWorldForce(_ecm, air_drag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
-      physics::Link_V parent_links = link_->GetParentJointsLinks();
+      auto parentWrenchComp =
+        _ecm.Component<components::ExternalWorldWrenchCmd>(
+          this->parentLinkEntity);
       // The tansformation from the parent_link to the link_.
       Pose pose_difference =
           link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
