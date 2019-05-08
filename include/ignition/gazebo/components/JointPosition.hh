@@ -30,18 +30,13 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using JointPositionSerialzer = serializers::VectorDoubleSerializer;
-}
-
 namespace components
 {
   /// \brief Joint positions in SI units (rad/s for revolute, m/s for
   /// prismatic). The component wraps a std::vector of size equal to the degrees
   /// of freedom of the joint.
   using JointPosition = Component<std::vector<double>, class JointPositionTag,
-                                  serializers::JointPositionSerialzer>;
+                                  serializers::VectorDoubleSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointPosition", JointPosition)
 }
