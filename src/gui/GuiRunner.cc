@@ -33,34 +33,21 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   igndbg << "Requesting initial state from [" << this->stateTopic << "]..."
          << std::endl;
 
-  // Blocking request at startup
-  bool result{false};
-  unsigned int timeout{5000};
+  this->RequestState();
 
-  ignition::msgs::SerializedStep stepMsg;
-  bool executed = this->node.Request(stateTopic, timeout, stepMsg, result);
-
-  if (!executed)
-  {
-    ignerr << "Service call timed out for [" << stateTopic << "]"
-           << std::endl;
-  }
-  else if (!result)
-  {
-    ignerr << "Service call failed for [" << stateTopic << "]" << std::endl;
-  }
-  else
-  {
-    this->OnState(stepMsg);
-
-    // Periodic change updates
-    this->node.Subscribe(stateTopic, &GuiRunner::OnState, this);
-  }
+  // Periodic change updates
+  this->node.Subscribe(stateTopic, &GuiRunner::OnState, this);
 }
 
 /////////////////////////////////////////////////
 GuiRunner::~GuiRunner()
 {
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::RequestState()
+{
+  this->node.Request(this->stateTopic, &GuiRunner::OnStateService, this);
 }
 
 /////////////////////////////////////////////////
@@ -75,6 +62,19 @@ void GuiRunner::OnPluginAdded(const QString &_objectName)
   }
 
   plugin->Update(this->updateInfo, this->ecm);
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::OnStateService(const msgs::SerializedStep &_res,
+    const bool _result)
+{
+  if (!_result)
+  {
+    ignerr << "Service call failed for [" << this->stateTopic << "]"
+           << std::endl;
+    return;
+  }
+  this->OnState(_res);
 }
 
 /////////////////////////////////////////////////

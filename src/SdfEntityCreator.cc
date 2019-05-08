@@ -21,6 +21,7 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -37,6 +38,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -419,24 +421,35 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 
   if (_sensor->Type() == sdf::SensorType::CAMERA)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::Camera(elem));
+        components::Camera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::GpuLidar(elem));
+        components::GpuLidar(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::LIDAR)
+  {
+    // \todo(anyone) Implement CPU-base lidar
+    // this->dataPtr->ecm->CreateComponent(sensorEntity,
+    //     components::Lidar(*_sensor));
+    ignwarn << "Sensor type LIDAR not supported yet. Try using"
+      << "a GPU LIDAR instead." << std::endl;
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::DepthCamera(elem));
+        components::DepthCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::AirPressureSensor(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
@@ -451,10 +464,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-            components::Imu(elem));
+            components::Imu(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
