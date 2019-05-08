@@ -2,6 +2,22 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
+
+1. Support conversion and serialization of Imu components. IMU sensors are
+   loaded from an SDF DOM object.
+    * [Pull Request 302](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/302)
+
+1. Throttle sensors update rate
+    * [Pull Request 323](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/323)
+
+1. Added system for ignition::sensors::AirPressureSensor.
+    * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
+
+1. Support conversion and serialization of PBR parameters in a material component
+    * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
 
