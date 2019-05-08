@@ -89,6 +89,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 ign_find_package(ignition-sensors2 REQUIRED
   COMPONENTS
     rendering
+    air_pressure
     altimeter
     camera
     gpu_lidar
@@ -98,6 +99,11 @@ ign_find_package(ignition-sensors2 REQUIRED
     depth_camera
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
+
+#--------------------------------------
+# Find ignition-rendering
+ign_find_package(ignition-rendering2 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags

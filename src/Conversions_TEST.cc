@@ -25,6 +25,7 @@
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
@@ -166,6 +167,23 @@ TEST(Conversions, Material)
   material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
 
+  sdf::Pbr pbr;
+  sdf::PbrWorkflow workflow;
+  workflow.SetType(sdf::PbrWorkflowType::METAL);
+  workflow.SetAlbedoMap("albedo_map.png");
+  workflow.SetNormalMap("normal_map.png");
+  workflow.SetEnvironmentMap("environment_map.png");
+  workflow.SetAmbientOcclusionMap("ambient_occlusion_map.png");
+  workflow.SetMetalnessMap("metalness_map.png");
+  workflow.SetRoughnessMap("roughness_map.png");
+  workflow.SetGlossinessMap("dummy_glossiness_map.png");
+  workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetMetalness(0.3);
+  workflow.SetRoughness(0.9);
+  workflow.SetGlossiness(0.1);
+  pbr.SetWorkflow(workflow.Type(), workflow);
+  material.SetPbrMaterial(pbr);
+
   auto materialMsg = convert<msgs::Material>(material);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f),
       msgs::Convert(materialMsg.diffuse()));
@@ -177,12 +195,44 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
 
+  EXPECT_TRUE(materialMsg.has_pbr());
+  msgs::Material_PBR pbrMsg = materialMsg.pbr();
+  EXPECT_EQ(msgs::Material_PBR_WorkflowType_METAL, pbrMsg.type());
+  EXPECT_EQ("albedo_map.png", pbrMsg.albedo_map());
+  EXPECT_EQ("normal_map.png", pbrMsg.normal_map());
+  EXPECT_EQ("roughness_map.png", pbrMsg.roughness_map());
+  EXPECT_EQ("metalness_map.png", pbrMsg.metalness_map());
+  EXPECT_EQ("environment_map.png", pbrMsg.environment_map());
+  EXPECT_EQ("ambient_occlusion_map.png", pbrMsg.ambient_occlusion_map());
+  EXPECT_EQ("dummy_glossiness_map.png", pbrMsg.glossiness_map());
+  EXPECT_EQ("dummy_specular_map.png", pbrMsg.specular_map());
+  EXPECT_DOUBLE_EQ(0.3, pbrMsg.metalness());
+  EXPECT_DOUBLE_EQ(0.9, pbrMsg.roughness());
+  EXPECT_DOUBLE_EQ(0.1, pbrMsg.glossiness());
+
   auto newMaterial = convert<sdf::Material>(materialMsg);
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newMaterial.Diffuse());
   EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f), newMaterial.Specular());
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
+
+  sdf::Pbr *newPbrMaterial = newMaterial.PbrMaterial();
+  ASSERT_NE(nullptr, newPbrMaterial);
+  sdf::PbrWorkflow *newWorkflow =
+      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  ASSERT_NE(nullptr, newWorkflow);
+  EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
+  EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
+  EXPECT_EQ("roughness_map.png", newWorkflow->RoughnessMap());
+  EXPECT_EQ("metalness_map.png", newWorkflow->MetalnessMap());
+  EXPECT_EQ("environment_map.png", newWorkflow->EnvironmentMap());
+  EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
+  EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
+  EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
+  EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
+  EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
 }
 
 /////////////////////////////////////////////////
