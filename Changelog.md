@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
+
 1. Support conversion and serialization of Imu components. IMU sensors are
    loaded from an SDF DOM object.
     * [Pull Request 302](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/302)
