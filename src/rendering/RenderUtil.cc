@@ -447,16 +447,13 @@ void RenderUtilPrivate::CreateRenderingEntities(
 void RenderUtilPrivate::UpdateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
-  _ecm.Each<components::Model, components::Pose, components::Name>(
+  _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
         const components::Model *,
-        const components::Pose *_pose,
-        const components::Name *_name
+        const components::Pose *_pose
         )->bool
       {
         this->entityPoses[_entity] = _pose->Data();
-//        if (_name->Data() == "cylinder" )
-//          std::cerr << "_pose " << _pose->Data() << std::endl;;
         return true;
       });
 
