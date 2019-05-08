@@ -41,7 +41,7 @@
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
-#include "RotorsMotorModel.hh"
+#include "MulticopterMotorModel.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief      Obtains a parameter from sdf.
@@ -137,7 +137,7 @@ enum class MotorType {
   kForce
 };
 
-class ignition::gazebo::systems::RotorsMotorModelPrivate
+class ignition::gazebo::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
@@ -230,13 +230,13 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
 };
 
 //////////////////////////////////////////////////
-RotorsMotorModel::RotorsMotorModel()
-  : dataPtr(std::make_unique<RotorsMotorModelPrivate>())
+MulticopterMotorModel::MulticopterMotorModel()
+  : dataPtr(std::make_unique<MulticopterMotorModelPrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void RotorsMotorModel::Configure(const Entity &_entity,
+void MulticopterMotorModel::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
@@ -245,7 +245,7 @@ void RotorsMotorModel::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "RotorsMotorModel plugin should be attached to a model entity. "
+    ignerr << "MulticopterMotorModel plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -260,7 +260,7 @@ void RotorsMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName.empty())
   {
-    ignerr << "RotorsMotorModel found an empty jointName parameter. "
+    ignerr << "MulticopterMotorModel found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -272,7 +272,7 @@ void RotorsMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->linkName.empty())
   {
-    ignerr << "RotorsMotorModel found an empty linkName parameter. "
+    ignerr << "MulticopterMotorModel found an empty linkName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -347,15 +347,15 @@ void RotorsMotorModel::Configure(const Entity &_entity,
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
                     this->dataPtr->jointName + "/cmd_force"};
-  this->dataPtr->node.Subscribe(topic, &RotorsMotorModelPrivate::OnCmdForce,
+  this->dataPtr->node.Subscribe(topic, &MulticopterMotorModelPrivate::OnCmdForce,
                                 this->dataPtr.get());
 
-  ignmsg << "RotorsMotorModel subscribing to Double messages on [" << topic
+  ignmsg << "MulticopterMotorModel subscribing to Double messages on [" << topic
          << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void RotorsMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
+void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
   // If the joint or links haven't been identified yet, look for them
@@ -412,14 +412,14 @@ void RotorsMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void RotorsMotorModelPrivate::OnCmdForce(const msgs::Double &_msg)
+void MulticopterMotorModelPrivate::OnCmdForce(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->jointForceCmdMutex);
   this->jointForceCmd = _msg.data();
 }
 
 //////////////////////////////////////////////////
-void RotorsMotorModelPrivate::UpdateForcesAndMoments(
+void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
   switch (motor_type_) {
@@ -559,10 +559,10 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
   }
 }
 
-IGNITION_ADD_PLUGIN(RotorsMotorModel,
+IGNITION_ADD_PLUGIN(MulticopterMotorModel,
                     ignition::gazebo::System,
-                    RotorsMotorModel::ISystemConfigure,
-                    RotorsMotorModel::ISystemPreUpdate)
+                    MulticopterMotorModel::ISystemConfigure,
+                    MulticopterMotorModel::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(RotorsMotorModel,
-                          "ignition::gazebo::systems::RotorsMotorModel")
+IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+                          "ignition::gazebo::systems::MulticopterMotorModel")
