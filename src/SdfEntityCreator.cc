@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearAcceleration.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -427,10 +428,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::GPU_LIDAR)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::GpuLidar(elem));
+        components::GpuLidar(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::LIDAR)
+  {
+    // \todo(anyone) Implement CPU-base lidar
+    // this->dataPtr->ecm->CreateComponent(sensorEntity,
+    //     components::Lidar(*_sensor));
+    ignwarn << "Sensor type LIDAR not supported yet. Try using"
+      << "a GPU LIDAR instead." << std::endl;
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
   {
@@ -461,10 +468,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {
-    auto elem = _sensor->Element();
-
     this->dataPtr->ecm->CreateComponent(sensorEntity,
-            components::Imu(elem));
+            components::Imu(*_sensor));
 
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
