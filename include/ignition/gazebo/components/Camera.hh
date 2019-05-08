@@ -17,9 +17,11 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_CAMERA_HH_
 #define IGNITION_GAZEBO_COMPONENTS_CAMERA_HH_
 
-#include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -30,9 +32,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(louise) Substitute with sdf::Camera once that exists?
-  /// This is currently the whole <sensor> element.
-  using Camera = Component<sdf::ElementPtr, class CameraTag>;
+  /// \brief A component type that contains a camera sensor,
+  /// sdf::Camera, information.
+  using Camera = Component<sdf::Sensor, class CameraTag,
+      serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
 }
 }
