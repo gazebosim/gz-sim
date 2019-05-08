@@ -83,6 +83,8 @@ Rectangle {
             delay: tooltipDelay
             text: model === null || model.type === undefined ? "" : model.type
             y: icon.z - 30
+            enter: null
+            exit: null
           }
           MouseArea {
             id: iconMa
@@ -105,6 +107,8 @@ Rectangle {
             text: model === null || model.entity === undefined ?
                 "Entity Id: ?" : "Entity Id: " + model.entity
             y: itemDel.z - 30
+            enter: null
+            exit: null
           }
           MouseArea {
             id: ma
