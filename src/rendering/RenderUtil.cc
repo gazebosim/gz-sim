@@ -157,12 +157,13 @@ rendering::ScenePtr RenderUtil::Scene() const
 }
 
 //////////////////////////////////////////////////
-void RenderUtil::UpdateFromECM(const UpdateInfo &,
+void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
-  this->dataPtr->UpdateRenderingEntities(_ecm);
+  if (!_info.paused)
+    this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
 }
 
@@ -446,12 +447,16 @@ void RenderUtilPrivate::CreateRenderingEntities(
 void RenderUtilPrivate::UpdateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
-  _ecm.Each<components::Model, components::Pose>(
+  _ecm.Each<components::Model, components::Pose, components::Name>(
       [&](const Entity &_entity,
         const components::Model *,
-        const components::Pose *_pose)->bool
+        const components::Pose *_pose,
+        const components::Name *_name
+        )->bool
       {
         this->entityPoses[_entity] = _pose->Data();
+//        if (_name->Data() == "cylinder" )
+//          std::cerr << "_pose " << _pose->Data() << std::endl;;
         return true;
       });
 

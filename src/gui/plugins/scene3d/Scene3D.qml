@@ -12,11 +12,11 @@ Rectangle {
    */
   property bool gammaCorrect: false
 
-
   RenderWindow {
     id: renderWindow
     objectName: "rw"
     anchors.fill: parent
+    focus: true
   }
 
   /*

@@ -44,6 +44,7 @@
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Link.hh>
+#include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -91,6 +92,7 @@
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -107,6 +109,10 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          // FreeGroup
+          ignition::physics::FindFreeGroupFeature,
+          ignition::physics::SetFreeGroupWorldPose,
+          ignition::physics::FreeGroupFrameSemantics,
           ignition::physics::LinkFrameSemantics,
           ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::ForwardStep,
@@ -147,6 +153,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  public: using FreeGroupPtrType = ignition::physics::FreeGroupPtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
@@ -157,7 +166,7 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Update physics from components
   /// \param[in] _ecm Constant reference to ECM.
-  public: void UpdatePhysics(const EntityComponentManager &_ecm);
+  public: void UpdatePhysics(EntityComponentManager &_ecm);
 
   /// \brief Step the simulationrfor each world
   /// \param[in] _dt Duration
@@ -574,7 +583,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
+void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
   // Battery state
@@ -661,6 +670,33 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
         linkIt->second->AddExternalForce(math::eigen3::convert(force));
         linkIt->second->AddExternalTorque(math::eigen3::convert(torque));
 
+        return true;
+      });
+
+  _ecm.Each<components::Model, components::WorldPoseCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::WorldPoseCmd *_poseCmd)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+          return true;
+
+        // TODO(addisu) Store the free group instead of searching for it at
+        // every iteration
+        auto freeGroup = modelIt->second->FindFreeGroup();
+        if (freeGroup)
+        {
+          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data()));
+        }
+
+        return true;
+      });
+
+  // Clear pending commands
+  _ecm.Each<components::WorldPoseCmd>(
+      [&](const Entity &_entity, components::WorldPoseCmd*) -> bool
+      {
+        _ecm.RemoveComponent<components::WorldPoseCmd>(_entity);
         return true;
       });
 }

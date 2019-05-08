@@ -24,7 +24,6 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/MeshManager.hh>
-#include <ignition/common/MouseEvent.hh>
 
 #include <ignition/plugin/Register.hh>
 
@@ -64,6 +63,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
+    /// \brief Mouse event
+    public: common::KeyEvent keyEvent;
+
     /// \brief Mouse move distance since last event.
     public: math::Vector2d drag;
 
@@ -95,6 +97,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief Transport node for making transform control requests
+    public: transport::Node node;
+
+    /// \brief Name of service for setting entity pose
+    public: std::string poseCmdService;
   };
 
   /// \brief Private data class for RenderWindowItem
@@ -102,6 +110,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     /// \brief Keep latest mouse event
     public: common::MouseEvent mouseEvent;
+
+    /// \brief Keep latest key event
+    public: common::KeyEvent keyEvent;
 
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
@@ -190,8 +201,6 @@ void IgnRenderer::HandleMouseTransformControl()
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // set transform configuration
-  this->dataPtr->transformControl.SetTransformSpace(
-      this->dataPtr->transformSpace);
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
 
@@ -203,16 +212,41 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
 
+    // make the pose service request on arrow mode
+    if (this->dataPtr->transformControl.Node())
+    {
+      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+          [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      {
+        if (!_result)
+          ignerr << "Error setting pose" << std::endl;
+      };
+      rendering::NodePtr node = this->dataPtr->transformControl.Node();
+      ignition::msgs::Pose req;
+      req.set_name(node->Name());
+      msgs::Set(req.mutable_position(), node->WorldPosition());
+      msgs::Set(req.mutable_orientation(), node->WorldRotation());
+      if (this->dataPtr->poseCmdService.empty())
+      {
+        this->dataPtr->poseCmdService = "/world/" + this->worldName
+            + "/set_pose";
+      }
+      this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
+    }
+
     this->dataPtr->transformControl.Detach();
     this->dataPtr->renderUtil.SetSelectedEntity(
         rendering::VisualPtr());
   }
   else
   {
+    // TODO(anyone) make key events work
     // shift indicates world space transformation
-    this->dataPtr->transformSpace = (this->dataPtr->mouseEvent.Shift()) ?
+    this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
         rendering::TransformSpace::TS_WORLD :
         rendering::TransformSpace::TS_LOCAL;
+    this->dataPtr->transformControl.SetTransformSpace(
+        this->dataPtr->transformSpace);
   }
 
   // update gizmo visual
@@ -465,6 +499,19 @@ void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
   this->dataPtr->mouseEvent = _e;
   this->dataPtr->drag += _drag;
   this->dataPtr->mouseDirty = true;
+}
+
+/////////////////////////////////////////////////
+void IgnRenderer::NewKeyEvent(const common::KeyEvent &_e)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  // todo(anyone) add operator= and copy constructor to common::KeyEvent
+  this->dataPtr->keyEvent.SetType(_e.Type());
+  this->dataPtr->keyEvent.SetKey(_e.Key());
+  this->dataPtr->keyEvent.SetText(_e.Text());
+  this->dataPtr->keyEvent.SetShift(_e.Shift());
+  this->dataPtr->keyEvent.SetAlt(_e.Alt());
+  this->dataPtr->keyEvent.SetControl(_e.Control());
 }
 
 /////////////////////////////////////////////////
@@ -751,6 +798,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 
   this->dataPtr->renderUtil = renderWindow->RenderUtil();
 
+  renderWindow->forceActiveFocus();
+
   // Custom parameters
   if (_pluginElem)
   {
@@ -826,6 +875,10 @@ void Scene3D::Update(const UpdateInfo &_info,
         &Scene3D::OnTransformMode, this);
     ignmsg << "Transform mode service on ["
            << this->dataPtr->transformModeService << "]" << std::endl;
+
+    RenderWindowItem *renderWindow =
+        this->PluginItem()->findChild<RenderWindowItem *>();
+    renderWindow->SetWorldName(this->dataPtr->worldName);
   }
 
   this->dataPtr->renderUtil->UpdateFromECM(_info, _ecm);
@@ -853,6 +906,12 @@ void RenderWindowItem::SetTransformMode(const std::string &_mode)
 void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 {
   this->dataPtr->renderThread->ignRenderer.cameraPose = _pose;
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::SetWorldName(const std::string &_name)
+{
+  this->dataPtr->renderThread->ignRenderer.worldName = _name;
 }
 
 /////////////////////////////////////////////////
@@ -905,6 +964,34 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
 }
 
+/////////////////////////////////////////////////
+void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
+{
+  std::cerr << "key press event ! " << std::endl;
+  this->dataPtr->keyEvent.SetKey(_e->key());
+  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
+  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
+  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
+  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::PRESS);
+
+  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
+      this->dataPtr->keyEvent);
+}
+
+/////////////////////////////////////////////////
+void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
+{
+  this->dataPtr->keyEvent.SetKey(_e->key());
+  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
+  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
+  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
+  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
+  this->dataPtr->keyEvent.SetType(common::KeyEvent::RELEASE);
+
+  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
+      this->dataPtr->keyEvent);
+}
 
 ///////////////////////////////////////////////////
 // void Scene3D::resizeEvent(QResizeEvent *_e)

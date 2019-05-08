@@ -31,6 +31,7 @@
 #include <ignition/msgs/boolean.pb.h>
 
 #include <ignition/common/MouseEvent.hh>
+#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -132,6 +133,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
 
+    /// \brief New key event triggered
+    /// \param[in] _e New key event
+    public: void NewKeyEvent(const common::KeyEvent &_e);
+
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
 
@@ -153,6 +158,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Initial Camera pose
     public: math::Pose3d cameraPose = math::Pose3d(0, 0, 2, 0, 0.4, 0);
+
+    /// \brief Name of the world
+    public: std::string worldName;
 
     /// \brief True if engine has been initialized;
     public: bool initialized = false;
@@ -225,6 +233,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _mode New transform mode to set to
     public: void SetTransformMode(const std::string &_mode);
 
+    /// \brief Set the world name
+    /// \param[in] _name Name of the world to set to.
+    public: void SetWorldName(const std::string &_name);
+
     /// \brief Slot called when thread is ready to be started
     public Q_SLOTS: void Ready();
 
@@ -239,6 +251,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: virtual void wheelEvent(QWheelEvent *_e) override;
+
+    // Documentation inherited
+    protected: virtual void keyPressEvent(QKeyEvent *_e) override;
+
+    // Documentation inherited
+    protected: virtual void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
