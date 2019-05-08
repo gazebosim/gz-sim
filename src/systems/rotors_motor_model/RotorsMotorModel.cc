@@ -68,6 +68,55 @@ bool getSdfParam(
   return false;
 }
 
+// from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
+/// \brief    This class can be used to apply a first order filter on a signal.
+///           It allows different acceleration and deceleration time constants.
+/// \details
+///           Short reveiw of discrete time implementation of first order system:
+///           Laplace:
+///             X(s)/U(s) = 1/(tau*s + 1)
+///           continous time system:
+///             dx(t) = (-1/tau)*x(t) + (1/tau)*u(t)
+///           discretized system (ZoH):
+///             x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau))) * u(k)
+template <typename T>
+class FirstOrderFilter {
+
+ public:
+  FirstOrderFilter(double timeConstantUp, double timeConstantDown, T initialState):
+      timeConstantUp_(timeConstantUp),
+      timeConstantDown_(timeConstantDown),
+      previousState_(initialState) {}
+
+  /// \brief    This method will apply a first order filter on the inputState.
+  T updateFilter(T inputState, double samplingTime) {
+
+    T outputState;
+    if (inputState > previousState_) {
+      // Calcuate the outputState if accelerating.
+      double alphaUp = exp(-samplingTime / timeConstantUp_);
+      // x(k+1) = Ad*x(k) + Bd*u(k)
+      outputState = alphaUp * previousState_ + (1 - alphaUp) * inputState;
+
+    }
+    else {
+      // Calculate the outputState if decelerating.
+      double alphaDown = exp(-samplingTime / timeConstantDown_);
+      outputState = alphaDown * previousState_ + (1 - alphaDown) * inputState;
+    }
+    previousState_ = outputState;
+    return outputState;
+
+  }
+
+  ~FirstOrderFilter() {}
+
+ protected:
+  double timeConstantUp_;
+  double timeConstantDown_;
+  T previousState_;
+};
+
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
@@ -146,6 +195,10 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   /// The default value is taken from gazebo_motor_model.h
   double motor_constant_ = 8.54858e-06;
 
+  /// \brief Reference input to motor. For MotorType kVelocity, this
+  /// is the reference angular velocity in rad/s.
+  double ref_motor_input_ = 0.0;
+
   /// \brief Rolling moment coefficient with units of N*m / (m/s^2).
   /// The default value is taken from gazebo_motor_model.h
   double rolling_moment_coefficient_ = 1.0e-6;
@@ -158,9 +211,20 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   /// so the joint velocity used by the physics engine is reduced
   /// this factor, while the larger value is used for computing
   /// propeller thrust.
-  /// The default value is taken from
-  /// rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
+  /// The default value is taken from gazebo_motor_model.h
   double rotor_velocity_slowdown_sim_ = 10.0;
+
+  /// \brief Time constant for rotor deceleration.
+  /// The default value is taken from gazebo_motor_model.h
+  double time_constant_down_ = 1.0 / 40.0;
+
+  /// \brief Time constant for rotor acceleration.
+  /// The default value is taken from gazebo_motor_model.h
+  double time_constant_up_ = 1.0 / 80.0;
+
+  /// \brief Filter on rotor velocity that has different time constants
+  /// for increasing and decreasing values.
+  std::unique_ptr<FirstOrderFilter<double>> rotor_velocity_filter_;
 };
 
 //////////////////////////////////////////////////
@@ -263,8 +327,20 @@ void RotorsMotorModel::Configure(const Entity &_entity,
       this->dataPtr->moment_constant_, this->dataPtr->moment_constant_);
 
   getSdfParam<double>(
+      sdfClone, "timeConstantUp",
+      this->dataPtr->time_constant_up_, this->dataPtr->time_constant_up_);
+  getSdfParam<double>(
+      sdfClone, "timeConstantDown",
+      this->dataPtr->time_constant_down_, this->dataPtr->time_constant_down_);
+  getSdfParam<double>(
       sdfClone, "rotorVelocitySlowdownSim",
       this->dataPtr->rotor_velocity_slowdown_sim_, 10);
+
+  // Create the first order filter.
+  this->dataPtr->rotor_velocity_filter_.reset(
+      new FirstOrderFilter<double>(
+          this->dataPtr->time_constant_up_, this->dataPtr->time_constant_down_,
+          this->dataPtr->ref_motor_input_));
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/joint/" +
@@ -430,8 +506,8 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       const auto parentWorldPose = parentLink.WorldPose(_ecm);
       if (!parentWorldPose)
       {
-        ignerr << "link " << this->parentLinkName << " has no WorldPose component"
-               << std::endl;
+        ignerr << "link " << this->parentLinkName << " has no WorldPose "
+               << "component" << std::endl;
       }
       // The tansformation from the parent_link to the link_.
       // Pose pose_difference =
