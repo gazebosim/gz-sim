@@ -89,7 +89,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// The callback function args are: sensor sdf, and parent name, and
     /// returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(sdf::ElementPtr, const std::string &)>
+        std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
 
     /// \brief Private data pointer.

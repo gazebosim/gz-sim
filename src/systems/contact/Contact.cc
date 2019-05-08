@@ -100,10 +100,10 @@ class ignition::gazebo::systems::ContactPrivate
 };
 
 //////////////////////////////////////////////////
-void ContactSensor::Load(const sdf::ElementPtr &_sdf,
-    const std::string &_topic, const std::vector<Entity> &_collisionEntities)
+void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
+                         const std::vector<Entity> &_collisionEntities)
 {
-  this->collisionEntities = std::move(_collisionEntities);
+  this->collisionEntities = _collisionEntities;
 
   auto contactElem = _sdf->GetElement("contact");
   auto tmpTopic =
@@ -112,7 +112,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf,
   if (tmpTopic == "__default_topic__")
   {
     // use default topic for sensor
-    this->topic = std::move(_topic);
+    this->topic = _topic;
   }
   else
   {

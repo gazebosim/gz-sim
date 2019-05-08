@@ -1,8 +1,10 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
+  battery_plugin.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -27,6 +29,7 @@ set(tests
   touch_plugin.cc
   user_commands.cc
   log_system.cc
+  wind_effects.cc
 )
 
 # Tests that require a valid display

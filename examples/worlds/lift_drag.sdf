@@ -8,6 +8,10 @@
 
     ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 0.7"
 
+  Listen to joint states:
+
+    ign topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
+
 -->
 <sdf version="1.6">
   <world name="lift_drag">
@@ -311,6 +315,10 @@
         <child>blade_2</child>
         <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
       </joint>
+
+      <plugin
+        filename="libignition-gazebo-joint-state-publisher-system.so"
+        name="ignition::gazebo::systems::JointStatePublisher"></plugin>
 
       <plugin
         filename="libignition-gazebo-lift-drag-system.so"

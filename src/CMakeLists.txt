@@ -1,5 +1,6 @@
 add_subdirectory(rendering)
 add_subdirectory(gui)
+add_subdirectory(cmd)
 add_subdirectory(systems)
 add_subdirectory(msgs)
 
@@ -28,6 +29,16 @@ set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
 )
+
+ign_add_component(ign SOURCES cmd/ign.cc GET_TARGET_NAME ign_lib_target)
+target_link_libraries(${ign_lib_target}
+  PRIVATE
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+)
+
 
 set (sources
   Conversions.cc
