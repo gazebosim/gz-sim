@@ -19,7 +19,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "JointController.hh"
@@ -116,16 +116,17 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   // Update joint velocity
   auto vel =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity);
+      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
 
   if (vel == nullptr)
   {
-    _ecm.CreateComponent(this->dataPtr->jointEntity,
-                         components::JointVelocity(this->dataPtr->jointVelCmd));
+    _ecm.CreateComponent(
+        this->dataPtr->jointEntity,
+        components::JointVelocityCmd({this->dataPtr->jointVelCmd}));
   }
   else
   {
-    vel->Data() = this->dataPtr->jointVelCmd;
+    vel->Data()[0] = this->dataPtr->jointVelCmd;
   }
 }
 
