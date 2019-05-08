@@ -19,13 +19,16 @@
 
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
+#include <sdf/Imu.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Sensor.hh>
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -76,6 +79,43 @@ class ComponentsTest : public ::testing::Test
     common::Console::SetVerbosity(4);
   }
 };
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, AirPressureSensor)
+{
+  sdf::Sensor data1;
+  data1.SetName("abc");
+  data1.SetType(sdf::SensorType::AIR_PRESSURE);
+  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::AirPressure airPressure1;
+  data1.SetAirPressureSensor(airPressure1);
+
+  sdf::Sensor data2;
+
+  // Create components
+  auto comp11 = components::AirPressureSensor(data1);
+  auto comp12 = components::AirPressureSensor(data1);
+  auto comp2 = components::AirPressureSensor(data2);
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::AirPressureSensor comp3;
+  istr >> comp3;
+  EXPECT_EQ("abc", comp3.Data().Name());
+  EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+}
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Altimeter)
@@ -154,8 +194,9 @@ TEST_F(ComponentsTest, AngularVelocity)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Camera)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Camera(data1);
@@ -305,8 +346,18 @@ TEST_F(ComponentsTest, Gravity)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Imu)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  data1.SetName("imu_sensor");
+  data1.SetType(sdf::SensorType::IMU);
+  data1.SetUpdateRate(100);
+  data1.SetTopic("imu_data");
+  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Imu imu1;
+  data1.SetImuSensor(imu1);
+
+  sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Imu(data1);
@@ -321,7 +372,17 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Imu comp3;
+  istr >> comp3;
+  EXPECT_EQ("imu_sensor", comp3.Data().Name());
+  EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
+  EXPECT_EQ("imu_data", comp3.Data().Topic());
+  EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
 }
 
 /////////////////////////////////////////////////
