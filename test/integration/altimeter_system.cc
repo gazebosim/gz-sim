@@ -178,8 +178,6 @@ TEST_F(AltimeterTest, ModelFalling)
   auto lastMsg = altMsgs.back();
   mutex.unlock();
 
-  return;
-
   // check altimeter world pose
   // verify the altimeter model z pos is decreasing
   EXPECT_GT(poses.front().Pos().Z(), poses.back().Pos().Z());
