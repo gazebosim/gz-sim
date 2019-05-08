@@ -43,11 +43,9 @@ namespace components
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Collision", Collision)
 
-  // TODO(anyone) Replace with sdf::Surface. We really want to hold the value of
-  // the <surface> tag, but since there is no sdf::Surface and no way to
-  // construct an sdf::Collision from a surface element, we are storing the
-  // element of the <collision> tag here.
-  /// \brief A component that holds the sdf::Element of a collision
+  // TODO(anyone) The sdf::Collision DOM object does not yet contain
+  // surface information.
+  /// \brief A component that holds the sdf::Collision object.
   using CollisionElement =
       Component<sdf::Collision, class CollisionElementTag,
     serializers::CollisionElementSerializer>;
