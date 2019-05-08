@@ -119,6 +119,18 @@ namespace serializers
         {
           _out << *_data;
         }
+        else
+        {
+          static bool warned{false};
+          if (!warned)
+          {
+            ignwarn << "Trying to serialize component with data type ["
+                    << typeid(DataType).name() << "], which doesn't have "
+                    << "`operator<<`. Component will not be serialized."
+                    << std::endl;
+            warned = true;
+          }
+        }
       }
       else if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
       {
@@ -151,6 +163,18 @@ namespace serializers
                                    typename DataType::element_type>::value)
         {
           _in >> *_data;
+        }
+        else
+        {
+          static bool warned{false};
+          if (!warned)
+          {
+            ignwarn << "Trying to deserialize component with data type ["
+                    << typeid(DataType).name() << "], which doesn't have "
+                    << "`operator>>`. Component will not be deserialized."
+                    << std::endl;
+            warned = true;
+          }
         }
       }
       else if constexpr (traits::IsInStreamable<std::istream, DataType>::value)
