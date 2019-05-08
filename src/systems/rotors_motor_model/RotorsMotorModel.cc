@@ -30,6 +30,7 @@
 #include <sdf/sdf.hh>
 
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
@@ -135,9 +136,22 @@ class ignition::gazebo::systems::RotorsMotorModelPrivate
   /// \brief Type of input command to motor.
   public: MotorType motor_type_ = MotorType::kVelocity;
 
+  /// \brief Moment constant for computing drag torque based on thrust
+  /// with units of length (m).
+  /// The default value is taken from gazebo_motor_model.h
+  double moment_constant_ = 0.016;
+
   /// \brief Thrust coefficient for propeller with units of N / (rad/s)^2.
   /// The default value is taken from gazebo_motor_model.h
   double motor_constant_ = 8.54858e-06;
+
+  /// \brief Rolling moment coefficient with units of N*m / (m/s^2).
+  /// The default value is taken from gazebo_motor_model.h
+  double rolling_moment_coefficient_ = 1.0e-6;
+
+  /// \brief Rotor drag coefficient for propeller with units of N / (m/s^2).
+  /// The default value is taken from gazebo_motor_model.h
+  double rotor_drag_coefficient_ = 1.0e-4;
 
   /// \brief Large joint velocities can cause problems with aliasing,
   /// so the joint velocity used by the physics engine is reduced
@@ -233,8 +247,17 @@ void RotorsMotorModel::Configure(const Entity &_entity,
     this->dataPtr->motor_type_ = MotorType::kVelocity;
   }
 
+  getSdfParam<double>(
+      sdfClone, "rotorDragCoefficient", this->dataPtr->rotor_drag_coefficient_,
+      this->dataPtr->rotor_drag_coefficient_);
+  getSdfParam<double>(
+      sdfClone, "rollingMomentCoefficient",
+      this->dataPtr->rolling_moment_coefficient_,
+      this->dataPtr->rolling_moment_coefficient_);
   getSdfParam<double>(sdfClone, "motorConstant",
       this->dataPtr->motor_constant_, this->dataPtr->motor_constant_);
+  getSdfParam<double>(sdfClone, "momentConstant",
+      this->dataPtr->moment_constant_, this->dataPtr->moment_constant_);
 
   getSdfParam<double>(
       sdfClone, "rotorVelocitySlowdownSim",
@@ -367,8 +390,18 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
-      Vector3 joint_axis = joint_->GetGlobalAxis(0);
-      Vector3 body_velocity_W = link_->GetWorldLinearVel();
+      const auto jointPose = _ecm.Component<components::WorldPose>(
+          this->jointEntity);
+      const auto jointAxis = _ecm.Component<components::JointAxis>(
+          this->jointEntity);
+      Vector3 joint_axis = jointPose->Data().Rot() * jointAxis->Data().Xyz();
+      const auto worldLinearVel = link.WorldLinearVelocity(_ecm);
+      if (!worldLinearVel)
+      {
+        ignerr << "link " << this->linkName << " has no WorldLinearVelocity "
+               << "component" << std::endl;
+      }
+      Vector3 body_velocity_W = *worldLinearVel;
       Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W_;
       Vector3 body_velocity_perpendicular =
           relative_wind_velocity_W -
