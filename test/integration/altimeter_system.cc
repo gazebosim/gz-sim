@@ -157,7 +157,9 @@ TEST_F(AltimeterTest, ModelFalling)
   EXPECT_EQ(iters100, poses.size());
 
   // Wait for messages to be received
-  size_t waitForMsgs = poses.size();
+  double updateRate = 30;
+  double stepSize = 0.001;
+  size_t waitForMsgs = poses.size() * stepSize * updateRate + 1;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -202,7 +204,7 @@ TEST_F(AltimeterTest, ModelFalling)
   EXPECT_EQ(iters100 + iters1000, poses.size());
 
   // Wait for messages to be received
-  waitForMsgs = poses.size();
+  waitForMsgs = poses.size() * stepSize * updateRate + 1;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

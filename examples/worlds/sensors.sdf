@@ -7,6 +7,7 @@
     Altimeter: ign topic -e -t /altimeter
     Imu: ign topic -e -t /imu
     Magnetometer: ign topic -e -t /magnetometer
+    Air pressure: ign topic -e -t /air_pressure
 -->
 <sdf version="1.6">
   <world name="sensors">
@@ -17,6 +18,10 @@
     <plugin
       filename="libignition-gazebo-physics-system.so"
       name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="libignition-gazebo-air-pressure-system.so"
+      name="ignition::gazebo::systems::AirPressure">
     </plugin>
     <plugin
       filename="libignition-gazebo-altimeter-system.so"
@@ -181,7 +186,37 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>altimeter</topic>
+          <altimeter>
+            <vertical_position>
+              <noise type="gaussian">
+                <mean>0.1</mean>
+                <stddev>0.2</stddev>
+              </noise>
+            </vertical_position>
+            <vertical_velocity>
+              <noise type="gaussian">
+                <mean>0.2</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </vertical_velocity>
+          </altimeter>
         </sensor>
+        <sensor name="air_pressure" type="air_pressure">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>air_pressure</topic>
+          <air_pressure>
+            <reference_altitude>123</reference_altitude>
+            <pressure>
+              <noise type="gaussian">
+                <mean>0.2</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </pressure>
+          </air_pressure>
+        </sensor>
+
         <sensor name="imu" type="imu">
           <always_on>1</always_on>
           <update_rate>100</update_rate>

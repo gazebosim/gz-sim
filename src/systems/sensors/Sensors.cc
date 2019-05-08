@@ -107,12 +107,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::string Sensors::CreateSensor(sdf::ElementPtr _sdf,
+std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
     const std::string &_parentName)
 {
-  if (!_sdf)
+  if (_sdf.Type() == sdf::SensorType::NONE)
   {
-    ignerr << "Unable to create sensor. SDF is null." << std::endl;
+    ignerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
   }
 
@@ -122,7 +122,7 @@ std::string Sensors::CreateSensor(sdf::ElementPtr _sdf,
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
-    ignerr << "Failed to create sensor [" << _sdf->Get<std::string>("name")
+    ignerr << "Failed to create sensor [" << _sdf.Name()
            << "]" << std::endl;
   }
 
