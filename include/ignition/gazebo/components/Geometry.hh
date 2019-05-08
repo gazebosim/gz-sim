@@ -35,7 +35,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using GeometrySerialzer =
+  using GeometrySerializer =
       serializers::ComponentToMsgSerializer<sdf::Geometry, msgs::Geometry>;
 }
 
@@ -43,7 +43,7 @@ namespace components
 {
   /// \brief This component holds an entity's geometry.
   using Geometry = Component<sdf::Geometry, class GeometryTag,
-                             serializers::GeometrySerialzer>;
+                             serializers::GeometrySerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Geometry", Geometry)
 

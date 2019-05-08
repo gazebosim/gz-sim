@@ -21,6 +21,7 @@
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -29,6 +30,12 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using CollisionElementSerializer =
+      serializers::ComponentToMsgSerializer<sdf::Collision, msgs::Collision>;
+}
+
 namespace components
 {
   /// \brief A component that identifies an entity as being a collision.
@@ -42,7 +49,8 @@ namespace components
   // element of the <collision> tag here.
   /// \brief A component that holds the sdf::Element of a collision
   using CollisionElement =
-      Component<sdf::ElementPtr, class CollisionElementTag>;
+      Component<sdf::Collision, class CollisionElementTag,
+    serializers::CollisionElementSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CollisionElement",
                                 CollisionElement)
 }

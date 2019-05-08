@@ -226,6 +226,7 @@ void IgnRenderer::HandleMouseTransformControl()
       req.set_name(node->Name());
       msgs::Set(req.mutable_position(), node->WorldPosition());
       msgs::Set(req.mutable_orientation(), node->WorldRotation());
+      std::cout << req.DebugString() << std::endl;
       if (this->dataPtr->poseCmdService.empty())
       {
         this->dataPtr->poseCmdService = "/world/" + this->worldName
