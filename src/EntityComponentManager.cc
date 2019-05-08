@@ -690,7 +690,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     compMsg->set_type(compBase->TypeId());
 
     std::ostringstream ostr;
-    // ostr << *compBase;
     compBase->Serialize(ostr);
 
     compMsg->set_component(ostr.str());

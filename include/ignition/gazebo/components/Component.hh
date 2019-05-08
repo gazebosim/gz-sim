@@ -36,6 +36,8 @@ namespace gazebo
 // namespace ignition
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace traits
+{
   /// \brief Helper trait to determine if a type is shared_ptr or not
   template <typename T>
   struct IsSharedPtr : std::false_type
@@ -52,16 +54,17 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// and `DataType`, i.e, it checks if the function
   /// `Stream& operator<<(Stream&, const DataType&)` exists.
   /// Example:
+  /// \code
   ///    constexpr bool isDoubleOutStreamable =
   ///       IsOutStreamable<std::ostream, double>::value
-  ///
+  /// \endcode
   template <typename Stream, typename DataType>
   class IsOutStreamable
   {
     private: template <typename StreamArg, typename DataTypeArg>
     static auto Test(int _test)
-        -> decltype(std::declval<StreamArg &>() << std::declval<const DataTypeArg &>(),
-                    std::true_type());
+        -> decltype(std::declval<StreamArg &>()
+                    << std::declval<const DataTypeArg &>(), std::true_type());
 
     private: template <typename, typename>
     static auto Test(...) -> std::false_type;
@@ -74,8 +77,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// and `DataType`, i.e, it checks if the function
   /// `Stream& operator>>(Stream&, DataType&)` exists.
   /// Example:
+  /// \code
   ///    constexpr bool isDoubleInStreamable =
   ///       IsInStreamable<std::istream, double>::value
+  /// \endcode
   ///
   template <typename Stream, typename DataType>
   class IsInStreamable
@@ -91,38 +96,31 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: static constexpr bool value =  // NOLINT
                 decltype(Test<Stream, DataType>(0))::value;
   };
+}
 
-namespace components
+namespace serializers
 {
-  /// \brief Convenient type to be used by components that don't wrap any data.
-  /// I.e. they act as tags and their presence is enough to infer something
-  /// about the entity.
-  using NoData = std::add_lvalue_reference<void>;
-
+  /// \brief Default serializer template to call stream operators only on types
+  /// that support them. If the stream operator is not available, a warning
+  /// message is printed.
+  /// \tparam DataType Type on which the operator will be called.
   template <typename DataType>
   class DefaultSerializer
   {
-    /// \brief Helper template to call stream operators only on types that
-    /// support them.
-    /// This version is called for types that have operator<<
-    /// \tparam DataType Type on which the operator will be called.
-    /// \tparam Identifier Unique identifier for the component class.
-    /// \tparam Stream Type used to check if component has operator<<
-    /// \param[in] _out Out stream.
-    /// \param[in] _data Data to be serialized.
+    /// Serialization
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const DataType &_data)
     {
       // cppcheck-suppress syntaxError
-      if constexpr (IsSharedPtr<DataType>::value) // NOLINT
+      if constexpr (traits::IsSharedPtr<DataType>::value) // NOLINT
       {
-        if constexpr (IsOutStreamable<std::ostream,
+        if constexpr (traits::IsOutStreamable<std::ostream,
                                    typename DataType::element_type>::value)
         {
           _out << *_data;
         }
       }
-      else if constexpr (IsOutStreamable<std::ostream, DataType>::value)
+      else if constexpr (traits::IsOutStreamable<std::ostream, DataType>::value)
       {
         _out << _data;
       }
@@ -138,29 +136,24 @@ namespace components
           warned = true;
         }
       }
-
       return _out;
     }
 
-    /// \brief Helper template to call extract operators only on types that
-    /// support them. \tparam DataType Type on which the operator will be
-    /// called. \tparam Identifier Unique identifier for the component class.
-    /// \tparam Ignored All other template parameters are ignored.
-    /// This version is called for types that don't have operator>>
+    /// \brief Deserialization
     /// \param[in] _in In stream.
     /// \param[in] _data Data resulting from deserialization.
     public: static std::istream &Deserialize(std::istream &_in,
                                              DataType &_data)
     {
-      if constexpr (IsSharedPtr<DataType>::value)
+      if constexpr (traits::IsSharedPtr<DataType>::value)
       {
-        if constexpr (IsInStreamable<std::istream,
+        if constexpr (traits::IsInStreamable<std::istream,
                                    typename DataType::element_type>::value)
         {
           _in >> *_data;
         }
       }
-      else if constexpr (IsInStreamable<std::istream, DataType>::value)
+      else if constexpr (traits::IsInStreamable<std::istream, DataType>::value)
       {
         _in >> _data;
       }
@@ -179,9 +172,20 @@ namespace components
       return _in;
     }
   };
+}
 
+namespace components
+{
+  /// \brief Convenient type to be used by components that don't wrap any data.
+  /// I.e. they act as tags and their presence is enough to infer something
+  /// about the entity.
+  using NoData = std::add_lvalue_reference<void>;
+}
+
+namespace serializers
+{
   /// \brief Specialization of DefaultSerializer for NoData
-  template<> class DefaultSerializer<NoData>
+  template<> class DefaultSerializer<components::NoData>
   {
     public: static std::ostream &Serialize(std::ostream &_out)
     {
@@ -194,7 +198,10 @@ namespace components
       return _in;
     }
   };
+}
 
+namespace components
+{
   /// \brief Base class for all components.
   class BaseComponent
   {
@@ -238,25 +245,35 @@ namespace components
   /// need to be defined anywhere
   /// eg.
   /// \code
-  ///     using Static = Component<bool, class StaticTag, BoolSerializer>;
+  ///     using Static = Component<bool, class StaticTag>;
   /// \endcode
   ///
   /// Note, however, that this scheme does not have a mechanism to stop someone
   /// accidentally defining another component that wraps a bool as such:
   /// \code
-  ///     using AnotherComp = Component<bool, class StaticTag, BoolSerializer>;
+  ///     using AnotherComp = Component<bool, class StaticTag>;
   /// \endcode
   /// In this case, Static and AnotherComp are exactly the same types and would
   /// not be differentiable by the EntityComponentManager.
   ///
+  /// A third template argument can be passed to Component to specify the
+  /// serializer class to use. If this argument is not provided, Component will
+  /// use DefaultSerializer<DataType> where DataType is the first template
+  /// argument to Component.
+  /// eg.
+  /// \code
+  ///     class BoolSerializer; // Defined elsewhere
+  ///     using Static = Component<bool, class StaticTag, BoolSerializer>;
+  /// \endcode
+  ///
   /// \tparam DataType Type of the data being wrapped by this component.
   /// \tparam Identifier Unique identifier for the component class, to avoid
   /// collision.
-  /// \tparam Serialzer A class that can serialize `DataType`. Defaults to a
+  /// \tparam Serializer A class that can serialize `DataType`. Defaults to a
   /// serializer that uses stream operators `<<` and `>>` on the data if they
   /// exist.
   template <typename DataType, typename Identifier,
-            typename Serializer = DefaultSerializer<DataType>>
+            typename Serializer = serializers::DefaultSerializer<DataType>>
   class Component : public BaseComponent
   {
     /// \brief Default constructor
