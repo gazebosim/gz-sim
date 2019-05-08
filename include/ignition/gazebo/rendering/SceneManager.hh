@@ -88,7 +88,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateVisual(Entity _id,
         const sdf::Visual &_visual, Entity _parentId = 0);
 
-   /// \brief Create a light
+    /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
     /// \param[in] _parentId Parent id

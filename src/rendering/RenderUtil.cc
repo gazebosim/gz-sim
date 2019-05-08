@@ -18,9 +18,18 @@
 #include <map>
 #include <vector>
 
-#include <sdf/sdf.hh>
-#include <ignition/common/Time.hh>
+#include <sdf/Element.hh>
+#include <sdf/Light.hh>
+#include <sdf/Link.hh>
+#include <sdf/Model.hh>
+#include <sdf/parser.hh>
+#include <sdf/Scene.hh>
+#include <sdf/SDFImpl.hh>
+#include <sdf/Visual.hh>
+
+#include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
+#include <ignition/math/Pose3.hh>
 
 #include <ignition/rendering/RenderEngine.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -116,7 +125,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief New sensors to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, std::string, Entity>>
+  public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
   /// \brief Ids of entities to be removed
@@ -135,7 +144,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering senosr created.
   public: std::function<
-      std::string(sdf::ElementPtr, const std::string &)>
+      std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
 
   /// \brief Entity currently being selected.
@@ -193,14 +202,9 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
 
-  std::vector<std::tuple<Entity, std::string, Entity>> newSensors;
+  std::vector<std::tuple<Entity, sdf::Sensor, Entity>> newSensors;
   if (this->dataPtr->enableSensors)
   {
-    // todo(anyone) switch to use std::move once sensors have been updated
-    // to use sdf DOM
-    // std::copy(this->dataPtr->newSensors.begin(),
-    //     this->dataPtr->newSensors.end(),
-    //     std::back_inserter(newSensors));
     newSensors = std::move(this->dataPtr->newSensors);
     this->dataPtr->newSensors.clear();
   }
@@ -248,27 +252,8 @@ void RenderUtil::Update()
     for (auto &sensor : newSensors)
     {
        Entity entity = std::get<0>(sensor);
-       std::string dataStr = std::get<1>(sensor);
+       sdf::Sensor dataSdf = std::get<1>(sensor);
        Entity parent = std::get<2>(sensor);
-
-       static sdf::SDFPtr sdfParsed;
-       if (!sdfParsed)
-       {
-         sdfParsed.reset(new sdf::SDF());
-         sdf::init(sdfParsed);
-       }
-       std::stringstream stream;
-       stream << "<?xml version='1.0'?>"
-              << "<sdf version='1.6'>"
-              << dataStr
-              << "</sdf>";
-
-       if (!sdf::readString(stream.str(), sdfParsed))
-       {
-         ignerr << "Error parsing sensors sdf" << std::endl;
-         continue;
-       }
-       sdf::ElementPtr data = sdfParsed->Root()->GetElement("sensor");
 
        // two sensors with the same name cause conflicts. We'll need to use
        // scoped names
@@ -281,12 +266,11 @@ void RenderUtil::Update()
          continue;
        }
 
-       std::string scopedName = parentNode->Name() + "::"
-           + data->Get<std::string>("name");
-       data->GetAttribute("name")->Set(scopedName);
+       std::string scopedName = parentNode->Name() + "::" + dataSdf.Name();
+       dataSdf.SetName(scopedName);
 
        std::string sensorName =
-           this->dataPtr->createSensorCb(data, parentNode->Name());
+           this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
        // Add to the system's scene manager
        if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
        {
@@ -411,7 +395,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           const components::ParentEntity *_parent)->bool
         {
           this->newSensors.push_back(
-              std::make_tuple(_entity, _camera->Data()->ToString(""),
+              std::make_tuple(_entity, _camera->Data(),
               _parent->Data()));
           return true;
         });
@@ -423,7 +407,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           const components::ParentEntity *_parent)->bool
         {
           this->newSensors.push_back(
-              std::make_tuple(_entity, _depthCamera->Data()->ToString(""),
+              std::make_tuple(_entity, _depthCamera->Data(),
               _parent->Data()));
           return true;
         });
@@ -436,7 +420,7 @@ void RenderUtilPrivate::CreateRenderingEntities(
           const components::ParentEntity *_parent)->bool
         {
           this->newSensors.push_back(
-              std::make_tuple(_entity, _gpuLidar->Data()->ToString(""),
+              std::make_tuple(_entity, _gpuLidar->Data(),
                _parent->Data()));
           return true;
         });
@@ -450,8 +434,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
         const components::Model *,
-        const components::Pose *_pose
-        )->bool
+        const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
         return true;
@@ -649,7 +632,7 @@ void RenderUtil::SetUseCurrentGLContext(bool _enable)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string(sdf::ElementPtr, const std::string &)>
+    std::function<std::string(const sdf::Sensor &, const std::string &)>
     _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;

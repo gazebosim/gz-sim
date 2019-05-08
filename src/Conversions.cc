@@ -19,6 +19,8 @@
 #include <ignition/msgs/cylindergeom.pb.h>
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/imu_sensor.pb.h>
+#include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -31,11 +33,15 @@
 
 #include <ignition/common/Console.hh>
 
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
+#include <sdf/Camera.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
@@ -559,7 +565,36 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an magnetometer SDF sensor, but the "
+      ignerr << "Attempting to convert a magnetometer SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::CAMERA ||
+           _in.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    if (_in.CameraSensor())
+    {
+      const sdf::Camera *sdfCam = _in.CameraSensor();
+      msgs::CameraSensor *sensor = out.mutable_camera();
+      sensor->set_horizontal_fov(sdfCam->HorizontalFov().Radian());
+      sensor->mutable_image_size()->set_x(sdfCam->ImageWidth());
+      sensor->mutable_image_size()->set_y(sdfCam->ImageHeight());
+      sensor->set_near_clip(sdfCam->NearClip());
+      sensor->set_far_clip(sdfCam->FarClip());
+      sensor->set_save_enabled(sdfCam->SaveFrames());
+      sensor->set_save_path(sdfCam->SaveFramesPath());
+      sensor->set_image_format(sdfCam->PixelFormatStr());
+      msgs::Distortion *dist = sensor->mutable_distortion();
+      msgs::Set(dist->mutable_center(), sdfCam->DistortionCenter());
+      dist->set_k1(sdfCam->DistortionK1());
+      dist->set_k2(sdfCam->DistortionK2());
+      dist->set_k3(sdfCam->DistortionK3());
+      dist->set_p1(sdfCam->DistortionP1());
+      dist->set_p2(sdfCam->DistortionP2());
+    }
+    else
+    {
+      ignerr << "Attempting to convert a camera SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -588,7 +623,125 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    if (_in.AirPressureSensor())
+    {
+      msgs::AirPressureSensor *sensor = out.mutable_air_pressure();
 
+      if (_in.AirPressureSensor()->PressureNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_pressure_noise(),
+            _in.AirPressureSensor()->PressureNoise());
+      }
+      sensor->set_reference_altitude(
+          _in.AirPressureSensor()->ReferenceAltitude());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an air pressure SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::IMU)
+  {
+    if (_in.ImuSensor())
+    {
+      const sdf::Imu *sdfImu = _in.ImuSensor();
+      msgs::IMUSensor *sensor = out.mutable_imu();
+
+      if (sdfImu->LinearAccelerationXNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_x_noise(),
+            sdfImu->LinearAccelerationXNoise());
+      }
+      if (sdfImu->LinearAccelerationYNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_y_noise(),
+            sdfImu->LinearAccelerationYNoise());
+      }
+      if (sdfImu->LinearAccelerationZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_linear_acceleration()->mutable_z_noise(),
+            sdfImu->LinearAccelerationZNoise());
+      }
+
+      if (sdfImu->AngularVelocityXNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_x_noise(),
+            sdfImu->AngularVelocityXNoise());
+      }
+      if (sdfImu->AngularVelocityYNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_y_noise(),
+            sdfImu->AngularVelocityYNoise());
+      }
+      if (sdfImu->AngularVelocityZNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(
+            sensor->mutable_angular_velocity()->mutable_z_noise(),
+            sdfImu->AngularVelocityZNoise());
+      }
+      sensor->mutable_orientation_ref_frame()->set_localization(
+          sdfImu->Localization());
+
+      msgs::Set(sensor->mutable_orientation_ref_frame()->mutable_custom_rpy(),
+        sdfImu->CustomRpy());
+      sensor->mutable_orientation_ref_frame()->set_custom_rpy_parent_frame(
+          sdfImu->CustomRpyParentFrame());
+
+      msgs::Set(
+          sensor->mutable_orientation_ref_frame()->mutable_gravity_dir_x(),
+          sdfImu->GravityDirX());
+      sensor->mutable_orientation_ref_frame()->set_gravity_dir_x_parent_frame(
+          sdfImu->GravityDirXParentFrame());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an IMU SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::LIDAR ||
+           _in.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    if (_in.LidarSensor())
+    {
+      const sdf::Lidar *sdfLidar = _in.LidarSensor();
+      msgs::LidarSensor *sensor = out.mutable_lidar();
+
+      if (sdfLidar->LidarNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
+      }
+      sensor->set_horizontal_samples(sdfLidar->HorizontalScanSamples());
+      sensor->set_horizontal_resolution(sdfLidar->HorizontalScanResolution());
+      sensor->set_horizontal_min_angle(
+          sdfLidar->HorizontalScanMinAngle().Radian());
+      sensor->set_horizontal_max_angle(
+          sdfLidar->HorizontalScanMaxAngle().Radian());
+
+      sensor->set_vertical_samples(sdfLidar->VerticalScanSamples());
+      sensor->set_vertical_resolution(sdfLidar->VerticalScanResolution());
+      sensor->set_vertical_min_angle(sdfLidar->VerticalScanMinAngle().Radian());
+      sensor->set_vertical_max_angle(sdfLidar->VerticalScanMaxAngle().Radian());
+
+      sensor->set_range_min(sdfLidar->RangeMin());
+      sensor->set_range_max(sdfLidar->RangeMax());
+      sensor->set_range_resolution(sdfLidar->RangeResolution());
+    }
+    else
+    {
+      ignerr << "Attempting to convert a Lidar SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
   return out;
 }
 
@@ -627,11 +780,45 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an magnetometer sensor message, but the "
+      ignerr << "Attempting to convert a magnetometer sensor message, but the "
         << "message does not have a magnetometer nested message.\n";
     }
 
     out.SetMagnetometerSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::CAMERA ||
+           out.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sdf::Camera sensor;
+
+    if (_in.has_camera())
+    {
+      sensor.SetHorizontalFov(_in.camera().horizontal_fov());
+      sensor.SetImageWidth(_in.camera().image_size().x());
+      sensor.SetImageHeight(_in.camera().image_size().y());
+      sensor.SetPixelFormatStr(_in.camera().image_format());
+      sensor.SetNearClip(_in.camera().near_clip());
+      sensor.SetFarClip(_in.camera().far_clip());
+      sensor.SetSaveFrames(_in.camera().save_enabled());
+      sensor.SetSaveFramesPath(_in.camera().save_path());
+      if (_in.camera().has_distortion())
+      {
+        sensor.SetDistortionK1(_in.camera().distortion().k1());
+        sensor.SetDistortionK2(_in.camera().distortion().k2());
+        sensor.SetDistortionK3(_in.camera().distortion().k3());
+        sensor.SetDistortionP1(_in.camera().distortion().p1());
+        sensor.SetDistortionP2(_in.camera().distortion().p2());
+        sensor.SetDistortionCenter(
+            msgs::Convert(_in.camera().distortion().center()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert a camera sensor message, but the "
+        << "message does not have a camera nested message.\n";
+    }
+
+    out.SetCameraSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::ALTIMETER)
   {
@@ -657,6 +844,140 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
 
     out.SetAltimeterSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::AIR_PRESSURE)
+  {
+    sdf::AirPressure sensor;
+    if (_in.has_air_pressure())
+    {
+      if (_in.air_pressure().has_pressure_noise())
+      {
+        sensor.SetPressureNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.air_pressure().pressure_noise()));
+      }
+
+      sensor.SetReferenceAltitude(_in.air_pressure().reference_altitude());
+    }
+    else
+    {
+      ignerr << "Attempting to convert an air pressure sensor message, but the "
+        << "message does not have an air pressure nested message.\n";
+    }
+
+    out.SetAirPressureSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::IMU)
+  {
+    sdf::Imu sensor;
+    if (_in.has_imu())
+    {
+      if (_in.imu().has_linear_acceleration())
+      {
+        if (_in.imu().linear_acceleration().has_x_noise())
+        {
+          sensor.SetLinearAccelerationXNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().x_noise()));
+        }
+        if (_in.imu().linear_acceleration().has_y_noise())
+        {
+          sensor.SetLinearAccelerationYNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().y_noise()));
+        }
+        if (_in.imu().linear_acceleration().has_z_noise())
+        {
+          sensor.SetLinearAccelerationZNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().linear_acceleration().z_noise()));
+        }
+      }
+
+      if (_in.imu().has_angular_velocity())
+      {
+        if (_in.imu().angular_velocity().has_x_noise())
+        {
+          sensor.SetAngularVelocityXNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().x_noise()));
+        }
+        if (_in.imu().angular_velocity().has_y_noise())
+        {
+          sensor.SetAngularVelocityYNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().y_noise()));
+        }
+        if (_in.imu().angular_velocity().has_z_noise())
+        {
+          sensor.SetAngularVelocityZNoise(
+              ignition::gazebo::convert<sdf::Noise>(
+                _in.imu().angular_velocity().z_noise()));
+        }
+      }
+
+      if (_in.imu().has_orientation_ref_frame())
+      {
+        sensor.SetLocalization(
+            _in.imu().orientation_ref_frame().localization());
+
+        if (_in.imu().orientation_ref_frame().has_custom_rpy())
+        {
+          sensor.SetCustomRpy(
+              msgs::Convert(_in.imu().orientation_ref_frame().custom_rpy()));
+          sensor.SetCustomRpyParentFrame(
+              _in.imu().orientation_ref_frame().custom_rpy_parent_frame());
+        }
+
+        if (_in.imu().orientation_ref_frame().has_gravity_dir_x())
+        {
+          sensor.SetGravityDirX(msgs::Convert(
+                _in.imu().orientation_ref_frame().gravity_dir_x()));
+          sensor.SetGravityDirXParentFrame(
+              _in.imu().orientation_ref_frame().gravity_dir_x_parent_frame());
+        }
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert an IMU sensor message, but the "
+        << "message does not have an IMU nested message.\n";
+    }
+
+    out.SetImuSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::GPU_LIDAR ||
+           out.Type() == sdf::SensorType::LIDAR)
+  {
+    sdf::Lidar sensor;
+    if (_in.has_lidar())
+    {
+      sensor.SetHorizontalScanSamples(_in.lidar().horizontal_samples());
+      sensor.SetHorizontalScanResolution(_in.lidar().horizontal_resolution());
+      sensor.SetHorizontalScanMinAngle(_in.lidar().horizontal_min_angle());
+      sensor.SetHorizontalScanMaxAngle(_in.lidar().horizontal_max_angle());
+
+      sensor.SetVerticalScanSamples(_in.lidar().vertical_samples());
+      sensor.SetVerticalScanResolution(_in.lidar().vertical_resolution());
+      sensor.SetVerticalScanMinAngle(_in.lidar().vertical_min_angle());
+      sensor.SetVerticalScanMaxAngle(_in.lidar().vertical_max_angle());
+
+      sensor.SetRangeMin(_in.lidar().range_min());
+      sensor.SetRangeMax(_in.lidar().range_max());
+      sensor.SetRangeResolution(_in.lidar().range_resolution());
+
+      if (_in.lidar().has_noise())
+      {
+        sensor.SetLidarNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.lidar().noise()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert a lidar sensor message, but the "
+        << "message does not have a lidar nested message.\n";
+    }
+
+    out.SetLidarSensor(sensor);
   }
   return out;
 }
