@@ -215,21 +215,36 @@ namespace components
     /// By default, it will leave the stream empty. Derived classes should
     /// override this function to support serialization.
     ///
-    /// \internal This function is used by `operator<<`, which can't be
-    /// overridden by derived classes.
-    ///
     /// \param[in] _out Out stream.
-    public: virtual void Serialize(std::ostream &/*_out*/) const = 0;
+    public: virtual void Serialize(std::ostream &/*_out*/) const
+    {
+      static bool warned{false};
+      if (!warned)
+      {
+        ignwarn << "Trying to serialize component of type [" << this->TypeId()
+                << "], which hasn't implemented the `Serialize` function. "
+                << "Component will not be serialized." << std::endl;
+        warned = true;
+      }
+    };
 
     /// \brief Fills a component based on a stream with a serialized data.
     /// By default, it will do nothing. Derived classes should
     /// override this function to support deserialization.
     ///
-    /// \internal This function is used by `operator>>`, which can't be
-    /// overridden by derived classes.
-    ///
     /// \param[in] _in In stream.
-    public: virtual void Deserialize(std::istream &/*_in*/) = 0;
+    public: virtual void Deserialize(std::istream &/*_in*/)
+    {
+      static bool warned{false};
+      if (!warned)
+      {
+        ignwarn << "Trying to deserialize component of type ["
+                << this->TypeId() << "], which hasn't implemented the "
+                << "`Deserialize` function. Component will not be deserialized."
+                << std::endl;
+        warned = true;
+      }
+    };
 
     /// \brief Returns the unique ID for the component's type.
     /// The ID is derived from the name that is manually chosen during the

@@ -166,6 +166,15 @@ class InertialWrapper : public InertialBase
   }
 };
 
+// Component without De/Serialize
+class NoSerialize : public components::BaseComponent
+{
+  public: ComponentTypeId TypeId() const override
+  {
+    return 0;
+  }
+};
+
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, OStream)
 {
@@ -314,11 +323,6 @@ TEST_F(ComponentTest, OStream)
 
   // Component without Serialize function
   {
-    struct NoSerializeData
-    {
-    };
-    using NoSerialize = components::Component<NoSerializeData, class CustomTag>;
-
     NoSerialize comp;
 
     std::ostringstream ostr;
@@ -453,11 +457,6 @@ TEST_F(ComponentTest, IStream)
 
   // Component without Deserialize function
   {
-    struct NoSerializeData
-    {
-    };
-    using NoSerialize = components::Component<NoSerializeData, class CustomTag>;
-
     NoSerialize comp;
 
     std::istringstream istr("not used");
