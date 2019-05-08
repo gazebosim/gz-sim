@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Added system for ignition::sensors::AirPressureSensor.
+    * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
+
 1. Support conversion and serialization of PBR parameters in a material component
     * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
 
