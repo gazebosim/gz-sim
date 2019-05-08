@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_CAMERA_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CAMERA_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
+#define IGNITION_GAZEBO_COMPONENTS_JOINTFORCE_HH_
 
-#include <sdf/Sensor.hh>
+#include <vector>
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -31,10 +32,11 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains a camera sensor,
-  /// sdf::Camera, information.
-  using Camera = Component<sdf::Sensor, class CameraTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Camera", Camera)
+  /// \brief Force applied to a joint  in SI units (Nm for revolute, N for
+  /// prismatic).
+  using JointForce = Component<std::vector<double>, class JointForceTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.JointForce", JointForce)
 }
 }
 }

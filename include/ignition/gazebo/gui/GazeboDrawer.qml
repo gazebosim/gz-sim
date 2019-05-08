@@ -9,6 +9,7 @@ import QtQuick.Dialogs 1.0
 Rectangle {
   id: customDrawer
   anchors.fill: parent
+  color: Material.background
 
   property string saveWorldName: "";
 
@@ -70,66 +71,33 @@ Rectangle {
     ListElement {
       title: "Load client configuration"
       action: "loadConfig"
-      type: "config"
     }
     ListElement {
       title: "Save client configuration"
       action: "saveConfig"
-      type: "config"
     }
     ListElement {
       title: "Save client configuration as"
       action: "saveConfigAs"
-      type: "config"
     }
     ListElement {
       title: "Style settings"
       action: "styleSettings"
-      type: "settings"
     }
-
     ListElement {
       title: "Quit"
       action: "close"
-      type: "window"
     }
   }
 
-  /**
-   * Delegate for the section headings
-   */
-  Component {
-    id: sectionHeading
-    Rectangle {
-      height: 1
-      width: parent.width
-      color: Material.foreground
-
-      Text {
-        text: ""
-        font.bold: true
-        font.pixelSize: 20
-      }
-    }
-  }
-
-  /**
-   * The list view
-   */
   ListView {
     id: listView
     anchors.fill: parent
 
-    section.property: "type"
-    section.criteria: ViewSection.FullString
-    section.delegate: sectionHeading
-
     delegate: ItemDelegate {
-      Material.theme: Material.theme
       width: parent.width
       text: title
       highlighted: ListView.isCurrentItem
-
       onClicked: {
         customDrawer.onAction(action);
         customDrawer.parent.closeDrawer();
