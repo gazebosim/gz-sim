@@ -37,8 +37,19 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade900)
 
   TreeView {
-    anchors.fill: entityTree
+    id: tree
+    anchors.fill: parent
+    //anchors.left: parent.left
+    //anchors.right: parent.right
     model: EntityTreeModel
+
+    // Hacky: the sibling of listView is the background(Rectangle) of TreeView
+    Component.onCompleted: {
+      tree.__listView.parent.children[1].color = Material.background
+    }
+    Material.onThemeChanged: {
+      tree.__listView.parent.children[1].color = Material.background
+    }
 
     style: TreeViewStyle {
       headerDelegate: Rectangle {
@@ -60,6 +71,7 @@ Rectangle {
       }
 
       rowDelegate: Rectangle {
+        visible: styleData.row !== undefined
         height: itemHeight
         color: (styleData.row % 2 == 0) ? even : odd
       }
