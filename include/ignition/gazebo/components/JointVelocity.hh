@@ -34,8 +34,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Base class which can be extended to add serialization
-  using JointVelocity = Component<std::vector<double>,
-        class JointVelocityTag>;
+  using JointVelocity = Component<std::vector<double>, class JointVelocityTag,
+                                  serializers::VectorDoubleSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocity", JointVelocity)
 

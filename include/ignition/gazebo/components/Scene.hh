@@ -22,35 +22,9 @@
 #include <sdf/Scene.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace sdf
-{
-/// \brief Stream insertion operator for `sdf::Scene`.
-/// \param[in] _out Output stream.
-/// \param[in] _scene Scene to stream
-/// \return The stream.
-inline std::ostream &operator<<(std::ostream &_out, const Scene &_scene)
-{
-  auto msg = ignition::gazebo::convert<ignition::msgs::Scene>(_scene);
-  msg.SerializeToOstream(&_out);
-  return _out;
-}
-
-/// \brief Stream extraction operator for `sdf::Scene`.
-/// \param[in] _in Input stream.
-/// \param[out] _scene Scene to populate
-/// \return The stream.
-inline std::istream &operator>>(std::istream &_in, Scene &_scene)
-{
-  ignition::msgs::Scene msg;
-  msg.ParseFromIstream(&_in);
-
-  _scene = ignition::gazebo::convert<sdf::Scene>(msg);
-  return _in;
-}
-}
 
 namespace ignition
 {
@@ -58,10 +32,17 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using SceneSerialzer =
+      serializers::ComponentToMsgSerializer<sdf::Scene, msgs::Scene>;
+}
+
 namespace components
 {
   /// \brief This component holds scene properties of the world.
-  using Scene = Component<sdf::Scene, class SceneTag>;
+  using Scene =
+      Component<sdf::Scene, class SceneTag, serializers::SceneSerialzer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Scene", Scene)
 }
