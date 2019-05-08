@@ -14,79 +14,78 @@
  * limitations under the License.
  *
  */
+#include <ignition/msgs/air_pressure_sensor.pb.h>
 
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/transport/Node.hh>
+#include <ignition/math/Helpers.hh>
 
 #include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/MagnetometerSensor.hh>
+#include <ignition/sensors/AirPressureSensor.hh>
 
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Util.hh"
 
-#include "Magnetometer.hh"
+#include "AirPressure.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
 
-/// \brief Private Magnetometer data class.
-class ignition::gazebo::systems::MagnetometerPrivate
+/// \brief Private AirPressure data class.
+class ignition::gazebo::systems::AirPressurePrivate
 {
-  /// \brief A map of magnetometer entity to its sensor.
+  /// \brief A map of air pressure entity to its vertical reference
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::MagnetometerSensor>> entitySensorMap;
+      std::unique_ptr<sensors::AirPressureSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
-  /// \brief Create magnetometer sensor
+  /// \brief Create air pressure sensor
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateMagnetometerEntities(EntityComponentManager &_ecm);
+  public: void CreateAirPressureEntities(EntityComponentManager &_ecm);
 
-  /// \brief Update magnetometer sensor data based on physics data
+  /// \brief Update air pressure sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void Update(const EntityComponentManager &_ecm);
+  public: void UpdateAirPressures(const EntityComponentManager &_ecm);
 
-  /// \brief Remove magnetometer sensors if their entities have been removed
+  /// \brief Remove air pressure sensors if their entities have been removed
   /// from simulation.
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void RemoveMagnetometerEntities(const EntityComponentManager &_ecm);
+  public: void RemoveAirPressureEntities(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
-Magnetometer::Magnetometer() : System(), dataPtr(
-    std::make_unique<MagnetometerPrivate>())
+AirPressure::AirPressure() :
+  System(), dataPtr(std::make_unique<AirPressurePrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-Magnetometer::~Magnetometer() = default;
+AirPressure::~AirPressure() = default;
 
 //////////////////////////////////////////////////
-void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
+void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  this->dataPtr->CreateMagnetometerEntities(_ecm);
+  this->dataPtr->CreateAirPressureEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void Magnetometer::PostUpdate(const UpdateInfo &_info,
-                           const EntityComponentManager &_ecm)
+void AirPressure::PostUpdate(const UpdateInfo &_info,
+                             const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
   if (!_info.paused)
   {
-    this->dataPtr->Update(_ecm);
+    this->dataPtr->UpdateAirPressures(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -97,61 +96,41 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
     }
   }
 
-  this->dataPtr->RemoveMagnetometerEntities(_ecm);
+  this->dataPtr->RemoveAirPressureEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void MagnetometerPrivate::CreateMagnetometerEntities(
-    EntityComponentManager &_ecm)
+void AirPressurePrivate::CreateAirPressureEntities(EntityComponentManager &_ecm)
 {
-  auto worldEntity = _ecm.EntityByComponents(components::World());
-  if (kNullEntity == worldEntity)
-  {
-    ignerr << "Missing world entity." << std::endl;
-    return;
-  }
-
-  // Get the world magnetic field (defined in world frame)
-  auto worldField = _ecm.Component<components::MagneticField>(worldEntity);
-  if (nullptr == worldField)
-  {
-    ignerr << "World missing magnetic field." << std::endl;
-    return;
-  }
-
-  // Create magnetometers
-  _ecm.EachNew<components::Magnetometer, components::ParentEntity>(
+  // Create air pressure sensors
+  _ecm.EachNew<components::AirPressureSensor, components::ParentEntity>(
     [&](const Entity &_entity,
-        const components::Magnetometer *_magnetometer,
+        const components::AirPressureSensor *_airPressure,
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
         std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
-        sdf::Sensor data = _magnetometer->Data();
+        sdf::Sensor data = _airPressure->Data();
         data.SetName(sensorScopedName);
         // check topic
         if (data.Topic().empty())
         {
-          std::string topic = scopedName(_entity, _ecm) + "/magnetometer";
+          std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
           data.SetTopic(topic);
         }
-        std::unique_ptr<sensors::MagnetometerSensor> sensor =
+        std::unique_ptr<sensors::AirPressureSensor> sensor =
             this->sensorFactory.CreateSensor<
-            sensors::MagnetometerSensor>(data);
+            sensors::AirPressureSensor>(data);
         // set sensor parent
         std::string parentName = _ecm.Component<components::Name>(
             _parent->Data())->Data();
         sensor->SetParent(parentName);
 
-        // set world magnetic field. Assume uniform in world and does not
-        // change throughout simulation
-        sensor->SetWorldMagneticField(worldField->Data());
-
-        // Get initial pose of sensor and set the reference z pos
         // The WorldPose component was just created and so it's empty
         // We'll compute the world pose manually here
-        math::Pose3d p = worldPose(_entity, _ecm);
-        sensor->SetWorldPose(p);
+        // set sensor world pose
+        math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
+        sensor->SetPose(sensorWorldPose);
 
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
@@ -161,25 +140,22 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
 }
 
 //////////////////////////////////////////////////
-void MagnetometerPrivate::Update(
-    const EntityComponentManager &_ecm)
+void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
-  _ecm.Each<components::Magnetometer,
-            components::WorldPose>(
+  _ecm.Each<components::AirPressureSensor, components::WorldPose>(
     [&](const Entity &_entity,
-        const components::Magnetometer * /*_magnetometer*/,
+        const components::AirPressureSensor *,
         const components::WorldPose *_worldPose)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          // Get the magnetometer physical position
-          const math::Pose3d &magnetometerWorldPose = _worldPose->Data();
-          it->second->SetWorldPose(magnetometerWorldPose);
+          const math::Pose3d &worldPose = _worldPose->Data();
+          it->second->SetPose(worldPose);
         }
         else
         {
-          ignerr << "Failed to update magnetometer: " << _entity << ". "
+          ignerr << "Failed to update air pressure: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -188,17 +164,17 @@ void MagnetometerPrivate::Update(
 }
 
 //////////////////////////////////////////////////
-void MagnetometerPrivate::RemoveMagnetometerEntities(
+void AirPressurePrivate::RemoveAirPressureEntities(
     const EntityComponentManager &_ecm)
 {
-  _ecm.EachRemoved<components::Magnetometer>(
+  _ecm.EachRemoved<components::AirPressureSensor>(
     [&](const Entity &_entity,
-        const components::Magnetometer *)->bool
+        const components::AirPressureSensor *)->bool
       {
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing magnetometer sensor for entity ["
+          ignerr << "Internal error, missing air pressure sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -209,10 +185,9 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Magnetometer, System,
-  Magnetometer::ISystemPreUpdate,
-  Magnetometer::ISystemPostUpdate
+IGNITION_ADD_PLUGIN(AirPressure, System,
+  AirPressure::ISystemPreUpdate,
+  AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "ignition::gazebo::systems::Magnetometer")
+IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")

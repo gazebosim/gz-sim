@@ -19,11 +19,16 @@
 
 #include <sdf/Cylinder.hh>
 #include <sdf/Element.hh>
+#include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
+#include <sdf/Imu.hh>
 #include <sdf/Magnetometer.hh>
+#include <sdf/Material.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Pbr.hh>
 #include <sdf/Sensor.hh>
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/Camera.hh"
@@ -74,6 +79,43 @@ class ComponentsTest : public ::testing::Test
     common::Console::SetVerbosity(4);
   }
 };
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, AirPressureSensor)
+{
+  sdf::Sensor data1;
+  data1.SetName("abc");
+  data1.SetType(sdf::SensorType::AIR_PRESSURE);
+  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::AirPressure airPressure1;
+  data1.SetAirPressureSensor(airPressure1);
+
+  sdf::Sensor data2;
+
+  // Create components
+  auto comp11 = components::AirPressureSensor(data1);
+  auto comp12 = components::AirPressureSensor(data1);
+  auto comp2 = components::AirPressureSensor(data2);
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::AirPressureSensor comp3;
+  istr >> comp3;
+  EXPECT_EQ("abc", comp3.Data().Name());
+  EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
+}
 
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Altimeter)
@@ -152,8 +194,9 @@ TEST_F(ComponentsTest, AngularVelocity)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Camera)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Camera(data1);
@@ -303,8 +346,18 @@ TEST_F(ComponentsTest, Gravity)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Imu)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  data1.SetName("imu_sensor");
+  data1.SetType(sdf::SensorType::IMU);
+  data1.SetUpdateRate(100);
+  data1.SetTopic("imu_data");
+  data1.SetPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+
+  sdf::Imu imu1;
+  data1.SetImuSensor(imu1);
+
+  sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Imu(data1);
@@ -319,7 +372,17 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_FALSE(comp11 == comp2);
   EXPECT_FALSE(comp11 != comp12);
 
-  // TODO(anyone) Stream operator
+  // Stream operators
+  std::ostringstream ostr;
+  ostr << comp11;
+  std::istringstream istr(ostr.str());
+  components::Imu comp3;
+  istr >> comp3;
+  EXPECT_EQ("imu_sensor", comp3.Data().Name());
+  EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
+  EXPECT_EQ("imu_data", comp3.Data().Topic());
+  EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
+  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().Pose());
 }
 
 /////////////////////////////////////////////////
@@ -727,6 +790,28 @@ TEST_F(ComponentsTest, Material)
 {
   auto data1 = sdf::Material();
   data1.SetAmbient(math::Color(1, 0, 0, 1));
+  data1.SetDiffuse(math::Color(1, 0, 1, 1));
+  data1.SetSpecular(math::Color(1, 1, 0, 1));
+  data1.SetEmissive(math::Color(1, 1, 1, 1));
+  data1.SetLighting(false);
+
+  sdf::Pbr pbr;
+  sdf::PbrWorkflow workflow;
+  workflow.SetType(sdf::PbrWorkflowType::METAL);
+  workflow.SetAlbedoMap("albedo_map.png");
+  workflow.SetNormalMap("normal_map.png");
+  workflow.SetEnvironmentMap("environment_map.png");
+  workflow.SetAmbientOcclusionMap("ambient_occlusion_map.png");
+  workflow.SetMetalnessMap("metalness_map.png");
+  workflow.SetRoughnessMap("roughness_map.png");
+  workflow.SetGlossinessMap("dummy_glossiness_map.png");
+  workflow.SetSpecularMap("dummy_specular_map.png");
+  workflow.SetMetalness(0.3);
+  workflow.SetRoughness(0.9);
+  workflow.SetGlossiness(0.1);
+  pbr.SetWorkflow(workflow.Type(), workflow);
+  data1.SetPbrMaterial(pbr);
+
   auto data2 = sdf::Material();
 
   // Create components
@@ -742,6 +827,27 @@ TEST_F(ComponentsTest, Material)
   components::Material comp3;
   istr >> comp3;
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Ambient());
+  EXPECT_EQ(math::Color(1, 0, 1, 1), comp3.Data().Diffuse());
+  EXPECT_EQ(math::Color(1, 1, 0, 1), comp3.Data().Specular());
+  EXPECT_EQ(math::Color(1, 1, 1, 1), comp3.Data().Emissive());
+  EXPECT_FALSE(comp3.Data().Lighting());
+
+  sdf::Pbr *newPbrMaterial = comp3.Data().PbrMaterial();
+  ASSERT_NE(nullptr, newPbrMaterial);
+  sdf::PbrWorkflow *newWorkflow =
+      newPbrMaterial->Workflow(sdf::PbrWorkflowType::METAL);
+  ASSERT_NE(nullptr, newWorkflow);
+  EXPECT_EQ("albedo_map.png", newWorkflow->AlbedoMap());
+  EXPECT_EQ("normal_map.png", newWorkflow->NormalMap());
+  EXPECT_EQ("roughness_map.png", newWorkflow->RoughnessMap());
+  EXPECT_EQ("metalness_map.png", newWorkflow->MetalnessMap());
+  EXPECT_EQ("environment_map.png", newWorkflow->EnvironmentMap());
+  EXPECT_EQ("ambient_occlusion_map.png", newWorkflow->AmbientOcclusionMap());
+  EXPECT_EQ("dummy_glossiness_map.png", newWorkflow->GlossinessMap());
+  EXPECT_EQ("dummy_specular_map.png", newWorkflow->SpecularMap());
+  EXPECT_DOUBLE_EQ(0.3, newWorkflow->Metalness());
+  EXPECT_DOUBLE_EQ(0.9, newWorkflow->Roughness());
+  EXPECT_DOUBLE_EQ(0.1, newWorkflow->Glossiness());
 }
 
 /////////////////////////////////////////////////
