@@ -34,8 +34,10 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
@@ -481,7 +483,11 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
                << "component" << std::endl;
       }
       Vector3 body_velocity_W = *worldLinearVel;
-      Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W_;
+      Entity windEntity = _ecm.EntityByComponents(components::Wind());
+      auto windLinearVel =
+          _ecm.Component<components::WorldLinearVelocity>(windEntity);
+      Vector3 wind_speed_W = windLinearVel->Data();
+      Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W;
       Vector3 body_velocity_perpendicular =
           relative_wind_velocity_W -
           (relative_wind_velocity_W.Dot(joint_axis) * joint_axis);
