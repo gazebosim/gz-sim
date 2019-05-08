@@ -31,16 +31,12 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using JointVelocityCmdSerialzer = serializers::VectorDoubleSerializer;
-}
-
 namespace components
 {
   /// \brief Base class which can be extended to add serialization
-  using JointVelocityCmd = Component<std::vector<double>,
-        class JointVelocityCmdTag, serializers::JointVelocityCmdSerialzer>;
+  using JointVelocityCmd =
+      Component<std::vector<double>, class JointVelocityCmdTag,
+                serializers::VectorDoubleSerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointVelocityCmd", JointVelocityCmd)

@@ -32,17 +32,12 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using MagnetometerSerialzer = serializers::SensorSerializer;
-}
-
 namespace components
 {
   /// \brief A component type that contains a magnetometer sensor,
   /// sdf::Magnetometer, information.
   using Magnetometer = Component<sdf::Sensor, class MagnetometerTag,
-                                 serializers::MagnetometerSerialzer>;
+                                 serializers::SensorSerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Magnetometer", Magnetometer)
