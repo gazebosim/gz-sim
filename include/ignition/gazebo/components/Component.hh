@@ -60,7 +60,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     private: template <typename StreamArg, typename DataTypeArg>
     static auto Test(int _test)
-        -> decltype(std::declval<StreamArg &>() << std::declval<DataTypeArg>(),
+        -> decltype(std::declval<StreamArg &>() << std::declval<const DataTypeArg &>(),
                     std::true_type());
 
     private: template <typename, typename>
@@ -82,7 +82,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     private: template <typename StreamArg, typename DataTypeArg>
     static auto Test(int _test)
-      -> decltype(std::declval<StreamArg>() >> std::declval<DataTypeArg &>(),
+      -> decltype(std::declval<StreamArg &>() >> std::declval<DataTypeArg &>(),
                   std::true_type());
 
     private: template <typename, typename>
