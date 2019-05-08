@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
+#ifndef IGNITION_GAZEBO_SYSTEMS_AIRPRESSURE_HH_
+#define IGNITION_GAZEBO_SYSTEMS_AIRPRESSURE_HH_
 
 #include <memory>
-#include <string>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
@@ -32,41 +31,33 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
-  class SensorsPrivate;
+  class AirPressurePrivate;
 
-  /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
-  /// \brief TODO(louise) Have one system for all sensors, or one per
-  /// sensor / sensor type?
-  class IGNITION_GAZEBO_VISIBLE Sensors:
+  /// \class AirPressure AirPressure.hh ignition/gazebo/systems/AirPressure.hh
+  /// \brief An air pressure sensor that reports vertical position and velocity
+  /// readings over ign transport
+  class IGNITION_GAZEBO_VISIBLE AirPressure:
     public System,
-    public ISystemConfigure,
+    public ISystemPreUpdate,
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit Sensors();
+    public: explicit AirPressure();
 
     /// \brief Destructor
-    public: ~Sensors() override;
+    public: ~AirPressure() override;
 
-    // Documentation inherited
-    public: void Configure(const Entity &_id,
-                           const std::shared_ptr<const sdf::Element> &_sdf,
-                           EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) final;
+    /// Documentation inherited
+    public: void PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) final;
 
-    // Documentation inherited
+
+    /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
-    /// \brief Create a rendering sensor from sdf
-    /// \param[in] _sdf SDF description of the sensor
-    /// \param[in] _parentName Name of parent that the sensor is attached to
-    /// \return Sensor name
-    private : std::string CreateSensor(const sdf::Sensor &_sdf,
-        const std::string &_parentName);
-
     /// \brief Private data pointer.
-    private: std::unique_ptr<SensorsPrivate> dataPtr;
+    private: std::unique_ptr<AirPressurePrivate> dataPtr;
   };
   }
 }
