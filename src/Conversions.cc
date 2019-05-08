@@ -20,6 +20,7 @@
 #include <ignition/msgs/geometry.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/imu_sensor.pb.h>
+#include <ignition/msgs/lidar_sensor.pb.h>
 #include <ignition/msgs/light.pb.h>
 #include <ignition/msgs/material.pb.h>
 #include <ignition/msgs/planegeom.pb.h>
@@ -38,6 +39,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Magnetometer.hh>
 #include <sdf/Material.hh>
@@ -654,7 +656,40 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::LIDAR ||
+           _in.Type() == sdf::SensorType::GPU_LIDAR)
+  {
+    if (_in.LidarSensor())
+    {
+      const sdf::Lidar *sdfLidar = _in.LidarSensor();
+      msgs::LidarSensor *sensor = out.mutable_lidar();
 
+      if (sdfLidar->LidarNoise().Type() != sdf::NoiseType::NONE)
+      {
+        ignition::gazebo::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
+      }
+      sensor->set_horizontal_samples(sdfLidar->HorizontalScanSamples());
+      sensor->set_horizontal_resolution(sdfLidar->HorizontalScanResolution());
+      sensor->set_horizontal_min_angle(
+          sdfLidar->HorizontalScanMinAngle().Radian());
+      sensor->set_horizontal_max_angle(
+          sdfLidar->HorizontalScanMaxAngle().Radian());
+
+      sensor->set_vertical_samples(sdfLidar->VerticalScanSamples());
+      sensor->set_vertical_resolution(sdfLidar->VerticalScanResolution());
+      sensor->set_vertical_min_angle(sdfLidar->VerticalScanMinAngle().Radian());
+      sensor->set_vertical_max_angle(sdfLidar->VerticalScanMaxAngle().Radian());
+
+      sensor->set_range_min(sdfLidar->RangeMin());
+      sensor->set_range_max(sdfLidar->RangeMax());
+      sensor->set_range_resolution(sdfLidar->RangeResolution());
+    }
+    else
+    {
+      ignerr << "Attempting to convert a Lidar SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
   return out;
 }
 
@@ -803,7 +838,40 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
     out.SetImuSensor(sensor);
   }
+  else if (out.Type() == sdf::SensorType::GPU_LIDAR ||
+           out.Type() == sdf::SensorType::LIDAR)
+  {
+    sdf::Lidar sensor;
+    if (_in.has_lidar())
+    {
+      sensor.SetHorizontalScanSamples(_in.lidar().horizontal_samples());
+      sensor.SetHorizontalScanResolution(_in.lidar().horizontal_resolution());
+      sensor.SetHorizontalScanMinAngle(_in.lidar().horizontal_min_angle());
+      sensor.SetHorizontalScanMaxAngle(_in.lidar().horizontal_max_angle());
 
+      sensor.SetVerticalScanSamples(_in.lidar().vertical_samples());
+      sensor.SetVerticalScanResolution(_in.lidar().vertical_resolution());
+      sensor.SetVerticalScanMinAngle(_in.lidar().vertical_min_angle());
+      sensor.SetVerticalScanMaxAngle(_in.lidar().vertical_max_angle());
+
+      sensor.SetRangeMin(_in.lidar().range_min());
+      sensor.SetRangeMax(_in.lidar().range_max());
+      sensor.SetRangeResolution(_in.lidar().range_resolution());
+
+      if (_in.lidar().has_noise())
+      {
+        sensor.SetLidarNoise(ignition::gazebo::convert<sdf::Noise>(
+              _in.lidar().noise()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert a lidar sensor message, but the "
+        << "message does not have a lidar nested message.\n";
+    }
+
+    out.SetLidarSensor(sensor);
+  }
   return out;
 }
 
