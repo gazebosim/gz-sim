@@ -357,10 +357,9 @@ void SensorsPrivate::CreateRenderingEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
-        auto data = _gpuLidar->Data()->Clone();
-        std::string scopedName = parent->Name() + "::"
-            + data->Get<std::string>("name");
-        data->GetAttribute("name")->Set(scopedName);
+        sdf::Sensor data = _gpuLidar->Data();
+        std::string scopedName = parent->Name() + "::" + data.Name();
+        data.SetName(scopedName);
 
         // Create within ign-sensors
         auto sensor =

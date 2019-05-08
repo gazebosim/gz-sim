@@ -2,6 +2,10 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Support conversion and serialization of Imu components. IMU sensors are
+   loaded from an SDF DOM object.
+    * [Pull Request 302](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/302)
+
 1. Support conversion and serialization of PBR parameters in a material component
     * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
 
