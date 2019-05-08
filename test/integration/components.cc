@@ -194,8 +194,9 @@ TEST_F(ComponentsTest, AngularVelocity)
 /////////////////////////////////////////////////
 TEST_F(ComponentsTest, Camera)
 {
-  auto data1 = std::make_shared<sdf::Element>();
-  auto data2 = std::make_shared<sdf::Element>();
+  sdf::Sensor data1;
+  sdf::Sensor data2;
+  data2.SetName("other_name");
 
   // Create components
   auto comp11 = components::Camera(data1);

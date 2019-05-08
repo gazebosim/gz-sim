@@ -36,6 +36,7 @@
 #include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
+#include <sdf/Camera.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Gui.hh>
@@ -564,7 +565,36 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an magnetometer SDF sensor, but the "
+      ignerr << "Attempting to convert a magnetometer SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
+  else if (_in.Type() == sdf::SensorType::CAMERA ||
+           _in.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    if (_in.CameraSensor())
+    {
+      const sdf::Camera *sdfCam = _in.CameraSensor();
+      msgs::CameraSensor *sensor = out.mutable_camera();
+      sensor->set_horizontal_fov(sdfCam->HorizontalFov().Radian());
+      sensor->mutable_image_size()->set_x(sdfCam->ImageWidth());
+      sensor->mutable_image_size()->set_y(sdfCam->ImageHeight());
+      sensor->set_near_clip(sdfCam->NearClip());
+      sensor->set_far_clip(sdfCam->FarClip());
+      sensor->set_save_enabled(sdfCam->SaveFrames());
+      sensor->set_save_path(sdfCam->SaveFramesPath());
+      sensor->set_image_format(sdfCam->PixelFormatStr());
+      msgs::Distortion *dist = sensor->mutable_distortion();
+      msgs::Set(dist->mutable_center(), sdfCam->DistortionCenter());
+      dist->set_k1(sdfCam->DistortionK1());
+      dist->set_k2(sdfCam->DistortionK2());
+      dist->set_k3(sdfCam->DistortionK3());
+      dist->set_p1(sdfCam->DistortionP1());
+      dist->set_p2(sdfCam->DistortionP2());
+    }
+    else
+    {
+      ignerr << "Attempting to convert a camera SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -750,11 +780,45 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an magnetometer sensor message, but the "
+      ignerr << "Attempting to convert a magnetometer sensor message, but the "
         << "message does not have a magnetometer nested message.\n";
     }
 
     out.SetMagnetometerSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::CAMERA ||
+           out.Type() == sdf::SensorType::DEPTH_CAMERA)
+  {
+    sdf::Camera sensor;
+
+    if (_in.has_camera())
+    {
+      sensor.SetHorizontalFov(_in.camera().horizontal_fov());
+      sensor.SetImageWidth(_in.camera().image_size().x());
+      sensor.SetImageHeight(_in.camera().image_size().y());
+      sensor.SetPixelFormatStr(_in.camera().image_format());
+      sensor.SetNearClip(_in.camera().near_clip());
+      sensor.SetFarClip(_in.camera().far_clip());
+      sensor.SetSaveFrames(_in.camera().save_enabled());
+      sensor.SetSaveFramesPath(_in.camera().save_path());
+      if (_in.camera().has_distortion())
+      {
+        sensor.SetDistortionK1(_in.camera().distortion().k1());
+        sensor.SetDistortionK2(_in.camera().distortion().k2());
+        sensor.SetDistortionK3(_in.camera().distortion().k3());
+        sensor.SetDistortionP1(_in.camera().distortion().p1());
+        sensor.SetDistortionP2(_in.camera().distortion().p2());
+        sensor.SetDistortionCenter(
+            msgs::Convert(_in.camera().distortion().center()));
+      }
+    }
+    else
+    {
+      ignerr << "Attempting to convert a camera sensor message, but the "
+        << "message does not have a camera nested message.\n";
+    }
+
+    out.SetCameraSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::ALTIMETER)
   {
