@@ -467,26 +467,29 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       // Apply a force to the link.
       link.AddWorldForce(_ecm, worldPose->Rot() * Vector3(0, 0, thrust));
 
-      // Forces from Philppe Martin's and Erwan Salaün's
-      // 2010 IEEE Conference on Robotics and Automation paper
-      // The True Role of Accelerometer Feedback in Quadrotor Control
-      // - \omega * \lambda_1 * V_A^{\perp}
       const auto jointPose = _ecm.Component<components::WorldPose>(
           this->jointEntity);
       const auto jointAxis = _ecm.Component<components::JointAxis>(
           this->jointEntity);
-      Vector3 joint_axis = jointPose->Data().Rot() * jointAxis->Data().Xyz();
+
       const auto worldLinearVel = link.WorldLinearVelocity(_ecm);
       if (!worldLinearVel)
       {
         ignerr << "link " << this->linkName << " has no WorldLinearVelocity "
                << "component" << std::endl;
       }
-      Vector3 body_velocity_W = *worldLinearVel;
+
       Entity windEntity = _ecm.EntityByComponents(components::Wind());
       auto windLinearVel =
           _ecm.Component<components::WorldLinearVelocity>(windEntity);
       Vector3 wind_speed_W = windLinearVel->Data();
+
+      // Forces from Philppe Martin's and Erwan Salaün's
+      // 2010 IEEE Conference on Robotics and Automation paper
+      // The True Role of Accelerometer Feedback in Quadrotor Control
+      // - \omega * \lambda_1 * V_A^{\perp}
+      Vector3 joint_axis = jointPose->Data().Rot() * jointAxis->Data().Xyz();
+      Vector3 body_velocity_W = *worldLinearVel;
       Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W;
       Vector3 body_velocity_perpendicular =
           relative_wind_velocity_W -
