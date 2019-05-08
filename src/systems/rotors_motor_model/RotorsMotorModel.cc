@@ -361,7 +361,7 @@ void RotorsMotorModelPrivate::UpdateForcesAndMoments(
       }
 
       // Apply a force to the link.
-      link.AddWorldForce(_ecm, *worldPose.Rot() * Vector3(0, 0, thrust));
+      link.AddWorldForce(_ecm, worldPose->Rot() * Vector3(0, 0, thrust));
 
       // Forces from Philppe Martin's and Erwan Salaün's
       // 2010 IEEE Conference on Robotics and Automation paper
