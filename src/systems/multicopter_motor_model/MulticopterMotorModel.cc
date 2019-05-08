@@ -380,6 +380,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   this->dataPtr->sampling_time_ =
     std::chrono::duration<double>(_info.dt).count();
+  UpdateForcesAndMoments();
 }
 
 //////////////////////////////////////////////////
