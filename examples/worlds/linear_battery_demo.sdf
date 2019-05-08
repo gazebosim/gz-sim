@@ -1,9 +1,20 @@
 <?xml version="1.0" ?>
 <!--
-  Log record demo.
+  Linear battery demo
 
-  Running this world will record log files to /tmp/log. You can playback
-  running the log_playback.sdf file.
+  This demo has 2 vehicles: a green one without a battery, and blue one with a battery.
+
+  It's recommended to run this demo at a high RTF, so it's faster to observe the battery drain:
+
+      ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+
+  Move both vehicles:
+
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+
+  The blue vehicle should stop when it runs out of battery.
+
 -->
 <sdf version="1.6">
   <world name="default">
@@ -512,7 +523,7 @@
         <resistance>0.061523</resistance>
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
-        <power_load>50</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
+        <power_load>6.6</power_load> <!-- high load to drain battery quickly. mother board consumer power load = 6.6 W -->
       </plugin>
 
     </model>
