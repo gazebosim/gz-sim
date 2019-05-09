@@ -352,6 +352,7 @@ TEST_P(SceneBroadcasterTest, State)
   server.Run(true, 1, false);
 
   sleep = 0;
+  // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
     IGN_SLEEP_MS(100);
