@@ -70,6 +70,7 @@ class LinkComponentRecorder
   /// \param[in] _createComp Whether to create the component on the link. This
   /// is useful if other systems are expected to populate the component but they
   /// require the component to be created first.
+  // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress passedByValue
   public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
       : linkName(std::move(_linkName))
@@ -140,6 +141,7 @@ class LinkComponentRecorder
 template <typename T>
 class BlockingPublisher
 {
+  // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress passedByValue
   public: BlockingPublisher(std::string _topic,
                     std::chrono::milliseconds _timeOut)

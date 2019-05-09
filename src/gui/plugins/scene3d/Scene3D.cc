@@ -329,10 +329,13 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->camera->ImageWidth());
     double imageHeight = static_cast<double>(
         this->dataPtr->camera->ImageHeight());
-    double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() / imageWidth - 1.0;
-    double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() / imageHeight;
+    double nx = 2.0 * this->dataPtr->mouseEvent.PressPos().X() /
+      imageWidth - 1.0;
+    double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() /
+      imageHeight;
     double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() / imageWidth - 1.0;
-    double nyEnd = 1.0 - 2.0 * this->dataPtr->mouseEvent.Pos().Y() / imageHeight;
+    double nyEnd = 1.0 - 2.0 * this->dataPtr->mouseEvent.Pos().Y() /
+      imageHeight;
     math::Vector2d start(nx, ny);
     math::Vector2d end(nxEnd, nyEnd);
 
