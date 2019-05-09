@@ -190,6 +190,7 @@ void IgnRenderer::Render()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseEvent()
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
 }
@@ -197,8 +198,6 @@ void IgnRenderer::HandleMouseEvent()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
   // set transform configuration
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
@@ -370,7 +369,6 @@ void IgnRenderer::HandleMouseTransformControl()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseViewControl()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   if (!this->dataPtr->mouseDirty)
     return;
 
@@ -966,7 +964,6 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
 /////////////////////////////////////////////////
 void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
 {
-  std::cerr << "key press event ! " << std::endl;
   this->dataPtr->keyEvent.SetKey(_e->key());
   this->dataPtr->keyEvent.SetText(_e->text().toStdString());
   this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
