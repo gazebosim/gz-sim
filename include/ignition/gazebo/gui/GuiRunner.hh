@@ -43,11 +43,20 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   public: explicit GuiRunner(const std::string &_worldName);
 
   /// \brief Destructor
-  public: ~GuiRunner();
+  public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
   public slots: void OnPluginAdded(const QString &_objectName);
+
+  /// \brief Make a new state request to the server.
+  public slots: void RequestState();
+
+  /// \brief Callback for the state service.
+  /// \param[in] _res Response containing new state.
+  /// \param[in] _result True if successful.
+  private: void OnStateService(const msgs::SerializedStep &_res,
+      const bool _result);
 
   /// \brief Callback when a new state is received from the server.
   /// \param[in] _msg New state message.
