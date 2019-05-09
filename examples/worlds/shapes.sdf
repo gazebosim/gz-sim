@@ -92,7 +92,8 @@
       <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
         <ignition-gui>
-          <title>Entity tree</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
         </ignition-gui>
       </plugin>
 

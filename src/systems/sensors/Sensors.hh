@@ -62,7 +62,7 @@ namespace systems
     /// \param[in] _sdf SDF description of the sensor
     /// \param[in] _parentName Name of parent that the sensor is attached to
     /// \return Sensor name
-    private : std::string CreateSensor(sdf::ElementPtr _sdf,
+    private : std::string CreateSensor(const sdf::Sensor &_sdf,
         const std::string &_parentName);
 
     /// \brief Private data pointer.
