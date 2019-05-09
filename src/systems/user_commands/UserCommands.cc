@@ -569,8 +569,6 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  std::cerr << poseMsg->DebugString() << std::endl;
-
   // Check the name of the entity being spawned
   std::string entityName = poseMsg->name();
   Entity entity = kNullEntity;

@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <unistd.h>
 
 #include <cmath>
 #include <map>
