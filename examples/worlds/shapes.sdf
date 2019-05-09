@@ -89,6 +89,14 @@
 
       </plugin>
 
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </ignition-gui>
+      </plugin>
+
     </gui>
 
     <light type="directional" name="sun">

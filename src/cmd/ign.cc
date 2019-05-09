@@ -22,8 +22,8 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 
-
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
@@ -160,6 +160,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
 
   // Initialize Qt app
   ignition::gui::Application app(argc, argv);
+  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Load configuration file
   auto configPath = ignition::common::joinPaths(
@@ -231,11 +232,14 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
 
   // TODO(anyone) Parallelize this if multiple worlds becomes an important use
   // case.
+  std::vector<ignition::gazebo::GuiRunner *> runners;
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
+    const auto &worldName = worldsMsg.data(w);
+
     // Request GUI info for each world
     result = false;
-    service = std::string("/world/" + worldsMsg.data(w) + "/gui/info");
+    service = std::string("/world/" + worldName + "/gui/info");
 
     igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
@@ -261,11 +265,21 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
       ignition::gui::App()->LoadPlugin(fileName,
           pluginDoc.FirstChildElement("plugin"));
     }
+
+    // GUI runner
+    auto runner = new ignition::gazebo::GuiRunner(worldName);
+    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
+      &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runners.push_back(runner);
   }
 
   // Run main window.
   // This blocks until the window is closed or we receive a SIGINT
   app.exec();
+
+  for (auto runner : runners)
+    delete runner;
+  runners.clear();
 
   igndbg << "Shutting down ign-gazebo-gui" << std::endl;
   return 0;
