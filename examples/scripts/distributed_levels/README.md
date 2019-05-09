@@ -14,18 +14,16 @@ the GUI.
 
 ## Try it out
 
-1. On one terminal, start the simulation primary:
-
-        ./primary.sh
-
-    An empty window will appear. Simulation won't be initialized until all 2
-    secondaries are initialized.
-
-1. Open 2 other terminals and run the following to start a simulation secondary for each:
+1. Open 2 terminals and run the following to start a simulation secondary for
+   each performer:
 
         ./secondary.sh
 
-    Once you've started all 2 secondaries, you'll see the 2 shapes show up on the window.
+1. On another terminal, start the simulation primary:
+
+        ./primary.sh
+
+    A window will pop up displaying the 2 shapes.
 
 1. Press play and you should see the levels being loaded and unloaded as the
    shapes roll down.
