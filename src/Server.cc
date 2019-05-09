@@ -76,7 +76,7 @@ struct DefaultWorld
         "<world name='default'>") +
           DefaultPlugins(_config) +
           "<gui fullscreen='0'>"
-          "  <plugin filename='Scene3D' name='3D View'>"
+          "  <plugin filename='GzScene3D' name='3D View'>"
           "    <ignition-gui>"
           "      <title>3D View</title>"
           "      <property type='bool' key='showTitleBar'>false</property>"
