@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_RENDERWINDOW_HH_
-#define IGNITION_GAZEBO_RENDERWINDOW_HH_
+#ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
+#define IGNITION_GAZEBO_GUI_SCENE3D_HH_
 
 #include <string>
 #include <memory>

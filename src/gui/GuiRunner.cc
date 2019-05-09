@@ -42,9 +42,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
