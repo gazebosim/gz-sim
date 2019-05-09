@@ -19,9 +19,15 @@
 
 #include <memory>
 #include <string>
+
+#include <sdf/Sensor.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+
+#include "ignition/gazebo/rendering/SceneManager.hh"
+
 
 namespace ignition
 {
@@ -91,6 +97,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void SetEnableSensors(bool _enable, std::function<
         std::string(const sdf::Sensor &, const std::string &)>
         _createSensorCb = {});
+
+    /// \brief Get the scene manager
+    /// Returns reference to the scene manager.
+    public: class SceneManager &SceneManager();
+
+    /// \brief Set the entity beinging selected
+    /// \param[in] _node Node representing the selected entity
+    public: void SetSelectedEntity(rendering::NodePtr _node);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;

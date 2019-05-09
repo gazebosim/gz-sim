@@ -135,6 +135,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
 
+    /// \brief Get the parent model of this visual.
+    /// \param[in] _visual Child visual
+    /// \return Model containining this visual
+    public: rendering::VisualPtr ModelVisual(
+        rendering::VisualPtr _visual) const;
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
