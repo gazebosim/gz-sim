@@ -18,8 +18,8 @@
 #define IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 
 #include <ignition/msgs/wrench.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
