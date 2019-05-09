@@ -1,6 +1,9 @@
 set (CMAKE_AUTOMOC ON)
 
+# No GUI headers are installed at the moment
 set (gui_headers
+  GuiRunner.hh
+  GuiSystem.hh
   TmpIface.hh
 )
 
