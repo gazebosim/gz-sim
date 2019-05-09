@@ -50,21 +50,25 @@ Rectangle {
     }
 
     style: TreeViewStyle {
+      indentation: itemHeight * 0.75
+
       headerDelegate: Rectangle {
         visible: false
       }
 
       branchDelegate: Rectangle {
         height: itemHeight
-        width: itemHeight*0.5
+        width: itemHeight * 0.75
         color: "transparent"
-        Text {
-          font.pointSize: 18
-          font.family: "Roboto"
+        Image {
+          id: icon
+          sourceSize.height: itemHeight * 0.4
+          sourceSize.width: itemHeight * 0.4
+          fillMode: Image.Pad
           anchors.verticalCenter: parent.verticalCenter
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: styleData.isExpanded ? "\uFF0D" : "\uFF0B"
-          color: Material.theme == Material.Light ? "black" : "white"
+          anchors.right: parent.right
+          source: styleData.isExpanded ?
+              "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
       }
 

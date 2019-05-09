@@ -207,7 +207,7 @@ EntityTree::~EntityTree()
 void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "EntityTree";
+    this->title = "Entity tree";
 }
 
 //////////////////////////////////////////////////
