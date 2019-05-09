@@ -18,6 +18,8 @@
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
 
+// Include all components so they have first-class support
+#include "ignition/gazebo/components/components.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
@@ -40,9 +42,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 }
 
 /////////////////////////////////////////////////
-GuiRunner::~GuiRunner()
-{
-}
+GuiRunner::~GuiRunner() = default;
 
 /////////////////////////////////////////////////
 void GuiRunner::RequestState()
