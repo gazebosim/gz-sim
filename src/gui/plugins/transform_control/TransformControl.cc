@@ -34,8 +34,6 @@ namespace ignition::gazebo
 {
   class TransformControlPrivate
   {
-    public: bool initialized{false};
-
     /// \brief Ignition communication node.
     public: transport::Node node;
 
@@ -52,7 +50,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : GuiSystem(), dataPtr(std::make_unique<TransformControlPrivate>())
+  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
 
@@ -77,14 +75,6 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
            << std::endl;
     return;
   }
-
-  this->dataPtr->initialized = true;
-}
-
-//////////////////////////////////////////////////
-void TransformControl::Update(const UpdateInfo &, EntityComponentManager &)
-{
-  // do nothing for now
 }
 
 /////////////////////////////////////////////////
