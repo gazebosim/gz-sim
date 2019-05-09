@@ -141,6 +141,16 @@ namespace components
         return;
       }
 
+      // This happens at static initialization time, so we can't use common
+      // console
+      std::string debugEnv;
+      ignition::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
+      if (debugEnv == "true")
+      {
+        std::cout << "Registering [" << ComponentTypeT::typeName << "]"
+                  << std::endl;
+      }
+
       // Keep track of all types
       this->compsById[ComponentTypeT::typeId] = _compDesc;
       this->storagesById[ComponentTypeT::typeId] = _storageDesc;
@@ -263,11 +273,18 @@ namespace components
       return types;
     }
 
+    /// \brief Check if a component type has been registered.
+    /// return True if registered.
+    public: bool HasType(ComponentTypeId _typeId)
+    {
+      return this->compsById.find(_typeId) != this->compsById.end();
+    }
+
     /// \brief Get a component's type name given its type ID.
     /// return Unique component name.
     public: std::string Name(ComponentTypeId _typeId) const
     {
-      if (namesById.find(_typeId) != namesById.end())
+      if (this->namesById.find(_typeId) != this->namesById.end())
         return namesById.at(_typeId);
 
       return "";

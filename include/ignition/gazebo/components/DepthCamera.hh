@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
 #define IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
 
-#include <ignition/msgs/sensor.pb.h>
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/components/Factory.hh>

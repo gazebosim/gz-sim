@@ -43,7 +43,7 @@ class IGNITION_GAZEBO_VISIBLE GuiRunner : public QObject
   public: explicit GuiRunner(const std::string &_worldName);
 
   /// \brief Destructor
-  public: ~GuiRunner();
+  public: ~GuiRunner() override;
 
   /// \brief Callback when a plugin has been added.
   /// \param[in] _objectName Plugin's object name.
