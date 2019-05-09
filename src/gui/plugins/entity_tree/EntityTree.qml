@@ -18,11 +18,6 @@ Rectangle {
   property int tooltipDelay: 500
 
   /**
-   * Timeout for tooltip to disappear, in ms
-   */
-  property int tooltipTimeout: 1000
-
-  /**
    * Height of each item in pixels
    */
   property int itemHeight: 30
@@ -42,8 +37,17 @@ Rectangle {
     Material.color(Material.Grey, Material.Shade900)
 
   TreeView {
-    anchors.fill: entityTree
+    id: tree
+    anchors.fill: parent
     model: EntityTreeModel
+
+    // Hacky: the sibling of listView is the background(Rectangle) of TreeView
+    Component.onCompleted: {
+      tree.__listView.parent.children[1].color = Material.background
+    }
+    Material.onThemeChanged: {
+      tree.__listView.parent.children[1].color = Material.background
+    }
 
     style: TreeViewStyle {
       headerDelegate: Rectangle {
@@ -65,6 +69,7 @@ Rectangle {
       }
 
       rowDelegate: Rectangle {
+        visible: styleData.row !== undefined
         height: itemHeight
         color: (styleData.row % 2 == 0) ? even : odd
       }
@@ -82,6 +87,20 @@ Rectangle {
           horizontalAlignment: Image.AlignHCenter
           verticalAlignment: Image.AlignLeft
           source: model === null || model.icon === undefined ? "" : model.icon
+
+          ToolTip {
+            visible: iconMa.containsMouse
+            delay: tooltipDelay
+            text: model === null || model.type === undefined ? "" : model.type
+            y: icon.z - 30
+            enter: null
+            exit: null
+          }
+          MouseArea {
+            id: iconMa
+            anchors.fill: parent
+            hoverEnabled: true
+          }
         }
 
         Text {
@@ -95,9 +114,11 @@ Rectangle {
           ToolTip {
             visible: ma.containsMouse
             delay: tooltipDelay
-            timeout: tooltipTimeout
-            text: model === null || model.entity === undefined ? "" : model.entity
+            text: model === null || model.entity === undefined ?
+                "Entity Id: ?" : "Entity Id: " + model.entity
             y: itemDel.z - 30
+            enter: null
+            exit: null
           }
           MouseArea {
             id: ma
