@@ -34,12 +34,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains commanded pose of an
-  /// entity represented by ignition::math::Pose3d.
-  using PoseCmd = Component<math::Pose3d, class PoseCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.PoseCmd",
-      PoseCmd)
-
-  /// \brief A component type that contains commanded pose of an
   /// entity in the world frame represented by ignition::math::Pose3d.
   using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPoseCmd",
