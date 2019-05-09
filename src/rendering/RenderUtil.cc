@@ -145,6 +145,9 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::function<
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
+
+  /// \brief Entity currently being selected.
+  public: rendering::NodePtr selectedEntity;
 };
 
 //////////////////////////////////////////////////
@@ -162,12 +165,13 @@ rendering::ScenePtr RenderUtil::Scene() const
 }
 
 //////////////////////////////////////////////////
-void RenderUtil::UpdateFromECM(const UpdateInfo &,
+void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
-  this->dataPtr->UpdateRenderingEntities(_ecm);
+  if (!_info.paused)
+    this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
 }
 
@@ -250,13 +254,6 @@ void RenderUtil::Update()
        sdf::Sensor dataSdf = std::get<1>(sensor);
        Entity parent = std::get<2>(sensor);
 
-       static sdf::SDFPtr sdfParsed;
-       if (!sdfParsed)
-       {
-         sdfParsed.reset(new sdf::SDF());
-         sdf::init(sdfParsed);
-       }
-
        // two sensors with the same name cause conflicts. We'll need to use
        // scoped names
        // TODO(anyone) do this in ign-sensors?
@@ -293,7 +290,8 @@ void RenderUtil::Update()
   for (auto &pose : entityPoses)
   {
     auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (node)
+    if (node && node != this->dataPtr->selectedEntity &&
+        node->Parent() != this->dataPtr->selectedEntity)
       node->SetLocalPose(pose.second);
   }
 }
@@ -456,7 +454,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Visual *,
         const components::Pose *_pose)->bool
       {
-        this->entityPoses[_entity] = _pose->Data();
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -639,4 +636,16 @@ void RenderUtil::SetEnableSensors(bool _enable,
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = _createSensorCb;
+}
+
+/////////////////////////////////////////////////
+SceneManager &RenderUtil::SceneManager()
+{
+  return this->dataPtr->sceneManager;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
+{
+  this->dataPtr->selectedEntity = _node;
 }

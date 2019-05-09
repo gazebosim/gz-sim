@@ -18,6 +18,11 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+    </scene>
+
     <gui fullscreen="0">
 
       <!-- 3D scene -->
@@ -30,13 +35,9 @@
 
         <engine>ogre2</engine>
         <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/shapes/scene/info</service>
-        <pose_topic>/world/shapes/pose/info</pose_topic>
-        <scene_topic>/world/shapes/scene/info</scene_topic>
-        <deletion_topic>/world/shapes/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -98,13 +99,18 @@
       <plugin filename="ComponentInspector" name="Component inspector">
       </plugin>
 
+      <!-- Transform Control -->
+      <plugin filename="TransformControl" name="Transform Control">
+        <service>/world/shapes/gui/transform_mode</service>
+      </plugin>
+
     </gui>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+      <specular>0.8 0.8 0.8 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
