@@ -22,10 +22,14 @@
 
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/Level.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -69,6 +73,18 @@ QString entityType(Entity _entity,
   if (nullptr != _ecm.Component<components::Visual>(_entity))
     return QString("visual");
 
+  if (nullptr != _ecm.Component<components::Light>(_entity))
+    return QString("light");
+
+  if (nullptr != _ecm.Component<components::Level>(_entity))
+    return QString("level");
+
+  if (nullptr != _ecm.Component<components::Performer>(_entity))
+    return QString("performer");
+
+  if (nullptr != _ecm.Component<components::Sensor>(_entity))
+    return QString("sensor");
+
   return QString();
 }
 
@@ -107,12 +123,23 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 
   // New entity item
   auto entityItem = new QStandardItem(_entityName);
-  entityItem->setData(QString::number(_entity), Qt::ToolTipRole);
-  if (!_type.isEmpty())
+  entityItem->setData(_entityName, this->roleNames().key("entityName"));
+  entityItem->setData(QString::number(_entity),
+      this->roleNames().key("entity"));
+  entityItem->setData(_type, this->roleNames().key("type"));
+
+  // TODO(louise) Update icons when available
+  auto icon = _type;
+  if (_type.isEmpty() ||
+      _type == "light" ||
+      _type == "level" ||
+      _type == "sensor" ||
+      _type == "performer")
   {
-    entityItem->setData(QUrl("qrc:/Gazebo/images/" + _type + ".png"),
-        Qt::DecorationRole);
+    icon = "visual";
   }
+  entityItem->setData(QUrl("qrc:/Gazebo/images/" + icon + ".png"),
+      this->roleNames().key("icon"));
 
   parentItem->appendRow(entityItem);
 
@@ -142,7 +169,8 @@ void TreeModel::RemoveEntity(unsigned int _entity)
     {
       auto childItem = _item->child(i);
       removeChildren(childItem);
-      this->entityItems.erase(childItem->data(Qt::ToolTipRole).toUInt());
+      this->entityItems.erase(childItem->data(
+          this->roleNames().key("entity")).toUInt());
     }
   };
   this->entityItems.erase(_entity);
@@ -155,9 +183,10 @@ void TreeModel::RemoveEntity(unsigned int _entity)
 /////////////////////////////////////////////////
 QHash<int, QByteArray> TreeModel::roleNames() const
 {
-  return {std::pair(Qt::DisplayRole, "entityName"),
-          std::pair(Qt::ToolTipRole, "entity"),
-          std::pair(Qt::DecorationRole, "icon")};
+  return {std::pair(100, "entityName"),
+          std::pair(101, "entity"),
+          std::pair(102, "icon"),
+          std::pair(103, "type")};
 }
 
 /////////////////////////////////////////////////
