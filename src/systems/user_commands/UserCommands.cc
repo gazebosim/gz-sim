@@ -24,7 +24,6 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -589,7 +588,8 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  auto poseCmdComp = this->iface->ecm->Component<components::WorldPoseCmd>(entity);
+  auto poseCmdComp =
+    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
   if (!poseCmdComp)
   {
     this->iface->ecm->CreateComponent(

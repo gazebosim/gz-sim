@@ -18,6 +18,9 @@
 #ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
 #define IGNITION_GAZEBO_GUI_SCENE3D_HH_
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
 #include <string>
 #include <memory>
 #include <mutex>
@@ -26,9 +29,6 @@
 #include <ignition/math/Pose3.hh>
 #include <ignition/math/Vector2.hh>
 #include <ignition/math/Vector3.hh>
-
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/boolean.pb.h>
 
 #include <ignition/common/MouseEvent.hh>
 #include <ignition/common/KeyEvent.hh>

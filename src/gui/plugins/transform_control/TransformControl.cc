@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/boolean.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
