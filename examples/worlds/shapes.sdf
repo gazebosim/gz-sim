@@ -95,6 +95,8 @@
           <title>Entity tree</title>
         </ignition-gui>
       </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
 
     </gui>
 

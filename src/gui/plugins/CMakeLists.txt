@@ -1,1 +1,2 @@
+add_subdirectory(component_inspector)
 add_subdirectory(entity_tree)
