@@ -9,14 +9,14 @@ sudo apt-get update
 sudo apt-get install -y \
   libignition-cmake2-dev \
   libignition-common3-dev \
-  libignition-gui-dev \
+  libignition-fuel-tools3-dev \
+  libignition-gui2-dev \
   libignition-math6-eigen3-dev \
-  libignition-msgs3-dev \
+  libignition-msgs4-dev \
   libignition-plugin-dev \
   libignition-physics-dev \
+  libignition-rendering2-dev \
+  libignition-sensors2-dev \
   libignition-tools-dev \
-  libignition-transport6-dev \
-  libsdformat8-dev \
-  libignition-fuel-tools3-dev
-  # libignition-rendering-dev
-  # libignition-sensors-dev
+  libignition-transport7-dev \
+  libsdformat8-dev
