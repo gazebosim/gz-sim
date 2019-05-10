@@ -224,8 +224,8 @@ models (performers) into simulation at a later time.
 The name of the add performer service is
 `/world/<world_name>/level/set_performer`. Make sure to replace
 `<world_name>` with the name of simulated world. The service request is an
-ignition:msgs::Performer message, and the response is an
-ignition::msgs::Boolean message. The repsonse is true when the peformer was
+ignition:msgs::StringMsg message, and the response is an
+ignition::msgs::Boolean message. The response is true when the peformer was
 successfuly added.
 
 #### Example
@@ -239,7 +239,7 @@ ign-gazebo -f levels_no_performers.sdf -v 4 --levels
 2. In another terminal call the add performer service.
 
 ```
-ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.Performer --reptype ignition.msgs.Boolean --timeout 2000 --req 'name: "vehicle_blue", geometry:{type:0,box:{size:{x:2, y:2, z:2}}}'
+ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example
