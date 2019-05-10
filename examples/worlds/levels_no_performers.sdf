@@ -42,7 +42,7 @@
   <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -4480,9 +4480,6 @@
       </geometry>
       <ref>tile_20</ref>
     </level>
-
-
-
   </plugin>
 
   </world>
