@@ -1,4 +1,6 @@
+add_subdirectory(rendering)
 add_subdirectory(gui)
+add_subdirectory(cmd)
 add_subdirectory(systems)
 add_subdirectory(msgs)
 
@@ -28,18 +30,28 @@ set(gui_sources
   PARENT_SCOPE
 )
 
+ign_add_component(ign SOURCES cmd/ign.cc GET_TARGET_NAME ign_lib_target)
+target_link_libraries(${ign_lib_target}
+  PRIVATE
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+)
+
+
 set (sources
   Conversions.cc
   EntityComponentManager.cc
   EventManager.cc
   LevelManager.cc
+  Link.cc
   Model.cc
   SdfEntityCreator.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
   SimulationRunner.cc
-  SyncManager.cc
   System.cc
   SystemLoader.cc
   Util.cc
@@ -56,6 +68,7 @@ set (gtest_sources
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
   ign_TEST.cc
+  Link_TEST.cc
   Model_TEST.cc
   SdfEntityCreator_TEST.cc
   Server_TEST.cc

@@ -92,7 +92,8 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
     {
       // Update measurement time
       auto time = math::durationToSecNsec(_info.simTime);
-      it.second->Update(common::Time(time.first, time.second));
+      dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
+          common::Time(time.first, time.second), false);
     }
   }
 
@@ -126,13 +127,13 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
       {
         // create sensor
         std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
-        auto data = _magnetometer->Data()->Clone();
-        data->GetAttribute("name")->Set(sensorScopedName);
+        sdf::Sensor data = _magnetometer->Data();
+        data.SetName(sensorScopedName);
         // check topic
-        if (!data->HasElement("topic"))
+        if (data.Topic().empty())
         {
           std::string topic = scopedName(_entity, _ecm) + "/magnetometer";
-          data->GetElement("topic")->Set(topic);
+          data.SetTopic(topic);
         }
         std::unique_ptr<sensors::MagnetometerSensor> sensor =
             this->sensorFactory.CreateSensor<
@@ -173,7 +174,7 @@ void MagnetometerPrivate::Update(
         if (it != this->entitySensorMap.end())
         {
           // Get the magnetometer physical position
-          math::Pose3d magnetometerWorldPose = _worldPose->Data();
+          const math::Pose3d &magnetometerWorldPose = _worldPose->Data();
           it->second->SetWorldPose(magnetometerWorldPose);
         }
         else

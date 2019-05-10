@@ -17,10 +17,13 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
 #define IGNITION_GAZEBO_COMPONENTS_INERTIAL_HH_
 
+#include <ignition/msgs/inertial.pb.h>
 #include <ignition/math/Inertial.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Conversions.hh>
 
 namespace ignition
 {
@@ -28,13 +31,18 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using InertialSerialzer =
+      serializers::ComponentToMsgSerializer<math::Inertiald, msgs::Inertial>;
+}
+
 namespace components
 {
-  /// \brief A component type that contains inertial, ignition::math::Inertiald,
-  /// information.
-  using Inertial = Component<ignition::math::Inertiald, class InertialTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Inertial", Inertial)
+  /// \brief This component holds an entity's inertial.
+  using Inertial = Component<math::Inertiald, class InertialTag,
+                             serializers::InertialSerialzer>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Inertial", Inertial)
 }
 }
 }

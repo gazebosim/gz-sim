@@ -1,6 +1,67 @@
+## Ignition Gazebo 2.x
+
+### Ignition Gazebo 2.X.X
+
+1. Port Scene3D gui plugin from ign-gui. Renamed to GzScene3D.
+    * [Pull Request 315](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/315)
+
+1. Add rendering component
+    * [Pull Request 306](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/306)
+
+1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
+
+1. Support conversion and serialization of Imu components. IMU sensors are
+   loaded from an SDF DOM object.
+    * [Pull Request 302](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/302)
+
+1. Throttle sensors update rate
+    * [Pull Request 323](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/323)
+
+1. Added system for ignition::sensors::AirPressureSensor.
+    * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
+
+1. Support conversion and serialization of PBR parameters in a material component
+    * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
+
+1. Support conversion and serialization of scene and light components
+    * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
+
+1. Use scene ambient and background color information in sensor
+   configuration.
+    * [Pull Request 268](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/268)
+
+1. Added an SDF message to the start of log files.
+    * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
+
+1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
+
+1. Update Altimeter component to use sdf::Sensor object instead of an
+   sdf::ElementPtr.
+    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
+
 ## Ignition Gazebo 1.x
 
 ### Ignition Gazebo 1.X.X
+
+1. Add Wind Plugin (Ported from Gazebo classic)
+    * [Pull Request 273](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/273/)
+
+1. Add `Link`: a convenience class for interfacing with link entities
+    * [Pull Request 269](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/269)
+
+1. Added LiftDragPlugin (ported from Gazebo classic)
+    * [Pull Request 256](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/256)
+
+1. Added test for log record and playback.
+    * [Pull Request 263](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/263)
+
+1. More ign-msgs <-> SDF conversions: Inertial, Geometry, Material
+    * [Pull Request 251](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/251)
+
+1. Add a basic JointController system
+    * [Pull Request 246](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/246)
 
 1. Added command line options to configure distributed simulation. These
    will replace the environment variables.

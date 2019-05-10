@@ -1,13 +1,12 @@
 set(TEST_TYPE "BENCHMARK")
 
-set(tests
-  each.cc
-  ecm_serialize.cc
-)
+include(IgnBenchmark OPTIONAL RESULT_VARIABLE IgnBenchmark_FOUND)
 
-ign_build_executables(
-  PREFIX "${TEST_TYPE}_"
-  SOURCES ${tests}
-  LIB_DEPS gbenchmark gbenchmark_main
-  EXEC_LIST test_list
-)
+if (IgnBenchmark_FOUND)
+  set(tests
+    each.cc
+    ecm_serialize.cc
+  )
+
+  ign_add_benchmarks(SOURCES ${tests})
+endif()

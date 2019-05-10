@@ -44,6 +44,7 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/config.hh"
@@ -131,11 +132,13 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       components::Material::typeId));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
       components::Inertial::typeId));
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
+      components::Wind::typeId));
 
   // Check entities
-  // 1 x world + 1 x (default) level + 3 x model + 3 x link + 3 x collision + 3
-  // x visual + 1 x light
-  EXPECT_EQ(15u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 3 x model + 3 x link + 3 x
+  // collision + 3 x visual + 1 x light
+  EXPECT_EQ(16u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -408,7 +411,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_EQ(math::Vector3d(1, 2, 3),
                   _geometry->Data().BoxShape()->Size());
 
-        EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Specular());
@@ -427,7 +430,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
 
-        EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
@@ -445,7 +448,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
 
-        EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Emissive());
+        EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
@@ -518,9 +521,9 @@ TEST_P(SimulationRunnerTest, CreateLights)
   SimulationRunner runner(root.WorldByIndex(0), systemLoader);
 
   // Check entities
-  // 1 x world + 1 x (default) level + 1 x model + 1 x link + 1 x visual + 4 x
-  // light
-  EXPECT_EQ(9u, runner.EntityCompMgr().EntityCount());
+  // 1 x world + 1 x (default) level + 1 x wind + 1 x model + 1 x link + 1 x
+  // visual + 4 x light
+  EXPECT_EQ(10u, runner.EntityCompMgr().EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -1048,20 +1051,31 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_NE(kNullEntity, modelId);
 
   // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldId)->Data(),
-      0.123);
+  std::string worldComponentName{"WorldPluginComponent"};
+  auto worldComponentId = ignition::common::hash64(worldComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(worldComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(worldId,
+      worldComponentId));
 
   // Check component registered by model plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-        IntComponent::typeId));
-  ASSERT_NE(nullptr, runner.EntityCompMgr().Component<IntComponent>(modelId));
-  EXPECT_EQ(runner.EntityCompMgr().Component<IntComponent>(modelId)->Data(),
-      987);
+  std::string modelComponentName{"ModelPluginComponent"};
+  auto modelComponentId = ignition::common::hash64(modelComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(modelComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
+      modelComponentId));
+
+  // Clang re-registers components between tests. If we don't unregister them
+  // beforehand, the new plugin tries to create a storage type from a previous
+  // plugin, causing a crash.
+  // Is this only a problem with GTest, or also during simulation? How to
+  // reproduce? Maybe we need to test unloading plugins, but we have no API for
+  // it yet.
+  #if defined (__clang__)
+    components::Factory::Instance()->Unregister(worldComponentId);
+    components::Factory::Instance()->Unregister(modelComponentId);
+  #endif
 }
 
 /////////////////////////////////////////////////
@@ -1076,22 +1090,31 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  runner.SetPaused(false);
 
-  // Get world entity
-  Entity worldEntity{kNullEntity};
-  runner.EntityCompMgr().Each<ignition::gazebo::components::World>([&](
-      const ignition::gazebo::Entity &_entity,
-      const ignition::gazebo::components::World *_world)->bool
-      {
-        EXPECT_NE(nullptr, _world);
-        worldEntity = _entity;
-        return true;
-      });
-  EXPECT_NE(kNullEntity, worldEntity);
+  // Get model entities
+  auto boxEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("box"));
+  EXPECT_NE(kNullEntity, boxEntity);
+
+  auto sphereEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("sphere"));
+  EXPECT_NE(kNullEntity, sphereEntity);
+
+  auto cylinderEntity = runner.EntityCompMgr().EntityByComponents(
+      ignition::gazebo::components::Model(),
+      ignition::gazebo::components::Name("cylinder"));
+  EXPECT_NE(kNullEntity, cylinderEntity);
+
+  // We can't access the type registered by the plugin unless we link against
+  // it, but we know its name to check
+  std::string componentName{"ModelPluginComponent"};
+  auto componentId = ignition::common::hash64(componentName);
 
   // Check there's no double component
-  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(
-        DoubleComponent::typeId));
+  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
@@ -1100,16 +1123,52 @@ TEST_P(SimulationRunnerTest, LoadPluginsEvent)
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
-  runner.EventMgr().Emit<events::LoadPlugins>(worldEntity,
-      rootWith.WorldByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadPlugins>(boxEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
 
-  // Check component registered by world plugin
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(DoubleComponent::typeId));
-  ASSERT_NE(nullptr,
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity));
-  EXPECT_DOUBLE_EQ(
-      runner.EntityCompMgr().Component<DoubleComponent>(worldEntity)->Data(),
-      0.123);
+  // Check component registered by model plugin
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(boxEntity,
+      componentId)) << componentId;
+
+  // Emit plugin loading event again
+  runner.EventMgr().Emit<events::LoadPlugins>(sphereEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+
+  // Check component for the other model
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sphereEntity,
+      componentId)) << componentId;
+
+  // Remove entities that have plugin - this is not unloading or destroying
+  // the plugin though!
+  auto entityCount = runner.EntityCompMgr().EntityCount();
+  const_cast<EntityComponentManager &>(
+      runner.EntityCompMgr()).RequestRemoveEntity(boxEntity);
+  const_cast<EntityComponentManager &>(
+      runner.EntityCompMgr()).RequestRemoveEntity(sphereEntity);
+  EXPECT_TRUE(runner.Run(100));
+  EXPECT_GT(entityCount, runner.EntityCompMgr().EntityCount());
+
+  // Check component is still registered
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+
+  // Entities no longer exist
+  EXPECT_FALSE(runner.EntityCompMgr().HasEntity(boxEntity));
+  EXPECT_FALSE(runner.EntityCompMgr().HasEntity(sphereEntity));
+
+  // Emit plugin loading event after all previous instances have been removed
+  runner.EventMgr().Emit<events::LoadPlugins>(cylinderEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+
+  // Check component for the other model
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+      << componentId;
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(cylinderEntity,
+      componentId)) << componentId;
 }
 
 /////////////////////////////////////////////////
@@ -1140,7 +1199,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
 
   auto plugin = res.plugin(0);
   EXPECT_EQ("3D View", plugin.name());
-  EXPECT_EQ("Scene3D", plugin.filename());
+  EXPECT_EQ("GzScene3D", plugin.filename());
   EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<pose_topic>"), std::string::npos);
