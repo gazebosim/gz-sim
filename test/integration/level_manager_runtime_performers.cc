@@ -168,14 +168,14 @@ class LevelManagerFixture : public ::testing::Test
 
     bool result;
     unsigned int timeout = 2000;
-    bool executed = node.Request("/world/levels/level/add_performer",
+    bool executed = node.Request("/world/levels/level/set_performer",
         req, timeout, rep, result);
     EXPECT_TRUE(executed);
     EXPECT_TRUE(result);
     EXPECT_TRUE(rep.data());
 
     req.set_data("sphere");
-    executed = node.Request("/world/levels/level/add_performer",
+    executed = node.Request("/world/levels/level/set_performer",
         req, timeout, rep, result);
     EXPECT_TRUE(executed);
     EXPECT_TRUE(result);
