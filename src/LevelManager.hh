@@ -160,10 +160,12 @@ namespace ignition
       /// \brief Transport node.
       private: ignition::transport::Node node;
 
+      /// \brief The list of performers to add.
       private: std::list<std::pair<std::string, sdf::Geometry>> performersToAdd;
     };
     }
   }
 }
-#endif  // IGNITION_GAZEBO_LEVELMANAGER_HH
+// IGNITION_GAZEBO_LEVELMANAGER_HH
+#endif
 
