@@ -17,11 +17,11 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
 #define IGNITION_GAZEBO_COMPONENTS_DEPTHCAMERA_HH_
 
-#include <ignition/msgs/sensor.pb.h>
 #include <sdf/Sensor.hh>
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -34,7 +34,8 @@ namespace components
 {
   /// \brief A component type that contains a depth camera sensor,
   /// sdf::Camera, information.
-  using DepthCamera = Component<sdf::Sensor, class DepthCameraTag>;
+  using DepthCamera = Component<sdf::Sensor, class DepthCameraTag,
+      serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DepthCamera",
       DepthCamera)
 }

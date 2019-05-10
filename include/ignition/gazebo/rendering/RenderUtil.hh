@@ -19,9 +19,13 @@
 
 #include <memory>
 #include <string>
+
+#include <sdf/Sensor.hh>
+
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+
 
 namespace ignition
 {

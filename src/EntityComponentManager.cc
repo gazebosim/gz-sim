@@ -690,7 +690,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     compMsg->set_type(compBase->TypeId());
 
     std::ostringstream ostr;
-    ostr << *compBase;
+    compBase->Serialize(ostr);
 
     compMsg->set_component(ostr.str());
 
@@ -776,18 +776,35 @@ void EntityComponentManager::SetState(
         continue;
       }
 
+      auto type = compMsg.type();
+
+      // Components which haven't been registered in this process, such as 3rd
+      // party components streamed to other secondaries and the GUI.
+      if (!components::Factory::Instance()->HasType(type))
+      {
+        static std::unordered_set<unsigned int> printedComps;
+        if (printedComps.find(type) == printedComps.end())
+        {
+          printedComps.insert(type);
+          ignwarn << "Component type [" << type << "] has not been "
+                  << "registered in this process, so it can't be deserialized."
+                  << std::endl;
+        }
+        continue;
+      }
+
       // Create component
       auto newComp = components::Factory::Instance()->New(compMsg.type());
 
       if (nullptr == newComp)
       {
-        ignwarn << "Failed to deserialize component of type [" << compMsg.type()
-                << "]" << std::endl;
+        ignerr << "Failed to deserialize component of type [" << compMsg.type()
+               << "]" << std::endl;
         continue;
       }
 
       std::istringstream istr(compMsg.component());
-      istr >> *newComp.get();
+      newComp->Deserialize(istr);
 
       // Get type id
       auto typeId = newComp->TypeId();
