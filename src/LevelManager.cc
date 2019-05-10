@@ -157,38 +157,42 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
   if (_sdf == nullptr)
     return;
 
-  igndbg << "Reading performer info\n";
-  for (auto performer = _sdf->GetElement("performer"); performer;
-       performer = performer->GetNextElement("performer"))
+  if (_sdf->HasElement("performer"))
   {
-    auto name = performer->Get<std::string>("name");
-
-    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
-    // We use the ref to create a parent entity component later on
-    std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
-    if (this->performerMap.find(ref) == this->performerMap.end())
+    igndbg << "Reading performer info\n";
+    for (auto performer = _sdf->GetElement("performer"); performer;
+        performer = performer->GetNextElement("performer"))
     {
-      this->performerMap[ref] = performerEntity;
-    }
-    else
-    {
-      auto performer2 = this->runner->entityCompMgr.Component<components::Name>(
-          this->performerMap[ref]);
+      auto name = performer->Get<std::string>("name");
 
-      ignerr << "Found multiple performers (" << name << " and "
-             << performer2->Data() << ") referring to the same entity\n";
-    }
+      Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+      // We use the ref to create a parent entity component later on
+      std::string ref = performer->GetElement("ref")->GetValue()->GetAsString();
+      if (this->performerMap.find(ref) == this->performerMap.end())
+      {
+        this->performerMap[ref] = performerEntity;
+      }
+      else
+      {
+        auto performer2 =
+          this->runner->entityCompMgr.Component<components::Name>(
+              this->performerMap[ref]);
 
-    sdf::Geometry geometry;
-    geometry.Load(performer->GetElement("geometry"));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Performer());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerLevels());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Name(name));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::Geometry(geometry));
+        ignerr << "Found multiple performers (" << name << " and "
+          << performer2->Data() << ") referring to the same entity\n";
+      }
+
+      sdf::Geometry geometry;
+      geometry.Load(performer->GetElement("geometry"));
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Performer());
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::PerformerLevels());
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Name(name));
+      this->runner->entityCompMgr.CreateComponent(performerEntity,
+          components::Geometry(geometry));
+    }
   }
 
   if (this->useLevels && performerMap.empty())
