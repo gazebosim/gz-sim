@@ -193,8 +193,8 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 
   if (this->useLevels && performerMap.empty())
   {
-    ignwarn << "Asked to use levels but no <performer>s were found. Levels "
-               "will not work until performers are added.\n";
+    ignerr << "Asked to use levels but no <performer>s were found. Levels "
+              "will not work until performers are added.\n";
   }
 }
 
