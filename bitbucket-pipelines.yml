@@ -6,12 +6,17 @@ pipelines:
         script:
           - apt-get update
           - apt -y install wget lsb-release gnupg sudo
+          # Enable relevant package repositories
+          - docker/scripts/enable_ign_stable.sh
+          - docker/scripts/enable_ign_prerelease.sh
+          - docker/scripts/enable_ign_nightly.sh
+          # Build everything from debians
           - docker/scripts/install_all.sh
           # Build some Ignition libraries from source.
           # Comment out these lines if using debians.
           # See also the docker/scripts/install_ign.sh script.
-          - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
-          - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
+          # - docker/scripts/build_ign.sh ignitionrobotics ign-sensors default
           # Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
