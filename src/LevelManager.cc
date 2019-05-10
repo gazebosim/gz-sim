@@ -193,8 +193,9 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 
   if (this->useLevels && performerMap.empty())
   {
-    ignerr << "Asked to use levels but no <performer>s were found. Levels "
-              "will not work until performers are set.\n";
+    igndbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+      << "the /world/<world_name>/level/set_performer service to specify "
+      << "performers.\n";
   }
 }
 
