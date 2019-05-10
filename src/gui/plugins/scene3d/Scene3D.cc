@@ -199,6 +199,8 @@ void IgnRenderer::HandleMouseEvent()
 void IgnRenderer::HandleMouseTransformControl()
 {
   // set transform configuration
+  bool modeChanged = this->dataPtr->transformControl.Mode() !=
+    this->dataPtr->transformMode;
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
 
@@ -211,7 +213,7 @@ void IgnRenderer::HandleMouseTransformControl()
       this->dataPtr->transformControl.Stop();
 
     // make the pose service request on arrow mode
-    if (this->dataPtr->transformControl.Node())
+    if (this->dataPtr->transformControl.Node() && modeChanged)
     {
       std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
           [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
