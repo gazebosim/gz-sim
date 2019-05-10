@@ -392,7 +392,7 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->drag == math::Vector2d::Zero)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
