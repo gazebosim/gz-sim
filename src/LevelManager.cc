@@ -67,7 +67,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
   this->CreatePerformers();
 
   std::string service = "/world/";
-  service += this->runner->sdfWorld->Name() + "/level/add_performer";
+  service += this->runner->sdfWorld->Name() + "/level/set_performer";
   this->node.Advertise(service, &LevelManager::OnAddPerformer, this);
 }
 
