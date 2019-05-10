@@ -221,7 +221,10 @@ bool LevelManager::OnAddPerformer(const msgs::StringMsg &_req,
     sdf::Geometry geom;
     geom.SetType(sdf::GeometryType::BOX);
     sdf::Box boxShape;
+
+    // \todo(anyone) Use the bounding box instead of a hardcoded box.
     boxShape.SetSize({2, 2, 2});
+
     geom.SetBoxShape(boxShape);
     this->performersToAdd.push_back(std::make_pair(name, geom));
     _rep.set_data(true);
@@ -409,6 +412,7 @@ void LevelManager::UpdateLevelsState()
         << ", but the entity could not be found. Another attempt will be made "
         << "in the next iteration.\n";
       ++iter;
+      continue;
     }
 
     // Create the performer entity
