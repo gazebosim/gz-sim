@@ -8,4 +8,5 @@ set -o errexit
 set -o verbose
 
 # todo(nkoenig) Update the database to handle templated names.
+# todo(nkoenig) Use application tokens instead of jwt, which can expire.
 curl -k -X POST -d @$1 https://api.ignitionrobotics.org/1.0/benchmarks/gazebo --header 'authorization: Bearer '$AUTH0_JWT_TOKEN
