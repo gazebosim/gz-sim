@@ -7,4 +7,5 @@
 set -o errexit
 set -o verbose
 
+# todo(nkoenig) Update the database to handle templated names.
 curl -k -X POST -d @$1 https://api.ignitionrobotics.org/1.0/benchmarks/gazebo --header 'authorization: Bearer '$AUTH0_JWT_TOKEN
