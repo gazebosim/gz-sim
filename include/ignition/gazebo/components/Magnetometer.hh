@@ -36,7 +36,8 @@ namespace components
 {
   /// \brief A component type that contains a magnetometer sensor,
   /// sdf::Magnetometer, information.
-  using Magnetometer = Component<sdf::Sensor, class MagnetometerTag>;
+  using Magnetometer = Component<sdf::Sensor, class MagnetometerTag,
+                                 serializers::SensorSerializer>;
 
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Magnetometer", Magnetometer)

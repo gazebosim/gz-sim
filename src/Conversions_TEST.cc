@@ -196,7 +196,7 @@ TEST(Conversions, Material)
   EXPECT_TRUE(materialMsg.lighting());
 
   EXPECT_TRUE(materialMsg.has_pbr());
-  msgs::Material_PBR pbrMsg = materialMsg.pbr();
+  const auto &pbrMsg = materialMsg.pbr();
   EXPECT_EQ(msgs::Material_PBR_WorkflowType_METAL, pbrMsg.type());
   EXPECT_EQ("albedo_map.png", pbrMsg.albedo_map());
   EXPECT_EQ("normal_map.png", pbrMsg.normal_map());
