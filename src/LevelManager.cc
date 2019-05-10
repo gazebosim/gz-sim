@@ -194,7 +194,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
   if (this->useLevels && performerMap.empty())
   {
     ignerr << "Asked to use levels but no <performer>s were found. Levels "
-              "will not work until performers are added.\n";
+              "will not work until performers are set.\n";
   }
 }
 
@@ -215,7 +215,7 @@ bool LevelManager::OnAddPerformer(const msgs::StringMsg &_req,
     return true;
   }
 
-  // Check to see if the performer has already been added.
+  // Check to see if the performer has already been set.
   if (this->performerMap.find(name) == this->performerMap.end())
   {
     sdf::Geometry geom;
@@ -232,7 +232,7 @@ bool LevelManager::OnAddPerformer(const msgs::StringMsg &_req,
   else
   {
     ignwarn << "Performer with name[" << name << "] "
-      << "has already been added.\n";
+      << "has already been set.\n";
   }
 
   // The response succeeded.
@@ -407,7 +407,7 @@ void LevelManager::UpdateLevelsState()
         components::Name(iter->first));
     if (modelEntity == kNullEntity)
     {
-      ignwarn << "Attempting to add performer with name ["
+      ignwarn << "Attempting to set performer with name ["
         << iter->first << "] "
         << ", but the entity could not be found. Another attempt will be made "
         << "in the next iteration.\n";
