@@ -129,7 +129,7 @@ namespace ignition
       /// \param[out] _rep Reply message, which is set to true when the
       /// performer has been added.
       /// \return True if the service call completed.
-      private: bool OnAddPerformer(const msgs::StringMsg &_req,
+      private: bool OnSetPerformer(const msgs::StringMsg &_req,
                                    msgs::Boolean &_rep);
 
       /// \brief List of currently active levels
