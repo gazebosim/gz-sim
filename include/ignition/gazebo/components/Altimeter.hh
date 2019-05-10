@@ -17,9 +17,11 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 #define IGNITION_GAZEBO_COMPONENTS_ALTIMETER_HH_
 
-#include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -30,9 +32,10 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief TODO(anyone) Substitute with sdf::Altimeter once that exists?
-  /// This is currently the whole <sensor> element.
-  using Altimeter = Component<sdf::ElementPtr, class AltimeterTag>;
+  /// \brief A component type that contains an altimeter sensor,
+  /// sdf::Altimeter, information.
+  using Altimeter =
+      Component<sdf::Sensor, class AltimeterTag, serializers::SensorSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Altimeter", Altimeter)
 }
 }

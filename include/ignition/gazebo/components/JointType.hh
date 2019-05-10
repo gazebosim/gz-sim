@@ -29,11 +29,41 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  class JointTypeSerializer
+  {
+    /// \brief Serialization for `sdf::JointType`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _type JointType to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                                           const sdf::JointType &_type)
+    {
+      _out << static_cast<int>(_type);
+      return _out;
+    }
+
+    /// \brief Deserialization for `sdf::JointType`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _type JointType to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                                             sdf::JointType &_type)
+    {
+      int type;
+      _in >> type;
+      _type = sdf::JointType(type);
+      return _in;
+    }
+  };
+}
 namespace components
 {
   /// \brief A component that contains the joint type. This is a simple wrapper
   /// around sdf::JointType
-  using JointType = Component<sdf::JointType, class JointTypeTag>;
+  using JointType = Component<sdf::JointType, class JointTypeTag,
+                              serializers::JointTypeSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointType", JointType)
 }

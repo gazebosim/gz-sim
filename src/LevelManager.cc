@@ -33,13 +33,17 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
+#include "ignition/gazebo/components/LinearVelocity.hh"
+#include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
+#include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Scene.hh"
+#include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
 
-#include "network/components/PerformerActive.hh"
 #include "LevelManager.hh"
 #include "SimulationRunner.hh"
 
@@ -47,9 +51,8 @@ using namespace ignition;
 using namespace gazebo;
 
 /////////////////////////////////////////////////
-LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels,
-    const bool _useDistSim)
-    : runner(_runner), useLevels(_useLevels), useDistSim(_useDistSim)
+LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
+    : runner(_runner), useLevels(_useLevels)
 {
   if (nullptr == _runner)
   {
@@ -85,7 +88,27 @@ void LevelManager::ReadLevelPerformerInfo()
 
   auto worldElem = this->runner->sdfWorld->Element();
 
-  // TODO(anyone) This should probaly go somewhere else as it is a global
+  // Create Wind
+  auto windEntity = this->runner->entityCompMgr.CreateEntity();
+  this->runner->entityCompMgr.CreateComponent(windEntity, components::Wind());
+  this->runner->entityCompMgr.CreateComponent(
+      windEntity, components::WorldLinearVelocity(
+                      this->runner->sdfWorld->WindLinearVelocity()));
+  // Initially the wind linear velocity is used as the seed velocity
+  this->runner->entityCompMgr.CreateComponent(
+      windEntity, components::WorldLinearVelocitySeed(
+                      this->runner->sdfWorld->WindLinearVelocity()));
+
+  this->entityCreator->SetParent(windEntity, this->worldEntity);
+
+  // scene
+  if (this->runner->sdfWorld->Scene())
+  {
+    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+        components::Scene(*this->runner->sdfWorld->Scene()));
+  }
+
+  // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.
   const std::string kPluginName{"ignition::gazebo"};
 
@@ -101,7 +124,7 @@ void LevelManager::ReadLevelPerformerInfo()
     }
   }
 
-  if (this->useLevels || this->useDistSim)
+  if (this->useLevels)
   {
     if (pluginElem == nullptr)
     {
@@ -158,7 +181,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Performer());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
-                                        components::PerformerActive(true));
+                                        components::PerformerLevels());
     this->runner->entityCompMgr.CreateComponent(performerEntity,
                                         components::Name(name));
     this->runner->entityCompMgr.CreateComponent(performerEntity,
@@ -346,30 +369,36 @@ void LevelManager::UpdateLevelsState()
         });
   }
 
-  this->runner->entityCompMgr.Each<components::Performer,
-                                   components::Geometry,
-                                   components::ParentEntity,
-                                   components::PerformerActive>(
-      [&](const Entity &, const components::Performer *,
-          const components::Geometry *_geometry,
-          const components::ParentEntity *_parent,
-          const components::PerformerActive *_active) -> bool
+  this->runner->entityCompMgr.Each<
+         components::Performer,
+         components::PerformerLevels,
+         components::Geometry,
+         components::ParentEntity>(
+      [&](const Entity &_perfEntity,
+          components::Performer *,
+          components::PerformerLevels *_perfLevels,
+          components::Geometry *_geometry,
+          components::ParentEntity *_parent) -> bool
       {
         IGN_PROFILE("EachPerformer");
 
-        if (!_active->Data())
-        {
-          return true;
-        }
-
         auto pose = this->runner->entityCompMgr.Component<components::Pose>(
             _parent->Data());
+
         // We assume the geometry contains a box.
         auto perfBox = _geometry->Data().BoxShape();
+        if (nullptr == perfBox)
+        {
+          ignerr << "Internal error: geometry of performer [" << _perfEntity
+                 << "] missing box." << std::endl;
+          return true;
+        }
 
         math::AxisAlignedBox performerVolume{
              pose->Data().Pos() - perfBox->Size() / 2,
              pose->Data().Pos() + perfBox->Size() / 2};
+
+        std::set<Entity> newPerfLevels;
 
         // loop through levels and check for intersections
         // Add all levels with inersections to the levelsToLoad even if they
@@ -397,6 +426,7 @@ void LevelManager::UpdateLevelsState()
 
                 if (region.Intersects(performerVolume))
                 {
+                  newPerfLevels.insert(_entity);
                   levelsToLoad.push_back(_entity);
                 }
                 else
@@ -407,6 +437,7 @@ void LevelManager::UpdateLevelsState()
                   {
                     if (outerRegion.Intersects(performerVolume))
                     {
+                      newPerfLevels.insert(_entity);
                       levelsToLoad.push_back(_entity);
                       return true;
                     }
@@ -416,6 +447,9 @@ void LevelManager::UpdateLevelsState()
                 }
                 return true;
               });
+
+        *_perfLevels = components::PerformerLevels(newPerfLevels);
+
         return true;
       });
   {
@@ -495,6 +529,7 @@ void LevelManager::UpdateLevelsState()
   {
     if (!this->IsLevelActive(level))
     {
+      ignmsg << "Loaded level [" << level << "]" << std::endl;
       this->activeLevels.push_back(level);
     }
   }

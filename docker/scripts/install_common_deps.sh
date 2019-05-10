@@ -25,3 +25,7 @@ sudo apt-get install -y \
   clang-tidy-6.0 \
   python-yaml \
   libclang-6.0-dev
+
+sudo apt-get install -y \
+  libbenchmark-dev \
+  libbenchmark1

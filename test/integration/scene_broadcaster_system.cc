@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 #include <google/protobuf/util/message_differencer.h>
 
+#include <thread>
+
 #include <ignition/common/Console.hh>
 #include <ignition/transport/Node.hh>
 
@@ -49,7 +51,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Create pose subscriber
   transport::Node node;
@@ -97,7 +99,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -143,7 +145,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Run server
   server.Run(true, 1, false);
@@ -160,15 +162,15 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   EXPECT_FALSE(res.data().empty());
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
-  EXPECT_NE(res.data().find("box (3)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_link (4)"), std::string::npos);
-  EXPECT_NE(res.data().find("box_visual (5)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder (7)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_link (8)"), std::string::npos);
-  EXPECT_NE(res.data().find("cylinder_visual (9)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere (11)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_link (12)"), std::string::npos);
-  EXPECT_NE(res.data().find("sphere_visual (13)"), std::string::npos);
+  EXPECT_NE(res.data().find("box (4)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_link (5)"), std::string::npos);
+  EXPECT_NE(res.data().find("box_visual (6)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder (8)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_link (9)"), std::string::npos);
+  EXPECT_NE(res.data().find("cylinder_visual (10)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere (12)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_link (13)"), std::string::npos);
+  EXPECT_NE(res.data().find("sphere_visual (14)"), std::string::npos);
 }
 
 /////////////////////////////////////////////////
@@ -183,7 +185,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
-  EXPECT_EQ(15u, *server.EntityCount());
+  EXPECT_EQ(16u, *server.EntityCount());
 
   // Create requester
   transport::Node node;
@@ -228,7 +230,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::size_t initEntityCount = 15;
+  const std::size_t initEntityCount = 16;
   EXPECT_EQ(initEntityCount, *server.EntityCount());
 
   // Subscribe to deletions
@@ -274,6 +276,89 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
         return _val == cylinderModelId;
       }));
 }
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest, State)
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_EQ(16u, *server.EntityCount());
+  transport::Node node;
+
+  // Run server
+  server.Run(true, 1, false);
+
+  bool received{false};
+  auto checkMsg = [&](const msgs::SerializedStep &_msg)
+  {
+    // Stats
+    ASSERT_TRUE(_msg.has_stats());
+    EXPECT_FALSE(_msg.stats().paused());
+    EXPECT_LT(1u, _msg.stats().iterations());
+    EXPECT_EQ(0, _msg.stats().step_size().sec());
+    EXPECT_EQ(1000000, _msg.stats().step_size().nsec());
+    EXPECT_LT(0, _msg.stats().sim_time().nsec());
+    EXPECT_LT(0, _msg.stats().real_time().nsec());
+
+    // State
+    ASSERT_TRUE(_msg.has_state());
+    EXPECT_EQ(16, _msg.state().entities().size());
+
+    received = true;
+  };
+
+  std::function<void(const msgs::SerializedStep &, const bool)> cb =
+      [&](const msgs::SerializedStep &_res, const bool _success)
+  {
+    EXPECT_TRUE(_success);
+    checkMsg(_res);
+  };
+  std::function<void(const msgs::SerializedStep &)> cb2 =
+      [&](const msgs::SerializedStep &_res)
+  {
+    checkMsg(_res);
+  };
+
+  // The request is blocking even though it's meant to be async, so we spin a
+  // thread
+  auto request = [&]()
+  {
+    EXPECT_TRUE(node.Request("/world/default/state", cb));
+  };
+  auto requestThread = std::thread(request);
+
+  // Run server
+  unsigned int sleep{0u};
+  unsigned int maxSleep{10u};
+  while (!received && sleep++ < maxSleep)
+  {
+    IGN_SLEEP_MS(100);
+    server.Run(true, 1, false);
+  }
+
+  EXPECT_TRUE(received);
+  requestThread.join();
+
+  received = false;
+  EXPECT_TRUE(node.Subscribe("/world/default/state", cb2));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  sleep = 0;
+  // cppcheck-suppress unmatchedSuppression
+  // cppcheck-suppress knownConditionTrueFalse
+  while (!received && sleep++ < maxSleep)
+    IGN_SLEEP_MS(100);
+  EXPECT_TRUE(received);
+}
+
 // Run multiple times
 INSTANTIATE_TEST_CASE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));

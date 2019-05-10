@@ -41,13 +41,13 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport6 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport6_VERSION_MAJOR})
+ign_find_package(ignition-transport7 REQUIRED COMPONENTS log)
+set(IGN_TRANSPORT_VER ${ignition-transport7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs3 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs3_VERSION_MAJOR})
+ign_find_package(ignition-msgs4 REQUIRED)
+set(IGN_MSGS_VER ${ignition-msgs4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
@@ -62,8 +62,8 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui1 REQUIRED)
-set(IGN_GUI_VER ${ignition-gui1_VERSION_MAJOR})
+ign_find_package(ignition-gui2 REQUIRED)
+set(IGN_GUI_VER ${ignition-gui2_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
     Core
@@ -89,6 +89,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 ign_find_package(ignition-sensors2 REQUIRED
   COMPONENTS
     rendering
+    air_pressure
     altimeter
     camera
     gpu_lidar
@@ -100,6 +101,11 @@ ign_find_package(ignition-sensors2 REQUIRED
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
 #--------------------------------------
+# Find ignition-rendering
+ign_find_package(ignition-rendering2 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
+
+#--------------------------------------
 # Find gflags
 ign_find_package(gflags
     REQUIRED
@@ -107,7 +113,7 @@ ign_find_package(gflags
 
 #--------------------------------------
 # Find ignition-math
-ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3)
+ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.2)
 set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -118,7 +124,15 @@ ign_find_package(IgnProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(PROTOBUF_IMPORT_DIRS ${ignition-msgs3_INCLUDE_DIRS})
+set(PROTOBUF_IMPORT_DIRS ${ignition-msgs4_INCLUDE_DIRS})
+
+# Plugin install dirs
+set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+)
+set(IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+)
 
 #============================================================================
 # Configure the build

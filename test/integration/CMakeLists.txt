@@ -1,7 +1,10 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  air_pressure_system.cc
   altimeter_system.cc
+  apply_joint_force_system.cc
+  battery_plugin.cc
   components.cc
   contact_system.cc
   diff_drive_system.cc
@@ -10,7 +13,10 @@ set(tests
   events.cc
   examples_build.cc
   imu_system.cc
+  joint_controller_system.cc
+  lift_drag_system.cc
   level_manager.cc
+  link.cc
   logical_camera_system.cc
   magnetometer_system.cc
   model.cc
@@ -23,6 +29,7 @@ set(tests
   touch_plugin.cc
   user_commands.cc
   log_system.cc
+  wind_effects.cc
 )
 
 # Tests that require a valid display
