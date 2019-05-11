@@ -63,23 +63,6 @@ namespace ignition
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
-    Out convert(const msgs::Geometry &/*_in*/)
-    {
-      Out::ConversionNotImplemented;
-    }
-
-    /// \brief Specialized conversion from an SDF geometry to a geometry
-    /// message.
-    /// \param[in] _in SDF geometry.
-    /// \return Geometry message.
-    template<>
-    sdf::Geometry convert(const msgs::Geometry &_in);
-
-    /// \brief Generic conversion from an SDF geometry to another type.
-    /// \param[in] _in SDF geometry.
-    /// \return Conversion result.
-    /// \tparam Out Output type.
-    template<class Out>
     Out convert(const sdf::Geometry &/*_in*/)
     {
       Out::ConversionNotImplemented;
@@ -91,6 +74,23 @@ namespace ignition
     /// \return Geometry message.
     template<>
     msgs::Geometry convert(const sdf::Geometry &_in);
+
+    /// \brief Generic conversion from a geometry message to another type.
+    /// \param[in] _in Geometry message.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Geometry &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a geometry message to a geometry
+    /// SDF object.
+    /// \param[in] _in Geometry message.
+    /// \return SDF geometry.
+    template<>
+    sdf::Geometry convert(const msgs::Geometry &_in);
 
     /// \brief Generic conversion from an SDF material to another type.
     /// \param[in] _in SDF material.

@@ -16,7 +16,6 @@
  */
 
 #include <ignition/msgs/model.pb.h>
-
 #include <ignition/plugin/Register.hh>
 
 #include "ignition/gazebo/components/Name.hh"

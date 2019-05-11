@@ -133,6 +133,16 @@ namespace ignition
       private: bool OnSetPerformer(const msgs::StringMsg &_req,
                                    msgs::Boolean &_rep);
 
+      /// \brief Helper function that creates a performer entity
+      /// based on geometry.
+      /// \param[in] _name Name of the performer entity. This should also be
+      /// the name of an existing model.
+      /// \param[in] _geom SDF geometry that defines the performer's
+      /// bounding box.
+      /// \return False if the performer could not be created
+      private: bool CreatePerformerEntity(const std::string &_name,
+                   const sdf::Geometry &_geom);
+
       /// \brief List of currently active levels
       private: std::vector<Entity> activeLevels;
 
