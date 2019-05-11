@@ -172,6 +172,16 @@ class LevelManagerFixture : public ::testing::Test
     EXPECT_TRUE(result);
     EXPECT_TRUE(rep.data());
 
+    auto spherePerf = *server->EntityByName("sphere");
+    EXPECT_NE(kNullEntity, spherePerf);
+
+    // Attempt to set the same performer
+    executed = node.Request("/world/levels/level/set_performer",
+        req, timeout, rep, result);
+    EXPECT_TRUE(executed);
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(rep.data());
+
     Relay testSystem;
     // Check entities loaded on the default level
     testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,

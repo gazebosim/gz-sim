@@ -407,8 +407,9 @@ void LevelManager::UpdateLevelsState()
     this->performersToAdd.begin();
   while (iter != this->performersToAdd.end())
   {
+    int result = this->CreatePerformerEntity(iter->first, iter->second);
     // Create the performer entity
-    if (this->CreatePerformerEntity(iter->first, iter->second))
+    if (result >= 0)
       iter = this->performersToAdd.erase(iter);
     else
       ++iter;
@@ -685,7 +686,7 @@ bool LevelManager::IsLevelActive(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
-bool LevelManager::CreatePerformerEntity(const std::string &_name,
+int LevelManager::CreatePerformerEntity(const std::string &_name,
     const sdf::Geometry &_geom)
 {
   // Find the model entity
@@ -697,7 +698,15 @@ bool LevelManager::CreatePerformerEntity(const std::string &_name,
       << _name << "] "
       << ", but the entity could not be found. Another attempt will be made "
       << "in the next iteration.\n";
-    return false;
+    return -1;
+  }
+
+  if (!this->runner->entityCompMgr.ChildrenByComponents(modelEntity,
+        components::Performer()).empty())
+  {
+    ignwarn << "Attempting to set performer with name ["
+      << _name << "], but the entity already has a performer.\n";
+    return 1;
   }
 
   Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
@@ -714,5 +723,5 @@ bool LevelManager::CreatePerformerEntity(const std::string &_name,
 
   // Make the model a parent of this performer
   this->entityCreator->SetParent(this->performerMap[_name], modelEntity);
-  return true;
+  return 0;
 }

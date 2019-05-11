@@ -139,8 +139,10 @@ namespace ignition
       /// the name of an existing model.
       /// \param[in] _geom SDF geometry that defines the performer's
       /// bounding box.
-      /// \return False if the performer could not be created
-      private: bool CreatePerformerEntity(const std::string &_name,
+      /// \return 0 if the performer was added, 1 if the performer is
+      /// a duplicate and was not added, -1 if a model with _name could not be
+      /// found.
+      private: int CreatePerformerEntity(const std::string &_name,
                    const sdf::Geometry &_geom);
 
       /// \brief List of currently active levels
