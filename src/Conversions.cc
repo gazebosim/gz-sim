@@ -58,64 +58,6 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 template<>
-sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
-{
-  sdf::Geometry out;
-  if (_in.type() == msgs::Geometry::BOX && _in.has_box())
-  {
-    out.SetType(sdf::GeometryType::BOX);
-
-    sdf::Box box;
-    box.SetSize(msgs::Convert(_in.box().size()));
-    out.SetBoxShape(box);
-  }
-  else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
-  {
-    out.SetType(sdf::GeometryType::CYLINDER);
-    sdf::Cylinder cylinder;
-    cylinder.SetRadius(_in.cylinder().radius());
-    cylinder.SetLength(_in.cylinder().length());
-    out.SetCylinderShape(cylinder);
-  }
-  else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
-  {
-    out.SetType(sdf::GeometryType::PLANE);
-
-    sdf::Plane plane;
-    plane.SetNormal(msgs::Convert(_in.plane().normal()));
-    plane.SetSize(msgs::Convert(_in.plane().size()));
-    out.SetPlaneShape(plane);
-  }
-  else if (_in.type() == msgs::Geometry::SPHERE && _in.has_sphere())
-  {
-    out.SetType(sdf::GeometryType::SPHERE);
-    sdf::Sphere sphere;
-    sphere.SetRadius(_in.sphere().radius());
-    out.SetSphereShape(sphere);
-  }
-  else if (_in.type() == msgs::Geometry::MESH && _in.has_mesh())
-  {
-    out.SetType(sdf::GeometryType::MESH);
-
-    sdf::Mesh mesh;
-    mesh.SetScale(msgs::Convert(_in.mesh().scale()));
-
-    mesh.SetUri(_in.mesh().filename());
-    mesh.SetSubmesh(_in.mesh().submesh());
-    mesh.SetCenterSubmesh(_in.mesh().center_submesh());
-    out.SetMeshShape(mesh);
-  }
-  else
-  {
-    ignerr << "Geometry type [" << static_cast<int>(_in.type())
-           << "] not supported" << std::endl;
-  }
-
-  return out;
-}
-
-//////////////////////////////////////////////////
-template<>
 msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
@@ -158,6 +100,69 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
+           << "] not supported" << std::endl;
+  }
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
+{
+  sdf::Geometry out;
+  if (_in.type() == msgs::Geometry::BOX && _in.has_box())
+  {
+    out.SetType(sdf::GeometryType::BOX);
+
+    sdf::Box boxShape;
+    boxShape.SetSize(msgs::Convert(_in.box().size()));
+
+    out.SetBoxShape(boxShape);
+  }
+  else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
+  {
+    out.SetType(sdf::GeometryType::CYLINDER);
+
+    sdf::Cylinder cylinderShape;
+    cylinderShape.SetRadius(_in.cylinder().radius());
+    cylinderShape.SetLength(_in.cylinder().length());
+
+    out.SetCylinderShape(cylinderShape);
+  }
+  else if (_in.type() == msgs::Geometry::PLANE && _in.has_plane())
+  {
+    out.SetType(sdf::GeometryType::PLANE);
+
+    sdf::Plane planeShape;
+    planeShape.SetNormal(msgs::Convert(_in.plane().normal()));
+    planeShape.SetSize(msgs::Convert(_in.plane().size()));
+
+    out.SetPlaneShape(planeShape);
+  }
+  else if (_in.type() == msgs::Geometry::SPHERE && _in.has_sphere())
+  {
+    out.SetType(sdf::GeometryType::SPHERE);
+
+    sdf::Sphere sphereShape;
+    sphereShape.SetRadius(_in.sphere().radius());
+
+    out.SetSphereShape(sphereShape);
+  }
+  else if (_in.type() == msgs::Geometry::MESH && _in.has_mesh())
+  {
+    out.SetType(sdf::GeometryType::MESH);
+
+    sdf::Mesh meshShape;
+    meshShape.SetScale(msgs::Convert(_in.mesh().scale()));
+    meshShape.SetUri(_in.mesh().filename());
+    meshShape.SetSubmesh(_in.mesh().submesh());
+    meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
+
+    out.SetMeshShape(meshShape);
+  }
+  else
+  {
+    ignerr << "Geometry type [" << static_cast<int>(_in.type())
            << "] not supported" << std::endl;
   }
   return out;
