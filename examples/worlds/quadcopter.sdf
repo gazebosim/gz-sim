@@ -226,7 +226,9 @@
                 <use_parent_model_frame>1</use_parent_model_frame>
             </axis>
         </joint>
-    <plugin filename="libignition-gazebo-multicopter-motor-model-system.so" name="X3_front_right_motor_model">
+    <plugin
+      filename="libignition-gazebo-multicopter-motor-model-system.so"
+      name="ignition::gazebo::systems::MulticopterMotorModel">
       <robotNamespace>X3</robotNamespace>
       <jointName>X3/rotor_0_joint</jointName>
       <linkName>X3/rotor_0</linkName>
@@ -309,7 +311,9 @@
                 <use_parent_model_frame>1</use_parent_model_frame>
             </axis>
         </joint>
-    <plugin filename="libignition-gazebo-multicopter-motor-model-system.so" name="X3_back_left_motor_model">
+    <plugin
+      filename="libignition-gazebo-multicopter-motor-model-system.so"
+      name="ignition::gazebo::systems::MulticopterMotorModel">
       <robotNamespace>X3</robotNamespace>
       <jointName>X3/rotor_1_joint</jointName>
       <linkName>X3/rotor_1</linkName>
@@ -391,7 +395,9 @@
                 <use_parent_model_frame>1</use_parent_model_frame>
             </axis>
         </joint>
-    <plugin filename="libignition-gazebo-multicopter-motor-model-system.so" name="X3_front_left_motor_model">
+    <plugin
+      filename="libignition-gazebo-multicopter-motor-model-system.so"
+      name="ignition::gazebo::systems::MulticopterMotorModel">
       <robotNamespace>X3</robotNamespace>
       <jointName>X3/rotor_2_joint</jointName>
       <linkName>X3/rotor_2</linkName>
@@ -473,7 +479,9 @@
                 <use_parent_model_frame>1</use_parent_model_frame>
             </axis>
         </joint>
-    <plugin filename="libignition-gazebo-multicopter-motor-model-system.so" name="X3_back_right_motor_model">
+    <plugin
+      filename="libignition-gazebo-multicopter-motor-model-system.so"
+      name="ignition::gazebo::systems::MulticopterMotorModel">
       <robotNamespace>X3</robotNamespace>
       <jointName>X3/rotor_3_joint</jointName>
       <linkName>X3/rotor_3</linkName>
