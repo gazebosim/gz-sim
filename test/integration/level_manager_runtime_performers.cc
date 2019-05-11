@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,7 @@
 #include <vector>
 
 #include <ignition/common/Console.hh>
-#include <ignition/msgs/Utility.hh>
 #include <ignition/transport/Node.hh>
-#include <sdf/Box.hh>
-#include <sdf/Cylinder.hh>
-#include <sdf/Joint.hh>
-#include <sdf/JointAxis.hh>
-#include <sdf/Model.hh>
-#include <sdf/Root.hh>
-#include <sdf/Sphere.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -44,7 +36,6 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
 

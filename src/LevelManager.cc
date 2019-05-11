@@ -407,36 +407,11 @@ void LevelManager::UpdateLevelsState()
     this->performersToAdd.begin();
   while (iter != this->performersToAdd.end())
   {
-    // Find the model entity
-    Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
-        components::Name(iter->first));
-    if (modelEntity == kNullEntity)
-    {
-      ignwarn << "Attempting to set performer with name ["
-        << iter->first << "] "
-        << ", but the entity could not be found. Another attempt will be made "
-        << "in the next iteration.\n";
-      ++iter;
-      continue;
-    }
-
     // Create the performer entity
-    Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
-    this->performerMap[iter->first] = performerEntity;
-
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-        components::Performer());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-        components::PerformerLevels());
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-        components::Name("perf_" + iter->first));
-    this->runner->entityCompMgr.CreateComponent(performerEntity,
-        components::Geometry(iter->second));
-
-    // Make the model a parent of this performer
-    this->entityCreator->SetParent(
-        this->performerMap[iter->first], modelEntity);
-    iter = this->performersToAdd.erase(iter);
+    if (this->CreatePerformerEntity(iter->first, iter->second))
+      iter = this->performersToAdd.erase(iter);
+    else
+      ++iter;
   }
 
   {
@@ -707,4 +682,37 @@ bool LevelManager::IsLevelActive(const Entity _entity) const
 {
   return std::find(this->activeLevels.begin(), this->activeLevels.end(),
                    _entity) != this->activeLevels.end();
+}
+
+/////////////////////////////////////////////////
+bool LevelManager::CreatePerformerEntity(const std::string &_name,
+    const sdf::Geometry &_geom)
+{
+  // Find the model entity
+  Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+      components::Name(_name));
+  if (modelEntity == kNullEntity)
+  {
+    ignwarn << "Attempting to set performer with name ["
+      << _name << "] "
+      << ", but the entity could not be found. Another attempt will be made "
+      << "in the next iteration.\n";
+    return false;
+  }
+
+  Entity performerEntity = this->runner->entityCompMgr.CreateEntity();
+  this->performerMap[_name] = performerEntity;
+
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Performer());
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::PerformerLevels());
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Name("perf_" + _name));
+  this->runner->entityCompMgr.CreateComponent(performerEntity,
+      components::Geometry(_geom));
+
+  // Make the model a parent of this performer
+  this->entityCreator->SetParent(this->performerMap[_name], modelEntity);
+  return true;
 }
