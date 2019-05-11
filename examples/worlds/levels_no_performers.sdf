@@ -13,7 +13,7 @@
   * Restart simulation with the "--levels" flag.
   * This time, tell simulation that the "vehicle_red" is a perfomer using:
 
-    ign service -s /world/levels/level/add_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_red"' 
+    ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_red"' 
 
   * Apply a velocity command to both vehicles:
  
