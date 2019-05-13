@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
@@ -172,9 +173,6 @@ class LevelManagerFixture : public ::testing::Test
     EXPECT_TRUE(result);
     EXPECT_TRUE(rep.data());
 
-    auto spherePerf = *server->EntityByName("sphere");
-    EXPECT_NE(kNullEntity, spherePerf);
-
     // Attempt to set the same performer
     executed = node.Request("/world/levels/level/set_performer",
         req, timeout, rep, result);
@@ -187,6 +185,9 @@ class LevelManagerFixture : public ::testing::Test
     testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
                             const gazebo::EntityComponentManager &_ecm)
     {
+      Entity sphere = _ecm.EntityByComponents(components::Name("sphere"));
+      EXPECT_EQ(1u,
+          _ecm.ChildrenByComponents(sphere, components::Performer()).size());
       _ecm.Each<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
               const components::Name *_name) -> bool
