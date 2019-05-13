@@ -207,21 +207,20 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
                                   msgs::Boolean &_rep)
 {
-  _rep.set_data(false);
+  // \todo(nkoenig) This implementation store the request to be processed in
+  // the update cycle. This approach is thread-safe, but is unable to
+  // provide the caller with feedback because
+  // entityCompMgr.EntityByComponents() is not thread safe. It would better
+  // to have long running service calls in ign-transport so that this
+  // function could get information out of the EntityComponent mangager
+  // in a thread-safe manner and return information back to the caller.
+  //
+  // The commented out section at the end of this function was
+  // the original implementation.
+
   std::string name = _req.data();
-
-  // Find the model entity
-  Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
-      components::Name(name));
-  if (modelEntity == kNullEntity)
-  {
-    ignerr << "Unable to find model with name[" << name << "]. "
-      << "Performer not created\n";
-    return true;
-  }
-
-  // Check to see if the performer has already been set.
-  if (this->performerMap.find(name) == this->performerMap.end())
+  _rep.set_data(false);
+  if (!name.empty())
   {
     sdf::Geometry geom;
     geom.SetType(sdf::GeometryType::BOX);
@@ -231,17 +230,55 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
     boxShape.SetSize({2, 2, 2});
 
     geom.SetBoxShape(boxShape);
-    this->performersToAdd.push_back(std::make_pair(name, geom));
     _rep.set_data(true);
+
+    std::lock_guard<std::mutex> lock(this->performerToAddMutex);
+    this->performersToAdd.push_back(std::make_pair(name, geom));
   }
   else
   {
-    ignwarn << "Performer with name[" << name << "] "
-      << "has already been set.\n";
+    ignerr << "Empty performer name. Performer will not be created\n";
   }
 
-  // The response succeeded.
   return true;
+
+  // Orignial implementation
+  //
+  // _rep.set_data(false);
+  // std::string name = _req.data();
+
+  // // Find the model entity
+  // Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+  //     components::Name(name));
+  // if (modelEntity == kNullEntity)
+  // {
+  //   ignerr << "Unable to find model with name[" << name << "]. "
+  //     << "Performer not created\n";
+  //   return true;
+  // }
+
+  // // Check to see if the performer has already been set.
+  // if (this->performerMap.find(name) == this->performerMap.end())
+  // {
+  //   sdf::Geometry geom;
+  //   geom.SetType(sdf::GeometryType::BOX);
+  //   sdf::Box boxShape;
+
+  //   // \todo(anyone) Use the bounding box instead of a hardcoded box.
+  //   boxShape.SetSize({2, 2, 2});
+
+  //   geom.SetBoxShape(boxShape);
+  //   this->performersToAdd.push_back(std::make_pair(name, geom));
+  //   _rep.set_data(true);
+  // }
+  // else
+  // {
+  //   ignwarn << "Performer with name[" << name << "] "
+  //     << "has already been set.\n";
+  // }
+
+  // // The response succeeded.
+  // return true;
 }
 
 /////////////////////////////////////////////////
@@ -403,16 +440,19 @@ void LevelManager::UpdateLevelsState()
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
 
-  std::list<std::pair<std::string, sdf::Geometry>>::iterator iter =
-    this->performersToAdd.begin();
-  while (iter != this->performersToAdd.end())
   {
-    int result = this->CreatePerformerEntity(iter->first, iter->second);
-    // Create the performer entity
-    if (result >= 0)
-      iter = this->performersToAdd.erase(iter);
-    else
-      ++iter;
+    std::lock_guard<std::mutex> lock(this->performerToAddMutex);
+    std::list<std::pair<std::string, sdf::Geometry>>::iterator iter =
+      this->performersToAdd.begin();
+    while (iter != this->performersToAdd.end())
+    {
+      int result = this->CreatePerformerEntity(iter->first, iter->second);
+      // Create the performer entity
+      if (result >= 0)
+        iter = this->performersToAdd.erase(iter);
+      else
+        ++iter;
+    }
   }
 
   {
