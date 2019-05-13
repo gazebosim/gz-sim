@@ -199,8 +199,6 @@ void IgnRenderer::HandleMouseEvent()
 void IgnRenderer::HandleMouseTransformControl()
 {
   // set transform configuration
-  bool modeChanged = this->dataPtr->transformControl.Mode() !=
-    this->dataPtr->transformMode;
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
 
@@ -211,28 +209,6 @@ void IgnRenderer::HandleMouseTransformControl()
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
-
-    // make the pose service request on arrow mode
-    if (this->dataPtr->transformControl.Node() && modeChanged)
-    {
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-          [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-      {
-        if (!_result)
-          ignerr << "Error setting pose" << std::endl;
-      };
-      rendering::NodePtr node = this->dataPtr->transformControl.Node();
-      ignition::msgs::Pose req;
-      req.set_name(node->Name());
-      msgs::Set(req.mutable_position(), node->WorldPosition());
-      msgs::Set(req.mutable_orientation(), node->WorldRotation());
-      if (this->dataPtr->poseCmdService.empty())
-      {
-        this->dataPtr->poseCmdService = "/world/" + this->worldName
-            + "/set_pose";
-      }
-      this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
-    }
 
     this->dataPtr->transformControl.Detach();
     this->dataPtr->renderUtil.SetSelectedEntity(
@@ -286,6 +262,27 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       if (this->dataPtr->transformControl.Active())
       {
+        if (this->dataPtr->transformControl.Node())
+        {
+          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+              [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          {
+            if (!_result)
+              ignerr << "Error setting pose" << std::endl;
+          };
+          rendering::NodePtr node = this->dataPtr->transformControl.Node();
+          ignition::msgs::Pose req;
+          req.set_name(node->Name());
+          msgs::Set(req.mutable_position(), node->WorldPosition());
+          msgs::Set(req.mutable_orientation(), node->WorldRotation());
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            this->dataPtr->poseCmdService = "/world/" + this->worldName
+                + "/set_pose";
+          }
+          this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
+        }
+
         this->dataPtr->transformControl.Stop();
         this->dataPtr->mouseDirty = false;
       }
