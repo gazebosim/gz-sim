@@ -443,10 +443,10 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     return;
 
   msgs::Actuators msg;
-  msg.add_angular_velocity(1000);
-  msg.add_angular_velocity(1000);
-  msg.add_angular_velocity(1000);
-  msg.add_angular_velocity(1000);
+  msg.add_velocity(1000);
+  msg.add_velocity(1000);
+  msg.add_velocity(1000);
+  msg.add_velocity(1000);
   this->dataPtr->pub.Publish(msg);
   this->dataPtr->sampling_time_ =
     std::chrono::duration<double>(_info.dt).count();
@@ -457,21 +457,21 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void MulticopterMotorModelPrivate::OnActuatorMsg(
     const ignition::msgs::Actuators &_msg)
 {
-  if (motor_number_ > _msg.angular_velocity_size() - 1) {
+  if (motor_number_ > _msg.velocity_size() - 1) {
     ignerr << "You tried to access index " << motor_number_
-           << " of the Actuator angular_velocity array which is of size "
-           << _msg.angular_velocity_size() << std::endl;
+           << " of the Actuator velocity array which is of size "
+           << _msg.velocity_size() << std::endl;
   }
 
   if (motor_type_ == MotorType::kVelocity) {
     ref_motor_input_ = std::min(
-        static_cast<double>(_msg.angular_velocity(motor_number_)),
+        static_cast<double>(_msg.velocity(motor_number_)),
         static_cast<double>(max_rot_velocity_));
   }
   //  else if (motor_type_ == MotorType::kPosition)
   else  // if (motor_type_ == MotorType::kForce) {
   {
-    ref_motor_input_ = _msg.angular_velocity(motor_number_);
+    ref_motor_input_ = _msg.velocity(motor_number_);
   }
 }
 
@@ -561,7 +561,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           _ecm.Component<components::WorldLinearVelocity>(windEntity);
       Vector3 wind_speed_W = windLinearVel->Data();
 
-      // Forces from Philppe Martin's and Erwan SalaÃ¼n's
+      // Forces from Philppe Martin's and Erwan Salaün's
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
