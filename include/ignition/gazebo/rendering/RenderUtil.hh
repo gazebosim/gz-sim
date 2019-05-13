@@ -102,7 +102,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// Returns reference to the scene manager.
     public: class SceneManager &SceneManager();
 
-    /// \brief Set the entity beinging selected
+    /// \brief Set the entity being selected
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
