@@ -200,7 +200,7 @@ void SceneBroadcaster::Configure(
   this->dataPtr->worldEntity = _entity;
   this->dataPtr->worldName = name->Data();
 
-  auto readHertz =_sdf->Get<int>("dynamic_pose_hertz", 60);
+  auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
   // Add to graph
