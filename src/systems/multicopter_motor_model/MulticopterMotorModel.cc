@@ -578,7 +578,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       link.AddWorldForce(_ecm, air_drag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
-      msgs::Wrench wrench;
       Vector3 parentWorldTorque;
       auto parentWrenchComp =
         _ecm.Component<components::ExternalWorldWrenchCmd>(
@@ -613,15 +612,16 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                        rolling_moment_coefficient_ *
                        body_velocity_perpendicular;
       parentWorldTorque += rolling_moment;
-      msgs::Set(wrench.mutable_torque(), parentWorldTorque);
-      components::ExternalWorldWrenchCmd newWrenchComp(wrench);
-      if (parentWrenchComp)
+      if (!parentWrenchComp)
       {
-        *parentWrenchComp = newWrenchComp;
+        components::ExternalWorldWrenchCmd wrench;
+        msgs::Set(wrench.Data().mutable_torque(), parentWorldTorque);
+        _ecm.CreateComponent(this->parentLinkEntity, wrench);
       }
       else
       {
-        _ecm.CreateComponent(this->parentLinkEntity, newWrenchComp);
+        msgs::Set(parentWrenchComp->Data().mutable_torque(),
+                  msgs::Convert(parentWrenchComp->Data().torque()) + parentWorldTorque);
       }
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
