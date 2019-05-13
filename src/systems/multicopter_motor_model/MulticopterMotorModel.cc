@@ -377,7 +377,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 
-  this->dataPtr->pub = this->dataPtr->node.Advertise<ignition::msgs::Actuators>(topic);
+  this->dataPtr->pub =
+      this->dataPtr->node.Advertise<ignition::msgs::Actuators>(topic);
 }
 
 //////////////////////////////////////////////////
@@ -391,11 +392,14 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
     if (!_ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity))
     {
-      _ecm.CreateComponent(this->dataPtr->jointEntity, components::JointVelocity());
+      _ecm.CreateComponent(this->dataPtr->jointEntity,
+          components::JointVelocity());
     }
-    if (!_ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity))
+    if (!_ecm.Component<components::JointVelocityCmd>(
+        this->dataPtr->jointEntity))
     {
-      _ecm.CreateComponent(this->dataPtr->jointEntity, components::JointVelocityCmd({0}));
+      _ecm.CreateComponent(this->dataPtr->jointEntity,
+          components::JointVelocityCmd({0}));
     }
 
     const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
@@ -412,9 +416,11 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
     }
-    if (!_ecm.Component<components::WorldLinearVelocity>(this->dataPtr->linkEntity))
+    if (!_ecm.Component<components::WorldLinearVelocity>(
+        this->dataPtr->linkEntity))
     {
-      _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldLinearVelocity());
+      _ecm.CreateComponent(this->dataPtr->linkEntity,
+          components::WorldLinearVelocity());
     }
   }
 
@@ -425,7 +431,8 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     if (!_ecm.Component<components::WorldPose>(this->dataPtr->parentLinkEntity))
     {
-      _ecm.CreateComponent(this->dataPtr->parentLinkEntity, components::WorldPose());
+      _ecm.CreateComponent(this->dataPtr->parentLinkEntity,
+          components::WorldPose());
     }
   }
 
@@ -492,7 +499,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointVelocity || jointVelocity->Data().empty())
       {
-        ignerr << "no JointVelocity for joint " << this->jointEntity << std::endl;
+        ignerr << "no JointVelocity for joint "
+               << this->jointEntity << std::endl;
         return;
       }
       double motor_rot_vel_ = jointVelocity->Data()[0];
@@ -560,7 +568,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           _ecm.Component<components::WorldLinearVelocity>(windEntity);
       Vector3 wind_speed_W = windLinearVel->Data();
 
-      // Forces from Philppe Martin's and Erwan Salaün's
+      // Forces from Philppe Martin's and Erwan Salaun's
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
@@ -621,7 +629,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       else
       {
         msgs::Set(parentWrenchComp->Data().mutable_torque(),
-                  msgs::Convert(parentWrenchComp->Data().torque()) + parentWorldTorque);
+          msgs::Convert(parentWrenchComp->Data().torque()) + parentWorldTorque);
       }
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
@@ -632,11 +640,13 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointVelCmd || jointVelCmd->Data().empty())
       {
-        ignerr << "no JointVelocityCmd for joint " << this->jointEntity << std::endl;
+        ignerr << "no JointVelocityCmd for joint "
+               << this->jointEntity << std::endl;
         return;
       }
       *jointVelCmd = components::JointVelocityCmd(
-          {turning_direction_ * ref_motor_rot_vel / rotor_velocity_slowdown_sim_});
+          {turning_direction_ * ref_motor_rot_vel
+                              / rotor_velocity_slowdown_sim_});
     }
   }
 }
