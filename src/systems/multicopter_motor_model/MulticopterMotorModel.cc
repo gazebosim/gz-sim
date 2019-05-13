@@ -397,10 +397,6 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       _ecm.CreateComponent(this->dataPtr->jointEntity, components::JointVelocityCmd({0}));
     }
-    if (!_ecm.Component<components::WorldPose>(this->dataPtr->jointEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity, components::WorldPose());
-    }
 
     const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
         this->dataPtr->jointEntity);
@@ -530,14 +526,17 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // Apply a force to the link.
       link.AddWorldForce(_ecm, worldPose->Rot() * Vector3(0, 0, thrust));
 
-      const auto jointPose = _ecm.Component<components::WorldPose>(
+      const auto jointPose = _ecm.Component<components::Pose>(
           this->jointEntity);
       if (!jointPose)
       {
-        ignerr << "joint " << this->jointName << " has no WorldPose"
+        ignerr << "joint " << this->jointName << " has no Pose"
                << "component" << std::endl;
         return;
       }
+      // computer joint world pose by multiplying child link WorldPose
+      // with joint Pose
+      Pose jointWorldPose = *worldPose * jointPose->Data();
 
       const auto jointAxis = _ecm.Component<components::JointAxis>(
           this->jointEntity);
@@ -565,7 +564,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
-      Vector3 joint_axis = jointPose->Data().Rot() * jointAxis->Data().Xyz();
+      Vector3 joint_axis = jointWorldPose.Rot() * jointAxis->Data().Xyz();
       Vector3 body_velocity_W = *worldLinearVel;
       Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W;
       Vector3 body_velocity_perpendicular =
@@ -579,7 +578,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       link.AddWorldForce(_ecm, air_drag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
-      msgs::Wrench wrench;
       Vector3 parentWorldTorque;
       auto parentWrenchComp =
         _ecm.Component<components::ExternalWorldWrenchCmd>(
@@ -614,15 +612,16 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                        rolling_moment_coefficient_ *
                        body_velocity_perpendicular;
       parentWorldTorque += rolling_moment;
-      msgs::Set(wrench.mutable_torque(), parentWorldTorque);
-      components::ExternalWorldWrenchCmd newWrenchComp(wrench);
-      if (parentWrenchComp)
+      if (!parentWrenchComp)
       {
-        *parentWrenchComp = newWrenchComp;
+        components::ExternalWorldWrenchCmd wrench;
+        msgs::Set(wrench.Data().mutable_torque(), parentWorldTorque);
+        _ecm.CreateComponent(this->parentLinkEntity, wrench);
       }
       else
       {
-        _ecm.CreateComponent(this->parentLinkEntity, newWrenchComp);
+        msgs::Set(parentWrenchComp->Data().mutable_torque(),
+                  msgs::Convert(parentWrenchComp->Data().torque()) + parentWorldTorque);
       }
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
