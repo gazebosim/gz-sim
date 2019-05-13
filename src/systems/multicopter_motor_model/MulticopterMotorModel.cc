@@ -230,7 +230,6 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
 
   /// \brief Ignition communication node.
   public: transport::Node node;
-  public: transport::Node::Publisher pub;
 };
 
 //////////////////////////////////////////////////
@@ -376,9 +375,6 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
                   + this->dataPtr->command_sub_topic_};
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
-
-  this->dataPtr->pub =
-      this->dataPtr->node.Advertise<ignition::msgs::Actuators>(topic);
 }
 
 //////////////////////////////////////////////////
@@ -445,12 +441,6 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  msgs::Actuators msg;
-  msg.add_velocity(1000);
-  msg.add_velocity(1000);
-  msg.add_velocity(1000);
-  msg.add_velocity(1000);
-  this->dataPtr->pub.Publish(msg);
   this->dataPtr->sampling_time_ =
     std::chrono::duration<double>(_info.dt).count();
   this->dataPtr->UpdateForcesAndMoments(_ecm);
