@@ -63,7 +63,10 @@ pipelines:
             - docker/scripts/install_common_deps.sh
             - docker/scripts/enable_gcc8.sh
             - docker/scripts/install_ign_deps.sh
-            # Install the following debians
+            # There are two methods to install ignition/osrf dependencies.
+            # The first method uses debians and the second builds dependencies
+            # from source. For each dependency, please use only one method.
+            # METHOD 1: Install the following debians
             - apt-get install -y \
                 libignition-cmake2-dev \
                 libignition-common3-dev \
