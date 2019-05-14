@@ -176,6 +176,8 @@ void IgnRenderer::Render()
   }
 
   // update the scene
+  this->dataPtr->renderUtil.SetTransformActive(
+      this->dataPtr->transformControl.Active());
   this->dataPtr->renderUtil.Update();
 
   // view control
