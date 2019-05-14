@@ -522,7 +522,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       }
 
       // Apply a force to the link.
-      link.AddWorldForce(_ecm, worldPose->Rot() * Vector3(0, 0, thrust));
+      link.AddWorldForce(_ecm,
+                         worldPose->Rot().RotateVector(Vector3(0, 0, thrust)));
 
       const auto jointPose = _ecm.Component<components::Pose>(
           this->jointEntity);
@@ -562,7 +563,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
-      Vector3 joint_axis = jointWorldPose.Rot() * jointAxis->Data().Xyz();
+      Vector3 joint_axis =
+          jointWorldPose.Rot().RotateVector(jointAxis->Data().Xyz());
       Vector3 body_velocity_W = *worldLinearVel;
       Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W;
       Vector3 body_velocity_perpendicular =
@@ -602,7 +604,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // arbitrary rotor orientations.
       Vector3 drag_torque_parent_frame =
           pose_difference.Rot().RotateVector(drag_torque);
-      parentWorldTorque = parentWorldPose->Rot() * drag_torque_parent_frame;
+      parentWorldTorque =
+          parentWorldPose->Rot().RotateVector(drag_torque_parent_frame);
 
       Vector3 rolling_moment;
       // - \omega * \mu_1 * V_A^{\perp}
