@@ -72,11 +72,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: Scene3D();
 
     /// \brief Destructor
-    public: virtual ~Scene3D();
+    public: ~Scene3D() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
@@ -194,7 +193,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: explicit RenderWindowItem(QQuickItem *_parent = nullptr);
 
     /// \brief Destructor
-    public: virtual ~RenderWindowItem();
+    public: ~RenderWindowItem() override;
 
     /// \brief Set the renderer
     public: class RenderUtil *RenderUtil() const;
@@ -207,16 +206,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public Q_SLOTS: void Ready();
 
     // Documentation inherited
-    protected: virtual void mousePressEvent(QMouseEvent *_e) override;
+    protected: void mousePressEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseReleaseEvent(QMouseEvent *_e) override;
+    protected: void mouseReleaseEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseMoveEvent(QMouseEvent *_e) override;
+    protected: void mouseMoveEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void wheelEvent(QWheelEvent *_e) override;
+    protected: void wheelEvent(QWheelEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
