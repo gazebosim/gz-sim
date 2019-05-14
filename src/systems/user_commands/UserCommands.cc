@@ -155,10 +155,9 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully removed.
+  /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
-  public: bool PoseService(const msgs::Pose &_req,
-      msgs::Boolean &_res);
+  public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -313,7 +312,8 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
 //////////////////////////////////////////////////
 UserCommandBase::~UserCommandBase()
 {
-  delete this->msg;
+  if (this->msg != nullptr)
+    delete this->msg;
   this->msg = nullptr;
 }
 

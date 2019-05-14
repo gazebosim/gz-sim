@@ -635,7 +635,7 @@ void RenderUtil::SetEnableSensors(bool _enable,
     _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
-  this->dataPtr->createSensorCb = _createSensorCb;
+  this->dataPtr->createSensorCb = std::move(_createSensorCb);
 }
 
 /////////////////////////////////////////////////

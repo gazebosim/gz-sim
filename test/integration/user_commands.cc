@@ -641,6 +641,10 @@ TEST_F(UserCommandsTest, Pose)
   ASSERT_NE(nullptr, poseComp);
   EXPECT_EQ(math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0), poseComp->Data());
 
+  poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(321.0, poseComp->Data().Pos().Y(), 0.2);
+
   // All fields present - ID is used
   req.Clear();
   req.set_id(boxEntity);
@@ -651,7 +655,7 @@ TEST_F(UserCommandsTest, Pose)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  // Run an iteration and check box was removed and sphere wasn't
+  // Run an iteration and check box was moved and sphere wasn't
   server.Run(true, 1, false);
 
   auto sphereEntity = ecm->EntityByComponents(components::Name("sphere"));
