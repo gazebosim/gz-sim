@@ -37,10 +37,6 @@ Example:
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-1 0 1 0 0.5 0</camera_pose>
-        <service>/world/wind_demo/scene/info</service>
-        <pose_topic>/world/wind_demo/pose/info</pose_topic>
-        <scene_topic>/world/wind_demo/scene/info</scene_topic>
-        <deletion_topic>/world/wind_demo/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
