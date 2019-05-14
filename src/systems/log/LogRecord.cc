@@ -211,7 +211,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
   this->recorder.AddTopic("/world/" +
-    sdfWorld->GetAttribute("name")->GetAsString() + "/pose/info");
+    sdfWorld->GetAttribute("name")->GetAsString() + "/dynamic_pose/info");
   this->recorder.AddTopic(sdfTopic);
   // this->recorder.AddTopic(std::regex(".*"));
 
