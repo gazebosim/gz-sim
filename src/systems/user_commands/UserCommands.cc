@@ -76,7 +76,7 @@ class UserCommandBase
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Destructor.
-  public: virtual ~UserCommandBase() = default;
+  public: virtual ~UserCommandBase();
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -308,6 +308,13 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
+}
+
+//////////////////////////////////////////////////
+UserCommandBase::~UserCommandBase()
+{
+  delete this->msg;
+  this->msg = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -571,14 +578,15 @@ bool PoseCommand::Execute()
   // Check the name of the entity being spawned
   std::string entityName = poseMsg->name();
   Entity entity = kNullEntity;
-  if (!entityName.empty())
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
+  {
+    entity = poseMsg->id();
+  }
+  else if (!entityName.empty())
   {
     entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
       components::ParentEntity(this->iface->worldEntity));
-  }
-  else if (poseMsg->id() != kNullEntity)
-  {
-    entity = poseMsg->id();
   }
 
   if (!this->iface->ecm->HasEntity(entity))
