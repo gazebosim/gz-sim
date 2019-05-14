@@ -44,34 +44,6 @@
 #include "MulticopterMotorModel.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
-/// \brief      Obtains a parameter from sdf.
-/// \param[in]  _sdf           Pointer to the sdf object.
-/// \param[in]  _name          Name of the parameter.
-/// \param[out] _param         Param Variable to write the parameter to.
-/// \param[in]  _default_value Default value, if the parameter not available.
-/// \param[in]  _verbose       If true, ignerr if parameter is not available.
-template<class T>
-bool getSdfParam(
-    sdf::ElementPtr _sdf,
-    const std::string& _name,
-    T& _param,
-    const T& _default_value,
-    const bool& _verbose = false)
-{
-  if (_sdf->HasElement(_name)) {
-    _param = _sdf->GetElement(_name)->Get<T>();
-    return true;
-  }
-  else
-  {
-    _param = _default_value;
-    if (_verbose)
-      ignerr << "Please specify a value for parameter \"" << _name << "\".\n";
-  }
-  return false;
-}
-
-// from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
 ///           It allows different acceleration and deceleration time constants.
 /// \details
@@ -335,33 +307,27 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     this->dataPtr->motor_type_ = MotorType::kVelocity;
   }
 
-  getSdfParam<std::string>(
-      sdfClone, "commandSubTopic",
+  sdfClone->Get<std::string>("commandSubTopic",
       this->dataPtr->command_sub_topic_, this->dataPtr->command_sub_topic_);
 
-  getSdfParam<double>(
-      sdfClone, "rotorDragCoefficient", this->dataPtr->rotor_drag_coefficient_,
+  sdfClone->Get<double>("rotorDragCoefficient",
+      this->dataPtr->rotor_drag_coefficient_,
       this->dataPtr->rotor_drag_coefficient_);
-  getSdfParam<double>(
-      sdfClone, "rollingMomentCoefficient",
+  sdfClone->Get<double>("rollingMomentCoefficient",
       this->dataPtr->rolling_moment_coefficient_,
       this->dataPtr->rolling_moment_coefficient_);
-  getSdfParam<double>(
-      sdfClone, "maxRotVelocity",
+  sdfClone->Get<double>("maxRotVelocity",
       this->dataPtr->max_rot_velocity_, this->dataPtr->max_rot_velocity_);
-  getSdfParam<double>(sdfClone, "motorConstant",
+  sdfClone->Get<double>("motorConstant",
       this->dataPtr->motor_constant_, this->dataPtr->motor_constant_);
-  getSdfParam<double>(sdfClone, "momentConstant",
+  sdfClone->Get<double>("momentConstant",
       this->dataPtr->moment_constant_, this->dataPtr->moment_constant_);
 
-  getSdfParam<double>(
-      sdfClone, "timeConstantUp",
+  sdfClone->Get<double>("timeConstantUp",
       this->dataPtr->time_constant_up_, this->dataPtr->time_constant_up_);
-  getSdfParam<double>(
-      sdfClone, "timeConstantDown",
+  sdfClone->Get<double>("timeConstantDown",
       this->dataPtr->time_constant_down_, this->dataPtr->time_constant_down_);
-  getSdfParam<double>(
-      sdfClone, "rotorVelocitySlowdownSim",
+  sdfClone->Get<double>("rotorVelocitySlowdownSim",
       this->dataPtr->rotor_velocity_slowdown_sim_, 10);
 
   // Create the first order filter.
