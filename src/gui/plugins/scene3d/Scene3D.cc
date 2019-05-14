@@ -120,9 +120,7 @@ IgnRenderer::IgnRenderer()
 
 
 /////////////////////////////////////////////////
-IgnRenderer::~IgnRenderer()
-{
-}
+IgnRenderer::~IgnRenderer() = default;
 
 ////////////////////////////////////////////////
 RenderUtil *IgnRenderer::RenderUtil() const
@@ -138,7 +136,7 @@ void IgnRenderer::Render()
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
-        this->textureSize.height());
+        static_cast<double>(this->textureSize.height()));
     // setting the size should cause the render texture to be rebuilt
     this->dataPtr->camera->PreRender();
     this->textureId = this->dataPtr->camera->RenderTextureGLId();
@@ -423,9 +421,7 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-RenderWindowItem::~RenderWindowItem()
-{
-}
+RenderWindowItem::~RenderWindowItem() = default;
 
 /////////////////////////////////////////////////
 void RenderWindowItem::Ready()
@@ -457,7 +453,7 @@ void RenderWindowItem::Ready()
 QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     QQuickItem::UpdatePaintNodeData *)
 {
-  TextureNode *node = static_cast<TextureNode *>(_node);
+  auto node = static_cast<TextureNode *>(_node);
 
   if (!this->dataPtr->renderThread->context)
   {
@@ -535,15 +531,12 @@ Scene3D::Scene3D()
 
 
 /////////////////////////////////////////////////
-Scene3D::~Scene3D()
-{
-}
+Scene3D::~Scene3D() = default;
 
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
-  RenderWindowItem *renderWindow =
-      this->PluginItem()->findChild<RenderWindowItem *>();
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
     ignerr << "Unable to find Render Window item. "
