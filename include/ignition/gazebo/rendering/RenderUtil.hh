@@ -106,6 +106,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node Node representing the selected entity
     public: void SetSelectedEntity(rendering::NodePtr _node);
 
+    /// \brief Set whether the transform controls are currently being dragged.
+    /// \param[in] _active True if active.
+    public: void SetTransformActive(bool _active);
+
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;
   };
