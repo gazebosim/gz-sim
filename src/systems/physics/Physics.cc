@@ -40,6 +40,7 @@
 #include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
+#include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
@@ -1116,7 +1117,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
             position->set_z(contact->point.z());
           }
         }
-        *_contacts = components::ContactSensorData(std::move(contactsComp));
+        *_contacts = components::ContactSensorData(contactsComp);
 
         return true;
       });
