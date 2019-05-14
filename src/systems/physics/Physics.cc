@@ -1080,7 +1080,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
             position->set_z(contact->point.z());
           }
         }
-        *_contacts = components::ContactSensorData(std::move(contactsComp));
+        *_contacts = components::ContactSensorData(contactsComp);
 
         return true;
       });
