@@ -386,17 +386,6 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     this->dataPtr->jointEntity =
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-    if (!_ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity,
-          components::JointVelocity());
-    }
-    if (!_ecm.Component<components::JointVelocityCmd>(
-        this->dataPtr->jointEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity,
-          components::JointVelocityCmd({0}));
-    }
 
     const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
         this->dataPtr->jointEntity);
@@ -407,29 +396,12 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   {
     this->dataPtr->linkEntity =
         this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
-
-    if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
-    }
-    if (!_ecm.Component<components::WorldLinearVelocity>(
-        this->dataPtr->linkEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->linkEntity,
-          components::WorldLinearVelocity());
-    }
   }
 
   if (this->dataPtr->parentLinkEntity == kNullEntity)
   {
     this->dataPtr->parentLinkEntity =
         this->dataPtr->model.LinkByName(_ecm, this->dataPtr->parentLinkName);
-
-    if (!_ecm.Component<components::WorldPose>(this->dataPtr->parentLinkEntity))
-    {
-      _ecm.CreateComponent(this->dataPtr->parentLinkEntity,
-          components::WorldPose());
-    }
   }
 
   if (this->dataPtr->jointEntity == kNullEntity ||
@@ -437,13 +409,60 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       this->dataPtr->parentLinkEntity == kNullEntity)
     return;
 
+  // skip UpdateForcesAndMoments if needed components are missing
+  bool doUpdateForcesAndMoments = true;
+
+  const auto jointVelocity = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->jointEntity);
+  if (!jointVelocity)
+  {
+    _ecm.CreateComponent(this->dataPtr->jointEntity,
+        components::JointVelocity());
+    doUpdateForcesAndMoments = false;
+  }
+  else if (jointVelocity->Data().empty())
+  {
+    doUpdateForcesAndMoments = false;
+  }
+
+  if (!_ecm.Component<components::JointVelocityCmd>(
+      this->dataPtr->jointEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->jointEntity,
+        components::JointVelocityCmd({0}));
+    doUpdateForcesAndMoments = false;
+  }
+
+  if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
+    doUpdateForcesAndMoments = false;
+  }
+  if (!_ecm.Component<components::WorldLinearVelocity>(
+      this->dataPtr->linkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->linkEntity,
+        components::WorldLinearVelocity());
+    doUpdateForcesAndMoments = false;
+  }
+
+  if (!_ecm.Component<components::WorldPose>(this->dataPtr->parentLinkEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->parentLinkEntity,
+        components::WorldPose());
+    doUpdateForcesAndMoments = false;
+  }
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
   this->dataPtr->sampling_time_ =
     std::chrono::duration<double>(_info.dt).count();
-  this->dataPtr->UpdateForcesAndMoments(_ecm);
+  if (doUpdateForcesAndMoments)
+  {
+    this->dataPtr->UpdateForcesAndMoments(_ecm);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -487,12 +506,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     {
       const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
-      if (!jointVelocity || jointVelocity->Data().empty())
-      {
-        ignerr << "no JointVelocity for joint "
-               << this->jointEntity << std::endl;
-        return;
-      }
       double motor_rot_vel_ = jointVelocity->Data()[0];
       if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * sampling_time_)) {
         ignerr << "Aliasing on motor [" << motor_number_
@@ -514,12 +527,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
-      if (!worldPose)
-      {
-        ignerr << "link " << this->linkName << " has no WorldPose component"
-               << std::endl;
-        return;
-      }
 
       // Apply a force to the link.
       link.AddWorldForce(_ecm,
@@ -547,12 +554,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       }
 
       const auto worldLinearVel = link.WorldLinearVelocity(_ecm);
-      if (!worldLinearVel)
-      {
-        ignerr << "link " << this->linkName << " has no WorldLinearVelocity "
-               << "component" << std::endl;
-        return;
-      }
 
       Entity windEntity = _ecm.EntityByComponents(components::Wind());
       auto windLinearVel =
@@ -588,12 +589,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // is equivalent to use WorldPose().Rot().
       Link parentLink(this->parentLinkEntity);
       const auto parentWorldPose = parentLink.WorldPose(_ecm);
-      if (!parentWorldPose)
-      {
-        ignerr << "link " << this->parentLinkName << " has no WorldPose "
-               << "component" << std::endl;
-        return;
-      }
       // The tansformation from the parent_link to the link_.
       // Pose pose_difference =
       //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
@@ -631,12 +626,6 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
           this->jointEntity);
-      if (!jointVelCmd || jointVelCmd->Data().empty())
-      {
-        ignerr << "no JointVelocityCmd for joint "
-               << this->jointEntity << std::endl;
-        return;
-      }
       *jointVelCmd = components::JointVelocityCmd(
           {turning_direction_ * ref_motor_rot_vel
                               / rotor_velocity_slowdown_sim_});
