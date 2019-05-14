@@ -101,7 +101,7 @@ void poseCb(const msgs::Pose &_msg)
   mutex.unlock();
 }
 
-std::string addDelimiter(const std::vector<std::string> _name,
+std::string addDelimiter(const std::vector<std::string> &_name,
                          const std::string &_delim)
 {
   if (_name.empty())
