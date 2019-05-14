@@ -62,7 +62,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
-    /// \brief Mouse event
+    /// \brief Key event
     public: common::KeyEvent keyEvent;
 
     /// \brief Mouse move distance since last event.
@@ -265,7 +265,7 @@ void IgnRenderer::HandleMouseTransformControl()
         if (this->dataPtr->transformControl.Node())
         {
           std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
               ignerr << "Error setting pose" << std::endl;
@@ -303,13 +303,13 @@ void IgnRenderer::HandleMouseTransformControl()
             this->dataPtr->transformControl.AxisById(visual->Id());
         if (axis == ignition::math::Vector3d::Zero)
         {
-          rendering::VisualPtr model =
-              this->dataPtr->renderUtil.SceneManager().ModelVisual(visual);
+          auto topVis =
+              this->dataPtr->renderUtil.SceneManager().TopLevelVisual(visual);
           // TODO(anyone) Check plane geometry instead of hardcoded name!
-          if (model && model->Name() != "ground_plane")
+          if (topVis && topVis->Name() != "ground_plane")
           {
-            this->dataPtr->transformControl.Attach(model);
-            this->dataPtr->renderUtil.SetSelectedEntity(model);
+            this->dataPtr->transformControl.Attach(topVis);
+            this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
             return;
           }

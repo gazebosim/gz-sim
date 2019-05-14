@@ -576,7 +576,7 @@ bool PoseCommand::Execute()
     entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
       components::ParentEntity(this->iface->worldEntity));
   }
-  else if (poseMsg->id() > 0)
+  else if (poseMsg->id() != kNullEntity)
   {
     entity = poseMsg->id();
   }

@@ -63,7 +63,7 @@ TransformControl::~TransformControl()
 void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
-    this->title = "TransformControl";
+    this->title = "Transform control";
 
   // For transform requests
   if (auto serviceElem = _pluginElem->FirstChildElement("service"))
@@ -81,7 +81,7 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 void TransformControl::OnMode(const QString &_mode)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting transform mode" << std::endl;

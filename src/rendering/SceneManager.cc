@@ -609,7 +609,7 @@ void SceneManager::RemoveEntity(Entity _id)
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::ModelVisual(
+rendering::VisualPtr SceneManager::TopLevelVisual(
     rendering::VisualPtr _visual) const
 {
   rendering::VisualPtr rootVisual =
