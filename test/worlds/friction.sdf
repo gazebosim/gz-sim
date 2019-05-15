@@ -21,7 +21,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -33,10 +33,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/default/scene/info</service>
-        <pose_topic>/world/default/pose/info</pose_topic>
-        <scene_topic>/world/default/scene/info</scene_topic>
-        <deletion_topic>/world/default/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->

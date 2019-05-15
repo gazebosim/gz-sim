@@ -14,7 +14,6 @@
  * limitations under the License.
  *
 */
-#include <unistd.h>
 
 #include <cmath>
 #include <map>
@@ -63,9 +62,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
-    /// \brief Mouse event
-    public: common::KeyEvent keyEvent;
-
     /// \brief Mouse move distance since last event.
     public: math::Vector2d drag;
 
@@ -111,9 +107,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Keep latest mouse event
     public: common::MouseEvent mouseEvent;
 
-    /// \brief Keep latest key event
-    public: common::KeyEvent keyEvent;
-
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
 
@@ -153,9 +146,7 @@ IgnRenderer::IgnRenderer()
 
 
 /////////////////////////////////////////////////
-IgnRenderer::~IgnRenderer()
-{
-}
+IgnRenderer::~IgnRenderer() = default;
 
 ////////////////////////////////////////////////
 RenderUtil *IgnRenderer::RenderUtil() const
@@ -171,7 +162,7 @@ void IgnRenderer::Render()
     this->dataPtr->camera->SetImageWidth(this->textureSize.width());
     this->dataPtr->camera->SetImageHeight(this->textureSize.height());
     this->dataPtr->camera->SetAspectRatio(this->textureSize.width() /
-        this->textureSize.height());
+        static_cast<double>(this->textureSize.height()));
     // setting the size should cause the render texture to be rebuilt
     this->dataPtr->camera->PreRender();
     this->textureId = this->dataPtr->camera->RenderTextureGLId();
@@ -179,6 +170,8 @@ void IgnRenderer::Render()
   }
 
   // update the scene
+  this->dataPtr->renderUtil.SetTransformActive(
+      this->dataPtr->transformControl.Active());
   this->dataPtr->renderUtil.Update();
 
   // view control
@@ -191,6 +184,7 @@ void IgnRenderer::Render()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseEvent()
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->HandleMouseTransformControl();
   this->HandleMouseViewControl();
 }
@@ -198,8 +192,6 @@ void IgnRenderer::HandleMouseEvent()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseTransformControl()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
   // set transform configuration
   this->dataPtr->transformControl.SetTransformMode(
       this->dataPtr->transformMode);
@@ -212,28 +204,6 @@ void IgnRenderer::HandleMouseTransformControl()
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
 
-    // make the pose service request on arrow mode
-    if (this->dataPtr->transformControl.Node())
-    {
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-          [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-      {
-        if (!_result)
-          ignerr << "Error setting pose" << std::endl;
-      };
-      rendering::NodePtr node = this->dataPtr->transformControl.Node();
-      ignition::msgs::Pose req;
-      req.set_name(node->Name());
-      msgs::Set(req.mutable_position(), node->WorldPosition());
-      msgs::Set(req.mutable_orientation(), node->WorldRotation());
-      if (this->dataPtr->poseCmdService.empty())
-      {
-        this->dataPtr->poseCmdService = "/world/" + this->worldName
-            + "/set_pose";
-      }
-      this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
-    }
-
     this->dataPtr->transformControl.Detach();
     this->dataPtr->renderUtil.SetSelectedEntity(
         rendering::VisualPtr());
@@ -242,9 +212,9 @@ void IgnRenderer::HandleMouseTransformControl()
   {
     // TODO(anyone) make key events work
     // shift indicates world space transformation
-    this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
-        rendering::TransformSpace::TS_WORLD :
-        rendering::TransformSpace::TS_LOCAL;
+    // this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
+    //     rendering::TransformSpace::TS_WORLD :
+    //     rendering::TransformSpace::TS_LOCAL;
     this->dataPtr->transformControl.SetTransformSpace(
         this->dataPtr->transformSpace);
   }
@@ -286,6 +256,27 @@ void IgnRenderer::HandleMouseTransformControl()
     {
       if (this->dataPtr->transformControl.Active())
       {
+        if (this->dataPtr->transformControl.Node())
+        {
+          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          {
+            if (!_result)
+              ignerr << "Error setting pose" << std::endl;
+          };
+          rendering::NodePtr node = this->dataPtr->transformControl.Node();
+          ignition::msgs::Pose req;
+          req.set_name(node->Name());
+          msgs::Set(req.mutable_position(), node->WorldPosition());
+          msgs::Set(req.mutable_orientation(), node->WorldRotation());
+          if (this->dataPtr->poseCmdService.empty())
+          {
+            this->dataPtr->poseCmdService = "/world/" + this->worldName
+                + "/set_pose";
+          }
+          this->dataPtr->node.Request(this->dataPtr->poseCmdService, req, cb);
+        }
+
         this->dataPtr->transformControl.Stop();
         this->dataPtr->mouseDirty = false;
       }
@@ -306,13 +297,13 @@ void IgnRenderer::HandleMouseTransformControl()
             this->dataPtr->transformControl.AxisById(visual->Id());
         if (axis == ignition::math::Vector3d::Zero)
         {
-          rendering::VisualPtr model =
-              this->dataPtr->renderUtil.SceneManager().ModelVisual(visual);
+          auto topVis =
+              this->dataPtr->renderUtil.SceneManager().TopLevelVisual(visual);
           // TODO(anyone) Check plane geometry instead of hardcoded name!
-          if (model && model->Name() != "ground_plane")
+          if (topVis && topVis->Name() != "ground_plane")
           {
-            this->dataPtr->transformControl.Attach(model);
-            this->dataPtr->renderUtil.SetSelectedEntity(model);
+            this->dataPtr->transformControl.Attach(topVis);
+            this->dataPtr->renderUtil.SetSelectedEntity(topVis);
             this->dataPtr->mouseDirty = false;
             return;
           }
@@ -333,7 +324,8 @@ void IgnRenderer::HandleMouseTransformControl()
       imageWidth - 1.0;
     double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.PressPos().Y() /
       imageHeight;
-    double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() / imageWidth - 1.0;
+    double nxEnd = 2.0 * this->dataPtr->mouseEvent.Pos().X() /
+      imageWidth - 1.0;
     double nyEnd = 1.0 - 2.0 * this->dataPtr->mouseEvent.Pos().Y() /
       imageHeight;
     math::Vector2d start(nx, ny);
@@ -374,7 +366,6 @@ void IgnRenderer::HandleMouseTransformControl()
 /////////////////////////////////////////////////
 void IgnRenderer::HandleMouseViewControl()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   if (!this->dataPtr->mouseDirty)
     return;
 
@@ -392,7 +383,7 @@ void IgnRenderer::HandleMouseViewControl()
   }
   else
   {
-    if (this->dataPtr->drag == math::Vector2d::Zero)
+    if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::PRESS)
     {
       this->dataPtr->target = this->ScreenToScene(
           this->dataPtr->mouseEvent.PressPos());
@@ -502,19 +493,6 @@ void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
   this->dataPtr->mouseEvent = _e;
   this->dataPtr->drag += _drag;
   this->dataPtr->mouseDirty = true;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::NewKeyEvent(const common::KeyEvent &_e)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  // todo(anyone) add operator= and copy constructor to common::KeyEvent
-  this->dataPtr->keyEvent.SetType(_e.Type());
-  this->dataPtr->keyEvent.SetKey(_e.Key());
-  this->dataPtr->keyEvent.SetText(_e.Text());
-  this->dataPtr->keyEvent.SetShift(_e.Shift());
-  this->dataPtr->keyEvent.SetAlt(_e.Alt());
-  this->dataPtr->keyEvent.SetControl(_e.Control());
 }
 
 /////////////////////////////////////////////////
@@ -668,9 +646,7 @@ RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
 }
 
 /////////////////////////////////////////////////
-RenderWindowItem::~RenderWindowItem()
-{
-}
+RenderWindowItem::~RenderWindowItem() = default;
 
 /////////////////////////////////////////////////
 void RenderWindowItem::Ready()
@@ -702,7 +678,7 @@ void RenderWindowItem::Ready()
 QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     QQuickItem::UpdatePaintNodeData *)
 {
-  TextureNode *node = static_cast<TextureNode *>(_node);
+  auto node = static_cast<TextureNode *>(_node);
 
   if (!this->dataPtr->renderThread->context)
   {
@@ -780,15 +756,12 @@ Scene3D::Scene3D()
 
 
 /////////////////////////////////////////////////
-Scene3D::~Scene3D()
-{
-}
+Scene3D::~Scene3D() = default;
 
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
-  RenderWindowItem *renderWindow =
-      this->PluginItem()->findChild<RenderWindowItem *>();
+  auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (!renderWindow)
   {
     ignerr << "Unable to find Render Window item. "
@@ -854,13 +827,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       renderWindow->SetCameraPose(pose);
     }
   }
+
+  this->dataPtr->transformModeService =
+      "/gui/transform_mode";
+  this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
+      &Scene3D::OnTransformMode, this);
+  ignmsg << "Transform mode service on ["
+         << this->dataPtr->transformModeService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->transformModeService.empty())
+  if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
     _ecm.EachNew<components::World, components::Name>(
@@ -871,13 +851,6 @@ void Scene3D::Update(const UpdateInfo &_info,
           this->dataPtr->worldName = _name->Data();
           return true;
         });
-
-    this->dataPtr->transformModeService =
-        "/world/" + this->dataPtr->worldName + "/gui/transform_mode";
-    this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
-        &Scene3D::OnTransformMode, this);
-    ignmsg << "Transform mode service on ["
-           << this->dataPtr->transformModeService << "]" << std::endl;
 
     RenderWindowItem *renderWindow =
         this->PluginItem()->findChild<RenderWindowItem *>();
@@ -965,35 +938,6 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
-{
-  std::cerr << "key press event ! " << std::endl;
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
-  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
-  this->dataPtr->keyEvent.SetType(common::KeyEvent::PRESS);
-
-  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
-      this->dataPtr->keyEvent);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
-{
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
-  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
-  this->dataPtr->keyEvent.SetType(common::KeyEvent::RELEASE);
-
-  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
-      this->dataPtr->keyEvent);
 }
 
 ///////////////////////////////////////////////////

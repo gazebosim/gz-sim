@@ -235,7 +235,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui()
   std::vector<ignition::gazebo::GuiRunner *> runners;
   for (int w = 0; w < worldsMsg.data_size(); ++w)
   {
-    auto worldName = worldsMsg.data(w);
+    const auto &worldName = worldsMsg.data(w);
 
     // Request GUI info for each world
     result = false;

@@ -147,7 +147,10 @@ class ignition::gazebo::RenderUtilPrivate
       createSensorCb;
 
   /// \brief Entity currently being selected.
-  public: rendering::NodePtr selectedEntity;
+  public: rendering::NodePtr selectedEntity{nullptr};
+
+  /// \brief Whether the transform gizmo is being dragged.
+  public: bool transformActive{false};
 };
 
 //////////////////////////////////////////////////
@@ -290,9 +293,18 @@ void RenderUtil::Update()
   for (auto &pose : entityPoses)
   {
     auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (node && node != this->dataPtr->selectedEntity &&
-        node->Parent() != this->dataPtr->selectedEntity)
-      node->SetLocalPose(pose.second);
+    if (!node)
+      continue;
+
+    // TODO(anyone) Check top level visual instead of parent
+    if (this->dataPtr->transformActive &&
+        (node == this->dataPtr->selectedEntity ||
+        node->Parent() == this->dataPtr->selectedEntity))
+    {
+      continue;
+    }
+
+    node->SetLocalPose(pose.second);
   }
 }
 
@@ -635,7 +647,7 @@ void RenderUtil::SetEnableSensors(bool _enable,
     _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
-  this->dataPtr->createSensorCb = _createSensorCb;
+  this->dataPtr->createSensorCb = std::move(_createSensorCb);
 }
 
 /////////////////////////////////////////////////
@@ -648,4 +660,10 @@ SceneManager &RenderUtil::SceneManager()
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   this->dataPtr->selectedEntity = _node;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetTransformActive(bool _active)
+{
+  this->dataPtr->transformActive = _active;
 }
