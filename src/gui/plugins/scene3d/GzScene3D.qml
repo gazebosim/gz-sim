@@ -12,7 +12,6 @@ Rectangle {
    */
   property bool gammaCorrect: false
 
-
   RenderWindow {
     id: renderWindow
     objectName: "renderWindow"

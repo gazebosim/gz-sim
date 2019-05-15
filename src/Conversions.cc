@@ -58,6 +58,29 @@ using namespace ignition;
 
 //////////////////////////////////////////////////
 template<>
+msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
+{
+  msgs::Collision out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.Pose());
+  out.mutable_geometry()->CopyFrom(convert<msgs::Geometry>(*_in.Geom()));
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
+{
+  sdf::Collision out;
+  out.SetName(_in.name());
+  out.SetPose(msgs::Convert(_in.pose()));
+  out.SetGeom(convert<sdf::Geometry>(_in.geometry()));
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
 msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
