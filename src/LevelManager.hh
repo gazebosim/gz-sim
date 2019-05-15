@@ -18,13 +18,20 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+
+#include <list>
 #include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <sdf/Element.hh>
+#include <sdf/Geometry.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -118,6 +125,26 @@ namespace ignition
       /// \return True of the level is currently active
       private: bool IsLevelActive(const Entity _entity) const;
 
+      /// \brief Service callback to create a new performer.
+      /// \param[in] _req Message that contains perfomer information.
+      /// \param[out] _rep Reply message, which is set to true when the
+      /// performer has been added.
+      /// \return True if the service call completed.
+      private: bool OnSetPerformer(const msgs::StringMsg &_req,
+                                   msgs::Boolean &_rep);
+
+      /// \brief Helper function that creates a performer entity
+      /// based on geometry.
+      /// \param[in] _name Name of the performer entity. This should also be
+      /// the name of an existing model.
+      /// \param[in] _geom SDF geometry that defines the performer's
+      /// bounding box.
+      /// \return 0 if the performer was added, 1 if the performer is
+      /// a duplicate and was not added, -1 if a model with _name could not be
+      /// found.
+      private: int CreatePerformerEntity(const std::string &_name,
+                   const sdf::Geometry &_geom);
+
       /// \brief List of currently active levels
       private: std::vector<Entity> activeLevels;
 
@@ -142,9 +169,19 @@ namespace ignition
 
       /// \brief Entity Creator API.
       private: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
+
+      /// \brief Transport node.
+      private: ignition::transport::Node node;
+
+      /// \brief The list of performers to add.
+      private: std::list<std::pair<std::string, sdf::Geometry>> performersToAdd;
+
+      /// \brief Mutex to protect performersToAdd list.
+      private: std::mutex performerToAddMutex;
     };
     }
   }
 }
-#endif  // IGNITION_GAZEBO_LEVELMANAGER_HH
+// IGNITION_GAZEBO_LEVELMANAGER_HH
+#endif
 

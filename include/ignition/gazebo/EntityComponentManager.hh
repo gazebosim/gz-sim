@@ -227,10 +227,10 @@ namespace ignition
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
-      /// has an int component equal to 123, and a string component equal to
-      /// "name":
+      /// has an name component equal to "name" and has a model component:
       ///
-      ///  auto entity = EntityByComponents(123, std::string("name"));
+      ///  auto entity = EntityByComponents(components::Name("name"),
+      ///    components::Model());
       ///
       /// \detail Component type must have inequality operator.
       ///
