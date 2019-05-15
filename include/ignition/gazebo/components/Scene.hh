@@ -34,7 +34,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using SceneSerialzer =
+  using SceneSerializer =
       serializers::ComponentToMsgSerializer<sdf::Scene, msgs::Scene>;
 }
 
@@ -42,7 +42,7 @@ namespace components
 {
   /// \brief This component holds scene properties of the world.
   using Scene =
-      Component<sdf::Scene, class SceneTag, serializers::SceneSerialzer>;
+      Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.Scene", Scene)
 }
