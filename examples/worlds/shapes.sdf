@@ -264,12 +264,5 @@ Try moving a model:
         </visual>
       </link>
     </model>
-    <include>
-      <name>rescue_randy_1</name>
-      <uri>
-        https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Rescue Randy Sitting
-      </uri>
-      <pose>1 1 1 0.138212 0 1.759210</pose>
-    </include>
   </world>
 </sdf>
