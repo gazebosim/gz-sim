@@ -25,9 +25,17 @@
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
+#ifdef __APPLE__
+static const std::string ldLibraryPath =  // NOLINT(runtime/string)
+"DYLD_LIBRARY_PATH";
+#else
+static const std::string ldLibraryPath =  // NOLINT(runtime/string)
+"LD_LIBRARY_PATH";
+#endif
 static const std::string kIgnCommand(
   "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " +
-  "LD_LIBRARY_PATH=" + kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ");
+  ldLibraryPath + "=" + kBinPath + "/lib:/usr/local/lib:${" +
+  ldLibraryPath + "} ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -118,4 +126,16 @@ TEST(CmdLine, Gazebo)
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+}
+
+/////////////////////////////////////////////////
+/// Main
+int main(int argc, char **argv)
+{
+  // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
+  // is located.
+  setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
+
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

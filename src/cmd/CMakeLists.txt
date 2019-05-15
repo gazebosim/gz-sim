@@ -1,17 +1,17 @@
+# Set the library_location variable to the relative path to the library file
+# within the install directory structure.
+if (APPLE)
+  set(library_location "lib${ign_lib_target}.dynlib")
+else()
+  set(library_location "lib${ign_lib_target}.so")
+endif()
+
 #===============================================================================
 # Generate the ruby script.
 # Note that the major version of the library is included in the name.
 # Ex: cmdgazebo0.rb
 set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured "${cmd_script_generated}.configured")
-
-# Set the library_location variable to the relative path to the library file
-# within the install directory structure.
-if (APPLE)
-  set(library_location "../../../${CMAKE_INSTALL_LIBDIR}/lib${ign_lib_target}.dynlib")
-else()
-  set(library_location "../../../${CMAKE_INSTALL_LIBDIR}/lib${ign_lib_target}.so")
-endif()
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"
@@ -46,14 +46,6 @@ install( FILES
 # Ex: cmdgazebo0.rb
 set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
-
-# Set the library_location variable to the full path of the library file within
-# the build directory.
-if (APPLE)
-  set(library_location "lib${ign_lib_target}.dynlib")
-else()
-  set(library_location "lib${ign_lib_target}.so")
-endif()
 
 configure_file(
   "cmd${IGN_DESIGNATION}.rb.in"

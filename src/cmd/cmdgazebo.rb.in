@@ -214,16 +214,7 @@ class Cmd
   def execute(args)
     options = parse(args)
 
-    # Read the plugin that handles the command.
-    if LIBRARY_NAME[0] == '/'
-      # If the first character is a slash, we'll assume that we've been given an
-      # absolute path to the library. This is only used during test mode.
-      plugin = LIBRARY_NAME
-    else
-      # We're assuming that the library path is relative to the current
-      # location of this script.
-      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
-    end
+    plugin = LIBRARY_NAME
     conf_version = LIBRARY_VERSION
 
     begin

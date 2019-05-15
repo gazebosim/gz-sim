@@ -17,10 +17,44 @@
 #ifndef IGNITION_GAZEBO_TEST_CONFIG_HH_
 #define IGNITION_GAZEBO_TEST_CONFIG_HH_
 
+#include <stdlib.h>
 #include <ignition/gazebo/config.hh>
 
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
+
+#define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+
+#if (_MSC_VER >= 1400) // Visual Studio 2005
+  #include <sstream>
+
+  /// \brief setenv/unstenv are not present in Windows. Define them to make
+  /// the code portable.
+  /// \param[in] _name Variable name.
+  /// \param[in] _value Value.
+  /// \param[in] _rewrite If 'name' does exist in the environment, then its
+  /// value is changed to 'value' if 'rewrite' is nonzero. If overwrite is
+  /// zero, then the value of 'name' is not changed.
+  /// /return 0 on success or -1 on error.
+  int setenv(const char *_name, const char *_value, int /*_rewrite*/)
+  {
+    std::stringstream sstr;
+    std::string name = _name;
+    std::string value = _value;
+    sstr << name << '=' << value;
+    return _putenv(sstr.str().c_str());
+  }
+
+  /// \brief Deletes an environment variable.
+  /// \param[in] _name Variable name.
+  void unsetenv(const char *_name)
+  {
+    std::stringstream sstr;
+    std::string name = _name;
+    sstr << name << '=';
+    _putenv(sstr.str().c_str());
+  }
+#endif
 
 namespace ignition
 {
