@@ -16,7 +16,6 @@ Rectangle {
     id: renderWindow
     objectName: "renderWindow"
     anchors.fill: parent
-    focus: true
   }
 
   /*
