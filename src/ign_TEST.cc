@@ -36,7 +36,7 @@ static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 static const std::string kLdLibraryPath =  // NOLINT(runtime/string)
 "LD_LIBRARY_PATH";
 static const std::string kIgnTool =  // NOLINT(runtime/string)
-"ign-gazebo -s";
+"ign gazebo -s";
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
 #endif
