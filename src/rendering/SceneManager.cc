@@ -230,11 +230,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     // Don't set a default material for meshes because they
     // may have their own
     // TODO(anyone) support overriding mesh material
-    else if (_visual.Geom()->Type() == sdf::GeometryType::MESH)
-    {
-      material = geom->Material();
-    }
-    else
+    else if (_visual.Geom()->Type() != sdf::GeometryType::MESH)
     {
       // create default material
       material = this->dataPtr->scene->Material("ign-grey");
@@ -248,11 +244,10 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
         material->SetMetalness(1.0);
       }
     }
-
     // TODO(anyone) set transparency)
     // material->SetTransparency(_visual.Transparency());
-
-    geom->SetMaterial(material);
+    if (material)
+      geom->SetMaterial(material);
   }
   else
   {
@@ -614,7 +609,7 @@ void SceneManager::RemoveEntity(Entity _id)
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr SceneManager::ModelVisual(
+rendering::VisualPtr SceneManager::TopLevelVisual(
     rendering::VisualPtr _visual) const
 {
   rendering::VisualPtr rootVisual =

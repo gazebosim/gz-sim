@@ -15,8 +15,11 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_RENDERWINDOW_HH_
-#define IGNITION_GAZEBO_RENDERWINDOW_HH_
+#ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
+#define IGNITION_GAZEBO_GUI_SCENE3D_HH_
+
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
@@ -31,7 +34,6 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/common/MouseEvent.hh>
-#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -75,11 +77,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: Scene3D();
 
     /// \brief Destructor
-    public: virtual ~Scene3D();
+    public: ~Scene3D() override;
 
     // Documentation inherited
-    public: virtual void LoadConfig(const tinyxml2::XMLElement *_pluginElem)
-        override;
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
@@ -132,10 +133,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _drag Mouse move distance
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
-
-    /// \brief New key event triggered
-    /// \param[in] _e New key event
-    public: void NewKeyEvent(const common::KeyEvent &_e);
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
@@ -220,7 +217,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: explicit RenderWindowItem(QQuickItem *_parent = nullptr);
 
     /// \brief Destructor
-    public: virtual ~RenderWindowItem();
+    public: ~RenderWindowItem() override;
 
     /// \brief Set the renderer
     public: class RenderUtil *RenderUtil() const;
@@ -241,22 +238,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public Q_SLOTS: void Ready();
 
     // Documentation inherited
-    protected: virtual void mousePressEvent(QMouseEvent *_e) override;
+    protected: void mousePressEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseReleaseEvent(QMouseEvent *_e) override;
+    protected: void mouseReleaseEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void mouseMoveEvent(QMouseEvent *_e) override;
+    protected: void mouseMoveEvent(QMouseEvent *_e) override;
 
     // Documentation inherited
-    protected: virtual void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: virtual void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: virtual void keyReleaseEvent(QKeyEvent *_e) override;
+    protected: void wheelEvent(QWheelEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view

@@ -76,7 +76,7 @@ class UserCommandBase
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Destructor.
-  public: virtual ~UserCommandBase() = default;
+  public: virtual ~UserCommandBase();
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -155,10 +155,9 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully removed.
+  /// It does not mean that the entity will be successfully moved.
   /// \return True if successful.
-  public: bool PoseService(const msgs::Pose &_req,
-      msgs::Boolean &_res);
+  public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -308,6 +307,14 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
+}
+
+//////////////////////////////////////////////////
+UserCommandBase::~UserCommandBase()
+{
+  if (this->msg != nullptr)
+    delete this->msg;
+  this->msg = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -568,19 +575,18 @@ bool PoseCommand::Execute()
     return false;
   }
 
-  std::cerr << poseMsg->DebugString() << std::endl;
-
   // Check the name of the entity being spawned
   std::string entityName = poseMsg->name();
   Entity entity = kNullEntity;
-  if (!entityName.empty())
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
+  {
+    entity = poseMsg->id();
+  }
+  else if (!entityName.empty())
   {
     entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
       components::ParentEntity(this->iface->worldEntity));
-  }
-  else if (poseMsg->id() > 0)
-  {
-    entity = poseMsg->id();
   }
 
   if (!this->iface->ecm->HasEntity(entity))

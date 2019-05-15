@@ -14,6 +14,8 @@
  * limitations under the License.
  *
 */
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
@@ -35,8 +37,6 @@ namespace ignition::gazebo
 {
   class TransformControlPrivate
   {
-    public: bool initialized{false};
-
     /// \brief Ignition communication node.
     public: transport::Node node;
 
@@ -53,7 +53,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : GuiSystem(), dataPtr(std::make_unique<TransformControlPrivate>())
+  : gui::Plugin(), dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
 
@@ -63,36 +63,20 @@ TransformControl::~TransformControl()
 }
 
 /////////////////////////////////////////////////
-void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "TransformControl";
+    this->title = "Transform control";
 
   // For transform requests
-  if (auto serviceElem = _pluginElem->FirstChildElement("service"))
-    this->dataPtr->service = serviceElem->GetText();
-
-  if (this->dataPtr->service.empty())
-  {
-    ignerr << "Must specify a service for transform mode requests."
-           << std::endl;
-    return;
-  }
-
-  this->dataPtr->initialized = true;
-}
-
-//////////////////////////////////////////////////
-void TransformControl::Update(const UpdateInfo &, EntityComponentManager &)
-{
-  // do nothing for now
+  this->dataPtr->service = "/gui/transform_mode";
 }
 
 /////////////////////////////////////////////////
 void TransformControl::OnMode(const QString &_mode)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [this](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting transform mode" << std::endl;

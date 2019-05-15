@@ -135,10 +135,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     private: rendering::MaterialPtr LoadMaterial(
         const sdf::Material &_material);
 
-    /// \brief Get the parent model of this visual.
+    /// \brief Get the top level visual for the given visual, which
+    /// is the ancestor which is a direct child to the root visual.
+    /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
-    /// \return Model containining this visual
-    public: rendering::VisualPtr ModelVisual(
+    /// \return Top level visual containining this visual
+    public: rendering::VisualPtr TopLevelVisual(
         rendering::VisualPtr _visual) const;
 
     /// \internal

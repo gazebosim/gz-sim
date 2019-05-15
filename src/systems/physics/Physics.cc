@@ -40,11 +40,11 @@
 #include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
+#include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
 #include <ignition/physics/Link.hh>
-#include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/RemoveEntities.hh>
 #include <ignition/physics/Shape.hh>
 #include <ignition/physics/SphereShape.hh>
@@ -689,24 +689,45 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // Get canonical link offset
+        auto canonicalLink = _ecm.ChildrenByComponents(_entity,
+            components::CanonicalLink());
+        if (canonicalLink.empty())
+          return true;
+
+        auto canonicalPoseComp =
+            _ecm.Component<components::Pose>(canonicalLink[0]);
+        if (nullptr == canonicalPoseComp)
+          return true;
+
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (freeGroup)
         {
-          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data()));
+          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+              canonicalPoseComp->Data()));
         }
 
         return true;
       });
 
   // Clear pending commands
+  // Note: Removing components from inside an Each call can be dangerous.
+  // Instead, we collect all the entities that have the desired components and
+  // remove the component from them afterward.
+  std::vector<Entity> entitiesWorldCmd;
   _ecm.Each<components::WorldPoseCmd>(
       [&](const Entity &_entity, components::WorldPoseCmd*) -> bool
       {
-        _ecm.RemoveComponent<components::WorldPoseCmd>(_entity);
+        entitiesWorldCmd.push_back(_entity);
         return true;
       });
+
+  for (const Entity &entity : entitiesWorldCmd)
+  {
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -780,7 +801,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-              worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
           }
 
           // Velocity in world coordinates
@@ -1115,7 +1136,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm) const
             position->set_z(contact->point.z());
           }
         }
-        *_contacts = components::ContactSensorData(std::move(contactsComp));
+        *_contacts = components::ContactSensorData(contactsComp);
 
         return true;
       });

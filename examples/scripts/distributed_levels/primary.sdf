@@ -10,9 +10,9 @@
 <sdf version="1.6">
   <world name="default">
 
-    
 
-    
+
+
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
       name="ignition::gazebo::systems::SceneBroadcaster">
@@ -21,7 +21,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="Scene3D" name="3D View">
+      <plugin filename="GzScene3D" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -33,10 +33,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-        <service>/world/default/scene/info</service>
-        <pose_topic>/world/default/pose/info</pose_topic>
-        <scene_topic>/world/default/scene/info</scene_topic>
-        <deletion_topic>/world/default/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->
@@ -90,7 +86,7 @@
       </plugin>
 
     </gui>
-    
+
 
     <scene>
       <ambient>0.8 0.8 0.8 1.0</ambient>
@@ -113,7 +109,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    
+
 
     <model name="green_sphere">
       <pose>0 -1.5 2.5 0 0 0</pose>
@@ -147,7 +143,7 @@
         </visual>
       </link>
     </model>
-    
+
 
     <model name="yellow_box">
       <pose>0 1.5 2.5 0 0 0</pose>
@@ -181,9 +177,9 @@
         </visual>
       </link>
     </model>
-    
 
-    
+
+
     <model name="block_0_A">
       <static>true</static>
       <pose>0.0 -1.5 -0.0 0 0.5235987755982988 0</pose>
@@ -244,7 +240,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_0_B">
       <static>true</static>
       <pose>0.0 1.5 -0.0 0 0.5235987755982988 0</pose>
@@ -305,7 +301,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_1_A">
       <static>true</static>
       <pose>2.598076211353316 -1.5 -1.4999999999999998 0 0.5235987755982988 0</pose>
@@ -366,7 +362,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_1_B">
       <static>true</static>
       <pose>2.598076211353316 1.5 -1.4999999999999998 0 0.5235987755982988 0</pose>
@@ -427,7 +423,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_2_A">
       <static>true</static>
       <pose>5.196152422706632 -1.5 -2.9999999999999996 0 0.5235987755982988 0</pose>
@@ -488,7 +484,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_2_B">
       <static>true</static>
       <pose>5.196152422706632 1.5 -2.9999999999999996 0 0.5235987755982988 0</pose>
@@ -549,7 +545,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_3_C">
       <static>true</static>
       <pose>7.794228634059948 0 -4.499999999999999 0 0.5235987755982988 0</pose>
@@ -610,7 +606,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_4_A">
       <static>true</static>
       <pose>10.392304845413264 -1.5 -5.999999999999999 0 0.5235987755982988 0</pose>
@@ -671,7 +667,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_4_B">
       <static>true</static>
       <pose>10.392304845413264 1.5 -5.999999999999999 0 0.5235987755982988 0</pose>
@@ -732,7 +728,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_5_A">
       <static>true</static>
       <pose>12.99038105676658 -1.5 -7.499999999999999 0 0.5235987755982988 0</pose>
@@ -793,7 +789,7 @@
         </visual>
       </link>
     </model>
-    
+
     <model name="block_5_B">
       <static>true</static>
       <pose>12.99038105676658 1.5 -7.499999999999999 0 0.5235987755982988 0</pose>
@@ -854,7 +850,7 @@
         </visual>
       </link>
     </model>
-    
+
 
     <model name="end_block_A">
       <static>true</static>
@@ -924,7 +920,7 @@
 
     <plugin name="ignition::gazebo" filename="dummy">
 
-    
+
       <performer name="perf_green_sphere">
         <ref>green_sphere</ref>
         <geometry>
@@ -933,7 +929,7 @@
           </box>
         </geometry>
       </performer>
-    
+
       <performer name="perf_yellow_box">
         <ref>yellow_box</ref>
         <geometry>
@@ -942,9 +938,9 @@
           </box>
         </geometry>
       </performer>
-    
 
-    
+
+
     <level name="level_block_0_A">
       <pose>0.0 -1.5 -0.0 0 0 0</pose>
       <geometry>
@@ -955,7 +951,7 @@
       <buffer>1.0</buffer>
       <ref>block_0_A</ref>
     </level>
-    
+
     <level name="level_block_0_B">
       <pose>0.0 1.5 -0.0 0 0 0</pose>
       <geometry>
@@ -966,7 +962,7 @@
       <buffer>1.0</buffer>
       <ref>block_0_B</ref>
     </level>
-    
+
     <level name="level_block_1_A">
       <pose>2.598076211353316 -1.5 -1.4999999999999998 0 0 0</pose>
       <geometry>
@@ -977,7 +973,7 @@
       <buffer>1.0</buffer>
       <ref>block_1_A</ref>
     </level>
-    
+
     <level name="level_block_1_B">
       <pose>2.598076211353316 1.5 -1.4999999999999998 0 0 0</pose>
       <geometry>
@@ -988,7 +984,7 @@
       <buffer>1.0</buffer>
       <ref>block_1_B</ref>
     </level>
-    
+
     <level name="level_block_2_A">
       <pose>5.196152422706632 -1.5 -2.9999999999999996 0 0 0</pose>
       <geometry>
@@ -999,7 +995,7 @@
       <buffer>1.0</buffer>
       <ref>block_2_A</ref>
     </level>
-    
+
     <level name="level_block_2_B">
       <pose>5.196152422706632 1.5 -2.9999999999999996 0 0 0</pose>
       <geometry>
@@ -1010,7 +1006,7 @@
       <buffer>1.0</buffer>
       <ref>block_2_B</ref>
     </level>
-    
+
     <level name="level_block_3_C">
       <pose>7.794228634059948 0 -4.499999999999999 0 0 0</pose>
       <geometry>
@@ -1021,7 +1017,7 @@
       <buffer>1.0</buffer>
       <ref>block_3_C</ref>
     </level>
-    
+
     <level name="level_block_4_A">
       <pose>10.392304845413264 -1.5 -5.999999999999999 0 0 0</pose>
       <geometry>
@@ -1032,7 +1028,7 @@
       <buffer>1.0</buffer>
       <ref>block_4_A</ref>
     </level>
-    
+
     <level name="level_block_4_B">
       <pose>10.392304845413264 1.5 -5.999999999999999 0 0 0</pose>
       <geometry>
@@ -1043,7 +1039,7 @@
       <buffer>1.0</buffer>
       <ref>block_4_B</ref>
     </level>
-    
+
     <level name="level_block_5_A">
       <pose>12.99038105676658 -1.5 -7.499999999999999 0 0 0</pose>
       <geometry>
@@ -1054,7 +1050,7 @@
       <buffer>1.0</buffer>
       <ref>block_5_A</ref>
     </level>
-    
+
     <level name="level_block_5_B">
       <pose>12.99038105676658 1.5 -7.499999999999999 0 0 0</pose>
       <geometry>
@@ -1065,7 +1061,7 @@
       <buffer>1.0</buffer>
       <ref>block_5_B</ref>
     </level>
-    
+
 
 
     </plugin>
