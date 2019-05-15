@@ -39,10 +39,6 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>20 0 3 0 0.0 3.14</camera_pose>
-        <service>/world/lift_drag/scene/info</service>
-        <pose_topic>/world/lift_drag/pose/info</pose_topic>
-        <scene_topic>/world/lift_drag/scene/info</scene_topic>
-        <deletion_topic>/world/lift_drag/scene/deletion</deletion_topic>
       </plugin>
 
       <!-- World control -->

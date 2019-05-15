@@ -6,6 +6,9 @@
    levels tutorial for more information.
     * [Pull Request 107](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/107)
 
+1. Update PosePublisher system to publish sensor poses and to use scoped names for frame ids
+    * [Pull Request 331](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/331)
+
 1. Port Scene3D gui plugin from ign-gui. Renamed to GzScene3D.
     * [Pull Request 315](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/315)
 
