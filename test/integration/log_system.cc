@@ -120,7 +120,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
-    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord", this->logDir);
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
     EXPECT_EQ(1u, recordSdfRoot.WorldCount());
 
     // Pass changed SDF to server
@@ -158,7 +159,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
 
   // Keep track of total number of pose comparisons
-  int nTotal = 0;
+  int nTotal{0};
   bool hasSdfMessage{false};
   bool hasState{false};
 
@@ -240,7 +241,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     for (int i = 0; i < _playedMsg.pose_size(); ++i)
     {
       auto posePlayed = msgs::Convert(_playedMsg.pose(i));
-      auto poseRecorded = msgs::Convert(entityRecordedPose.at(_playedMsg.pose(i).id()));
+      auto poseRecorded = msgs::Convert(entityRecordedPose.at(
+          _playedMsg.pose(i).id()));
 
       auto diff = posePlayed - poseRecorded;
 
@@ -252,7 +254,6 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
       EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
       EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
-
     }
 
     playServer.SetPaused(false);
@@ -263,7 +264,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   // Subscribe to ignition topic and compare to logged poses
   transport::Node node;
-  // TODO not default!
+  // TODO(louise) The world name should match the recorded world
   node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
   // Run for a few seconds to play back different poses

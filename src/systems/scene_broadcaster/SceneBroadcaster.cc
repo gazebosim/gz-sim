@@ -177,7 +177,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
       lastStatePubTime{std::chrono::system_clock::now()};
 
   /// \brief Period to publish state, defaults to 60 Hz.
-  public: std::chrono::duration<long int, std::ratio<1, 1000>>
+  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
       statePublishPeriod{std::chrono::milliseconds(1000/60)};
 };
 
