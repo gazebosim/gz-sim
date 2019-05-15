@@ -17,9 +17,6 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-
 #include <iostream>
 #include <ignition/common/Console.hh>
 #include <ignition/gui/Application.hh>
