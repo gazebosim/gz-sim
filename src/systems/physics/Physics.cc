@@ -690,12 +690,24 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (modelIt == this->entityModelMap.end())
           return true;
 
+        // Get canonical link offset
+        auto canonicalLink = _ecm.ChildrenByComponents(_entity,
+            components::CanonicalLink());
+        if (canonicalLink.empty())
+          return true;
+
+        auto canonicalPoseComp =
+            _ecm.Component<components::Pose>(canonicalLink[0]);
+        if (nullptr == canonicalPoseComp)
+          return true;
+
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelIt->second->FindFreeGroup();
         if (freeGroup)
         {
-          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data()));
+          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+              canonicalPoseComp->Data()));
         }
 
         return true;
@@ -781,7 +793,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-              worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
           }
 
           // Velocity in world coordinates
