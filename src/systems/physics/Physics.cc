@@ -714,12 +714,21 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       });
 
   // Clear pending commands
+  // Note: Removing components from inside an Each call can be dangerous.
+  // Instead, we collect all the entities that have the desired components and
+  // remove the component from them afterward.
+  std::vector<Entity> entitiesWorldCmd;
   _ecm.Each<components::WorldPoseCmd>(
       [&](const Entity &_entity, components::WorldPoseCmd*) -> bool
       {
-        _ecm.RemoveComponent<components::WorldPoseCmd>(_entity);
+        entitiesWorldCmd.push_back(_entity);
         return true;
       });
+
+  for (const Entity &entity : entitiesWorldCmd)
+  {
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+  }
 }
 
 //////////////////////////////////////////////////
