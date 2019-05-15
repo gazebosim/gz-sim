@@ -292,7 +292,8 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
 
   // Access messages in .tlog file
   transport::log::TopicList opts("/world/" +
-    sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info");
+    sdfWorld->Element()->GetAttribute("name")->GetAsString() +
+    "/dynamic_pose/info");
   this->batch = log->QueryMessages(opts);
   this->iter = this->batch.begin();
 
