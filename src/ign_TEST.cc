@@ -26,24 +26,18 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 #ifdef __APPLE__
-static const std::string kLdLibraryPath =  // NOLINT(runtime/string)
-"DYLD_LIBRARY_PATH";
-static const std::string kIgnTool =  // NOLINT(runtime/string)
-"ign-gazebo-server";
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 "-f ";
+static const std::string kIgnCommand(
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " + kBinPath +
+  "/bin/ign-gazebo-server");
 #else
-static const std::string kLdLibraryPath =  // NOLINT(runtime/string)
-"LD_LIBRARY_PATH";
-static const std::string kIgnTool =  // NOLINT(runtime/string)
-"ign gazebo -s";
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
-#endif
 static const std::string kIgnCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib " +
-  kLdLibraryPath + "=" + kBinPath + "/lib:/usr/local/lib:${" +
-  kLdLibraryPath + "} " + kIgnTool);
+  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
+  kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
+#endif
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
