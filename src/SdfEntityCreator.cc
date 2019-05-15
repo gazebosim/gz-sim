@@ -398,7 +398,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
   }
 
   this->dataPtr->ecm->CreateComponent(collisionEntity,
-      components::CollisionElement(_collision->Element()));
+      components::CollisionElement(*_collision));
 
   return collisionEntity;
 }
