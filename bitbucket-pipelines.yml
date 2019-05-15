@@ -9,7 +9,6 @@ pipelines:
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
           - docker/scripts/enable_ign_prerelease.sh
-          - docker/scripts/enable_ign_nightly.sh
           # Install base dependencies
           - docker/scripts/install_common_deps.sh
           - docker/scripts/enable_gcc8.sh
@@ -58,7 +57,6 @@ pipelines:
             # Enable relevant package repositories
             - docker/scripts/enable_ign_stable.sh
             - docker/scripts/enable_ign_prerelease.sh
-            - docker/scripts/enable_ign_nightly.sh
             # Install base dependencies
             - docker/scripts/install_common_deps.sh
             - docker/scripts/enable_gcc8.sh
