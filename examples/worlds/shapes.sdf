@@ -107,7 +107,6 @@ Try moving a model:
 
       <!-- Transform Control -->
       <plugin filename="TransformControl" name="Transform Control">
-        <service>/world/shapes/gui/transform_mode</service>
       </plugin>
 
     </gui>
