@@ -62,9 +62,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Mouse event
     public: common::MouseEvent mouseEvent;
 
-    /// \brief Key event
-    public: common::KeyEvent keyEvent;
-
     /// \brief Mouse move distance since last event.
     public: math::Vector2d drag;
 
@@ -109,9 +106,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   {
     /// \brief Keep latest mouse event
     public: common::MouseEvent mouseEvent;
-
-    /// \brief Keep latest key event
-    public: common::KeyEvent keyEvent;
 
     /// \brief Render thread
     public : RenderThread *renderThread = nullptr;
@@ -218,9 +212,9 @@ void IgnRenderer::HandleMouseTransformControl()
   {
     // TODO(anyone) make key events work
     // shift indicates world space transformation
-    this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
-        rendering::TransformSpace::TS_WORLD :
-        rendering::TransformSpace::TS_LOCAL;
+    // this->dataPtr->transformSpace = (this->dataPtr->keyEvent.Shift()) ?
+    //     rendering::TransformSpace::TS_WORLD :
+    //     rendering::TransformSpace::TS_LOCAL;
     this->dataPtr->transformControl.SetTransformSpace(
         this->dataPtr->transformSpace);
   }
@@ -499,19 +493,6 @@ void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
   this->dataPtr->mouseEvent = _e;
   this->dataPtr->drag += _drag;
   this->dataPtr->mouseDirty = true;
-}
-
-/////////////////////////////////////////////////
-void IgnRenderer::NewKeyEvent(const common::KeyEvent &_e)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  // todo(anyone) add operator= and copy constructor to common::KeyEvent
-  this->dataPtr->keyEvent.SetType(_e.Type());
-  this->dataPtr->keyEvent.SetKey(_e.Key());
-  this->dataPtr->keyEvent.SetText(_e.Text());
-  this->dataPtr->keyEvent.SetShift(_e.Shift());
-  this->dataPtr->keyEvent.SetAlt(_e.Alt());
-  this->dataPtr->keyEvent.SetControl(_e.Control());
 }
 
 /////////////////////////////////////////////////
@@ -957,34 +938,6 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
   this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::keyPressEvent(QKeyEvent *_e)
-{
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
-  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
-  this->dataPtr->keyEvent.SetType(common::KeyEvent::PRESS);
-
-  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
-      this->dataPtr->keyEvent);
-}
-
-/////////////////////////////////////////////////
-void RenderWindowItem::keyReleaseEvent(QKeyEvent *_e)
-{
-  this->dataPtr->keyEvent.SetKey(_e->key());
-  this->dataPtr->keyEvent.SetText(_e->text().toStdString());
-  this->dataPtr->keyEvent.SetShift(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetControl(_e->modifiers() & Qt::ControlModifier);
-  this->dataPtr->keyEvent.SetAlt(_e->modifiers() & Qt::AltModifier);
-  this->dataPtr->keyEvent.SetType(common::KeyEvent::RELEASE);
-
-  this->dataPtr->renderThread->ignRenderer.NewKeyEvent(
-      this->dataPtr->keyEvent);
 }
 
 ///////////////////////////////////////////////////

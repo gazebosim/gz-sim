@@ -31,7 +31,6 @@
 #include <ignition/math/Vector3.hh>
 
 #include <ignition/common/MouseEvent.hh>
-#include <ignition/common/KeyEvent.hh>
 
 #include <ignition/rendering/Camera.hh>
 
@@ -131,10 +130,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _drag Mouse move distance
     public: void NewMouseEvent(const common::MouseEvent &_e,
         const math::Vector2d &_drag = math::Vector2d::Zero);
-
-    /// \brief New key event triggered
-    /// \param[in] _e New key event
-    public: void NewKeyEvent(const common::KeyEvent &_e);
 
     /// \brief Handle mouse events
     private: void HandleMouseEvent();
@@ -250,12 +245,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     // Documentation inherited
     protected: void wheelEvent(QWheelEvent *_e) override;
-
-    // Documentation inherited
-    protected: virtual void keyPressEvent(QKeyEvent *_e) override;
-
-    // Documentation inherited
-    protected: virtual void keyReleaseEvent(QKeyEvent *_e) override;
 
     /// \brief Overrides the paint event to render the render engine
     /// camera view
