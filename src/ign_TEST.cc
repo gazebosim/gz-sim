@@ -26,7 +26,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 #ifdef __APPLE__
-static const std::string kldLibraryPath =  // NOLINT(runtime/string)
+static const std::string kLdLibraryPath =  // NOLINT(runtime/string)
 "DYLD_LIBRARY_PATH";
 static const std::string kIgnTool =  // NOLINT(runtime/string)
 "ign-gazebo-server";
