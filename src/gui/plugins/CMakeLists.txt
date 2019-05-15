@@ -47,3 +47,4 @@ endfunction()
 
 add_subdirectory(entity_tree)
 add_subdirectory(scene3d)
+add_subdirectory(transform_control)
