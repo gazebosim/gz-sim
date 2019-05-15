@@ -856,10 +856,10 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
   EXPECT_EQ(4u, e4);
   EXPECT_EQ(3u, manager.EntityCount());
 
-  // Can not delete an invalid entity.
+  // Can not delete an invalid entity, but it shows up as marked for removal.
   manager.RequestRemoveEntity(6);
   EXPECT_EQ(3u, manager.EntityCount());
-  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
 
