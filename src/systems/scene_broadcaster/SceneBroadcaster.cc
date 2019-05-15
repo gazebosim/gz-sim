@@ -175,6 +175,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
+
+  /// \brief Period to publish state, defaults to 60 Hz.
+  public: std::chrono::duration<long int, std::ratio<1, 1000>>
+      statePublishPeriod{std::chrono::milliseconds(1000/60)};
 };
 
 //////////////////////////////////////////////////
@@ -333,7 +337,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
        (_manager.HasEntitiesMarkedForRemoval() ||
         _manager.HasNewEntities() ||
        (now - this->dataPtr->lastStatePubTime >
-       std::chrono::milliseconds(1000/60)));
+       this->dataPtr->statePublishPeriod));
   if (shouldServe || shouldPublish)
   {
     msgs::SerializedStep stepMsg;
