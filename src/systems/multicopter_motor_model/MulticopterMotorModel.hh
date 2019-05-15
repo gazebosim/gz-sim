@@ -32,7 +32,7 @@ namespace systems
   class MulticopterMotorModelPrivate;
 
   /// \brief This system applies a thrust force to models with spinning
-  /// propellers.
+  /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
   class IGNITION_GAZEBO_VISIBLE MulticopterMotorModel
       : public System,
         public ISystemConfigure,
