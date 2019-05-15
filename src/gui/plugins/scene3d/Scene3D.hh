@@ -21,9 +21,6 @@
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-
 #include <string>
 #include <memory>
 #include <mutex>
