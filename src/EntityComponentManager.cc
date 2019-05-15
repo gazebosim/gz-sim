@@ -336,6 +336,21 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasNewEntities() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
+  return !this->dataPtr->newlyCreatedEntities.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+  return this->dataPtr->removeAllEntities ||
+      !this->dataPtr->toRemoveEntities.empty();
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);
