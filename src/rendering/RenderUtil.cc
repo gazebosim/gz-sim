@@ -145,6 +145,12 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::function<
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;
+
+  /// \brief Entity currently being selected.
+  public: rendering::NodePtr selectedEntity{nullptr};
+
+  /// \brief Whether the transform gizmo is being dragged.
+  public: bool transformActive{false};
 };
 
 //////////////////////////////////////////////////
@@ -162,12 +168,13 @@ rendering::ScenePtr RenderUtil::Scene() const
 }
 
 //////////////////////////////////////////////////
-void RenderUtil::UpdateFromECM(const UpdateInfo &,
+void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
-  this->dataPtr->UpdateRenderingEntities(_ecm);
+  if (!_info.paused)
+    this->dataPtr->UpdateRenderingEntities(_ecm);
   this->dataPtr->RemoveRenderingEntities(_ecm);
 }
 
@@ -286,8 +293,18 @@ void RenderUtil::Update()
   for (auto &pose : entityPoses)
   {
     auto node = this->dataPtr->sceneManager.NodeById(pose.first);
-    if (node)
-      node->SetLocalPose(pose.second);
+    if (!node)
+      continue;
+
+    // TODO(anyone) Check top level visual instead of parent
+    if (this->dataPtr->transformActive &&
+        (node == this->dataPtr->selectedEntity ||
+        node->Parent() == this->dataPtr->selectedEntity))
+    {
+      continue;
+    }
+
+    node->SetLocalPose(pose.second);
   }
 }
 
@@ -449,7 +466,6 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         const components::Visual *,
         const components::Pose *_pose)->bool
       {
-        this->entityPoses[_entity] = _pose->Data();
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
@@ -632,4 +648,22 @@ void RenderUtil::SetEnableSensors(bool _enable,
 {
   this->dataPtr->enableSensors = _enable;
   this->dataPtr->createSensorCb = std::move(_createSensorCb);
+}
+
+/////////////////////////////////////////////////
+SceneManager &RenderUtil::SceneManager()
+{
+  return this->dataPtr->sceneManager;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
+{
+  this->dataPtr->selectedEntity = _node;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetTransformActive(bool _active)
+{
+  this->dataPtr->transformActive = _active;
 }

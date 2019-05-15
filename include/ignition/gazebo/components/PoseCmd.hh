@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SCENE_HH_
+ */
+#ifndef IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
+#define IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
 
-#include <ignition/msgs/scene.pb.h>
+#include <ignition/math/Pose3.hh>
 
-#include <sdf/Scene.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/gazebo/Export.hh>
+
+#include <ignition/gazebo/components/Factory.hh>
+#include "ignition/gazebo/components/Component.hh"
 
 namespace ignition
 {
@@ -32,22 +31,15 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace serializers
-{
-  using SceneSerializer =
-      serializers::ComponentToMsgSerializer<sdf::Scene, msgs::Scene>;
-}
-
 namespace components
 {
-  /// \brief This component holds scene properties of the world.
-  using Scene =
-      Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.Scene", Scene)
+  /// \brief A component type that contains commanded pose of an
+  /// entity in the world frame represented by ignition::math::Pose3d.
+  using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPoseCmd",
+      WorldPoseCmd)
 }
 }
 }
 }
-
 #endif
