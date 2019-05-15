@@ -156,7 +156,7 @@
                 <geometry>
                     <mesh>
                         <scale>1 1 1</scale>
-                        <uri>file:///home/developer/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/X3 UAV/4//meshes/x3.dae</uri>
+                        <uri>model://x3/meshes/x3.dae</uri>
                     </mesh>
                 </geometry>
             </visual>
@@ -197,7 +197,7 @@
                 <geometry>
                     <mesh>
                         <scale>0.1 0.1 0.1</scale>
-                        <uri>file:///home/developer/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/X3 UAV/4//meshes/propeller_ccw.dae</uri>
+                        <uri>model://x3/meshes/propeller_ccw.dae</uri>
                     </mesh>
                 </geometry>
                 <material>
@@ -282,7 +282,7 @@
                 <geometry>
                     <mesh>
                         <scale>0.1 0.1 0.1</scale>
-                        <uri>file:///home/developer/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/X3 UAV/4//meshes/propeller_ccw.dae</uri>
+                        <uri>model://x3/meshes/propeller_ccw.dae</uri>
                     </mesh>
                 </geometry>
                 <material>
@@ -366,7 +366,7 @@
                 <geometry>
                     <mesh>
                         <scale>0.1 0.1 0.1</scale>
-                        <uri>file:///home/developer/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/X3 UAV/4//meshes/propeller_cw.dae</uri>
+                        <uri>model://x3/meshes/propeller_cw.dae</uri>
                     </mesh>
                 </geometry>
                 <material>
@@ -450,7 +450,7 @@
                 <geometry>
                     <mesh>
                         <scale>0.1 0.1 0.1</scale>
-                        <uri>file:///home/developer/.ignition/fuel/fuel.ignitionrobotics.org/openrobotics/models/X3 UAV/4//meshes/propeller_cw.dae</uri>
+                        <uri>model://x3/meshes/propeller_cw.dae</uri>
                     </mesh>
                 </geometry>
                 <material>
