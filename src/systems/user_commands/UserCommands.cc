@@ -18,11 +18,12 @@
 #include <google/protobuf/message.h>
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -31,6 +32,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -74,7 +76,7 @@ class UserCommandBase
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   /// \brief Destructor.
-  public: virtual ~UserCommandBase() = default;
+  public: virtual ~UserCommandBase();
 
   /// \brief Execute the command. All subclasses must implement this
   /// function and update entities and components so the command takes effect.
@@ -113,6 +115,19 @@ class RemoveCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 };
+
+/// \brief Command to update an entity's pose transform.
+class PoseCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg pose message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: PoseCommand(msgs::Pose *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
 }
 }
 }
@@ -136,6 +151,13 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \return True if successful.
   public: bool RemoveService(const msgs::Entity &_req,
       msgs::Boolean &_res);
+
+  /// \brief Callback for pose service
+  /// \param[in] _req Request containing pose update of an entity.
+  /// \param[in] _res True if message successfully received and queued.
+  /// It does not mean that the entity will be successfully moved.
+  /// \return True if successful.
+  public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -187,6 +209,13 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::RemoveService, this->dataPtr.get());
 
   ignmsg << "Remove service on [" << removeService << "]" << std::endl;
+
+  // Pose service
+  std::string poseService{"/world/" + worldName + "/set_pose"};
+  this->dataPtr->node.Advertise(poseService,
+      &UserCommandsPrivate::PoseService, this->dataPtr.get());
+
+  ignmsg << "Pose service on [" << poseService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -255,10 +284,37 @@ bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
 }
 
 //////////////////////////////////////////////////
+bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
+    msgs::Boolean &_res)
+{
+  // Create command and push it to queue
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
 UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : msg(_msg), iface(_iface)
 {
+}
+
+//////////////////////////////////////////////////
+UserCommandBase::~UserCommandBase()
+{
+  if (this->msg != nullptr)
+    delete this->msg;
+  this->msg = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -501,6 +557,60 @@ bool RemoveCommand::Execute()
   this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }
+
+//////////////////////////////////////////////////
+PoseCommand::PoseCommand(msgs::Pose *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool PoseCommand::Execute()
+{
+  auto poseMsg = dynamic_cast<const msgs::Pose *>(this->msg);
+  if (nullptr == poseMsg)
+  {
+    ignerr << "Internal error, null create message" << std::endl;
+    return false;
+  }
+
+  // Check the name of the entity being spawned
+  std::string entityName = poseMsg->name();
+  Entity entity = kNullEntity;
+  // TODO(anyone) Update pose message to use Entity, with default ID null
+  if (poseMsg->id() != kNullEntity && poseMsg->id() != 0)
+  {
+    entity = poseMsg->id();
+  }
+  else if (!entityName.empty())
+  {
+    entity = this->iface->ecm->EntityByComponents(components::Name(entityName),
+      components::ParentEntity(this->iface->worldEntity));
+  }
+
+  if (!this->iface->ecm->HasEntity(entity))
+  {
+    ignerr << "Unable to update the pose for entity id:[" << poseMsg->id()
+           << "], name[" << entityName << "]" << std::endl;
+    return false;
+  }
+
+  auto poseCmdComp =
+    this->iface->ecm->Component<components::WorldPoseCmd>(entity);
+  if (!poseCmdComp)
+  {
+    this->iface->ecm->CreateComponent(
+        entity, components::WorldPoseCmd(msgs::Convert(*poseMsg)));
+  }
+  else
+  {
+    poseCmdComp->Data() = msgs::Convert(*poseMsg);
+  }
+
+  return true;
+}
+
 
 IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,

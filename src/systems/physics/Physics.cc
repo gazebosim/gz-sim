@@ -40,6 +40,7 @@
 #include <ignition/physics/CylinderShape.hh>
 #include <ignition/physics/ForwardStep.hh>
 #include <ignition/physics/FrameSemantics.hh>
+#include <ignition/physics/FreeGroup.hh>
 #include <ignition/physics/GetContacts.hh>
 #include <ignition/physics/GetEntities.hh>
 #include <ignition/physics/Joint.hh>
@@ -92,6 +93,7 @@
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -108,6 +110,10 @@ namespace components = ignition::gazebo::components;
 class ignition::gazebo::systems::PhysicsPrivate
 {
   public: using MinimumFeatureList = ignition::physics::FeatureList<
+          // FreeGroup
+          ignition::physics::FindFreeGroupFeature,
+          ignition::physics::SetFreeGroupWorldPose,
+          ignition::physics::FreeGroupFrameSemantics,
           ignition::physics::LinkFrameSemantics,
           ignition::physics::AddLinkExternalForceTorque,
           ignition::physics::ForwardStep,
@@ -148,6 +154,9 @@ class ignition::gazebo::systems::PhysicsPrivate
   public: using JointPtrType = ignition::physics::JointPtr<
             ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
 
+  public: using FreeGroupPtrType = ignition::physics::FreeGroupPtr<
+            ignition::physics::FeaturePolicy3d, MinimumFeatureList>;
+
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm);
@@ -158,7 +167,7 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Update physics from components
   /// \param[in] _ecm Constant reference to ECM.
-  public: void UpdatePhysics(const EntityComponentManager &_ecm);
+  public: void UpdatePhysics(EntityComponentManager &_ecm);
 
   /// \brief Step the simulationrfor each world
   /// \param[in] _dt Duration
@@ -575,7 +584,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
+void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
   // Battery state
@@ -672,6 +681,54 @@ void PhysicsPrivate::UpdatePhysics(const EntityComponentManager &_ecm)
 
         return true;
       });
+
+  _ecm.Each<components::Model, components::WorldPoseCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::WorldPoseCmd *_poseCmd)
+      {
+        auto modelIt = this->entityModelMap.find(_entity);
+        if (modelIt == this->entityModelMap.end())
+          return true;
+
+        // Get canonical link offset
+        auto canonicalLink = _ecm.ChildrenByComponents(_entity,
+            components::CanonicalLink());
+        if (canonicalLink.empty())
+          return true;
+
+        auto canonicalPoseComp =
+            _ecm.Component<components::Pose>(canonicalLink[0]);
+        if (nullptr == canonicalPoseComp)
+          return true;
+
+        // TODO(addisu) Store the free group instead of searching for it at
+        // every iteration
+        auto freeGroup = modelIt->second->FindFreeGroup();
+        if (freeGroup)
+        {
+          freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+              canonicalPoseComp->Data()));
+        }
+
+        return true;
+      });
+
+  // Clear pending commands
+  // Note: Removing components from inside an Each call can be dangerous.
+  // Instead, we collect all the entities that have the desired components and
+  // remove the component from them afterward.
+  std::vector<Entity> entitiesWorldCmd;
+  _ecm.Each<components::WorldPoseCmd>(
+      [&](const Entity &_entity, components::WorldPoseCmd*) -> bool
+      {
+        entitiesWorldCmd.push_back(_entity);
+        return true;
+      });
+
+  for (const Entity &entity : entitiesWorldCmd)
+  {
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -745,7 +802,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-              worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
           }
 
           // Velocity in world coordinates

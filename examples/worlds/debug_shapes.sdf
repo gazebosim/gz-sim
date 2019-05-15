@@ -126,7 +126,7 @@
 
     <model name="box_model_transform">
       <static>true</static>
-      <pose>0 0 1.5 0 0.78539816339 0</pose>
+      <pose>0 0 3.5 0 0.78539816339 0</pose>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -163,6 +163,7 @@
     </model>
 
     <model name="box_link_transform">
+      <pose>0 0 2 0 0 0</pose>
       <static>true</static>
       <link name="box_link">
         <pose>0 0 1.5 0 0.78539816339 0</pose>
