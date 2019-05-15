@@ -827,13 +827,20 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       renderWindow->SetCameraPose(pose);
     }
   }
+
+  this->dataPtr->transformModeService =
+      "/gui/transform_mode";
+  this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
+      &Scene3D::OnTransformMode, this);
+  ignmsg << "Transform mode service on ["
+         << this->dataPtr->transformModeService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void Scene3D::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->transformModeService.empty())
+  if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one scene is supported for now
     _ecm.EachNew<components::World, components::Name>(
@@ -844,13 +851,6 @@ void Scene3D::Update(const UpdateInfo &_info,
           this->dataPtr->worldName = _name->Data();
           return true;
         });
-
-    this->dataPtr->transformModeService =
-        "/world/" + this->dataPtr->worldName + "/gui/transform_mode";
-    this->dataPtr->node.Advertise(this->dataPtr->transformModeService,
-        &Scene3D::OnTransformMode, this);
-    ignmsg << "Transform mode service on ["
-           << this->dataPtr->transformModeService << "]" << std::endl;
 
     RenderWindowItem *renderWindow =
         this->PluginItem()->findChild<RenderWindowItem *>();

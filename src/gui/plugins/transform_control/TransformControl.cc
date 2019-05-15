@@ -60,21 +60,13 @@ TransformControl::~TransformControl()
 }
 
 /////////////////////////////////////////////////
-void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Transform control";
 
   // For transform requests
-  if (auto serviceElem = _pluginElem->FirstChildElement("service"))
-    this->dataPtr->service = serviceElem->GetText();
-
-  if (this->dataPtr->service.empty())
-  {
-    ignerr << "Must specify a service for transform mode requests."
-           << std::endl;
-    return;
-  }
+  this->dataPtr->service = "/gui/transform_mode";
 }
 
 /////////////////////////////////////////////////
