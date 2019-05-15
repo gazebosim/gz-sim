@@ -425,6 +425,14 @@ namespace ignition
       /// responsability of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
+      /// \brief Get whether there are new entities.
+      /// \return True if there are new entities.
+      public: bool HasNewEntities() const;
+
+      /// \brief Get whether there are any entities marked to be removed.
+      /// \return True if there are entities marked to be removed.
+      public: bool HasEntitiesMarkedForRemoval() const;
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
