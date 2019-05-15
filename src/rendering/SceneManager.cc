@@ -607,3 +607,20 @@ void SceneManager::RemoveEntity(Entity _id)
     }
   }
 }
+
+/////////////////////////////////////////////////
+rendering::VisualPtr SceneManager::TopLevelVisual(
+    rendering::VisualPtr _visual) const
+{
+  rendering::VisualPtr rootVisual =
+      this->dataPtr->scene->RootVisual();
+
+  rendering::VisualPtr visual = _visual;
+  while (visual && visual->Parent() != rootVisual)
+  {
+    visual =
+      std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
+  }
+
+  return visual;
+}
