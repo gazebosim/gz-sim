@@ -32,7 +32,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
-  using JointAxisSerialzer =
+  using JointAxisSerializer =
       serializers::ComponentToMsgSerializer<sdf::JointAxis, msgs::Axis>;
 }
 namespace components
@@ -40,14 +40,14 @@ namespace components
   /// \brief A component that contains the joint axis . This is a simple wrapper
   /// around sdf::JointAxis
   using JointAxis = Component<sdf::JointAxis, class JointAxisTag,
-                              serializers::JointAxisSerialzer>;
+                              serializers::JointAxisSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag,
-                               serializers::JointAxisSerialzer>;
+                               serializers::JointAxisSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.JointAxis2", JointAxis2)
 }
