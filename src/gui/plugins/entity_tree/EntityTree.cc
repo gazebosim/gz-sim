@@ -156,7 +156,7 @@ void TreeModel::RemoveEntity(unsigned int _entity)
     item = itemIt->second;
   }
 
-  if (nullptr == item || nullptr == item->parent())
+  if (nullptr == item)
   {
     return;
   }
@@ -177,7 +177,10 @@ void TreeModel::RemoveEntity(unsigned int _entity)
   removeChildren(item);
 
   // Remove from the view
-  item->parent()->removeRow(item->row());
+  if (nullptr == item->parent())
+    this->removeRow(item->row());
+  else
+    item->parent()->removeRow(item->row());
 }
 
 /////////////////////////////////////////////////
@@ -262,11 +265,20 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
           const components::Name *_name,
           const components::ParentEntity *_parentEntity)->bool
     {
+      auto parentEntity = _parentEntity->Data();
+
+      // World children are top-level
+      if (this->dataPtr->worldEntity != kNullEntity &&
+          parentEntity == this->dataPtr->worldEntity)
+      {
+        parentEntity = kNullEntity;
+      }
+
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(unsigned int, _entity),
           Q_ARG(QString, QString::fromStdString(_name->Data())),
-          Q_ARG(unsigned int, _parentEntity->Data()),
+          Q_ARG(unsigned int, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
       return true;
     });

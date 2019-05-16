@@ -408,6 +408,7 @@ TEST_P(EntityComponentManagerFixture, EntitiesAndComponents)
   // Remove all entities
   manager.RequestRemoveEntities();
   EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
 
   EXPECT_EQ(0u, manager.EntityCount());
@@ -844,7 +845,9 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
   // Delete an Entity
   manager.RequestRemoveEntity(e2);
   EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
+  EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
   EXPECT_EQ(2u, manager.EntityCount());
   EXPECT_FALSE(manager.HasEntity(e2));
 
@@ -853,27 +856,31 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
   EXPECT_EQ(4u, e4);
   EXPECT_EQ(3u, manager.EntityCount());
 
-  // Can not delete an invalid entity.
+  // Can not delete an invalid entity, but it shows up as marked for removal.
   manager.RequestRemoveEntity(6);
   EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
 
   // Delete another
   manager.RequestRemoveEntity(1);
   EXPECT_EQ(3u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(2u, manager.EntityCount());
 
   // Delete another
   manager.RequestRemoveEntity(3);
   EXPECT_EQ(2u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(1u, manager.EntityCount());
 
   // Delete last
   manager.RequestRemoveEntity(4);
   EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(0u, manager.EntityCount());
 }
@@ -1016,11 +1023,13 @@ TEST_P(EntityComponentManagerFixture, EachNewBasic)
   manager.CreateComponent<IntComponent>(e2, IntComponent(456));
 
   EXPECT_EQ(2, newCount<IntComponent>(manager));
+  EXPECT_TRUE(manager.HasNewEntities());
 
   // This would normally be done after each simulation step after systems are
   // updated
   manager.RunClearNewlyCreatedEntities();
   EXPECT_EQ(0, newCount<IntComponent>(manager));
+  EXPECT_FALSE(manager.HasNewEntities());
 }
 
 //////////////////////////////////////////////////
@@ -1104,7 +1113,9 @@ TEST_P(EntityComponentManagerFixture, EachRemoveBasic)
 
   // This would normally be done after each simulation step after systems are
   // updated
+  EXPECT_TRUE(manager.HasNewEntities());
   manager.RunClearNewlyCreatedEntities();
+  EXPECT_FALSE(manager.HasNewEntities());
   // But it shouldn't affect removed entities
   EXPECT_EQ(2, removedCount<IntComponent>(manager));
 
