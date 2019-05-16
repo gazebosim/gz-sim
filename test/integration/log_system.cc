@@ -257,12 +257,12 @@ TEST_F(LogSystemTest, RecordAndPlayback)
         EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
         EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
       }
+      nTotal++;
     }
 
     playServer.SetPaused(false);
 
     ++recordedIter;
-    nTotal++;
   };
 
   // Subscribe to ignition topic and compare to logged poses
