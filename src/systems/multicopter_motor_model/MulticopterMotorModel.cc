@@ -536,9 +536,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // with joint Pose
       Pose jointWorldPose = *worldPose * jointPose->Data();
 
-      const auto jointAxis = _ecm.Component<components::JointAxis>(
+      const auto jointAxisComp = _ecm.Component<components::JointAxis>(
           this->jointEntity);
-      if (!jointAxis)
+      if (!jointAxisComp)
       {
         ignerr << "joint " << this->jointName << " has no JointAxis"
                << "component" << std::endl;
@@ -557,7 +557,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
       Vector3 jointAxis =
-          jointWorldPose.Rot().RotateVector(jointAxis->Data().Xyz());
+          jointWorldPose.Rot().RotateVector(jointAxisComp->Data().Xyz());
       Vector3 bodyVelocityWorld = *worldLinearVel;
       Vector3 relativeWindVelocityWorld = bodyVelocityWorld - windSpeedWorld;
       Vector3 bodyVelocityPerpendicular =
