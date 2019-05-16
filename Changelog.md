@@ -2,24 +2,66 @@
 
 ### Ignition Gazebo 2.X.X
 
+### Ignition Gazebo 2.0.0
+
 1. Log entity creation and deletion
     * [Pull Request 337](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/337)
 
+1. Multicopter motor model
+    * [Pull Request 322](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/322)
+
+1. Fix removing selected entity
+    * [Pull Request 339](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/339)
+
+1. Collision serialization
+    * [Pull Request 326](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/326)
+
+1. Add support for moving and rotating models
+    * [Pull Request 316](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/316)
+
+1. Pose commands
+    * [Pull Request 334](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/334)
+
 1. Level performers can be added at runtime using a service call. See the
    levels tutorial for more information.
-    * [Pull Request 107](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/107)
+    * [Pull Request 264](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/264)
+
+1. Update worlds to GzScene3D
+    * [Pull Request 333](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/333)
+
+1. Reduce logging file size
+    * [Pull Request 332](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/332)
 
 1. Update PosePublisher system to publish sensor poses and to use scoped names for frame ids
     * [Pull Request 331](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/331)
 
+1. Fix gui plugin linking issue
+    * [Pull Request 327](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/327)
+    * [Pull Request 330](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/330)
+
+1. Toolbar colors
+    * [Pull Request 329](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/329)
+
+1. Rename Scene3D gui plugin to GzScene3D
+    * [Pull Request 328](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/328)
+
+1. Fix distributed sim documentation
+    * [Pull Request 318](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/318)
+
 1. Port Scene3D gui plugin from ign-gui. Renamed to GzScene3D.
     * [Pull Request 315](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/315)
+
+1. Entity tree UI
+    * [Pull Request 285](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/285)
 
 1. Add rendering component
     * [Pull Request 306](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/306)
 
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
-    * [Pull Request xxx](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/XXX)
+    * [Pull Request 299](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/299)
+
+1. Added system for ignition::sensors::AirPressureSensor.
+    * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
 
 1. Support conversion and serialization of Imu components. IMU sensors are
    loaded from an SDF DOM object.
@@ -28,28 +70,106 @@
 1. Throttle sensors update rate
     * [Pull Request 323](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/323)
 
-1. Added system for ignition::sensors::AirPressureSensor.
-    * [Pull Request 300](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/300)
+1. Fix changing themes
+    * [Pull Request 321](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/321)
+
+1. Battery tweaks
+    * [Pull Request 314](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/314)
 
 1. Support conversion and serialization of PBR parameters in a material component
     * [Pull Request 304](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/304)
 
+1. Joint state pub
+    * [Pull Request 260](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/260)
+
+1. Update Altimeter component to use sdf::Sensor object instead of an
+   sdf::ElementPtr.
+    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
+
+1. Update docker nightly dependencies
+    * [Pull Request 310](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/310)
+
+1. Ign tool
+    * [Pull Request 296](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/296)
+    * [Pull Request 336](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/336)
+
+1. State broadcast
+    * [Pull Request 307](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/307)
+
+1. Use world statistics message on network
+    * [Pull Request 305](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/305)
+
+1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
+    * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
+
+1. Fix Scene3D loading empty world
+    * [Pull Request 308](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/308)
+
 1. Support conversion and serialization of scene and light components
     * [Pull Request 297](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/297)
+
+1. Operators instead of De/Serialize
+    * [Pull Request 293](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/293)
+
+1. Remove PIMPL from Component
+    * [Pull Request 267](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/267)
+
+1. Delay scene broadcaster transport setup
+    * [Pull Request 292](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/292)
+
+1. Report link poses from secondaries during distributed simulation, using a cache
+    * [Pull Request 276](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/276)
+    * [Pull Request 265](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/265)
+
+1. Restore log playback
+    * [Pull Request 288](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/288)
+
+1. ECM changed state
+    * [Pull Request 287](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/287)
+
+1. Joint serialization
+    * [Pull Request 281](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/281)
 
 1. Use scene ambient and background color information in sensor
    configuration.
     * [Pull Request 268](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/268)
 
+1. Performance benchmarking
+    * [Pull Request 220](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/220)
+    * [Pull Request 253](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/253)
+    * [Pull Request 258](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/258)
+    * [Pull Request 283](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/283)
+    * [Pull Request 312](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/312)
+
+1. Remove emissive component from visual materials
+    * [Pull Request 271](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/271)
+
+1. Serialization for more components
+    * [Pull Request 255](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/255)
+
 1. Added an SDF message to the start of log files.
     * [Pull Request 257](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/257)
 
-1. Update Magnetometer component to use sdf::Sensor object instead of an sdf::ElementPtr.
-    * [Pull Request 272](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/272)
+1. Unify network and sync managers
+    * [Pull Request 261](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/261)
 
-1. Update Altimeter component to use sdf::Sensor object instead of an
-   sdf::ElementPtr.
-    * [Pull Request 286](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/286)
+1. Add PerformerLevels component
+    * [Pull Request 262](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/262)
+
+1. Distributed sim deprecate envs
+    * [Pull Request 240](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/240)
+
+1. Use ign-sensors magnetometer sensor plugin
+    * [Pull Request 221](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/221)
+
+1. Use ign-sensors altimeter sensor plugin
+    * [Pull Request 215](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/215)
+
+1. Use ign-sensors imu sensor plugin
+    * [Pull Request 219](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/219)
+
+1. Depend on ign-sensors rendering component
+    * [Pull Request 212](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/212)
 
 ## Ignition Gazebo 1.x
 
