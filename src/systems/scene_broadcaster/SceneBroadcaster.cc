@@ -175,6 +175,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
+
+  /// \brief Period to publish state, defaults to 60 Hz.
+  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
+      statePublishPeriod{std::chrono::milliseconds(1000/60)};
 };
 
 //////////////////////////////////////////////////
@@ -323,13 +327,17 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Whether the state service has been requested
   auto shouldServe = !this->dataPtr->stepMsg.has_state();
 
-  // Publish state only if there are subscribers, and throttle rate to 60 Hz.
+  // Publish state only if there are subscribers and
+  // * throttle rate to 60 Hz
+  // * also publish off-rate if there are new / erased entities
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
+       (_manager.HasEntitiesMarkedForRemoval() ||
+        _manager.HasNewEntities() ||
        (now - this->dataPtr->lastStatePubTime >
-       std::chrono::milliseconds(1000/60));
+       this->dataPtr->statePublishPeriod));
   if (shouldServe || shouldPublish)
   {
     msgs::SerializedStep stepMsg;

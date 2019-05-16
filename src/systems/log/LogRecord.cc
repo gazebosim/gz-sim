@@ -83,7 +83,10 @@ class ignition::gazebo::systems::LogRecordPrivate
   public: transport::Node node;
 
   /// \brief Publisher for SDF string
-  public: transport::Node::Publisher pub;
+  public: transport::Node::Publisher sdfPub;
+
+  /// \brief Publisher for state changes
+  public: transport::Node::Publisher statePub;
 
   /// \brief Message holding SDF string of world
   public: msgs::StringMsg sdfMsg;
@@ -198,11 +201,13 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
   // Construct message with SDF string
   this->sdfMsg.set_data(sdfRoot->ToString(""));
 
-  // Use directory basename as topic name, to be able to retrieve the SDF
-  //   at playback
+  // Use directory basename as topic name, to be able to retrieve at playback
   std::string sdfTopic = "/" + common::basename(logPath) + "/sdf";
-  this->pub = this->node.Advertise(sdfTopic,
-    this->sdfMsg.GetTypeName());
+  this->sdfPub = this->node.Advertise(sdfTopic, this->sdfMsg.GetTypeName());
+
+  // TODO(louise) Combine with SceneBroadcaster's state topic
+  std::string stateTopic = "/world/" + this->worldName + "/changed_state";
+  this->statePub = this->node.Advertise<msgs::SerializedState>(stateTopic);
 
   // Append file name
   std::string dbPath = common::joinPaths(logPath, "state.tlog");
@@ -210,9 +215,9 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   // Use ign-transport directly
   sdf::ElementPtr sdfWorld = sdfRoot->GetElement("world");
-  this->recorder.AddTopic("/world/" +
-    sdfWorld->GetAttribute("name")->GetAsString() + "/dynamic_pose/info");
+  this->recorder.AddTopic("/world/" + this->worldName + "/dynamic_pose/info");
   this->recorder.AddTopic(sdfTopic);
+  this->recorder.AddTopic(stateTopic);
   // this->recorder.AddTopic(std::regex(".*"));
 
   // Timestamp messages with sim time from clock topic
@@ -234,24 +239,27 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 }
 
 //////////////////////////////////////////////////
-void LogRecord::Update(const UpdateInfo &_info,
-  EntityComponentManager &/*_ecm*/)
+void LogRecord::PostUpdate(const UpdateInfo &,
+    const EntityComponentManager &_ecm)
 {
-  if (_info.paused)
-    return;
-
   // Publish only once
   if (!this->dataPtr->sdfPublished)
   {
-    this->dataPtr->pub.Publish(this->dataPtr->sdfMsg);
+    this->dataPtr->sdfPub.Publish(this->dataPtr->sdfMsg);
     this->dataPtr->sdfPublished = true;
   }
+
+  // TODO(louise) Use the SceneBroadcaster's topic once that publishes
+  // the changed state
+  auto stateMsg = _ecm.ChangedState();
+  if (!stateMsg.entities().empty())
+    this->dataPtr->statePub.Publish(stateMsg);
 }
 
 IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
                     ignition::gazebo::System,
                     LogRecord::ISystemConfigure,
-                    LogRecord::ISystemUpdate)
+                    LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
                           "ignition::gazebo::systems::LogRecord")
