@@ -277,11 +277,11 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("turningDirection"))
   {
-    std::string turning_direction =
+    std::string turningDirection =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
-    if (turning_direction == "cw")
+    if (turningDirection == "cw")
       this->dataPtr->turningDirection = turning_direction::CW;
-    else if (turning_direction == "ccw")
+    else if (turningDirection == "ccw")
       this->dataPtr->turningDirection = turning_direction::CCW;
     else
       ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
@@ -293,16 +293,16 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("motorType"))
   {
-    std::string motor_type =
+    std::string motorType =
       sdfClone->GetElement("motorType")->Get<std::string>();
-    if (motor_type == "velocity")
+    if (motorType == "velocity")
       this->dataPtr->motorType = MotorType::kVelocity;
-    else if (motor_type == "position")
+    else if (motorType == "position")
     {
       this->dataPtr->motorType = MotorType::kPosition;
       ignerr << "motorType 'position' not supported" << std::endl;
     }
-    else if (motor_type == "force")
+    else if (motorType == "force")
     {
       this->dataPtr->motorType = MotorType::kForce;
       ignerr << "motorType 'force' not supported" << std::endl;
@@ -497,21 +497,21 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     {
       const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
-      double motor_rot_vel_ = jointVelocity->Data()[0];
-      if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
+      double motorRotVel = jointVelocity->Data()[0];
+      if (motorRotVel / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
       {
         ignerr << "Aliasing on motor [" << this->motorNumber
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotorVelocitySlowdownSim param.\n";
       }
-      double real_motor_velocity =
-          motor_rot_vel_ * this->rotorVelocitySlowdownSim;
+      double realMotorVelocity =
+          motorRotVel * this->rotorVelocitySlowdownSim;
       // Get the direction of the rotor rotation.
-      int real_motor_velocity_sign =
-          (real_motor_velocity > 0) - (real_motor_velocity < 0);
+      int realMotorVelocitySign =
+          (realMotorVelocity > 0) - (realMotorVelocity < 0);
       // Assuming symmetric propellers (or rotors) for the thrust calculation.
-      double thrust = this->turningDirection * real_motor_velocity_sign *
-                      real_motor_velocity * real_motor_velocity *
+      double thrust = this->turningDirection * realMotorVelocitySign *
+                      realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
       using Pose = ignition::math::Pose3d;
@@ -550,25 +550,25 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       Entity windEntity = _ecm.EntityByComponents(components::Wind());
       auto windLinearVel =
           _ecm.Component<components::WorldLinearVelocity>(windEntity);
-      Vector3 wind_speed_W = windLinearVel->Data();
+      Vector3 windSpeedWorld = windLinearVel->Data();
 
       // Forces from Philppe Martin's and Erwan Salaun's
       // 2010 IEEE Conference on Robotics and Automation paper
       // The True Role of Accelerometer Feedback in Quadrotor Control
       // - \omega * \lambda_1 * V_A^{\perp}
-      Vector3 joint_axis =
+      Vector3 jointAxis =
           jointWorldPose.Rot().RotateVector(jointAxis->Data().Xyz());
-      Vector3 body_velocity_W = *worldLinearVel;
-      Vector3 relative_wind_velocity_W = body_velocity_W - wind_speed_W;
-      Vector3 body_velocity_perpendicular =
-          relative_wind_velocity_W -
-          (relative_wind_velocity_W.Dot(joint_axis) * joint_axis);
-      Vector3 air_drag = -std::abs(real_motor_velocity) *
+      Vector3 bodyVelocityWorld = *worldLinearVel;
+      Vector3 relativeWindVelocityWorld = bodyVelocityWorld - windSpeedWorld;
+      Vector3 bodyVelocityPerpendicular =
+          relativeWindVelocityWorld -
+          (relativeWindVelocityWorld.Dot(jointAxis) * jointAxis);
+      Vector3 airDrag = -std::abs(realMotorVelocity) *
                                this->rotorDragCoefficient *
-                               body_velocity_perpendicular;
+                               bodyVelocityPerpendicular;
 
-      // Apply air_drag to link.
-      link.AddWorldForce(_ecm, air_drag);
+      // Apply air drag to link.
+      link.AddWorldForce(_ecm, airDrag);
       // Moments get the parent link, such that the resulting torques can be
       // applied.
       Vector3 parentWorldTorque;
@@ -582,24 +582,24 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       Link parentLink(this->parentLinkEntity);
       const auto parentWorldPose = parentLink.WorldPose(_ecm);
       // The tansformation from the parent_link to the link_.
-      // Pose pose_difference =
+      // Pose poseDifference =
       //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
-      Pose pose_difference = *worldPose - *parentWorldPose;
-      Vector3 drag_torque(
+      Pose poseDifference = *worldPose - *parentWorldPose;
+      Vector3 dragTorque(
           0, 0, -this->turningDirection * thrust * this->momentConstant);
       // Transforming the drag torque into the parent frame to handle
       // arbitrary rotor orientations.
-      Vector3 drag_torque_parent_frame =
-          pose_difference.Rot().RotateVector(drag_torque);
+      Vector3 dragTorqueParentFrame =
+          poseDifference.Rot().RotateVector(dragTorque);
       parentWorldTorque =
-          parentWorldPose->Rot().RotateVector(drag_torque_parent_frame);
+          parentWorldPose->Rot().RotateVector(dragTorqueParentFrame);
 
-      Vector3 rolling_moment;
+      Vector3 rollingMoment;
       // - \omega * \mu_1 * V_A^{\perp}
-      rolling_moment = -std::abs(real_motor_velocity) *
+      rollingMoment = -std::abs(realMotorVelocity) *
                        this->rollingMomentCoefficient *
-                       body_velocity_perpendicular;
-      parentWorldTorque += rolling_moment;
+                       bodyVelocityPerpendicular;
+      parentWorldTorque += rollingMoment;
       if (!parentWrenchComp)
       {
         components::ExternalWorldWrenchCmd wrench;
@@ -612,14 +612,14 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           msgs::Convert(parentWrenchComp->Data().torque()) + parentWorldTorque);
       }
       // Apply the filter on the motor's velocity.
-      double ref_motor_rot_vel;
-      ref_motor_rot_vel = this->rotorVelocityFilter->updateFilter(
+      double refMotorRotVel;
+      refMotorRotVel = this->rotorVelocityFilter->updateFilter(
           refMotorInputCopy, this->samplingTime);
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
           this->jointEntity);
       *jointVelCmd = components::JointVelocityCmd(
-          {this->turningDirection * ref_motor_rot_vel
+          {this->turningDirection * refMotorRotVel
                               / this->rotorVelocitySlowdownSim});
     }
   }
