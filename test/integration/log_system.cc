@@ -257,12 +257,11 @@ TEST_F(LogSystemTest, RecordAndPlayback)
         EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
         EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
       }
+      playServer.SetPaused(false);
+
+      ++recordedIter;
       nTotal++;
     }
-
-    playServer.SetPaused(false);
-
-    ++recordedIter;
   };
 
   // Subscribe to ignition topic and compare to logged poses
@@ -271,7 +270,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 500, false);
+  playServer.Run(true, 1000, false);
 
   int sleep = 0;
   int maxSleep = 30;
