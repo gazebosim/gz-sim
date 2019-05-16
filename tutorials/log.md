@@ -76,7 +76,7 @@ may be a very different world from the one that was recorded.
 
 ## Known issues
 
-* When using command-line playback the is currently a small caveat.
+* When using command-line playback there is currently a small caveat.
 In the case that the recorded file uses `ogre2`, the playback appears
 brighter, because the default SDF that is loaded by Server.cc for playback
 uses `ogre`.
