@@ -140,69 +140,69 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   public: Model model{kNullEntity};
 
   /// \brief Topic for actuator commands.
-  public: std::string command_sub_topic_;
+  public: std::string commandSubTopic;
 
   /// \brief Topic namespace.
-  public: std::string namespace_;
+  public: std::string robotNamespace;
 
   /// \brief Sampling time (from motor_model.hpp).
-  public: double sampling_time_ = 0.01;
+  public: double samplingTime = 0.01;
 
   /// \brief Index of motor on multirotor_base.
-  public: int motor_number_ = 0;
+  public: int motorNumber = 0;
 
   /// \brief Turning direction of the motor.
-  public: int turning_direction_ = turning_direction::CW;
+  public: int turningDirection = turning_direction::CW;
 
   /// \brief Type of input command to motor.
-  public: MotorType motor_type_ = MotorType::kVelocity;
+  public: MotorType motorType = MotorType::kVelocity;
 
   /// \brief Maximum rotational velocity command with units of rad/s.
   /// The default value is taken from gazebo_motor_model.h
   /// and is approximately 8000 revolutions / minute (rpm).
-  public: double max_rot_velocity_ = 838.0;
+  public: double maxRotVelocity = 838.0;
 
   /// \brief Moment constant for computing drag torque based on thrust
   /// with units of length (m).
   /// The default value is taken from gazebo_motor_model.h
-  public: double moment_constant_ = 0.016;
+  public: double momentConstant = 0.016;
 
   /// \brief Thrust coefficient for propeller with units of N / (rad/s)^2.
   /// The default value is taken from gazebo_motor_model.h
-  public: double motor_constant_ = 8.54858e-06;
+  public: double motorConstant = 8.54858e-06;
 
   /// \brief Reference input to motor. For MotorType kVelocity, this
   /// is the reference angular velocity in rad/s.
-  public: double ref_motor_input_ = 0.0;
+  public: double refMotorInput = 0.0;
 
   /// \brief Rolling moment coefficient with units of N*m / (m/s^2).
   /// The default value is taken from gazebo_motor_model.h
-  public: double rolling_moment_coefficient_ = 1.0e-6;
+  public: double rollingMomentCoefficient = 1.0e-6;
 
   /// \brief Rotor drag coefficient for propeller with units of N / (m/s^2).
   /// The default value is taken from gazebo_motor_model.h
-  public: double rotor_drag_coefficient_ = 1.0e-4;
+  public: double rotorDragCoefficient = 1.0e-4;
 
   /// \brief Large joint velocities can cause problems with aliasing,
   /// so the joint velocity used by the physics engine is reduced
   /// this factor, while the larger value is used for computing
   /// propeller thrust.
   /// The default value is taken from gazebo_motor_model.h
-  public: double rotor_velocity_slowdown_sim_ = 10.0;
+  public: double rotorVelocitySlowdownSim = 10.0;
 
   /// \brief Time constant for rotor deceleration.
   /// The default value is taken from gazebo_motor_model.h
-  public: double time_constant_down_ = 1.0 / 40.0;
+  public: double timeConstantDown = 1.0 / 40.0;
 
   /// \brief Time constant for rotor acceleration.
   /// The default value is taken from gazebo_motor_model.h
-  public: double time_constant_up_ = 1.0 / 80.0;
+  public: double timeConstantUp = 1.0 / 80.0;
 
   /// \brief Filter on rotor velocity that has different time constants
   /// for increasing and decreasing values.
-  public: std::unique_ptr<FirstOrderFilter<double>> rotor_velocity_filter_;
+  public: std::unique_ptr<FirstOrderFilter<double>> rotorVelocityFilter;
 
-  /// \brief Mutex to protect ref_motor_input_.
+  /// \brief Mutex to protect refMotorInput.
   public: std::mutex refMotorInputMutex;
 
   /// \brief Ignition communication node.
@@ -232,12 +232,17 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   auto sdfClone = _sdf->Clone();
 
-  this->dataPtr->namespace_.clear();
+  this->dataPtr->robotNamespace.clear();
 
   if (sdfClone->HasElement("robotNamespace"))
-    this->dataPtr->namespace_ = sdfClone->Get<std::string>("robotNamespace");
+  {
+    this->dataPtr->robotNamespace =
+        sdfClone->Get<std::string>("robotNamespace");
+  }
   else
+  {
     ignerr << "Please specify a robotNamespace.\n";
+  }
 
   // Get params from SDF
   if (sdfClone->HasElement("jointName"))
@@ -265,18 +270,19 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
 
   if (sdfClone->HasElement("motorNumber"))
-    this->dataPtr->motor_number_ =
+    this->dataPtr->motorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
   else
     ignerr << "Please specify a motorNumber.\n";
 
-  if (sdfClone->HasElement("turningDirection")) {
+  if (sdfClone->HasElement("turningDirection"))
+  {
     std::string turning_direction =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
     if (turning_direction == "cw")
-      this->dataPtr->turning_direction_ = turning_direction::CW;
+      this->dataPtr->turningDirection = turning_direction::CW;
     else if (turning_direction == "ccw")
-      this->dataPtr->turning_direction_ = turning_direction::CCW;
+      this->dataPtr->turningDirection = turning_direction::CCW;
     else
       ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
   }
@@ -285,19 +291,20 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
   }
 
-  if (sdfClone->HasElement("motorType")) {
+  if (sdfClone->HasElement("motorType"))
+  {
     std::string motor_type =
       sdfClone->GetElement("motorType")->Get<std::string>();
     if (motor_type == "velocity")
-      this->dataPtr->motor_type_ = MotorType::kVelocity;
+      this->dataPtr->motorType = MotorType::kVelocity;
     else if (motor_type == "position")
     {
-      this->dataPtr->motor_type_ = MotorType::kPosition;
+      this->dataPtr->motorType = MotorType::kPosition;
       ignerr << "motorType 'position' not supported" << std::endl;
     }
     else if (motor_type == "force")
     {
-      this->dataPtr->motor_type_ = MotorType::kForce;
+      this->dataPtr->motorType = MotorType::kForce;
       ignerr << "motorType 'force' not supported" << std::endl;
     }
     else
@@ -309,41 +316,41 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else
   {
     ignwarn << "motorType not specified, using velocity.\n";
-    this->dataPtr->motor_type_ = MotorType::kVelocity;
+    this->dataPtr->motorType = MotorType::kVelocity;
   }
 
   sdfClone->Get<std::string>("commandSubTopic",
-      this->dataPtr->command_sub_topic_, this->dataPtr->command_sub_topic_);
+      this->dataPtr->commandSubTopic, this->dataPtr->commandSubTopic);
 
   sdfClone->Get<double>("rotorDragCoefficient",
-      this->dataPtr->rotor_drag_coefficient_,
-      this->dataPtr->rotor_drag_coefficient_);
+      this->dataPtr->rotorDragCoefficient,
+      this->dataPtr->rotorDragCoefficient);
   sdfClone->Get<double>("rollingMomentCoefficient",
-      this->dataPtr->rolling_moment_coefficient_,
-      this->dataPtr->rolling_moment_coefficient_);
+      this->dataPtr->rollingMomentCoefficient,
+      this->dataPtr->rollingMomentCoefficient);
   sdfClone->Get<double>("maxRotVelocity",
-      this->dataPtr->max_rot_velocity_, this->dataPtr->max_rot_velocity_);
+      this->dataPtr->maxRotVelocity, this->dataPtr->maxRotVelocity);
   sdfClone->Get<double>("motorConstant",
-      this->dataPtr->motor_constant_, this->dataPtr->motor_constant_);
+      this->dataPtr->motorConstant, this->dataPtr->motorConstant);
   sdfClone->Get<double>("momentConstant",
-      this->dataPtr->moment_constant_, this->dataPtr->moment_constant_);
+      this->dataPtr->momentConstant, this->dataPtr->momentConstant);
 
   sdfClone->Get<double>("timeConstantUp",
-      this->dataPtr->time_constant_up_, this->dataPtr->time_constant_up_);
+      this->dataPtr->timeConstantUp, this->dataPtr->timeConstantUp);
   sdfClone->Get<double>("timeConstantDown",
-      this->dataPtr->time_constant_down_, this->dataPtr->time_constant_down_);
+      this->dataPtr->timeConstantDown, this->dataPtr->timeConstantDown);
   sdfClone->Get<double>("rotorVelocitySlowdownSim",
-      this->dataPtr->rotor_velocity_slowdown_sim_, 10);
+      this->dataPtr->rotorVelocitySlowdownSim, 10);
 
   // Create the first order filter.
-  this->dataPtr->rotor_velocity_filter_.reset(
+  this->dataPtr->rotorVelocityFilter.reset(
       new FirstOrderFilter<double>(
-          this->dataPtr->time_constant_up_, this->dataPtr->time_constant_down_,
-          this->dataPtr->ref_motor_input_));
+          this->dataPtr->timeConstantUp, this->dataPtr->timeConstantDown,
+          this->dataPtr->refMotorInput));
 
   // Subscribe to actuator command messages
-  std::string topic{this->dataPtr->namespace_+ "/"
-                  + this->dataPtr->command_sub_topic_};
+  std::string topic{this->dataPtr->robotNamespace + "/"
+                  + this->dataPtr->commandSubTopic};
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
@@ -428,7 +435,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  this->dataPtr->sampling_time_ =
+  this->dataPtr->samplingTime =
     std::chrono::duration<double>(_info.dt).count();
   if (doUpdateForcesAndMoments)
   {
@@ -440,23 +447,25 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void MulticopterMotorModelPrivate::OnActuatorMsg(
     const ignition::msgs::Actuators &_msg)
 {
-  if (motor_number_ > _msg.velocity_size() - 1) {
-    ignerr << "You tried to access index " << motor_number_
+  if (this->motorNumber > _msg.velocity_size() - 1)
+  {
+    ignerr << "You tried to access index " << this->motorNumber
            << " of the Actuator velocity array which is of size "
            << _msg.velocity_size() << std::endl;
     return;
   }
 
   std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
-  if (motor_type_ == MotorType::kVelocity) {
-    ref_motor_input_ = std::min(
-        static_cast<double>(_msg.velocity(motor_number_)),
-        static_cast<double>(max_rot_velocity_));
-  }
-  //  else if (motor_type_ == MotorType::kPosition)
-  else  // if (motor_type_ == MotorType::kForce) {
+  if (this->motorType == MotorType::kVelocity)
   {
-    ref_motor_input_ = _msg.velocity(motor_number_);
+    this->refMotorInput = std::min(
+        static_cast<double>(_msg.velocity(this->motorNumber)),
+        static_cast<double>(this->maxRotVelocity));
+  }
+  //  else if (this->motorType == MotorType::kPosition)
+  else  // if (this->motorType == MotorType::kForce) {
+  {
+    this->refMotorInput = _msg.velocity(this->motorNumber);
   }
 }
 
@@ -467,17 +476,20 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
   double refMotorInputCopy;
   {
     std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
-    refMotorInputCopy = this->ref_motor_input_;
+    refMotorInputCopy = this->refMotorInput;
   }
 
-  switch (motor_type_) {
-    case (MotorType::kPosition): {
+  switch (this->motorType)
+  {
+    case (MotorType::kPosition):
+    {
       // double err = joint_->GetAngle(0).Radian() - refMotorInputCopy;
-      // double force = pids_.Update(err, sampling_time_);
+      // double force = pids_.Update(err, this->samplingTime);
       // joint_->SetForce(0, force);
       break;
     }
-    case (MotorType::kForce): {
+    case (MotorType::kForce):
+    {
       // joint_->SetForce(0, refMotorInputCopy);
       break;
     }
@@ -486,20 +498,21 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
       double motor_rot_vel_ = jointVelocity->Data()[0];
-      if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * sampling_time_)) {
-        ignerr << "Aliasing on motor [" << motor_number_
+      if (motor_rot_vel_ / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
+      {
+        ignerr << "Aliasing on motor [" << this->motorNumber
               << "] might occur. Consider making smaller simulation time "
-                 "steps or raising the rotor_velocity_slowdown_sim_ param.\n";
+                 "steps or raising the rotorVelocitySlowdownSim param.\n";
       }
       double real_motor_velocity =
-          motor_rot_vel_ * rotor_velocity_slowdown_sim_;
+          motor_rot_vel_ * this->rotorVelocitySlowdownSim;
       // Get the direction of the rotor rotation.
       int real_motor_velocity_sign =
           (real_motor_velocity > 0) - (real_motor_velocity < 0);
       // Assuming symmetric propellers (or rotors) for the thrust calculation.
-      double thrust = turning_direction_ * real_motor_velocity_sign *
+      double thrust = this->turningDirection * real_motor_velocity_sign *
                       real_motor_velocity * real_motor_velocity *
-                      motor_constant_;
+                      this->motorConstant;
 
       using Pose = ignition::math::Pose3d;
       using Vector3 = ignition::math::Vector3d;
@@ -551,7 +564,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           relative_wind_velocity_W -
           (relative_wind_velocity_W.Dot(joint_axis) * joint_axis);
       Vector3 air_drag = -std::abs(real_motor_velocity) *
-                               rotor_drag_coefficient_ *
+                               this->rotorDragCoefficient *
                                body_velocity_perpendicular;
 
       // Apply air_drag to link.
@@ -573,7 +586,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
       Pose pose_difference = *worldPose - *parentWorldPose;
       Vector3 drag_torque(
-          0, 0, -turning_direction_ * thrust * moment_constant_);
+          0, 0, -this->turningDirection * thrust * this->momentConstant);
       // Transforming the drag torque into the parent frame to handle
       // arbitrary rotor orientations.
       Vector3 drag_torque_parent_frame =
@@ -584,7 +597,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       Vector3 rolling_moment;
       // - \omega * \mu_1 * V_A^{\perp}
       rolling_moment = -std::abs(real_motor_velocity) *
-                       rolling_moment_coefficient_ *
+                       this->rollingMomentCoefficient *
                        body_velocity_perpendicular;
       parentWorldTorque += rolling_moment;
       if (!parentWrenchComp)
@@ -600,14 +613,14 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       }
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
-      ref_motor_rot_vel = rotor_velocity_filter_->updateFilter(
-          refMotorInputCopy, sampling_time_);
+      ref_motor_rot_vel = this->rotorVelocityFilter->updateFilter(
+          refMotorInputCopy, this->samplingTime);
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
           this->jointEntity);
       *jointVelCmd = components::JointVelocityCmd(
-          {turning_direction_ * ref_motor_rot_vel
-                              / rotor_velocity_slowdown_sim_});
+          {this->turningDirection * ref_motor_rot_vel
+                              / this->rotorVelocitySlowdownSim});
     }
   }
 }
