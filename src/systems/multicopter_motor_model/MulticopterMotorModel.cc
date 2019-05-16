@@ -20,6 +20,8 @@
  * limitations under the License.
  *
  */
+#include <mutex>
+
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -199,6 +201,9 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   /// \brief Filter on rotor velocity that has different time constants
   /// for increasing and decreasing values.
   std::unique_ptr<FirstOrderFilter<double>> rotor_velocity_filter_;
+
+  /// \brief Mutex to protect ref_motor_input_.
+  public: std::mutex refMotorInputMutex;
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -442,6 +447,7 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
     return;
   }
 
+  std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
   if (motor_type_ == MotorType::kVelocity) {
     ref_motor_input_ = std::min(
         static_cast<double>(_msg.velocity(motor_number_)),
@@ -458,15 +464,21 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
 void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
+  double refMotorInputCopy;
+  {
+    std::lock_guard<std::mutex> lock(this->refMotorInputMutex);
+    refMotorInputCopy = this->ref_motor_input_;
+  }
+
   switch (motor_type_) {
     case (MotorType::kPosition): {
-      // double err = joint_->GetAngle(0).Radian() - ref_motor_input_;
+      // double err = joint_->GetAngle(0).Radian() - refMotorInputCopy;
       // double force = pids_.Update(err, sampling_time_);
       // joint_->SetForce(0, force);
       break;
     }
     case (MotorType::kForce): {
-      // joint_->SetForce(0, ref_motor_input_);
+      // joint_->SetForce(0, refMotorInputCopy);
       break;
     }
     default:  // MotorType::kVelocity
@@ -589,7 +601,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // Apply the filter on the motor's velocity.
       double ref_motor_rot_vel;
       ref_motor_rot_vel = rotor_velocity_filter_->updateFilter(
-          ref_motor_input_, sampling_time_);
+          refMotorInputCopy, sampling_time_);
 
       const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
           this->jointEntity);
