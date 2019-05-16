@@ -209,7 +209,10 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       ++recordedIter;
     }
 
-    EXPECT_EQ(recordedIter->Type(), "ignition.msgs.Pose_V");
+    if (recordedIter == batch.end())
+      return;
+
+    EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
 
     // Get next recorded message
     msgs::Pose_V recordedMsg;
