@@ -286,6 +286,12 @@ void RenderUtil::Update()
   // \todo(anyone) Remove sensors
   for (auto &entity : removeEntities)
   {
+    if (this->dataPtr->selectedEntity &&
+        this->dataPtr->sceneManager.NodeById(entity) ==
+        this->dataPtr->selectedEntity)
+    {
+      this->dataPtr->selectedEntity.reset();
+    }
     this->dataPtr->sceneManager.RemoveEntity(entity);
   }
 
@@ -518,14 +524,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
   _ecm.EachRemoved<components::Link>(
       [&](const Entity &_entity, const components::Link *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
@@ -533,7 +539,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Visual>(
       [&](const Entity &_entity, const components::Visual *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
@@ -541,7 +547,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Light>(
       [&](const Entity &_entity, const components::Light *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
@@ -549,7 +555,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::Camera>(
     [&](const Entity &_entity, const components::Camera *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
@@ -557,7 +563,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::DepthCamera>(
     [&](const Entity &_entity, const components::DepthCamera *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 
@@ -565,7 +571,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   _ecm.EachRemoved<components::GpuLidar>(
     [&](const Entity &_entity, const components::GpuLidar *)->bool
       {
-        removeEntities.insert(_entity);
+        this->removeEntities.insert(_entity);
         return true;
       });
 }
@@ -660,6 +666,12 @@ SceneManager &RenderUtil::SceneManager()
 void RenderUtil::SetSelectedEntity(rendering::NodePtr _node)
 {
   this->dataPtr->selectedEntity = _node;
+}
+
+/////////////////////////////////////////////////
+rendering::NodePtr RenderUtil::SelectedEntity() const
+{
+  return this->dataPtr->selectedEntity;
 }
 
 /////////////////////////////////////////////////
