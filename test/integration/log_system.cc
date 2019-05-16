@@ -209,60 +209,60 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       ++recordedIter;
     }
 
-    nTotal++;
-    if (recordedIter == batch.end())
-      return;
-
-    EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
-
-    // Get next recorded message
-    msgs::Pose_V recordedMsg;
-    recordedMsg.ParseFromString(recordedIter->Data());
-
-    ASSERT_TRUE(recordedMsg.has_header());
-    ASSERT_TRUE(recordedMsg.header().has_stamp());
-    EXPECT_EQ(0, recordedMsg.header().stamp().sec());
-
-    // Check time stamps are close
-    EXPECT_LT(abs(_playedMsg.header().stamp().nsec() -
-        recordedMsg.header().stamp().nsec()), 100000000);
-
-    // Maps entity to recorded pose
-    // Key: entity. Value: pose
-    std::map <Entity, msgs::Pose> entityRecordedPose;
-    // Loop through all recorded poses, update map
-    for (int i = 0; i < recordedMsg.pose_size(); ++i)
+    if (recordedIter != batch.end())
     {
-      msgs::Pose pose = recordedMsg.pose(i);
-      entityRecordedPose.insert_or_assign(pose.id(), pose);
-    }
+      EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
 
-    // Has 4 dynamic entities
-    EXPECT_EQ(4, _playedMsg.pose().size());
-    EXPECT_EQ(4u, entityRecordedPose.size());
+      // Get next recorded message
+      msgs::Pose_V recordedMsg;
+      recordedMsg.ParseFromString(recordedIter->Data());
 
-    // Loop through all entities and compare played poses to recorded ones
-    for (int i = 0; i < _playedMsg.pose_size(); ++i)
-    {
-      auto posePlayed = msgs::Convert(_playedMsg.pose(i));
-      auto poseRecorded = msgs::Convert(entityRecordedPose.at(
-          _playedMsg.pose(i).id()));
+      ASSERT_TRUE(recordedMsg.has_header());
+      ASSERT_TRUE(recordedMsg.header().has_stamp());
+      EXPECT_EQ(0, recordedMsg.header().stamp().sec());
 
-      auto diff = posePlayed - poseRecorded;
+      // Check time stamps are close
+      EXPECT_LT(abs(_playedMsg.header().stamp().nsec() -
+            recordedMsg.header().stamp().nsec()), 100000000);
 
-      EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
+      // Maps entity to recorded pose
+      // Key: entity. Value: pose
+      std::map <Entity, msgs::Pose> entityRecordedPose;
+      // Loop through all recorded poses, update map
+      for (int i = 0; i < recordedMsg.pose_size(); ++i)
+      {
+        msgs::Pose pose = recordedMsg.pose(i);
+        entityRecordedPose.insert_or_assign(pose.id(), pose);
+      }
 
-      EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
+      // Has 4 dynamic entities
+      EXPECT_EQ(4, _playedMsg.pose().size());
+      EXPECT_EQ(4u, entityRecordedPose.size());
+
+      // Loop through all entities and compare played poses to recorded ones
+      for (int i = 0; i < _playedMsg.pose_size(); ++i)
+      {
+        auto posePlayed = msgs::Convert(_playedMsg.pose(i));
+        auto poseRecorded = msgs::Convert(entityRecordedPose.at(
+              _playedMsg.pose(i).id()));
+
+        auto diff = posePlayed - poseRecorded;
+
+        EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
+
+        EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
+      }
     }
 
     playServer.SetPaused(false);
 
     ++recordedIter;
+    nTotal++;
   };
 
   // Subscribe to ignition topic and compare to logged poses
