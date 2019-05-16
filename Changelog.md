@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Log entity creation and deletion
+    * [Pull Request 337](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/337)
+
 1. Level performers can be added at runtime using a service call. See the
    levels tutorial for more information.
     * [Pull Request 107](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/107)

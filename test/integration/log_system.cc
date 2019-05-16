@@ -52,14 +52,14 @@ class LogSystemTest : public ::testing::Test
   }
 
   // Create a temporary directory in build path for recorded data
-  public: void CreateCacheDir()
+  public: void CreateLogsDir()
   {
     // Configure to use binary path as cache
-    if (common::exists(this->cacheDir))
+    if (common::exists(this->logsDir))
     {
-      common::removeAll(this->cacheDir);
+      common::removeAll(this->logsDir);
     }
-    common::createDirectories(this->cacheDir);
+    common::createDirectories(this->logsDir);
   }
 
   // Change path of recorded log file in SDF string loaded from file
@@ -99,84 +99,72 @@ class LogSystemTest : public ::testing::Test
   }
 
   // Temporary directory in binary build path for recorded data
-  public: std::string cacheDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
-      "test_cache");
+  public: std::string logsDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
+      "test_logs");
+
+  public: std::string logDir = common::joinPaths(logsDir, "test_logs");
 };
 
 /////////////////////////////////////////////////
 TEST_F(LogSystemTest, RecordAndPlayback)
 {
-  // Run a world and record to a log file
+  // Create temp directory to store log
+  this->CreateLogsDir();
 
-  this->CreateCacheDir();
-  std::string logDest = common::joinPaths(this->cacheDir, "log");
+  // Record
+  {
+    // World with moving entities
+    const auto recordSdfPath = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "log_record_dbl_pendulum.sdf");
 
-  ServerConfig recordServerConfig;
-  recordServerConfig.SetResourceCache(this->cacheDir);
+    // Change log path in SDF to build directory
+    sdf::Root recordSdfRoot;
+    this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord",
+        this->logDir);
+    EXPECT_EQ(1u, recordSdfRoot.WorldCount());
 
-  const auto recordSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_record_dbl_pendulum.sdf");
+    // Pass changed SDF to server
+    ServerConfig recordServerConfig;
+    recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
+    Server recordServer(recordServerConfig);
 
-  // Change log path in SDF to build directory
-  sdf::Root recordSdfRoot;
-  this->ChangeLogPath(recordSdfRoot, recordSdfPath, "LogRecord", logDest);
-
-  // Pass changed SDF to server
-  recordServerConfig.SetSdfString(recordSdfRoot.Element()->ToString(""));
-
-  // Start server
-  Server recordServer(recordServerConfig);
-  // Run for a few seconds to record different poses
-  recordServer.Run(true, 1000, false);
+    // Run for a few seconds to record different poses
+    recordServer.Run(true, 1000, false);
+  }
 
   // Verify file is created
-  EXPECT_TRUE(common::exists(common::joinPaths(logDest, "state.tlog")));
-
-
-  // Run a world, load recorded log file, and check recorded poses are same
-  //   as poses in live physics
+  auto logFile = common::joinPaths(this->logDir, "state.tlog");
+  EXPECT_TRUE(common::exists(logFile));
 
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_playback.sdf");
+
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
-  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",  logDest);
-  const sdf::World * sdfWorld = playSdfRoot.WorldByIndex(0);
-  // Playback pose topic
-  std::string poseTopic = "/world/" +
-    sdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
+  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",  this->logDir);
+  ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
+  const auto sdfWorld = playSdfRoot.WorldByIndex(0);
+  EXPECT_EQ("default", sdfWorld->Name());
 
   // Load log file recorded above
-  std::string logName = common::joinPaths(logDest, "state.tlog");
-  EXPECT_TRUE(common::exists(logName));
   transport::log::Log log;
-  log.Open(logName);
-
-  // Original world file recorded by CreateLogFile test above
-  const auto logSdfName = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "log_record_dbl_pendulum.sdf");
-  EXPECT_TRUE(common::exists(logSdfName));
-  sdf::Root logSdfRoot;
-  EXPECT_EQ(logSdfRoot.Load(logSdfName).size(), 0lu);
-  EXPECT_GT(logSdfRoot.WorldCount(), 0lu);
-  const sdf::World * logSdfWorld = logSdfRoot.WorldByIndex(0);
-  // Recorded pose topic
-  std::string logPoseTopic = "/world/" +
-    logSdfWorld->Element()->GetAttribute("name")->GetAsString() + "/pose/info";
-
-  ServerConfig playServerConfig;
-  playServerConfig.SetResourceCache(this->cacheDir);
+  log.Open(logFile);
+  auto batch = log.QueryMessages();
 
   // Pass changed SDF to server
+  ServerConfig playServerConfig;
   playServerConfig.SetSdfString(playSdfRoot.Element()->ToString(""));
 
-  int nDiffs = 0;
-  int nTotal = 0;
+  // Keep track of total number of pose comparisons
+  int nTotal{0};
+  bool hasSdfMessage{false};
+  bool hasState{false};
 
   // Set start time for the batch to load in initial iteration
-  auto begin = std::chrono::nanoseconds(0);
+  auto recordedIter = batch.begin();
 
   // Start server
   Server playServer(playServerConfig);
@@ -184,101 +172,121 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Callback function for entities played back
   // Compare current pose being played back with the pose with the closest
   //   timestamp in the recorded file.
-  auto msgCb = [&](const msgs::Pose_V &_msg) -> void
+  std::function<void(const msgs::Pose_V &)> msgCb =
+      [&](const msgs::Pose_V &_playedMsg) -> void
   {
     playServer.SetPaused(true);
 
-    // Filter recorded topics with current sim time
-    std::chrono::nanoseconds end =
-      std::chrono::seconds(_msg.header().stamp().sec()) +
-      std::chrono::nanoseconds(_msg.header().stamp().nsec());
+    ASSERT_TRUE(_playedMsg.has_header());
+    ASSERT_TRUE(_playedMsg.header().has_stamp());
+    EXPECT_EQ(0, _playedMsg.header().stamp().sec());
 
-    auto beginQT = transport::log::QualifiedTime(begin);
-    auto endQT = transport::log::QualifiedTime(end);
-    auto timeRange = transport::log::QualifiedTimeRange(beginQT, endQT);
-    transport::log::TopicList topicList(logPoseTopic, timeRange);
-
-    transport::log::Batch batch = log.QueryMessages(topicList);
-    transport::log::MsgIter iter = batch.begin();
-    // If no messages
-    if (iter == batch.end())
+    // Check SDF message
+    if (recordedIter->Type() == "ignition.msgs.StringMsg")
     {
-      playServer.SetPaused(false);
-      return;
+      EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
+
+      msgs::StringMsg sdfMsg;
+      sdfMsg.ParseFromString(recordedIter->Data());
+
+      EXPECT_FALSE(sdfMsg.data().empty());
+
+      hasSdfMessage = true;
+      ++recordedIter;
     }
 
-    msgs::Pose_V posevMsg;
-    posevMsg.ParseFromString(iter->Data());
-
-    // Maps entity to recorded pose
-    // Key: entity. Value: pose
-    std::map <Entity, msgs::Pose> idToPose;
-    // Loop through all recorded poses, update map
-    for (int i = 0; i < posevMsg.pose_size(); ++i)
+    // Check initial state message
+    if (recordedIter->Type() == "ignition.msgs.SerializedState")
     {
-      msgs::Pose pose = posevMsg.pose(i);
-      idToPose.insert_or_assign(pose.id(), pose);
+      EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
+
+      msgs::SerializedState stateMsg;
+      stateMsg.ParseFromString(recordedIter->Data());
+
+      EXPECT_EQ(28, stateMsg.entities().size());
+
+      hasState = true;
+      ++recordedIter;
     }
 
-    // Loop through all links and compare played poses to recorded ones
-    for (int i = 0; i < _msg.pose_size(); ++i)
+    if (recordedIter != batch.end())
     {
-      math::Pose3d posePlayed = msgs::Convert(_msg.pose(i));
-      math::Pose3d poseRecorded = msgs::Convert(idToPose.at(_msg.pose(i).id()));
+      EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
 
-      auto diff = posePlayed - poseRecorded;
+      // Get next recorded message
+      msgs::Pose_V recordedMsg;
+      recordedMsg.ParseFromString(recordedIter->Data());
 
-      EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
+      ASSERT_TRUE(recordedMsg.has_header());
+      ASSERT_TRUE(recordedMsg.header().has_stamp());
+      EXPECT_EQ(0, recordedMsg.header().stamp().sec());
 
-      EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
-      EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
+      // Check time stamps are close
+      EXPECT_LT(abs(_playedMsg.header().stamp().nsec() -
+            recordedMsg.header().stamp().nsec()), 100000000);
 
-      // Omit comparing W of quaternion, which is 1 for identity
-      if (abs(diff.Pos().X()) > 0.1 ||
-          abs(diff.Pos().Y()) > 0.1 ||
-          abs(diff.Pos().Z()) > 0.1 ||
-          abs(diff.Rot().X()) > 0.1 ||
-          abs(diff.Rot().Y()) > 0.1 ||
-          abs(diff.Rot().Z()) > 0.1)
+      // Maps entity to recorded pose
+      // Key: entity. Value: pose
+      std::map <Entity, msgs::Pose> entityRecordedPose;
+      // Loop through all recorded poses, update map
+      for (int i = 0; i < recordedMsg.pose_size(); ++i)
       {
-        igndbg << begin.count() << " to " << end.count() << std::endl;
-        // Print difference between timestamps
-        igndbg << posevMsg.header().stamp().sec() * 1000000000 +
-          posevMsg.header().stamp().nsec() << std::endl;
-
-        igndbg << _msg.pose(i).name() << std::endl;
-        igndbg << abs(diff.Pos().X()) << " "
-                  << abs(diff.Pos().Y()) << " "
-                  << abs(diff.Pos().Z()) << " "
-                  << abs(diff.Rot().X()) << " "
-                  << abs(diff.Rot().Y()) << " "
-                  << abs(diff.Rot().Z()) << std::endl;
-        nDiffs++;
+        msgs::Pose pose = recordedMsg.pose(i);
+        entityRecordedPose.insert_or_assign(pose.id(), pose);
       }
+
+      // Has 4 dynamic entities
+      EXPECT_EQ(4, _playedMsg.pose().size());
+      EXPECT_EQ(4u, entityRecordedPose.size());
+
+      // Loop through all entities and compare played poses to recorded ones
+      for (int i = 0; i < _playedMsg.pose_size(); ++i)
+      {
+        auto posePlayed = msgs::Convert(_playedMsg.pose(i));
+        auto poseRecorded = msgs::Convert(entityRecordedPose.at(
+              _playedMsg.pose(i).id()));
+
+        auto diff = posePlayed - poseRecorded;
+
+        EXPECT_NEAR(abs(diff.Pos().X()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Pos().Y()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Pos().Z()), 0, 0.1);
+
+        EXPECT_NEAR(abs(diff.Rot().W()), 1, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().X()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().Y()), 0, 0.1);
+        EXPECT_NEAR(abs(diff.Rot().Z()), 0, 0.1);
+      }
+      playServer.SetPaused(false);
+
+      ++recordedIter;
       nTotal++;
     }
-
-    // Update begin time range for next time step
-    begin = std::chrono::nanoseconds(end);
-
-    playServer.SetPaused(false);
   };
 
   // Subscribe to ignition topic and compare to logged poses
   transport::Node node;
-  // Have to create an lvalue here for Node::Subscribe to work.
-  auto callbackFunc = std::function<void(const msgs::Pose_V &)>(msgCb);
-  node.Subscribe(poseTopic, callbackFunc);
+  // TODO(louise) The world name should match the recorded world
+  node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 1000, false);
+  playServer.Run(true, 500, false);
 
-  igndbg << nDiffs << " out of " << nTotal
-    << " poses played back do not match those recorded\n";
+  int sleep = 0;
+  int maxSleep = 16;
+  for (; nTotal < 30 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+  EXPECT_TRUE(hasSdfMessage);
+  EXPECT_TRUE(hasState);
 
-  common::removeAll(this->cacheDir);
+  /// \todo(anyone) Strange failure on homebrew, where nTotal is more than 30.
+#if !defined (__APPLE__)
+  // 60Hz
+  EXPECT_EQ(30, nTotal);
+#endif
+
+  common::removeAll(this->logDir);
 }

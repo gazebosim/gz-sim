@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LOGRECORD_HH_
+ */
+#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
+#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERMOTORMODEL_HH_
 
-#include <memory>
-
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/System.hh>
+#include <memory>
 
 namespace ignition
 {
@@ -31,37 +28,39 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declarations.
-  class LogRecordPrivate;
+  // Forward declaration
+  class MulticopterMotorModelPrivate;
 
-  /// \class LogRecord LogRecord.hh ignition/gazebo/systems/log/LogRecord.hh
-  /// \brief Log state recorder
-  class IGNITION_GAZEBO_VISIBLE LogRecord:
-    public System,
-    public ISystemConfigure,
-    public ISystemPostUpdate
+  /// \brief This system applies a thrust force to models with spinning
+  /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
+  class IGNITION_GAZEBO_VISIBLE MulticopterMotorModel
+      : public System,
+        public ISystemConfigure,
+        public ISystemPreUpdate
   {
     /// \brief Constructor
-    public: explicit LogRecord();
+    public: MulticopterMotorModel();
 
     /// \brief Destructor
-    public: ~LogRecord() override;
+    public: ~MulticopterMotorModel() override = default;
 
     // Documentation inherited
-    public: void Configure(const Entity &_id,
+    public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           EventManager &_eventMgr) final;
+                           EventManager &_eventMgr) override;
 
-    /// Documentation inherited
-    public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) final;
+    // Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
-    /// \brief Private data pointer.
-    private: std::unique_ptr<LogRecordPrivate> dataPtr;
+    /// \brief Private data pointer
+    private: std::unique_ptr<MulticopterMotorModelPrivate> dataPtr;
   };
   }
 }
 }
 }
+
 #endif
