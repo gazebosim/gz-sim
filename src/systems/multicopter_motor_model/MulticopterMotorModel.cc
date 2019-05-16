@@ -439,6 +439,7 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
     ignerr << "You tried to access index " << motor_number_
            << " of the Actuator velocity array which is of size "
            << _msg.velocity_size() << std::endl;
+    return;
   }
 
   if (motor_type_ == MotorType::kVelocity) {
