@@ -199,7 +199,11 @@ void IgnRenderer::HandleMouseTransformControl()
   if (!this->dataPtr->transformControl.Camera())
     this->dataPtr->transformControl.SetCamera(this->dataPtr->camera);
 
-  if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE)
+  // stop and detach transform controller if mode is none or no entity is
+  // selected
+  if (this->dataPtr->transformMode == rendering::TransformMode::TM_NONE ||
+      (this->dataPtr->transformControl.Node() &&
+      !this->dataPtr->renderUtil.SelectedEntity()))
   {
     if (this->dataPtr->transformControl.Active())
       this->dataPtr->transformControl.Stop();
