@@ -209,6 +209,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       ++recordedIter;
     }
 
+    nTotal++;
     if (recordedIter == batch.end())
       return;
 
@@ -261,7 +262,6 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
     playServer.SetPaused(false);
 
-    nTotal++;
     ++recordedIter;
   };
 
