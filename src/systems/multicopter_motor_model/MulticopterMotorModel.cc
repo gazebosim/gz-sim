@@ -160,47 +160,47 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   /// \brief Maximum rotational velocity command with units of rad/s.
   /// The default value is taken from gazebo_motor_model.h
   /// and is approximately 8000 revolutions / minute (rpm).
-  double max_rot_velocity_ = 838.0;
+  public: double max_rot_velocity_ = 838.0;
 
   /// \brief Moment constant for computing drag torque based on thrust
   /// with units of length (m).
   /// The default value is taken from gazebo_motor_model.h
-  double moment_constant_ = 0.016;
+  public: double moment_constant_ = 0.016;
 
   /// \brief Thrust coefficient for propeller with units of N / (rad/s)^2.
   /// The default value is taken from gazebo_motor_model.h
-  double motor_constant_ = 8.54858e-06;
+  public: double motor_constant_ = 8.54858e-06;
 
   /// \brief Reference input to motor. For MotorType kVelocity, this
   /// is the reference angular velocity in rad/s.
-  double ref_motor_input_ = 0.0;
+  public: double ref_motor_input_ = 0.0;
 
   /// \brief Rolling moment coefficient with units of N*m / (m/s^2).
   /// The default value is taken from gazebo_motor_model.h
-  double rolling_moment_coefficient_ = 1.0e-6;
+  public: double rolling_moment_coefficient_ = 1.0e-6;
 
   /// \brief Rotor drag coefficient for propeller with units of N / (m/s^2).
   /// The default value is taken from gazebo_motor_model.h
-  double rotor_drag_coefficient_ = 1.0e-4;
+  public: double rotor_drag_coefficient_ = 1.0e-4;
 
   /// \brief Large joint velocities can cause problems with aliasing,
   /// so the joint velocity used by the physics engine is reduced
   /// this factor, while the larger value is used for computing
   /// propeller thrust.
   /// The default value is taken from gazebo_motor_model.h
-  double rotor_velocity_slowdown_sim_ = 10.0;
+  public: double rotor_velocity_slowdown_sim_ = 10.0;
 
   /// \brief Time constant for rotor deceleration.
   /// The default value is taken from gazebo_motor_model.h
-  double time_constant_down_ = 1.0 / 40.0;
+  public: double time_constant_down_ = 1.0 / 40.0;
 
   /// \brief Time constant for rotor acceleration.
   /// The default value is taken from gazebo_motor_model.h
-  double time_constant_up_ = 1.0 / 80.0;
+  public: double time_constant_up_ = 1.0 / 80.0;
 
   /// \brief Filter on rotor velocity that has different time constants
   /// for increasing and decreasing values.
-  std::unique_ptr<FirstOrderFilter<double>> rotor_velocity_filter_;
+  public: std::unique_ptr<FirstOrderFilter<double>> rotor_velocity_filter_;
 
   /// \brief Mutex to protect ref_motor_input_.
   public: std::mutex refMotorInputMutex;
