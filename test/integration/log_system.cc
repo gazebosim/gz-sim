@@ -270,11 +270,11 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 1000, false);
+  playServer.Run(true, 500, false);
 
   int sleep = 0;
-  int maxSleep = 30;
-  for (; nTotal < 60 && sleep < maxSleep; ++sleep)
+  int maxSleep = 16;
+  for (; nTotal < 30 && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -283,7 +283,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_TRUE(hasState);
 
   // 60Hz
-  EXPECT_EQ(60, nTotal);
+  EXPECT_EQ(30, nTotal);
 
   common::removeAll(this->logDir);
 }
