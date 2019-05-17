@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.0.0
 
+1. Tweaks to example worlds
+    * [Pull Request 342](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/342)
+
 1. Log entity creation and deletion
     * [Pull Request 337](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/337)
 
