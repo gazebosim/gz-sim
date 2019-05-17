@@ -191,6 +191,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   else
   {
     ignerr << "No <battery_name> or <voltage> specified. Both are required.\n";
+    return;
   }
 
   // Consumer-specific
