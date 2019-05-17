@@ -116,7 +116,7 @@
           </geometry>
         </visual>
         <sensor name='logical_camera' type='logical_camera'>"
-          <updateRate>10</updateRate>
+          <update_rate>10</update_rate>
           <logical_camera>
             <near>0.55</near>
             <far>5</far>
