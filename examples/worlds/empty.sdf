@@ -30,7 +30,7 @@ ign service -s /world/empty/remove \
 --reqtype ignition.msgs.Entity \
 --reptype ignition.msgs.Boolean \
 --timeout 300 \
---req 'name: "spawned_model" type: MODEL'
+--req 'name: "new_name" type: MODEL'
 
   Try inserting a light:
 

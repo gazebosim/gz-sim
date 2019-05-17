@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
+<!--
+  World containing a long tunnel and a vehicle.
+-->
 <sdf version="1.6">
   <world name="diff_drive">
     <physics name="1ms" type="ode">
