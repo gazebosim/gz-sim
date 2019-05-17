@@ -59,11 +59,6 @@ void laserCb(const msgs::LaserScan &_msg)
 // The test checks the Gpu Lidar readings when it faces a box
 TEST_F(GpuLidarTest, GpuLidarBox)
 {
-  // todo(anyone) re-enable test once ogre2 is installed on CI
-  // see issue #14
-  ignwarn << "Test disabled until ogre2 is supported" << std::endl;
-  return;
-
   const int horzSamples = 640;
 
   // Start server
