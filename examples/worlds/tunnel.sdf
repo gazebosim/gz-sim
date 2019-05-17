@@ -969,7 +969,7 @@
 
     <include>
       <name>x1</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X1/7</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/X1 UGV</uri>
       <pose>0 0 .2 0 0 0</pose>
     </include>
 
