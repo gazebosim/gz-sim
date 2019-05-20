@@ -115,6 +115,8 @@ void DiffDrive::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic{"/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel"};
+  if (_sdf->HasElement("topic"))
+    topic = _sdf->Get<std::string>("topic");
   this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
