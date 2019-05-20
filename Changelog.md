@@ -7,6 +7,9 @@
 1. MultiCopterMotorModel: add mutex to protect motor velocity command.
     * [Pull Request 341](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/341)
 
+1. Tweaks to example worlds
+    * [Pull Request 342](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/342)
+
 1. Log entity creation and deletion
     * [Pull Request 337](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/337)
 
