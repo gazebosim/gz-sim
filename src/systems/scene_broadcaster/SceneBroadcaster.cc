@@ -329,20 +329,31 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
-  // * also publish off-rate if there are new / erased entities
+  // * also publish off-rate if there are change events (new / erased entities)
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
+  bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
+        _manager.HasNewEntities();
+  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (_manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities() ||
-       (now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod));
+       (changeEvent || itsPubTime);
   if (shouldServe || shouldPublish)
   {
     msgs::SerializedStep stepMsg;
     stepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
-    stepMsg.mutable_state()->CopyFrom(_manager.State());
+    // Publish full state if there are change events
+    if (changeEvent || shouldServe)
+    {
+      stepMsg.mutable_state()->CopyFrom(_manager.State());
+    }
+    // Otherwise publish just selected components
+    else
+    {
+      stepMsg.mutable_state()->CopyFrom(_manager.State({},
+          {components::Pose::typeId}));
+    }
 
     // Full state on demand
     if (shouldServe)
@@ -351,7 +362,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->stateCv.notify_all();
     }
 
-    // Full state periodically
+    // Poses periodically + change events
     // TODO(louise) Send changed state periodically instead, once it reflects
     // changed components
     if (shouldPublish)
