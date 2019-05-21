@@ -318,129 +318,262 @@ void RenderUtil::Update()
 void RenderUtilPrivate::CreateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
-  // Get all the new worlds
-  // TODO(anyone) Only one scene is supported for now
-  // extend the sensor system to support mutliple scenes in the future
-  _ecm.EachNew<components::World, components::Scene>(
-      [&](const Entity & _entity,
-        const components::World *,
-        const components::Scene *_scene)->bool
-      {
-        this->sceneManager.SetWorldId(_entity);
-        const sdf::Scene &sceneSdf = _scene->Data();
-        this->newScenes.push_back(sceneSdf);
-        return true;
-      });
-
-
-  _ecm.EachNew<components::Model, components::Name, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Model *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Model model;
-        model.SetName(_name->Data());
-        model.SetPose(_pose->Data());
-        this->newModels.push_back(
-            std::make_tuple(_entity, model, _parent->Data()));
-        return true;
-      });
-
-  _ecm.EachNew<components::Link, components::Name, components::Pose,
-            components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Link *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Link link;
-        link.SetName(_name->Data());
-        link.SetPose(_pose->Data());
-        this->newLinks.push_back(
-            std::make_tuple(_entity, link, _parent->Data()));
-        return true;
-      });
-
-  // visuals
-  _ecm.EachNew<components::Visual, components::Name, components::Pose,
-            components::Geometry, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Visual *,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::Geometry *_geom,
-          const components::ParentEntity *_parent)->bool
-      {
-        sdf::Visual visual;
-        visual.SetName(_name->Data());
-        visual.SetPose(_pose->Data());
-        visual.SetGeom(_geom->Data());
-
-        // Optional components
-        auto material = _ecm.Component<components::Material>(_entity);
-        if (material != nullptr)
-        {
-          visual.SetMaterial(material->Data());
-        }
-
-        this->newVisuals.push_back(
-            std::make_tuple(_entity, visual, _parent->Data()));
-        return true;
-      });
-
-  // lights
-  _ecm.EachNew<components::Light, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Light *_light,
-          const components::ParentEntity *_parent) -> bool
-      {
-        this->newLights.push_back(
-            std::make_tuple(_entity, _light->Data(), _parent->Data()));
-        return true;
-      });
-
-  if (this->enableSensors)
+  // Treat all pre-existent entities as new at startup
+  // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
+  if (!this->initialized)
   {
-    // Create cameras
-    _ecm.EachNew<components::Camera, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Camera *_camera,
-          const components::ParentEntity *_parent)->bool
+    // Get all the new worlds
+    // TODO(anyone) Only one scene is supported for now
+    // extend the sensor system to support mutliple scenes in the future
+    _ecm.Each<components::World, components::Scene>(
+        [&](const Entity & _entity,
+          const components::World *,
+          const components::Scene *_scene)->bool
         {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _camera->Data(),
-              _parent->Data()));
-          return true;
-        });
-
-    // Create depth cameras
-    _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::DepthCamera *_depthCamera,
-          const components::ParentEntity *_parent)->bool
-        {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _depthCamera->Data(),
-              _parent->Data()));
+          this->sceneManager.SetWorldId(_entity);
+          const sdf::Scene &sceneSdf = _scene->Data();
+          this->newScenes.push_back(sceneSdf);
           return true;
         });
 
 
-    // Create gpu lidar
-    _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::GpuLidar *_gpuLidar,
-          const components::ParentEntity *_parent)->bool
+    _ecm.Each<components::Model, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Model *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
         {
-          this->newSensors.push_back(
-              std::make_tuple(_entity, _gpuLidar->Data(),
-               _parent->Data()));
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data()));
           return true;
         });
+
+    _ecm.Each<components::Link, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Link *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+          this->newLinks.push_back(
+              std::make_tuple(_entity, link, _parent->Data()));
+          return true;
+        });
+
+    // visuals
+    _ecm.Each<components::Visual, components::Name, components::Pose,
+              components::Geometry, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::Geometry *_geom,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Visual visual;
+          visual.SetName(_name->Data());
+          visual.SetPose(_pose->Data());
+          visual.SetGeom(_geom->Data());
+
+          // Optional components
+          auto material = _ecm.Component<components::Material>(_entity);
+          if (material != nullptr)
+          {
+            visual.SetMaterial(material->Data());
+          }
+
+          this->newVisuals.push_back(
+              std::make_tuple(_entity, visual, _parent->Data()));
+          return true;
+        });
+
+    // lights
+    _ecm.Each<components::Light, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Light *_light,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newLights.push_back(
+              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.Each<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _camera->Data(),
+                _parent->Data()));
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.Each<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _depthCamera->Data(),
+                _parent->Data()));
+            return true;
+          });
+
+
+      // Create gpu lidar
+      _ecm.Each<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _gpuLidar->Data(),
+                 _parent->Data()));
+            return true;
+          });
+    }
+    this->initialized = true;
+  }
+  else
+  {
+    // Get all the new worlds
+    // TODO(anyone) Only one scene is supported for now
+    // extend the sensor system to support mutliple scenes in the future
+    _ecm.EachNew<components::World, components::Scene>(
+        [&](const Entity & _entity,
+          const components::World *,
+          const components::Scene *_scene)->bool
+        {
+          this->sceneManager.SetWorldId(_entity);
+          const sdf::Scene &sceneSdf = _scene->Data();
+          this->newScenes.push_back(sceneSdf);
+          return true;
+        });
+
+
+    _ecm.EachNew<components::Model, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Model *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Model model;
+          model.SetName(_name->Data());
+          model.SetPose(_pose->Data());
+          this->newModels.push_back(
+              std::make_tuple(_entity, model, _parent->Data()));
+          return true;
+        });
+
+    _ecm.EachNew<components::Link, components::Name, components::Pose,
+              components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Link *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Link link;
+          link.SetName(_name->Data());
+          link.SetPose(_pose->Data());
+          this->newLinks.push_back(
+              std::make_tuple(_entity, link, _parent->Data()));
+          return true;
+        });
+
+    // visuals
+    _ecm.EachNew<components::Visual, components::Name, components::Pose,
+              components::Geometry, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::Name *_name,
+            const components::Pose *_pose,
+            const components::Geometry *_geom,
+            const components::ParentEntity *_parent)->bool
+        {
+          sdf::Visual visual;
+          visual.SetName(_name->Data());
+          visual.SetPose(_pose->Data());
+          visual.SetGeom(_geom->Data());
+
+          // Optional components
+          auto material = _ecm.Component<components::Material>(_entity);
+          if (material != nullptr)
+          {
+            visual.SetMaterial(material->Data());
+          }
+
+          this->newVisuals.push_back(
+              std::make_tuple(_entity, visual, _parent->Data()));
+          return true;
+        });
+
+    // lights
+    _ecm.EachNew<components::Light, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Light *_light,
+            const components::ParentEntity *_parent) -> bool
+        {
+          this->newLights.push_back(
+              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          return true;
+        });
+
+    if (this->enableSensors)
+    {
+      // Create cameras
+      _ecm.EachNew<components::Camera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::Camera *_camera,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _camera->Data(),
+                _parent->Data()));
+            return true;
+          });
+
+      // Create depth cameras
+      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::DepthCamera *_depthCamera,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _depthCamera->Data(),
+                _parent->Data()));
+            return true;
+          });
+
+
+      // Create gpu lidar
+      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+        [&](const Entity &_entity,
+            const components::GpuLidar *_gpuLidar,
+            const components::ParentEntity *_parent)->bool
+          {
+            this->newSensors.push_back(
+                std::make_tuple(_entity, _gpuLidar->Data(),
+                 _parent->Data()));
+            return true;
+          });
+    }
   }
 }
 
@@ -602,7 +735,6 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
-  this->dataPtr->initialized = true;
 }
 
 /////////////////////////////////////////////////
