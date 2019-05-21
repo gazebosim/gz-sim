@@ -4,6 +4,12 @@
 
 ### Ignition Gazebo 2.0.0
 
+1. SceneBroadcaster: only send pose state periodically.
+    * [Pull Request 345](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/345)
+
+1. PeerTracker: increase distributed simulation peer tracking timeout.
+    * [Pull Request 344](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/344)
+
 1. MultiCopterMotorModel: add mutex to protect motor velocity command.
     * [Pull Request 341](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/341)
 
