@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.0.0
 
+1. RenderUtil: check for existing entities in GzScene3D on initialization.
+    * [Pull Request 350](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/350)
+
 1. SceneBroadcaster: only send pose state periodically.
     * [Pull Request 345](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/345)
 
