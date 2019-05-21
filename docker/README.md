@@ -70,24 +70,24 @@ distribution using debians.
 
 1. Build a docker image using the `build.bash` command. The first argument
    must be the name of the Ignition distribution. For example, to build an
-   image of Ignition Acropolis:
+   image of Ignition Blueprint:
 
     ```
-    ./build.bash ignition-acropolis ./Dockerfile.ignition
+    ./build.bash ignition-blueprint ./Dockerfile.ignition
     ```
 
 2. Run the docker image using `run.bash`, and pass in the name of the docker
    image (first argument to the build.bash script).
 
     ```
-    ./run.bash ignition-acropolis
+    ./run.bash ignition-blueprint
     ```
 
 3. You can pass arguments to Ignition Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
     ```
-    ./run.bash ignition-acropolis -f shapes.sdf
+    ./run.bash ignition-blueprint -f shapes.sdf
     ```
 
 ## Appendix

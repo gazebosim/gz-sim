@@ -8,7 +8,6 @@ mkdir build
 cd build
 
 cmake .. \
-  -DCMAKE_INSTALL_PREFIX=/usr \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 make -j6
