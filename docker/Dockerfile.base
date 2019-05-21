@@ -2,8 +2,11 @@ FROM ubuntu:bionic
 
 RUN apt-get update \
  && apt-get install -y \
-      sudo \
+      sudo wget lsb-release gnupg curl \
  && apt-get clean
+
+COPY docker/scripts/enable_ign_stable.sh scripts/enable_ign_stable.sh
+RUN scripts/enable_ign_stable.sh
 
 COPY docker/scripts/install_common_deps.sh scripts/install_common_deps.sh
 RUN scripts/install_common_deps.sh
