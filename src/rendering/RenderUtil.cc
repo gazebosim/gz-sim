@@ -46,6 +46,7 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -429,6 +430,17 @@ void RenderUtilPrivate::CreateRenderingEntities(
           return true;
         });
 
+    // Create RGBD cameras
+    _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *_rgbdCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->newSensors.push_back(
+              std::make_tuple(_entity, _rgbdCamera->Data(),
+              _parent->Data()));
+          return true;
+        });
 
     // Create gpu lidar
     _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
@@ -506,6 +518,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
+  // Update RGBD cameras
+  _ecm.Each<components::RgbdCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::RgbdCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
   // Update gpu_lidar
   _ecm.Each<components::GpuLidar, components::Pose>(
       [&](const Entity &_entity,
@@ -562,6 +584,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // depth cameras
   _ecm.EachRemoved<components::DepthCamera>(
     [&](const Entity &_entity, const components::DepthCamera *)->bool
+      {
+        this->removeEntities.insert(_entity);
+        return true;
+      });
+
+  // rgbd cameras
+  _ecm.EachRemoved<components::RgbdCamera>(
+    [&](const Entity &_entity, const components::RgbdCamera *)->bool
       {
         this->removeEntities.insert(_entity);
         return true;
