@@ -1,4 +1,8 @@
 <?xml version="1.0" ?>
+<!--
+  Check that model and link poses are being correctly parsed.
+  Both red boxes should overlap.
+-->
 <sdf version="1.6">
   <world name="shapes">
     <physics name="1ms" type="ode">
