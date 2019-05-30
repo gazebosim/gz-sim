@@ -71,6 +71,17 @@ class ignition::gazebo::systems::PosePublisherPrivate
 
   /// \brief True to publish nested model pose
   public: bool publishNestedModelPose = false;
+
+  /// \brief Frequency of pose publications in Hz. A negative frequency
+  /// publishes as fast as possible (i.e, at the rate of the simulation step)
+  public: double updateFrequency = -1;
+
+  /// \brief Last time poses were published.
+  public: std::chrono::steady_clock::duration lastPosePubTime{0};
+
+  /// \brief Update period in nanoseconds calculated from the update_frequency
+  /// parameter
+  public: std::chrono::steady_clock::duration updatePeriod{0};
 };
 
 //////////////////////////////////////////////////
@@ -118,6 +129,15 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->publishSensorPose =
     _sdf->Get<bool>("publish_sensor_pose",
         this->dataPtr->publishSensorPose).first;
+
+  double updateFrequency = _sdf->Get<double>("update_frequency", -1).first;
+
+  if (updateFrequency > 0)
+  {
+    std::chrono::duration<double> period{1 / updateFrequency};
+    this->dataPtr->updatePeriod =
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -127,6 +147,16 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
+
+  auto diff = _info.simTime - this->dataPtr->lastPosePubTime;
+  // If the diff is positive and it's less than the update period, we skip
+  // publication. If the diff is negative, then time has gone backward, we go
+  // ahead publish and allow the time to be reset
+  if ((diff > std::chrono::steady_clock::duration::zero()) &&
+      (diff < this->dataPtr->updatePeriod))
+  {
+    return;
+  }
 
   // pose frame, child_frame, pose
   std::vector<std::tuple<std::string, std::string, math::Pose3d>> poses;
@@ -158,6 +188,8 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     msgs::Set(&poseMsg, transform);
     this->dataPtr->posePub.Publish(poseMsg);
   }
+
+  this->dataPtr->lastPosePubTime = _info.simTime;
 }
 
 //////////////////////////////////////////////////
