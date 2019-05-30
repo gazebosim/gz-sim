@@ -79,7 +79,8 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// \brief Last time poses were published.
   public: std::chrono::steady_clock::duration lastPosePubTime{0};
 
-  /// \brief Update period calculated from updateFrequency in nanoseconds
+  /// \brief Update period in nanoseconds calculated from the update_frequency
+  /// parameter
   public: std::chrono::steady_clock::duration updatePeriod{0};
 };
 
@@ -129,13 +130,11 @@ void PosePublisher::Configure(const Entity &_entity,
     _sdf->Get<bool>("publish_sensor_pose",
         this->dataPtr->publishSensorPose).first;
 
-  this->dataPtr->updateFrequency =
-    _sdf->Get<double>("update_frequency",
-        this->dataPtr->updateFrequency).first;
+  double updateFrequency = _sdf->Get<double>("update_frequency", -1).first;
 
-  if (this->dataPtr->updateFrequency > 0)
+  if (updateFrequency > 0)
   {
-    std::chrono::duration<double> period{1 / this->dataPtr->updateFrequency};
+    std::chrono::duration<double> period{1 / updateFrequency};
     this->dataPtr->updatePeriod =
         std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
