@@ -311,6 +311,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
 
     // Assume absolute path to mesh file
     descriptor.meshName = _geom.MeshShape()->Uri();
+    descriptor.subMeshName = _geom.MeshShape()->Submesh();
+    descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
     ignition::common::MeshManager* meshManager =
         ignition::common::MeshManager::Instance();
