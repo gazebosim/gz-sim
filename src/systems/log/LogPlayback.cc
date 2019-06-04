@@ -207,8 +207,16 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   transport::log::MsgIter sdfIter = sdfBatch.begin();
   if (sdfIter == sdfBatch.end())
   {
-    ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
-    return false;
+    // location of log may have changed from where it was recorded.
+    // search through the topics available in the log and find the sdf topic
+    sdfBatch = log->QueryMessages(
+        transport::log::TopicPattern(std::regex(".*/sdf")));
+    sdfIter = sdfBatch.begin();
+    if (sdfIter == sdfBatch.end())
+    {
+      ignerr << "No SDF found in log file [" << dbPath << "]" << std::endl;
+      return false;
+    }
   }
 
   // Parse SDF message
