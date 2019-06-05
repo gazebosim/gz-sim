@@ -281,12 +281,15 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // TODO(louise) The world name should match the recorded world
   node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
+  int playbackSteps = 500;
+  int poseHz = 60;
+  int expectedPoseCount = playbackSteps * 1e-3 / (1.0/poseHz);
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 500, false);
+  playServer.Run(true, playbackSteps, false);
 
   int sleep = 0;
   int maxSleep = 16;
-  for (; nTotal < 30 && sleep < maxSleep; ++sleep)
+  for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -294,11 +297,10 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_TRUE(hasSdfMessage);
   EXPECT_TRUE(hasState);
 
-  /// \todo(anyone) Strange failure on homebrew, where nTotal is more than 30.
-#if !defined (__APPLE__)
+  /// \todo(anyone) there seems to be a race condition that sometimes cause an
+  /// additional messages to be published by the scene broadcaster
   // 60Hz
-  EXPECT_EQ(30, nTotal);
-#endif
+  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
 
   common::removeAll(this->logsDir);
 }
