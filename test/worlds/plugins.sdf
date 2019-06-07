@@ -14,6 +14,13 @@
         <model_key>987</model_key>
       </plugin>
       <link name="link_1">
+        <sensor name="camera" type="camera">
+          <plugin
+            filename="libTestSensorSystem.so"
+            name="ignition::gazebo::TestSensorSystem">
+            <sensor_key>456</sensor_key>
+          </plugin>
+        </sensor>
       </link>
     </model>
   </world>
