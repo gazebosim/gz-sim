@@ -35,6 +35,19 @@ namespace systems
 
   /// \brief Pose publisher system. Attach to an entity to publish the
   /// transform of its child entities in the form of ignition::msgs::Pose msgs
+  /// The following parameters are used by the system:
+  ///
+  /// publish_link_pose         : Set to true to publish link pose
+  /// publish_visual_pose       : Set to true to publish visual pose
+  /// publish_collision_pose    : Set to true to publish collision pose
+  /// publish_sensor_pose       : Set to true to publish sensor pose
+  /// publish_nested_model_pose : Set to true to publish nested model pose. The
+  ///                             pose of the model that contains this system is
+  ///                             also published.
+  /// update_frequency          : Frequency of pose publications in Hz. A
+  ///                             negative frequency publishes as fast as
+  ///                             possible (i.e, at the rate of the simulation
+  ///                             step)
   class IGNITION_GAZEBO_VISIBLE PosePublisher
       : public System,
         public ISystemConfigure,

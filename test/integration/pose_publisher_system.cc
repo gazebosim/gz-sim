@@ -326,3 +326,68 @@ TEST_F(PosePublisherTest, PublishCmd)
   }
   mutex.unlock();
 }
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest, UpdateFrequency)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/pose_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system that records the model's link poses
+  Relay testSystem;
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    poseMsgs.clear();
+  }
+
+  // subscribe to the pose publisher
+  transport::Node node;
+  node.Subscribe(std::string("/model/test_update_freq/pose"), &poseCb);
+
+  // Run server
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
+
+  std::size_t nExpMessages = 100;
+  // Wait for 100 messages to be received
+  bool received = false;
+  for (int sleep = 0; sleep < 300; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      received = (poseMsgs.size() >= nExpMessages);
+    }
+
+    if (received)
+      break;
+  }
+
+  ASSERT_TRUE(received);
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    // Calculate average frequency. The calculation is not very precise because
+    // we only collect a small sample size but it should be enough to tell the
+    // difference between 100 Hz and 1000 Hz
+    std::chrono::duration<double> firstStamp =
+        std::chrono::seconds(poseMsgs.front().header().stamp().sec()) +
+        std::chrono::nanoseconds(poseMsgs.front().header().stamp().nsec());
+    std::chrono::duration<double> lastStamp =
+        std::chrono::seconds(poseMsgs.back().header().stamp().sec()) +
+        std::chrono::nanoseconds(poseMsgs.back().header().stamp().nsec());
+
+    double diff = (lastStamp - firstStamp).count();
+    ASSERT_GT(diff, 0);
+    double freq = poseMsgs.size()/diff;
+    EXPECT_NEAR(100.0, freq, 10.0);
+  }
+}
