@@ -43,6 +43,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -1050,6 +1051,18 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
       });
   EXPECT_NE(kNullEntity, modelId);
 
+  // Get sensor entity
+  Entity sensorId{kNullEntity};
+  runner.EntityCompMgr().Each<ignition::gazebo::components::Sensor>([&](
+      const ignition::gazebo::Entity &_entity,
+      const ignition::gazebo::components::Sensor *_sensor)->bool
+      {
+        EXPECT_NE(nullptr, _sensor);
+        sensorId = _entity;
+        return true;
+      });
+  EXPECT_NE(kNullEntity, sensorId);
+
   // Check component registered by world plugin
   std::string worldComponentName{"WorldPluginComponent"};
   auto worldComponentId = ignition::common::hash64(worldComponentName);
@@ -1066,6 +1079,14 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(modelId,
       modelComponentId));
 
+  // Check component registered by sensor plugin
+  std::string sensorComponentName{"SensorPluginComponent"};
+  auto sensorComponentId = ignition::common::hash64(sensorComponentName);
+
+  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
+  EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
+      sensorComponentId));
+
   // Clang re-registers components between tests. If we don't unregister them
   // beforehand, the new plugin tries to create a storage type from a previous
   // plugin, causing a crash.
@@ -1075,6 +1096,7 @@ TEST_P(SimulationRunnerTest, LoadPlugins)
   #if defined (__clang__)
     components::Factory::Instance()->Unregister(worldComponentId);
     components::Factory::Instance()->Unregister(modelComponentId);
+    components::Factory::Instance()->Unregister(sensorComponentId);
   #endif
 }
 
