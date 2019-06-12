@@ -141,7 +141,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
-  /// The function returns the id of the rendering senosr created.
+  /// The function returns the id of the rendering sensor created.
   public: std::function<
       std::string(const sdf::Sensor &, const std::string &)>
       createSensorCb;

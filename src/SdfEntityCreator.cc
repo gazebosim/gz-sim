@@ -510,6 +510,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             << "] not supported yet." << std::endl;
   }
 
+  this->dataPtr->eventManager->Emit<events::LoadPlugins>(sensorEntity,
+      _sensor->Element());
+
   return sensorEntity;
 }
 
