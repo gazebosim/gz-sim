@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Allow sensors to load plugins
+    * [Pull Request 356](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/356)
+
 1. Allow setting the update frequency of pose publisher
     * [Pull Request 352](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/352)
 
