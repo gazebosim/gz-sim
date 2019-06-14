@@ -2,6 +2,8 @@
 
 ### Ignition Gazebo 2.X.X
 
+### Ignition Gazebo 2.1.0
+
 1. Allow sensors to load plugins.
     * [Pull Request 356](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/356)
 
