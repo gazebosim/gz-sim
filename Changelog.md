@@ -2,11 +2,21 @@
 
 ### Ignition Gazebo 2.X.X
 
-1. Allow sensors to load plugins
+1. Allow sensors to load plugins.
     * [Pull Request 356](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/356)
 
-1. Allow setting the update frequency of pose publisher
+1. Parse and load submesh geometry in visuals.
+    * [Pull Request 353](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/353)
+
+1. Allow setting the update frequency of pose publisher.
     * [Pull Request 352](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/352)
+
+1. Added RGBD camera sensor.
+    * [Pull Request 351](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/351)
+
+1. Fix Docker scripts.
+    * [Pull Request 347](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/347)
+
 
 ### Ignition Gazebo 2.0.0
 
