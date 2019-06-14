@@ -593,7 +593,8 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
   }
   else if (_in.Type() == sdf::SensorType::CAMERA ||
-           _in.Type() == sdf::SensorType::DEPTH_CAMERA)
+           _in.Type() == sdf::SensorType::DEPTH_CAMERA ||
+           _in.Type() == sdf::SensorType::RGBD_CAMERA)
   {
     if (_in.CameraSensor())
     {
@@ -810,7 +811,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     out.SetMagnetometerSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::CAMERA ||
-           out.Type() == sdf::SensorType::DEPTH_CAMERA)
+           out.Type() == sdf::SensorType::DEPTH_CAMERA ||
+           out.Type() == sdf::SensorType::RGBD_CAMERA)
   {
     sdf::Camera sensor;
 
