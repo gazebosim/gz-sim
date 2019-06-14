@@ -7,7 +7,7 @@
 if [ $# -eq 0 ]
 then
     echo "Usage: $0 <Ignition meta-package name> <dockerfile>"
-    echo "Example: $0 ignition-acropolis ./Dockerfile.ignition"
+    echo "Example: $0 ignition-blueprint ./Dockerfile.ignition"
     exit 1
 fi
 
