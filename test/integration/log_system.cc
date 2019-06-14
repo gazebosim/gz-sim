@@ -60,6 +60,7 @@ class LogSystemTest : public ::testing::Test
       common::removeAll(this->logsDir);
     }
     common::createDirectories(this->logsDir);
+    common::createDirectories(this->logPlaybackDir);
   }
 
   // Change path of recorded log file in SDF string loaded from file
@@ -102,7 +103,12 @@ class LogSystemTest : public ::testing::Test
   public: std::string logsDir = common::joinPaths(PROJECT_BINARY_PATH, "test",
       "test_logs");
 
-  public: std::string logDir = common::joinPaths(logsDir, "test_logs");
+  /// \brief Path to recorded log file
+  public: std::string logDir = common::joinPaths(logsDir, "test_logs_record");
+
+  /// \brief Path to log file for playback
+  public: std::string logPlaybackDir =
+      common::joinPaths(logsDir, "test_logs_playback");
 };
 
 /////////////////////////////////////////////////
@@ -137,13 +143,19 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   auto logFile = common::joinPaths(this->logDir, "state.tlog");
   EXPECT_TRUE(common::exists(logFile));
 
+  // move the log file to the playback directory
+  auto logPlaybackFile = common::joinPaths(this->logPlaybackDir, "state.tlog");
+  common::moveFile(logFile, logPlaybackFile);
+  EXPECT_TRUE(common::exists(logPlaybackFile));
+
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "log_playback.sdf");
 
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
-  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",  this->logDir);
+  this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
+      this->logPlaybackDir);
   ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
   const auto sdfWorld = playSdfRoot.WorldByIndex(0);
@@ -151,7 +163,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
 
   // Load log file recorded above
   transport::log::Log log;
-  log.Open(logFile);
+  log.Open(logPlaybackFile);
   auto batch = log.QueryMessages();
 
   // Pass changed SDF to server
@@ -269,12 +281,15 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // TODO(louise) The world name should match the recorded world
   node.Subscribe("/world/default/dynamic_pose/info", msgCb);
 
+  int playbackSteps = 500;
+  int poseHz = 60;
+  int expectedPoseCount = playbackSteps * 1e-3 / (1.0/poseHz);
   // Run for a few seconds to play back different poses
-  playServer.Run(true, 500, false);
+  playServer.Run(true, playbackSteps, false);
 
   int sleep = 0;
   int maxSleep = 16;
-  for (; nTotal < 30 && sleep < maxSleep; ++sleep)
+  for (; nTotal < expectedPoseCount && sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -282,11 +297,12 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_TRUE(hasSdfMessage);
   EXPECT_TRUE(hasState);
 
-  /// \todo(anyone) Strange failure on homebrew, where nTotal is more than 30.
-#if !defined (__APPLE__)
+  #if !defined (__APPLE__)
+  /// \todo(anyone) there seems to be a race condition that sometimes cause an
+  /// additional messages to be published by the scene broadcaster
   // 60Hz
-  EXPECT_EQ(30, nTotal);
-#endif
+  EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
+  #endif
 
-  common::removeAll(this->logDir);
+  common::removeAll(this->logsDir);
 }
