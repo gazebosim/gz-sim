@@ -297,10 +297,12 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   EXPECT_TRUE(hasSdfMessage);
   EXPECT_TRUE(hasState);
 
+  #if !defined (__APPLE__)
   /// \todo(anyone) there seems to be a race condition that sometimes cause an
   /// additional messages to be published by the scene broadcaster
   // 60Hz
   EXPECT_TRUE(nTotal == expectedPoseCount || nTotal == expectedPoseCount + 1);
+  #endif
 
   common::removeAll(this->logsDir);
 }
