@@ -8,6 +8,7 @@ pipelines:
           - apt -y install wget lsb-release gnupg sudo curl
           # Enable relevant package repositories
           - docker/scripts/enable_ign_stable.sh
+          - docker/scripts/enable_ign_prerelease.sh
           # Install base dependencies
           - docker/scripts/install_common_deps.sh
           - docker/scripts/enable_gcc8.sh
@@ -16,24 +17,24 @@ pipelines:
           # The first method uses debians and the second builds dependencies
           # from source. For each dependency, please use only one method.
           # METHOD 1: Install the following debians
-          - apt-get install -y 
-              libignition-cmake2-dev 
-              libignition-common3-dev 
-              libignition-fuel-tools3-dev 
-              libignition-gui2-dev 
-              libignition-math6-eigen3-dev 
-              libignition-msgs4-dev 
-              libignition-plugin-dev 
-              libignition-physics-dev 
-              libignition-rendering2-dev 
-              libignition-sensors2-dev 
-              libignition-tools-dev 
-              libignition-transport7-dev 
+          - apt-get install -y
+              libignition-cmake2-dev
+              libignition-common3-dev
+              libignition-fuel-tools3-dev
+              libignition-gui2-dev
+              libignition-math6-eigen3-dev
+              libignition-msgs4-dev
+              libignition-plugin-dev
+              libignition-physics-dev
+              libignition-rendering2-dev
+              libignition-sensors2-dev
+              libignition-tools-dev
+              libignition-transport7-dev
               libsdformat8-dev
           # METHOD 2: Build from source
           # Build ign-rendering from source using the default branch
           # - docker/scripts/build_ign.sh ignitionrobotics ign-rendering default
-          # 
+          #
           # Build Ignition Gazebo
           - ./tools/clang_tidy.sh
           - mkdir build
@@ -63,19 +64,19 @@ pipelines:
             # The first method uses debians and the second builds dependencies
             # from source. For each dependency, please use only one method.
             # METHOD 1: Install the following debians
-            - apt-get install -y 
-                libignition-cmake2-dev 
-                libignition-common3-dev 
-                libignition-fuel-tools3-dev 
-                libignition-gui2-dev 
-                libignition-math6-eigen3-dev 
-                libignition-msgs4-dev 
-                libignition-plugin-dev 
-                libignition-physics-dev 
-                libignition-rendering2-dev 
-                libignition-sensors2-dev 
-                libignition-tools-dev 
-                libignition-transport7-dev 
+            - apt-get install -y
+                libignition-cmake2-dev
+                libignition-common3-dev
+                libignition-fuel-tools3-dev
+                libignition-gui2-dev
+                libignition-math6-eigen3-dev
+                libignition-msgs4-dev
+                libignition-plugin-dev
+                libignition-physics-dev
+                libignition-rendering2-dev
+                libignition-sensors2-dev
+                libignition-tools-dev
+                libignition-transport7-dev
                 libsdformat8-dev
             # Build some Ignition libraries from source.
             # Build ign-rendering from source using the default branch
@@ -86,4 +87,4 @@ pipelines:
             - cmake ..
             - make -j4 install
             - ./bin/BENCHMARK_each --benchmark_out_format=json --benchmark_out=each.json
-            - ../docker/scripts/upload_json_benchmark.sh each.json 
+            - ../docker/scripts/upload_json_benchmark.sh each.json
