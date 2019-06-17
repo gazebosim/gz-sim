@@ -777,7 +777,6 @@ void RenderUtil::Init()
     this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
   }
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
-  this->dataPtr->initialized = true;
 }
 
 /////////////////////////////////////////////////
