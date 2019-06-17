@@ -263,8 +263,10 @@ void RenderUtil::Update()
        auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
        if (!parentNode)
        {
-         ignerr << "Failed to create sensor for entity [" << entity
-                << "]. Parent not found." << std::endl;
+         ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+                << "] for entity [" << entity
+                << "]. Parent not found with ID[" << parent << "]."
+                << std::endl;
          continue;
        }
 
