@@ -19,6 +19,8 @@
 1. Fix Docker scripts.
     * [Pull Request 347](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/347)
 
+1. Support log playback from a different path
+    * [Pull Request 355](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/355)
 
 ### Ignition Gazebo 2.0.0
 
