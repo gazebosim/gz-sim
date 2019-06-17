@@ -14,7 +14,7 @@ find_package(ignition-cmake2 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX pre1)
+ign_configure_project(VERSION_SUFFIX pre2)
 
 #============================================================================
 # Set project-specific options
@@ -97,6 +97,7 @@ ign_find_package(ignition-sensors2 REQUIRED
     logical_camera
     magnetometer
     depth_camera
+  VERSION 2.1
 )
 set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
