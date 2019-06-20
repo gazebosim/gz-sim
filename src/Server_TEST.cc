@@ -20,6 +20,7 @@
 #include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Entity.hh"
@@ -510,7 +511,7 @@ TEST_P(ServerFixture, Seed)
   unsigned int mySeed = 12345u;
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
-  EXPECT_EQ(mySeed, ignition::math::Seed());
+  EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
