@@ -502,6 +502,17 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Seed)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  EXPECT_EQ(0, serverConfig.Seed());
+  unsigned int mySeed = 12345u;
+  serverConfig.SetSeed(mySeed);
+  EXPECT_EQ(mySeed, serverConfig.Seed());
+  EXPECT_EQ(mySeed, ignition::math::Seed());
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_CASE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
