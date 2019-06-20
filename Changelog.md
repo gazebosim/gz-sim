@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.1.0
 
+1. Support custom random seed from the command line.
+    * [Pull Request 362](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/362)
+
 1. RenderUtil fix bad merge: check for existing entities in GzScene3D on initialization.
     * [Pull Request 360](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/360)
 

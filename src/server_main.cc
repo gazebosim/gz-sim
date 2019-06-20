@@ -277,7 +277,7 @@ int main(int _argc, char **_argv)
     }
   }
 
-  if (!FLAGS_seed)
+  if (FLAGS_seed)
     serverConfig.SetSeed(FLAGS_seed);
 
   // Create the Gazebo server

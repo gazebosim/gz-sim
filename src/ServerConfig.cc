@@ -412,7 +412,6 @@ unsigned int ServerConfig::Seed() const
 /////////////////////////////////////////////////
 void ServerConfig::SetSeed(unsigned int _seed)
 {
-  std::cerr << "Setting random seed" << std::endl;
   this->dataPtr->seed = _seed;
   ignition::math::Rand::Seed(_seed);
 }
