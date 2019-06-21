@@ -43,6 +43,7 @@ DEFINE_int32(network_secondaries, 0, "Number of secondary participants "
 DEFINE_bool(record, false, "Use logging system to record states");
 DEFINE_string(record_path, "", "Custom path to put recorded files");
 DEFINE_string(playback, "", "Use logging system to play back states");
+DEFINE_uint32(seed, 0, "Start with a given random number seed");
 
 //////////////////////////////////////////////////
 void help()
@@ -98,6 +99,9 @@ void help()
   << std::endl
   << "  --playback arg         Use logging system to play back states."
   << " Arg is path to recorded states."
+  << std::endl
+  << "  --seed arg             Start with a given random number seed."
+  << " Arg is the random seed (unsigned int)."
   << std::endl
   << "Environment variables:" << std::endl
   << "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate "
@@ -272,6 +276,9 @@ int main(int _argc, char **_argv)
       serverConfig.SetLogPlaybackPath(FLAGS_playback);
     }
   }
+
+  if (FLAGS_seed)
+    serverConfig.SetSeed(FLAGS_seed);
 
   // Create the Gazebo server
   ignition::gazebo::Server server(serverConfig);

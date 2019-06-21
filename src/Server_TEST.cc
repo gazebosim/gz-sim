@@ -20,6 +20,7 @@
 #include <vector>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/Entity.hh"
@@ -500,6 +501,17 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   EXPECT_EQ(1u, mockSystem->preUpdateCallCount);
   EXPECT_EQ(1u, mockSystem->updateCallCount);
   EXPECT_EQ(1u, mockSystem->postUpdateCallCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Seed)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+  EXPECT_EQ(0u, serverConfig.Seed());
+  unsigned int mySeed = 12345u;
+  serverConfig.SetSeed(mySeed);
+  EXPECT_EQ(mySeed, serverConfig.Seed());
+  EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
