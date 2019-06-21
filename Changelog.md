@@ -1,5 +1,7 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
 ### Ignition Gazebo 2.2.X
 
 1. Support custom random seed from the command line.
