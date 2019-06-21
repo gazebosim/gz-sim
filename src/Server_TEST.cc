@@ -507,7 +507,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
 TEST_P(ServerFixture, Seed)
 {
   ignition::gazebo::ServerConfig serverConfig;
-  EXPECT_EQ(0, serverConfig.Seed());
+  EXPECT_EQ(0u, serverConfig.Seed());
   unsigned int mySeed = 12345u;
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
