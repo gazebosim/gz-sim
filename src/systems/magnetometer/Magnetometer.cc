@@ -126,7 +126,8 @@ void MagnetometerPrivate::CreateMagnetometerEntities(
         const components::ParentEntity *_parent)->bool
       {
         // create sensor
-        std::string sensorScopedName = scopedName(_entity, _ecm, "::", false);
+        std::string sensorScopedName =
+            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _magnetometer->Data();
         data.SetName(sensorScopedName);
         // check topic
