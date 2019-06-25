@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.2.X
 
+1.  Remove world name from frame_ids
+    * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
+
 1.  Set default topics for rendering sensors
     * [Pull Request 363](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/363)
 
