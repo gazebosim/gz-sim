@@ -57,7 +57,6 @@ namespace ignition
     /// \return A new string with the parent scope removed.
     std::string IGNITION_GAZEBO_VISIBLE removeParentScope(
         const std::string &_name, const std::string &_delim);
-
     }
   }
 }
