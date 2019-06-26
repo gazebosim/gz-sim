@@ -7,7 +7,10 @@
 1.  Remove world name from frame_ids
     * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
 
-1.  Set default topics for rendering sensors
+1. Fix deadlock when spawning robots
+    * [Pull Request 365](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/365)
+
+1. Set default topics for rendering sensors
     * [Pull Request 363](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/363)
 
 1. Support custom random seed from the command line.
