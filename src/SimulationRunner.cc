@@ -25,6 +25,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 #include "network/NetworkManagerPrimary.hh"
 
 using namespace ignition;
@@ -572,8 +573,19 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     }
     else if ("sensor" == plugin.EntityType())
     {
-      entity = this->entityCompMgr.EntityByComponents(
-          components::Name(plugin.EntityName()), components::Sensor());
+      // TODO(louise) Use scoped names for models and worlds too
+      auto sensors = this->entityCompMgr.EntitiesByComponents(
+          components::Sensor());
+
+      for (auto sensor : sensors)
+      {
+        if (scopedName(sensor, this->entityCompMgr, "::", false) ==
+            plugin.EntityName())
+        {
+          entity = sensor;
+          break;
+        }
+      }
     }
     else
     {
