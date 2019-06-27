@@ -279,6 +279,10 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_system()->set_nsec(
       IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
   this->clockPub.Publish(clockMsg);
+
+  // Only publish to root topic if no others are.
+  if (this->rootClockPub.Valid())
+    this->rootClockPub.Publish(clockMsg);
 }
 
 /////////////////////////////////////////////////
@@ -411,6 +415,34 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Create the clock publisher.
   if (!this->clockPub.Valid())
     this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
+
+  // Create the global clock publisher.
+  if (!this->rootClockPub.Valid())
+  {
+    // Check for the existence of other publishers on `/clock`
+    std::vector<ignition::transport::MessagePublisher> publishers;
+    this->node->TopicInfo("/clock", publishers);
+
+    if (!publishers.empty())
+    {
+      ignwarn << "Found additional publishers on /clock," <<
+                 " using namespaced clock topic only" << std::endl;
+      igndbg << "Publishers [Address, Message Type]:\n";
+
+      /// List the publishers
+      for (auto iter = publishers.begin();
+          iter != publishers.end(); ++iter)
+      {
+        igndbg << "  " << (*iter).Addr() << ", "
+          << (*iter).MsgTypeName() << std::endl;
+      }
+    }
+    else
+    {
+      ignmsg << "Found no publishers on /clock, adding root clock topic" << std::endl;
+      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>("/clock");
+    }
+  }
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
