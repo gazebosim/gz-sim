@@ -222,14 +222,18 @@ void PosePublisherPrivate::FillPoses(const Entity &_entity,
     auto entityName = _ecm.Component<components::Name>(_entity);
     if (!entityName)
       return;
-    childFrame = scopedName(_entity, _ecm, "::", false);
+    childFrame =
+        removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
 
     auto parent = _ecm.Component<components::ParentEntity>(_entity);
     if (parent)
     {
       auto parentName = _ecm.Component<components::Name>(parent->Data());
       if (parentName)
-        frame = scopedName(parent->Data(), _ecm, "::", false);
+      {
+        frame = removeParentScope(scopedName(parent->Data(), _ecm, "::", false),
+            "::");
+      }
     }
     auto p = std::make_tuple(frame, childFrame, transform);
     _poses.push_back(p);
