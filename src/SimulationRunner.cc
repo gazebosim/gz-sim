@@ -21,6 +21,7 @@
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
@@ -568,6 +569,11 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     {
       entity = this->entityCompMgr.EntityByComponents(
           components::Name(plugin.EntityName()), components::World());
+    }
+    else if ("sensor" == plugin.EntityType())
+    {
+      entity = this->entityCompMgr.EntityByComponents(
+          components::Name(plugin.EntityName()), components::Sensor());
     }
     else
     {
