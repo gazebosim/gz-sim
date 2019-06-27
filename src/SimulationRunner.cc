@@ -430,17 +430,18 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       igndbg << "Publishers [Address, Message Type]:\n";
 
       /// List the publishers
-      for (auto iter = publishers.begin();
-          iter != publishers.end(); ++iter)
+      for (auto & pub : publishers)
       {
-        igndbg << "  " << (*iter).Addr() << ", "
-          << (*iter).MsgTypeName() << std::endl;
+        igndbg << "  " << pub.Addr() << ", "
+          << pub.MsgTypeName() << std::endl;
       }
     }
     else
     {
-      ignmsg << "Found no publishers on /clock, adding root clock topic" << std::endl;
-      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>("/clock");
+      ignmsg << "Found no publishers on /clock, adding root clock topic"
+             << std::endl;
+      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+          "/clock");
     }
   }
 
