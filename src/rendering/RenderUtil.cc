@@ -273,15 +273,12 @@ void RenderUtil::Update()
          continue;
        }
 
-       std::string scopedName = parentNode->Name() + "::" + dataSdf.Name();
-       dataSdf.SetName(scopedName);
-
        std::string sensorName =
            this->dataPtr->createSensorCb(dataSdf, parentNode->Name());
        // Add to the system's scene manager
        if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
        {
-         ignerr << "Failed to create sensor [" << scopedName << "]"
+         ignerr << "Failed to create sensor [" << sensorName << "]"
                 << std::endl;
        }
     }
@@ -328,6 +325,9 @@ void RenderUtilPrivate::CreateRenderingEntities(
                                     const std::string &_topicSuffix)
   {
     sdf::Sensor sdfDataCopy(_sdfData);
+    std::string sensorScopedName =
+        removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+    sdfDataCopy.SetName(sensorScopedName);
     // check topic
     if (sdfDataCopy.Topic().empty())
     {

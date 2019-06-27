@@ -134,9 +134,8 @@ TEST_F(PosePublisherTest, PublishCmd)
   // to be changed here as well
   const std::string delim = "::";
   // entity names
-  std::string worldName = "pose_publisher";
-  std::string modelName = "double_pendulum_with_base";
-  std::string scopedModelName = addDelimiter({worldName, modelName}, delim);
+  std::string modelName  = "double_pendulum_with_base";
+  std::string scopedModelName  = modelName;
   std::string baseName = "base";
   std::string scopedBaseName = addDelimiter({scopedModelName, baseName}, delim);
   std::string lowerLinkName = "lower_link";
