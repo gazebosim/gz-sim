@@ -21,6 +21,7 @@
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/System.hh>
 #include <ignition/gazebo/config.hh>
+#include <ignition/transport/Node.hh>
 
 namespace ignition
 {
@@ -50,6 +51,12 @@ class TestSensorSystem :
           igndbg << "Destroying TestSensorSystem" << std::endl;
         }
 
+  private: bool Service(msgs::StringMsg &_msg)
+           {
+             _msg.set_data("TestSensorSystem");
+             return true;
+           }
+
   public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
                          EntityComponentManager &_ecm,
@@ -59,7 +66,13 @@ class TestSensorSystem :
           auto value = _sdf->Get<int>("sensor_key");
           _ecm.CreateComponent(_entity,
               components::SensorPluginComponent(value));
+
+          // Create a test service
+          this->node.Advertise("/test/service/sensor",
+              &TestSensorSystem::Service, this);
         }
+
+  private: transport::Node node;
 };
 }
 }

@@ -1304,6 +1304,19 @@ TEST_P(EntityComponentManagerFixture, EntityByComponents)
       UIntComponent(789u)));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(IntComponent(-123),
       UIntComponent(456u)));
+
+  // Multiple entities
+  Entity eInt2 = manager.CreateEntity();
+  EXPECT_EQ(4u, manager.EntityCount());
+
+  manager.CreateComponent<IntComponent>(eInt2, IntComponent(-123));
+  manager.CreateComponent<StringComponent>(eInt2, StringComponent("int2"));
+
+  auto entities = manager.EntitiesByComponents(IntComponent(-123));
+  EXPECT_EQ(2u, entities.size());
+
+  entities = manager.EntitiesByComponents(StringComponent("int2"));
+  EXPECT_EQ(1u, entities.size());
 }
 
 /////////////////////////////////////////////////

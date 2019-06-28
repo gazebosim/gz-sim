@@ -241,6 +241,22 @@ namespace ignition
                    const ComponentTypeTs &..._desiredComponents) const;
 
       /// \brief Get all entities which match the value of all the given
+      /// components. For example, the following will return the entities which
+      /// have a name component equal to "camera" and a sensor component:
+      ///
+      ///  auto entities = EntitiesByComponents(components::Name("camera"),
+      ///    components::Sensor());
+      ///
+      /// \detail Component type must have inequality operator.
+      ///
+      /// \param[in] _desiredComponents All the components which must match.
+      /// \return All matching entities, or an empty vector if no child entity
+      /// has the exact components.
+      public: template<typename ...ComponentTypeTs>
+              std::vector<Entity> EntitiesByComponents(
+                   const ComponentTypeTs &..._desiredComponents) const;
+
+      /// \brief Get all entities which match the value of all the given
       /// components and are immediate children of a given parent entity.
       /// For example, the following will return a child of entity `parent`
       /// which has an int component equal to 123, and a string component

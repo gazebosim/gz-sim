@@ -87,12 +87,20 @@ class SimulationRunnerTest : public ::testing::TestWithParam<int>
 };
 
 std::vector<msgs::Clock> clockMsgs;
+std::vector<msgs::Clock> rootClockMsgs;
 
 /////////////////////////////////////////////////
 void clockCb(const msgs::Clock &_msg)
 {
   clockMsgs.push_back(_msg);
 }
+
+/////////////////////////////////////////////////
+void rootClockCb(const msgs::Clock &_msg)
+{
+  rootClockMsgs.push_back(_msg);
+}
+
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, CreateEntities)
@@ -930,6 +938,7 @@ TEST_P(SimulationRunnerTest, Time)
 
   transport::Node node;
   node.Subscribe("/world/default/clock", &clockCb);
+  node.Subscribe("/clock", &rootClockCb);
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
@@ -956,6 +965,10 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(1ms, runner.StepSize());
 
+  int sleep = 0;
+  while (clockMsgs.size() < 100 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   // Verify info published to /clock topic
   auto simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
@@ -972,6 +985,10 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(2ms, runner.CurrentInfo().dt);
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
+
+  sleep = 0;
+  while (clockMsgs.size() < 200 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   // Verify info published to /clock topic
   simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
@@ -1007,10 +1024,28 @@ TEST_P(SimulationRunnerTest, Time)
   EXPECT_EQ(1ms, runner.UpdatePeriod());
   EXPECT_EQ(2ms, runner.StepSize());
 
+  sleep = 0;
+  while (clockMsgs.size() < 300 && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   // Verify info published to /clock topic
   simTime = math::durationToSecNsec(runner.CurrentInfo().simTime);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->sec(), simTime.first);
   EXPECT_EQ(clockMsgs.back().mutable_sim()->nsec(), simTime.second);
+
+  sleep = 0;
+  while (clockMsgs.size() != rootClockMsgs.size() && sleep++ < 100)
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+  // verify root clock
+  EXPECT_EQ(clockMsgs.size(), rootClockMsgs.size());
+  for (unsigned int i = 0; i < clockMsgs.size(); ++i)
+  {
+    EXPECT_EQ(clockMsgs[i].mutable_sim()->sec(),
+        rootClockMsgs[i].mutable_sim()->sec());
+    EXPECT_EQ(clockMsgs[i].mutable_sim()->nsec(),
+        rootClockMsgs[i].mutable_sim()->nsec());
+  }
 }
 
 /////////////////////////////////////////////////
