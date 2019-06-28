@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  */
+#include <ignition/msgs/odometry.pb.h>
+
 #include <ignition/math/Odometry.hh>
 #include <ignition/math/Quaternion.hh>
-#include <ignition/msgs/odometry.pb.h>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -41,7 +42,7 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
   public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm);
+    const ignition::gazebo::EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -190,7 +191,6 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
     }
-
   }
 
   for (Entity joint : this->dataPtr->rightJoints)
@@ -209,34 +209,51 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
   }
 
-  // Update odometry.
+  // Create the left and right side joint position components if they
+  // don't exist.
+  auto leftPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->leftJoints[0]);
+  if (!leftPos)
+  {
+    _ecm.CreateComponent(this->dataPtr->leftJoints[0],
+        components::JointPosition());
+  }
+
+  auto rightPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->rightJoints[0]);
+  if (!rightPos)
+  {
+    _ecm.CreateComponent(this->dataPtr->rightJoints[0],
+        components::JointPosition());
+  }
+}
+
+//////////////////////////////////////////////////
+void DiffDrive::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
+{
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
   this->dataPtr->UpdateOdometry(_info, _ecm);
 }
 
 //////////////////////////////////////////////////
 void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const ignition::gazebo::EntityComponentManager &_ecm)
 {
-  // Get the first joint positions for the left and right side.
-  auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);
-  if (!leftPos)
-  {
-    _ecm.CreateComponent(this->leftJoints[0], components::JointPosition());
-  }
-
-  auto rightPos = _ecm.Component<components::JointPosition>(
-      this->rightJoints[0]);
-  if (!rightPos)
-  {
-    _ecm.CreateComponent(this->rightJoints[0], components::JointPosition());
-  }
-
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
     this->odom.Init(std::chrono::steady_clock::time_point(_info.simTime));
     return;
   }
+
+  // Get the first joint positions for the left and right side.
+  auto leftPos = _ecm.Component<components::JointPosition>(this->leftJoints[0]);
+  auto rightPos = _ecm.Component<components::JointPosition>(
+      this->rightJoints[0]);
 
   // Abort if the joints were not found or just created.
   if (!leftPos || !rightPos)
@@ -275,6 +292,7 @@ void DiffDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 IGNITION_ADD_PLUGIN(DiffDrive,
                     ignition::gazebo::System,
                     DiffDrive::ISystemConfigure,
-                    DiffDrive::ISystemPreUpdate)
+                    DiffDrive::ISystemPreUpdate,
+                    DiffDrive::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
