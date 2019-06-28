@@ -68,6 +68,10 @@ class ignition::gazebo::SdfEntityCreatorPrivate
 
   /// \brief Pointer to event manager. We don't assume ownership.
   public: EventManager *eventManager{nullptr};
+
+  /// \brief Keep track of new sensors being added, so we load their plugins
+  /// only after we have their scoped name.
+  public: std::map<Entity, sdf::ElementPtr> newSensors;
 };
 
 using namespace ignition;
@@ -217,6 +221,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   // Model plugins
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(modelEntity,
       _model->Element());
+
+  // Load sensor plugins after model, so we get scoped name.
+  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+  }
+  this->dataPtr->newSensors.clear();
 
   return modelEntity;
 }
@@ -516,8 +527,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             << "] not supported yet." << std::endl;
   }
 
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(sensorEntity,
-      _sensor->Element());
+  // Keep track of sensors so we can load their plugins after loading the entire
+  // model and having its full scoped name.
+  this->dataPtr->newSensors[sensorEntity] = _sensor->Element();
 
   return sensorEntity;
 }
