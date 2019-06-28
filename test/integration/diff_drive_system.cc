@@ -87,6 +87,13 @@ class Relay
   private: MockSystem *mockSystem;
 };
 
+std::vector<math::Pose3d> kPoses;
+/////////////////////////////////////////////////
+void odomCb(const msgs::Odometry &_msg)
+{
+  kPoses.push_back(msgs::Convert(_msg.pose()));
+}
+
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, PublishCmd)
 {
@@ -131,6 +138,7 @@ TEST_P(DiffDriveTest, PublishCmd)
   // Publish command and check that vehicle moved
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/odometry", &odomCb);
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -148,6 +156,15 @@ TEST_P(DiffDriveTest, PublishCmd)
   EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
   EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
   EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+
+  // The value from odometry will be close, but not exactly the ground truth
+  // pose of the robot model. This is partially due to throttling the
+  // odometry publisher, partially due to a frame difference between the
+  // odom frame and the model frame, and partially due to wheel slip.
+  EXPECT_NEAR(poses[0].Pos().X(), kPoses[0].Pos().X(), 1e-2);
+  EXPECT_NEAR(poses[0].Pos().Y(), kPoses[0].Pos().Y(), 1e-2);
+  EXPECT_NEAR(poses.end()->Pos().X(), kPoses.end()->Pos().X(), 1e-2);
+  EXPECT_NEAR(poses.end()->Pos().Y(), kPoses.end()->Pos().Y(), 1e-2);
 }
 
 /////////////////////////////////////////////////
