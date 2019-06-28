@@ -273,6 +273,10 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   msg.mutable_twist()->mutable_linear()->set_x(this->odom.LinearVelocity());
   msg.mutable_twist()->mutable_angular()->set_z(*this->odom.AngularVelocity());
 
+  // Set the time stamp in the header
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
+
   // Publish the message
   this->odomPub.Publish(msg);
 }
