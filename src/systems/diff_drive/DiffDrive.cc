@@ -277,6 +277,11 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
+  // Set the frame id.
+  auto frame = header->add_data();
+  frame->set_key("frame_id");
+  frame->add_value(this->dataPtr->model.Name(_ecm));
+
   // Publish the message
   this->odomPub.Publish(msg);
 }
