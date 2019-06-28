@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.2.X
 
+1. Allow attaching plugins to sensors from a server config.
+    * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
+
 1.  Remove world name from frame_ids
     * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
 
@@ -23,6 +26,7 @@
 
 1. Allow sensors to load plugins.
     * [Pull Request 356](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/356)
+    * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
 
 1. Parse and load submesh geometry in visuals.
     * [Pull Request 353](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/353)
