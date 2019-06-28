@@ -91,7 +91,6 @@ std::vector<math::Pose3d> kPoses;
 /////////////////////////////////////////////////
 void odomCb(const msgs::Odometry &_msg)
 {
-  std::cout << _msg.DebugString() << std::endl;
   kPoses.push_back(msgs::Convert(_msg.pose()));
 }
 
