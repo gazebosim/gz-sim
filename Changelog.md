@@ -6,7 +6,7 @@
     * [Pull request 313](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/313)
 
 1.  Added RollingMean class. 
-    * [Pull request 312](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/312)
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/314)
 
 ### Ignition Math 6.2.0
 
