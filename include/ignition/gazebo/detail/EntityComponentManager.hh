@@ -134,6 +134,43 @@ Entity EntityComponentManager::EntityByComponents(
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
+std::vector<Entity> EntityComponentManager::EntitiesByComponents(
+    const ComponentTypeTs &..._desiredComponents) const
+{
+  // Get all entities which have components of the desired types
+  const auto &view = this->FindView<ComponentTypeTs...>();
+
+  // Iterate over entities
+  std::vector<Entity> result;
+  for (const Entity entity : view.entities)
+  {
+    bool different{false};
+
+    // Iterate over desired components, comparing each of them to the
+    // equivalent component in the entity.
+    ForEach([&](const auto &_desiredComponent)
+    {
+      auto entityComponent = this->Component<
+          std::remove_cv_t<std::remove_reference_t<
+              decltype(_desiredComponent)>>>(entity);
+
+      if (*entityComponent != _desiredComponent)
+      {
+        different = true;
+      }
+    }, _desiredComponents...);
+
+    if (!different)
+    {
+      result.push_back(entity);
+    }
+  }
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<typename ...ComponentTypeTs>
 std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
      const ComponentTypeTs &..._desiredComponents) const
 {
