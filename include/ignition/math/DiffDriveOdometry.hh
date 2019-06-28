@@ -34,7 +34,7 @@ namespace ignition
     inline namespace IGNITION_MATH_VERSION_NAMESPACE {
     //
     // Forward declarations.
-    class OdometryPrivate;
+    class DiffDriveOdometryPrivate;
 
     /// \brief Computes odometry values based on a set of kinematic
     /// properties and wheel speeds for a diff-drive vehicle.
@@ -111,7 +111,7 @@ namespace ignition
       public: void SetVelocityRollingWindowSize(size_t _size);
 
       /// \brief Private data pointer.
-      private: std::unique_ptr<OdometryPrivate> dataPtr;
+      private: std::unique_ptr<DiffDriveOdometryPrivate> dataPtr;
     };
     }
   }

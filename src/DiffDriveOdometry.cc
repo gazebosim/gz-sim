@@ -23,7 +23,7 @@ using namespace math;
 
 // The implementation was borrowed from: https://github.com/ros-controls/ros_controllers/blob/melodic-devel/diff_drive_controller/src/odometry.cpp
 
-class ignition::math::OdometryPrivate
+class ignition::math::DiffDriveOdometryPrivate
 {
   /// \brief Integrates the velocities (linear and angular) using 2nd order
   /// Runge-Kutta.
@@ -78,15 +78,15 @@ class ignition::math::OdometryPrivate
 };
 
 //////////////////////////////////////////////////
-DiffDriveOdometry::Odometry(size_t _windowSize)
-  : dataPtr(new OdometryPrivate)
+DiffDriveOdometry::DiffDriveOdometry(size_t _windowSize)
+  : dataPtr(new DiffDriveOdometryPrivate)
 {
   this->dataPtr->linearMean.SetWindowSize(_windowSize);
   this->dataPtr->angularMean.SetWindowSize(_windowSize);
 }
 
 //////////////////////////////////////////////////
-DiffDriveOdometry::~Odometry()
+DiffDriveOdometry::~DiffDriveOdometry()
 {
 }
 
@@ -116,8 +116,8 @@ bool DiffDriveOdometry::Update(const Angle &_leftPos, const Angle &_rightPos,
     _time - this->dataPtr->lastUpdateTime;
 
   // Get current wheel joint positions:
-  const double leftWheelCurPos = _leftPos * this->dataPtr->leftWheelRadius;
-  const double rightWheelCurPos = _rightPos * this->dataPtr->rightWheelRadius;
+  const double leftWheelCurPos = *_leftPos * this->dataPtr->leftWheelRadius;
+  const double rightWheelCurPos = *_rightPos * this->dataPtr->rightWheelRadius;
 
   // Estimate velocity of wheels using old and current position:
   const double leftWheelEstVel = leftWheelCurPos -
@@ -200,9 +200,10 @@ const Angle &DiffDriveOdometry::AngularVelocity() const
 }
 
 //////////////////////////////////////////////////
-void OdometryPrivate::IntegrateRungeKutta2(double _linear, double _angular)
+void DiffDriveOdometryPrivate::IntegrateRungeKutta2(
+    double _linear, double _angular)
 {
-  const double direction = this->heading + _angular * 0.5;
+  const double direction = *this->heading + _angular * 0.5;
 
   // Runge-Kutta 2nd order integration:
   this->x += _linear * std::cos(direction);
@@ -211,7 +212,7 @@ void OdometryPrivate::IntegrateRungeKutta2(double _linear, double _angular)
 }
 
 //////////////////////////////////////////////////
-void OdometryPrivate::IntegrateExact(double _linear, double _angular)
+void DiffDriveOdometryPrivate::IntegrateExact(double _linear, double _angular)
 {
   if (std::fabs(_angular) < 1e-6)
   {
@@ -220,10 +221,10 @@ void OdometryPrivate::IntegrateExact(double _linear, double _angular)
   else
   {
     // Exact integration (should solve problems when angular is zero):
-    const double headingOld = this->heading;
+    const double headingOld = *this->heading;
     const double ratio = _linear / _angular;
     this->heading += _angular;
-    this->x += ratio * (std::sin(this->heading) - std::sin(headingOld));
-    this->y += -ratio * (std::cos(this->heading) - std::cos(headingOld));
+    this->x += ratio * (std::sin(*this->heading) - std::sin(headingOld));
+    this->y += -ratio * (std::cos(*this->heading) - std::cos(headingOld));
   }
 }
