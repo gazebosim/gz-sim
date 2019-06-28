@@ -84,7 +84,7 @@ TEST(DiffDriveOdometryTest, DiffDriveOdometry)
   EXPECT_DOUBLE_EQ(0.0, *odom.Heading());
   EXPECT_NEAR(distPerDegree * 2.0, odom.X(), 3e-6);
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
-  // Linear velocity should be dist_traveled * time_elapsed.
+  // Linear velocity should be dist_traveled / time_elapsed.
   EXPECT_NEAR(distPerDegree * 2 / 0.1, odom.LinearVelocity(), 1e-3);
   // Angular velocity should be zero since the "robot" is traveling in a
   // straight line.
