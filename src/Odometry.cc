@@ -21,7 +21,7 @@
 using namespace ignition;
 using namespace math;
 
-// The implementation was borrowed from: https://github.com/ros-controls/ros_controllers/blob/melodic-devel/four_wheel_steering_controller/src/odometry.cpp
+// The implementation was borrowed from: https://github.com/ros-controls/ros_controllers/blob/melodic-devel/diff_drive_controller/src/odometry.cpp
 
 class ignition::math::OdometryPrivate
 {
@@ -96,6 +96,13 @@ void Odometry::Init(const clock::time_point &_time)
   // Reset accumulators and timestamp.
   this->dataPtr->linearMean.Clear();
   this->dataPtr->angularMean.Clear();
+  this->dataPtr->x = 0.0;
+  this->dataPtr->y = 0.0;
+  this->dataPtr->heading = 0.0;
+  this->dataPtr->linearVel = 0.0;
+  this->dataPtr->angularVel = 0.0;
+  this->dataPtr->leftWheelOldPos = 0.0;
+  this->dataPtr->rightWheelOldPos = 0.0;
 
   this->dataPtr->lastUpdateTime = _time;
 }
@@ -104,6 +111,10 @@ void Odometry::Init(const clock::time_point &_time)
 bool Odometry::Update(double _leftPos, double _rightPos,
                       const clock::time_point &_time)
 {
+  // Compute x, y and heading using velocity
+  const std::chrono::duration<double> dt =
+    _time - this->dataPtr->lastUpdateTime;
+
   // Get current wheel joint positions:
   const double leftWheelCurPos = _leftPos * this->dataPtr->leftWheelRadius;
   const double rightWheelCurPos = _rightPos * this->dataPtr->rightWheelRadius;
@@ -125,10 +136,6 @@ bool Odometry::Update(double _leftPos, double _rightPos,
     this->dataPtr->wheelSeparation;
 
   this->dataPtr->IntegrateExact(linear, angular);
-
-  // Compute x, y and heading using velocity
-  const std::chrono::duration<double> dt =
-    _time - this->dataPtr->lastUpdateTime;
 
   // Check if interval is too small to integrate
   if (dt.count() < 0.0001)
@@ -214,7 +221,7 @@ void OdometryPrivate::IntegrateExact(double _linear, double _angular)
   {
     // Exact integration (should solve problems when angular is zero):
     const double headingOld = this->heading;
-    const double ratio = _linear/_angular;
+    const double ratio = _linear / _angular;
     this->heading += _angular;
     this->x += ratio * (std::sin(this->heading) - std::sin(headingOld));
     this->y += -ratio * (std::cos(this->heading) - std::cos(headingOld));

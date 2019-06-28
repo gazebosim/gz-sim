@@ -34,12 +34,90 @@ TEST(OdometryTest, Odometry)
   EXPECT_DOUBLE_EQ(0.0, odom.LinearVelocity());
   EXPECT_DOUBLE_EQ(0.0, odom.AngularVelocity());
 
-  odom.SetWheelParams(2.0, 0.5, 0.5);
+  double wheelSeparation = 2.0;
+  double wheelRadius = 0.5;
+  double wheelCircumference = 2 * IGN_PI * wheelRadius;
+
+  // This is the linear distance traveled per degree of wheel rotation.
+  double distPerDegree = wheelCircumference / 360.0;
+
+  // Setup the wheel parameters, and initialize
+  odom.SetWheelParams(wheelSeparation, wheelRadius, wheelRadius);
   odom.Init(std::chrono::steady_clock::now());
+
+  // Sleep for a little while, then update the odometry with the new wheel
+  // position.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   odom.Update(IGN_DTOR(1.0), IGN_DTOR(1.0), std::chrono::steady_clock::now());
   EXPECT_DOUBLE_EQ(0.0, odom.Heading());
-  EXPECT_NEAR(0.008726, odom.X(), 1e-6);
+  EXPECT_DOUBLE_EQ(distPerDegree, odom.X());
   EXPECT_DOUBLE_EQ(0.0, odom.Y());
+  // Linear velocity should be dist_traveled / time_elapsed.
+  EXPECT_NEAR(distPerDegree / 0.1, odom.LinearVelocity(), 1e-3);
+  // Angular velocity should be zero since the "robot" is traveling in a
+  // straight line.
+  EXPECT_NEAR(0.0, odom.AngularVelocity(), 1e-3);
 
+  // Sleep again, then update the odometry with the new wheel position.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), std::chrono::steady_clock::now());
+  EXPECT_DOUBLE_EQ(0.0, odom.Heading());
+  EXPECT_NEAR(distPerDegree * 2.0, odom.X(), 3e-6);
+  EXPECT_DOUBLE_EQ(0.0, odom.Y());
+  // Linear velocity should be dist_traveled / time_elapsed.
+  EXPECT_NEAR(distPerDegree / 0.1, odom.LinearVelocity(), 1e-3);
+  // Angular velocity should be zero since the "robot" is traveling in a
+  // straight line.
+  EXPECT_NEAR(0.0, odom.AngularVelocity(), 1e-3);
+
+  // Initialize again, and odom values should be reset.
+  odom.Init(std::chrono::steady_clock::now());
+  EXPECT_DOUBLE_EQ(0.0, odom.Heading());
+  EXPECT_DOUBLE_EQ(0.0, odom.X());
+  EXPECT_DOUBLE_EQ(0.0, odom.Y());
+  EXPECT_DOUBLE_EQ(0.0, odom.LinearVelocity());
+  EXPECT_DOUBLE_EQ(0.0, odom.AngularVelocity());
+
+  // Sleep again, this time move 2 degrees in 100ms.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  odom.Update(IGN_DTOR(2.0), IGN_DTOR(2.0), std::chrono::steady_clock::now());
+  EXPECT_DOUBLE_EQ(0.0, odom.Heading());
+  EXPECT_NEAR(distPerDegree * 2.0, odom.X(), 3e-6);
+  EXPECT_DOUBLE_EQ(0.0, odom.Y());
+  // Linear velocity should be dist_traveled * time_elapsed.
+  EXPECT_NEAR(distPerDegree * 2 / 0.1, odom.LinearVelocity(), 1e-3);
+  // Angular velocity should be zero since the "robot" is traveling in a
+  // straight line.
+  EXPECT_NEAR(0.0, odom.AngularVelocity(), 1e-3);
+
+
+  // Sleep again, this time rotate the right wheel by 1 degree.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  odom.Update(IGN_DTOR(2.0), IGN_DTOR(3.0), std::chrono::steady_clock::now());
+  // The heading should be the arc tangent of the linear distance traveled
+  // by the right wheel (the left wheel was stationary) divided by the
+  // wheel separation.
+  EXPECT_NEAR(atan2(distPerDegree, wheelSeparation), odom.Heading(), 1e-6);
+
+
+  // The X odom reading should have increased by the sine of the heading *
+  // half the wheel separation.
+  double xDistTraveled =
+    sin(atan2(distPerDegree, wheelSeparation)) * wheelSeparation * 0.5;
+  double prevXPos = distPerDegree * 2.0;
+  EXPECT_NEAR(xDistTraveled + prevXPos, odom.X(), 3e-6);
+
+  // The Y odom reading should have increased by the cosine of the header *
+  // half the wheel separation.
+  double yDistTraveled = (wheelSeparation * 0.5) -
+      cos(atan2(distPerDegree, wheelSeparation)) * wheelSeparation * 0.5;
+  double prevYPos = 0.0;
+  EXPECT_NEAR(yDistTraveled + prevYPos, odom.Y(), 3e-6);
+
+  // Angular velocity should be the difference between the x and y distance
+  // traveled divided by the wheel separation divided by the seconds
+  // elapsed.
+  EXPECT_NEAR(
+      ((xDistTraveled - yDistTraveled) / wheelSeparation) / 0.1,
+      odom.AngularVelocity(), 1e-3);
 }
