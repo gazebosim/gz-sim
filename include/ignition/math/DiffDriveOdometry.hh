@@ -50,7 +50,7 @@ namespace ignition
     ///
     /// Rotating the right wheel while keeping the left wheel fixed will cause
     /// the vehicle to rotate counter-clockwise. For example (excuse the
-    /// lack of precision with ascii arr):
+    /// lack of precision with ASCII art):
     ///
     ///     Y     X(forward)
     ///     ^     ^
