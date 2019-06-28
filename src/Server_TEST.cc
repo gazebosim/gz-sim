@@ -186,8 +186,9 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
       "ignition::gazebo::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor", "sensor",
-      "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem", sdf});
+  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor",
+      "sensor", "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem",
+      sdf});
 
   gazebo::Server server(serverConfig);
 
