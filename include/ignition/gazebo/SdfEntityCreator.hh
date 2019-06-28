@@ -91,7 +91,7 @@ namespace ignition
       public: Entity CreateEntities(const sdf::World *_world);
 
       /// \brief Create all entities that exist in the sdf::Model object and
-      /// load their plugins.
+      /// load their plugins. Also loads plugins of child sensors.
       /// \param[in] _model SDF model object.
       /// \return Model entity.
       public: Entity CreateEntities(const sdf::Model *_model);
@@ -126,8 +126,8 @@ namespace ignition
       /// \return Collision entity.
       public: Entity CreateEntities(const sdf::Collision *_collision);
 
-      /// \brief Create all entities that exist in the sdf::Sensor object and
-      /// load their plugins.
+      /// \brief Create all entities that exist in the sdf::Sensor object.
+      /// Sensor plugins won't be directly loaded by this function.
       /// \param[in] _sensor SDF sensor object.
       /// \return Sensor entity.
       public: Entity CreateEntities(const sdf::Sensor *_sensor);

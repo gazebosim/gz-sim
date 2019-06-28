@@ -172,6 +172,44 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigSensorPlugin)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/air_pressure.sdf");
+
+  sdf::ElementPtr sdf(new sdf::Element);
+  sdf->SetName("plugin");
+  sdf->AddAttribute("name", "string",
+      "ignition::gazebo::TestSensorSystem", true);
+  sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
+
+  serverConfig.AddPlugin({"air_pressure_model::link::air_pressure_sensor", "sensor",
+      "libTestSensorSystem.so", "ignition::gazebo::TestSensorSystem", sdf});
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run the server
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_FALSE(*server.Paused());
+
+  // The TestSensorSystem should have created a service. Call the service to
+  // make sure the TestSensorSystem was successfully loaded.
+  transport::Node node;
+  msgs::StringMsg rep;
+  bool result;
+  bool executed = node.Request("/test/service/sensor", 5000, rep, result);
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_EQ("TestSensorSystem", rep.data());
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, SdfServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
