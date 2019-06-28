@@ -35,7 +35,7 @@ namespace ignition
     /// The window size determines the maximum number of data points. The
     /// oldest value is popped off when the window size is reached and
     /// a new value is pushed in.
-    class RollingMean
+    class IGNITION_MATH_VISIBLE RollingMean
     {
       /// \brief Constructor
       /// \param[in] _windowSize The window size to use. This value will be
