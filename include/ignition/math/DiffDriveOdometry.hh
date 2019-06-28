@@ -135,8 +135,17 @@ namespace ignition
       /// \param[in] _size The Velocity rolling window size.
       public: void SetVelocityRollingWindowSize(size_t _size);
 
+#ifdef _WIN32
+// Disable warning C4251 which is triggered by
+// std::unique_ptr
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
       /// \brief Private data pointer.
       private: std::unique_ptr<DiffDriveOdometryPrivate> dataPtr;
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
     };
     }
   }
