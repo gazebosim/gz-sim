@@ -2,6 +2,9 @@
 
 ### Ignition Math 6.x.x
 
+1.  Added RollingMean class. 
+    * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/314)
+
 ### Ignition Math 6.2.0
 
 1.  eigen3: Use linear() instead of rotation() to prevent computation of SVD
