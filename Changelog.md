@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.2.X
 
+1. The DiffDrive system publishes odometry information. 
+    * [Pull Request 368](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/368)
+
 1. Allow attaching plugins to sensors from a server config.
     * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
 
