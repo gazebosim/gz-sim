@@ -2,6 +2,9 @@
 
 ### Ignition Math 6.x.x
 
+1.  Added Odometry class that computes odometry for a two wheeled vehicle. 
+    * [Pull request 313](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/313)
+
 1.  Added RollingMean class. 
     * [Pull request 314](https://bitbucket.org/ignitionrobotics/ign-math/pull-requests/314)
 
