@@ -4,6 +4,9 @@
 
 ### Ignition Gazebo 2.2.X
 
+1. Allow attaching plugins to sensors from a server config.
+    * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
+
 1.  Remove world name from frame_ids
     * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
 
