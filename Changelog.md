@@ -2,7 +2,7 @@
 
 ### Ignition Gazebo 2.X.X
 
-### Ignition Gazebo 2.2.X
+### Ignition Gazebo 2.2.0
 
 1. The DiffDrive system publishes odometry information. 
     * [Pull Request 368](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/368)
