@@ -15,7 +15,7 @@
  *
 */
 #include <cmath>
-#include "ignition/math/Odometry.hh"
+#include "ignition/math/DiffDriveOdometry.hh"
 #include "ignition/math/RollingMean.hh"
 
 using namespace ignition;
@@ -47,13 +47,13 @@ class ignition::math::OdometryPrivate
   public: double y{0.0};
 
   /// \brief Current heading in radians.
-  public: double heading{0.0};
+  public: Angle heading;
 
   /// \brief Current velocity in meter/second.
   public: double linearVel{0.0};
 
   /// \brief Current angular velocity in radians/second.
-  public: double angularVel{0.0};
+  public: Angle angularVel;
 
   /// \brief Left wheel radius in meters.
   public: double leftWheelRadius{0.0};
@@ -78,7 +78,7 @@ class ignition::math::OdometryPrivate
 };
 
 //////////////////////////////////////////////////
-Odometry::Odometry(size_t _windowSize)
+DiffDriveOdometry::Odometry(size_t _windowSize)
   : dataPtr(new OdometryPrivate)
 {
   this->dataPtr->linearMean.SetWindowSize(_windowSize);
@@ -86,12 +86,12 @@ Odometry::Odometry(size_t _windowSize)
 }
 
 //////////////////////////////////////////////////
-Odometry::~Odometry()
+DiffDriveOdometry::~Odometry()
 {
 }
 
 //////////////////////////////////////////////////
-void Odometry::Init(const clock::time_point &_time)
+void DiffDriveOdometry::Init(const clock::time_point &_time)
 {
   // Reset accumulators and timestamp.
   this->dataPtr->linearMean.Clear();
@@ -108,7 +108,7 @@ void Odometry::Init(const clock::time_point &_time)
 }
 
 //////////////////////////////////////////////////
-bool Odometry::Update(double _leftPos, double _rightPos,
+bool DiffDriveOdometry::Update(const Angle &_leftPos, const Angle &_rightPos,
                       const clock::time_point &_time)
 {
   // Compute x, y and heading using velocity
@@ -154,7 +154,7 @@ bool Odometry::Update(double _leftPos, double _rightPos,
 }
 
 //////////////////////////////////////////////////
-void Odometry::SetWheelParams(double _wheelSeparation,
+void DiffDriveOdometry::SetWheelParams(double _wheelSeparation,
     double _leftWheelRadius, double _rightWheelRadius)
 {
   this->dataPtr->wheelSeparation = _wheelSeparation;
@@ -163,38 +163,38 @@ void Odometry::SetWheelParams(double _wheelSeparation,
 }
 
 //////////////////////////////////////////////////
-void Odometry::SetVelocityRollingWindowSize(size_t _size)
+void DiffDriveOdometry::SetVelocityRollingWindowSize(size_t _size)
 {
   this->dataPtr->linearMean.SetWindowSize(_size);
   this->dataPtr->angularMean.SetWindowSize(_size);
 }
 
 //////////////////////////////////////////////////
-double Odometry::Heading() const
+const Angle &DiffDriveOdometry::Heading() const
 {
   return this->dataPtr->heading;
 }
 
 //////////////////////////////////////////////////
-double Odometry::X() const
+double DiffDriveOdometry::X() const
 {
   return this->dataPtr->x;
 }
 
 //////////////////////////////////////////////////
-double Odometry::Y() const
+double DiffDriveOdometry::Y() const
 {
   return this->dataPtr->y;
 }
 
 //////////////////////////////////////////////////
-double Odometry::LinearVelocity() const
+double DiffDriveOdometry::LinearVelocity() const
 {
   return this->dataPtr->linearVel;
 }
 
 //////////////////////////////////////////////////
-double Odometry::AngularVelocity() const
+const Angle &DiffDriveOdometry::AngularVelocity() const
 {
   return this->dataPtr->angularVel;
 }

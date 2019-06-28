@@ -14,11 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_ODOMETRY_HH_
-#define IGNITION_MATH_ODOMETRY_HH_
+#ifndef IGNITION_MATH_DIFFDRIVEODOMETRY_HH_
+#define IGNITION_MATH_DIFFDRIVEODOMETRY_HH_
 
 #include <chrono>
 #include <memory>
+#include <ignition/math/Angle.hh>
 #include <ignition/math/Export.hh>
 #include <ignition/math/config.hh>
 
@@ -37,15 +38,34 @@ namespace ignition
 
     /// \brief Computes odometry values based on a set of kinematic
     /// properties and wheel speeds for a diff-drive vehicle.
-    class Odometry
+    ///
+    /// A vehicle with a heading of zero degrees has a local
+    /// reference frame according to the diagram below.
+    ///
+    ///       Y
+    ///       ^
+    ///       |
+    ///       |
+    ///       O--->X(forward)
+    ///
+    /// Rotating the right wheel while keeping the left wheel fixed will cause
+    /// the vehicle to rotate counter-clockwise. For example (excuse the
+    /// lack of precision with ascii arr):
+    ///
+    ///     Y     X(forward)
+    ///     ^     ^
+    ///      \   /
+    ///       \ /
+    ///        O
+    class DiffDriveOdometry
     {
       /// \brief Constructor.
       /// \param[in] _windowSize Rolling window size used to compute the
       /// velocity mean
-      public: explicit Odometry(size_t _windowSize = 10);
+      public: explicit DiffDriveOdometry(size_t _windowSize = 10);
 
       /// \brief Destructor.
-      public: ~Odometry();
+      public: ~DiffDriveOdometry();
 
       /// \brief Initialize the odometry
       /// \param[in] _time Current time.
@@ -56,12 +76,12 @@ namespace ignition
       /// \param[in] _leftPos Left wheel position in radians.
       /// \param[in] _rightPos Right wheel postion in radians.
       /// \return True if the odometry is actually updated.
-      public: bool Update(double _leftPos, double _rightPos,
+      public: bool Update(const Angle &_leftPos, const Angle &_rightPos,
                           const clock::time_point &_time);
 
       /// \brief Get the heading.
       /// \return The heading in radians.
-      public: double Heading() const;
+      public: const Angle &Heading() const;
 
       /// \brief Get the X position.
       ///  \return The X position in meters
@@ -77,7 +97,7 @@ namespace ignition
 
       /// \brief Get the angular velocity.
       /// \return The angular velocity in radian/second.
-      public: double AngularVelocity() const;
+      public: const Angle &AngularVelocity() const;
 
       /// \brief Set the wheel parameters including the radius and separation.
       /// \param[in] _wheelSeparation Distance between left and right wheels.
