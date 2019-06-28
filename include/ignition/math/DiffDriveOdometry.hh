@@ -36,6 +36,9 @@ namespace ignition
     // Forward declarations.
     class DiffDriveOdometryPrivate;
 
+    /** \class DiffDriveOdometry DiffDriveOdometry.hh \
+     * ignition/math/DiffDriveOdometry.hh
+     **/
     /// \brief Computes odometry values based on a set of kinematic
     /// properties and wheel speeds for a diff-drive vehicle.
     ///
@@ -57,7 +60,25 @@ namespace ignition
     ///      \   /
     ///       \ /
     ///        O
-    class DiffDriveOdometry
+    ///
+    /// **Example Usage**
+    ///
+    /// \code{.cpp}
+    /// ignition::math::DiffDriveOdometry odom;
+    /// odom.SetWheelParams(2.0, 0.5, 0.5);
+    /// odom.Init(std::chrono::steady_clock::now());
+    ///
+    /// // ... Some time later
+    ///
+    /// // Both wheels have rotated the same amount
+    /// odom.Update(IGN_DTOR(2), IGN_DTOR(2), std::chrono::steady_clock::now());
+    ///
+    /// // ... Some time later
+    ///
+    /// // The left wheel has rotated, the right wheel did not rotate
+    /// odom.Update(IGN_DTOR(4), IGN_DTOR(2), std::chrono::steady_clock::now());
+    /// \endcode
+    class IGNITION_MATH_VISIBLE DiffDriveOdometry
     {
       /// \brief Constructor.
       /// \param[in] _windowSize Rolling window size used to compute the
