@@ -223,7 +223,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
       _model->Element());
 
   // Load sensor plugins after model, so we get scoped name.
-  for (auto [entity, element] : this->dataPtr->newSensors)
+  for (const auto &[entity, element] : this->dataPtr->newSensors)
   {
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
   }

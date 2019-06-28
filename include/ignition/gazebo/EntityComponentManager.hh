@@ -242,7 +242,7 @@ namespace ignition
 
       /// \brief Get all entities which match the value of all the given
       /// components. For example, the following will return the entities which
-      /// have a name component equal to "camera" and has a sensor component:
+      /// have a name component equal to "camera" and a sensor component:
       ///
       ///  auto entities = EntitiesByComponents(components::Name("camera"),
       ///    components::Sensor());
