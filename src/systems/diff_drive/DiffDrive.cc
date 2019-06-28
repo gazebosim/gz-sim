@@ -21,8 +21,10 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
 #include "DiffDrive.hh"
@@ -74,6 +76,9 @@ class ignition::gazebo::systems::DiffDrivePrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief The model's canonical link.
+  public: Link canonicalLink{kNullEntity};
+
   /// \brief Diff drive odometry.
   public: math::DiffDriveOdometry odom;
 
@@ -94,6 +99,12 @@ void DiffDrive::Configure(const Entity &_entity,
     EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
+
+  // Get the canonical link
+  std::vector<Entity> links = _ecm.ChildrenByComponents(
+      this->dataPtr->model.Entity(), components::CanonicalLink());
+  if (!links.empty())
+    this->dataPtr->canonicalLink = Link(links[0]);
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
@@ -281,6 +292,14 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
   frame->add_value(this->model.Name(_ecm));
+
+  std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
+  if (linkName)
+  {
+    auto childFrame = msg.mutable_header()->add_data();
+    childFrame->set_key("child_frame_id");
+    childFrame->add_value(*linkName);
+  }
 
   // Publish the message
   this->odomPub.Publish(msg);
