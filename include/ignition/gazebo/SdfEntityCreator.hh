@@ -130,6 +130,7 @@ namespace ignition
       /// Sensor plugins won't be directly loaded by this function.
       /// \param[in] _sensor SDF sensor object.
       /// \return Sensor entity.
+      /// \sa CreateEntities(const sdf::Model *)
       public: Entity CreateEntities(const sdf::Sensor *_sensor);
 
       /// \brief Request an entity deletion. This will insert the request
