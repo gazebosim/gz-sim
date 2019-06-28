@@ -16,7 +16,7 @@
  */
 #include <ignition/msgs/odometry.pb.h>
 
-#include <ignition/math/Odometry.hh>
+#include <ignition/math/DiffDriveOdometry.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
