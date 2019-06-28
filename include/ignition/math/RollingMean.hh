@@ -40,7 +40,7 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _windowSize The window size to use. This value will be
       /// ignored if it is equal to zero.
-      public: RollingMean(size_t _windowSize = 10);
+      public: explicit RollingMean(size_t _windowSize = 10);
 
       /// \brief Destructor.
       public: ~RollingMean();
