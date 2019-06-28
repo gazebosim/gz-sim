@@ -92,6 +92,10 @@ namespace ignition
       /// \param[in] _time Current time.
       public: void Init(const clock::time_point &_time);
 
+      /// \brief Get whether Init has been called.
+      /// \return True if Init has been called, false otherwise.
+      public: bool Initialized() const;
+
       /// \brief Updates the odometry class with latest wheels and
       /// steerings position
       /// \param[in] _leftPos Left wheel position in radians.

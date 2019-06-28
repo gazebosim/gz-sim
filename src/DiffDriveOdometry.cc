@@ -75,6 +75,9 @@ class ignition::math::DiffDriveOdometryPrivate
 
   /// \brief Rolling mean accumulators for the angular velocity
   public: RollingMean angularMean;
+
+  /// \brief Initialized flag.
+  public: bool initialized{false};
 };
 
 //////////////////////////////////////////////////
@@ -105,6 +108,13 @@ void DiffDriveOdometry::Init(const clock::time_point &_time)
   this->dataPtr->rightWheelOldPos = 0.0;
 
   this->dataPtr->lastUpdateTime = _time;
+  this->dataPtr->initialized = true;
+}
+
+//////////////////////////////////////////////////
+bool DiffDriveOdometry::Initialized() const
+{
+  return this->dataPtr->initialized;
 }
 
 //////////////////////////////////////////////////
@@ -137,8 +147,9 @@ bool DiffDriveOdometry::Update(const Angle &_leftPos, const Angle &_rightPos,
 
   this->dataPtr->IntegrateExact(linear, angular);
 
-  // Check if interval is too small to integrate
-  if (dt.count() < 0.0001)
+  // We cannot estimate the speed if the time interval is zero (or near
+  // zero).
+  if (equal(0.0, dt.count()))
     return false;
 
   this->dataPtr->lastUpdateTime = _time;
