@@ -298,7 +298,7 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
-    childFrame->add_value(this->model.Name(_ecm));
+    childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
   }
 
   // Publish the message
