@@ -273,7 +273,7 @@ void EntityComponentManager::Each(typename identity<std::function<
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view.entities)
+  for (const Entity &entity : view.entities)
   {
     if (!_f(entity, view.Component<ComponentTypeTs>(entity, this)...))
     {

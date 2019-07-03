@@ -597,7 +597,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
-  // Handle joint state
+  // Handel joint state
   _ecm.Each<components::Joint, components::Name>(
       [&](const Entity &_entity, const components::Joint *,
           const components::Name *_name)
@@ -752,7 +752,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const Entity &_entity, components::Link * /*_link*/,
-          components::Pose *_pose, components::ParentEntity *_parent)->bool
+          components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
@@ -761,7 +762,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::CanonicalLink>(_entity);
 
           // get the pose component of the parent model
-          auto parentPose =
+          const components::Pose *parentPose =
               _ecm.Component<components::Pose>(_parent->Data());
 
           auto frameData = linkIt->second->FrameDataRelativeToWorld();
@@ -785,8 +786,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // this link relative to world so to set the model's pose, we have
             // to premultiply it by the inverse of the initial transform of
             // the link w.r.t to its model.
-            *parentPose = components::Pose(_pose->Data().Inverse() +
-                                           math::eigen3::convert(worldPose));
+            *(_ecm.Component<components::Pose>(_parent->Data())) =
+              components::Pose(
+                static_cast<const components::Pose *>(_pose)->Data().Inverse() +
+                math::eigen3::convert(worldPose));
           }
           else
           {
@@ -801,7 +804,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            auto data = math::eigen3::convert(frameData.pose);
+            if (worldPoseComp->Data() != data)
+              worldPoseComp->SetData(data);
           }
 
           // Velocity in world coordinates
@@ -809,8 +814,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearVelocity>(_entity);
           if (worldLinVelComp)
           {
-            worldLinVelComp->Data() =
-                math::eigen3::convert(frameData.linearVelocity);
+            auto data = math::eigen3::convert(frameData.linearVelocity);
+            if (data !=worldLinVelComp->Data())
+              worldLinVelComp->SetData(data);
           }
 
           // Angular velocity in world frame coordinates
@@ -818,8 +824,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularVelocity>(_entity);
           if (worldAngVelComp)
           {
-            worldAngVelComp->Data() =
-                math::eigen3::convert(frameData.angularVelocity);
+            auto data = math::eigen3::convert(frameData.angularVelocity);
+            if (data != worldAngVelComp->Data())
+              worldAngVelComp->SetData(data);
           }
 
           // Acceleration in world frame coordinates
@@ -827,8 +834,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearAcceleration>(_entity);
           if (worldLinAccelComp)
           {
-            worldLinAccelComp->Data() =
-                math::eigen3::convert(frameData.linearAcceleration);
+            auto data = math::eigen3::convert(frameData.linearAcceleration);
+            if (data != worldLinAccelComp->Data())
+              worldLinAccelComp->SetData(data);
           }
 
           // Angular acceleration in world frame coordinates
@@ -836,8 +844,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularAcceleration>(_entity);
           if (worldAngAccelComp)
           {
-            worldAngAccelComp->Data() =
-                math::eigen3::convert(frameData.angularAcceleration);
+            auto data = math::eigen3::convert(frameData.angularAcceleration);
+            if (data != worldAngAccelComp->Data())
+              worldAngAccelComp->SetData(data);
           }
 
           const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
@@ -848,7 +857,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinVelComp)
           {
             Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-            bodyLinVelComp->Data() = math::eigen3::convert(bodyLinVel);
+            auto data = math::eigen3::convert(bodyLinVel);
+            if (data !=bodyLinVelComp->Data())
+              bodyLinVelComp->SetData(data);
           }
 
           // Angular velocity in body-fixed frame coordinates
@@ -857,7 +868,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngVelComp)
           {
             Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-            bodyAngVelComp->Data() = math::eigen3::convert(bodyAngVel);
+            auto data = math::eigen3::convert(bodyAngVel);
+            if (data != bodyAngVelComp->Data())
+              bodyAngVelComp->SetData(data);
           }
 
           // Acceleration in body-fixed frame coordinates
@@ -866,7 +879,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinAccelComp)
           {
             Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-            bodyLinAccelComp->Data() = math::eigen3::convert(bodyLinAccel);
+            auto data = math::eigen3::convert(bodyLinAccel);
+            if (data != bodyLinAccelComp->Data())
+              bodyLinAccelComp->SetData(data);
           }
 
           // Angular acceleration in world frame coordinates
@@ -876,7 +891,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           {
             Eigen::Vector3d bodyAngAccel =
                 R_bs * frameData.angularAcceleration;
-            bodyAngAccelComp->Data() = math::eigen3::convert(bodyAngAccel);
+            auto data = math::eigen3::convert(bodyAngAccel);
+            if (data != bodyAngAccelComp->Data())
+              bodyAngAccelComp->SetData(data);
           }
         }
         else
@@ -899,8 +916,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldPose,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose, components::WorldPose *_worldPose,
-          components::ParentEntity *_parent)->bool
+          const components::Pose *_pose, components::WorldPose *_worldPose,
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -920,9 +937,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldLinearVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::WorldLinearVelocity *_worldLinearVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -943,9 +960,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::AngularVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::AngularVelocity *_angularVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -970,9 +987,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::LinearAcceleration,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::LinearAcceleration *_linearAcc,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_parent->Data());
         if (linkIt != this->entityLinkMap.end())

@@ -425,6 +425,20 @@ namespace ignition
           const std::unordered_set<Entity> &_entities = {},
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
 
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \detail The header of the message will not be populated, it is the
+      /// responsability of the caller to timestamp it before use.
+      /// \param[in] _entities Entities to be serialized. Leave empty to get
+      /// all entities.
+      /// \param[in] _types Type ID of components to be serialized. Leave empty
+      /// to get all components.
+      public: void State(
+                  msgs::SerializedState  &_state,
+                  const std::unordered_set<Entity> &_entities = {},
+                  const std::unordered_set<ComponentTypeId> &_types = {}
+                  ) const;
+
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
       ///
@@ -440,6 +454,22 @@ namespace ignition
       /// \detail The header of the message will not be populated, it is the
       /// responsability of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
+
+      /// \brief Get a message with the serialized state of all entities and
+      /// components that are changing in the current iteration
+      ///
+      /// Currently supported:
+      /// * New entities and all of their components
+      /// * Removed entities and all of their components
+      ///
+      /// Future work:
+      /// * Entities which had a component added
+      /// * Entities which had a component removed
+      /// * Entities which had a component modified
+      ///
+      /// \detail The header of the message will not be populated, it is the
+      /// responsability of the caller to timestamp it before use.
+      public: void ChangedState(msgs::SerializedState &_state) const;
 
       /// \brief Get whether there are new entities.
       /// \return True if there are new entities.

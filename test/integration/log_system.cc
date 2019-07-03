@@ -215,7 +215,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       msgs::SerializedState stateMsg;
       stateMsg.ParseFromString(recordedIter->Data());
 
-      EXPECT_EQ(28, stateMsg.entities().size());
+      EXPECT_EQ(28, stateMsg.entities_size());
 
       hasState = true;
       ++recordedIter;
