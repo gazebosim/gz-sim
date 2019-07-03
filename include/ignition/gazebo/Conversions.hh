@@ -59,6 +59,19 @@ namespace ignition
     /// \param[in] _sdf SDF Noise object.
     void set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
+    /// \brief Helper function that sets a mutable msgs::WorldStatistics object
+    /// to the values contained in a gazebo::UpdateInfo  object.
+    /// \param[out] _msg WorldStatistics message to set.
+    /// \param[in] _in UpdateInfo object.
+    void set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
+
+    /// \brief Helper function that sets a mutable msgs::Time object
+    /// to the values contained in a std::chrono::steady_clock::duration
+    /// object.
+    /// \param[out] _msg Time message to set.
+    /// \param[in] _in Chrono duration object.
+    void set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
+
     /// \brief Generic conversion from an SDF geometry to another type.
     /// \param[in] _in SDF geometry.
     /// \return Conversion result.
