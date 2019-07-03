@@ -451,8 +451,11 @@ namespace components
   void Component<DataType, Identifier, Serializer>::SetData(
       const DataType &_data)
   {
-    this->SetChanged(true);
-    this->data = _data;
+    if (_data != this->data)
+    {
+      this->SetChanged(true);
+      this->data = _data;
+    }
   }
 
   //////////////////////////////////////////////////

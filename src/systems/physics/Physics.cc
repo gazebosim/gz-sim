@@ -804,7 +804,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            worldPoseComp->SetData(math::eigen3::convert(frameData.pose));
           }
 
           // Velocity in world coordinates
@@ -812,8 +812,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearVelocity>(_entity);
           if (worldLinVelComp)
           {
-            worldLinVelComp->Data() =
-                math::eigen3::convert(frameData.linearVelocity);
+            worldLinVelComp->SetData(
+                math::eigen3::convert(frameData.linearVelocity));
           }
 
           // Angular velocity in world frame coordinates
@@ -821,8 +821,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularVelocity>(_entity);
           if (worldAngVelComp)
           {
-            worldAngVelComp->Data() =
-                math::eigen3::convert(frameData.angularVelocity);
+            worldAngVelComp->SetData(
+                math::eigen3::convert(frameData.angularVelocity));
           }
 
           // Acceleration in world frame coordinates
@@ -830,8 +830,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearAcceleration>(_entity);
           if (worldLinAccelComp)
           {
-            worldLinAccelComp->Data() =
-                math::eigen3::convert(frameData.linearAcceleration);
+            worldLinAccelComp->SetData(
+                math::eigen3::convert(frameData.linearAcceleration));
           }
 
           // Angular acceleration in world frame coordinates
@@ -839,8 +839,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularAcceleration>(_entity);
           if (worldAngAccelComp)
           {
-            worldAngAccelComp->Data() =
-                math::eigen3::convert(frameData.angularAcceleration);
+            worldAngAccelComp->SetData(
+                math::eigen3::convert(frameData.angularAcceleration));
           }
 
           const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
@@ -851,7 +851,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinVelComp)
           {
             Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-            bodyLinVelComp->Data() = math::eigen3::convert(bodyLinVel);
+            bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel));
           }
 
           // Angular velocity in body-fixed frame coordinates
@@ -860,7 +860,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngVelComp)
           {
             Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-            bodyAngVelComp->Data() = math::eigen3::convert(bodyAngVel);
+            bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel));
           }
 
           // Acceleration in body-fixed frame coordinates
@@ -869,7 +869,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinAccelComp)
           {
             Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-            bodyLinAccelComp->Data() = math::eigen3::convert(bodyLinAccel);
+            bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel));
           }
 
           // Angular acceleration in world frame coordinates
@@ -879,7 +879,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           {
             Eigen::Vector3d bodyAngAccel =
                 R_bs * frameData.angularAcceleration;
-            bodyAngAccelComp->Data() = math::eigen3::convert(bodyAngAccel);
+            bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel));
           }
         }
         else
