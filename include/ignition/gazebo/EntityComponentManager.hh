@@ -455,22 +455,6 @@ namespace ignition
       /// responsability of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
-      /// \brief Get a message with the serialized state of all entities and
-      /// components that are changing in the current iteration
-      ///
-      /// Currently supported:
-      /// * New entities and all of their components
-      /// * Removed entities and all of their components
-      ///
-      /// Future work:
-      /// * Entities which had a component added
-      /// * Entities which had a component removed
-      /// * Entities which had a component modified
-      ///
-      /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
-      public: void ChangedState(msgs::SerializedState &_state) const;
-
       /// \brief Get whether there are new entities.
       /// \return True if there are new entities.
       public: bool HasNewEntities() const;

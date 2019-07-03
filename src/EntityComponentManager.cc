@@ -679,30 +679,26 @@ void EntityComponentManager::RebuildViews()
 void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types) const
 {
-  auto iter = _msg.mutable_entities()->end();
-  /*_msg.mutable_entities()->find(_entity);
-  if (iter == _msg.mutable_entities()->end())
-  {
-    msgs::SerializedEntity ent;
-    ent.set_id(_entity);
-    (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
-    iter = _msg.mutable_entities()->find(_entity);
-  }
-  */
+  // Set the default entity iterator to the end. This will allow us to know
+  // if the entity has been added to the message.
+  auto entIter = _msg.mutable_entities()->end();
 
+  // Add an entity to the message and set it to be removed if the entity
+  // exists in the toRemoveEntities list.
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
       this->dataPtr->toRemoveEntities.end())
   {
-    iter = _msg.mutable_entities()->find(_entity);
-    if (iter == _msg.mutable_entities()->end())
+    // Find the entity in the message, and add if not present.
+    entIter = _msg.mutable_entities()->find(_entity);
+    if (entIter == _msg.mutable_entities()->end())
     {
       msgs::SerializedEntity ent;
       ent.set_id(_entity);
       (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
-      iter = _msg.mutable_entities()->find(_entity);
+      entIter = _msg.mutable_entities()->find(_entity);
     }
 
-    iter->second.set_remove(true);
+    entIter->second.set_remove(true);
   }
 
   // Empty means all types
@@ -718,33 +714,41 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 
     auto compBase = this->ComponentImplementation(_entity, comp.first);
 
+    // Skip adding the component if it has not changed.
     if (!compBase->Changed())
       continue;
 
+    // \todo(nkoenig) Move this to a better location, such as at the end
+    // of an update iteration.
     const_cast<components::BaseComponent*>(compBase)->SetChanged(false);
 
-    if (iter == _msg.mutable_entities()->end())
+    /// Find the entity in the message, if not already found.
+    /// Add the entity to the message, if not already added.
+    if (entIter == _msg.mutable_entities()->end())
     {
-      iter = _msg.mutable_entities()->find(_entity);
-      if (iter == _msg.mutable_entities()->end())
+      entIter = _msg.mutable_entities()->find(_entity);
+      if (entIter == _msg.mutable_entities()->end())
       {
         msgs::SerializedEntity ent;
         ent.set_id(_entity);
         (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
-        iter = _msg.mutable_entities()->find(_entity);
+        entIter = _msg.mutable_entities()->find(_entity);
       }
     }
 
-    auto compIter = iter->second.mutable_components()->find(comp.first);
-    if (compIter == iter->second.mutable_components()->end())
+    // Find the component in the message, and add the component to the
+    // message if it's not present.
+    auto compIter = entIter->second.mutable_components()->find(comp.first);
+    if (compIter == entIter->second.mutable_components()->end())
     {
       msgs::SerializedComponent cmp;
       cmp.set_type(compBase->TypeId());
-      (*(iter->second.mutable_components()))[static_cast<int64_t>(comp.first)]
-        = cmp;
-      compIter = iter->second.mutable_components()->find(comp.first);
+      (*(entIter->second.mutable_components()))[
+        static_cast<int64_t>(comp.first)] = cmp;
+      compIter = entIter->second.mutable_components()->find(comp.first);
     }
 
+    // Serialize and store the message
     std::ostringstream ostr;
     compBase->Serialize(ostr);
     compIter->second.set_component(ostr.str());
@@ -752,11 +756,13 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     // TODO(anyone) Set component being removed once we have a way to queue it
   }
 
-  if (iter == _msg.mutable_entities()->end() &&
-      (iter = _msg.mutable_entities()->find(_entity)) !=
+  // Remove the entity from the message if a component for the entity was
+  // not modified or added. This will allow the state message to shrink.
+  if (entIter == _msg.mutable_entities()->end() &&
+      (entIter = _msg.mutable_entities()->find(_entity)) !=
       _msg.mutable_entities()->end())
   {
-    _msg.mutable_entities()->erase(iter);
+    _msg.mutable_entities()->erase(entIter);
   }
 }
 
@@ -764,26 +770,21 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 {
   ignition::msgs::SerializedState stateMsg;
-  this->ChangedState(stateMsg);
-  return stateMsg;
-}
 
-void EntityComponentManager::ChangedState(
-    ignition::msgs::SerializedState &_state) const
-{
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
   {
-    this->AddEntityToMessage(_state, entity);
+    this->AddEntityToMessage(stateMsg, entity);
   }
 
   // Entities being removed
   for (const auto &entity : this->dataPtr->toRemoveEntities)
   {
-    this->AddEntityToMessage(_state, entity);
+    this->AddEntityToMessage(stateMsg, entity);
   }
 
   // TODO(anyone) New / removed / changed components
+  return stateMsg;
 }
 
 //////////////////////////////////////////////////
