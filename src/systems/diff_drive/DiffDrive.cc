@@ -291,14 +291,14 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
   // Set the frame id.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  frame->add_value(this->model.Name(_ecm));
+  frame->add_value(this->model.Name(_ecm) + "/odom");
 
   std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
   if (linkName)
   {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
-    childFrame->add_value(*linkName);
+    childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
   }
 
   // Publish the message
