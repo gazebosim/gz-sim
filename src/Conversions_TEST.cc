@@ -558,6 +558,17 @@ TEST(Conversions, UpdateInfo)
   EXPECT_EQ(1234u, statsMsg.iterations());
   EXPECT_TRUE(statsMsg.paused());
 
+  msgs::WorldStatistics statsMsg2;
+  set(&statsMsg2, info);
+  EXPECT_EQ(1, statsMsg2.sim_time().sec());
+  EXPECT_EQ(234000000, statsMsg2.sim_time().nsec());
+  EXPECT_EQ(2, statsMsg2.real_time().sec());
+  EXPECT_EQ(345000000, statsMsg2.real_time().nsec());
+  EXPECT_EQ(3, statsMsg2.step_size().sec());
+  EXPECT_EQ(456000000, statsMsg2.step_size().nsec());
+  EXPECT_EQ(1234u, statsMsg2.iterations());
+  EXPECT_TRUE(statsMsg2.paused());
+
   auto newInfo = convert<UpdateInfo>(statsMsg);
   EXPECT_EQ(1234000000, newInfo.simTime.count());
   EXPECT_TRUE(newInfo.paused);

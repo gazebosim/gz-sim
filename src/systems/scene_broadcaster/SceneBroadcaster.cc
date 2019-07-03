@@ -123,6 +123,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: static void RemoveFromGraph(const Entity _entity,
                                       SceneGraphType &_graph);
 
+  /// \brief Create and send out pose updates.
+  /// \param[in] _info The update information
+  /// \param[in] _manager The entity component manager
   public: void PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager);
 
@@ -221,6 +224,81 @@ void SceneBroadcaster::Configure(
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_manager)
+{
+  IGN_PROFILE("SceneBroadcaster::PostUpdate");
+  // Update scene graph with added entities before populating pose message
+  if (_manager.HasNewEntities())
+    this->dataPtr->SceneGraphAddEntities(_manager);
+
+  // Populate pose message
+  // TODO(louise) Get <scene> from SDF
+
+  // Create and send pose update if transport connections exist.
+  if (this->dataPtr->dyPosePub.HasConnections() ||
+      this->dataPtr->posePub.HasConnections())
+  {
+    this->dataPtr->PoseUpdate(_info, _manager);
+  }
+
+  // call SceneGraphRemoveEntities at the end of this update cycle so that
+  // removed entities are removed from the scene graph for the next update cycle
+  this->dataPtr->SceneGraphRemoveEntities(_manager);
+
+  // Publish state only if there are subscribers and
+  // * throttle rate to 60 Hz
+  // * also publish off-rate if there are change events (new / erased entities)
+  // Throttle here instead of using transport::AdvertiseMessageOptions so that
+  // we can skip the ECM serialization
+  auto now = std::chrono::system_clock::now();
+  bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
+        _manager.HasNewEntities();
+  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod;
+  auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
+       (changeEvent || itsPubTime);
+
+  if (this->dataPtr->stateServiceRequest || shouldPublish)
+  {
+    msgs::SerializedStep stepMsg;
+    set(stepMsg.mutable_stats(), _info);
+
+    // Publish full state if there are change events
+    if (changeEvent || this->dataPtr->stateServiceRequest)
+    {
+      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State());
+    }
+    // Otherwise publish just selected components
+    else if (shouldPublish)
+    {
+      IGN_PROFILE_BEGIN("SceneBroadcast::1");
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+          {}, {components::Pose::typeId});
+      IGN_PROFILE_END();
+    }
+
+      IGN_PROFILE_BEGIN("SceneBroadcast::2");
+    // Full state on demand
+    if (this->dataPtr->stateServiceRequest)
+    {
+      this->dataPtr->stateServiceRequest = false;
+      this->dataPtr->stateCv.notify_all();
+    }
+
+    // Poses periodically + change events
+    // TODO(louise) Send changed state periodically instead, once it reflects
+    // changed components
+    if (shouldPublish)
+    {
+      this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
+      this->dataPtr->lastStatePubTime = now;
+    }
+      IGN_PROFILE_END();
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
@@ -310,14 +388,11 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
           const components::Name *_nameComp,
           const components::Pose *_poseComp) -> bool
       {
-        if (_poseComp->Changed())
-        {
-          // Add to pose msg
-          auto pose = poseMsg.add_pose();
-          msgs::Set(pose, _poseComp->Data());
-          pose->set_name(_nameComp->Data());
-          pose->set_id(_entity);
-        }
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
         return true;
       });
 
@@ -338,97 +413,6 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     this->posePub.Publish(poseMsg);
   }
 }
-
-//////////////////////////////////////////////////
-void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
-    const EntityComponentManager &_manager)
-{
-  IGN_PROFILE("SceneBroadcaster::PostUpdate");
-  // Update scene graph with added entities before populating pose message
-  if (_manager.HasNewEntities())
-    this->dataPtr->SceneGraphAddEntities(_manager);
-
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
-
-  // Create and send pose update if transport connections exist.
-  if (this->dataPtr->dyPosePub.HasConnections() ||
-      this->dataPtr->posePub.HasConnections())
-  {
-    this->dataPtr->PoseUpdate(_info, _manager);
-  }
-
-  // call SceneGraphRemoveEntities at the end of this update cycle so that
-  // removed entities are removed from the scene graph for the next update cycle
-  this->dataPtr->SceneGraphRemoveEntities(_manager);
-
-  // Publish state only if there are subscribers and
-  // * throttle rate to 60 Hz
-  // * also publish off-rate if there are change events (new / erased entities)
-  // Throttle here instead of using transport::AdvertiseMessageOptions so that
-  // we can skip the ECM serialization
-  auto now = std::chrono::system_clock::now();
-  bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities();
-  bool itsPubTime = now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod;
-  auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
-
-  if (this->dataPtr->stateServiceRequest || shouldPublish)
-  {
-    // Set the world statistics.
-    msgs::WorldStatistics *stats = this->dataPtr->stepMsg.mutable_stats();
-    std::pair<int64_t, int64_t> secNsec =
-      ignition::math::durationToSecNsec(_info.simTime);
-    stats->mutable_sim_time()->set_sec(secNsec.first);
-    stats->mutable_sim_time()->set_nsec(secNsec.second);
-
-    secNsec = ignition::math::durationToSecNsec(_info.realTime);
-    stats->mutable_real_time()->set_sec(secNsec.first);
-    stats->mutable_real_time()->set_nsec(secNsec.second);
-
-    secNsec = ignition::math::durationToSecNsec(_info.dt);
-    stats->mutable_step_size()->set_sec(secNsec.first);
-    stats->mutable_step_size()->set_nsec(secNsec.second);
-
-    stats->set_iterations(_info.iterations);
-    stats->set_paused(_info.paused);
-
-    // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
-    {
-      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State());
-    }
-    // Otherwise publish just selected components
-    else if (shouldPublish)
-    {
-      IGN_PROFILE_BEGIN("SceneBroadcast::1");
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, {components::Pose::typeId});
-      IGN_PROFILE_END();
-    }
-
-      IGN_PROFILE_BEGIN("SceneBroadcast::2");
-    // Full state on demand
-    if (this->dataPtr->stateServiceRequest)
-    {
-      this->dataPtr->stateServiceRequest = false;
-      this->dataPtr->stateCv.notify_all();
-    }
-
-    // Poses periodically + change events
-    // TODO(louise) Send changed state periodically instead, once it reflects
-    // changed components
-    if (shouldPublish)
-    {
-      this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
-      this->dataPtr->lastStatePubTime = now;
-    }
-      IGN_PROFILE_END();
-  }
-}
-
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
@@ -571,8 +555,6 @@ bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
 void SceneBroadcasterPrivate::SceneGraphAddEntities(
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::0");
-
   bool newEntity{false};
 
   // Populate a graph with latest information from all entities
@@ -583,9 +565,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
   auto worldVertex = this->sceneGraph.VertexFromId(this->worldEntity);
   newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(), worldVertex.Id());
 
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::1");
-
   // Worlds: check this in case we're loading a world without models
   _manager.EachNew<components::World>(
       [&](const Entity &, const components::World *) -> bool
@@ -593,9 +572,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         newEntity = true;
         return false;
       });
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::2");
-
 
   // Models
   _manager.EachNew<components::Model, components::Name,
@@ -617,9 +593,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         newEntity = true;
         return true;
       });
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::3");
-
 
   // Links
   _manager.EachNew<components::Link, components::Name, components::ParentEntity,
@@ -641,9 +614,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         newEntity = true;
         return true;
       });
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::4");
-
 
   // Visuals
   _manager.EachNew<components::Visual, components::Name,
@@ -682,9 +652,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         newEntity = true;
         return true;
       });
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::5");
-
 
   // Lights
   _manager.EachNew<components::Light, components::Name,
@@ -707,15 +674,10 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         newEntity = true;
         return true;
       });
-  IGN_PROFILE_END();
-  IGN_PROFILE_BEGIN("SceneGraphAddEntities::6");
-
 
 
   // Update the whole scene graph from the new graph
-  if (newEntity)
   {
-    std::cout << "HERE\n";
     std::lock_guard<std::mutex> lock(this->graphMutex);
     for (const auto &[id, vert] : newGraph.Vertices())
     {
@@ -744,7 +706,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     AddLights(&sceneMsg, this->worldEntity, newGraph);
     this->scenePub.Publish(sceneMsg);
   }
-  IGN_PROFILE_END();
 }
 
 //////////////////////////////////////////////////
