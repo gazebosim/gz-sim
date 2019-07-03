@@ -679,37 +679,84 @@ void EntityComponentManager::RebuildViews()
 void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types) const
 {
-  auto entityMsg = _msg.add_entities();
-  entityMsg->set_id(_entity);
+  auto iter = _msg.mutable_entities()->end();
+  /*_msg.mutable_entities()->find(_entity);
+  if (iter == _msg.mutable_entities()->end())
+  {
+    msgs::SerializedEntity ent;
+    ent.set_id(_entity);
+    (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+    iter = _msg.mutable_entities()->find(_entity);
+  }
+  */
 
   if (this->dataPtr->toRemoveEntities.find(_entity) !=
       this->dataPtr->toRemoveEntities.end())
   {
-    entityMsg->set_remove(true);
+    iter = _msg.mutable_entities()->find(_entity);
+    if (iter == _msg.mutable_entities()->end())
+    {
+      msgs::SerializedEntity ent;
+      ent.set_id(_entity);
+      (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+      iter = _msg.mutable_entities()->find(_entity);
+    }
+
+    iter->second.set_remove(true);
   }
 
   // Empty means all types
   bool allTypes = _types.empty();
 
   auto components = this->dataPtr->entityComponents[_entity];
-  for (const auto &comp : components)
+  for (const ComponentKey &comp : components)
   {
     if (!allTypes && _types.find(comp.first) == _types.end())
     {
       continue;
     }
 
-    auto compMsg = entityMsg->add_components();
-
     auto compBase = this->ComponentImplementation(_entity, comp.first);
-    compMsg->set_type(compBase->TypeId());
+
+    if (!compBase->Changed())
+      continue;
+
+    const_cast<components::BaseComponent*>(compBase)->SetChanged(false);
+
+    if (iter == _msg.mutable_entities()->end())
+    {
+      iter = _msg.mutable_entities()->find(_entity);
+      if (iter == _msg.mutable_entities()->end())
+      {
+        msgs::SerializedEntity ent;
+        ent.set_id(_entity);
+        (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+        iter = _msg.mutable_entities()->find(_entity);
+      }
+    }
+
+    auto compIter = iter->second.mutable_components()->find(comp.first);
+    if (compIter == iter->second.mutable_components()->end())
+    {
+      msgs::SerializedComponent cmp;
+      cmp.set_type(compBase->TypeId());
+      (*(iter->second.mutable_components()))[static_cast<int64_t>(comp.first)]
+        = cmp;
+      compIter = iter->second.mutable_components()->find(comp.first);
+    }
 
     std::ostringstream ostr;
     compBase->Serialize(ostr);
-
-    compMsg->set_component(ostr.str());
+    compIter->second.set_component(ostr.str());
 
     // TODO(anyone) Set component being removed once we have a way to queue it
+  }
+
+  if (iter == _msg.mutable_entities()->end() &&
+      (iter = _msg.mutable_entities()->find(_entity)) !=
+      _msg.mutable_entities()->end())
+  {
+    _msg.mutable_entities()->erase(iter);
   }
 }
 
@@ -717,22 +764,26 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 {
   ignition::msgs::SerializedState stateMsg;
+  this->ChangedState(stateMsg);
+  return stateMsg;
+}
 
+void EntityComponentManager::ChangedState(
+    ignition::msgs::SerializedState &_state) const
+{
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
   {
-    this->AddEntityToMessage(stateMsg, entity);
+    this->AddEntityToMessage(_state, entity);
   }
 
   // Entities being removed
   for (const auto &entity : this->dataPtr->toRemoveEntities)
   {
-    this->AddEntityToMessage(stateMsg, entity);
+    this->AddEntityToMessage(_state, entity);
   }
 
   // TODO(anyone) New / removed / changed components
-
-  return stateMsg;
 }
 
 //////////////////////////////////////////////////
@@ -741,18 +792,21 @@ ignition::msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types) const
 {
   ignition::msgs::SerializedState stateMsg;
+  this->State(stateMsg, _entities, _types);
+  return stateMsg;
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::State(
+    msgs::SerializedState  &_state,
+    const std::unordered_set<Entity> &_entities,
+    const std::unordered_set<ComponentTypeId> &_types) const
+{
   for (const auto &it : this->dataPtr->entityComponents)
   {
-    auto entity = it.first;
-    if (!_entities.empty() && _entities.find(entity) == _entities.end())
-    {
-      continue;
-    }
-
-    this->AddEntityToMessage(stateMsg, entity, _types);
+    if (_entities.empty() || _entities.find(it.first) != _entities.end())
+      this->AddEntityToMessage(_state, it.first, _types);
   }
-
-  return stateMsg;
 }
 
 //////////////////////////////////////////////////
@@ -760,9 +814,10 @@ void EntityComponentManager::SetState(
     const ignition::msgs::SerializedState &_stateMsg)
 {
   // Create / remove / update entities
-  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  for (auto iter = _stateMsg.entities().begin();
+       iter != _stateMsg.entities().end(); ++iter)
   {
-    const auto &entityMsg = _stateMsg.entities(e);
+    const auto &entityMsg = iter->second;
 
     Entity entity{entityMsg.id()};
 
@@ -780,9 +835,11 @@ void EntityComponentManager::SetState(
     }
 
     // Create / remove / update components
-    for (int c = 0; c < entityMsg.components_size(); ++c)
+    for (auto compIter = iter->second.components().begin();
+         compIter != iter->second.components().end(); ++compIter)
+
     {
-      const auto &compMsg = entityMsg.components(c);
+      const auto &compMsg = compIter->second;
 
       // Skip if component not set. Note that this will also skip components
       // setting an empty value.

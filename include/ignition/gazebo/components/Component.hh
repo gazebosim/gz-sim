@@ -275,6 +275,18 @@ namespace components
     /// Factory registration and is guaranteed to be the same across compilers
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
+
+    public: bool Changed() const
+            {
+              return this->changed;
+            }
+
+    public: void SetChanged(bool _c)
+            {
+              this->changed = _c;
+            }
+
+    private: bool changed{true};
   };
 
   /// \brief A component type that wraps any data type. The intention is for
@@ -347,6 +359,7 @@ namespace components
     /// \brief Get the mutable component data.
     /// \return Mutable reference to the actual component information.
     public: DataType &Data();
+    public: void SetData(const DataType &_data);
 
     /// \brief Get the immutable component data.
     /// \return Immutable reference to the actual component information.
@@ -418,7 +431,17 @@ namespace components
   template <typename DataType, typename Identifier, typename Serializer>
   DataType &Component<DataType, Identifier, Serializer>::Data()
   {
+    this->SetChanged(true);
     return this->data;
+  }
+
+  //////////////////////////////////////////////////
+  template <typename DataType, typename Identifier, typename Serializer>
+  void Component<DataType, Identifier, Serializer>::SetData(
+      const DataType &_data)
+  {
+    this->SetChanged(true);
+    this->data = _data;
   }
 
   //////////////////////////////////////////////////
@@ -427,6 +450,7 @@ namespace components
   {
     return this->data;
   }
+
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier, typename Serializer>
