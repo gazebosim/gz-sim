@@ -50,7 +50,7 @@ namespace systems
   /// <resistance> Internal resistance
   /// <smooth_current_tau> coefficient for smoothing current
   /// <power_load> power load on battery
-  /// <start_on_motion> not element present, the battery will start draining
+  /// <start_on_motion> if set to true, the battery will start draining
   ///                  only if the robot has started moving
   class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
       : public System,
