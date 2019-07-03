@@ -261,7 +261,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (shouldServe || shouldPublish)
   {
     msgs::SerializedStep stepMsg;
-    stepMsg.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
+    set(stepMsg.mutable_stats(), _info);
+
     // Publish full state if there are change events
     if (changeEvent || shouldServe)
     {
