@@ -1484,7 +1484,8 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 
   // Serialize into a message
-  auto stateMsg = manager.State();
+  msgs::SerializedState2 stateMsg;
+  manager.State(stateMsg);
 
   // Check message
   {
@@ -1503,7 +1504,7 @@ TEST_P(EntityComponentManagerFixture, State)
     iter++;
     const auto &e2Msg = iter->second;
     EXPECT_EQ(e2, e2Msg.id());
-    ASSERT_EQ(2, e2Msg.components().size());
+    ASSERT_EQ(2u, e2Msg.components().size());
 
     compIter = e2Msg.components().begin();
     const auto &e2c0Msg = compIter->second;
@@ -1518,7 +1519,7 @@ TEST_P(EntityComponentManagerFixture, State)
     iter++;
     const auto &e3Msg = iter->second;
     EXPECT_EQ(e3, e3Msg.id());
-    ASSERT_EQ(1, e1Msg.components().size());
+    ASSERT_EQ(1u, e1Msg.components().size());
 
     const auto &e3c0Msg = e3Msg.components().begin()->second;
     EXPECT_EQ(IntComponent::typeId, e3c0Msg.type());
@@ -1617,14 +1618,12 @@ TEST_P(EntityComponentManagerFixture, State)
     auto changedStateMsg = manager.ChangedState();
     EXPECT_EQ(2, changedStateMsg.entities_size());
 
-    auto iter = changedStateMsg.entities().begin();
-    const auto &e4Msg = iter->second;
+    const auto &e4Msg = changedStateMsg.entities(0);
     EXPECT_EQ(e4, e4Msg.id());
     EXPECT_FALSE(e4Msg.remove());
     EXPECT_EQ(1, e4Msg.components().size());
 
-    iter++;
-    const auto &e2Msg = iter->second;
+    const auto &e2Msg = changedStateMsg.entities(1);
     EXPECT_EQ(e2, e2Msg.id());
     EXPECT_TRUE(e2Msg.remove());
     EXPECT_EQ(2, e2Msg.components().size());
@@ -1672,14 +1671,15 @@ TEST_P(EntityComponentManagerFixture, State)
 
   // Serialize into a message with selected entities and components
   {
-    stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
+    msgs::SerializedState2 stateMsg2;
+    manager.State(stateMsg2, {e3, e4}, {IntComponent::typeId});
 
-    ASSERT_EQ(2, stateMsg.entities_size());
+    ASSERT_EQ(2, stateMsg2.entities_size());
 
-    auto iter = stateMsg.entities().begin();
+    auto iter = stateMsg2.entities().begin();
     const auto &e3Msg = iter->second;
     EXPECT_EQ(e3, e3Msg.id());
-    ASSERT_EQ(1, e3Msg.components().size());
+    ASSERT_EQ(1u, e3Msg.components().size());
 
     auto compIter = e3Msg.components().begin();
     const auto &e3c0Msg = compIter->second;
@@ -1689,7 +1689,7 @@ TEST_P(EntityComponentManagerFixture, State)
     iter++;
     const auto &e4Msg = iter->second;
     EXPECT_EQ(e4, e4Msg.id());
-    ASSERT_EQ(1, e4Msg.components().size());
+    ASSERT_EQ(1u, e4Msg.components().size());
 
     auto compIter4 = e4Msg.components().begin();
     const auto &e4c0Msg = compIter4->second;

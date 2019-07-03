@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/serialized2.pb.h>
 
 #include <map>
 #include <memory>
@@ -433,11 +434,13 @@ namespace ignition
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
       /// to get all components.
+      /// \param[in] _full True to get all the entities and components.
+      /// False will get only components and entities that have changed.
       public: void State(
-                  msgs::SerializedState  &_state,
+                  msgs::SerializedState2 &_state,
                   const std::unordered_set<Entity> &_entities = {},
-                  const std::unordered_set<ComponentTypeId> &_types = {}
-                  ) const;
+                  const std::unordered_set<ComponentTypeId> &_types = {},
+                  bool _full = false) const;
 
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
@@ -454,6 +457,23 @@ namespace ignition
       /// \detail The header of the message will not be populated, it is the
       /// responsability of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
+
+      /// \brief Get a message with the serialized state of all entities and
+      /// components that are changing in the current iteration
+      ///
+      /// Currently supported:
+      /// * New entities and all of their components
+      /// * Removed entities and all of their components
+      ///
+      /// Future work:
+      /// * Entities which had a component added
+      /// * Entities which had a component removed
+      /// * Entities which had a component modified
+      ///
+      /// \param[in] _state New serialzied state.
+      /// \detail The header of the message will not be populated, it is the
+      /// responsability of the caller to timestamp it before use.
+      public: void ChangedState(msgs::SerializedState2 &_state) const;
 
       /// \brief Get whether there are new entities.
       /// \return True if there are new entities.
@@ -472,6 +492,16 @@ namespace ignition
       /// responsability of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
+
+      /// \brief Set the absolute state of the ECM from a serialized message.
+      /// Entities / components that are in the new state but not in the old
+      /// one will be created.
+      /// Entities / components that are marked as removed will be removed, but
+      /// they won't be removed if they're not present in the state.
+      /// \detail The header of the message will not be handled, it is the
+      /// responsability of the caller to use the timestamp.
+      /// \param[in] _stateMsg Message containing state to be set.
+      public: void SetState(const msgs::SerializedState2 &_stateMsg);
 
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
@@ -618,6 +648,18 @@ namespace ignition
       private: void AddEntityToMessage(msgs::SerializedState &_msg,
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
+
+      /// \brief Add an entity and its components to a serialized state message.
+      /// \param[out] _msg The state message.
+      /// \param[in] _entity The entity to be added.
+      /// \param[in] _types Component types to be added. Leave empty for all
+      /// components.
+      /// \param[in] _full True to get all the entities and components.
+      /// False will get only components and entities that have changed.
+      private: void AddEntityToMessage(msgs::SerializedState2 &_msg,
+          Entity _entity,
+          const std::unordered_set<ComponentTypeId> &_types = {},
+          bool _full = false) const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;

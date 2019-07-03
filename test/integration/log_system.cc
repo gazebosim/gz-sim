@@ -212,7 +212,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     {
       EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
-      msgs::SerializedState stateMsg;
+      msgs::SerializedState2 stateMsg;
       stateMsg.ParseFromString(recordedIter->Data());
 
       EXPECT_EQ(28, stateMsg.entities_size());
