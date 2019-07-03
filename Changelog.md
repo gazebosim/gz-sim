@@ -6,6 +6,7 @@
    subscribers to pose topics are not present, 2) Set world stats message
    instead of copying the message.
     * [Pull Request 371](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/371)
+    * [Pull Request 372](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/372)
 
 ### Ignition Gazebo 2.2.0
 
