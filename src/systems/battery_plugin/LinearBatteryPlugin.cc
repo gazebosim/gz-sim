@@ -231,8 +231,12 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   // Flag that indicates that the battery should start draining only on motion
   if (_sdf->HasElement("start_on_motion"))
   {
-    igndbg << "Start draining only on motion" << std::endl;
-    this->dataPtr->startDraining = false;
+    auto startOnMotion = _sdf->Get<bool>("start_on_motion");
+    if (startOnMotion)
+    {
+      igndbg << "Start draining only on motion" << std::endl;
+      this->dataPtr->startDraining = false;
+    }
   }
 
   ignmsg << "LinearBatteryPlugin configured. Battery name: "
