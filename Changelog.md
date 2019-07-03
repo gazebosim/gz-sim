@@ -2,6 +2,10 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Improve SceneBroadcaster peformance by 1) Limit message generation if
+   subscribers to pose topics are not present.
+    * [Pull Request 371](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/371)
+
 ### Ignition Gazebo 2.2.0
 
 1. The DiffDrive system publishes odometry information. 
