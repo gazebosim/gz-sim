@@ -123,6 +123,12 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: static void RemoveFromGraph(const Entity _entity,
                                       SceneGraphType &_graph);
 
+  /// \brief Create and send out pose updates.
+  /// \param[in] _info The update information
+  /// \param[in] _manager The entity component manager
+  public: void PoseUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_manager);
+
   /// \brief Transport node.
   public: std::unique_ptr<transport::Node> node{nullptr};
 
@@ -226,99 +232,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
 
-  msgs::Pose_V poseMsg, dyPoseMsg;
-
-  // Set the time stamp in the header
-  poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
-     convert<msgs::Time>(_info.simTime));
-  dyPoseMsg.mutable_header()->mutable_stamp()->CopyFrom(
-     convert<msgs::Time>(_info.simTime));
-
-  // Models
-  _manager.Each<components::Model, components::Name, components::Pose,
-                components::Static>(
-      [&](const Entity &_entity, const components::Model *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp,
-          const components::Static *_staticComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-
-        if (!_staticComp->Data())
-        {
-          // Add to dynamic pose msg
-          auto dyPose = dyPoseMsg.add_pose();
-          msgs::Set(dyPose, _poseComp->Data());
-          dyPose->set_name(_nameComp->Data());
-          dyPose->set_id(_entity);
-        }
-
-        return true;
-      });
-
-  // Links
-  _manager.Each<components::Link, components::Name, components::Pose,
-                components::ParentEntity>(
-      [&](const Entity &_entity, const components::Link *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp,
-          const components::ParentEntity *_parentComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-
-        // Check whether parent model is static
-        auto staticComp = _manager.Component<components::Static>(
-          _parentComp->Data());
-        if (!staticComp->Data())
-        {
-          // Add to dynamic pose msg
-          auto dyPose = dyPoseMsg.add_pose();
-          msgs::Set(dyPose, _poseComp->Data());
-          dyPose->set_name(_nameComp->Data());
-          dyPose->set_id(_entity);
-        }
-
-        return true;
-      });
-
-  // Visuals
-  _manager.Each<components::Visual, components::Name, components::Pose>(
-      [&](const Entity &_entity, const components::Visual *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
-
-  // Lights
-  _manager.Each<components::Light, components::Name, components::Pose>(
-      [&](const Entity &_entity, const components::Light *,
-          const components::Name *_nameComp,
-          const components::Pose *_poseComp) -> bool
-      {
-        // Add to pose msg
-        auto pose = poseMsg.add_pose();
-        msgs::Set(pose, _poseComp->Data());
-        pose->set_name(_nameComp->Data());
-        pose->set_id(_entity);
-        return true;
-      });
-
-  this->dataPtr->posePub.Publish(poseMsg);
-  this->dataPtr->dyPosePub.Publish(dyPoseMsg);
+  // Create and send pose update if transport connections exist.
+  if (this->dataPtr->dyPosePub.HasConnections() ||
+      this->dataPtr->posePub.HasConnections())
+  {
+    this->dataPtr->PoseUpdate(_info, _manager);
+  }
 
   // call SceneGraphRemoveEntities at the end of this update cycle so that
   // removed entities are removed from the scene graph for the next update cycle
@@ -373,6 +292,121 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   }
 }
 
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_manager)
+{
+  IGN_PROFILE("SceneBroadcast::PoseUpdate");
+
+  msgs::Pose_V poseMsg, dyPoseMsg;
+  bool dyPoseConnections = this->dyPosePub.HasConnections();
+  bool poseConnections = this->posePub.HasConnections();
+
+  // Models
+  _manager.Each<components::Model, components::Name, components::Pose,
+                components::Static>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp,
+          const components::Static *_staticComp) -> bool
+      {
+        if (poseConnections)
+        {
+          // Add to pose msg
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+        }
+
+        if (dyPoseConnections && !_staticComp->Data())
+        {
+          // Add to dynamic pose msg
+          auto dyPose = dyPoseMsg.add_pose();
+          msgs::Set(dyPose, _poseComp->Data());
+          dyPose->set_name(_nameComp->Data());
+          dyPose->set_id(_entity);
+        }
+        return true;
+      });
+
+  // Links
+  _manager.Each<components::Link, components::Name, components::Pose,
+                components::ParentEntity>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp,
+          const components::ParentEntity *_parentComp) -> bool
+      {
+        // Add to pose msg
+        if (poseConnections)
+        {
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+        }
+
+        // Check whether parent model is static
+        auto staticComp = _manager.Component<components::Static>(
+          _parentComp->Data());
+        if (dyPoseConnections && !staticComp->Data())
+        {
+          // Add to dynamic pose msg
+          auto dyPose = dyPoseMsg.add_pose();
+          msgs::Set(dyPose, _poseComp->Data());
+          dyPose->set_name(_nameComp->Data());
+          dyPose->set_id(_entity);
+        }
+
+        return true;
+      });
+
+  if (dyPoseConnections)
+  {
+    // Set the time stamp in the header
+    dyPoseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+        convert<msgs::Time>(_info.simTime));
+
+    this->dyPosePub.Publish(dyPoseMsg);
+  }
+
+  // Visuals
+  if (poseConnections)
+  {
+    poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+        convert<msgs::Time>(_info.simTime));
+
+    _manager.Each<components::Visual, components::Name, components::Pose>(
+      [&](const Entity &_entity, const components::Visual *,
+          const components::Name *_nameComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        // Add to pose msg
+        auto pose = poseMsg.add_pose();
+        msgs::Set(pose, _poseComp->Data());
+        pose->set_name(_nameComp->Data());
+        pose->set_id(_entity);
+        return true;
+      });
+
+    // Lights
+    _manager.Each<components::Light, components::Name, components::Pose>(
+        [&](const Entity &_entity, const components::Light *,
+            const components::Name *_nameComp,
+            const components::Pose *_poseComp) -> bool
+        {
+          // Add to pose msg
+          auto pose = poseMsg.add_pose();
+          msgs::Set(pose, _poseComp->Data());
+          pose->set_name(_nameComp->Data());
+          pose->set_id(_entity);
+          return true;
+        });
+
+    this->posePub.Publish(poseMsg);
+  }
+}
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
