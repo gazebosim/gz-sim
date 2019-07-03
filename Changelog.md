@@ -4,13 +4,16 @@
 
 ### Ignition Gazebo 2.2.0
 
-1. The DiffDrive system publishes odometry information. 
+1. Add sdf parameter to battery to start draining only when robot has started moving
+    * [Pull Request 370](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/370)
+
+1. The DiffDrive system publishes odometry information.
     * [Pull Request 368](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/368)
 
 1. Allow attaching plugins to sensors from a server config.
     * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
 
-1.  Remove world name from frame_ids
+1. Remove world name from frame_ids
     * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
 
 1. Fix deadlock when spawning robots
