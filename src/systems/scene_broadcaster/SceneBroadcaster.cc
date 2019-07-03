@@ -270,15 +270,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
     // Otherwise publish just selected components
-    else if (shouldPublish)
+    else
     {
-      IGN_PROFILE_BEGIN("SceneBroadcast::1");
+      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
           {}, {components::Pose::typeId});
-      IGN_PROFILE_END();
     }
 
-      IGN_PROFILE_BEGIN("SceneBroadcast::2");
     // Full state on demand
     if (this->dataPtr->stateServiceRequest)
     {
@@ -291,10 +289,10 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
+      IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
-      IGN_PROFILE_END();
   }
 }
 
