@@ -5,10 +5,11 @@
 1. Improve SceneBroadcaster peformance by 1) Limit message generation if
    subscribers to pose topics are not present, 2) Set world stats message
    instead of copying the message, 3) Suppress scenegraph updates when there
-   are no new entities.
+   are no new entities, 4) Make better use of const functions.
     * [Pull Request 371](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/371)
     * [Pull Request 372](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/372)
     * [Pull Request 373](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/373)
+    * [Pull Request 374](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/374)
 
 ### Ignition Gazebo 2.2.0
 

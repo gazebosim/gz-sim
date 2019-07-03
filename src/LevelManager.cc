@@ -567,9 +567,10 @@ void LevelManager::UpdateLevelsState()
   std::set<std::string> entityNamesMarked;
   for (const auto &toLoad : levelsToLoad)
   {
-    auto entityNames = this->runner->entityCompMgr
-                           .Component<components::LevelEntityNames>(toLoad)
-                           ->Data();
+    const components::LevelEntityNames *lvlEntNames =
+      this->runner->entityCompMgr.Component<components::LevelEntityNames>(
+          toLoad);
+    const auto &entityNames = lvlEntNames->Data();
     for (const auto &name : entityNames)
     {
       entityNamesMarked.insert(name);

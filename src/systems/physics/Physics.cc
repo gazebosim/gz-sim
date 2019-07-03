@@ -752,7 +752,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const Entity &_entity, components::Link * /*_link*/,
-          components::Pose *_pose, components::ParentEntity *_parent)->bool
+          components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
@@ -761,7 +762,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::CanonicalLink>(_entity);
 
           // get the pose component of the parent model
-          auto parentPose =
+          const components::Pose *parentPose =
               _ecm.Component<components::Pose>(_parent->Data());
 
           auto frameData = linkIt->second->FrameDataRelativeToWorld();
@@ -785,7 +786,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // this link relative to world so to set the model's pose, we have
             // to premultiply it by the inverse of the initial transform of
             // the link w.r.t to its model.
-            *parentPose = components::Pose(_pose->Data().Inverse() +
+            auto mutableParentPose =
+              _ecm.Component<components::Pose>(_parent->Data());
+            *(mutableParentPose) = components::Pose(_pose->Data().Inverse() +
                                            math::eigen3::convert(worldPose));
           }
           else
@@ -899,8 +902,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldPose,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose, components::WorldPose *_worldPose,
-          components::ParentEntity *_parent)->bool
+          const components::Pose *_pose, components::WorldPose *_worldPose,
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -920,9 +923,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldLinearVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::WorldLinearVelocity *_worldLinearVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -943,9 +946,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::AngularVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::AngularVelocity *_angularVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -970,9 +973,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::LinearAcceleration,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::LinearAcceleration *_linearAcc,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_parent->Data());
         if (linkIt != this->entityLinkMap.end())
