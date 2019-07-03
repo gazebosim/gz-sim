@@ -276,16 +276,21 @@ namespace components
     /// and runs.
     public: virtual ComponentTypeId TypeId() const = 0;
 
+    /// \brief Get whether this component has changed.
+    /// \return True if the component has been modified.
     public: bool Changed() const
-            {
-              return this->changed;
-            }
+    {
+      return this->changed;
+    }
 
+    /// \brief Set whether this component has changed.
+    /// \param[in] _c True to mark this component as changed.
     public: void SetChanged(bool _c)
-            {
-              this->changed = _c;
-            }
+    {
+      this->changed = _c;
+    }
 
+    /// \brief Flag that keeps track of changed state.
     private: bool changed{true};
   };
 
@@ -356,9 +361,15 @@ namespace components
     // Documentation inherited
     public: void Deserialize(std::istream &_in) override;
 
-    /// \brief Get the mutable component data.
+    /// \brief Get the mutable component data. Use of
+    /// const DataType &Data() const is preferred to access data as it has a
+    /// lower performance impact. Use void SetData(const DataType &) to
+    /// modify data.
     /// \return Mutable reference to the actual component information.
     public: DataType &Data();
+
+    /// \brief Set the data of this component.
+    /// \param[in] _data New data for this component.
     public: void SetData(const DataType &_data);
 
     /// \brief Get the immutable component data.
@@ -450,7 +461,6 @@ namespace components
   {
     return this->data;
   }
-
 
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier, typename Serializer>
