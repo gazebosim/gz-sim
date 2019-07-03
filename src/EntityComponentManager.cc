@@ -823,6 +823,7 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
   }
 
   // TODO(anyone) New / removed / changed components
+
   return stateMsg;
 }
 
