@@ -227,7 +227,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 {
   IGN_PROFILE("SceneBroadcaster::PostUpdate");
   // Update scene graph with added entities before populating pose message
-  this->dataPtr->SceneGraphAddEntities(_manager);
+  if (_manager.HasNewEntities())
+    this->dataPtr->SceneGraphAddEntities(_manager);
 
   // Populate pose message
   // TODO(louise) Get <scene> from SDF
