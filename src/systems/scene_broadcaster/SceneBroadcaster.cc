@@ -186,6 +186,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
       statePublishPeriod{std::chrono::milliseconds(1000/60)};
 
+  /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 };
 
@@ -261,8 +262,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
-    msgs::SerializedStep stepMsg;
-    set(stepMsg.mutable_stats(), _info);
+    set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
     // Publish full state if there are change events
     if (changeEvent || this->dataPtr->stateServiceRequest)
