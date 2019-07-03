@@ -69,7 +69,7 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _ecm Mutable ECM.
   /// \param[in] _msg Message containing state updates.
   public: void Parse(EntityComponentManager &_ecm,
-      const msgs::SerializedState &_msg);
+      const msgs::SerializedState2 &_msg);
 
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
@@ -135,7 +135,7 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
-    const msgs::SerializedState &_msg)
+    const msgs::SerializedState2 &_msg)
 {
   _ecm.SetState(_msg);
 }
@@ -356,7 +356,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
   else if (msgType == "ignition.msgs.SerializedState")
   {
-    msgs::SerializedState msg;
+    msgs::SerializedState2 msg;
     msg.ParseFromString(this->dataPtr->iter->Data());
 
     auto stamp = convert<std::chrono::steady_clock::duration>(

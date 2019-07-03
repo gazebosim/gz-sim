@@ -71,7 +71,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStep &_res);
+  public: bool StateService(ignition::msgs::SerializedStep2 &_res);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -176,7 +176,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::condition_variable stateCv;
 
   /// \brief Filled on demand for the state service.
-  public: msgs::SerializedStep stepMsg;
+  public: msgs::SerializedStep2 stepMsg;
 
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
@@ -267,7 +267,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Publish full state if there are change events
     if (changeEvent || this->dataPtr->stateServiceRequest)
     {
-      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State());
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
     // Otherwise publish just selected components
     else if (shouldPublish)
@@ -468,7 +468,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{"/world/" + _worldName + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStep>(stateTopic);
+      this->node->Advertise<ignition::msgs::SerializedStep2>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -516,7 +516,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStep &_res)
+    ignition::msgs::SerializedStep2 &_res)
 {
   _res.Clear();
 
