@@ -61,7 +61,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
 
   this->node.Subscribe("step", &NetworkManagerSecondary::OnStep, this);
 
-  this->stepAckPub = this->node.Advertise<msgs::SerializedState2>("step_ack");
+  this->stepAckPub = this->node.Advertise<msgs::SerializedStateMap>("step_ack");
 }
 
 //////////////////////////////////////////////////
@@ -164,7 +164,7 @@ void NetworkManagerSecondary::OnStep(
     entities.insert(children.begin(), children.end());
   }
 
-  msgs::SerializedState2 stateMsg;
+  msgs::SerializedStateMap stateMsg;
   if (!entities.empty())
     this->dataPtr->ecm->State(stateMsg, entities);
 

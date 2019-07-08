@@ -1484,7 +1484,7 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 
   // Serialize into a message
-  msgs::SerializedState2 stateMsg;
+  msgs::SerializedStateMap stateMsg;
   manager.State(stateMsg);
 
   // Check message
@@ -1671,7 +1671,7 @@ TEST_P(EntityComponentManagerFixture, State)
 
   // Serialize into a message with selected entities and components
   {
-    msgs::SerializedState2 stateMsg2;
+    msgs::SerializedStateMap stateMsg2;
     manager.State(stateMsg2, {e3, e4}, {IntComponent::typeId});
 
     ASSERT_EQ(2, stateMsg2.entities_size());

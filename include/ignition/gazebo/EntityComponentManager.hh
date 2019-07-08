@@ -18,7 +18,7 @@
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/serialized2.pb.h>
+#include <ignition/msgs/serialized_map.pb.h>
 
 #include <map>
 #include <memory>
@@ -633,7 +633,7 @@ namespace ignition
       /// \param[in] _full True to get all the entities and components.
       /// False will get only components and entities that have changed.
       public: void State(
-                  msgs::SerializedState2 &_state,
+                  msgs::SerializedStateMap &_state,
                   const std::unordered_set<Entity> &_entities = {},
                   const std::unordered_set<ComponentTypeId> &_types = {},
                   bool _full = false) const;
@@ -653,7 +653,7 @@ namespace ignition
       /// \param[in] _state New serialzied state.
       /// \detail The header of the message will not be populated, it is the
       /// responsability of the caller to timestamp it before use.
-      public: void ChangedState(msgs::SerializedState2 &_state) const;
+      public: void ChangedState(msgs::SerializedStateMap &_state) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -663,7 +663,7 @@ namespace ignition
       /// \detail The header of the message will not be handled, it is the
       /// responsability of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
-      public: void SetState(const msgs::SerializedState2 &_stateMsg);
+      public: void SetState(const msgs::SerializedStateMap &_stateMsg);
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
@@ -672,7 +672,7 @@ namespace ignition
       /// components.
       /// \param[in] _full True to get all the entities and components.
       /// False will get only components and entities that have changed.
-      private: void AddEntityToMessage(msgs::SerializedState2 &_msg,
+      private: void AddEntityToMessage(msgs::SerializedStateMap &_msg,
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
