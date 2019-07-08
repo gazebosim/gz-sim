@@ -650,7 +650,7 @@ namespace ignition
       /// * Entities which had a component removed
       /// * Entities which had a component modified
       ///
-      /// \param[in] _state New serialzied state.
+      /// \param[in] _state New serialized state.
       /// \detail The header of the message will not be populated, it is the
       /// responsability of the caller to timestamp it before use.
       public: void ChangedState(msgs::SerializedStateMap &_state) const;
