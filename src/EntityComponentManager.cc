@@ -714,7 +714,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManager::AddEntityToMessage(msgs::SerializedState2 &_msg,
+void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     Entity _entity, const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
@@ -731,7 +731,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState2 &_msg,
     entIter = _msg.mutable_entities()->find(_entity);
     if (entIter == _msg.mutable_entities()->end())
     {
-      msgs::SerializedEntity2 ent;
+      msgs::SerializedEntityMap ent;
       ent.set_id(_entity);
       (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
       entIter = _msg.mutable_entities()->find(_entity);
@@ -768,7 +768,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState2 &_msg,
       entIter = _msg.mutable_entities()->find(_entity);
       if (entIter == _msg.mutable_entities()->end())
       {
-        msgs::SerializedEntity2 ent;
+        msgs::SerializedEntityMap ent;
         ent.set_id(_entity);
         (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
         entIter = _msg.mutable_entities()->find(_entity);
@@ -829,7 +829,7 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 
 //////////////////////////////////////////////////
 void EntityComponentManager::ChangedState(
-    ignition::msgs::SerializedState2 &_state) const
+    ignition::msgs::SerializedStateMap &_state) const
 {
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -869,7 +869,7 @@ ignition::msgs::SerializedState EntityComponentManager::State(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::State(
-    msgs::SerializedState2  &_state,
+    msgs::SerializedStateMap  &_state,
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
@@ -984,7 +984,7 @@ void EntityComponentManager::SetState(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const ignition::msgs::SerializedState2 &_stateMsg)
+    const ignition::msgs::SerializedStateMap &_stateMsg)
 {
   // Create / remove / update entities
   for (auto iter = _stateMsg.entities().begin();

@@ -207,7 +207,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath)
 
   // TODO(louise) Combine with SceneBroadcaster's state topic
   std::string stateTopic = "/world/" + this->worldName + "/changed_state";
-  this->statePub = this->node.Advertise<msgs::SerializedState2>(stateTopic);
+  this->statePub = this->node.Advertise<msgs::SerializedStateMap>(stateTopic);
 
   // Append file name
   std::string dbPath = common::joinPaths(logPath, "state.tlog");
@@ -251,7 +251,7 @@ void LogRecord::PostUpdate(const UpdateInfo &,
 
   // TODO(louise) Use the SceneBroadcaster's topic once that publishes
   // the changed state
-  msgs::SerializedState2 stateMsg;
+  msgs::SerializedStateMap stateMsg;
   _ecm.ChangedState(stateMsg);
   if (!stateMsg.entities().empty())
     this->dataPtr->statePub.Publish(stateMsg);
