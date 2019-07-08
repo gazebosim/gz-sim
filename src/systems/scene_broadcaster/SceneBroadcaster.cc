@@ -185,6 +185,9 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Period to publish state, defaults to 60 Hz.
   public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
       statePublishPeriod{std::chrono::milliseconds(1000/60)};
+
+  /// \brief Flag used to indicate if the state service was called.
+  public: bool stateServiceRequest{false};
 };
 
 //////////////////////////////////////////////////
@@ -244,9 +247,6 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
-  // Whether the state service has been requested
-  auto shouldServe = !this->dataPtr->stepMsg.has_state();
-
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
   // * also publish off-rate if there are change events (new / erased entities)
@@ -259,27 +259,26 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
-  if (shouldServe || shouldPublish)
+  if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
-    msgs::SerializedStep stepMsg;
-    set(stepMsg.mutable_stats(), _info);
+    set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
     // Publish full state if there are change events
-    if (changeEvent || shouldServe)
+    if (changeEvent || this->dataPtr->stateServiceRequest)
     {
-      stepMsg.mutable_state()->CopyFrom(_manager.State());
+      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State());
     }
     // Otherwise publish just selected components
     else
     {
-      stepMsg.mutable_state()->CopyFrom(_manager.State({},
+      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State({},
           {components::Pose::typeId}));
     }
 
     // Full state on demand
-    if (shouldServe)
+    if (this->dataPtr->stateServiceRequest)
     {
-      this->dataPtr->stepMsg = stepMsg;
+      this->dataPtr->stateServiceRequest = false;
       this->dataPtr->stateCv.notify_all();
     }
 
@@ -288,7 +287,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      this->dataPtr->statePub.Publish(stepMsg);
+      this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
   }
@@ -518,10 +517,10 @@ bool SceneBroadcasterPrivate::StateService(
 
   // Lock and wait for an iteration to be run and fill the state
   std::unique_lock<std::mutex> lock(this->stateMutex);
-  this->stepMsg.Clear();
+  this->stateServiceRequest = true;
   auto success = this->stateCv.wait_for(lock, 5s, [&]
   {
-    return this->stepMsg.has_state();
+    return this->stepMsg.has_state() && !this->stateServiceRequest;
   });
 
   if (success)
