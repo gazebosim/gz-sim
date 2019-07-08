@@ -194,7 +194,8 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->iface->creator =
       std::make_unique<SdfEntityCreator>(_ecm, _eventManager);
 
-  auto worldName = _ecm.Component<components::Name>(_entity)->Data();
+  const components::Name *constCmp = _ecm.Component<components::Name>(_entity);
+  const std::string &worldName = constCmp->Data();
 
   // Create service
   std::string createService{"/world/" + worldName + "/create"};
