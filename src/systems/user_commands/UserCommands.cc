@@ -611,7 +611,7 @@ bool PoseCommand::Execute()
   }
   else
   {
-    poseCmdComp->Data() = msgs::Convert(*poseMsg);
+    poseCmdComp->SetData(msgs::Convert(*poseMsg));
   }
 
   return true;
