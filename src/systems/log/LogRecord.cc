@@ -251,6 +251,10 @@ void LogRecord::PostUpdate(const UpdateInfo &,
 
   // TODO(louise) Use the SceneBroadcaster's topic once that publishes
   // the changed state
+  // \todo(anyone) A potential enhancement here is have a keyframe mechanism
+  // to store complete state periodically, and then store incremental from
+  // that. It would reduce some of the compute on replaying
+  // (especially in tools like plotting or seeking through logs).
   msgs::SerializedStateMap stateMsg;
   _ecm.ChangedState(stateMsg);
   if (!stateMsg.entities().empty())
