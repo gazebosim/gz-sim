@@ -34,6 +34,9 @@
 #include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Joint.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -101,6 +104,20 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
+
+  /// \brief Flag on whether the battery should start draining
+  public: bool startDraining = true;
+
+  /// \brief The start time when battery starts draining
+  /// in seconds
+  public: int drainStartTime = -1;
+
+  /// \brief Book keep the last time printed, so as to not pollute dbg messages
+  /// in minutes
+  public: int lastPrintTime = -1;
+
+  /// \brief Model interface
+  public: Model model{kNullEntity};
 };
 
 /////////////////////////////////////////////////
@@ -143,6 +160,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
            << "Failed to initialize." << std::endl;
     return;
   }
+  this->dataPtr->model = model;
   this->dataPtr->modelName = model.Name(_ecm);
 
   if (_sdf->HasElement("open_circuit_voltage_constant_coef"))
@@ -210,6 +228,17 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
 
+  // Flag that indicates that the battery should start draining only on motion
+  if (_sdf->HasElement("start_on_motion"))
+  {
+    auto startOnMotion = _sdf->Get<bool>("start_on_motion");
+    if (startOnMotion)
+    {
+      igndbg << "Start draining only on motion" << std::endl;
+      this->dataPtr->startDraining = false;
+    }
+  }
+
   ignmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
@@ -231,14 +260,63 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 }
 
 //////////////////////////////////////////////////
+void LinearBatteryPlugin::PreUpdate(
+  const ignition::gazebo::UpdateInfo &/*_info*/,
+  ignition::gazebo::EntityComponentManager &_ecm)
+{
+  // // Start draining the battery if the robot has started moving
+  if (!this->dataPtr->startDraining)
+  {
+    const std::vector<Entity> joints = _ecm.ChildrenByComponents(
+      this->dataPtr->model.Entity(),
+      components::Joint());
+
+    for (Entity jointEntity : joints)
+    {
+      const auto* jointVelocityCmd =
+        _ecm.Component<components::JointVelocityCmd>(jointEntity);
+      if (jointVelocityCmd) {
+        for (double jointVel : jointVelocityCmd->Data())
+        {
+          if (fabsf(jointVel) > 0)
+          {
+            this->dataPtr->startDraining = true;
+            return;
+          }
+        }
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
 
+  if (!this->dataPtr->startDraining)
+    return;
+
+  // Find the time at which battery starts to drain
+  int simTime = static_cast<int>(
+    std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count());
+  if (this->dataPtr->drainStartTime == -1)
+    this->dataPtr->drainStartTime = simTime;
+
+  // Print drain time in minutes
+  int drainTime = (simTime - this->dataPtr->drainStartTime) / 60;
+  if (drainTime != this->dataPtr->lastPrintTime)
+  {
+    this->dataPtr->lastPrintTime = drainTime;
+    igndbg << "[Battery Plugin] Battery drain: " << drainTime <<
+      " minutes passed.\n";
+  }
+
   // Update actual battery
   this->dataPtr->stepSize = _info.dt;
+
   if (this->dataPtr->battery)
   {
     this->dataPtr->battery->Update();
@@ -323,6 +401,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     ignition::gazebo::System,
                     LinearBatteryPlugin::ISystemConfigure,
+                    LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
