@@ -417,7 +417,7 @@ namespace ignition
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
@@ -439,7 +439,7 @@ namespace ignition
       /// * Entities which had a component modified
       ///
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
       /// \brief Get whether there are new entities.
@@ -456,7 +456,7 @@ namespace ignition
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
       /// \detail The header of the message will not be handled, it is the
-      /// responsability of the caller to use the timestamp.
+      /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
@@ -494,7 +494,7 @@ namespace ignition
       private: components::BaseComponent *First(
                    const ComponentTypeId _componentTypeId);
 
-      /// \brief Implmentation of CreateComponent.
+      /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
@@ -652,7 +652,7 @@ namespace ignition
       ///
       /// \param[in] _state New serialized state.
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       public: void ChangedState(msgs::SerializedStateMap &_state) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
@@ -661,7 +661,7 @@ namespace ignition
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
       /// \detail The header of the message will not be handled, it is the
-      /// responsability of the caller to use the timestamp.
+      /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedStateMap &_stateMsg);
 
