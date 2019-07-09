@@ -37,10 +37,25 @@ namespace systems
   // Forward declaration
   class LinearBatteryPluginPrivate;
 
-  /// \brief A plugin that simulates a linear battery.
+  /// \brief A plugin for simulating battery usage
+  ///
+  /// This system processes the following sdf parameters:
+  /// <battery_name> name of the battery
+  /// <voltage> Initial voltage of the battery
+  /// <open_circuit_voltage_constant_coef> Voltage at full charge
+  /// <open_circuit_voltage_linear_coef> Amount of voltage decrease when no
+  ///                                    charge
+  /// <initial_charge> Initial charge of the battery
+  /// <capacity> Total charge that the battery can hold
+  /// <resistance> Internal resistance
+  /// <smooth_current_tau> coefficient for smoothing current
+  /// <power_load> power load on battery
+  /// <start_on_motion> if set to true, the battery will start draining
+  ///                  only if the robot has started moving
   class IGNITION_GAZEBO_VISIBLE LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
+        public ISystemPreUpdate,
         public ISystemUpdate
   {
     /// \brief Constructor
@@ -54,6 +69,11 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void PreUpdate(
+                const ignition::gazebo::UpdateInfo &_info,
+                ignition::gazebo::EntityComponentManager &_ecm) override;
 
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
