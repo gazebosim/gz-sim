@@ -672,6 +672,8 @@ namespace ignition
       /// components.
       /// \param[in] _full True to get all the entities and components.
       /// False will get only components and entities that have changed.
+      /// \note This function will mark `Changed` components as not changed.
+      /// See the todo in the implementation.
       private: void AddEntityToMessage(msgs::SerializedStateMap &_msg,
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
