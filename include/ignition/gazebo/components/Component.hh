@@ -363,7 +363,11 @@ namespace components
 
     /// \brief Get the mutable component data. Use of
     /// const DataType &Data() const is preferred to access data as it has a
-    /// lower performance impact. Use void SetData(const DataType &) to
+    /// lower performance impact. This function will mark the component as
+    /// `Changed`, which in turn can cause additional processing by systems.
+    /// For example, the SceneBroadcaster system will serialize and transmit
+    /// `Changed` components.
+    /// Use void SetData(const DataType &) to
     /// modify data.
     /// \return Mutable reference to the actual component information.
     public: DataType &Data();
