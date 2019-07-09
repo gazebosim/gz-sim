@@ -1041,13 +1041,13 @@ void EntityComponentManager::SetState(
       // Remove component
       if (compMsg.remove())
       {
-        this->RemoveComponent(entity, type);
+        this->RemoveComponent(entity, compIter->first);
         continue;
       }
 
       // Get Component
       components::BaseComponent *comp =
-        this->ComponentImplementation(entity, type);
+        this->ComponentImplementation(entity, compIter->first);
 
       // Create if new
       if (nullptr == comp)
