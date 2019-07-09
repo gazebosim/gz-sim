@@ -625,7 +625,7 @@ namespace ignition
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
