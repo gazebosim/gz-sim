@@ -665,6 +665,13 @@ namespace ignition
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedStateMap &_stateMsg);
 
+      /// \brief Set the changed state of a component.
+      /// \param[in] _entity The entity.
+      /// \param[in] _type Type of the component.
+      /// \param[in] _c Changed state value.
+      public: void SetChanged(
+                  const Entity _entity, const ComponentTypeId _type, bool _c);
+
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();
 

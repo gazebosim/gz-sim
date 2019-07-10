@@ -822,8 +822,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-            worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
-                this->pose3Eql);
+            _ecm.SetChanged(_entity, components::WorldPose::typeId,
+                worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
+                  this->pose3Eql));
           }
 
           // Velocity in world coordinates
@@ -831,9 +832,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearVelocity>(_entity);
           if (worldLinVelComp)
           {
-            worldLinVelComp->SetData(
-                math::eigen3::convert(frameData.linearVelocity),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::WorldLinearVelocity::typeId,
+                worldLinVelComp->SetData(
+                  math::eigen3::convert(frameData.linearVelocity),
+                  this->vec3Eql));
           }
 
           // Angular velocity in world frame coordinates
@@ -841,9 +843,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularVelocity>(_entity);
           if (worldAngVelComp)
           {
-            worldAngVelComp->SetData(
-                math::eigen3::convert(frameData.angularVelocity),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::WorldAngularVelocity::typeId,
+                worldAngVelComp->SetData(
+                  math::eigen3::convert(frameData.angularVelocity),
+                  this->vec3Eql));
           }
 
           // Acceleration in world frame coordinates
@@ -851,9 +854,11 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearAcceleration>(_entity);
           if (worldLinAccelComp)
           {
-            worldLinAccelComp->SetData(
-                math::eigen3::convert(frameData.linearAcceleration),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity,
+                components::WorldLinearAcceleration::typeId,
+                worldLinAccelComp->SetData(
+                  math::eigen3::convert(frameData.linearAcceleration),
+                  this->vec3Eql));
           }
 
           // Angular acceleration in world frame coordinates
@@ -862,9 +867,11 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 
           if (worldAngAccelComp)
           {
-            worldAngAccelComp->SetData(
-                math::eigen3::convert(frameData.angularAcceleration),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity,
+                components::WorldAngularAcceleration::typeId,
+                worldAngAccelComp->SetData(
+                  math::eigen3::convert(frameData.angularAcceleration),
+                  this->vec3Eql));
           }
 
           const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
@@ -875,8 +882,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinVelComp)
           {
             Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-            bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::LinearVelocity::typeId,
+                bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
+                  this->vec3Eql));
           }
 
           // Angular velocity in body-fixed frame coordinates
@@ -885,8 +893,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngVelComp)
           {
             Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-            bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::AngularVelocity::typeId,
+                bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
+                  this->vec3Eql));
           }
 
           // Acceleration in body-fixed frame coordinates
@@ -895,8 +904,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinAccelComp)
           {
             Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-            bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::LinearAcceleration::typeId,
+                bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
+                  this->vec3Eql));
           }
 
           // Angular acceleration in world frame coordinates
@@ -906,8 +916,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           {
             Eigen::Vector3d bodyAngAccel =
                 R_bs * frameData.angularAcceleration;
-            bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
-                this->vec3Eql);
+            _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
+                bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
+                  this->vec3Eql));
           }
         }
         else

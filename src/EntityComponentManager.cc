@@ -53,6 +53,8 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
+  public: std::map<ComponentKey, bool> changedComponents;
+
   /// \brief A graph holding all entities, arranged according to their
   /// parenting.
   public: EntityGraph entities;
@@ -415,6 +417,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
   this->dataPtr->entityComponents[_entity].push_back(componentKey);
+  this->dataPtr->changedComponents[componentKey] = true;
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -743,19 +746,23 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   // Empty means all types
   bool allTypes = _types.empty();
 
-  auto components = this->dataPtr->entityComponents[_entity];
-  for (const ComponentKey &comp : components)
+  for (const ComponentKey &comp : this->dataPtr->entityComponents[_entity])
   {
     if (!allTypes && _types.find(comp.first) == _types.end())
     {
       continue;
     }
 
-    auto compBase = this->ComponentImplementation(_entity, comp.first);
+    const components::BaseComponent *compBase =
+      this->ComponentImplementation(_entity, comp.first);
 
     // Skip adding the component if it has not changed.
-    if (!_full && !compBase->Changed())
+    if (!_full &&
+        this->dataPtr->changedComponents.find(comp) ==
+         this->dataPtr->changedComponents.end())
+    {
       continue;
+    }
 
     /// Find the entity in the message, if not already found.
     /// Add the entity to the message, if not already added.
@@ -1102,8 +1109,28 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 //////////////////////////////////////////////////
 void EntityComponentManager::SetAllComponentsUnchanged()
 {
-  for (auto &cmp : this->dataPtr->components)
+  this->dataPtr->changedComponents.clear();
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::SetChanged(
+    const Entity _entity, const ComponentTypeId _type, bool _c)
+{
+  if (!_c)
+    return;
+
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return;
+
+  std::vector<ComponentKey>::iterator iter =
+    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key)
   {
-    cmp.second->SetChanged(false);
-  }
+    return _key.first == _type;
+  });
+
+  if (iter != ecIter->second.end())
+    this->dataPtr->changedComponents[*iter] = _c;
 }
