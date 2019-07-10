@@ -183,7 +183,6 @@ TEST_F(NetworkHandshake, Updates)
 
       if (poseMsg.name() == "sphere")
       {
-        std::cout << poseMsg.DebugString() << std::endl;
         zPos.push_back(poseMsg.position().z());
       }
     }
