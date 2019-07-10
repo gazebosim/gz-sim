@@ -545,7 +545,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Mark all components as not changed, if this is the primary.
   // If the a network secondard marks all components as unchanged, then it
   // will never see pose changes.
-  if (this->networkMgr->IsPrimary())
+  if (!this->networkMgr || this->networkMgr->IsPrimary())
     this->entityCompMgr.SetAllComponentsUnchanged();
 }
 
