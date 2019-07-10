@@ -9,12 +9,14 @@
    subscribers to pose topics are not present, 2) Set world stats message
    instead of copying the message, 3) Suppress scenegraph updates when there
    are no new entities, 4) Make better use of const functions, 5) Prevent
-   creation of msgs::SerializedStep every PostUpdate.
+   creation of msgs::SerializedStep every PostUpdate, 6) Only serialized and
+   transmit components that have changed.
     * [Pull Request 371](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/371)
     * [Pull Request 372](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/372)
     * [Pull Request 373](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/373)
     * [Pull Request 374](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/374)
     * [Pull Request 375](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/375)
+    * [Pull Request 376](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/376)
 
 ### Ignition Gazebo 2.2.0
 
