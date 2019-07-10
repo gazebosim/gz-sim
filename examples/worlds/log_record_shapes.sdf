@@ -2,8 +2,10 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to /tmp/log. You can playback
-  running the log_playback.sdf file.
+  Running this world will record log files to /tmp/log. If that directory
+  already exists, it will record to /tmp/log(1) and so on.
+
+  You can playback running the log_playback.sdf file.
 -->
 <sdf version="1.6">
   <world name="shapes">

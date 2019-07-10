@@ -360,6 +360,9 @@ namespace ignition
       /// \brief Clock publisher.
       private: ignition::transport::Node::Publisher clockPub;
 
+      /// \brief Clock publisher for the root `/clock` topic.
+      private: ignition::transport::Node::Publisher rootClockPub;
+
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
