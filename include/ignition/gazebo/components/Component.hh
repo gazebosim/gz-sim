@@ -440,8 +440,9 @@ namespace components
       const DataType &_data,
       const std::function<bool(const DataType &, const DataType &)> &_eql)
   {
+    bool result = !_eql(_data, this->data);
     this->data = _data;
-    return !_eql(_data, this->data);
+    return result;
   }
 
   //////////////////////////////////////////////////
