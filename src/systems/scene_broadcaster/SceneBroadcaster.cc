@@ -411,6 +411,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     this->posePub.Publish(poseMsg);
   }
 }
+
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
