@@ -323,7 +323,7 @@ TEST_P(SceneBroadcasterTest, State)
   std::function<void(const msgs::SerializedStepMap &)> cb2 =
       [&](const msgs::SerializedStepMap &_res)
   {
-    checkMsg(_res, 6);
+    checkMsg(_res, 0);
   };
 
   // The request is blocking even though it's meant to be async, so we spin a

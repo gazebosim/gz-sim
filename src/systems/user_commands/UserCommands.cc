@@ -622,7 +622,8 @@ bool PoseCommand::Execute()
   }
   else
   {
-    poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql);
+    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql));
   }
 
   return true;
