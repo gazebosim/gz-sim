@@ -374,7 +374,14 @@ namespace components
 
     /// \brief Set the data of this component.
     /// \param[in] _data New data for this component.
-    public: void SetData(const DataType &_data);
+    /// \param[in] _eql Equality comparison function. This function should
+    /// return true if two instances of DataType are equal. This function
+    /// is called prior to setting the data. If the function returns true,
+    /// then the data contained in this component is not updated and the
+    /// component is not marked as changed.
+    public: void SetData(const DataType &_data,
+                const std::function<
+                  bool(const DataType &, const DataType &)> &_eql);
 
     /// \brief Get the immutable component data.
     /// \return Immutable reference to the actual component information.
@@ -453,9 +460,10 @@ namespace components
   //////////////////////////////////////////////////
   template <typename DataType, typename Identifier, typename Serializer>
   void Component<DataType, Identifier, Serializer>::SetData(
-      const DataType &_data)
+      const DataType &_data,
+      const std::function<bool(const DataType &, const DataType &)> &_eql)
   {
-    if (_data != this->data)
+    if (!_eql(_data, this->data))
     {
       this->SetChanged(true);
       this->data = _data;
