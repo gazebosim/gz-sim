@@ -2,7 +2,85 @@
 
 ### Ignition Gazebo 2.X.X
 
+1. Add sdf parameter to battery to start draining only when robot has started moving
+    * [Pull Request 370](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/370)
+
+1. Improve SceneBroadcaster peformance by 1) Limit message generation if
+   subscribers to pose topics are not present, 2) Set world stats message
+   instead of copying the message, 3) Suppress scenegraph updates when there
+   are no new entities, 4) Make better use of const functions, 5) Prevent
+   creation of msgs::SerializedStep every PostUpdate, 6) Only serialized and
+   transmit components that have changed.
+    * [Pull Request 371](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/371)
+    * [Pull Request 372](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/372)
+    * [Pull Request 373](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/373)
+    * [Pull Request 374](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/374)
+    * [Pull Request 375](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/375)
+    * [Pull Request 376](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/376)
+
+### Ignition Gazebo 2.2.0
+
+1. The DiffDrive system publishes odometry information.
+    * [Pull Request 368](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/368)
+
+1. Allow attaching plugins to sensors from a server config.
+    * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
+
+1. Remove world name from frame_ids
+    * [Pull Request 364](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/364)
+
+1. Fix deadlock when spawning robots
+    * [Pull Request 365](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/365)
+
+1. Set default topics for rendering sensors
+    * [Pull Request 363](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/363)
+
+1. Support custom random seed from the command line.
+    * [Pull Request 362](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/362)
+
+### Ignition Gazebo 2.1.0
+
+1. RenderUtil fix bad merge: check for existing entities in GzScene3D on initialization.
+    * [Pull Request 360](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/360)
+
+1. Allow sensors to load plugins.
+    * [Pull Request 356](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/356)
+    * [Pull Request 366](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/366)
+
+1. Parse and load submesh geometry in visuals.
+    * [Pull Request 353](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/353)
+
+1. Allow setting the update frequency of pose publisher.
+    * [Pull Request 352](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/352)
+
+1. Added RGBD camera sensor.
+    * [Pull Request 351](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/351)
+
+1. Fix Docker scripts.
+    * [Pull Request 347](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/347)
+
+1. Support log playback from a different path
+    * [Pull Request 355](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/355)
+
 ### Ignition Gazebo 2.0.0
+
+1. RenderUtil: check for existing entities in GzScene3D on initialization.
+    * [Pull Request 350](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/350)
+
+1. SceneBroadcaster: only send pose state periodically.
+    * [Pull Request 345](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/345)
+
+1. PeerTracker: increase distributed simulation peer tracking timeout.
+    * [Pull Request 344](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/344)
+
+1. MultiCopterMotorModel: add mutex to protect motor velocity command.
+    * [Pull Request 341](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/341)
+
+1. Tweaks to example worlds
+    * [Pull Request 342](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/342)
+
+1. DiffDrive system: add topic as system parameter.
+    * [Pull Request 343](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/343)
 
 1. Log entity creation and deletion
     * [Pull Request 337](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/337)

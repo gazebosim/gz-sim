@@ -29,6 +29,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
 #include "ignition/gazebo/rendering/RenderUtil.hh"
@@ -89,7 +90,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId)))
+       _ecm.HasComponentType(components::GpuLidar::typeId) ||
+       _ecm.HasComponentType(components::RgbdCamera::typeId)))
   {
     this->dataPtr->renderUtil.Init();
     this->dataPtr->scene = this->dataPtr->renderUtil.Scene();

@@ -221,6 +221,24 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Pointer to the underlying ign-physics Engine entity.
   public: EnginePtrType engine = nullptr;
+
+  /// \brief Vector3d equality comparison function.
+  public: std::function<bool(const math::Vector3d &, const math::Vector3d &)>
+          vec3Eql { [](const math::Vector3d &_a, const math::Vector3d &_b)
+                    {
+                      return _a.Equal(_b, 1e-6);
+                    }};
+
+  /// \brief Pose3d equality comparison function.
+  public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
+          pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
+                     {
+                       return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+                         math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+                         math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+                         math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+                         math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+                     }};
 };
 
 //////////////////////////////////////////////////
@@ -752,7 +770,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const Entity &_entity, components::Link * /*_link*/,
-          components::Pose *_pose, components::ParentEntity *_parent)->bool
+          components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_entity);
         if (linkIt != this->entityLinkMap.end())
@@ -761,7 +780,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::CanonicalLink>(_entity);
 
           // get the pose component of the parent model
-          auto parentPose =
+          const components::Pose *parentPose =
               _ecm.Component<components::Pose>(_parent->Data());
 
           auto frameData = linkIt->second->FrameDataRelativeToWorld();
@@ -785,7 +804,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // this link relative to world so to set the model's pose, we have
             // to premultiply it by the inverse of the initial transform of
             // the link w.r.t to its model.
-            *parentPose = components::Pose(_pose->Data().Inverse() +
+            auto mutableParentPose =
+              _ecm.Component<components::Pose>(_parent->Data());
+            *(mutableParentPose) = components::Pose(_pose->Data().Inverse() +
                                            math::eigen3::convert(worldPose));
           }
           else
@@ -801,7 +822,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-            worldPoseComp->Data() = math::eigen3::convert(frameData.pose);
+            _ecm.SetChanged(_entity, components::WorldPose::typeId,
+                worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
+                  this->pose3Eql));
           }
 
           // Velocity in world coordinates
@@ -809,8 +832,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearVelocity>(_entity);
           if (worldLinVelComp)
           {
-            worldLinVelComp->Data() =
-                math::eigen3::convert(frameData.linearVelocity);
+            _ecm.SetChanged(_entity, components::WorldLinearVelocity::typeId,
+                worldLinVelComp->SetData(
+                  math::eigen3::convert(frameData.linearVelocity),
+                  this->vec3Eql));
           }
 
           // Angular velocity in world frame coordinates
@@ -818,8 +843,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldAngularVelocity>(_entity);
           if (worldAngVelComp)
           {
-            worldAngVelComp->Data() =
-                math::eigen3::convert(frameData.angularVelocity);
+            _ecm.SetChanged(_entity, components::WorldAngularVelocity::typeId,
+                worldAngVelComp->SetData(
+                  math::eigen3::convert(frameData.angularVelocity),
+                  this->vec3Eql));
           }
 
           // Acceleration in world frame coordinates
@@ -827,17 +854,24 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::WorldLinearAcceleration>(_entity);
           if (worldLinAccelComp)
           {
-            worldLinAccelComp->Data() =
-                math::eigen3::convert(frameData.linearAcceleration);
+            _ecm.SetChanged(_entity,
+                components::WorldLinearAcceleration::typeId,
+                worldLinAccelComp->SetData(
+                  math::eigen3::convert(frameData.linearAcceleration),
+                  this->vec3Eql));
           }
 
           // Angular acceleration in world frame coordinates
           auto worldAngAccelComp =
               _ecm.Component<components::WorldAngularAcceleration>(_entity);
+
           if (worldAngAccelComp)
           {
-            worldAngAccelComp->Data() =
-                math::eigen3::convert(frameData.angularAcceleration);
+            _ecm.SetChanged(_entity,
+                components::WorldAngularAcceleration::typeId,
+                worldAngAccelComp->SetData(
+                  math::eigen3::convert(frameData.angularAcceleration),
+                  this->vec3Eql));
           }
 
           const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
@@ -848,7 +882,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinVelComp)
           {
             Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-            bodyLinVelComp->Data() = math::eigen3::convert(bodyLinVel);
+            _ecm.SetChanged(_entity, components::LinearVelocity::typeId,
+                bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
+                  this->vec3Eql));
           }
 
           // Angular velocity in body-fixed frame coordinates
@@ -857,7 +893,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngVelComp)
           {
             Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-            bodyAngVelComp->Data() = math::eigen3::convert(bodyAngVel);
+            _ecm.SetChanged(_entity, components::AngularVelocity::typeId,
+                bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
+                  this->vec3Eql));
           }
 
           // Acceleration in body-fixed frame coordinates
@@ -866,7 +904,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinAccelComp)
           {
             Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-            bodyLinAccelComp->Data() = math::eigen3::convert(bodyLinAccel);
+            _ecm.SetChanged(_entity, components::LinearAcceleration::typeId,
+                bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
+                  this->vec3Eql));
           }
 
           // Angular acceleration in world frame coordinates
@@ -876,7 +916,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           {
             Eigen::Vector3d bodyAngAccel =
                 R_bs * frameData.angularAcceleration;
-            bodyAngAccelComp->Data() = math::eigen3::convert(bodyAngAccel);
+            _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
+                bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
+                  this->vec3Eql));
           }
         }
         else
@@ -899,8 +941,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldPose,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose, components::WorldPose *_worldPose,
-          components::ParentEntity *_parent)->bool
+          const components::Pose *_pose, components::WorldPose *_worldPose,
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -920,9 +962,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::WorldLinearVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::WorldLinearVelocity *_worldLinearVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -943,9 +985,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::AngularVelocity,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::AngularVelocity *_angularVel,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         // check if parent entity is a link, e.g. entity is sensor / collision
         auto linkIt = this->entityLinkMap.find(_parent->Data());
@@ -970,9 +1012,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
   _ecm.Each<components::Pose, components::LinearAcceleration,
             components::ParentEntity>(
       [&](const Entity &,
-          components::Pose *_pose,
+          const components::Pose *_pose,
           components::LinearAcceleration *_linearAcc,
-          components::ParentEntity *_parent)->bool
+          const components::ParentEntity *_parent)->bool
       {
         auto linkIt = this->entityLinkMap.find(_parent->Data());
         if (linkIt != this->entityLinkMap.end())
