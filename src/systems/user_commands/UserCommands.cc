@@ -127,6 +127,17 @@ class PoseCommand : public UserCommandBase
 
   // Documentation inherited
   public: bool Execute() final;
+
+  /// \brief Pose3d equality comparison function.
+  public: std::function<bool(const math::Pose3d &, const math::Pose3d &)>
+          pose3Eql { [](const math::Pose3d &_a, const math::Pose3d &_b)
+                     {
+                       return _a.Pos().Equal(_b.Pos(), 1e-6) &&
+                         math::equal(_a.Rot().X(), _b.Rot().X(), 1e-6) &&
+                         math::equal(_a.Rot().Y(), _b.Rot().Y(), 1e-6) &&
+                         math::equal(_a.Rot().Z(), _b.Rot().Z(), 1e-6) &&
+                         math::equal(_a.Rot().W(), _b.Rot().W(), 1e-6);
+                     }};
 };
 }
 }
@@ -611,7 +622,8 @@ bool PoseCommand::Execute()
   }
   else
   {
-    poseCmdComp->Data() = msgs::Convert(*poseMsg);
+    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+        poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql));
   }
 
   return true;

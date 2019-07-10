@@ -143,7 +143,8 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
     for (int i = 0; i < count; ++i)
     {
       poseData = &(manager.Component<components::Pose>(keys[i])->Data());
-      uintptr_t poseDataSize = sizeof(math::Pose3d) + sizeof(uintptr_t);
+      uintptr_t poseDataSize = sizeof(math::Pose3d) +
+        sizeof(components::BaseComponent);
       if (prevPoseData != nullptr)
       {
         EXPECT_EQ(poseDataSize, reinterpret_cast<uintptr_t>(poseData) -
@@ -1484,37 +1485,62 @@ TEST_P(EntityComponentManagerFixture, State)
   }
 
   // Serialize into a message
-  auto stateMsg = manager.State();
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
 
   // Check message
   {
     ASSERT_EQ(3, stateMsg.entities_size());
 
-    const auto &e1Msg = stateMsg.entities(0);
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
     EXPECT_EQ(e1, e1Msg.id());
-    ASSERT_EQ(1, e1Msg.components().size());
+    ASSERT_EQ(1, e1Msg.components_size());
 
-    const auto &e1c0Msg = e1Msg.components(0);
+    auto compIter = e1Msg.components().begin();
+    const auto &e1c0Msg = compIter->second;
     EXPECT_EQ(IntComponent::typeId, e1c0Msg.type());
     EXPECT_EQ(e1c0, std::stoi(e1c0Msg.component()));
 
-    const auto &e2Msg = stateMsg.entities(1);
+    iter = stateMsg.entities().find(e2);
+    const auto &e2Msg = iter->second;
     EXPECT_EQ(e2, e2Msg.id());
-    ASSERT_EQ(2, e2Msg.components().size());
+    ASSERT_EQ(2u, e2Msg.components().size());
 
-    const auto &e2c0Msg = e2Msg.components(0);
-    EXPECT_EQ(DoubleComponent::typeId, e2c0Msg.type());
-    EXPECT_DOUBLE_EQ(e2c0, std::stod(e2c0Msg.component()));
+    compIter = e2Msg.components().begin();
+    if (compIter->second.type() == DoubleComponent::typeId)
+    {
+      const auto &e2c0Msg = compIter->second;
+      EXPECT_EQ(DoubleComponent::typeId, e2c0Msg.type());
+      EXPECT_DOUBLE_EQ(e2c0, std::stod(e2c0Msg.component()));
+    }
+    else
+    {
+      const auto &e2c1Msg = compIter->second;
+      EXPECT_EQ(StringComponent::typeId, e2c1Msg.type());
+      EXPECT_EQ(e2c1, e2c1Msg.component());
+    }
 
-    const auto &e2c1Msg = e2Msg.components(1);
-    EXPECT_EQ(StringComponent::typeId, e2c1Msg.type());
-    EXPECT_EQ(e2c1, e2c1Msg.component());
+    compIter++;
+    if (compIter->second.type() == DoubleComponent::typeId)
+    {
+      const auto &e2c0Msg = compIter->second;
+      EXPECT_EQ(DoubleComponent::typeId, e2c0Msg.type());
+      EXPECT_DOUBLE_EQ(e2c0, std::stod(e2c0Msg.component()));
+    }
+    else
+    {
+      const auto &e2c1Msg = compIter->second;
+      EXPECT_EQ(StringComponent::typeId, e2c1Msg.type());
+      EXPECT_EQ(e2c1, e2c1Msg.component());
+    }
 
-    const auto &e3Msg = stateMsg.entities(2);
+    iter = stateMsg.entities().find(e3);
+    const auto &e3Msg = iter->second;
     EXPECT_EQ(e3, e3Msg.id());
-    ASSERT_EQ(1, e1Msg.components().size());
+    ASSERT_EQ(1u, e1Msg.components().size());
 
-    const auto &e3c0Msg = e3Msg.components(0);
+    const auto &e3c0Msg = e3Msg.components().begin()->second;
     EXPECT_EQ(IntComponent::typeId, e3c0Msg.type());
     EXPECT_EQ(e3c0, std::stoi(e3c0Msg.component()));
   }
@@ -1572,31 +1598,44 @@ TEST_P(EntityComponentManagerFixture, State)
   // Update message to change entities / components
   {
     // e1 has a component removed and another added
-    auto e1Msg = stateMsg.mutable_entities(0);
+    google::protobuf::Map<uint64_t, msgs::SerializedEntityMap>::iterator iter
+      = stateMsg.mutable_entities()->find(e1);
+    ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
 
-    auto e1c0Msg = e1Msg->mutable_components(0);
-    e1c0Msg->set_remove(true);
+    msgs::SerializedEntityMap &e1Msg = iter->second;
 
-    auto e1c1Msg = e1Msg->add_components();
-    e1c1Msg->set_type(DoubleComponent::typeId);
-    e1c1Msg->set_component(std::to_string(e1c1));
+    EXPECT_EQ(1, e1Msg.components_size());
+    msgs::SerializedComponent &e1c0Msg =
+      e1Msg.mutable_components()->begin()->second;
+    e1c0Msg.set_remove(true);
+
+    msgs::SerializedComponent e1c1Msg;
+    e1c1Msg.set_type(DoubleComponent::typeId);
+    e1c1Msg.set_component(std::to_string(e1c1));
+    (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
 
     // e2 is removed
-    auto e2Msg = stateMsg.mutable_entities(1);
-    e2Msg->set_remove(true);
+    iter = stateMsg.mutable_entities()->find(e2);
+    msgs::SerializedEntityMap &e2Msg = iter->second;
+    e2Msg.set_remove(true);
 
     // e3 has a component updated
-    auto e3Msg = stateMsg.mutable_entities(2);
+    iter = stateMsg.mutable_entities()->find(e3);
+    msgs::SerializedEntityMap &e3Msg = iter->second;
 
-    auto e3c0Msg = e3Msg->mutable_components(0);
-    e3c0Msg->set_component(std::to_string(e3c0New));
+    ASSERT_EQ(1, e3Msg.components_size());
+    msgs::SerializedComponent &e3c0Msg =
+      e3Msg.mutable_components()->begin()->second;
+    e3c0Msg.set_component(std::to_string(e3c0New));
 
     // e4 is a new entity
-    auto e4Msg = stateMsg.add_entities();
-    e4Msg->set_id(e4);
-    auto e4c0Msg = e4Msg->add_components();
-    e4c0Msg->set_type(IntComponent::typeId);
-    e4c0Msg->set_component(std::to_string(e4c0));
+    msgs::SerializedEntityMap e4Msg;
+    e4Msg.set_id(e4);
+    msgs::SerializedComponent e4c0Msg;
+    e4c0Msg.set_type(IntComponent::typeId);
+    e4c0Msg.set_component(std::to_string(e4c0));
+    (*e4Msg.mutable_components())[e4c0Msg.type()] = e4c0Msg;
+    (*stateMsg.mutable_entities())[static_cast<int64_t>(e4)] = e4Msg;
   }
 
   // Set new state on top of previous one
@@ -1661,23 +1700,28 @@ TEST_P(EntityComponentManagerFixture, State)
 
   // Serialize into a message with selected entities and components
   {
-    stateMsg = manager.State({e3, e4}, {IntComponent::typeId});
+    msgs::SerializedStateMap stateMsg2;
+    manager.State(stateMsg2, {e3, e4}, {IntComponent::typeId});
 
-    ASSERT_EQ(2, stateMsg.entities_size());
+    ASSERT_EQ(2, stateMsg2.entities_size());
 
-    const auto &e3Msg = stateMsg.entities(0);
+    auto iter = stateMsg2.entities().find(e3);
+    const auto &e3Msg = iter->second;
     EXPECT_EQ(e3, e3Msg.id());
-    ASSERT_EQ(1, e3Msg.components().size());
+    ASSERT_EQ(1u, e3Msg.components().size());
 
-    const auto &e3c0Msg = e3Msg.components(0);
+    auto compIter = e3Msg.components().begin();
+    const auto &e3c0Msg = compIter->second;
     EXPECT_EQ(IntComponent::typeId, e3c0Msg.type());
     EXPECT_EQ(e3c0New, std::stoi(e3c0Msg.component()));
 
-    const auto &e4Msg = stateMsg.entities(1);
+    iter = stateMsg2.entities().find(e4);
+    const auto &e4Msg = iter->second;
     EXPECT_EQ(e4, e4Msg.id());
-    ASSERT_EQ(1, e4Msg.components().size());
+    ASSERT_EQ(1u, e4Msg.components().size());
 
-    const auto &e4c0Msg = e4Msg.components(0);
+    auto compIter4 = e4Msg.components().begin();
+    const auto &e4c0Msg = compIter4->second;
     EXPECT_EQ(IntComponent::typeId, e4c0Msg.type());
     EXPECT_EQ(e4c0, std::stoi(e4c0Msg.component()));
   }

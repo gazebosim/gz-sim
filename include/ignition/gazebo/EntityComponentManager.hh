@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
 #include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/serialized_map.pb.h>
 
 #include <map>
 #include <memory>
@@ -416,7 +417,7 @@ namespace ignition
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       /// \param[in] _entities Entities to be serialized. Leave empty to get
       /// all entities.
       /// \param[in] _types Type ID of components to be serialized. Leave empty
@@ -438,7 +439,7 @@ namespace ignition
       /// * Entities which had a component modified
       ///
       /// \detail The header of the message will not be populated, it is the
-      /// responsability of the caller to timestamp it before use.
+      /// responsibility of the caller to timestamp it before use.
       public: msgs::SerializedState ChangedState() const;
 
       /// \brief Get whether there are new entities.
@@ -455,7 +456,7 @@ namespace ignition
       /// Entities / components that are marked as removed will be removed, but
       /// they won't be removed if they're not present in the state.
       /// \detail The header of the message will not be handled, it is the
-      /// responsability of the caller to use the timestamp.
+      /// responsibility of the caller to use the timestamp.
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
@@ -493,7 +494,7 @@ namespace ignition
       private: components::BaseComponent *First(
                    const ComponentTypeId _componentTypeId);
 
-      /// \brief Implmentation of CreateComponent.
+      /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
@@ -617,6 +618,76 @@ namespace ignition
       // Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
       friend class detail::View;
+
+      // The following function are here for ABI compatibility.
+
+
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \detail The header of the message will not be populated, it is the
+      /// responsibility of the caller to timestamp it before use.
+      /// \param[in] _entities Entities to be serialized. Leave empty to get
+      /// all entities.
+      /// \param[in] _types Type ID of components to be serialized. Leave empty
+      /// to get all components.
+      /// \param[in] _full True to get all the entities and components.
+      /// False will get only components and entities that have changed.
+      public: void State(
+                  msgs::SerializedStateMap &_state,
+                  const std::unordered_set<Entity> &_entities = {},
+                  const std::unordered_set<ComponentTypeId> &_types = {},
+                  bool _full = false) const;
+
+      /// \brief Get a message with the serialized state of all entities and
+      /// components that are changing in the current iteration
+      ///
+      /// Currently supported:
+      /// * New entities and all of their components
+      /// * Removed entities and all of their components
+      ///
+      /// Future work:
+      /// * Entities which had a component added
+      /// * Entities which had a component removed
+      /// * Entities which had a component modified
+      ///
+      /// \param[in] _state New serialized state.
+      /// \detail The header of the message will not be populated, it is the
+      /// responsibility of the caller to timestamp it before use.
+      public: void ChangedState(msgs::SerializedStateMap &_state) const;
+
+      /// \brief Set the absolute state of the ECM from a serialized message.
+      /// Entities / components that are in the new state but not in the old
+      /// one will be created.
+      /// Entities / components that are marked as removed will be removed, but
+      /// they won't be removed if they're not present in the state.
+      /// \detail The header of the message will not be handled, it is the
+      /// responsibility of the caller to use the timestamp.
+      /// \param[in] _stateMsg Message containing state to be set.
+      public: void SetState(const msgs::SerializedStateMap &_stateMsg);
+
+      /// \brief Set the changed state of a component.
+      /// \param[in] _entity The entity.
+      /// \param[in] _type Type of the component.
+      /// \param[in] _c Changed state value.
+      public: void SetChanged(
+                  const Entity _entity, const ComponentTypeId _type, bool _c);
+
+      /// \brief Mark all components as not changed.
+      protected: void SetAllComponentsUnchanged();
+
+      /// \brief Add an entity and its components to a serialized state message.
+      /// \param[out] _msg The state message.
+      /// \param[in] _entity The entity to be added.
+      /// \param[in] _types Component types to be added. Leave empty for all
+      /// components.
+      /// \param[in] _full True to get all the entities and components.
+      /// False will get only components and entities that have changed.
+      /// \note This function will mark `Changed` components as not changed.
+      /// See the todo in the implementation.
+      private: void AddEntityToMessage(msgs::SerializedStateMap &_msg,
+          Entity _entity,
+          const std::unordered_set<ComponentTypeId> &_types = {},
+          bool _full = false) const;
     };
     }
   }
