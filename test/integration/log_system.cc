@@ -208,7 +208,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     }
 
     // Check initial state message
-    if (recordedIter->Type() == "ignition.msgs.SerializedState")
+    if (recordedIter->Type() == "ignition.msgs.SerializedStateMap")
     {
       EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
