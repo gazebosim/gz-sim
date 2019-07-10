@@ -757,10 +757,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     if (!_full && !compBase->Changed())
       continue;
 
-    // \todo(nkoenig) Move this to a better location, such as at the end
-    // of an update iteration.
-    const_cast<components::BaseComponent*>(compBase)->SetChanged(false);
-
     /// Find the entity in the message, if not already found.
     /// Add the entity to the message, if not already added.
     if (entIter == _msg.mutable_entities()->end())
@@ -1103,3 +1099,11 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
   return descendants;
 }
 
+//////////////////////////////////////////////////
+void EntityComponentManager::SetAllComponentsUnchanged()
+{
+  for (auto &cmp : this->dataPtr->components)
+  {
+    cmp.second->SetChanged(false);
+  }
+}

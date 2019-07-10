@@ -76,6 +76,10 @@ namespace ignition
       /// \return First component or nullptr if there are no components.
       public: virtual components::BaseComponent *First() = 0;
 
+      /// \brief Set the changed status for all component instances.
+      /// \param[in] _c The changed status.
+      public: virtual void SetChanged(bool _c) = 0;
+
       /// \brief Mutex used to prevent data corruption.
       protected: mutable std::mutex mutex;
     };
@@ -205,6 +209,13 @@ namespace ignition
         if (!this->components.empty())
           return static_cast<components::BaseComponent *>(&this->components[0]);
         return nullptr;
+      }
+
+      // Documentation inherited.
+      public: void SetChanged(bool _c) final
+      {
+        for (ComponentTypeT &cmp : this->components)
+          cmp.SetChanged(_c);
       }
 
       /// \brief The id counter is used to get unique ids within this

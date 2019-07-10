@@ -665,6 +665,9 @@ namespace ignition
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedStateMap &_stateMsg);
 
+      /// \brief Mark all components as not changed.
+      protected: void SetAllComponentsUnchanged();
+
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
       /// \param[in] _entity The entity to be added.
