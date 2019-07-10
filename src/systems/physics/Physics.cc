@@ -808,12 +808,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
               _ecm.Component<components::Pose>(_parent->Data());
             *(mutableParentPose) = components::Pose(_pose->Data().Inverse() +
                                            math::eigen3::convert(worldPose));
+            _ecm.SetChanged(_parent->Data(), components::Pose::typeId, true);
           }
           else
           {
             // Compute the relative pose of this link from the model
             *_pose = components::Pose(math::eigen3::convert(worldPose) +
                                       parentPose->Data().Inverse());
+            _ecm.SetChanged(_entity, components::Pose::typeId, true);
           }
 
           // Populate world poses, velocities and accelerations of the link. For
