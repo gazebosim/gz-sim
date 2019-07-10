@@ -541,6 +541,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->entityCompMgr.ProcessRemoveEntityRequests();
+
+  // Mark all components as not changed.
+  this->entityCompMgr.SetAllComponentsUnchanged();
 }
 
 //////////////////////////////////////////////////
