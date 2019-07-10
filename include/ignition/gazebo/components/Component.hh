@@ -348,6 +348,7 @@ namespace components
     /// deprecated in Gazebo 3, replaced by const DataType &Data() const.
     /// Use void SetData(const DataType &) to modify data.
     /// \return Mutable reference to the actual component information.
+    /// \todo(nkoenig) Deprecate this function in version 3.
     public: DataType &Data();
 
     /// \brief Set the data of this component.
