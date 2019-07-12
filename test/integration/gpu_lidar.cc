@@ -108,5 +108,5 @@ TEST_F(GpuLidarTest, GpuLidarBox)
   EXPECT_NEAR(lastMsg.ranges(mid), expectedRangeAtMidPointBox1,
               LASER_TOL);
   EXPECT_DOUBLE_EQ(lastMsg.ranges(last), ignition::math::INF_D);
-  EXPECT_EQ(lastMsg.frame(), "gpu_lidar::gpu_lidar_link");
+  EXPECT_EQ("gpu_lidar::gpu_lidar_link::gpu_lidar", lastMsg.frame());
 }

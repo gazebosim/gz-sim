@@ -71,7 +71,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStep &_res);
+  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -176,7 +176,7 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::condition_variable stateCv;
 
   /// \brief Filled on demand for the state service.
-  public: msgs::SerializedStep stepMsg;
+  public: msgs::SerializedStepMap stepMsg;
 
   /// \brief Last time the state was published.
   public: std::chrono::time_point<std::chrono::system_clock>
@@ -202,7 +202,7 @@ void SceneBroadcaster::Configure(
     EntityComponentManager &_ecm, EventManager &)
 {
   // World
-  auto name = _ecm.Component<components::Name>(_entity);
+  const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
     ignerr << "World with id: " << _entity
@@ -249,16 +249,18 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
-  // * also publish off-rate if there are change events (new / erased entities)
+  // * also publish off-rate if there are change events (new / erased entities,
+  // or components with one-time changes)
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities();
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges();
   bool itsPubTime = now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
+
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
@@ -266,13 +268,14 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Publish full state if there are change events
     if (changeEvent || this->dataPtr->stateServiceRequest)
     {
-      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State());
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
     // Otherwise publish just selected components
     else
     {
-      this->dataPtr->stepMsg.mutable_state()->CopyFrom(_manager.State({},
-          {components::Pose::typeId}));
+      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+          {}, {components::Pose::typeId});
     }
 
     // Full state on demand
@@ -287,6 +290,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
+      IGN_PROFILE("SceneBroadcast::PoseUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
@@ -408,6 +412,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     this->posePub.Publish(poseMsg);
   }
 }
+
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 {
@@ -463,7 +468,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{"/world/" + _worldName + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStep>(stateTopic);
+      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -511,7 +516,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStep &_res)
+    ignition::msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
