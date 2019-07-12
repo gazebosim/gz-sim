@@ -342,6 +342,40 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
+ComponentState EntityComponentManager::ComponentState(const Entity _entity,
+    const ComponentTypeId _typeId) const
+{
+  auto result = ComponentState::NoChange;
+
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return result;
+
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _typeId;
+  });
+
+  if (iter == ecIter->second.end())
+    return result;
+
+  if (this->dataPtr->oneTimeChangedComponents.find(*iter) !=
+      this->dataPtr->oneTimeChangedComponents.end())
+  {
+    result = ComponentState::OneTimeChange;
+  }
+  else if (this->dataPtr->periodicChangedComponents.find(*iter) !=
+      this->dataPtr->periodicChangedComponents.end())
+  {
+    result = ComponentState::PeriodicChange;
+  }
+
+  return result;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasNewEntities() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
@@ -766,10 +800,12 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, comp.first);
 
-    // Skip adding the component if it has not had a one-time change.
+    // If not sending full state, skip unchanged components
     if (!_full &&
         this->dataPtr->oneTimeChangedComponents.find(comp) ==
-        this->dataPtr->oneTimeChangedComponents.end())
+        this->dataPtr->oneTimeChangedComponents.end() &&
+        this->dataPtr->periodicChangedComponents.find(comp) ==
+        this->dataPtr->periodicChangedComponents.end())
     {
       continue;
     }
@@ -1125,9 +1161,9 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
-    const Entity _entity, const ComponentTypeId _type, ComponentState _c)
+    const Entity _entity, const ComponentTypeId _type,
+    gazebo::ComponentState _c)
 {
-
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
@@ -1148,7 +1184,7 @@ void EntityComponentManager::SetChanged(
     this->dataPtr->periodicChangedComponents.insert(*iter);
     this->dataPtr->oneTimeChangedComponents.erase(*iter);
   }
-  else if (_c == ComponentState::PeriodicChange)
+  else if (_c == ComponentState::OneTimeChange)
   {
     this->dataPtr->periodicChangedComponents.erase(*iter);
     this->dataPtr->oneTimeChangedComponents.insert(*iter);

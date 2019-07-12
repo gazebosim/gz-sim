@@ -727,6 +727,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               canonicalPoseComp->Data()));
         }
 
+        // Process pose commands for static models here, as one-time changes
         const components::Static *staticComp =
           _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())

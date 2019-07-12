@@ -78,6 +78,10 @@ class EntityCompMgrTest : public EntityComponentManager
   {
     this->ProcessRemoveEntityRequests();
   }
+  public: void RunSetAllComponentsUnchanged()
+  {
+    this->SetAllComponentsUnchanged();
+  }
 };
 
 class EntityComponentManagerFixture : public ::testing::TestWithParam<int>
@@ -1936,6 +1940,44 @@ TEST_P(EntityComponentManagerFixture, Descendants)
     auto ds = manager.Descendants(e3);
     EXPECT_TRUE(ds.empty());
   }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, SetChanged)
+{
+  // Create entities
+  Entity e1 = manager.CreateEntity();
+  Entity e2 = manager.CreateEntity();
+  EXPECT_EQ(2u, manager.EntityCount());
+
+  // Add components to each entity
+  auto c1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  auto c2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
+
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e1, c1.first));
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e2, c2.first));
+
+  // This would normally be done after each simulation step after systems are
+  // updated
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e1, c1.first));
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e2, c2.first));
+
+  // Mark as changed
+  manager.SetChanged(e1, c1.first, ComponentState::PeriodicChange);
+  manager.SetChanged(e2, c2.first, ComponentState::OneTimeChange);
+
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e1, c1.first));
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e2, c2.first));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
