@@ -450,6 +450,11 @@ namespace ignition
       /// \return True if there are entities marked to be removed.
       public: bool HasEntitiesMarkedForRemoval() const;
 
+      /// \brief Get whether there are one-time component changes. These changes
+      /// do not happen frequently and should be processed immediately.
+      /// \return True if there are any components with one-time changes.
+      public: bool HasOneTimeComponentChanges() const;
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
@@ -668,9 +673,10 @@ namespace ignition
       /// \brief Set the changed state of a component.
       /// \param[in] _entity The entity.
       /// \param[in] _type Type of the component.
-      /// \param[in] _c Changed state value.
+      /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
-                  const Entity _entity, const ComponentTypeId _type, bool _c);
+          const Entity _entity, const ComponentTypeId _type,
+          ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();

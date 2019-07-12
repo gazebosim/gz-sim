@@ -53,11 +53,15 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
-  public: std::map<ComponentKey, bool> changedComponents;
-
   /// \brief A graph holding all entities, arranged according to their
   /// parenting.
   public: EntityGraph entities;
+
+  /// \brief Components that have been changed through a peridic change.
+  public: std::set<ComponentKey> periodicChangedComponents;
+
+  /// \brief Components that have been changed through a one-time change.
+  public: std::set<ComponentKey> oneTimeChangedComponents;
 
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
@@ -353,6 +357,12 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasOneTimeComponentChanges() const
+{
+  return !this->dataPtr->oneTimeChangedComponents.empty();
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);
@@ -417,7 +427,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
   this->dataPtr->entityComponents[_entity].push_back(componentKey);
-  this->dataPtr->changedComponents[componentKey] = true;
+  this->dataPtr->oneTimeChangedComponents.insert(componentKey);
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -756,10 +766,10 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, comp.first);
 
-    // Skip adding the component if it has not changed.
+    // Skip adding the component if it has not had a one-time change.
     if (!_full &&
-        this->dataPtr->changedComponents.find(comp) ==
-         this->dataPtr->changedComponents.end())
+        this->dataPtr->oneTimeChangedComponents.find(comp) ==
+        this->dataPtr->oneTimeChangedComponents.end())
     {
       continue;
     }
@@ -1109,15 +1119,14 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 //////////////////////////////////////////////////
 void EntityComponentManager::SetAllComponentsUnchanged()
 {
-  this->dataPtr->changedComponents.clear();
+  this->dataPtr->periodicChangedComponents.clear();
+  this->dataPtr->oneTimeChangedComponents.clear();
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
-    const Entity _entity, const ComponentTypeId _type, bool _c)
+    const Entity _entity, const ComponentTypeId _type, ComponentState _c)
 {
-  if (!_c)
-    return;
 
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
@@ -1131,6 +1140,22 @@ void EntityComponentManager::SetChanged(
     return _key.first == _type;
   });
 
-  if (iter != ecIter->second.end())
-    this->dataPtr->changedComponents[*iter] = _c;
+  if (iter == ecIter->second.end())
+    return;
+
+  if (_c == ComponentState::PeriodicChange)
+  {
+    this->dataPtr->periodicChangedComponents.insert(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
+  else if (_c == ComponentState::PeriodicChange)
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.insert(*iter);
+  }
+  else
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
 }
