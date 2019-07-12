@@ -129,12 +129,12 @@ TEST(CmdLine, Gazebo)
 
 /////////////////////////////////////////////////
 /// Main
-int main(int argc, char **argv)
+int main(int _argc, char **_argv)
 {
   // Set IGN_CONFIG_PATH to the directory where the .yaml configuration files
   // is located.
   setenv("IGN_CONFIG_PATH", IGN_CONFIG_PATH, 1);
 
-  ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleTest(&_argc, _argv);
   return RUN_ALL_TESTS();
 }

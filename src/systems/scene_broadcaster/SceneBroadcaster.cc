@@ -249,12 +249,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
-  // * also publish off-rate if there are change events (new / erased entities)
+  // * also publish off-rate if there are change events (new / erased entities,
+  // or components with one-time changes)
   // Throttle here instead of using transport::AdvertiseMessageOptions so that
   // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities();
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges();
   bool itsPubTime = now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
