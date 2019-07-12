@@ -254,7 +254,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // we can skip the ECM serialization
   auto now = std::chrono::system_clock::now();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
-        _manager.HasNewEntities();
+        _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges();
   bool itsPubTime = now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod;
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
