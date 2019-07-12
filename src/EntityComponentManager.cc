@@ -1036,10 +1036,9 @@ void EntityComponentManager::SetState(
     const ignition::msgs::SerializedStateMap &_stateMsg)
 {
   // Create / remove / update entities
-  for (auto iter = _stateMsg.entities().begin();
-       iter != _stateMsg.entities().end(); ++iter)
+  for (const auto &iter : _stateMsg.entities())
   {
-    const auto &entityMsg = iter->second;
+    const auto &entityMsg = iter.second;
 
     Entity entity{entityMsg.id()};
 
@@ -1057,8 +1056,8 @@ void EntityComponentManager::SetState(
     }
 
     // Create / remove / update components
-    for (auto compIter = iter->second.components().begin();
-         compIter != iter->second.components().end(); ++compIter)
+    for (auto compIter = iter.second.components().begin();
+         compIter != iter.second.components().end(); ++compIter)
 
     {
       const auto &compMsg = compIter->second;
@@ -1169,8 +1168,7 @@ void EntityComponentManager::SetChanged(
   if (ecIter == this->dataPtr->entityComponents.end())
     return;
 
-  std::vector<ComponentKey>::iterator iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key)
   {
     return _key.first == _type;

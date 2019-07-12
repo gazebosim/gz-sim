@@ -849,7 +849,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           auto worldPoseComp = _ecm.Component<components::WorldPose>(_entity);
           if (worldPoseComp)
           {
-            auto state = worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
+            auto state =
+                worldPoseComp->SetData(math::eigen3::convert(frameData.pose),
                 this->pose3Eql) ?
                 ComponentState::PeriodicChange :
                 ComponentState::NoChange;
@@ -862,10 +863,12 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (worldLinVelComp)
           {
             auto state = worldLinVelComp->SetData(
-                  math::eigen3::convert(frameData.linearVelocity), this->vec3Eql) ?
+                  math::eigen3::convert(frameData.linearVelocity),
+                  this->vec3Eql) ?
                   ComponentState::PeriodicChange :
                   ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::WorldLinearVelocity::typeId, state);
+            _ecm.SetChanged(_entity,
+                components::WorldLinearVelocity::typeId, state);
           }
 
           // Angular velocity in world frame coordinates
@@ -874,10 +877,12 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (worldAngVelComp)
           {
             auto state = worldAngVelComp->SetData(
-                math::eigen3::convert(frameData.angularVelocity), this->vec3Eql) ?
-                  ComponentState::PeriodicChange :
-                  ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::WorldAngularVelocity::typeId, state);
+                math::eigen3::convert(frameData.angularVelocity),
+                this->vec3Eql) ?
+                ComponentState::PeriodicChange :
+                ComponentState::NoChange;
+            _ecm.SetChanged(_entity,
+                components::WorldAngularVelocity::typeId, state);
           }
 
           // Acceleration in world frame coordinates
@@ -886,9 +891,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (worldLinAccelComp)
           {
             auto state = worldLinAccelComp->SetData(
-                  math::eigen3::convert(frameData.linearAcceleration), this->vec3Eql) ?
-                  ComponentState::PeriodicChange :
-                  ComponentState::NoChange;
+                math::eigen3::convert(frameData.linearAcceleration),
+                this->vec3Eql) ?
+                ComponentState::PeriodicChange :
+                ComponentState::NoChange;
             _ecm.SetChanged(_entity,
                 components::WorldLinearAcceleration::typeId, state);
           }
@@ -900,9 +906,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (worldAngAccelComp)
           {
             auto state = worldAngAccelComp->SetData(
-                  math::eigen3::convert(frameData.angularAcceleration), this->vec3Eql) ?
-                  ComponentState::PeriodicChange :
-                  ComponentState::NoChange;
+                math::eigen3::convert(frameData.angularAcceleration),
+                this->vec3Eql) ?
+                ComponentState::PeriodicChange :
+                ComponentState::NoChange;
             _ecm.SetChanged(_entity,
                 components::WorldAngularAcceleration::typeId, state);
           }
@@ -915,7 +922,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinVelComp)
           {
             Eigen::Vector3d bodyLinVel = R_bs * frameData.linearVelocity;
-            auto state = bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
+            auto state =
+                bodyLinVelComp->SetData(math::eigen3::convert(bodyLinVel),
                 this->vec3Eql) ?
                 ComponentState::PeriodicChange :
                 ComponentState::NoChange;
@@ -928,11 +936,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngVelComp)
           {
             Eigen::Vector3d bodyAngVel = R_bs * frameData.angularVelocity;
-            auto state = bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
+            auto state =
+                bodyAngVelComp->SetData(math::eigen3::convert(bodyAngVel),
                 this->vec3Eql) ?
                 ComponentState::PeriodicChange :
                 ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::AngularVelocity::typeId, state);
+            _ecm.SetChanged(_entity, components::AngularVelocity::typeId,
+                state);
           }
 
           // Acceleration in body-fixed frame coordinates
@@ -941,11 +951,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyLinAccelComp)
           {
             Eigen::Vector3d bodyLinAccel = R_bs * frameData.linearAcceleration;
-            auto state = bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
+            auto state =
+                bodyLinAccelComp->SetData(math::eigen3::convert(bodyLinAccel),
                 this->vec3Eql)?
                 ComponentState::PeriodicChange :
                 ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::LinearAcceleration::typeId, state);
+            _ecm.SetChanged(_entity, components::LinearAcceleration::typeId,
+                state);
           }
 
           // Angular acceleration in world frame coordinates
@@ -954,11 +966,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
           if (bodyAngAccelComp)
           {
             Eigen::Vector3d bodyAngAccel = R_bs * frameData.angularAcceleration;
-            auto state = bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
+            auto state =
+                bodyAngAccelComp->SetData(math::eigen3::convert(bodyAngAccel),
                 this->vec3Eql) ?
                 ComponentState::PeriodicChange :
                 ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::AngularAcceleration::typeId, state);
+            _ecm.SetChanged(_entity, components::AngularAcceleration::typeId,
+                state);
           }
         }
         else
