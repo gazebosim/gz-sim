@@ -802,7 +802,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
             // changes because it's "fixed" to the model. Instead, we change
             // the model's pose here. The physics engine gives us the pose of
             // this link relative to world so to set the model's pose, we have
-            // to premultiply it by the inverse of the initial transform of
+            // to post-multiply it by the inverse of the initial transform of
             // the link w.r.t to its model.
             auto mutableParentPose =
               _ecm.Component<components::Pose>(_parent->Data());
