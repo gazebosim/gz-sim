@@ -194,7 +194,7 @@ std::map<std::string, SecondaryControl::Ptr>
 }
 
 //////////////////////////////////////////////////
-void NetworkManagerPrimary::OnStepAck(const msgs::SerializedState &_msg)
+void NetworkManagerPrimary::OnStepAck(const msgs::SerializedStateMap &_msg)
 {
   this->secondaryStates.push_back(_msg);
 }

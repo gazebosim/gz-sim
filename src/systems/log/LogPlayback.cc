@@ -71,6 +71,12 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   public: void Parse(EntityComponentManager &_ecm,
       const msgs::SerializedState &_msg);
 
+  /// \brief Updates the ECM according to the given message.
+  /// \param[in] _ecm Mutable ECM.
+  /// \param[in] _msg Message containing state updates.
+  public: void Parse(EntityComponentManager &_ecm,
+      const msgs::SerializedStateMap &_msg);
+
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
@@ -131,6 +137,13 @@ void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
 
     return true;
   });
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::Parse(EntityComponentManager &_ecm,
+    const msgs::SerializedStateMap &_msg)
+{
+  _ecm.SetState(_msg);
 }
 
 //////////////////////////////////////////////////
@@ -357,6 +370,20 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   else if (msgType == "ignition.msgs.SerializedState")
   {
     msgs::SerializedState msg;
+    msg.ParseFromString(this->dataPtr->iter->Data());
+
+    auto stamp = convert<std::chrono::steady_clock::duration>(
+        msg.header().stamp());
+
+    if (_info.simTime >= stamp)
+    {
+      this->dataPtr->Parse(_ecm, msg);
+      ++(this->dataPtr->iter);
+    }
+  }
+  else if (msgType == "ignition.msgs.SerializedStateMap")
+  {
+    msgs::SerializedStateMap msg;
     msg.ParseFromString(this->dataPtr->iter->Data());
 
     auto stamp = convert<std::chrono::steady_clock::duration>(
