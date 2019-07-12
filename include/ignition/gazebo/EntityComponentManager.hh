@@ -465,6 +465,13 @@ namespace ignition
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
+      /// \brief Get a component's state.
+      /// \param[in] _entity Entity that contains the component.
+      /// \param[in] _typeId Component type ID.
+      /// \return Component's current state
+      public: gazebo::ComponentState ComponentState(const Entity _entity,
+          const ComponentTypeId _typeId) const;
+
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.
@@ -676,7 +683,7 @@ namespace ignition
       /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
           const Entity _entity, const ComponentTypeId _type,
-          ComponentState _c = ComponentState::OneTimeChange);
+          gazebo::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Mark all components as not changed.
       protected: void SetAllComponentsUnchanged();
