@@ -22,6 +22,7 @@
 #include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
+#include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/RenderingSensor.hh>
 #include <ignition/sensors/Manager.hh>
@@ -102,10 +103,66 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     return;
 
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+
+  // update scene graph
   this->dataPtr->renderUtil.Update();
 
+  // udate rendering sensors
   auto time = math::durationToSecNsec(_info.simTime);
-  this->dataPtr->sensorManager.RunOnce(common::Time(time.first, time.second));
+  auto t = common::Time(time.first, time.second);
+
+  // enable sensors if they need to be updated
+  // std::vector<sensors::RenderingSensor *> activeSensors;
+  std::vector<sensors::SensorId> sensorIds =
+      this->dataPtr->sensorManager.Sensors();
+  // for (auto id : sensorIds)
+  // {
+  //   sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+  //   sensors::RenderingSensor *rs = dynamic_cast<sensors::RenderingSensor *>(s);
+  //   if (rs && rs->NextUpdateTime() <= t)
+  //   {
+  //     std::cerr << "set enabled " << rs->Name() << std::endl;
+  //     activeSensors.push_back(rs);
+  //   }
+  // }
+
+
+  common::Time tn = common::Time::SystemTime();
+
+  // global scene update - render one frame and update all active sensors
+  bool update = false;
+
+  for (auto id : sensorIds)
+  {
+    sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+    sensors::RenderingSensor *rs = dynamic_cast<sensors::RenderingSensor *>(s);
+    if (rs && rs->NextUpdateTime() <= t)
+    {
+      update = true;
+      break;
+    }
+  }
+
+  if (!update)
+    return;
+
+  this->dataPtr->scene->PreRender();
+
+  // publish data
+  this->dataPtr->sensorManager.RunOnce(t);
+
+  this->dataPtr->scene->PostRender();
+
+  common::Time dt = common::Time::SystemTime() - tn;
+//  if (dt.Double() > 0.001)
+//    std::cerr << dt.Double() << std::endl;
+
+  // disable sensors after update
+  // for (auto rs : activeSensors)
+  // {
+  //   std::cerr << "set disabled " << rs->Name() << std::endl;
+  // }
+
 }
 
 //////////////////////////////////////////////////

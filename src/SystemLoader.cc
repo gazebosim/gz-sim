@@ -52,12 +52,16 @@ class ignition::gazebo::SystemLoaderPrivate
     for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
+    for (auto p : systemPaths.PluginPaths())
+      std::cerr << " plugin paths " << p << std::endl;
+
     std::string homePath;
     ignition::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
+    std::cerr << _filename << " pathToLib " << pathToLib << " vs " << IGN_GAZEBO_PLUGIN_INSTALL_DIR<< std::endl;
     if (pathToLib.empty())
     {
       // We assume ignition::gazebo corresponds to the levels feature
@@ -143,6 +147,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
+  std::cerr << " -------------- system loader load plugin " << _name << std::endl;
   ignition::plugin::PluginPtr plugin;
 
   if (_filename == "" || _name == "")

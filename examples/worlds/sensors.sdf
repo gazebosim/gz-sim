@@ -80,7 +80,7 @@
 
         <play_pause>true</play_pause>
         <step>true</step>
-        <start_paused>true</start_paused>
+        <start_paused>false</start_paused>
         <service>/world/sensors/control</service>
         <stats_topic>/world/sensors/stats</stats_topic>
 

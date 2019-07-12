@@ -86,7 +86,7 @@ set(IGN_PHYSICS_VER ${ignition-physics1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors2 REQUIRED
+ign_find_package(ignition-sensors3 REQUIRED
   COMPONENTS
     rendering
     air_pressure
@@ -97,14 +97,14 @@ ign_find_package(ignition-sensors2 REQUIRED
     logical_camera
     magnetometer
     depth_camera
-  VERSION 2.1
+  VERSION 3.0
 )
-set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
+set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering2 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
+ign_find_package(ignition-rendering3 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags
