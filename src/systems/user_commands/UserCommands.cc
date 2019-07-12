@@ -622,8 +622,12 @@ bool PoseCommand::Execute()
   }
   else
   {
+    /// \todo(anyone) Moving an object is not captured in a log file.
+    auto state = poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql) ?
+        ComponentState::OneTimeChange :
+        ComponentState::NoChange;
     this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
-        poseCmdComp->SetData(msgs::Convert(*poseMsg), this->pose3Eql));
+        state);
   }
 
   return true;

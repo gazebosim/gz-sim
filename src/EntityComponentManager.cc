@@ -53,11 +53,15 @@ class ignition::gazebo::EntityComponentManagerPrivate
   public: std::map<ComponentTypeId,
           std::unique_ptr<ComponentStorageBase>> components;
 
-  public: std::map<ComponentKey, bool> changedComponents;
-
   /// \brief A graph holding all entities, arranged according to their
   /// parenting.
   public: EntityGraph entities;
+
+  /// \brief Components that have been changed through a peridic change.
+  public: std::set<ComponentKey> periodicChangedComponents;
+
+  /// \brief Components that have been changed through a one-time change.
+  public: std::set<ComponentKey> oneTimeChangedComponents;
 
   /// \brief Entities that have just been created
   public: std::set<Entity> newlyCreatedEntities;
@@ -338,6 +342,40 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 }
 
 /////////////////////////////////////////////////
+ComponentState EntityComponentManager::ComponentState(const Entity _entity,
+    const ComponentTypeId _typeId) const
+{
+  auto result = ComponentState::NoChange;
+
+  auto ecIter = this->dataPtr->entityComponents.find(_entity);
+
+  if (ecIter == this->dataPtr->entityComponents.end())
+    return result;
+
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
+        [&] (const ComponentKey &_key)
+  {
+    return _key.first == _typeId;
+  });
+
+  if (iter == ecIter->second.end())
+    return result;
+
+  if (this->dataPtr->oneTimeChangedComponents.find(*iter) !=
+      this->dataPtr->oneTimeChangedComponents.end())
+  {
+    result = ComponentState::OneTimeChange;
+  }
+  else if (this->dataPtr->periodicChangedComponents.find(*iter) !=
+      this->dataPtr->periodicChangedComponents.end())
+  {
+    result = ComponentState::PeriodicChange;
+  }
+
+  return result;
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasNewEntities() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
@@ -350,6 +388,12 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   return this->dataPtr->removeAllEntities ||
       !this->dataPtr->toRemoveEntities.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasOneTimeComponentChanges() const
+{
+  return !this->dataPtr->oneTimeChangedComponents.empty();
 }
 
 /////////////////////////////////////////////////
@@ -417,7 +461,7 @@ ComponentKey EntityComponentManager::CreateComponentImplementation(
   ComponentKey componentKey{_componentTypeId, componentIdPair.first};
 
   this->dataPtr->entityComponents[_entity].push_back(componentKey);
-  this->dataPtr->changedComponents[componentKey] = true;
+  this->dataPtr->oneTimeChangedComponents.insert(componentKey);
 
   if (componentIdPair.second)
     this->RebuildViews();
@@ -756,10 +800,12 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, comp.first);
 
-    // Skip adding the component if it has not changed.
+    // If not sending full state, skip unchanged components
     if (!_full &&
-        this->dataPtr->changedComponents.find(comp) ==
-         this->dataPtr->changedComponents.end())
+        this->dataPtr->oneTimeChangedComponents.find(comp) ==
+        this->dataPtr->oneTimeChangedComponents.end() &&
+        this->dataPtr->periodicChangedComponents.find(comp) ==
+        this->dataPtr->periodicChangedComponents.end())
     {
       continue;
     }
@@ -990,10 +1036,9 @@ void EntityComponentManager::SetState(
     const ignition::msgs::SerializedStateMap &_stateMsg)
 {
   // Create / remove / update entities
-  for (auto iter = _stateMsg.entities().begin();
-       iter != _stateMsg.entities().end(); ++iter)
+  for (const auto &iter : _stateMsg.entities())
   {
-    const auto &entityMsg = iter->second;
+    const auto &entityMsg = iter.second;
 
     Entity entity{entityMsg.id()};
 
@@ -1011,8 +1056,8 @@ void EntityComponentManager::SetState(
     }
 
     // Create / remove / update components
-    for (auto compIter = iter->second.components().begin();
-         compIter != iter->second.components().end(); ++compIter)
+    for (auto compIter = iter.second.components().begin();
+         compIter != iter.second.components().end(); ++compIter)
 
     {
       const auto &compMsg = compIter->second;
@@ -1109,28 +1154,42 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 //////////////////////////////////////////////////
 void EntityComponentManager::SetAllComponentsUnchanged()
 {
-  this->dataPtr->changedComponents.clear();
+  this->dataPtr->periodicChangedComponents.clear();
+  this->dataPtr->oneTimeChangedComponents.clear();
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
-    const Entity _entity, const ComponentTypeId _type, bool _c)
+    const Entity _entity, const ComponentTypeId _type,
+    gazebo::ComponentState _c)
 {
-  if (!_c)
-    return;
-
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 
   if (ecIter == this->dataPtr->entityComponents.end())
     return;
 
-  std::vector<ComponentKey>::iterator iter =
-    std::find_if(ecIter->second.begin(), ecIter->second.end(),
+  auto iter = std::find_if(ecIter->second.begin(), ecIter->second.end(),
         [&] (const ComponentKey &_key)
   {
     return _key.first == _type;
   });
 
-  if (iter != ecIter->second.end())
-    this->dataPtr->changedComponents[*iter] = _c;
+  if (iter == ecIter->second.end())
+    return;
+
+  if (_c == ComponentState::PeriodicChange)
+  {
+    this->dataPtr->periodicChangedComponents.insert(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
+  else if (_c == ComponentState::OneTimeChange)
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.insert(*iter);
+  }
+  else
+  {
+    this->dataPtr->periodicChangedComponents.erase(*iter);
+    this->dataPtr->oneTimeChangedComponents.erase(*iter);
+  }
 }
