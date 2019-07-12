@@ -1,6 +1,12 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.X.X
+### Ignition Gazebo 2.3.X
+
+1. Improve physics system peformance by skipping static model updates.
+   Components state information has been incorporated, which is used to
+   indicate if a component change is periodic (such as through a physics
+   update) or a one-time change (such as through a user command).
+   * [Pull Request 384](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/384)
 
 1. Add sdf parameter to battery to start draining only when robot has started moving
     * [Pull Request 370](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/370)
