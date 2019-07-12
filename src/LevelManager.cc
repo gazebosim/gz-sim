@@ -442,8 +442,7 @@ void LevelManager::UpdateLevelsState()
 
   {
     std::lock_guard<std::mutex> lock(this->performerToAddMutex);
-    std::list<std::pair<std::string, sdf::Geometry>>::iterator iter =
-      this->performersToAdd.begin();
+    auto iter = this->performersToAdd.begin();
     while (iter != this->performersToAdd.end())
     {
       int result = this->CreatePerformerEntity(iter->first, iter->second);
