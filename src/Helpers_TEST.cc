@@ -571,4 +571,8 @@ TEST(HelpersTest, roundUpMultiple)
   EXPECT_EQ(-6, math::roundUpMultiple(-7, 3));
 
   EXPECT_EQ(0, math::roundUpMultiple(-1, 2));
+
+  EXPECT_EQ(2, math::roundUpMultiple(2, -2));
+  EXPECT_EQ(0, math::roundUpMultiple(0, -2));
+  EXPECT_EQ(-2, math::roundUpMultiple(-2, -2));
 }

@@ -651,11 +651,11 @@ namespace ignition
     /// greater than or equal to the input number. For example, if the input
     /// number is -9 and the multiple is 2 then the output is -8.
     /// \param[in] _num Input number to round up.
-    /// \param[in] _multiple The multiple. If this is zero, then the input
-    /// number is returned.
+    /// \param[in] _multiple The multiple. If the multiple is <= zero, then
+    /// the input number is returned.
     /// \return The nearest multiple of _multiple that is greater than
     /// or equal to _num.
-    inline int roundUpMultiple(int _num, unsigned int _multiple)
+    inline int roundUpMultiple(int _num, int _multiple)
     {
       if (_multiple == 0)
         return _num;
