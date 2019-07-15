@@ -551,3 +551,28 @@ TEST(HelpersTest, durationToSecNsec)
   EXPECT_EQ(3, parts.first);
   EXPECT_EQ(487000000, parts.second);
 }
+
+/////////////////////////////////////////////////
+TEST(HelpersTest, roundUpMultiple)
+{
+  EXPECT_EQ(0, math::roundUpMultiple(0, 0));
+  EXPECT_EQ(12, math::roundUpMultiple(12, 0));
+
+  EXPECT_EQ(1, math::roundUpMultiple(1, 1));
+  EXPECT_EQ(100, math::roundUpMultiple(100, 10));
+  EXPECT_EQ(48, math::roundUpMultiple(48, 12));
+
+  EXPECT_EQ(4, math::roundUpMultiple(3, 2));
+  EXPECT_EQ(23, math::roundUpMultiple(3, 23));
+  EXPECT_EQ(6, math::roundUpMultiple(6, 3));
+  EXPECT_EQ(9, math::roundUpMultiple(7, 3));
+
+  EXPECT_EQ(-8, math::roundUpMultiple(-9, 2));
+  EXPECT_EQ(-6, math::roundUpMultiple(-7, 3));
+
+  EXPECT_EQ(0, math::roundUpMultiple(-1, 2));
+
+  EXPECT_EQ(2, math::roundUpMultiple(2, -2));
+  EXPECT_EQ(0, math::roundUpMultiple(0, -2));
+  EXPECT_EQ(-2, math::roundUpMultiple(-2, -2));
+}
