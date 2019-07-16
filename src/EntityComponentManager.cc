@@ -287,6 +287,8 @@ bool EntityComponentManager::RemoveComponent(
 
   this->dataPtr->components.at(_key.first)->Remove(_key.second);
   this->dataPtr->entityComponents[_entity].erase(entityComponentIter);
+  this->dataPtr->oneTimeChangedComponents.erase(_key);
+  this->dataPtr->periodicChangedComponents.erase(_key);
 
   this->UpdateViews(_entity);
   return true;
@@ -1015,6 +1017,7 @@ void EntityComponentManager::SetState(
       if (nullptr == comp)
       {
         this->CreateComponentImplementation(entity, typeId, newComp.get());
+        this->SetChanged(entity, typeId, ComponentState::OneTimeChange);
       }
       // Update component value
       else
