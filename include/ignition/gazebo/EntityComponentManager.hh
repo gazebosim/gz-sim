@@ -686,7 +686,7 @@ namespace ignition
           gazebo::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Mark all components as not changed.
-      protected: void SetAllComponentsUnchanged();
+      public: void SetAllComponentsUnchanged();
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
