@@ -15,6 +15,8 @@
  *
  */
 
+#include <set>
+
 #include <ignition/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
@@ -22,7 +24,6 @@
 #include <ignition/common/Time.hh>
 #include <ignition/math/Helpers.hh>
 
-#include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/Scene.hh>
 #include <ignition/sensors/RenderingSensor.hh>
 #include <ignition/sensors/Manager.hh>
@@ -53,6 +54,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Main rendering interface
   public: RenderUtil renderUtil;
+
+  /// \brief Unique set of senor ids
+  public: std::set<sensors::SensorId> sensorIds;
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -112,57 +116,34 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   auto t = common::Time(time.first, time.second);
 
   // enable sensors if they need to be updated
-  // std::vector<sensors::RenderingSensor *> activeSensors;
-  std::vector<sensors::SensorId> sensorIds =
-      this->dataPtr->sensorManager.Sensors();
-  // for (auto id : sensorIds)
-  // {
-  //   sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-  //   sensors::RenderingSensor *rs = dynamic_cast<sensors::RenderingSensor *>(s);
-  //   if (rs && rs->NextUpdateTime() <= t)
-  //   {
-  //     std::cerr << "set enabled " << rs->Name() << std::endl;
-  //     activeSensors.push_back(rs);
-  //   }
-  // }
+  std::vector<sensors::RenderingSensor *> activeSensors;
 
-
-  common::Time tn = common::Time::SystemTime();
-
-  // global scene update - render one frame and update all active sensors
-  bool update = false;
-
-  for (auto id : sensorIds)
+  for (auto id : this->dataPtr->sensorIds)
   {
     sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
     sensors::RenderingSensor *rs = dynamic_cast<sensors::RenderingSensor *>(s);
     if (rs && rs->NextUpdateTime() <= t)
     {
-      update = true;
-      break;
+      activeSensors.push_back(rs);
     }
   }
 
-  if (!update)
+  if (activeSensors.empty())
     return;
 
+  common::Time tn = common::Time::SystemTime();
+
+  // Update the scene graph manually to improve performance
+  // We only need to do this once per frame It is important to call
+  // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+  // so we don't waste cycles doing one scene graph update per sensor
   this->dataPtr->scene->PreRender();
 
   // publish data
   this->dataPtr->sensorManager.RunOnce(t);
 
-  this->dataPtr->scene->PostRender();
-
   common::Time dt = common::Time::SystemTime() - tn;
-//  if (dt.Double() > 0.001)
-//    std::cerr << dt.Double() << std::endl;
-
-  // disable sensors after update
-  // for (auto rs : activeSensors)
-  // {
-  //   std::cerr << "set disabled " << rs->Name() << std::endl;
-  // }
-
+  // igndbg << "sensor update time: " << dt.Double() << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -178,6 +159,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
   // Create within ign-sensors
   auto sensorId = this->dataPtr->sensorManager.CreateSensor(_sdf);
   auto sensor = this->dataPtr->sensorManager.Sensor(sensorId);
+  this->dataPtr->sensorIds.insert(sensorId);
 
   if (nullptr == sensor || sensors::NO_SENSOR == sensor->Id())
   {
@@ -190,6 +172,7 @@ std::string Sensors::CreateSensor(const sdf::Sensor &_sdf,
       dynamic_cast<sensors::RenderingSensor *>(sensor);
   renderingSensor->SetScene(this->dataPtr->scene);
   renderingSensor->SetParent(_parentName);
+  renderingSensor->SetManualSceneUpdate(true);
 
   return sensor->Name();
 }
