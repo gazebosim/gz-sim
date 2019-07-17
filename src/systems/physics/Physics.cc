@@ -326,7 +326,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
-          const components::Model * /* _model */,
+          const components::Model *,
           const components::Name *_name,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
@@ -339,6 +339,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
                   << std::endl;
           return true;
         }
+
+        // TODO(anyone) Don't load models unless they have collisions
 
         // Check if parent world exists
         // TODO(louise): Support nested models, see
@@ -385,6 +387,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
+        // TODO(anyone) Don't load links unless they have collisions
+
         // Check if parent model exists
         if (this->entityModelMap.find(_parent->Data())
             == this->entityModelMap.end())
@@ -419,7 +423,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
       [&](const Entity &  _entity,
-          const components::Collision * /* _collision */,
+          const components::Collision *,
           const components::Name *_name,
           const components::Pose *_pose,
           const components::Geometry *_geom,
@@ -784,6 +788,8 @@ void PhysicsPrivate::Step(const std::chrono::steady_clock::duration &_dt)
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm) const
 {
   IGN_PROFILE("PhysicsPrivate::UpdateSim");
+
+  // local pose
   _ecm.Each<components::Link, components::Pose, components::ParentEntity>(
       [&](const Entity &_entity, components::Link * /*_link*/,
           components::Pose *_pose,
