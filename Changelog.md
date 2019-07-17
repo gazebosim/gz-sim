@@ -2,6 +2,9 @@
 
 ### Ignition Gazebo 2.3.X
 
+1. Bundle scene updates in sensor system
+    * [Pull Request 386](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/386)
+
 1. Improve physics system peformance by skipping static model updates.
    Components state information has been incorporated, which is used to
    indicate if a component change is periodic (such as through a physics
