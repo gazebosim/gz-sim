@@ -177,6 +177,10 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // Step all systems
   this->dataPtr->stepFunction(_info);
 
+  // TODO(louise) Why does this prevent scene broadcaster updates?
+  // That should have been done in the line above.
+  // this->dataPtr->ecm->SetAllComponentsUnchanged();
+
   return true;
 }
 
