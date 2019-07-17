@@ -553,7 +553,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::ElementPtr &_sdf)
 {
-  std::cerr << "===========================================  sim runner loadpluginS " << std::endl;
   sdf::ElementPtr pluginElem = _sdf->GetElement("plugin");
   while (pluginElem)
   {
@@ -568,9 +567,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
       std::optional<SystemPluginPtr> system;
       {
         std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-        std::cerr << "===========================================  sim runner load plugin " << pluginElem->Get<std::string>("filename")  << std::endl;
         system = this->systemLoader->LoadPlugin(pluginElem);
-        std::cerr << "===========================================  sim runner load plugind done " <<  std::endl;
       }
       if (system)
       {
@@ -642,7 +639,6 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
     std::optional<SystemPluginPtr> system;
     {
       std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-      std::cerr << "======22222==================  sim runner load plugin " << plugin.Filename()  << " vs " << plugin.Name() <<  std::endl;
       system = this->systemLoader->LoadPlugin(plugin.Filename(), plugin.Name(),
                                               nullptr);
     }

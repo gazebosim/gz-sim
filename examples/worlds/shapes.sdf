@@ -152,7 +152,6 @@ Try moving a model:
     </model>
 
     <model name="box">
-      <static>true</static>
       <pose>0 0 0.5 0 0 0</pose>
       <link name="box_link">
         <inertial>
