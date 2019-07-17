@@ -1017,7 +1017,6 @@ void EntityComponentManager::SetState(
       if (nullptr == comp)
       {
         this->CreateComponentImplementation(entity, typeId, newComp.get());
-        this->SetChanged(entity, typeId, ComponentState::OneTimeChange);
       }
       // Update component value
       else

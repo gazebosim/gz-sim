@@ -1,6 +1,11 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.3.X
+### Ignition Gazebo 2.4.X
+
+1. Fix distributed sim
+    * [Pull Request 385](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/385)
+
+### Ignition Gazebo 2.3.0 (2019-07-13)
 
 1. Improve physics system peformance by skipping static model updates.
    Components state information has been incorporated, which is used to

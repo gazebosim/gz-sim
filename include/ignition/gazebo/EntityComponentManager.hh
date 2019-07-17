@@ -627,6 +627,11 @@ namespace ignition
       friend class GuiRunner;
       friend class SimulationRunner;
 
+      // Make network managers friends so they have control over component
+      // states. Like the runners, the managers are internal.
+      friend class NetworkManagerPrimary;
+      friend class NetworkManagerSecondary;
+
       // Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
       friend class detail::View;
@@ -686,7 +691,7 @@ namespace ignition
           gazebo::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Mark all components as not changed.
-      public: void SetAllComponentsUnchanged();
+      protected: void SetAllComponentsUnchanged();
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
