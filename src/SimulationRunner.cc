@@ -33,6 +33,7 @@ using namespace gazebo;
 
 using StringSet = std::unordered_set<std::string>;
 
+
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
                                    const SystemLoaderPtr &_systemLoader,
@@ -184,7 +185,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() = default;
+SimulationRunner::~SimulationRunner() {
+  this->StopWorkerThreads();
+};
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
@@ -315,11 +318,52 @@ void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
 void SimulationRunner::ProcessSystemQueue()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+
+  auto pending = this->pendingSystems.size();
+
   for (const auto &system : this->pendingSystems)
   {
     this->AddSystemToRunner(system);
   }
   this->pendingSystems.clear();
+
+  if (pending > 0)
+  {
+    this->StopWorkerThreads();
+
+    igndbg << "Creating postupdate worker threads: "
+      << this->systemsPostupdate.size() + 1 << std::endl;
+
+    this->postUpdateStartBarrier =
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+    this->postUpdateStopBarrier =
+      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1);
+
+    this->postUpdateThreadsRunning = true;
+    int id = 0;
+
+    for (auto& system: this->systemsPostupdate)
+    {
+      consoleMutex.lock();
+      igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+      consoleMutex.unlock();
+      this->postUpdateThreads.push_back(std::thread([&, id](){
+        while(this->postUpdateThreadsRunning)
+        {
+          this->postUpdateStartBarrier->wait();
+          if (this->postUpdateThreadsRunning)
+          {
+            system->PostUpdate(this->currentInfo, this->entityCompMgr);
+          }
+          this->postUpdateStopBarrier->wait();
+        }
+        consoleMutex.lock();
+        igndbg << "Exiting postupdate worker thread (" << id << ")" << std::endl;
+        consoleMutex.unlock();
+      }));
+      id++;
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -346,8 +390,8 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PostUpdate");
-    for (auto& system : this->systemsPostupdate)
-      system->PostUpdate(this->currentInfo, this->entityCompMgr);
+    this->postUpdateStartBarrier->wait();
+    this->postUpdateStopBarrier->wait();
   }
 }
 
@@ -362,6 +406,24 @@ void SimulationRunner::OnStop()
 {
   this->stopReceived = true;
   this->running = false;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::StopWorkerThreads()
+{
+  if (this->postUpdateStartBarrier && this->postUpdateThreads.size())
+  {
+    this->postUpdateThreadsRunning = false;
+
+    this->postUpdateStartBarrier->cancel();
+    this->postUpdateStopBarrier->cancel();
+
+    for (auto & thread: this->postUpdateThreads)
+    {
+      thread.join();
+    }
+    this->postUpdateThreads.clear();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -498,6 +560,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   }
 
   this->running = false;
+
   return true;
 }
 
