@@ -61,6 +61,54 @@ namespace ignition
     // Forward declarations.
     class SimulationRunnerPrivate;
 
+    class Barrier
+    {
+      public: Barrier(unsigned int _numThreads):
+                numThreads(_numThreads),
+                count(_numThreads),
+                generation(0) {}
+
+      public: bool wait()
+      {
+        if (this->cancelled)
+        {
+          return true;
+        }
+
+        std::unique_lock<std::mutex> lock(this->mutex);
+        unsigned int gen = this->generation;
+
+        if (--this->count == 0)
+        {
+          this->generation++;
+          this->count = this->numThreads;
+          this->cv.notify_all();
+          return true;
+        }
+
+        while (gen == this->generation)
+        {
+          this->cv.wait(lock);
+        }
+        return false;
+      }
+
+      public: void cancel()
+      {
+        std::unique_lock<std::mutex> lock(this->mutex);
+        this->generation++;
+        this->cancelled = true;
+        this->cv.notify_all();
+      }
+
+      private: std::mutex mutex;
+      private: std::condition_variable cv;
+      private: unsigned int numThreads;
+      private: unsigned int count;
+      private: unsigned int generation;
+      private: std::atomic<bool> cancelled = false;
+    };
+
     /// \brief Class to hold systems internally
     class SystemInternal
     {
@@ -115,6 +163,9 @@ namespace ignition
 
       /// \brief Internal method for handling stop event (to prevent recursion)
       private: void OnStop();
+
+      /// \brief Stop and join all post update worker threads
+      private: void StopWorkerThreads();
 
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
@@ -298,6 +349,8 @@ namespace ignition
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemPluginPtr> pendingSystems;
 
+      private: std::mutex consoleMutex;
+
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;
 
@@ -406,6 +459,11 @@ namespace ignition
 
       /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;
+
+      private: std::vector<std::thread> postUpdateThreads;
+      private: std::atomic<bool> postUpdateThreadsRunning;
+      private: std::unique_ptr<Barrier> postUpdateStartBarrier;
+      private: std::unique_ptr<Barrier> postUpdateStopBarrier;
 
       friend class LevelManager;
     };
