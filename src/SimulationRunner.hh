@@ -410,6 +410,9 @@ namespace ignition
       /// \brief World statistics publisher.
       private: ignition::transport::Node::Publisher statsPub;
 
+      /// \brief Clock publisher for the root `/stats` topic.
+      private: ignition::transport::Node::Publisher rootStatsPub;
+
       /// \brief Clock publisher.
       private: ignition::transport::Node::Publisher clockPub;
 

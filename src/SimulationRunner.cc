@@ -187,7 +187,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 //////////////////////////////////////////////////
 SimulationRunner::~SimulationRunner() {
   this->StopWorkerThreads();
-};
+}
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
@@ -272,6 +272,9 @@ void SimulationRunner::PublishStats()
 
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
+
+  if (this->rootStatsPub.Valid())
+    this->rootStatsPub.Publish(msg);
 
   // Create and publish the clock message. The clock message is not
   // throttled.
@@ -474,6 +477,34 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     advertOpts.SetMsgsPerSec(5);
     this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
         "stats", advertOpts);
+  }
+
+  if (!this->rootStatsPub.Valid())
+  {
+    // Check for the existence of other publishers on `/stats`
+    std::vector<ignition::transport::MessagePublisher> publishers;
+    this->node->TopicInfo("/stats", publishers);
+
+    if (!publishers.empty())
+    {
+      ignwarn << "Found additional publishers on /stats," <<
+                 " using namespaced stats topic only" << std::endl;
+      igndbg << "Publishers [Address, Message Type]:\n";
+
+      /// List the publishers
+      for (auto & pub : publishers)
+      {
+        igndbg << "  " << pub.Addr() << ", "
+          << pub.MsgTypeName() << std::endl;
+      }
+    }
+    else
+    {
+      ignmsg << "Found no publishers on /stats, adding root stats topic"
+             << std::endl;
+      this->rootStatsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+          "/stats");
+    }
   }
 
   // Create the clock publisher.
