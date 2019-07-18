@@ -5,6 +5,11 @@
 1. Fix distributed sim
     * [Pull Request 385](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/385)
 
+### Ignition Gazebo 2.4.0 (2019-07-17)
+
+1. Bundle scene updates in sensor system
+    * [Pull Request 386](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/386)
+
 ### Ignition Gazebo 2.3.0 (2019-07-13)
 
 1. Improve physics system peformance by skipping static model updates.
