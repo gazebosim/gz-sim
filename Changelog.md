@@ -1,5 +1,7 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.5.0
+
 ### Ignition Gazebo 2.4.0
 
 1. Bundle scene updates in sensor system
