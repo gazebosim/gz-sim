@@ -92,10 +92,12 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/EngineType.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -244,12 +246,46 @@ class ignition::gazebo::systems::PhysicsPrivate
 //////////////////////////////////////////////////
 Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
+}
+
+//////////////////////////////////////////////////
+void Physics::Configure(const Entity &/*_entity*/,
+    const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+    EntityComponentManager &_ecm,
+    EventManager &/*_eventMgr*/)
+{
+  // Read physics engine type
+  std::string engineType = "dart";
+  Entity physicsEntity = _ecm.EntityByComponents(components::Physics());
+  if (physicsEntity != kNullEntity)
+  {
+    auto engine = _ecm.Component<components::EngineType>(physicsEntity);
+    if (engine)
+      engineType = engine->Data();
+  }
+
+  // Check whether engine type is implemented
+  if (engineType != "dart")
+  {
+    ignerr << "Unregistered physics engine [" << engineType << "], the default"
+           << " [dart] will be used instead.\n";
+    engineType = "dart";
+  }
+
+  // Load physics engine plugin
+  std::string libPath;
+  std::string className;
+  if (engineType == "dart")
+  {
+    libPath = dartsim_plugin_LIB;
+    className = "ignition::physics::dartsim::Plugin";
+  }
+
   ignition::plugin::Loader pl;
-  // dartsim_plugin_LIB is defined by cmake
-  std::unordered_set<std::string> plugins = pl.LoadLib(dartsim_plugin_LIB);
+  // libPaths are defined by cmake
+  std::unordered_set<std::string> plugins = pl.LoadLib(libPath);
   if (!plugins.empty())
   {
-    const std::string className = "ignition::physics::dartsim::Plugin";
     ignition::plugin::PluginPtr plugin = pl.Instantiate(className);
 
     if (plugin)
@@ -265,7 +301,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
   }
   else
   {
-    ignerr << "Unable to load the " << dartsim_plugin_LIB << " library.\n";
+    ignerr << "Unable to load the " << libPath << " library.\n";
     return;
   }
 }
@@ -1249,6 +1285,7 @@ physics::FrameData3d PhysicsPrivate::LinkFrameDataAtOffset(
 
 IGNITION_ADD_PLUGIN(Physics,
                     ignition::gazebo::System,
+                    Physics::ISystemConfigure,
                     Physics::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

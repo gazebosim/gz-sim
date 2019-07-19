@@ -51,12 +51,14 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/EngineType.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -123,6 +125,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::Name(_world->Name()));
 
+  // Physics
+  auto physics = _world->PhysicsDefault();
+  if (physics)
+  {
+    auto physicsEntity = this->CreateEntities(physics);
+    this->SetParent(physicsEntity, worldEntity);
+  }
+
   // scene
   if (_world->Scene())
   {
@@ -162,6 +172,24 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
       _world->Element());
 
   return worldEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Physics *_physics)
+{
+  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Physics)");
+
+  // Entity
+  Entity physicsEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(physicsEntity, components::Physics());
+  this->dataPtr->ecm->CreateComponent(physicsEntity,
+      components::EngineType(_physics->EngineType()));
+  this->dataPtr->ecm->CreateComponent(physicsEntity,
+      components::Name(_physics->Name()));
+
+  return physicsEntity;
 }
 
 //////////////////////////////////////////////////

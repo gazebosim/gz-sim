@@ -91,6 +91,14 @@ void LevelManager::ReadLevelPerformerInfo()
 
   auto worldElem = this->runner->sdfWorld->Element();
 
+  // Create physics entity
+  auto physics = this->runner->sdfWorld->PhysicsDefault();
+  if (physics)
+  {
+    auto physicsEntity = this->entityCreator->CreateEntities(physics);
+    this->entityCreator->SetParent(physicsEntity, this->worldEntity);
+  }
+
   // Create Wind
   auto windEntity = this->runner->entityCompMgr.CreateEntity();
   this->runner->entityCompMgr.CreateComponent(windEntity, components::Wind());
@@ -413,6 +421,7 @@ void LevelManager::CreatePerformers()
     ignerr << "Could not find the world entity while creating performers\n";
     return;
   }
+
   // Models
   for (uint64_t modelIndex = 0;
        modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)

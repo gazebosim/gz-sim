@@ -37,6 +37,7 @@ namespace systems
   /// \brief Base class for a System.
   class IGNITION_GAZEBO_VISIBLE Physics:
     public System,
+    public ISystemConfigure,
     public ISystemUpdate
   {
     /// \brief Constructor
@@ -44,6 +45,12 @@ namespace systems
 
     /// \brief Destructor
     public: ~Physics() override;
+
+    // Documentation inherited
+    public: void Configure(const Entity &_entity,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &_ecm,
+                           EventManager &_eventMgr) final;
 
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
