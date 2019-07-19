@@ -15,7 +15,7 @@
  *
  */
 
-#include <ignition/msgs/battery_soc.pb.h>
+#include <ignition/msgs/battery_state.pb.h>
 
 #include <string>
 #include <functional>
@@ -126,7 +126,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: transport::Node node;
 
   /// \brief Battery state of charge message publisher
-  public: transport::Node::Publisher socPub;
+  public: transport::Node::Publisher statePub;
 };
 
 /////////////////////////////////////////////////
@@ -253,13 +253,13 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
 
-  // Setup battery soc topic
-  std::string socTopic{"/battery/" + this->dataPtr->model.Name(_ecm) +
-    "/state_of_charge"};
+  // Setup battery state topic
+  std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    "/battery/" + this->dataPtr->battery->Name() + "/state"};
   transport::AdvertiseMessageOptions opts;
   opts.SetMsgsPerSec(50);
-  this->dataPtr->socPub = this->dataPtr->node.Advertise<msgs::BatterySoc>(
-    socTopic, opts);
+  this->dataPtr->statePub = this->dataPtr->node.Advertise<msgs::BatteryState>(
+    stateTopic, opts);
 }
 
 /////////////////////////////////////////////////
@@ -353,12 +353,21 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  // Publish battery state of charge
-  msgs::BatterySoc msg;
+  // Publish battery state
+  msgs::BatteryState msg;
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
+  msg.set_voltage(this->dataPtr->battery->Voltage());
+  msg.set_current(this->dataPtr->ismooth);
+  msg.set_charge(this->dataPtr->q);
+  msg.set_capacity(this->dataPtr->c);
   msg.set_percentage(this->dataPtr->soc);
-  this->dataPtr->socPub.Publish(msg);
+  if (this->dataPtr->startDraining)
+    msg.set_power_supply_status(
+      msgs::BatteryState::DISCHARGING);
+  else
+    msg.set_power_supply_status(msgs::BatteryState::FULL);
+  this->dataPtr->statePub.Publish(msg);
 }
 
 /////////////////////////////////////////////////
