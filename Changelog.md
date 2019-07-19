@@ -2,7 +2,7 @@
 
 ### Ignition Gazebo 2.3.X
 
-1. The LinearBatteryPlugin system publishes battery state of charge
+1. The LinearBatteryPlugin system publishes battery state
    * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
 
 1. Improve physics system peformance by skipping static model updates.
