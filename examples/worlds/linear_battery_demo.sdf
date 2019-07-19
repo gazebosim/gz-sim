@@ -14,7 +14,7 @@
       ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
 
   Listen to battery state of charge:
-      ign topic -e -t /battery/vehicle_blue/state_of_charge
+      ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
 
   The blue vehicle should stop when it runs out of battery.
 
