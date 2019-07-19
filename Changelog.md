@@ -2,15 +2,15 @@
 
 ### Ignition Gazebo 2.5.0
 
+1. The LinearBatteryPlugin system publishes battery state
+   * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
+
 ### Ignition Gazebo 2.4.0
 
 1. Bundle scene updates in sensor system
     * [Pull Request 386](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/386)
 
 ### Ignition Gazebo 2.3.0
-
-1. The LinearBatteryPlugin system publishes battery state
-   * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
 
 1. Improve physics system peformance by skipping static model updates.
    Components state information has been incorporated, which is used to
