@@ -29,7 +29,8 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component that identifies an entity as being the physics attribute.
+  /// \brief A component that identifies an entity as being the physics
+  /// attribute.
   using Physics = Component<NoData, class PhysicsTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Physics", Physics)
 }
