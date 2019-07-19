@@ -363,8 +363,7 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.set_capacity(this->dataPtr->c);
   msg.set_percentage(this->dataPtr->soc);
   if (this->dataPtr->startDraining)
-    msg.set_power_supply_status(
-      msgs::BatteryState::DISCHARGING);
+    msg.set_power_supply_status(msgs::BatteryState::DISCHARGING);
   else
     msg.set_power_supply_status(msgs::BatteryState::FULL);
   this->dataPtr->statePub.Publish(msg);
