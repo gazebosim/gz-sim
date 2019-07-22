@@ -1,5 +1,10 @@
 ## Ignition Gazebo 2.x
 
+### Ignition Gazebo 2.X.X
+
+1.  Improve performance of Pose Publisher
+   * [Pull Request 392](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/392)
+
 ### Ignition Gazebo 2.5.0
 
 1. The LinearBatteryPlugin system publishes battery state
