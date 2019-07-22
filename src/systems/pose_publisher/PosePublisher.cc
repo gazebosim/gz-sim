@@ -14,10 +14,12 @@
  * limitations under the License.
  *
  */
+
+#include <ignition/msgs/pose.pb.h>
+
 #include <stack>
 #include <vector>
 
-#include <ignition/msgs/pose.pb.h>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
