@@ -90,12 +90,6 @@ namespace ignition
       /// \return World entity.
       public: Entity CreateEntities(const sdf::World *_world);
 
-      /// \brief Create all entities that exist in the sdf::Physics object and
-      /// load their plugins.
-      /// \param[in] _physics SDF physics object.
-      /// \return Physics entity.
-      public: Entity CreateEntities(const sdf::Physics *_physics);
-
       /// \brief Create all entities that exist in the sdf::Model object and
       /// load their plugins. Also loads plugins of child sensors.
       /// \param[in] _model SDF model object.

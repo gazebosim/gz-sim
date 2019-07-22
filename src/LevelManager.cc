@@ -39,6 +39,7 @@
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Wind.hh"
 #include "ignition/gazebo/components/World.hh"
@@ -95,8 +96,8 @@ void LevelManager::ReadLevelPerformerInfo()
   auto physics = this->runner->sdfWorld->PhysicsDefault();
   if (physics)
   {
-    auto physicsEntity = this->entityCreator->CreateEntities(physics);
-    this->entityCreator->SetParent(physicsEntity, this->worldEntity);
+    this->runner->entityCompMgr.CreateComponent(worldEntity,
+        components::Physics(*physics));
   }
 
   // Create Wind

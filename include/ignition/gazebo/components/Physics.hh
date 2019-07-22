@@ -17,8 +17,13 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
 #define IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
 
+#include <ignition/msgs/physics.pb.h>
+
+#include <sdf/Physics.hh>
+
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
+#include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
 namespace ignition
@@ -27,11 +32,18 @@ namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+namespace serializers
+{
+  using PhysicsSerializer =
+      serializers::ComponentToMsgSerializer<sdf::Physics, msgs::Physics>;
+
+}
+
 namespace components
 {
-  /// \brief A component that identifies an entity as being the physics
-  /// attribute.
-  using Physics = Component<NoData, class PhysicsTag>;
+  /// \brief This component holds physics properties of the world
+  using Physics =
+      Component<sdf::Physics, class PhysicsTag, serializers::PhysicsSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Physics", Physics)
 }
 }

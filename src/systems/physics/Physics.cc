@@ -97,7 +97,6 @@
 #include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/EngineType.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 
@@ -256,13 +255,10 @@ void Physics::Configure(const Entity &/*_entity*/,
 {
   // Read physics engine type
   std::string engineType = "dart";
-  Entity physicsEntity = _ecm.EntityByComponents(components::Physics());
-  if (physicsEntity != kNullEntity)
-  {
-    auto engine = _ecm.Component<components::EngineType>(physicsEntity);
-    if (engine)
-      engineType = engine->Data();
-  }
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
+  auto physics = _ecm.Component<components::Physics>(worldEntity);
+  if (physics)
+    engineType = physics->Data().EngineType();
 
   // Check whether engine type is implemented
   if (engineType != "dart")
