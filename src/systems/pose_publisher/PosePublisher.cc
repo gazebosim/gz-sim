@@ -108,7 +108,10 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// \brief A variable that gets populated with poses. This also here as a
   /// member variable to avoid repeated memory allocations and improve
   /// performance.
-  ignition::msgs::Pose poseMsg;
+  public: ignition::msgs::Pose poseMsg;
+
+  /// \brief Whether cache variables have been initialized
+  public: bool initialized{false};
 };
 
 //////////////////////////////////////////////////
@@ -165,8 +168,6 @@ void PosePublisher::Configure(const Entity &_entity,
     this->dataPtr->updatePeriod =
         std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
-
-  this->dataPtr->InitializeEntitiesToPublish(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -188,6 +189,11 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     return;
   }
 
+  if (!this->dataPtr->initialized)
+  {
+    this->dataPtr->InitializeEntitiesToPublish(_ecm);
+    this->dataPtr->initialized = true;
+  }
   this->dataPtr->FillPoses(_ecm);
   this->dataPtr->PublishPoses(convert<msgs::Time>(_info.simTime));
   this->dataPtr->lastPosePubTime = _info.simTime;
@@ -244,14 +250,18 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
     // Recursively check if child entities need to be published
     auto childEntities =
         _ecm.ChildrenByComponents(entity, components::ParentEntity(entity));
-    for (const auto &child : childEntities)
+
+    // Use reverse iterators to match the order of entities found so as to match
+    // the expected order in the pose_publisher integration test.
+    for (auto childIt = childEntities.rbegin(); childIt != childEntities.rend();
+         ++childIt)
     {
-      auto it = std::find(visited.begin(), visited.end(), child);
+      auto it = std::find(visited.begin(), visited.end(), *childIt);
       if (it == visited.end())
       {
         // Only add to stack if the entity hasn't been already been visited.
         // This also ensures there are no cycles.
-        toCheck.push(child);
+        toCheck.push(*childIt);
       }
     }
   }
