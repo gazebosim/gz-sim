@@ -121,7 +121,10 @@ void SensorsPrivate::WaitForInit()
   {
     igndbg << "Waiting for init" << std::endl;
     std::unique_lock<std::mutex> lock(this->renderMutex);
-    this->renderCv.wait(lock);
+    // Wait to be ready for initialization or stopped running.
+    // We need rendering sensors to be available to initialize.
+    this->renderCv.wait(lock, [this](){
+        return this->doInit || !this->running; });
 
     if (this->doInit)
     {
@@ -279,10 +282,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->renderCv.wait(lock, [this] {
-        return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
     this->dataPtr->doInit = true;
-    lock.unlock();
     this->dataPtr->renderCv.notify_one();
   }
 
