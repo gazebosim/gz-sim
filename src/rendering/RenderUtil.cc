@@ -27,6 +27,8 @@
 #include <sdf/SDFImpl.hh>
 #include <sdf/Visual.hh>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/math/Color.hh>
 #include <ignition/math/Helpers.hh>
 #include <ignition/math/Pose3.hh>
@@ -174,6 +176,7 @@ rendering::ScenePtr RenderUtil::Scene() const
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->CreateRenderingEntities(_ecm);
   if (!_info.paused)
@@ -184,6 +187,7 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
+  IGN_PROFILE("RenderUtil::Update");
   if (!this->dataPtr->initialized)
     return;
 
