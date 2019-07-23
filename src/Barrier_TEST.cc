@@ -28,103 +28,126 @@ inline bool WasCancelled(const gazebo::Barrier::ExitStatus &_ret)
   return _ret == gazebo::Barrier::ExitStatus::CANCELLED;
 }
 
-TEST(Barrier, SyncTwoThreads)
+void SyncThreadsTest(unsigned int threadCount)
 {
-  auto startBarrier = std::make_unique<gazebo::Barrier>(2);
-  auto stopBarrier = std::make_unique<gazebo::Barrier>(2);
+  auto barrier = std::make_unique<gazebo::Barrier>(threadCount + 1);
 
-  std::atomic<unsigned int> preStart { 0 };
-  std::atomic<unsigned int> postStart { 0 };
-  std::atomic<unsigned int> postStop { 0 };
-
-  auto t = std::thread([&](){
-      preStart++;
-      EXPECT_FALSE(WasCancelled(startBarrier->wait()));
-      postStart++;
-
-      EXPECT_FALSE(WasCancelled(stopBarrier->wait()));
-      postStop++;
-  });
-
-
-  // Sleep to let the thread start
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(preStart, 1u);
-
-  startBarrier->wait();
-  // Sleep to allow propagation
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(postStart, 1u);
-
-  stopBarrier->wait();
-  // Sleep to allow propagation
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(postStop, 1u);
-
-  t.join();
-}
-
-TEST(Barrier, SyncNThreads)
-{
-  unsigned int threadCount = 20;
-
-  auto startBarrier = std::make_unique<gazebo::Barrier>(threadCount + 1);
-  auto stopBarrier = std::make_unique<gazebo::Barrier>(threadCount + 1);
-
-  std::atomic<unsigned int> preStart { 0 };
-  std::atomic<unsigned int> postStart { 0 };
-  std::atomic<unsigned int> postStop { 0 };
-
+  unsigned int preBarrier { 0 };
+  unsigned int postBarrier { 0 };
   std::vector<std::thread> threads;
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
   for (size_t ii = 0; ii < threadCount; ++ii)
   {
     threads.push_back(std::thread([&](){
-        preStart++;
-        EXPECT_FALSE(WasCancelled(startBarrier->wait()));
-        postStart++;
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          preBarrier++;
+          cv.notify_one();
+        }
 
-        EXPECT_FALSE(WasCancelled(stopBarrier->wait()));
-        postStop++;
+        EXPECT_FALSE(WasCancelled(barrier->wait()));
+
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          postBarrier++;
+          cv.notify_one();
+        }
     }));
   }
 
-  // Sleep to let the thread start
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(preStart, threadCount);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
+        [&](){ return preBarrier == threadCount; });
+    ASSERT_TRUE(ret);
+  }
 
-  startBarrier->wait();
-  // Sleep to allow propagation
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(postStart, threadCount);
+  barrier->wait();
 
-  stopBarrier->wait();
-  // Sleep to allow propagation
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  EXPECT_EQ(postStop, threadCount);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
+        [&](){ return postBarrier == threadCount; });
+    ASSERT_TRUE(ret);
+  }
 
   for (auto& t : threads)
     t.join();
 }
 
+TEST(Barrier, Sync1Thread)
+{
+  SyncThreadsTest(1);
+}
+
+TEST(Barrier, Sync5Threads)
+{
+  SyncThreadsTest(5);
+}
+
+TEST(Barrier, Sync10Threads)
+{
+  SyncThreadsTest(10);
+}
+
+TEST(Barrier, Sync20Threads)
+{
+  SyncThreadsTest(20);
+}
+
+TEST(Barrier, Sync50Threads)
+{
+  SyncThreadsTest(50);
+}
+
+
 TEST(Barrier, Cancel)
 {
+  // Use 3 as number of threads, but only create one, which
+  // guarantees it won't make it past `wait`
   auto barrier = std::make_unique<gazebo::Barrier>(3);
 
-  std::atomic<unsigned int> preBarrier { 0 };
-  std::atomic<unsigned int> postBarrier { 0 };
+  unsigned int preBarrier { 0 };
+  unsigned int postBarrier { 0 };
+
+  std::mutex mutex;
+  std::condition_variable cv;
 
   auto t = std::thread([&](){
-      preBarrier++;
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        preBarrier++;
+        cv.notify_one();
+      }
+
       EXPECT_TRUE(WasCancelled(barrier->wait()));
-      postBarrier++;
+
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        postBarrier++;
+        cv.notify_one();
+      }
   });
+
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
+        [&](){ return preBarrier == 1; });
+    ASSERT_TRUE(ret);
+  }
 
   // Cancel the barrier immedeately
   barrier->cancel();
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-  EXPECT_EQ(preBarrier, 1u);
-  EXPECT_EQ(postBarrier, 1u);
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(100),
+        [&](){ return postBarrier == 1; });
+    ASSERT_TRUE(ret);
+  }
 
   t.join();
 }
