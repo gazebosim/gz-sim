@@ -302,6 +302,7 @@ namespace ignition
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemPluginPtr> pendingSystems;
 
+      /// \brief Protect multiple threads writing to console concurrently
       private: std::mutex consoleMutex;
 
       /// \brief Mutex to protect pendingSystems
@@ -413,9 +414,16 @@ namespace ignition
       /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;
 
+      /// \brief Collection of threads running system PostUpdates
       private: std::vector<std::thread> postUpdateThreads;
+
+      /// \brief Flag to indicate running status of PostUpdate threads
       private: std::atomic<bool> postUpdateThreadsRunning;
+
+      /// \brief Barrier to signal beginning of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStartBarrier;
+
+      /// \brief Barrier to signal end of PostUpdate thread execution
       private: std::unique_ptr<Barrier> postUpdateStopBarrier;
 
       friend class LevelManager;

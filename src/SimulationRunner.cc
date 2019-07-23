@@ -327,6 +327,7 @@ void SimulationRunner::ProcessSystemQueue()
   }
   this->pendingSystems.clear();
 
+  // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
     this->StopWorkerThreads();
@@ -344,9 +345,11 @@ void SimulationRunner::ProcessSystemQueue()
 
     for (auto& system : this->systemsPostupdate)
     {
+      // Mutex to keep threads from writing concurrently
       consoleMutex.lock();
       igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
       consoleMutex.unlock();
+
       this->postUpdateThreads.push_back(std::thread([&, id](){
         while (this->postUpdateThreadsRunning)
         {
@@ -357,6 +360,8 @@ void SimulationRunner::ProcessSystemQueue()
           }
           this->postUpdateStopBarrier->wait();
         }
+
+        // Mutex to keep threads from writing concurrently
         consoleMutex.lock();
         igndbg << "Exiting postupdate worker thread ("
           << id << ")" << std::endl;
@@ -391,8 +396,12 @@ void SimulationRunner::UpdateSystems()
 
   {
     IGN_PROFILE("PostUpdate");
-    this->postUpdateStartBarrier->wait();
-    this->postUpdateStopBarrier->wait();
+    // If no systems implementing PostUpdate have been added, then
+    // the barriers will be uninitialized, so guard against that condition.
+    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      this->postUpdateStartBarrier->wait();
+      this->postUpdateStopBarrier->wait();
+    }
   }
 }
 
@@ -415,7 +424,6 @@ void SimulationRunner::StopWorkerThreads()
   if (this->postUpdateStartBarrier && this->postUpdateThreads.size())
   {
     this->postUpdateThreadsRunning = false;
-
     this->postUpdateStartBarrier->cancel();
     this->postUpdateStopBarrier->cancel();
 
