@@ -302,9 +302,6 @@ namespace ignition
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemPluginPtr> pendingSystems;
 
-      /// \brief Protect multiple threads writing to console concurrently
-      private: std::mutex consoleMutex;
-
       /// \brief Mutex to protect pendingSystems
       private: mutable std::mutex pendingSystemsMutex;
 

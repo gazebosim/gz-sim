@@ -318,20 +318,24 @@ void SimulationRunner::AddSystemToRunner(const SystemPluginPtr &_system)
 void SimulationRunner::ProcessSystemQueue()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-
   auto pending = this->pendingSystems.size();
+
+  if (pending > 0)
+  {
+    // If additional systems are to be added, stop the existing threads.
+    this->StopWorkerThreads();
+  }
 
   for (const auto &system : this->pendingSystems)
   {
     this->AddSystemToRunner(system);
   }
+
   this->pendingSystems.clear();
 
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
-    this->StopWorkerThreads();
-
     igndbg << "Creating postupdate worker threads: "
       << this->systemsPostupdate.size() + 1 << std::endl;
 
@@ -345,10 +349,7 @@ void SimulationRunner::ProcessSystemQueue()
 
     for (auto& system : this->systemsPostupdate)
     {
-      // Mutex to keep threads from writing concurrently
-      consoleMutex.lock();
       igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
-      consoleMutex.unlock();
 
       this->postUpdateThreads.push_back(std::thread([&, id](){
         std::stringstream ss;
@@ -363,12 +364,8 @@ void SimulationRunner::ProcessSystemQueue()
           }
           this->postUpdateStopBarrier->wait();
         }
-
-        // Mutex to keep threads from writing concurrently
-        consoleMutex.lock();
         igndbg << "Exiting postupdate worker thread ("
           << id << ")" << std::endl;
-        consoleMutex.unlock();
       }));
       id++;
     }
