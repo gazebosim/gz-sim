@@ -22,6 +22,8 @@
  */
 #include <mutex>
 
+#include <ignition/common/Profiler.hh>
+
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
@@ -352,6 +354,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     ignition::gazebo::EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("MulticopterMotorModel::PreUpdate");
   // If the joint or links haven't been identified yet, look for them
   if (this->dataPtr->jointEntity == kNullEntity)
   {
@@ -464,6 +467,7 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
 void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
   double refMotorInputCopy;
   {
     std::lock_guard<std::mutex> lock(this->refMotorInputMutex);

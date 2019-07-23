@@ -15,6 +15,7 @@
  *
  */
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/plugin/Register.hh>
@@ -144,6 +145,7 @@ void PosePublisher::Configure(const Entity &_entity,
 void PosePublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("PosePublisher::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;

@@ -21,7 +21,9 @@
 
 #include <sdf/Sensor.hh>
 
+#include <ignition/common/Profiler.hh>
 #include <ignition/common/Time.hh>
+
 #include <ignition/math/Helpers.hh>
 
 #include <ignition/rendering/Scene.hh>
@@ -91,6 +93,8 @@ void Sensors::Configure(const Entity &/*_id*/,
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("Sensors::PostUpdate");
+
   // Only initialize if there are rendering sensors
   if (!this->dataPtr->initialized &&
       (_ecm.HasComponentType(components::Camera::typeId) ||
