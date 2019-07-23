@@ -160,7 +160,6 @@ void SensorsPrivate::RunOnce()
 
   if (!this->activeSensors.empty())
   {
-
     this->sensorMaskMutex.lock();
     for (const auto & sensor : this->activeSensors)
     {
