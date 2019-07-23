@@ -160,10 +160,6 @@ void SensorsPrivate::RunOnce()
 
   if (!this->activeSensors.empty())
   {
-    // Update the scene graph manually to improve performance
-    // We only need to do this once per frame It is important to call
-    // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
-    // so we don't waste cycles doing one scene graph update per sensor
 
     this->sensorMaskMutex.lock();
     for (const auto & sensor : this->activeSensors)
@@ -177,6 +173,10 @@ void SensorsPrivate::RunOnce()
 
     {
       IGN_PROFILE("PreRender");
+      // Update the scene graph manually to improve performance
+      // We only need to do this once per frame It is important to call
+      // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
+      // so we don't waste cycles doing one scene graph update per sensor
       this->scene->PreRender();
     }
 
