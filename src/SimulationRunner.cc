@@ -399,6 +399,7 @@ void SimulationRunner::UpdateSystems()
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    {
       this->postUpdateStartBarrier->wait();
       this->postUpdateStopBarrier->wait();
     }

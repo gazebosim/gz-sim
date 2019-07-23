@@ -48,6 +48,9 @@ namespace systems
     /// \brief Destructor
     public: ~Sensors() override;
 
+    public: void Stop();
+    public: void RunLoop();
+
     // Documentation inherited
     public: void Configure(const Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
