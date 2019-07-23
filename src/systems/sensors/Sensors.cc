@@ -194,6 +194,8 @@ void SensorsPrivate::RunOnce()
 //////////////////////////////////////////////////
 void SensorsPrivate::RenderThread()
 {
+  IGN_PROFILE_THREAD_NAME("RenderThread");
+
   igndbg << "SensorsPrivate::RenderThread started" << std::endl;
 
   // We have to wait for rendering sensors to be available

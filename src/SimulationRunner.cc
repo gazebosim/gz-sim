@@ -351,6 +351,9 @@ void SimulationRunner::ProcessSystemQueue()
       consoleMutex.unlock();
 
       this->postUpdateThreads.push_back(std::thread([&, id](){
+        std::stringstream ss;
+        ss << "PostUpdateThread: " << id;
+        IGN_PROFILE_THREAD_NAME(ss.str().c_str());
         while (this->postUpdateThreadsRunning)
         {
           this->postUpdateStartBarrier->wait();
