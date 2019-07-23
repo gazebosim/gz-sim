@@ -187,7 +187,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 //////////////////////////////////////////////////
 SimulationRunner::~SimulationRunner() {
   this->StopWorkerThreads();
-};
+}
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
@@ -342,13 +342,13 @@ void SimulationRunner::ProcessSystemQueue()
     this->postUpdateThreadsRunning = true;
     int id = 0;
 
-    for (auto& system: this->systemsPostupdate)
+    for (auto& system : this->systemsPostupdate)
     {
       consoleMutex.lock();
       igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
       consoleMutex.unlock();
       this->postUpdateThreads.push_back(std::thread([&, id](){
-        while(this->postUpdateThreadsRunning)
+        while (this->postUpdateThreadsRunning)
         {
           this->postUpdateStartBarrier->wait();
           if (this->postUpdateThreadsRunning)
@@ -358,7 +358,8 @@ void SimulationRunner::ProcessSystemQueue()
           this->postUpdateStopBarrier->wait();
         }
         consoleMutex.lock();
-        igndbg << "Exiting postupdate worker thread (" << id << ")" << std::endl;
+        igndbg << "Exiting postupdate worker thread ("
+          << id << ")" << std::endl;
         consoleMutex.unlock();
       }));
       id++;
@@ -418,7 +419,7 @@ void SimulationRunner::StopWorkerThreads()
     this->postUpdateStartBarrier->cancel();
     this->postUpdateStopBarrier->cancel();
 
-    for (auto & thread: this->postUpdateThreads)
+    for (auto & thread : this->postUpdateThreads)
     {
       thread.join();
     }

@@ -49,6 +49,7 @@
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "Barrier.hh"
 
 using namespace std::chrono_literals;
 
@@ -60,54 +61,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
-
-    class Barrier
-    {
-      public: Barrier(unsigned int _numThreads):
-                numThreads(_numThreads),
-                count(_numThreads),
-                generation(0) {}
-
-      public: bool wait()
-      {
-        if (this->cancelled)
-        {
-          return true;
-        }
-
-        std::unique_lock<std::mutex> lock(this->mutex);
-        unsigned int gen = this->generation;
-
-        if (--this->count == 0)
-        {
-          this->generation++;
-          this->count = this->numThreads;
-          this->cv.notify_all();
-          return true;
-        }
-
-        while (gen == this->generation)
-        {
-          this->cv.wait(lock);
-        }
-        return false;
-      }
-
-      public: void cancel()
-      {
-        std::unique_lock<std::mutex> lock(this->mutex);
-        this->generation++;
-        this->cancelled = true;
-        this->cv.notify_all();
-      }
-
-      private: std::mutex mutex;
-      private: std::condition_variable cv;
-      private: unsigned int numThreads;
-      private: unsigned int count;
-      private: unsigned int generation;
-      private: std::atomic<bool> cancelled = false;
-    };
 
     /// \brief Class to hold systems internally
     class SystemInternal
