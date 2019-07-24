@@ -627,6 +627,11 @@ namespace ignition
       friend class GuiRunner;
       friend class SimulationRunner;
 
+      // Make network managers friends so they have control over component
+      // states. Like the runners, the managers are internal.
+      friend class NetworkManagerPrimary;
+      friend class NetworkManagerSecondary;
+
       // Make View a friend so that it can access components.
       // This should be safe since View is internal to Gazebo.
       friend class detail::View;
