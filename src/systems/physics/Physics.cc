@@ -55,6 +55,7 @@
 #include <ignition/physics/sdf/ConstructModel.hh>
 #include <ignition/physics/sdf/ConstructVisual.hh>
 #include <ignition/physics/sdf/ConstructWorld.hh>
+#include <ignition/physics/sdf/FinalizeModels.hh>
 
 // SDF
 #include <sdf/Collision.hh>
@@ -130,7 +131,8 @@ class ignition::gazebo::systems::PhysicsPrivate
           ignition::physics::sdf::ConstructSdfLink,
           ignition::physics::sdf::ConstructSdfModel,
           ignition::physics::sdf::ConstructSdfVisual,
-          ignition::physics::sdf::ConstructSdfWorld
+          ignition::physics::sdf::ConstructSdfWorld,
+          ignition::physics::sdf::FinalizeSdfModels
           >;
 
 
@@ -261,7 +263,7 @@ void Physics::Configure(const Entity &/*_entity*/,
     engineType = physics->Data().EngineType();
 
   // Check whether engine type is implemented
-  if (engineType != "dart")
+  if (engineType != "dart" && engineType != "bullet")
   {
     ignerr << "Unregistered physics engine [" << engineType << "], the default"
            << " [dart] will be used instead.\n";
@@ -276,6 +278,11 @@ void Physics::Configure(const Entity &/*_entity*/,
     libPath = dartsim_plugin_LIB;
     className = "ignition::physics::dartsim::Plugin";
   }
+  else if (engineType == "bullet")
+  {
+    libPath = bullet_plugin_LIB;
+    className = "ignition::physics::bullet::Plugin";
+  }
 
   ignition::plugin::Loader pl;
   // libPaths are defined by cmake
@@ -289,6 +296,7 @@ void Physics::Configure(const Entity &/*_entity*/,
       this->dataPtr->engine = ignition::physics::RequestEngine<
         ignition::physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::From(plugin);
+      ignmsg << "Running engine: " << this->dataPtr->engine->GetName();
     }
     else
     {
@@ -446,132 +454,132 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
 
   // We don't need to add visuals to the physics engine.
 
-  // collisions
-  _ecm.EachNew<components::Collision, components::Name, components::Pose,
-            components::Geometry, components::CollisionElement,
-            components::ParentEntity>(
-      [&](const Entity &  _entity,
-          const components::Collision * /* _collision */,
-          const components::Name *_name,
-          const components::Pose *_pose,
-          const components::Geometry *_geom,
-          const components::CollisionElement *_collElement,
-          const components::ParentEntity *_parent) -> bool
-      {
-        if (this->entityCollisionMap.find(_entity) !=
-            this->entityCollisionMap.end())
-        {
-           ignwarn << "Collision entity [" << _entity
-                   << "] marked as new, but it's already on the map."
-                   << std::endl;
-          return true;
-        }
+  // // collisions
+  // _ecm.EachNew<components::Collision, components::Name, components::Pose,
+  //           components::Geometry, components::CollisionElement,
+  //           components::ParentEntity>(
+  //     [&](const Entity &  _entity,
+  //         const components::Collision * /* _collision */,
+  //         const components::Name *_name,
+  //         const components::Pose *_pose,
+  //         const components::Geometry *_geom,
+  //         const components::CollisionElement *_collElement,
+  //         const components::ParentEntity *_parent) -> bool
+  //     {
+  //       if (this->entityCollisionMap.find(_entity) !=
+  //           this->entityCollisionMap.end())
+  //       {
+  //          ignwarn << "Collision entity [" << _entity
+  //                  << "] marked as new, but it's already on the map."
+  //                  << std::endl;
+  //         return true;
+  //       }
 
-        // Check if parent link exists
-        if (this->entityLinkMap.find(_parent->Data())
-            == this->entityLinkMap.end())
-        {
-          ignwarn << "Collision's parent entity [" << _parent->Data()
-                  << "] not found on link map." << std::endl;
-          return true;
-        }
-        auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
+  //       // Check if parent link exists
+  //       if (this->entityLinkMap.find(_parent->Data())
+  //           == this->entityLinkMap.end())
+  //       {
+  //         ignwarn << "Collision's parent entity [" << _parent->Data()
+  //                 << "] not found on link map." << std::endl;
+  //         return true;
+  //       }
+  //       auto linkPtrPhys = this->entityLinkMap.at(_parent->Data());
 
-        sdf::Collision collision = _collElement->Data();
+  //       sdf::Collision collision = _collElement->Data();
 
-        ShapePtrType collisionPtrPhys;
-        if (_geom->Data().Type() == sdf::GeometryType::MESH)
-        {
-          const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
-          if (nullptr == meshSdf)
-          {
-            ignwarn << "Mesh geometry for collision [" << _name->Data()
-                    << "] missing mesh shape." << std::endl;
-            return true;
-          }
+  //       ShapePtrType collisionPtrPhys;
+  //       if (_geom->Data().Type() == sdf::GeometryType::MESH)
+  //       {
+  //         const sdf::Mesh *meshSdf = _geom->Data().MeshShape();
+  //         if (nullptr == meshSdf)
+  //         {
+  //           ignwarn << "Mesh geometry for collision [" << _name->Data()
+  //                   << "] missing mesh shape." << std::endl;
+  //           return true;
+  //         }
 
-          auto &meshManager = *ignition::common::MeshManager::Instance();
-          auto *mesh = meshManager.Load(meshSdf->Uri());
-          if (nullptr == mesh)
-          {
-            ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
-                    << "]." << std::endl;
-            return true;
-          }
+  //         auto &meshManager = *ignition::common::MeshManager::Instance();
+  //         auto *mesh = meshManager.Load(meshSdf->Uri());
+  //         if (nullptr == mesh)
+  //         {
+  //           ignwarn << "Failed to load mesh from [" << meshSdf->Uri()
+  //                   << "]." << std::endl;
+  //           return true;
+  //         }
 
-          collisionPtrPhys = linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
-              ignition::math::eigen3::convert(_pose->Data()),
-              ignition::math::eigen3::convert(meshSdf->Scale()));
-        }
-        else
-        {
-          collisionPtrPhys = linkPtrPhys->ConstructCollision(collision);
-        }
+  //         collisionPtrPhys = linkPtrPhys->AttachMeshShape(_name->Data(), *mesh,
+  //             ignition::math::eigen3::convert(_pose->Data()),
+  //             ignition::math::eigen3::convert(meshSdf->Scale()));
+  //       }
+  //       else
+  //       {
+  //         collisionPtrPhys = linkPtrPhys->ConstructCollision(collision);
+  //       }
 
-        this->entityCollisionMap.insert(
-            std::make_pair(_entity, collisionPtrPhys));
-        this->collisionEntityMap.insert(
-            std::make_pair(collisionPtrPhys, _entity));
-        return true;
-      });
+  //       this->entityCollisionMap.insert(
+  //           std::make_pair(_entity, collisionPtrPhys));
+  //       this->collisionEntityMap.insert(
+  //           std::make_pair(collisionPtrPhys, _entity));
+  //       return true;
+  //     });
 
-  // joints
-  _ecm.EachNew<components::Joint, components::Name, components::JointType,
-               components::Pose, components::ThreadPitch,
-               components::ParentEntity, components::ParentLinkName,
-               components::ChildLinkName>(
-      [&](const Entity &_entity,
-          const components::Joint * /* _joint */,
-          const components::Name *_name,
-          const components::JointType *_jointType,
-          const components::Pose *_pose,
-          const components::ThreadPitch *_threadPitch,
-          const components::ParentEntity *_parentModel,
-          const components::ParentLinkName *_parentLinkName,
-          const components::ChildLinkName *_childLinkName) -> bool
-      {
-        // Check if joint already exists
-        if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
-        {
-          ignwarn << "Joint entity [" << _entity
-                  << "] marked as new, but it's already on the map."
-                  << std::endl;
-          return true;
-        }
+  // // joints
+  // _ecm.EachNew<components::Joint, components::Name, components::JointType,
+  //              components::Pose, components::ThreadPitch,
+  //              components::ParentEntity, components::ParentLinkName,
+  //              components::ChildLinkName>(
+  //     [&](const Entity &_entity,
+  //         const components::Joint * /* _joint */,
+  //         const components::Name *_name,
+  //         const components::JointType *_jointType,
+  //         const components::Pose *_pose,
+  //         const components::ThreadPitch *_threadPitch,
+  //         const components::ParentEntity *_parentModel,
+  //         const components::ParentLinkName *_parentLinkName,
+  //         const components::ChildLinkName *_childLinkName) -> bool
+  //     {
+  //       // Check if joint already exists
+  //       if (this->entityJointMap.find(_entity) != this->entityJointMap.end())
+  //       {
+  //         ignwarn << "Joint entity [" << _entity
+  //                 << "] marked as new, but it's already on the map."
+  //                 << std::endl;
+  //         return true;
+  //       }
 
-        // Check if parent model exists
-        if (this->entityModelMap.find(_parentModel->Data())
-            == this->entityModelMap.end())
-        {
-          ignwarn << "Joint's parent entity [" << _parentModel->Data()
-                  << "] not found on model map." << std::endl;
-          return true;
-        }
-        auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
+  //       // Check if parent model exists
+  //       if (this->entityModelMap.find(_parentModel->Data())
+  //           == this->entityModelMap.end())
+  //       {
+  //         ignwarn << "Joint's parent entity [" << _parentModel->Data()
+  //                 << "] not found on model map." << std::endl;
+  //         return true;
+  //       }
+  //       auto modelPtrPhys = this->entityModelMap.at(_parentModel->Data());
 
-        sdf::Joint joint;
-        joint.SetName(_name->Data());
-        joint.SetType(_jointType->Data());
-        joint.SetPose(_pose->Data());
-        joint.SetThreadPitch(_threadPitch->Data());
+  //       sdf::Joint joint;
+  //       joint.SetName(_name->Data());
+  //       joint.SetType(_jointType->Data());
+  //       joint.SetPose(_pose->Data());
+  //       joint.SetThreadPitch(_threadPitch->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+  //       joint.SetParentLinkName(_parentLinkName->Data());
+  //       joint.SetChildLinkName(_childLinkName->Data());
 
-        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
-        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+  //       auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+  //       auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
-        if (jointAxis)
-          joint.SetAxis(0, jointAxis->Data());
-        if (jointAxis2)
-          joint.SetAxis(1, jointAxis2->Data());
+  //       if (jointAxis)
+  //         joint.SetAxis(0, jointAxis->Data());
+  //       if (jointAxis2)
+  //         joint.SetAxis(1, jointAxis2->Data());
 
-        // Use the parent link's parent model as the model of this joint
-        auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
+  //       // Use the parent link's parent model as the model of this joint
+  //       auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
-        this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
-        return true;
-      });
+  //       this->entityJointMap.insert(std::make_pair(_entity, jointPtrPhys));
+  //       return true;
+  //     });
 
   _ecm.EachNew<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *)->bool
@@ -581,6 +589,8 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm)
           _ecm.ParentEntity(_entity), false));
         return true;
       });
+
+  this->engine->FinalizeModels();
 }
 
 //////////////////////////////////////////////////

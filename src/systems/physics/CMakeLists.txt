@@ -7,5 +7,6 @@ gz_add_system(physics
     ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}
   PRIVATE_COMPILE_DEFS
     "dartsim_plugin_LIB=\"$<TARGET_SONAME_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-dartsim-plugin>\""
+    "bullet_plugin_LIB=\"$<TARGET_SONAME_FILE:ignition-physics${IGN_PHYSICS_VER}::ignition-physics${IGN_PHYSICS_VER}-bullet-plugin>\""
 )
 
