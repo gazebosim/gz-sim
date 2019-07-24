@@ -1,9 +1,17 @@
 ## Ignition Gazebo 2.x
 
-### Ignition Gazebo 2.4.X
+### Ignition Gazebo 2.X.X
+
+1.  Improve performance of Pose Publisher
+   * [Pull Request 392](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/392)
 
 1. Fix distributed sim
     * [Pull Request 385](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/385)
+
+### Ignition Gazebo 2.5.0
+
+1. The LinearBatteryPlugin system publishes battery state
+   * [Pull Request 388](https://bitbucket.org/ignitionrobotics/ign-gazebo/pull-requests/388)
 
 ### Ignition Gazebo 2.4.0 (2019-07-17)
 
