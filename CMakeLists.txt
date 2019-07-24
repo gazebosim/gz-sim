@@ -103,8 +103,8 @@ set(IGN_SENSORS_VER ${ignition-sensors2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering2 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering2_VERSION_MAJOR})
+ign_find_package(ignition-rendering3 REQUIRED)
+set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gflags

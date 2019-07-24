@@ -224,6 +224,13 @@ void SensorsPrivate::Stop()
   igndbg << "SensorsPrivate::Stop" << std::endl;
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->running = false;
+
+  if (this->stopConn)
+  {
+    // Clear connection to stop additional incoming events.
+    this->stopConn.reset();
+  }
+
   lock.unlock();
   this->renderCv.notify_all();
 
