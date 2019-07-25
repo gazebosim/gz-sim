@@ -52,6 +52,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Count of pending sensors. Must be called in the rendering thread.
     /// \return Number of sensors to be added on the next `Update` call
+    ///
+    /// In the case that RenderUtil has not been initialized, this method
+    /// will return -1.
     public: int PendingSensors();
 
     /// \brief Main update function. Must be called in the rendering thread.
