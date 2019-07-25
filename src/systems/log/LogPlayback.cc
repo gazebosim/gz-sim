@@ -21,14 +21,12 @@
 
 #include <string>
 
-#include <ignition/msgs/Utility.hh>
-
-#include <ignition/math/Pose3.hh>
-
-#include <ignition/plugin/RegisterMore.hh>
-
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/Time.hh>
+#include <ignition/fuel_tools/Zip.hh>
+#include <ignition/math/Pose3.hh>
+#include <ignition/msgs/Utility.hh>
+#include <ignition/plugin/RegisterMore.hh>
 #include <ignition/transport/log/QueryOptions.hh>
 #include <ignition/transport/log/Log.hh>
 #include <ignition/transport/log/Message.hh>
@@ -48,6 +46,9 @@ using namespace systems;
 /// \brief Private LogPlayback data class.
 class ignition::gazebo::systems::LogPlaybackPrivate
 {
+  /// \brief Extract model resource files and state file from compression.
+  public: void ExtractStateAndResources();
+
   /// \brief Start log playback.
   /// \param[in] _logPath Path of recorded state to playback.
   /// \param[in] _worldEntity The world entity this plugin is attached to.
@@ -56,9 +57,14 @@ class ignition::gazebo::systems::LogPlaybackPrivate
   /// \param[in] _eventMgr The EventManager of the given simulation
   /// instance.
   /// \return True if any playback has been started successfully.
-  public: bool Start(const std::string &_logPath,
-      const Entity &_worldEntity, EntityComponentManager &_ecm,
+  public: bool Start(const Entity &_worldEntity, EntityComponentManager &_ecm,
       EventManager &_eventMgr);
+
+  /// \brief Prepend log path to mesh file path in the SDF element.
+  /// \param[in] _uri URI of mesh in geometry
+  /// \param[in] _geomElem SDF Element pointer to geometry
+  public: void PrependLogPath(const std::string &_uri,
+      sdf::ElementPtr &_geomElem);
 
   /// \brief Updates the ECM according to the given message.
   /// \param[in] _ecm Mutable ECM.
@@ -85,6 +91,9 @@ class ignition::gazebo::systems::LogPlaybackPrivate
 
   /// \brief Indicator of whether any playback instance has ever been started
   public: static bool started;
+
+  /// \brief Directory in which to place log file
+  public: std::string logPath{""};
 
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
@@ -159,12 +168,14 @@ void LogPlayback::Configure(const Entity &_worldEntity,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   // Get directory paths from SDF
-  auto logPath = _sdf->Get<std::string>("path");
+  this->dataPtr->logPath = _sdf->Get<std::string>("path");
+
+  this->dataPtr->ExtractStateAndResources();
 
   // Enforce only one playback instance
   if (!LogPlaybackPrivate::started)
   {
-    this->dataPtr->Start(logPath, _worldEntity, _ecm, _eventMgr);
+    this->dataPtr->Start(_worldEntity, _ecm, _eventMgr);
   }
   else
   {
@@ -174,9 +185,8 @@ void LogPlayback::Configure(const Entity &_worldEntity,
 }
 
 //////////////////////////////////////////////////
-bool LogPlaybackPrivate::Start(const std::string &_logPath,
-  const Entity &_worldEntity, EntityComponentManager &_ecm,
-  EventManager &_eventMgr)
+bool LogPlaybackPrivate::Start(const Entity &_worldEntity,
+  EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   if (LogPlaybackPrivate::started)
   {
@@ -185,20 +195,20 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
     return true;
   }
 
-  if (_logPath.empty())
+  if (this->logPath.empty())
   {
     ignerr << "Unspecified log path to playback. Nothing to play.\n";
     return false;
   }
 
-  if (!common::isDirectory(_logPath))
+  if (!common::isDirectory(this->logPath))
   {
-    ignerr << "Specified log path [" << _logPath << "] must be a directory.\n";
+    ignerr << "Specified log path [" << this->logPath << "] must be a directory.\n";
     return false;
   }
 
   // Append file name
-  std::string dbPath = common::joinPaths(_logPath, "state.tlog");
+  std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   ignmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
@@ -215,7 +225,7 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   }
 
   // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(_logPath) + "/sdf");
+  transport::log::TopicList sdfOpts("/" + common::basename(this->logPath) + "/sdf");
   transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
   transport::log::MsgIter sdfIter = sdfBatch.begin();
   if (sdfIter == sdfBatch.end())
@@ -297,6 +307,71 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
       ++modelIndex)
   {
     auto model = sdfWorld->ModelByIndex(modelIndex);
+
+    // Find uri tags and prepend log path to original absolute paths
+    sdf::ElementPtr modelElem = model->Element();
+    if (modelElem->HasElement("link"))
+    {
+      sdf::ElementPtr linkElem = modelElem->GetElement("link");
+      while (linkElem)
+      {
+        if (linkElem->HasElement("visual"))
+        {
+          sdf::ElementPtr visualElem = linkElem->GetElement("visual");
+          while (visualElem)
+          {
+            sdf::ElementPtr geomElem = visualElem->GetElement("geometry");
+            if (geomElem->HasElement("mesh"))
+            {
+              const std::string meshUri = geomElem->GetElement("mesh")
+                ->Get<std::string>("uri");
+              if (!meshUri.empty())
+              {
+                this->PrependLogPath(meshUri, geomElem);
+              }
+            }
+            if (visualElem->HasElement("material"))
+            {
+              sdf::ElementPtr matElem = visualElem->GetElement("material");
+              if (matElem->HasElement("script"))
+              {
+                sdf::ElementPtr scriptElem = matElem->GetElement("script");
+                if (scriptElem->HasElement("uri"))
+                {
+                  std::string matUri = scriptElem->Get<std::string>("uri");
+                  if (!matUri.empty())
+                  {
+                    this->PrependLogPath(matUri, geomElem);
+                  }
+                }
+              }
+            }
+            visualElem = visualElem->GetNextElement("visual");
+          }
+        }
+        if (linkElem->HasElement("collision"))
+        {
+          sdf::ElementPtr collisionElem = linkElem->GetElement("collision");
+          while (collisionElem)
+          {
+            sdf::ElementPtr geomElem = collisionElem->GetElement("geometry");
+            if (geomElem->HasElement("mesh"))
+            {
+              const std::string meshUri = geomElem->GetElement("mesh")
+                  ->Get<std::string>("uri");
+              if (!meshUri.empty())
+              {
+                this->PrependLogPath(meshUri, geomElem);
+              }
+            }
+            collisionElem = collisionElem->GetNextElement("collision");
+          }
+        }
+        linkElem = linkElem->GetNextElement("link");
+      }
+    }
+
+
     auto modelEntity = creator.CreateEntities(model);
 
     creator.SetParent(modelEntity, _worldEntity);
@@ -324,6 +399,51 @@ bool LogPlaybackPrivate::Start(const std::string &_logPath,
   this->instStarted = true;
   LogPlaybackPrivate::started = true;
   return true;
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::PrependLogPath(const std::string &_uri,
+  sdf::ElementPtr &_geomElem)
+{
+  const std::string filePrefix = "file://";
+
+  if (_uri.find(filePrefix) == 0 || _uri[0] == '/')
+  {
+    sdf::ElementPtr uriElem = _geomElem->GetElement("mesh")
+      ->GetElement("uri");
+
+    // Prepend log path to file path
+    uriElem->Set(common::joinPaths(filePrefix, this->logPath,
+      _uri.substr(filePrefix.length())));
+  }
+}
+
+//////////////////////////////////////////////////
+void LogPlaybackPrivate::ExtractStateAndResources()
+{
+  std::string cmp_src = this->logPath;
+
+  size_t sep_idx = this->logPath.find(common::separator(""));
+  // Remove the separator at end of path
+  if (sep_idx == this->logPath.length() - 1)
+    cmp_src = this->logPath.substr(0, this->logPath.length() - 1);
+  cmp_src += ".zip";
+
+  std::string cmp_dest = common::parentPath(this->logPath);
+
+  // Currently not removing the extracted directory after playback
+  //   termination, because the directory could be from an unfinished recording
+  //   that terminated unexpectedly, and zip file might not have been created.
+  if (fuel_tools::Zip::Extract(cmp_src, cmp_dest))
+  {
+    ignmsg << "Extracted log file and resources to [" << cmp_dest
+           << "]" << std::endl;
+  }
+  else
+  {
+    ignerr << "Failed to extract log file and resources to [" << cmp_dest
+           << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
