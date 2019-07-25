@@ -203,7 +203,8 @@ bool LogPlaybackPrivate::Start(const Entity &_worldEntity,
 
   if (!common::isDirectory(this->logPath))
   {
-    ignerr << "Specified log path [" << this->logPath << "] must be a directory.\n";
+    ignerr << "Specified log path [" << this->logPath
+           << "] must be a directory.\n";
     return false;
   }
 
@@ -225,7 +226,8 @@ bool LogPlaybackPrivate::Start(const Entity &_worldEntity,
   }
 
   // Find SDF string in .tlog file
-  transport::log::TopicList sdfOpts("/" + common::basename(this->logPath) + "/sdf");
+  transport::log::TopicList sdfOpts("/" + common::basename(this->logPath) +
+    "/sdf");
   transport::log::Batch sdfBatch = log->QueryMessages(sdfOpts);
   transport::log::MsgIter sdfIter = sdfBatch.begin();
   if (sdfIter == sdfBatch.end())

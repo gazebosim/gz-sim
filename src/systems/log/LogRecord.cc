@@ -25,9 +25,9 @@
 #include <ctime>
 #include <set>
 #include <list>
-//#include <system>
+// #include <system>
 #include <filesystem>
-//#include <algorithm/string/predicate.hpp>
+// #include <algorithm/string/predicate.hpp>
 
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/SystemPaths.hh>
@@ -371,7 +371,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       this->savedModels.begin(), this->savedModels.end(),
       std::inserter(diff, diff.begin()));
 
-  for (auto &model: diff)
+  for (auto &model : diff)
   {
     if (model.empty())
       continue;
