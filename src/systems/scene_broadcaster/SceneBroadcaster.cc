@@ -263,6 +263,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
+    this->dataPtr->stepMsg.Clear();
+
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
     // Publish full state if there are change events
