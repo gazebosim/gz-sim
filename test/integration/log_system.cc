@@ -72,7 +72,7 @@ class LogSystemTest : public ::testing::Test
     const std::string &_ext)
   {
     std::string result = _path;
- 
+
     size_t sepIdx = _path.find(common::separator(""));
     // Remove the separator at end of path
     if (sepIdx == _path.length() - 1)
@@ -180,8 +180,8 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   auto validateDir = common::joinPaths(this->logsDir, "validate");
   EXPECT_TRUE(fuel_tools::Zip::Extract(zipFile, validateDir));
   // Load log file recorded above
-  auto logPlaybackFile = common::joinPaths(validateDir, common::basename(this->logDir),
-    "state.tlog");
+  auto logPlaybackFile = common::joinPaths(validateDir,
+    common::basename(this->logDir), "state.tlog");
   transport::log::Log log;
   log.Open(logPlaybackFile);
   auto batch = log.QueryMessages();
