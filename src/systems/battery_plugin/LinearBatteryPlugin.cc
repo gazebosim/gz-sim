@@ -15,12 +15,13 @@
  *
  */
 
-#include "LinearBatteryPlugin.hh"
+#include <ignition/msgs/battery_state.pb.h>
 
 #include <string>
 #include <functional>
 
 #include <ignition/plugin/Register.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/common/Util.hh>
 #include <ignition/common/Battery.hh>
@@ -37,6 +38,8 @@
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+
+#include "LinearBatteryPlugin.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -118,6 +121,12 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief Ignition communication node
+  public: transport::Node node;
+
+  /// \brief Battery state of charge message publisher
+  public: transport::Node::Publisher statePub;
 };
 
 /////////////////////////////////////////////////
@@ -153,7 +162,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
                EventManager &/*_eventMgr*/)
 {
   // Store the pointer to the model this battery is under
-  Model model = Model(_entity);
+  auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
     ignerr << "Linear battery plugin should be attached to a model entity. "
@@ -243,6 +252,14 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
          << this->dataPtr->battery->Name() << std::endl;
   igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
+
+  // Setup battery state topic
+  std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    "/battery/" + this->dataPtr->battery->Name() + "/state"};
+  transport::AdvertiseMessageOptions opts;
+  opts.SetMsgsPerSec(50);
+  this->dataPtr->statePub = this->dataPtr->node.Advertise<msgs::BatteryState>(
+    stateTopic, opts);
 }
 
 /////////////////////////////////////////////////
@@ -328,6 +345,30 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   }
 }
 
+//////////////////////////////////////////////////
+void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &/*_ecm*/)
+{
+  // Nothing left to do if paused
+  if (_info.paused)
+    return;
+
+  // Publish battery state
+  msgs::BatteryState msg;
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
+  msg.set_voltage(this->dataPtr->battery->Voltage());
+  msg.set_current(this->dataPtr->ismooth);
+  msg.set_charge(this->dataPtr->q);
+  msg.set_capacity(this->dataPtr->c);
+  msg.set_percentage(this->dataPtr->soc);
+  if (this->dataPtr->startDraining)
+    msg.set_power_supply_status(msgs::BatteryState::DISCHARGING);
+  else
+    msg.set_power_supply_status(msgs::BatteryState::FULL);
+  this->dataPtr->statePub.Publish(msg);
+}
+
 /////////////////////////////////////////////////
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
@@ -402,7 +443,8 @@ IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     ignition::gazebo::System,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
-                    LinearBatteryPlugin::ISystemUpdate)
+                    LinearBatteryPlugin::ISystemUpdate,
+                    LinearBatteryPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "ignition::gazebo::systems::LinearBatteryPlugin")
