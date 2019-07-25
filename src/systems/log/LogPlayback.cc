@@ -340,7 +340,7 @@ bool LogPlaybackPrivate::Start(const Entity &_worldEntity,
                 sdf::ElementPtr scriptElem = matElem->GetElement("script");
                 if (scriptElem->HasElement("uri"))
                 {
-                  std::string matUri = scriptElem->Get<std::string>("uri");
+                  auto matUri = scriptElem->Get<std::string>("uri");
                   if (!matUri.empty())
                   {
                     this->PrependLogPath(matUri, geomElem);
@@ -423,27 +423,27 @@ void LogPlaybackPrivate::PrependLogPath(const std::string &_uri,
 //////////////////////////////////////////////////
 void LogPlaybackPrivate::ExtractStateAndResources()
 {
-  std::string cmp_src = this->logPath;
+  std::string cmpSrc = this->logPath;
 
-  size_t sep_idx = this->logPath.find(common::separator(""));
+  size_t sepIdx = this->logPath.find(common::separator(""));
   // Remove the separator at end of path
-  if (sep_idx == this->logPath.length() - 1)
-    cmp_src = this->logPath.substr(0, this->logPath.length() - 1);
-  cmp_src += ".zip";
+  if (sepIdx == this->logPath.length() - 1)
+    cmpSrc = this->logPath.substr(0, this->logPath.length() - 1);
+  cmpSrc += ".zip";
 
-  std::string cmp_dest = common::parentPath(this->logPath);
+  std::string cmpDest = common::parentPath(this->logPath);
 
   // Currently not removing the extracted directory after playback
   //   termination, because the directory could be from an unfinished recording
   //   that terminated unexpectedly, and zip file might not have been created.
-  if (fuel_tools::Zip::Extract(cmp_src, cmp_dest))
+  if (fuel_tools::Zip::Extract(cmpSrc, cmpDest))
   {
-    ignmsg << "Extracted log file and resources to [" << cmp_dest
+    ignmsg << "Extracted log file and resources to [" << cmpDest
            << "]" << std::endl;
   }
   else
   {
-    ignerr << "Failed to extract log file and resources to [" << cmp_dest
+    ignerr << "Failed to extract log file and resources to [" << cmpDest
            << "]" << std::endl;
   }
 }

@@ -72,12 +72,12 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Return true if all the models are saved successfully.
   /// \return True if all the models are saved successfully.
-  public: bool SaveModels(const std::set<std::string> &models);
+  public: bool SaveModels(const std::set<std::string> &_models);
 
   /// \brief Return true if all the files are saved successfully.
   /// \return True if all the files are saved successfully, and false if
   /// there are errors saving the files.
-  public: bool SaveFiles(const std::set<std::string> &resources);
+  public: bool SaveFiles(const std::set<std::string> &_files);
 
   /// \brief Compress model resource files and state file into one file.
   public: void CompressStateAndResources();
@@ -312,7 +312,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
     {
       // First directory after prefix is the model name
       std::string modelName = _uri.substr(modelPrefix.size(),
-        _uri.find("/", modelPrefix.size()) - modelPrefix.size());
+        _uri.find('/', modelPrefix.size()) - modelPrefix.size());
       modelNames.insert(modelName);
     }
     else if (_uri.find(filePrefix) == 0 || _uri[0] == '/')
@@ -325,9 +325,9 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
-      [&](const Entity &/*_entity*/, components::Geometry *geoComp) -> bool
+      [&](const Entity &/*_entity*/, components::Geometry *_geoComp) -> bool
   {
-    sdf::Geometry geoSdf = geoComp->Data();
+    sdf::Geometry geoSdf = _geoComp->Data();
     if (geoSdf.Type() == sdf::GeometryType::MESH)
     {
       std::string meshUri = geoSdf.MeshShape()->Uri();
@@ -343,9 +343,9 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
 
   // Loop through materials in world
   _ecm.EachNew<components::Material>(
-      [&](const Entity &/*_entity*/, components::Material *matComp) -> bool
+      [&](const Entity &/*_entity*/, components::Material *_matComp) -> bool
   {
-    sdf::Material matSdf = matComp->Data();
+    sdf::Material matSdf = _matComp->Data();
     std::string matUri = matSdf.ScriptUri();
     if (!matUri.empty())
     {
@@ -454,8 +454,8 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
         std::string modelPath = fileName.substr(0, meshIdx);
         std::string destPath = common::joinPaths(this->logPath, modelPath);
 
-        size_t meshIdx_src = srcPath.find("/meshes/");
-        srcPath = srcPath.substr(0, meshIdx_src);
+        size_t srcMeshIdx = srcPath.find("/meshes/");
+        srcPath = srcPath.substr(0, srcMeshIdx);
 
         igndbg << "source: " << srcPath << std::endl;
         igndbg << "dest: " << destPath << std::endl;
@@ -496,23 +496,23 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 //////////////////////////////////////////////////
 void LogRecordPrivate::CompressStateAndResources()
 {
-  std::string cmp_dest = this->logPath;
+  std::string cmpDest = this->logPath;
 
-  size_t sep_idx = this->logPath.find(common::separator(""));
+  size_t sepIdx = this->logPath.find(common::separator(""));
   // Remove the separator at end of path
-  if (sep_idx == this->logPath.length() - 1)
-    cmp_dest = this->logPath.substr(0, this->logPath.length() - 1);
-  cmp_dest += ".zip";
+  if (sepIdx == this->logPath.length() - 1)
+    cmpDest = this->logPath.substr(0, this->logPath.length() - 1);
+  cmpDest += ".zip";
 
   // Compress directory
-  if (fuel_tools::Zip::Compress(this->logPath, cmp_dest))
+  if (fuel_tools::Zip::Compress(this->logPath, cmpDest))
   {
-    ignmsg << "Compressed log file and resources to [" << cmp_dest
+    ignmsg << "Compressed log file and resources to [" << cmpDest
            << "]" << std::endl;
   }
   else
   {
-    ignerr << "Failed to compressed log file and resources to [" << cmp_dest
+    ignerr << "Failed to compressed log file and resources to [" << cmpDest
            << "]" << std::endl;
   }
 }
