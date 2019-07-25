@@ -403,7 +403,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
 bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
 {
   if (_files.empty())
-    return false;
+    return true;
 
   bool saveError = false;
   std::set<std::string> diff;

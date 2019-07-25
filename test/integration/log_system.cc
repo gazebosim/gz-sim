@@ -23,6 +23,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Filesystem.hh>
+#include <ignition/fuel_tools/Zip.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/log/Batch.hh>
 #include <ignition/transport/log/Log.hh>
@@ -60,7 +61,25 @@ class LogSystemTest : public ::testing::Test
       common::removeAll(this->logsDir);
     }
     common::createDirectories(this->logsDir);
-    common::createDirectories(this->logPlaybackDir);
+  }
+
+  // Append extension to the end of a path, removing the separator at
+  //   the end of the path if necessary.
+  // \param[in] _path Path to append extension to. May have separator at
+  //   the end.
+  // \param[in] _ext Extension including dot "." to be appended
+  public: std::string AppendExtension(const std::string &_path,
+    const std::string &_ext)
+  {
+    std::string result = _path;
+ 
+    size_t sepIdx = _path.find(common::separator(""));
+    // Remove the separator at end of path
+    if (sepIdx == _path.length() - 1)
+      result = _path.substr(0, _path.length() - 1);
+    result += _ext;
+
+    return result;
   }
 
   // Change path of recorded log file in SDF string loaded from file
@@ -105,10 +124,6 @@ class LogSystemTest : public ::testing::Test
 
   /// \brief Path to recorded log file
   public: std::string logDir = common::joinPaths(logsDir, "test_logs_record");
-
-  /// \brief Path to log file for playback
-  public: std::string logPlaybackDir =
-      common::joinPaths(logsDir, "test_logs_playback");
 };
 
 /////////////////////////////////////////////////
@@ -139,14 +154,14 @@ TEST_F(LogSystemTest, RecordAndPlayback)
     recordServer.Run(true, 1000, false);
   }
 
-  // Verify file is created
+  // Verify files are created
   auto logFile = common::joinPaths(this->logDir, "state.tlog");
   EXPECT_TRUE(common::exists(logFile));
+  std::string zipFile = this->AppendExtension(this->logDir, ".zip");
+  EXPECT_TRUE(common::exists(zipFile));
 
-  // move the log file to the playback directory
-  auto logPlaybackFile = common::joinPaths(this->logPlaybackDir, "state.tlog");
-  common::moveFile(logFile, logPlaybackFile);
-  EXPECT_TRUE(common::exists(logPlaybackFile));
+  // Remove recorded directory
+  common::removeAll(this->logDir);
 
   // World file to load
   const auto playSdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -155,13 +170,18 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   // Change log path in world SDF to build directory
   sdf::Root playSdfRoot;
   this->ChangeLogPath(playSdfRoot, playSdfPath, "LogPlayback",
-      this->logPlaybackDir);
+      this->logDir);
   ASSERT_EQ(1u, playSdfRoot.WorldCount());
 
   const auto sdfWorld = playSdfRoot.WorldByIndex(0);
   EXPECT_EQ("default", sdfWorld->Name());
 
+  // Extract recorded files to tmp directory as ground truth
+  auto validateDir = common::joinPaths(this->logsDir, "validate");
+  EXPECT_TRUE(fuel_tools::Zip::Extract(zipFile, validateDir));
   // Load log file recorded above
+  auto logPlaybackFile = common::joinPaths(validateDir, common::basename(this->logDir),
+    "state.tlog");
   transport::log::Log log;
   log.Open(logPlaybackFile);
   auto batch = log.QueryMessages();
