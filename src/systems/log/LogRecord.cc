@@ -424,7 +424,7 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
     std::string fileName = file;
 
     std::string srcPath;
-    if (fileName.find(prefix) == 0u)
+    if (fileName.compare(0, prefix.length(), prefix) == 0)
     {
       // strip prefix
       fileName = file.substr(prefix.size());
