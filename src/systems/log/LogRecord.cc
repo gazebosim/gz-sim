@@ -509,8 +509,6 @@ void LogRecordPrivate::CompressStateAndResources()
   {
     ignmsg << "Compressed log file and resources to [" << cmp_dest
            << "]" << std::endl;
-    // Remove directory after having compressed it
-    common::removeAll(this->logPath);
   }
   else
   {
