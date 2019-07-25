@@ -32,6 +32,7 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/SystemPaths.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/fuel_tools/Zip.hh>
 #include <ignition/msgs/Utility.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
@@ -60,13 +61,10 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.
   /// \return True if any recorder has been started successfully.
-  public: bool Start(/*EntityComponentManager &_ecm,*/
-    const std::string &_logPath = std::string(""));
+  public: bool Start(const std::string &_logPath = std::string(""));
 
   /// \brief Default directory to record to
   public: static std::string DefaultRecordPath();
-
-
 
   /// \brief Save model resources while recording a log, such as meshes
   /// and textures.
@@ -83,8 +81,6 @@ class ignition::gazebo::systems::LogRecordPrivate
 
   /// \brief Compress model resource files and state file into one file.
   public: void CompressStateAndResources();
-
-
 
   /// \brief Indicator of whether any recorder instance has ever been started.
   /// Currently, only one instance is allowed. This enforcement may be removed
@@ -191,7 +187,7 @@ void LogRecord::Configure(const Entity &_entity,
   if (!LogRecordPrivate::started)
   {
     // Get directory path from SDF param
-    this->dataPtr->Start(/*_ecm,*/ _sdf->Get<std::string>("path"));
+    this->dataPtr->Start(_sdf->Get<std::string>("path"));
   }
   else
   {
@@ -213,8 +209,7 @@ void LogRecord::SetRecordResources(const bool _record)
 }
 
 //////////////////////////////////////////////////
-bool LogRecordPrivate::Start(/*EntityComponentManager &_ecm,*/
-  const std::string &_logPath)
+bool LogRecordPrivate::Start(const std::string &_logPath)
 {
   // Only start one recorder instance
   if (LogRecordPrivate::started)
@@ -315,6 +310,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
     std::string prefix;
     if (_uri.find(modelPrefix) == 0)
     {
+      // First directory after prefix is the model name
       std::string modelName = _uri.substr(modelPrefix.size(),
         _uri.find("/", modelPrefix.size()) - modelPrefix.size());
       modelNames.insert(modelName);
@@ -325,7 +321,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
     }
   };
 
-  ignmsg << "LogModelResources()" << std::endl;
+  igndbg << "LogModelResources()" << std::endl;
 
   // Loop through geometries in world
   _ecm.EachNew<components::Geometry>(
@@ -339,7 +335,7 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
       {
         addModelResource(meshUri);
       }
-      ignmsg << meshUri << std::endl;
+      igndbg << meshUri << std::endl;
     }
 
     return true;
@@ -355,80 +351,11 @@ void LogRecordPrivate::LogModelResources(EntityComponentManager &_ecm)
     {
       addModelResource(matUri);
     }
-    ignmsg << matUri << std::endl;
+    igndbg << matUri << std::endl;
 
     return true;
   });
 
-
-  // Remove block after ECM way has been tested
-  /*
-  // record model resources if option is enabled.
-  for (auto const &model : this->models)
-  {
-    sdf::ElementPtr modelElem = model->GetSDF();
-    if (modelElem->HasElement("link"))
-    {
-      sdf::ElementPtr linkElem = modelElem->GetElement("link");
-      while (linkElem)
-      {
-        if (linkElem->HasElement("visual"))
-        {
-          sdf::ElementPtr visualElem = linkElem->GetElement("visual");
-          while (visualElem)
-          {
-            sdf::ElementPtr geomElem = visualElem->GetElement("geometry");
-            if (geomElem->HasElement("mesh"))
-            {
-              const std::string meshUri = geomElem->GetElement("mesh")
-                  ->Get<std::string>("uri");
-              if (!meshUri.empty())
-              {
-                addModelResource(meshUri);
-              }
-            }
-            if (visualElem->HasElement("material"))
-            {
-              sdf::ElementPtr matElem = visualElem->GetElement("material");
-              if (matElem->HasElement("script"))
-              {
-                sdf::ElementPtr scriptElem = matElem->GetElement("script");
-                if (scriptElem->HasElement("uri"))
-                {
-                  std::string matUri = scriptElem->Get<std::string>("uri");
-                  if (!matUri.empty())
-                  {
-                    addModelResource(matUri);
-                  }
-                }
-              }
-            }
-            visualElem = visualElem->GetNextElement("visual");
-          }
-        }
-        if (linkElem->HasElement("collision"))
-        {
-          sdf::ElementPtr collisionElem = linkElem->GetElement("collision");
-          while (collisionElem)
-          {
-            sdf::ElementPtr geomElem = collisionElem->GetElement("geometry");
-            if (geomElem->HasElement("mesh"))
-            {
-              const std::string meshUri = geomElem->GetElement("mesh")
-                  ->Get<std::string>("uri");
-              if (!meshUri.empty())
-              {
-                addModelResource(meshUri);
-              }
-            }
-            collisionElem = collisionElem->GetNextElement("collision");
-          }
-        }
-        linkElem = linkElem->GetNextElement("link");
-      }
-    }
-  }
-  */
   if (!this->SaveModels(modelNames) ||
       !this->SaveFiles(fileNames))
   {
@@ -463,27 +390,6 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
                << "' to '" << destModelPath << "'" << std::endl;
       }
     }
-
-    /*
-    for (const auto &path : common::SystemPaths::FilePaths())
-    {
-      filesystem::path srcModelPath(path);
-      srcModelPath = joinPaths(srcModelPath, model);
-      if (filesystem::exists(srcModelPath))
-      {
-        modelFound = true;
-        std::string destModelPath = joinPaths(this->logPath, model);
-        if (!common::copyDirectory(srcModelPath, destModelPath))
-        {
-          ignerr << "Failed to copy model from '" << srcModelPath
-                 << "' to '" << destModelPath << "'" << std::endl;
-        }
-        break;
-      }
-    }
-
-    if (!modelFound)
-    */
     else
     {
       ignwarn << "Model: " << model << " not found, "
@@ -492,8 +398,6 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
   }
   return true;
 }
-
-
 
 //////////////////////////////////////////////////
 bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
@@ -531,36 +435,7 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
       {
         fileFound = true;
       }
-
-      /*
-      common::SystemPaths systemPaths;
-      systemPaths.SetFilePathEnv("IGN_GAZEBO_RESOURCE_PATH");
-      systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-      std::string filePath = systemPaths.FindFile(_config.SdfFile());
-      // TODO NOW HERE: Still need to use this, because the directory we really want is right after model://, which isn't in the <uri> paths... only in the <include> tags, which isn't in ecm.
-      //   Actually that doesn't help, because the paths in ~/.ignition are absolute paths, the IGN env var is not even set.
-      for (const auto &path : systemPaths::FilePaths())
-      {
-        std::string p = common::joinPaths(path, fileName);
-        if (common::exists(p))
-        {
-          srcPath = path;
-          fileFound = true;
-          break;
-        }
-      }
-      */
     }
-
-    /*
-    // If can use common::findFile(), this would not be needed
-    // if not found in gazebo path or resource has abs path then check local
-    // filesystem
-    if (!fileFound || fileName[0] == '/')
-    {
-      fileFound = common::exists(fileName);
-    }
-    */
 
     // copy resource
     // NOTE: if file is a mesh, e.g. box.dae, it could contain reference to
@@ -582,8 +457,8 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
         size_t meshIdx_src = srcPath.find("/meshes/");
         srcPath = srcPath.substr(0, meshIdx_src);
 
-        ignmsg << "source: " << srcPath << std::endl;
-        ignmsg << "dest: " << destPath << std::endl;
+        igndbg << "source: " << srcPath << std::endl;
+        igndbg << "dest: " << destPath << std::endl;
 
         if (!common::createDirectories(destPath) ||
             !common::copyDirectory(srcPath, destPath))
@@ -618,11 +493,33 @@ bool LogRecordPrivate::SaveFiles(const std::set<std::string> &_files)
   return !saveError;
 }
 
+//////////////////////////////////////////////////
 void LogRecordPrivate::CompressStateAndResources()
 {
-  // TODO
+  std::string cmp_dest = this->logPath;
+
+  size_t sep_idx = this->logPath.find(common::separator(""));
+  // Remove the separator at end of path
+  if (sep_idx == this->logPath.length() - 1)
+    cmp_dest = this->logPath.substr(0, this->logPath.length() - 1);
+  cmp_dest += ".zip";
+
+  // Compress directory
+  if (fuel_tools::Zip::Compress(this->logPath, cmp_dest))
+  {
+    ignmsg << "Compressed log file and resources to [" << cmp_dest
+           << "]" << std::endl;
+    // Remove directory after having compressed it
+    common::removeAll(this->logPath);
+  }
+  else
+  {
+    ignerr << "Failed to compressed log file and resources to [" << cmp_dest
+           << "]" << std::endl;
+  }
 }
 
+//////////////////////////////////////////////////
 void LogRecord::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
