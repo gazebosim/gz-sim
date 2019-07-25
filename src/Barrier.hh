@@ -59,20 +59,22 @@ namespace ignition
       /// \brief Enumeration of possible return values from wait()
       public: enum class ExitStatus
       {
-        /// \brief There are more threads to wait()
-        GENERATION_PENDING,
-        /// \brief All threads have reached wait()
-        GENERATION_DONE,
-        /// \brief Barrier was cancelled
+        /// \brief Returned if the caller was not the last to call wait()
+        DONE,
+        /// \brief Returned if the caller was the last to call wait()
+        DONE_LAST,
+        /// \brief Returned if the barrier was cancelled.
         CANCELLED,
       };
 
       /// \brief Block until _numThreads have reached the wait() function.
       /// \returns An exit status
       ///
-      /// In general, all threads should return GENERATION_PENDING or
-      /// GENERATION_DONE, depending on the order that the wait function
-      /// was reached.
+      /// In general, all threads should return DONE or DONE_LAST,
+      /// depending on the order that the wait function was reached.
+      ///
+      /// Exactly one thread in each generation of Wait will return
+      /// DONE_LAST.
       ///
       /// Alternatively, if the barrier is cancelled, the ExitStatus will
       /// reflect that.

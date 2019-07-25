@@ -51,7 +51,7 @@ void SyncThreadsTest(unsigned int threadCount)
         }
 
         EXPECT_EQ(barrier->Wait(),
-            gazebo::Barrier::ExitStatus::GENERATION_PENDING);
+            gazebo::Barrier::ExitStatus::DONE);
 
         {
           std::lock_guard<std::mutex> lock(mutex);
@@ -74,7 +74,7 @@ void SyncThreadsTest(unsigned int threadCount)
   // Give time for the last thread to call Wait
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_EQ(barrier->Wait(), gazebo::Barrier::ExitStatus::GENERATION_DONE);
+  EXPECT_EQ(barrier->Wait(), gazebo::Barrier::ExitStatus::DONE_LAST);
 
   {
     std::unique_lock<std::mutex> lock(mutex);
