@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <ignition/common/Console.hh>
+#include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/plugin/Register.hh>
 
@@ -97,6 +98,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
     unsigned int _parentEntity, const QString &_type)
 {
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
   // Root
@@ -149,6 +152,7 @@ void TreeModel::AddEntity(unsigned int _entity, const QString &_entityName,
 /////////////////////////////////////////////////
 void TreeModel::RemoveEntity(unsigned int _entity)
 {
+  IGN_PROFILE("TreeModel::RemoveEntity");
   QStandardItem *item{nullptr};
   auto itemIt = this->entityItems.find(_entity);
   if (itemIt != this->entityItems.end())
@@ -214,6 +218,7 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 //////////////////////////////////////////////////
 void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
+  IGN_PROFILE("EntityTree::Update");
   // Treat all pre-existent entities as new at startup
   if (!this->dataPtr->initialized)
   {
