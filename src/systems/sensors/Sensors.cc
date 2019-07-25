@@ -81,6 +81,10 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex renderMutex;
 
   /// \brief Condition variable to signal rendering thread
+  ///
+  /// This variable is used to block/unblock operations in the rendering
+  /// thread.  For a more detailed explanation on the flow refer to the
+  /// documentation on RenderThread.
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
@@ -105,6 +109,31 @@ class ignition::gazebo::systems::SensorsPrivate
   private: void RunOnce();
 
   /// \brief Top level function for the rendering thread
+  ///
+  /// This function captures all of the behavior of the rendering thread.
+  /// The behavior is captured in two phases: initialization and steady state.
+  ///
+  /// When the thread is first started, it waits on renderCv until the
+  /// prerequisites for initialization are met, and the `doInit` flag is set.
+  /// In order for initialization to proceed, rendering sensors must be
+  /// available in the EntityComponentManager.
+  ///
+  /// When doInit is set, and renderCv is notified, initialization
+  /// is performed (creating the render context and scene). During
+  /// initialization, execution is blocked for the caller of PostUpdate.
+  /// When initialization is complete, PostUpdate will be notified via
+  /// renderCv and execution will continue.
+  ///
+  /// Once in steady state, a rendering operation is triggered by setting
+  /// updateAvailable to true, and notifying via the renderCv.
+  /// The rendering operation is done in `RunOnce`.
+  ///
+  /// The caller of PostUpdate will not be blocked if there is no
+  /// rendering operation currently ongoing. Rendering will occur
+  /// asyncronously.
+  //
+  /// The caller of PostUpdate will be blocked if there is a rendering
+  /// operation currently ongoing, until that completes.
   private: void RenderThread();
 
   /// \brief Launch the rendering thread
