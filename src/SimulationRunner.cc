@@ -185,7 +185,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() {
+SimulationRunner::~SimulationRunner()
+{
   this->StopWorkerThreads();
 }
 
@@ -336,7 +337,7 @@ void SimulationRunner::ProcessSystemQueue()
   // If additional systems were added, recreate the worker threads.
   if (pending > 0)
   {
-    igndbg << "Creating postupdate worker threads: "
+    igndbg << "Creating PostUpdate worker threads: "
       << this->systemsPostupdate.size() + 1 << std::endl;
 
     this->postUpdateStartBarrier =
@@ -347,22 +348,23 @@ void SimulationRunner::ProcessSystemQueue()
     this->postUpdateThreadsRunning = true;
     int id = 0;
 
-    for (auto& system : this->systemsPostupdate)
+    for (auto &system : this->systemsPostupdate)
     {
       igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
 
-      this->postUpdateThreads.push_back(std::thread([&, id](){
+      this->postUpdateThreads.push_back(std::thread([&, id]()
+      {
         std::stringstream ss;
         ss << "PostUpdateThread: " << id;
         IGN_PROFILE_THREAD_NAME(ss.str().c_str());
         while (this->postUpdateThreadsRunning)
         {
-          this->postUpdateStartBarrier->wait();
+          this->postUpdateStartBarrier->Wait();
           if (this->postUpdateThreadsRunning)
           {
             system->PostUpdate(this->currentInfo, this->entityCompMgr);
           }
-          this->postUpdateStopBarrier->wait();
+          this->postUpdateStopBarrier->Wait();
         }
         igndbg << "Exiting postupdate worker thread ("
           << id << ")" << std::endl;
@@ -400,8 +402,8 @@ void SimulationRunner::UpdateSystems()
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
     {
-      this->postUpdateStartBarrier->wait();
-      this->postUpdateStopBarrier->wait();
+      this->postUpdateStartBarrier->Wait();
+      this->postUpdateStopBarrier->Wait();
     }
   }
 }
@@ -422,18 +424,20 @@ void SimulationRunner::OnStop()
 /////////////////////////////////////////////////
 void SimulationRunner::StopWorkerThreads()
 {
-  if (this->postUpdateStartBarrier && this->postUpdateThreads.size())
+  this->postUpdateThreadsRunning = false;
+  if (this->postUpdateStartBarrier)
   {
-    this->postUpdateThreadsRunning = false;
-    this->postUpdateStartBarrier->cancel();
-    this->postUpdateStopBarrier->cancel();
-
-    for (auto & thread : this->postUpdateThreads)
-    {
-      thread.join();
-    }
-    this->postUpdateThreads.clear();
+    this->postUpdateStartBarrier->Cancel();
   }
+  if (this->postUpdateStopBarrier)
+  {
+    this->postUpdateStopBarrier->Cancel();
+  }
+  for (auto &thread : this->postUpdateThreads)
+  {
+    thread.join();
+  }
+  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
