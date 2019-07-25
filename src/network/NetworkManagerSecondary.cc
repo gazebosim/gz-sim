@@ -169,5 +169,7 @@ void NetworkManagerSecondary::OnStep(
     this->dataPtr->ecm->State(stateMsg, entities);
 
   this->stepAckPub.Publish(stateMsg);
+
+  this->dataPtr->ecm->SetAllComponentsUnchanged();
 }
 
