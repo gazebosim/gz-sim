@@ -35,7 +35,7 @@ class ignition::gazebo::BarrierPrivate
   public: unsigned int count;
 
   /// \brief Barrier generation, incremented when all threads report
-  public: unsigned int generation;
+  public: unsigned int generation{0};
 };
 
 using namespace ignition::gazebo;
@@ -46,14 +46,13 @@ Barrier::Barrier(unsigned int _numThreads)
 {
   this->dataPtr->numThreads = _numThreads;
   this->dataPtr->count = _numThreads;
-  this->dataPtr->generation = 0;
 }
 
 //////////////////////////////////////////////////
 Barrier::~Barrier() = default;
 
 //////////////////////////////////////////////////
-Barrier::ExitStatus Barrier::wait()
+Barrier::ExitStatus Barrier::Wait()
 {
   if (this->dataPtr->cancelled)
   {
@@ -90,7 +89,7 @@ Barrier::ExitStatus Barrier::wait()
 }
 
 //////////////////////////////////////////////////
-void Barrier::cancel()
+void Barrier::Cancel()
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
   // This forces pending threads to release

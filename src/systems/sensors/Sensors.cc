@@ -123,8 +123,10 @@ void SensorsPrivate::WaitForInit()
     std::unique_lock<std::mutex> lock(this->renderMutex);
     // Wait to be ready for initialization or stopped running.
     // We need rendering sensors to be available to initialize.
-    this->renderCv.wait(lock, [this](){
-        return this->doInit || !this->running; });
+    this->renderCv.wait(lock, [this]()
+    {
+      return this->doInit || !this->running;
+    });
 
     if (this->doInit)
     {
@@ -145,8 +147,9 @@ void SensorsPrivate::WaitForInit()
 void SensorsPrivate::RunOnce()
 {
   std::unique_lock<std::mutex> lock(this->renderMutex);
-  this->renderCv.wait(lock, [this](){
-      return !this->running || this->updateAvailable;
+  this->renderCv.wait(lock, [this]()
+  {
+    return !this->running || this->updateAvailable;
   });
 
   if (!this->running)

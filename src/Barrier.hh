@@ -59,9 +59,12 @@ namespace ignition
       /// \brief Enumeration of possible return values from wait()
       public: enum class ExitStatus
       {
-        GENERATION_PENDING,  // There are more threads to wait()
-        GENERATION_DONE,     // All threads have reached wait()
-        CANCELLED,           // Barrier was cancelled
+        /// \brief There are more threads to wait()
+        GENERATION_PENDING,
+        /// \brief All threads have reached wait()
+        GENERATION_DONE,
+        /// \brief Barrier was cancelled
+        CANCELLED,
       };
 
       /// \brief Block until _numThreads have reached the wait() function.
@@ -73,11 +76,11 @@ namespace ignition
       ///
       /// Alternatively, if the barrier is cancelled, the ExitStatus will
       /// reflect that.
-      public: ExitStatus wait();
+      public: ExitStatus Wait();
 
       /// \brief Cancel the barrier, causing all threads to unblock and
       ///        return CANCELLED
-      public: void cancel();
+      public: void Cancel();
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<BarrierPrivate> dataPtr;
