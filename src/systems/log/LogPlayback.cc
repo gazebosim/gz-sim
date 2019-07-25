@@ -409,7 +409,7 @@ void LogPlaybackPrivate::PrependLogPath(const std::string &_uri,
 {
   const std::string filePrefix = "file://";
 
-  if (_uri.find(filePrefix) == 0 || _uri[0] == '/')
+  if (_uri.compare(0, filePrefix.length(), filePrefix) == 0 || _uri[0] == '/')
   {
     sdf::ElementPtr uriElem = _geomElem->GetElement("mesh")
       ->GetElement("uri");
